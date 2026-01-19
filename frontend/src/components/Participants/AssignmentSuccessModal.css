@@ -1,111 +1,83 @@
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-  }
-  
-  .modal-card {
-    background: white;
-    padding: 1.2rem 1.5rem;
-    border-radius: 0.8rem;
-    max-width: 800px;
-    width: 100%;
-    height: 90vh;
-    box-shadow: var(--sharp-shadow);
-    overflow-y: scroll;
-    position: relative; 
-  }
+/* src/components/Participants/AssignmentSuccessModal.css */
+.assignment-modal-content {
+  min-width: 600px;
+}
 
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: var(--sharp-radius);
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;  /* ensures visibility above content */
-  }
-  
-  .modal-close:hover {
-    background: #c0392b;
-  }
+.assignment-warning {
+  margin: 0;
+}
 
-  .assignment-descr {
-    margin: 0;
-  }
-  
-  .link-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f7f7f7;
-    border-radius: 6px;
-    padding: 0.3rem;
-    margin-bottom: 0.5rem;
-  }
-  .link-text { flex: 3; padding: 0.1rem; }
-  .btn-copy { flex: 1; }
-  
-  .qr-wrapper {
-    display: flex;
-    justify-content: center;
-    margin: 0.2rem 0;
-  }
-  
-  .email-box {
-    width: 100%;
-    padding: 0.6rem;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background: #fbfbfb;
-    margin-bottom: 0.8rem;
-  }
-  
-  .btn-copy {
-    width: 100%;
-    padding: 0.5rem;
-    background: var(--primary);
-    color: white;
-    border-radius: 6px;
-    border: none;
-    margin: 0rem;
-  }
-  
-  .btn-close {
-    width: 100%;
-    padding: 0.5rem;
-    background: var(--warning);
-    color: white;
-    border-radius: 6px;
-    border: none;
-    margin: 0;
-  }
+/* One row for Label + Link + Copy Button */
+.link-row-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
 
-  .assignment-warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-    padding: 0.8rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
-    line-height: 1.4;
-  }
-  
-  .assignment-warning strong {
-    font-weight: 700;
-  }
-  
+.form-label { flex: 1}
+.btn-copy-action { flex: 1}
+
+.link-text-inline {
+  flex: 5;
+  font-family: monospace;
+  font-size: 0.95rem;
+  overflow-x: auto;
+  color: #334155;
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  padding: 8px 8px;
+}
+
+/* Compact QR Section */
+.qr-container-compact {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0;
+  gap: 30px;
+}
+
+.qr-wrapper-small {
+  flex: 3;
+  padding: 0px 15px;
+  margin: 0;
+}
+
+.qr-actions-row, .form-label {
+  flex: 1;
+}
+
+.btn-qr-action, .btn-copy-action, .btn-copy-outline, .btn-sent-email {
+  font-size: 1.1rem;
+  padding: 8px 10px;
+  border-radius: var(--sharp-radius);
+}
+
+.btn-qr-action { background: var(--purple); }
+.btn-copy-action, .btn-copy-outline { background-color: var(--warning);}
+
+.email-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+/* Align email label and input on one row */
+.form-group, .row-align {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0px;
+}
+
+.modal-footer-btns {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}

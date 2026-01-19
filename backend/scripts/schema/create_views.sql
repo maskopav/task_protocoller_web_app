@@ -12,7 +12,7 @@ SELECT
     p.full_name,
     p.birth_date,
     p.sex,
-    p.contact_email,
+    COALESCE(p.contact_email,p.login_email) AS contact_email,
     p.contact_phone,
     p.notes,
 

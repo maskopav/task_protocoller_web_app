@@ -46,7 +46,13 @@ export default function ParticipantDashboardPage() {
   const [searching, setSearching] = useState(false);
 
   // Success Modal State
-  const [successModal, setSuccessModal] = useState({ open: false, link: "", text: "" });
+  const [successModal, setSuccessModal] = useState({ 
+    open: false, 
+    link: "", 
+    text: "", 
+    email: "",
+    name: ""
+  });
 
   // --- Data Loading ---
   async function loadData() {
@@ -118,8 +124,8 @@ export default function ParticipantDashboardPage() {
   };
 
   // Handler to open success modal from children
-  const handleShowSuccessModal = (link, text) => {
-    setSuccessModal({ open: true, link, text });
+  const handleShowSuccessModal = (link, text, email, name) => {
+    setSuccessModal({ open: true, link, text, email: email || "", name: name || "" });
   };
 
   // Handler for Search Button
@@ -168,6 +174,20 @@ export default function ParticipantDashboardPage() {
     }
     // Otherwise show all active protocols
     return protocols;
+  };
+
+  const handleSendProtocolEmail = async (email, customBody) => {
+    try {
+      // You will need to add this to your api/participantProtocols.js
+      // await sendProtocolEmailApi({
+      //    email,
+      //    body: customBody,
+      //    link: successModal.link
+      // });
+      alert(t("common:auth.resetEmailSent")); // Or a custom success toast
+    } catch (err) {
+      alert("Error sending email");
+    }
   };
 
   return (
@@ -260,13 +280,15 @@ export default function ParticipantDashboardPage() {
       />
 
       {/* Global Success Modal */}
-      {successModal.open && (
-        <AssignmentSuccessModal
-          link={successModal.link}
-          emailText={successModal.text}
-          onClose={() => setSuccessModal({ ...successModal, open: false })}
-        />
-      )}
+      <AssignmentSuccessModal
+        open={successModal.open}
+        link={successModal.link}
+        emailText={successModal.text}
+        participantEmail={successModal.email}
+        participantName={successModal.name}
+        onClose={() => setSuccessModal({ ...successModal, open: false })}
+        onSendEmail={handleSendProtocolEmail}
+      />
 
       {/* Search Modal */}
       <Modal

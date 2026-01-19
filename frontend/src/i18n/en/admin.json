@@ -308,6 +308,7 @@
     "title": "Protocol Assigned",
     "warning": "⚠️ <strong>Important:</strong> This link is for the <strong>participant only</strong>. Opening it will start a real data collection session.<br/>To test the protocol yourself without saving data, please go to the <strong>Protocols</strong> tab and click the <strong>Show</strong> button instead.",
     "description": "Your participant can access their protocol via:",
+    "descriptionQR": "Or by scanning the QR code using smartphone:",
     "copyLink": "Copy Link",
     "qrTitle": "QR Code",
     "emailMessage": "Email Message",

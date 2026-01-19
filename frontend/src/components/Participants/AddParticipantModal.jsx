@@ -167,7 +167,7 @@ export default function AddParticipantModal({
 
           // 3. Open Success Modal via Parent
           if (onShowSuccessModal) {
-              onShowSuccessModal(link, emailText);
+            onShowSuccessModal(link, emailText, formData.contact_email, formData.full_name);
           }
         }
         

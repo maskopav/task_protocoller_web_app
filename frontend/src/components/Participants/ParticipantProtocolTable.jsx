@@ -23,7 +23,7 @@ export default function ParticipantProtocolTable({ rows, onRefresh, onShowSucces
     });
   }
 
-  async function handleActivate(id, protocolName, participantName, uniqueToken) {
+  async function handleActivate(id, protocolName, participantName, uniqueToken, contactEmail) {
     const ok = await confirm({
       title: t("participantProtocol.confirm.assign.title"),
       message: t("participantProtocol.confirm.assign.message", {
@@ -41,7 +41,7 @@ export default function ParticipantProtocolTable({ rows, onRefresh, onShowSucces
     const emailText = generateEmail(participantName, link);
 
     // Call Parent Handler
-    if (onShowSuccessModal) onShowSuccessModal(link, emailText);
+    if (onShowSuccessModal) onShowSuccessModal(link, emailText, contactEmail, participantName);
     onRefresh && onRefresh();
   }
 
@@ -115,7 +115,8 @@ export default function ParticipantProtocolTable({ rows, onRefresh, onShowSucces
                               r.participant_protocol_id,
                               r.protocol_name,
                               r.full_name,
-                              r.access_token
+                              r.access_token,
+                              r.contactEmail
                             )
                           }
                         >
@@ -149,7 +150,7 @@ export default function ParticipantProtocolTable({ rows, onRefresh, onShowSucces
                                 r.full_name,
                                 link
                               );
-                              if (onShowSuccessModal) onShowSuccessModal(link, emailText);
+                              if (onShowSuccessModal) onShowSuccessModal(link, emailText, r.contact_email, r.full_name);
                             }}
                           >
                             {t("participantProtocol.buttons.showModal")}
