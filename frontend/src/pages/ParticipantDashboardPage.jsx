@@ -7,7 +7,7 @@ import { useMappings } from "../context/MappingContext";
 // API
 import { getParticipants, searchParticipant } from "../api/participants";
 import { getProtocolsByProjectId } from "../api/protocols";
-import { fetchParticipantProtocolView } from "../api/participantProtocols";
+import { fetchParticipantProtocolView, sendProtocolEmailApi } from "../api/participantProtocols";
 
 // Components
 import ParticipantTable from "../components/Participants/ParticipantTable";
@@ -22,7 +22,7 @@ import "./Pages.css";
 import "../components/Protocols/Protocols.css"; 
 
 export default function ParticipantDashboardPage() {
-  const { t } = useTranslation(["admin", "common"]);
+  const { t, i18n } = useTranslation(["admin", "common"]);
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { refreshMappings, mappings } = useMappings(); // used to refresh dropdowns context if needed
@@ -178,15 +178,16 @@ export default function ParticipantDashboardPage() {
 
   const handleSendProtocolEmail = async (email, customBody) => {
     try {
-      // You will need to add this to your api/participantProtocols.js
-      // await sendProtocolEmailApi({
-      //    email,
-      //    body: customBody,
-      //    link: successModal.link
-      // });
-      alert(t("common:auth.resetEmailSent")); // Or a custom success toast
+      await sendProtocolEmailApi({
+         email,
+         body: customBody,
+         link: successModal.link,
+         lang: i18n.language
+      });
     } catch (err) {
-      alert("Error sending email");
+      console.error("Email API error:", err);
+      // Re-throw so the modal can stop the loading state and potentially show an error
+      throw err;
     }
   };
 

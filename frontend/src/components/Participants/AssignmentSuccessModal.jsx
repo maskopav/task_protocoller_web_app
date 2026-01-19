@@ -20,16 +20,16 @@ export default function AssignmentSuccessModal({
   const [recipientEmail, setRecipientEmail] = useState("");
   const [editableBody, setEditableBody] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sentSuccessfully, setSentSuccessfully] = useState(false);
 
   useEffect(() => {
     if (open) {
       setRecipientEmail(participantEmail || "");
-      // Construct default message using the name if the provided emailText is empty
-      const initialText = emailText || t("assignmentModal.emailText", { 
+      setEditableBody(emailText || t("assignmentModal.emailText", { 
         name: participantName || t("assignmentModal.participant"), 
         link: link 
-      });
-      setEditableBody(initialText);
+      }));
+      setSentSuccessfully(false); // Reset feedback on open
     }
   }, [open, participantEmail, participantName, emailText, link, t]);
 
@@ -57,6 +57,7 @@ export default function AssignmentSuccessModal({
     setIsSending(true);
     try {
       await onSendEmail(recipientEmail, editableBody);
+      setSentSuccessfully(true);
     } catch (err) {
       console.error("Failed to send email:", err);
     } finally {
@@ -93,7 +94,7 @@ export default function AssignmentSuccessModal({
         <div className="qr-container-compact">
           <label className="form-label compact">{t("assignmentModal.descriptionQR")}</label>
           <div className="qr-wrapper-small" ref={qrRef}>
-            <QRCodeSVG value={link} size={150} />
+            <QRCodeSVG value={link} size={120} />
           </div>
           <div className="qr-actions-row">
              <button className="btn-qr-action" onClick={handleDownloadQR}>
@@ -125,7 +126,10 @@ export default function AssignmentSuccessModal({
               onChange={(e) => setEditableBody(e.target.value)}
             />
           </div>
-
+          {/* Success Info Display */}
+          {sentSuccessfully && (
+            <span className="email-success-info">✅ {t("assignmentModal.emailSentSuccess")}</span>
+          )}
           <div className="modal-footer-btns">
              <button className="btn-copy-outline" onClick={() => navigator.clipboard.writeText(editableBody)}>
               {t("assignmentModal.copyEmail")}

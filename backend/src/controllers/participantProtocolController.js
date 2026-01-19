@@ -2,6 +2,7 @@
 import pool from "../db/connection.js";
 import { executeQuery, executeTransaction } from "../db/queryHelper.js";
 import { logToFile } from "../utils/logger.js";
+import { sendManualProtocolEmail } from "../utils/emailService.js";
 import { assignProtocolToParticipant } from "../utils/assignmentHelper.js";
 
 // GET /api/participant-protocol/:token
@@ -214,5 +215,30 @@ export const assignProtocol = async (req, res) => {
   } catch (err) {
     console.error("Assign protocol error:", err);
     res.status(500).json({ error: err.message || "Failed to assign protocol" });
+  }
+};
+
+// POST /api/participant-protocol/send-manual-email
+export const sendManualEmail = async (req, res) => {
+  const { email, body, link, lang = "en" } = req.body;
+
+  if (!email || !body || !link) {
+    return res.status(400).json({ error: "Missing email, body, or link" });
+  }
+
+  try {
+    const success = await sendManualProtocolEmail(email, { 
+      customBody: body, 
+      link 
+    }, lang);
+
+    if (success) {
+      res.json({ success: true, message: "Email sent successfully" });
+    } else {
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  } catch (err) {
+    console.error("Manual email error:", err);
+    res.status(500).json({ error: "Internal server error during email dispatch" });
   }
 };

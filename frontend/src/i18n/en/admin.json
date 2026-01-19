@@ -315,6 +315,7 @@
     "copyEmail": "Copy Email Text",
     "close": "Close",
     "emailText": "Dear {{name}},\n\nYou have been assigned a new assessment protocol.\nPlease open the following link:\n\n{{link}}\n\nIf you prefer, you may scan the QR code in the attached image.\n\nThank you.",
+    "emailSentSuccess": "Email was successfully sent!",
     "participant": "participant"
   } 
 }

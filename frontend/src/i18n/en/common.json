@@ -106,6 +106,7 @@
       "manualLogin": "If you need to log in manually later",
       "password": "Password",
       "subjectCredentials": "Your Access Link & Credentials",
+      "subjectProtocol": "TaskProtocoller: New procol assigned!",
       "openProtocol": "Open Protocol",
       "subjectReset": "Password Reset Request",
       "resetRequested": "You requested to reset your password. Click the button below to proceed.",

@@ -6,7 +6,8 @@ import {
   getParticipantProtocolViewById,
   activateParticipantProtocol,
   deactivateParticipantProtocol,
-  assignProtocol
+  assignProtocol,
+  sendManualEmail
 } from "../controllers/participantProtocolController.js";
 
 const router = express.Router();
@@ -33,4 +34,7 @@ router.get("/", getParticipantProtocolView);
 /// get single row from v_participant_protocols by participant_protocol_id
 router.get("/:id", getParticipantProtocolViewById);
   
+// POST /api/participant-protocol/send-manual-email
+router.post("/send-manual-email", sendManualEmail);
+
 export default router;

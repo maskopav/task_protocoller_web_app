@@ -81,3 +81,13 @@
   gap: 10px;
   margin: 0;
 }
+
+.email-success-info {
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-right: auto; /* Pushes button to the right */
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
