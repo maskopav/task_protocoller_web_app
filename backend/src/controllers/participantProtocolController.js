@@ -157,7 +157,10 @@ export async function activateParticipantProtocol(req, res) {
 
     const [rows] = await pool.query(
       `UPDATE participant_protocols 
-       SET is_active = 1, IFNULL(start_date, NOW()), end_date = NULL
+       SET 
+        is_active = 1, 
+        start_date = IFNULL(start_date, NOW()),
+        end_date = NULL
        WHERE id = ?`,
       [participant_protocol_id]
     );

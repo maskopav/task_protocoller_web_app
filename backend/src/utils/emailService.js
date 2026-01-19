@@ -8,7 +8,14 @@ import { fileURLToPath } from "url";
 import { logToFile } from "./logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const localesPath = path.join(__dirname, "../../../frontend/src/i18n/{{lng}}/{{ns}}.json");
+// Determine the base locales directory
+// In Prod: Set I18N_PATH in your .env to "./locales"
+// In Dev: Falls back to the frontend source folder
+const baseLocalesDir = process.env.I18N_PATH 
+  ? path.resolve(process.env.I18N_PATH) 
+  : path.join(__dirname, "../../../frontend/src/i18n");
+
+const localesPath = path.join(baseLocalesDir, "{{lng}}/{{ns}}.json");
 
 // 1. Initialize i18next to use your FRONTEND translation files
 // This points to: frontend/src/i18n/{{lng}}/common.json (or admin.json)

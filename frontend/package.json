@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
-    "build": "vite build --mode production",
+    "build": "vite build --mode production && shx mkdir -p ../backend/locales && shx cp -r src/i18n/* ../backend/locales/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -28,6 +28,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
+    "shx": "^0.4.0",
     "typescript": "^5.9.3",
     "vite": "^7.1.7"
   }
