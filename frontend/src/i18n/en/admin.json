@@ -52,6 +52,7 @@
     "projectManagement": {
       "title": "Project Management",
       "description": "Manage clinical projects, track active studies, and edit metadata.",
+      "createNew": "Create New Project",
       "noData": "No projects created yet.",
       "tableTitle": "Projects",
       "table": {

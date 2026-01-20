@@ -29,6 +29,17 @@ export async function fetchProjectsList(userId, role) {
   return res.json();
 }
 
+export async function createProjectApi(payload) {
+  const res = await fetch(`${API_BASE}/projects/create`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || "Failed to create project");
+  return json;
+}
+
 export async function updateProjectApi(payload) {
   const res = await fetch(`${API_BASE}/projects/update`, {
     method: "PUT",

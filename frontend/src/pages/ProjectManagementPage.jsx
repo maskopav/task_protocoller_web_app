@@ -6,9 +6,10 @@ import { useMappings } from "../context/MappingContext";
 import { useUser } from "../context/UserContext";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import ProjectTable from "../components/ProjectManagement/ProjectTable";
+import AddProjectModal from "../components/ProjectManagement/AddProjectModal";
 import EditProjectModal from "../components/ProjectDashboard/EditProjectModal";
 import { updateProjectApi } from "../api/projects"; 
-
+import "./Pages.css";
 
 export default function ProjectManagementPage() {
   const { t } = useTranslation(["admin", "common"]);
@@ -16,6 +17,7 @@ export default function ProjectManagementPage() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [editingProject, setEditingProject] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const handleToggleActive = async (projectId, newStatus) => {
     try {
@@ -32,7 +34,7 @@ export default function ProjectManagementPage() {
   };
 
   return (
-    <div className="dashboard-page admin-management-page">
+    <div className="dashboard-page">
       <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="page-header">
@@ -42,17 +44,20 @@ export default function ProjectManagementPage() {
         </p>
       </div>
       
-      <div className="management-content card">
-        <div className="section-header">
-          <h3 className="section-title">{t("management.projectManagement.tableTitle")}</h3>
-        </div>
-        
+      <div className="management-sections">
         <ProjectTable 
           projects={mappings?.projects || []} 
           onEdit={setEditingProject}
           onToggleActive={handleToggleActive}
+          onAddClick={() => setShowAddModal(true)}
         />
       </div>
+
+      <AddProjectModal 
+        open={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        onSuccess={() => { refreshMappings(); }} 
+      />
 
       {editingProject && (
         <EditProjectModal
