@@ -30,6 +30,19 @@ export const saveProtocol = async (req, res) => {
      return res.status(403).json({ error: "Cannot edit protocols in an inactive project." });
   }
 
+  // Check for name uniqueness if creating a NEW protocol group
+  if (!editingMode) {
+    const existing = await executeQuery(
+      "SELECT id FROM protocols WHERE LOWER(name) = LOWER(?) AND version = 1", 
+      [name]
+    );
+    if (existing.length > 0) {
+      return res.status(409).json({ 
+        error: `A protocol named "${name}" already exists. Please choose a unique name.` 
+      });
+    }
+  }
+
   try {
       const protocol_id = await executeTransaction(async (conn) => {
       // Determine the protocol_group_id
@@ -163,8 +176,15 @@ export const saveProtocol = async (req, res) => {
     res.json({ success: true, protocol_id: protocol_id });
   } catch (err) {
     logToFile(`❌ Error saving protocol: ${err.stack || err}`);
-    res.status(500).json({ error: 'Failed to save protocol' });
-  }
+    // Specific SQL Duplicate Entry Error (ER_DUP_ENTRY)
+    if (err.errno === 1062 || err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ 
+        error: "This protocol name is already taken for this version. Please use a unique name." 
+      });
+   }
+
+   res.status(500).json({ error: 'Failed to save protocol. Internal server error.' });
+ }
 };
 
 // GET /api/protocols/:id

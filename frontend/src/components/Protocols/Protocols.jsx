@@ -52,7 +52,10 @@ export default function Protocols({ onSelectProtocol }) {
   }, [projectId]);
 
   const currentProtocols = protocols.filter(p => p.is_current == 1).filter(p => p.project_id == projectId);
-  const archivedProtocols = protocols.filter(p => p.is_current != 1);
+  // Archived/Other protocols: Anything not current in this project
+  const archivedProtocols = protocols.filter(p => 
+    p.is_current != 1 || p.project_id != projectId
+  );
 
   if (loadingProtocols) return <p>{t("loading")}</p>;
 

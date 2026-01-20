@@ -5,7 +5,6 @@ import "./AdminDashboard.css";
 
 export default function ProjectGrid({ projects, onProjectClick }) {
   const { t } = useTranslation(["admin"]);
-  console.log(projects)
   
   return (
     <section className="dashboard-section">

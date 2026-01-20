@@ -196,6 +196,8 @@ export function ProtocolEditor({
 
   // --- Handlers: Protocol Actions ---
   async function handleSaveProtocol() {
+    if (nameError) return;
+
     // If Editing Mode: Ask for confirmation
     if (editingMode) {
       const isConfirmed = await confirm({
@@ -219,7 +221,15 @@ export function ProtocolEditor({
       setSelectedProtocol(null);
       navigate(`/admin/projects/${projectId}/protocols`);
     } catch (err) {
-      alert("Failed to save protocol. Check console.");
+      // Show the specific error message from the backend (Conflict 409)
+      const errorMsg = err.response?.data?.error || err.message || "Failed to save protocol.";
+      console.error("Save Error:", err);
+      
+      await confirm({
+        title: "Save Failed",
+        message: errorMsg,
+        confirmText: "Back to Editor"
+      });
     }
   }
 
