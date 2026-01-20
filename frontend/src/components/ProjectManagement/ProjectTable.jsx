@@ -1,13 +1,13 @@
 // frontend/src/components/ProjectManagement/ProjectTable.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
-import "../AdminManagement/AdminManagement.css";
+import "./ProjectTable.css";
 
 export default function ProjectTable({ projects, onEdit, onToggleActive, onAddClick }) {
   const { t } = useTranslation(["admin", "common"]);
 
   return (
-    <section className="section card">
+    <section className="section card admin-management-page">
         <div className="section-header-row">
           <h3 className="section-title">{t("management.projectManagement.tableTitle")}</h3>
           <button className="btn-primary btn-sm btn-add" onClick={onAddClick}>

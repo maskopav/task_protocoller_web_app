@@ -1,0 +1,32 @@
+/* frontend/src/components/ProjectManagement/ProjectTable.css */
+
+/* Reuse all base styles from the admin management system */
+@import "../AdminManagement/AdminManagement.css";
+
+/* Override for the Project Management Dashboard to make it "longer" */
+.admin-management-page .management-content.card {
+    min-height: 70vh; /* Set a substantial minimum height */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure the scroll area expands to fill the larger card */
+.admin-management-page .table-scroll-area {
+    max-height: none; /* Remove height limits from the split-view */
+    flex-grow: 1;     /* Allow the table to occupy all available space */
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* Optional: Make columns wider if needed for project descriptions */
+.admin-management-page .table th:nth-child(3),
+.admin-management-page .table td:nth-child(3) {
+    min-width: 250px;
+}
+
+.admin-management-page .table td.text-muted {
+    white-space: normal; /* Allow descriptions to wrap if they are long */
+    font-size: 0.9rem;
+    line-height: 1.4;
+}

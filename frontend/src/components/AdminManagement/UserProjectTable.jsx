@@ -10,7 +10,7 @@ export default function UserProjectTable({ assignments, onRemove }) {
   return (
     <section className="section card">
       <div className="section-header-row">
-        <h3 className="section-title projects-title">{t("management.projectAssignments.title")}</h3>
+        <h3 className="section-title">{t("management.projectAssignments.title")}</h3>
       </div>
 
       <div className="table-scroll-area">
