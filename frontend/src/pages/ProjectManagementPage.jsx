@@ -1,6 +1,7 @@
 // frontend/src/pages/ProjectManagementPage.jsx
-import React, { useState, usecontext } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { useMappings } from "../context/MappingContext";
 import { useUser } from "../context/UserContext";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
@@ -13,6 +14,7 @@ export default function ProjectManagementPage() {
   const { t } = useTranslation(["admin", "common"]);
   const { mappings, refreshMappings } = useMappings();
   const { user } = useUser();
+  const navigate = useNavigate();
   const [editingProject, setEditingProject] = useState(null);
 
   const handleToggleActive = async (projectId, newStatus) => {
@@ -54,12 +56,13 @@ export default function ProjectManagementPage() {
 
       {editingProject && (
         <EditProjectModal
-          project={editingProject}
-          onClose={() => setEditingProject(null)}
-          onSave={() => {
+            open={!!editingProject} 
+            project={editingProject}
+            onClose={() => setEditingProject(null)}
+            onSuccess={() => {
             setEditingProject(null);
             refreshMappings();
-          }}
+            }}
         />
       )}
     </div>

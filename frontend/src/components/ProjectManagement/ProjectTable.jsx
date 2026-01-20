@@ -17,6 +17,8 @@ export default function ProjectTable({ projects, onEdit, onToggleActive }) {
             <th>{t("management.projectManagement.table.endDate")}</th>
             <th>{t("management.projectManagement.table.label")}</th>
             <th>{t("management.projectManagement.table.frequency")}</th>
+            <th>{t("management.projectManagement.table.country")}</th>
+            <th>{t("management.projectManagement.table.contact")}</th>
             <th>{t("management.projectManagement.table.actions")}</th>
           </tr>
         </thead>
@@ -36,6 +38,8 @@ export default function ProjectTable({ projects, onEdit, onToggleActive }) {
                 </span>
               </td>
               <td>{p.frequency}</td>
+              <td>{p.country}</td>
+              <td>{p.contact_person}</td>
               <td className="actions">
                 <button className="btn-view" onClick={() => onEdit(p)}>
                   {t("protocolDashboard.buttons.edit")}

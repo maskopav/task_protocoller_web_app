@@ -50,8 +50,8 @@
       }
     },
     "projectManagement": {
-      "title": "Projects Management",
-      "description": "Edit, activate, deactivate or create new projects.",
+      "title": "Project Management",
+      "description": "Manage clinical projects, track active studies, and edit metadata.",
       "noData": "No projects created yet.",
       "tableTitle": "Projects",
       "table": {
