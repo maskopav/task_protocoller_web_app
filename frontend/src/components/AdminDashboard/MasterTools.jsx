@@ -16,7 +16,7 @@ export default function MasterTools() {
       
       <div className="actions-grid">
         {/* Admin User Management Card */}
-        <button className="action-card btn-participants" onClick={() => navigate("/admin/management")}>
+        <button className="action-card btn-participants" onClick={() => navigate("/admin/admin-management")}>
           <div className="icon">👤</div>
           <div className="text">
             <h3>{t("adminDashboard.masterTools.users")}</h3>
@@ -25,7 +25,7 @@ export default function MasterTools() {
         </button>
 
         {/* Global Projects Card */}
-        <button className="action-card btn-protocols" onClick={() => console.log("Navigate to Projects")}>
+        <button className="action-card btn-protocols" onClick={() => navigate("/admin/project-management")}>
           <div className="icon">📂</div>
           <div className="text">
             <h3>{t("adminDashboard.masterTools.projects")}</h3>

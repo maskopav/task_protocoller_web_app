@@ -6,7 +6,7 @@ import { ProtocolProvider } from "./ProtocolContext";
 import { ConfirmDialogProvider } from "../components/ConfirmDialog/ConfirmDialogContext";
 
 export const AppProvider = ({ children }) => {
-  const mappingTables = ["projects", "task_types", "languages", "tasks"];
+  const mappingTables = ["projects", "protocols", "task_types", "languages", "tasks"];
 
   return (
     <UserProvider> 

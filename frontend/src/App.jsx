@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/RouteProtection/ProtectedRoute";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminManagementPage from "./pages/AdminManagementPage";
+import ProjectManagementPage from "./pages/ProjectManagementPage";
 import ProjectDashboardPage from "./pages/ProjectDashboardPage";
 import ProtocolDashboardPage from "./pages/ProtocolDashboardPage";
 import ProtocolEditorPage from "./pages/ProtocolEditorPage";
@@ -41,8 +42,12 @@ export default function App() {
         <ProtectedRoute><AdminDashboardPage /></ProtectedRoute>
       } />
       
-      <Route path="/admin/management" element={
+      <Route path="/admin/admin-management" element={
         <ProtectedRoute><AdminManagementPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/project-management" element={
+        <ProtectedRoute><ProjectManagementPage /></ProtectedRoute>
       } />
       
       <Route path="/admin/projects/:projectId" element={

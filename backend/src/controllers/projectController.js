@@ -31,20 +31,21 @@
   };
 
   export const updateProject = async (req, res) => {
-    const { id, name, description, frequency, country, contact_person, updated_by } = req.body;
+    const { id, name, description, frequency, country, contact_person, is_active, updated_by } = req.body;
     
     try {
         await executeQuery(
             `UPDATE projects 
-             SET name = ?, 
-                 description = ?, 
-                 frequency = ?, 
-                 country = ?, 
-                 contact_person = ?, 
+             SET name = IFNULL(?, name), 
+                 description = IFNULL(?, description), 
+                 frequency = IFNULL(?, frequency),
+                 country = IFNULL(?, country),
+                 contact_person = IFNULL(?, contact_person),
+                 is_active = IFNULL(?, is_active),
                  updated_at = CURRENT_TIMESTAMP, 
                  updated_by = ? 
              WHERE id = ?`,
-            [name, description, frequency, country, contact_person, updated_by, id]
+            [name, description, frequency, country, contact_person, is_active, updated_by, id]
         );
         res.json({ success: true, message: "Project updated successfully" });
     } catch (err) {

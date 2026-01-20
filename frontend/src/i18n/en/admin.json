@@ -49,9 +49,30 @@
         "date": "Date Assigned"
       }
     },
+    "projectManagement": {
+      "title": "Projects Management",
+      "description": "Edit, activate, deactivate or create new projects.",
+      "noData": "No projects created yet.",
+      "tableTitle": "Projects",
+      "table": {
+        "id": "ID",
+        "name": "Project Name",
+        "description": "Description",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "label": "Label",
+        "status": "Status",
+        "frequency": "Frequency",
+        "country": "Country",
+        "contact": "Contact Person",
+        "actions": "Actions"
+      }
+    },
     "status": {
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "activate": "Activate",
+      "archive": "Archive"
     },
     "buttons": {
       "assign": "Assign Project",
@@ -68,7 +89,12 @@
       "deleteTitle": "Confirm Removal"
     },
     "alerts": {
-      "statusError": "Failed to update user status."
+      "statusError": "Failed to update user status.",
+      "updateError": "Failed to change the is_active status."
+    },
+    "messages": {
+      "updateSuccess": "Project updated successfully",
+      "updateError": "Failed to update project status"
     }
   },
   "projectDashboard": {
@@ -181,7 +207,7 @@
     "title": "Protocols Management",
     "createNew": "Create New Protocol",
     "currentProtocols": "Current Protocols",
-    "archivedProtocols": "Archived / History Protocols",
+    "archivedProtocols": "Archived / Other Protocols",
     "namePlaceholder": "Protocol name",
     "nameExists": "A protocol with this name already exists.",
     "descriptionPlaceholder": "Description (optional)",
