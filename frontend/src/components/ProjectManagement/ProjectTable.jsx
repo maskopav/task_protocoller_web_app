@@ -59,7 +59,7 @@ export default function ProjectTable({ projects, onEdit, onToggleActive, onAddCl
                     </button>
                     <button 
                         className={`btn-mgmt-icon ${p.is_active ? "btn-deactivate" : "btn-activate"}`}
-                        onClick={() => onToggleActive(p.id, p.is_active)}
+                        onClick={() => onToggleActive(p.id, !p.is_active)}
                         title={p.is_active ? t("management.status.archive") : t("management.status.activate")}
                     >
                         {p.is_active ? "🚫" : "✅"}
