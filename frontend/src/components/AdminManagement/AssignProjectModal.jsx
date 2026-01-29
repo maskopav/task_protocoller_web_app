@@ -39,7 +39,7 @@ export default function AssignProjectModal({ user, onClose, onAssign }) {
                   </div>
                   <button 
                     className="btn-primary btn-sm" 
-                    onClick={() => onAssign(user.user_id, p.id)}
+                    onClick={() => onAssign(user.user_id, p.project_id)}
                   >
                     + {t("management.buttons.assignShort", "Assign")}
                   </button>
