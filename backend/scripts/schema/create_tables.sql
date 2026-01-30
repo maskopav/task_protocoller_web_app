@@ -149,6 +149,16 @@ CREATE TABLE `recordings` (
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE `questionnaire_responses` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `session_id` integer NOT NULL,
+  `protocol_task_id` integer NOT NULL, 
+  `answers` JSON NOT NULL,            
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`),
+  FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`)
+);
+
 CREATE UNIQUE INDEX `user_projects_index_0` ON `user_projects` (`user_id`, `project_id`);
 
 CREATE UNIQUE INDEX `protocols_index_1` ON `protocols` (`protocol_group_id`, `version`);

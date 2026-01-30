@@ -2,11 +2,19 @@
 -- NOT RECOMMENDED TO REMOVE!
 
 -- 1. IN ORDER TO REMOVE sessions, participants, projects:
---  recordings -> sessions -> participant_protocols -> project_protocols -> user_projects -> projects
+--  recordings, questionnaire_responses -> sessions -> participant_protocols -> project_protocols -> user_projects -> projects
 START TRANSACTION;
 SET @target_project_id = 999; ----CHANGE!
 
 DELETE FROM recordings 
+WHERE session_id IN (
+    SELECT s.id FROM sessions s
+    JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.project_id = @target_project_id
+);
+
+DELETE FROM questionnaire_responses 
 WHERE session_id IN (
     SELECT s.id FROM sessions s
     JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
@@ -36,11 +44,16 @@ COMMIT; -- to just test it ROLLBACK
 
 
 -- 2. IN ORDER TO REMOVE protocols:
---  recordings -> sessions -> participant_protocols -> project_protocols -> protocol_tasks -> protocols
+--  recordings, questionnaire_responses -> sessions -> participant_protocols -> project_protocols -> protocol_tasks -> protocols
 START TRANSACTION;
 SET @target_protocol_id = 999; ---- CHANGE!
 
 DELETE FROM recordings 
+WHERE protocol_task_id IN (
+    SELECT id FROM protocol_tasks WHERE protocol_id = @target_protocol_id
+);
+
+DELETE FROM questionnaire_responses 
 WHERE protocol_task_id IN (
     SELECT id FROM protocol_tasks WHERE protocol_id = @target_protocol_id
 );
