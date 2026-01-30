@@ -222,32 +222,111 @@ JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
 ORDER BY up.user_id, p.name;
 
+-- Questionnaires views
+CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_quest_definitions AS
+WITH RECURSIVE seq AS (
+    -- Start with the first question (index 0)
+    SELECT 
+        id as protocol_task_id,
+        params,
+        0 AS n
+    FROM protocol_tasks
+    WHERE JSON_LENGTH(params, '$.questions') > 0
+    
+    UNION ALL
+    
+    -- Increment the index for each subsequent question
+    SELECT 
+        protocol_task_id,
+        params,
+        n + 1
+    FROM seq
+    WHERE n + 1 < JSON_LENGTH(params, '$.questions')
+)
+SELECT 
+    protocol_task_id,
+    -- Extract Questionnaire Metadata
+    JSON_VALUE(params, '$.title') AS quest_name,
+    JSON_VALUE(params, '$.description') AS quest_description,
+    
+    -- Extract specific Question Details using the index 'n'
+    JSON_VALUE(params, CONCAT('$.questions[', n, '].id')) AS q_id,
+    JSON_VALUE(params, CONCAT('$.questions[', n, '].text')) AS q_text,
+    JSON_VALUE(params, CONCAT('$.questions[', n, '].type')) AS q_type
+FROM seq;
+
 CREATE OR REPLACE VIEW v_quest_results AS
 SELECT 
     qr.session_id,
-    vpp.participant_id,
-    vpp.protocol_id,
-    vpp.project_id,
-    
-    -- Questionnaire Metadata from the root of protocol_tasks.params
-    JSON_VALUE(pt.params, '$.title') AS quest_name,
-    JSON_VALUE(pt.params, '$.description') AS quest_description,
-    
-    -- Question Details extracted via JSON_TABLE
-    jt.q_text,
-    jt.q_type,
-    
-    -- The Participant's Answer
-    -- Note: We use double quotes in pathing to handle numeric-string keys correctly
-    JSON_VALUE(qr.answers, CONCAT('$.', jt.q_id)) AS participant_answer,
-    
-    qr.created_at AS response_submitted_at
+    qr.protocol_task_id,
+    def.quest_name,
+    def.q_text,
+    -- Extract the answer using the ID from our new CTE view
+    JSON_VALUE(qr.answers, CONCAT('$."', def.q_id, '"')) AS participant_answer,
+    qr.created_at
 FROM questionnaire_responses qr
-JOIN protocol_tasks pt ON qr.protocol_task_id = pt.id
-JOIN sessions s ON qr.session_id = s.id
-JOIN v_participant_protocols vpp ON s.participant_protocol_id = vpp.participant_protocol_id
-CROSS JOIN JSON_TABLE(pt.params, '$.questions[*]' COLUMNS (
-    q_id   VARCHAR(50)  PATH '$.id',
-    q_text VARCHAR(255) PATH '$.text',
-    q_type VARCHAR(50)  PATH '$.type'
-)) jt;
+JOIN v_quest_definitions def ON qr.protocol_task_id = def.protocol_task_id;
+
+
+CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_progress_detailed AS
+WITH RECURSIVE seq AS (
+    -- 1. Flatten the JSON progress array
+    SELECT 
+        id AS session_id,
+        participant_protocol_id,
+        progress,
+        0 AS n
+    FROM sessions
+    WHERE JSON_LENGTH(progress) > 0
+    
+    UNION ALL
+    
+    SELECT 
+        session_id,
+        participant_protocol_id,
+        progress,
+        n + 1
+    FROM seq
+    WHERE n + 1 < JSON_LENGTH(progress)
+),
+flattened_data AS (
+    -- 2. Extract fields and convert timestamps
+    SELECT 
+        s.session_id,
+        s.participant_protocol_id,
+        CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, CONCAT('$[', s.n, '].timestamp')), 'T', ' '), 'Z', '') AS DATETIME(3)) AS event_time,
+        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].action')) AS action,
+        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].taskIndex')) AS task_sequence,
+        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].protocolTaskId')) AS protocol_task_id,
+        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].questionId')) AS question_id,
+        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].value')) AS interaction_value
+    FROM seq s
+)
+-- 3. Use LAG() to calculate time differences
+SELECT 
+    fd.session_id,
+    vpp.participant_id,
+    vpp.full_name AS participant_name,
+    vpp.project_name,
+    fd.event_time,
+    
+    -- NEW: Seconds since the previous event in this session
+    COALESCE(
+        TIMESTAMPDIFF(SECOND, 
+            LAG(fd.event_time) OVER (PARTITION BY fd.session_id ORDER BY fd.event_time), 
+            fd.event_time
+        ), 
+        0
+    ) AS seconds_from_prev_event,
+
+    fd.action,
+    fd.task_sequence,
+    fd.protocol_task_id,
+    t.category AS task_category,
+    fd.question_id,
+    fd.interaction_value
+FROM flattened_data fd
+JOIN v_participant_protocols vpp ON fd.participant_protocol_id = vpp.participant_protocol_id
+LEFT JOIN protocol_tasks pt ON fd.protocol_task_id = pt.id
+LEFT JOIN tasks t ON pt.task_id = t.id
+ORDER BY fd.session_id, fd.event_time;
