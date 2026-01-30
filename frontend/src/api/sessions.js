@@ -49,3 +49,13 @@ export async function trackProgress(sessionId, eventData, markCompleted = false)
     body: JSON.stringify(payload),
   }).catch(err => console.warn("Failed to log progress:", err));
 }
+
+export async function saveQuestionnaireAnswers(payload) {
+  const res = await fetch(`${API_BASE}/sessions/questionnaire-response`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to save questionnaire");
+  return res.json();
+}

@@ -221,3 +221,33 @@ JOIN projects p ON up.project_id = p.id
 JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
 ORDER BY up.user_id, p.name;
+
+CREATE OR REPLACE VIEW v_quest_results AS
+SELECT 
+    qr.session_id,
+    vpp.participant_id,
+    vpp.protocol_id,
+    vpp.project_id,
+    
+    -- Questionnaire Metadata from the root of protocol_tasks.params
+    JSON_VALUE(pt.params, '$.title') AS quest_name,
+    JSON_VALUE(pt.params, '$.description') AS quest_description,
+    
+    -- Question Details extracted via JSON_TABLE
+    jt.q_text,
+    jt.q_type,
+    
+    -- The Participant's Answer
+    -- Note: We use double quotes in pathing to handle numeric-string keys correctly
+    JSON_VALUE(qr.answers, CONCAT('$.', jt.q_id)) AS participant_answer,
+    
+    qr.created_at AS response_submitted_at
+FROM questionnaire_responses qr
+JOIN protocol_tasks pt ON qr.protocol_task_id = pt.id
+JOIN sessions s ON qr.session_id = s.id
+JOIN v_participant_protocols vpp ON s.participant_protocol_id = vpp.participant_protocol_id
+CROSS JOIN JSON_TABLE(pt.params, '$.questions[*]' COLUMNS (
+    q_id   VARCHAR(50)  PATH '$.id',
+    q_text VARCHAR(255) PATH '$.text',
+    q_type VARCHAR(50)  PATH '$.type'
+)) jt;

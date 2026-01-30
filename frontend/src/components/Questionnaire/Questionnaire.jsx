@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "./Questionnaire.css";
 
-export default function Questionnaire({ data, onNextTask }) {
+export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
   const { t } = useTranslation(["common"]);
   const [answers, setAnswers] = useState({});
   const [isValid, setIsValid] = useState(false);
@@ -22,6 +22,10 @@ export default function Questionnaire({ data, onNextTask }) {
       // Handle Single Value Types (Text, Radio, Dropdown)
       return { ...prev, [questionId]: value };
     });
+    // LOG IMMEDIATELY (What answer and when)
+    if (onLogAnswer) {
+      onLogAnswer(questionId, value);
+    }
   };
 
   // --- 2. Validation Effect ---
@@ -51,13 +55,8 @@ export default function Questionnaire({ data, onNextTask }) {
 
     const result = {
       taskType: "questionnaire",
-      questionnaireTitle: data.title,
       timestamp: new Date().toISOString(),
-      answers: Object.entries(answers).map(([qId, val]) => ({
-        questionId: qId,
-        questionText: data.questions.find((q) => q.id === Number(qId))?.text,
-        answer: val,
-      })),
+      answers: answers,
     };
 
     onNextTask(result);

@@ -98,3 +98,22 @@ export const updateProgress = async (req, res) => {
     res.status(200).json({ warning: "Logging failed", error: err.message });
   }
 };
+
+export const saveQuestionnaireResponse = async (req, res) => {
+  const { sessionId, protocolTaskId, answers } = req.body;
+  
+  if (!sessionId || !protocolTaskId || !answers) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    await executeQuery(
+      "INSERT INTO questionnaire_responses (session_id, protocol_task_id, answers) VALUES (?, ?, ?)",
+      [sessionId, protocolTaskId, JSON.stringify(answers)]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ DB Error:", err);
+    res.status(500).json({ error: "Failed to save answers to database" });
+  }
+};

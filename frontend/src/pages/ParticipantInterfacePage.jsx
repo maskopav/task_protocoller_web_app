@@ -8,7 +8,7 @@ import { resolveTasks, resolveTask } from "../utils/taskResolver";
 import { VoiceRecorder } from "../components/VoiceRecorder/VoiceRecorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen";
-import { trackProgress } from "../api/sessions";
+import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import "./Pages.css";
 
@@ -153,8 +153,12 @@ export default function ParticipantInterfacePage() {
         });
         console.log("Upload successful");
       } else if (currentTaskObj.type === "questionnaire") {
-        // Handle questionnaire JSON save (can use a different API endpoint later)
-        console.log("Questionnaire save logic here");
+        await saveQuestionnaireAnswers({
+          sessionId: sessionId,
+          protocolTaskId: currentTaskObj.protocolTaskId,
+          answers: data.answers
+        });
+        console.log("Questionnaire answers saved successfully");
       }
 
     } catch (err) {
@@ -224,10 +228,9 @@ export default function ParticipantInterfacePage() {
         <Questionnaire
           key={taskIndex}
           data={questionnaireData}
-          onNextTask={(results) => {
-             // Save results logic here if needed
-             handleTaskComplete(results);
-          }}
+          onNextTask={handleTaskComplete}
+          // Pass logging helper to track answer clicks
+          onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
         />
       );
     }
