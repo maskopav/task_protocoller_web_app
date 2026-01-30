@@ -302,21 +302,16 @@ flattened_data AS (
         JSON_VALUE(s.progress, CONCAT('$[', s.n, '].value')) AS interaction_value
     FROM seq s
 )
--- 3. Use LAG() to calculate time differences
 SELECT 
     fd.session_id,
     vpp.participant_id,
     vpp.full_name AS participant_name,
     vpp.project_name,
     fd.event_time,
-    
-    -- NEW: Seconds since the previous event in this session
-    COALESCE(
-        TIMESTAMPDIFF(SECOND, 
-            LAG(fd.event_time) OVER (PARTITION BY fd.session_id ORDER BY fd.event_time), 
-            fd.event_time
-        ), 
-        0
+    -- Seconds since the previous event in this session
+    TIMESTAMPDIFF(SECOND, 
+        LAG(fd.event_time) OVER (PARTITION BY fd.session_id ORDER BY fd.event_time), 
+        fd.event_time
     ) AS seconds_from_prev_event,
 
     fd.action,
@@ -330,3 +325,63 @@ JOIN v_participant_protocols vpp ON fd.participant_protocol_id = vpp.participant
 LEFT JOIN protocol_tasks pt ON fd.protocol_task_id = pt.id
 LEFT JOIN tasks t ON pt.task_id = t.id
 ORDER BY fd.session_id, fd.event_time;
+
+CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_summary AS
+WITH RECURSIVE seq AS (
+    -- 1. Flatten the JSON progress log to access all timestamps
+    SELECT 
+        id AS session_id,
+        participant_protocol_id,
+        progress,
+        completed,
+        0 AS n
+    FROM sessions
+    WHERE JSON_LENGTH(progress) > 0
+    
+    UNION ALL
+    
+    SELECT 
+        session_id,
+        participant_protocol_id,
+        progress,
+        completed,
+        n + 1
+    FROM seq
+    WHERE n + 1 < JSON_LENGTH(progress)
+),
+session_events AS (
+    -- 2. Convert ISO strings to actual MariaDB Datetime format
+    SELECT 
+        session_id,
+        participant_protocol_id,
+        completed,
+        CAST(REPLACE(REPLACE(JSON_VALUE(progress, CONCAT('$[', n, '].timestamp')), 'T', ' '), 'Z', '') AS DATETIME(3)) AS event_time
+    FROM seq
+)
+-- 3. Aggregate results to find total duration and metadata
+SELECT 
+    se.session_id,
+    vpp.participant_id,
+    vpp.full_name AS participant_name,
+    vpp.project_name,
+    vpp.protocol_name,
+    
+    -- Timestamps
+    MIN(se.event_time) AS session_started_at,
+    MAX(se.event_time) AS session_last_activity_at,
+    
+    -- Overall Duration in Seconds
+    -- This calculates the time elapsed from the very first event to the very last
+    TIMESTAMPDIFF(SECOND, MIN(se.event_time), MAX(se.event_time)) AS total_duration_seconds,
+    
+    -- Finished Status
+    -- Pulls directly from the 'completed' column in the sessions table
+    CASE 
+        WHEN se.completed = 1 THEN 'Finished' 
+        ELSE 'Incomplete' 
+    END AS protocol_status,
+    
+    se.completed AS is_finished_flag
+FROM session_events se
+JOIN v_participant_protocols vpp ON se.participant_protocol_id = vpp.participant_protocol_id
+GROUP BY se.session_id;
