@@ -9,6 +9,7 @@
   width: 100%;             /* Ensure it doesn't exceed parent */
   max-width: 100%;
   box-sizing: border-box;
+  gap: 25px;
 }
 
 /* Wrap timer + intensity circle together */
@@ -19,6 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 20px;
 }
 
 /* Intensity circle always centered */
@@ -171,15 +173,17 @@
 @media (max-width: 600px) {
   .timer-wrapper {
     flex-direction: column;
-    gap: 15px;
     padding: 1vh;
+  }
+
+  .timer-core {
+    margin-top: 5px;
   }
 
   .timer-circle {
     width: 120px;         /* smaller timer */
     height: 120px;
     border-width: 4px;
-    margin-bottom: 10px;
   }
 
   .timer-display {

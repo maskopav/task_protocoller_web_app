@@ -258,8 +258,8 @@ button:disabled {
 /* Mobile-friendly adjustments */
 @media (max-width: 600px) {
   .task-wrapper {
-    height: 95vh; /* Use almost full height */
-    width: 96vw;
+    height: 100vh; /* Use almost full height */
+    width: 100%;
   }
 
   .task-progress {
