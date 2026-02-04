@@ -21,7 +21,15 @@
     },
     "completion": {
       "title": "Všechny úkoly dokončeny!",
-      "message": "Úspěšně jste dokončili všechny zadání. Děkujeme Vám za účast!"
+      "message": "🎉 Úspěšně jste dokončili všechny zadání. Děkujeme Vám za účast!",
+      "completedModule": ": modul dokončen!",
+      "praises": [
+        "🌟 Skvělá práce!",
+        "🎯 Výborně!",
+        "👏 Dobrá práce!",
+        "✨ Excelentní!",
+        "🎉 Skvěle zvládnuto!"
+      ]
     },
     "taskLabels": {
       "voice": "Řečová úloha",

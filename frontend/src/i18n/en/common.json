@@ -25,7 +25,15 @@
     },
     "completion": {
       "title": "All Tasks Completed!",
-      "message": "You have successfully finished all assignments."
+      "message": "🎉 You have successfully finished all assignments.",
+      "completedModule": ": module completed!",
+      "praises": [
+        "🌟 Great job!",
+        "🎯 Perfect!",
+        "👏 Well done!",
+        "✨ Excellent!",
+        "🎉 Nicely done!"
+      ]
     },
     "taskLabels": {
       "voice": "Vocal Task",

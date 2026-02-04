@@ -8,6 +8,7 @@ import { resolveTasks, resolveTask } from "../utils/taskResolver";
 import { VoiceRecorder } from "../components/VoiceRecorder/VoiceRecorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen";
+import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import "./Pages.css";
@@ -20,6 +21,10 @@ export default function ParticipantInterfacePage() {
 
   const [taskIndex, setTaskIndex] = useState(0);
   const [langReady, setLangReady] = useState(false);
+
+  // Add state for the completionoverlay
+  const [showPraise, setShowPraise] = useState(false);
+  const [completedCategory, setCompletedCategory] = useState(null);
 
   // Add a Ref to track the last logged task 
   // We initialize it to -1 so that index 0 is always logged the first time.
@@ -121,6 +126,9 @@ export default function ParticipantInterfacePage() {
   // --- Handlers
   async function handleTaskComplete(data) {
     console.log("✅ Task Completed, saving...", data);
+    const currentTaskObj = runtimeTasks[taskIndex]; // The task definition
+    console.log(currentTaskObj);
+    const nextTaskObj = runtimeTasks[taskIndex + 1];
     
     try {
       // 1. Identify the current task to get metadata
@@ -132,8 +140,6 @@ export default function ParticipantInterfacePage() {
         blob = await response.blob();
       }
 
-      const currentTaskObj = runtimeTasks[taskIndex]; // The task definition
-      console.log(currentTaskObj);
       // Extract metadata
       const paramValue = currentTaskObj.params[0];
       const repeatIndex = currentTaskObj._repeatIndex || 1;
@@ -174,9 +180,15 @@ export default function ParticipantInterfacePage() {
       console.log("🏁 Session Completed");
       trackProgress(sessionId, null, true); // markCompleted = true
     }
-    
-    // Move to next (existing logic)
-    setTaskIndex((i) => i + 1);
+
+    // Check if the next task is a different type/category or if it's the end
+    if (nextTaskObj && nextTaskObj.type !== currentTaskObj.type) {
+      setCompletedCategory(currentTaskObj.type);
+      setShowPraise(true);
+    } else {    
+      // Move to next (existing logic)
+      setTaskIndex((i) => i + 1);
+    }
   };
 
   function handleBack() {
@@ -248,6 +260,15 @@ export default function ParticipantInterfacePage() {
 
   return (
     <div className="app-container">
+      {showPraise && (
+            <ModuleCompletionOverlay 
+                category={completedCategory} 
+                onComplete={() => {
+                    setShowPraise(false);
+                    setTaskIndex((i) => i + 1); // Move to next module
+                }} 
+            />
+        )}
       <div className="task-wrapper">
         <div className="top-controls-participant">
           {testingMode && (
