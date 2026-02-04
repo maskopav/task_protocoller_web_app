@@ -1,4 +1,5 @@
 import React from 'react';
+import './VoiceRecorder.css';
 
 // components/VoiceRecorder/RecordingTimer.jsx - Timer circle component
 export const RecordingTimer = ({ 
@@ -24,7 +25,7 @@ export const RecordingTimer = ({
     const intensityOpacity = Math.min(0.2 + avgLevel / 200, 1); // glow visibility
 
     return (
-        <div className={`timer-wrapper`}>
+        <div className="timer-wrapper" style={{ flexDirection: 'column' }}>
             <div className="timer-core">
                 {/* Outer intensity circle */}
                 {status === 'recording' && (

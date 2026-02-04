@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import './VoiceRecorder.css';
 
 // components/VoiceRecorder/StatusIndicator.jsx - Status display component
 export const StatusIndicator = ({ status, className = "" }) => {

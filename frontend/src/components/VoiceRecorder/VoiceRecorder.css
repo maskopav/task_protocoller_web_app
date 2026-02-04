@@ -2,11 +2,13 @@
 
 /* Timer */
 .timer-wrapper {
-  position: relative;
   display: flex;
+  flex-direction: row;     /* On mobile this should probably be column */
   align-items: center;
   justify-content: center;
-  padding: 3vh;
+  width: 100%;             /* Ensure it doesn't exceed parent */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Wrap timer + intensity circle together */
@@ -32,11 +34,11 @@
 
 /* Timer circle on top */
 .timer-circle {
-  width: 100px;
-  height: 100px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: white;
-  border: 5px solid #6b7280;
+  border: 8px solid #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,21 +52,19 @@
   border-color: var(--warning);
 }
 .timer-display {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: bold;
 }
 
 /* Extra control (speaker button) */
 .extra-control {
-  position: absolute;
-  left: 52vw;   /* distance from center */
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative; 
   width: 80px;
   height: 80px;
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0; /* Prevents button from squishing */
 }
 
 
@@ -86,8 +86,8 @@
 
 .audio-example-btn img {
   display: block;
-  width: 60px; 
-  height: 60px;
+  width: 70px; 
+  height: 70px;
 }
 
 
@@ -96,7 +96,7 @@
   margin: 0.3rem 0;
   font-weight: 600;
   display: inline-block;
-  padding: 0.4rem 0.8rem;
+  padding: 0.6rem 0.8rem;
   border-radius: 9999px;
   font-size: 1.2rem;
   background: var(--muted);
@@ -118,41 +118,40 @@
 
 /* Bottom recording controls */
 .bottom-controls {
-  margin-top: auto;
+  margin: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  min-height: 140px; /* fixed vertical space for buttons */
-  position: relative;
-  width: 100%;
+  width: 95%;
+  gap: 0.5rem;
 } 
 
 .controls,
 .playback-section {
-  position: absolute;
-  bottom: 0;
+  position: relative;
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .playback-section {
   flex-direction: column;
   align-items: center;
+  font-size: 1.5rem;
 }
 
 .button-group,
 .controls button,
 .playback-section button {
-  width: 100%;
-
+  width: 95%;
 }
 
 .button-group {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  margin-bottom: 0;
 }
 
 .button-group button {
@@ -171,32 +170,29 @@
 /* Mobile-friendly adjustments */
 @media (max-width: 600px) {
   .timer-wrapper {
-    padding: 0.1rem;      /* reduce padding */
-    gap: 0.1rem;           /* smaller spacing */
+    flex-direction: column;
+    gap: 15px;
+    padding: 1vh;
   }
 
   .timer-circle {
-    width: 90px;         /* smaller timer */
-    height: 90px;
+    width: 120px;         /* smaller timer */
+    height: 120px;
     border-width: 4px;
+    margin-bottom: 10px;
   }
 
   .timer-display {
-    font-size: 1.2rem;   /* smaller digits */
+    font-size: 1.5rem;   /* smaller digits */
+  }
+
+  .button-group {
+    gap: 0.1rem;
   }
 
   .status {
-    font-size: 0.9rem;   /* compact status badge */
-    padding: 0.2rem 0.6rem;
+    font-size: 1.2rem;   /* compact status badge */
+    padding: 0.4rem 0.8rem;
     margin: 0;
-  }
-
-  .extra-control {
-    left: 60vw;   /* distance from center */
-  }
-
-  .audio-example-btn img {
-    width: 40px; 
-    height: 40px;
   }
 }
