@@ -18,7 +18,7 @@ export default function ProtocolForm({
   onDragStart,
   onDrop,
   dragIndex,
-  nameError,
+  validation,
   editingMode,
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
@@ -52,13 +52,17 @@ export default function ProtocolForm({
               </label>
               <input
                 type="text"
-                className={`protocol-name-input ${nameError ? "name-input-error" : ""}`}
+                className={`protocol-name-input ${validation.errors.name ? "name-input-error" : ""}`}
                 placeholder={t("protocolDashboard.namePlaceholder")}
                 value={protocolData?.name || ""}
                 onChange={handleNameChange}
                 disabled={editingMode} 
               />
-              {nameError && <div className="error-text">{nameError}</div>}
+              {validation.errors.name && (
+                <div className="error-text">
+                  {t(`validation.protocol.${validation.errors.name}`)}
+                </div>
+              )}
             </div>
 
             <ProtocolLanguageSelector
@@ -107,8 +111,13 @@ export default function ProtocolForm({
 
       <ul className="protocol-list">
         {tasks.length === 0 ? (
-          <li className="empty-protocol">
-            <em>{t("protocolEditor.noTasks")}</em>
+          <li className={`empty-protocol ${validation.errors.tasks ? "tasks-error" : ""}`}>
+            <em>
+              {validation.errors.tasks 
+                ? t(`validation.protocol.${validation.errors.tasks}`) // Show "At least one task must be added"
+                : t("protocolEditor.noTasks")
+              }
+            </em>
           </li>
         ) : (
           tasks.map((task, idx) => {
@@ -165,7 +174,7 @@ export default function ProtocolForm({
         </button>
         <button className="button-save" 
           onClick={() => onSave()} 
-          disabled={!tasks.length  || !protocolData?.name?.trim() || !!nameError || reorderMode}
+          disabled={!validation.isValid || reorderMode}
         >
           {t("protocolEditor.saveProtocol")}
         </button>

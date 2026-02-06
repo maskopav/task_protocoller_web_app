@@ -208,7 +208,7 @@ export default function Protocols({ onSelectProtocol }) {
           
           {nameExists && (
             <div className="error-text">
-              {t("protocolDashboard.nameExists")}
+              {t("validation.protocol.nameExists")}
             </div>
           )}
         </div>

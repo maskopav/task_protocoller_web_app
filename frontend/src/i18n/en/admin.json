@@ -188,8 +188,7 @@
         "male": "Male",
         "female": "Female",
         "other": "Other"
-      },
-      "validationError": "Please assign a protocol and fill either (Name + DOB + Sex) OR External ID."
+      }
     },
     "buttons": {
       "edit": "Edit",
@@ -210,7 +209,6 @@
     "currentProtocols": "Current Protocols",
     "archivedProtocols": "Archived / Other Protocols",
     "namePlaceholder": "Protocol name",
-    "nameExists": "A protocol with this name already exists.",
     "descriptionPlaceholder": "Description (optional)",
     "noData": "No protocols found",
     "buttons": {
@@ -344,6 +342,23 @@
     "emailText": "Dear {{name}},\n\nYou have been assigned a new assessment protocol.\nPlease open the following link:\n\n{{link}}\n\nIf you prefer, you may scan the QR code in the attached image.\n\nThank you.",
     "emailSentSuccess": "Email was successfully sent!",
     "participant": "participant"
-  } 
+  },
+
+  "validation": {
+    "participant": {
+      "identityRequired": "Please provide either an External ID or the full set of personal details (Name, Birth Date, and Sex).",
+      "ageRestriction": "Participant must be at least 18 years old.",
+      "tooOldError": "Age cannot exceed 120 years.",
+      "futureDateError": "Birth date cannot be in the future.",
+      "invalidEmail": "Please provide a valid email address.",
+      "protocolRequired": "Please select a protocol to assign."
+    },
+    "protocol": {
+      "nameRequired": "Protocol name is required.",
+      "nameExists": "A protocol with this name already exists.",
+      "languageRequired": "Please select a language.",
+      "tasksRequired": "At least one task must be added."
+    }
+  }
 }
   

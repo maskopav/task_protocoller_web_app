@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { createParticipant, updateParticipant, getParticipants } from "../../api/participants";
 import { assignProtocolToParticipant, activateParticipantProtocol } from "../../api/participantProtocols";
 import Modal from "../ProtocolEditor/Modal";
+import { validate } from "../../utils/validation";
 import "./AddParticipantModal.css"; 
 
 const VITE_APP_BASE_PATH = import.meta.env.VITE_APP_BASE_PATH;
@@ -66,20 +67,22 @@ export default function AddParticipantModal({
     }
   }, [open, participantToEdit]);
 
-  // --- Validation Logic ---
-  const isFormValid = useMemo(() => {
-    // Protocol is required for Create AND Assign mode (but not Edit mode)
-    if (!isEditMode && !formData.protocol_id) return false;
-
-    const hasFullName = formData.full_name.trim().length > 0;
-    const hasDob = formData.birth_date.trim().length > 0;
-    const hasSex = formData.sex.trim().length > 0 && formData.sex !== "-"; 
-    const hasExternalId = formData.external_id.trim().length > 0;
-
-    const hasPersonalIdentity = hasFullName && hasDob && hasSex;
-
-    return hasPersonalIdentity || hasExternalId;
+  // Computed validation state
+  const validation = useMemo(() => {
+    console.log("Validating form data:", formData);
+    const result = validate.participant(formData);
+    console.log("Validation result:", result);
+    
+    // Local context check: Protocol is required for Create/Assign mode
+    if (!isEditMode && !formData.protocol_id) {
+      result.isValid = false;
+      result.errors.protocol_id = "protocolRequired";
+    }
+    
+    return result;
   }, [formData, isEditMode]);
+
+  const isFormValid = validation.isValid;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -325,18 +328,15 @@ export default function AddParticipantModal({
         )}
 
         {/* --- ERROR DISPLAY SECTION --- */}
-        <div style={{ minHeight: '1.2em', marginTop: '0.5rem' }}>
-            {!isFormValid && (
-                <div className="validation-error-msg">
-                    {t("participantDashboard.modal.validationError")}
-                </div>
-            )}
-            {submitError && (
-                <div className="validation-error-msg">
-                    {submitError}
-                </div>
-            )}
-        </div>
+        <div className="error-container" style={{ minHeight: '1.2em', marginTop: '0.5rem' }}>
+          {/* Show the first available error from the validation object */}
+          {Object.values(validation.errors).length > 0 && (
+              <div className="validation-error-msg">
+                  {t(`validation.participant.${Object.values(validation.errors)[0]}`)}
+              </div>
+          )}
+          {submitError && <div className="validation-error-msg">{submitError}</div>}
+      </div>
         
         <div className="modal-actions">
            <button 

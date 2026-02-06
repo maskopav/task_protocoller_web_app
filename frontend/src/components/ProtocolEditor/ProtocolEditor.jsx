@@ -14,6 +14,7 @@ import { useMappings } from "../../context/MappingContext";
 import { useProtocolManager } from "../../hooks/useProtocolManager";
 import { ProtocolContext } from "../../context/ProtocolContext";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext"; // Import confirm
+import { validate } from "../../utils/validation";
 
 import "./ProtocolEditor.css";
 
@@ -52,7 +53,6 @@ export function ProtocolEditor({
   // --- State: UI & Validation ---
   const [reorderMode, setReorderMode] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
-  const [nameError, setNameError] = useState("");
 
   const protocols = mappings?.protocols || [];
 
@@ -71,23 +71,27 @@ export function ProtocolEditor({
   }, [protocolData, setSelectedProtocol]);  
 
   // Effect: Validate Name
-  useEffect(() => {
-    if (!protocolData?.name) {
-      setNameError("");
-      return;
+  // --- Validation Logic ---
+  const validation = React.useMemo(() => {
+    // 1. Get base validation (Name required, Language, Tasks)
+    const result = validate.protocol({ ...protocolData, tasks });
+
+    // 2. Add Contextual Validation: Duplicate Name Check
+    if (protocolData?.name) {
+      const isDuplicate = protocols.some(p => 
+        p.id !== protocolData.id && 
+        p.protocol_group_id !== protocolData.protocol_group_id &&
+        p.name.toLowerCase().trim() === protocolData.name.toLowerCase().trim()
+      );
+
+      if (isDuplicate) {
+        result.isValid = false;
+        result.errors.name = "nameExists"; // Overwrite or add name error
+      }
     }
-  
-    const existingNames = protocols
-      .filter(p => p.id !== protocolData.id) // ignore itself if editing
-      .filter(p => p.protocol_group_id !== protocolData.protocol_group_id)
-      .map(p => p.name.toLowerCase().trim());
-  
-    if (existingNames.includes(protocolData.name.toLowerCase().trim())) {
-      setNameError("A protocol with this name already exists.");
-    } else {
-      setNameError("");
-    }
-  }, [protocolData?.name, protocols]);
+
+    return result;
+  }, [protocolData, tasks, protocols]);
 
   // Effect: Notify Parent on Change
   useEffect(() => {
@@ -196,7 +200,7 @@ export function ProtocolEditor({
 
   // --- Handlers: Protocol Actions ---
   async function handleSaveProtocol() {
-    if (nameError) return;
+    if (!validation.isValid) return;
 
     // If Editing Mode: Ask for confirmation
     if (editingMode) {
@@ -265,8 +269,8 @@ export function ProtocolEditor({
           onAddQuestionnaire={handleCreateQuestionnaire}
           onSave={handleSaveProtocol}
           onShowProtocol={handleShowProtocol}
-          nameError={nameError} 
-          editingMode={editingMode} 
+          validation={validation} 
+          editingMode={editingMode}
         />
       </div>
 

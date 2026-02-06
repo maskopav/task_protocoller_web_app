@@ -303,6 +303,15 @@
     border: 2px dashed #ccc;
     border-radius: var(--radius);
   }
+
+.empty-protocol.tasks-error {
+  border: 1px dashed #ff4d4f;
+  color: var(--danger);
+  font-weight: 600;
+  background-color: #fff2f0;
+  padding: 1rem;
+  text-align: center;
+}
   
   /* top row inside each protocol item */
   .protocol-row {
