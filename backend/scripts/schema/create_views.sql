@@ -30,6 +30,7 @@ SELECT
     proto.name                       AS protocol_name,
     proto.version                    AS protocol_version,
     proto.is_current                 AS is_current_protocol,
+    proto.language_id,
 
     -- Aggregated Counts
     COALESCE(agg.n_tasks, 0)         AS n_tasks,

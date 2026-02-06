@@ -85,6 +85,7 @@ export async function resolveParticipantToken(req, res) {
         id: view.protocol_id,
         name: view.protocol_name,
         version: view.protocol_version,
+        language_id: view.language_id,
         tasks: formattedTasks
       }
     });

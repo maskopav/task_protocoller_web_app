@@ -3,7 +3,6 @@ const API_BASE = import.meta.env.VITE_API_BASE;
 
 export async function fetchParticipantProtocol(token) {
   const res = await fetch(`${API_BASE}/participant-protocols/${token}`);
-  console.log(res);
   if (!res.ok) {
     // Try to parse the specific error message from the backend
     const errData = await res.json().catch(() => ({}));
