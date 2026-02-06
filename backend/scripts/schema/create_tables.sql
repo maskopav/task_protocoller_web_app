@@ -9,7 +9,7 @@ CREATE TABLE `users` (
   `is_active` boolean NOT NULL DEFAULT true,
   `must_change_password` boolean NOT NULL DEFAULT true,
   `reset_password_token` varchar(255) DEFAULT NULL,
-  `reset_password_expires` DATETIME DEFAULT NULL;
+  `reset_password_expires` DATETIME DEFAULT NULL
 );
 
 CREATE TABLE `roles` (
@@ -81,8 +81,8 @@ CREATE TABLE `protocol_tasks` (
 CREATE TABLE `tasks` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `category` varchar(50) UNIQUE NOT NULL COMMENT 'e.g. monologue, reading, phonation',
-  `type_id` integer NOT NULL COMMENT 'id of voice, visual, cognitive',
-  `recording_mode` JSON NOT NULL,
+  `type_id` integer NOT NULL COMMENT 'id of voice, visual, cognitive, questionnaire',
+  `recording_mode` JSON,
   `params` JSON COMMENT 'JSON schema of editable parameters - names not values',
   `illustration` text,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP
@@ -90,7 +90,7 @@ CREATE TABLE `tasks` (
 
 CREATE TABLE `task_types` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `type` varchar(255) UNIQUE COMMENT 'voice, visual, cognitive',
+  `type` varchar(255) UNIQUE COMMENT 'voice, visual, cognitive, questionnaire',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
