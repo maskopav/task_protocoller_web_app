@@ -12,7 +12,7 @@ export interface TaskParamDef {
 }
 
 export interface TaskBase {
-  type: "voice" | "camera" | "motoric" | "questionnaire";
+  type: "voice" | "camera" | "motoric" | "questionnaire" | "vision"; 
   recording: RecordingMode;
   params: Record<string, TaskParamDef>;
   repeat?: number;
@@ -78,4 +78,15 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       duration: { default: 10 },
     },
   },
+
+  farnsworthD15: {
+    type: "vision",
+    recording: { mode: "basicStop" },
+    params: {
+      randomize: { default: true },
+      repeat: { default: 1 },
+      showNumbers: { default: "never", values: ["never", "after", "always"] },
+    },
+  },
+  
 };

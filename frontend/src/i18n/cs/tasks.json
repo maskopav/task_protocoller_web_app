@@ -121,5 +121,28 @@
       "repeat": { "label": "Opakování" },
       "duration": { "label": "Délka trvání" }
     }
+  },
+
+  "farnsworthD15": {
+    "name": "Farnsworth D-15 Color Test",
+    "description": "A color vision test where the participant arranges 15 colored caps in a sequence. It helps identify the type and severity of color vision deficiency (Protan, Deutan, or Tritan).",
+    "title": "Color Arrangement Task",
+    "instructions": "Pick the color cap that looks most similar to the last one in the tray. Continue until all caps are arranged in a sequence.",
+    "params": {
+      "randomize": { 
+        "label": "Randomize caps" 
+      },
+      "repeat": { 
+        "label": "Repetitions" 
+      },
+      "showNumbers": {
+        "label": "Show cap numbers",
+        "values": {
+          "never": "Never (Standard)",
+          "after": "After completion",
+          "always": "Always (Debug/Demo)"
+        }
+      }
+    }
   }
 }

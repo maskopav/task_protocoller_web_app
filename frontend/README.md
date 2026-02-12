@@ -38,11 +38,14 @@ Tasks are defined in **two files only**:
 | `src/config/taskBase.ts`     | Defines all technical parameters, modes, and defaults (used by logic and Admin UI).        |
 | `src/i18n/[lang]/tasks.json` | Defines user-facing text — names, instructions, labels, and parameter values.              |
 
-#### Adding a New Task
-When adding a new task, you must update both files:
+## Adding a New Task
+Adding a task requires updating the frontend configuration and then syncing it with the database using the built-in automation script.
 
- 1. src/config/taskBase.ts – Technical Configuration
-Example:
+### Step 1: Frontend Configuration
+You must update exactly two configuration files:
+1. **`src/config/tasksBase.ts`**: Define the technical structure, category type (`voice`, `vision`, etc.), recording modes, and admin-editable parameters - add whatever parameters you want.
+
+Example for adding new voice task:
 ```json
 export const taskBaseConfig = {
   ...: {
@@ -58,10 +61,10 @@ export const taskBaseConfig = {
   }
 };
 ```
-💡 Note: `duration` is only required when the recording.mode is `countDown` or `delayedStop`.
-All parameters editable by the admins in Admin interface **need** to appear in params.
+2. **`src/i18n/[lang]/tasks.json`**: Add the human-readable name, instructions, and labels for all parameters defined in Step 1.
 
-2. src/i18n/[lang]/tasks.json – Translations and Labels
+💡 **Note**: All translation files has to be updated - recommend to use some AI tools and then manually check the translations...
+
 Example:
 ```json
 {
@@ -94,9 +97,23 @@ Example:
   }
 }
 ```
-💡 Note: See next chapter for explanation to dynamic parameters `{{ }}`..
+💡 **Note**: See next chapter for explanation to dynamic parameters `{{ }}`..
 
-#### Dynamic Translations and Recursive Parameters
+
+### Step 2: Validation and Database Synchronization
+After updating the configuration files, run the built-in synchronization script to validate your changes and generate the necessary SQL commands for your database:
+```bash
+node frontend/scripts/sync-tasks.js
+```
+This script follows a guided, interactive process to ensure your database stays perfectly in sync with your code:
+
+* The script verifies that all parameters and nested values (enums) defined in `tasksBase.ts` have corresponding human-readable labels in all specified translation files.
+* It guides you to check the `task_types` table in your database. 
+* You will be prompted to enter the `type_id` for your task. The script then generates a precise `INSERT ... ON DUPLICATE KEY UPDATE` command tailored to your new configuration.
+
+💡 **Note**: This manual "Copy-Paste" approach ensures you can safely update the database regardless of whether it is running locally, in a Docker container, or on a remote server without needing direct script access to your database credentials.
+
+## Dynamic Translations and Recursive Parameters
 Parameters wrapped in `{{ }}` are automatically resolved and replaced with translated values.
 The helper `getResolvedParams()` (in `translations.ts`) recursively traverses all nested structures to extract:
   - Labels (`label`)
