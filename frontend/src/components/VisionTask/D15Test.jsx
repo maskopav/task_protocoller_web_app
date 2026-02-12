@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import "./D15Test.css";
 
-// Standard D-15 Colors (Approximate Hex codes)
 const D15_COLORS = [
   "#727a8e", // Reference (Cap 0)
   "#6d8194", "#668995", "#5f9191", "#5b9789", "#5e9c7c",
@@ -10,11 +10,11 @@ const D15_COLORS = [
 ];
 
 export default function D15Test({ onNextTask }) {
-  const [tray, setTray] = useState([D15_COLORS[0]]); // Starts with reference cap
+  const { t } = useTranslation("tasks");
+  const [tray, setTray] = useState([D15_COLORS[0]]);
   const [options, setOptions] = useState([]);
 
   useEffect(() => {
-    // Shuffle caps 1-15
     const caps = D15_COLORS.slice(1).sort(() => Math.random() - 0.5);
     setOptions(caps);
   }, []);
@@ -24,50 +24,73 @@ export default function D15Test({ onNextTask }) {
     setOptions(options.filter((_, i) => i !== index));
   };
 
+  const handleUndo = (color, index) => {
+    if (index === 0) return; // Cannot undo the reference cap
+    setTray(tray.filter((_, i) => i !== index));
+    setOptions([...options, color]);
+  };
+
   const handleReset = () => {
     setTray([D15_COLORS[0]]);
     setOptions(D15_COLORS.slice(1).sort(() => Math.random() - 0.5));
   };
 
   const handleDone = () => {
-    // Return the sequence of color indices for scoring
     const resultIndices = tray.map(c => D15_COLORS.indexOf(c));
     onNextTask({ result: resultIndices, timestamp: new Date().toISOString() });
   };
 
   return (
-    <div className="vision-task-container">
-      <h3>Arrange the colors in sequence</h3>
+    <div className="vision-task-container d15-vertical-layout">
+      <div className="instructions-header">
+        <p>{t("farnsworthD15.instructions")}</p>
+      </div>
       
+      {/* Target Area: Shows only the most recently placed cap for comparison */}
+      <div className="active-comparison-zone">
       <div className="tray-area">
-        <p>Your Sequence:</p>
-        <div className="caps-grid">
+        <p className="undo-instructions">{t("farnsworthD15.controls.undo")}</p>
+        <div className="tray-row-container">
           {tray.map((color, i) => (
-            <div key={i} className="cap" style={{ backgroundColor: color }}>
-              {i === 0 && <span className="ref-label">Start</span>}
+            <div 
+              key={i} 
+              className="cap disc" 
+              style={{ 
+                backgroundColor: color,
+                zIndex: i // Ensures later caps overlap previous ones
+              }}
+              onClick={() => handleUndo(color, i)}
+            >
+              {i === 0 && <span className="ref-label">S</span>}
             </div>
           ))}
         </div>
       </div>
+        <small className="undo-hint">{t("farnsworthD15.controls.undo")}</small>
+      </div>
 
       <div className="options-area">
-        <p>Tap to pick the next closest color:</p>
         <div className="caps-grid selectable">
           {options.map((color, i) => (
-            <div 
+            <button 
               key={i} 
-              className="cap" 
+              className="cap disc selectable-button" 
               style={{ backgroundColor: color }} 
               onClick={() => handleSelect(color, i)}
+              aria-label="Select color"
             />
           ))}
         </div>
       </div>
 
       <div className="vision-controls">
-        <button className="btn-secondary" onClick={handleReset}>Reset</button>
+        <button className="btn-secondary" onClick={handleReset}>
+          {t("farnsworthD15.controls.reset")}
+        </button>
         {options.length === 0 && (
-          <button className="btn-primary" onClick={handleDone}>Submit Result</button>
+          <button className="btn-primary" onClick={handleDone}>
+            {t("farnsworthD15.controls.submit")}
+          </button>
         )}
       </div>
     </div>
