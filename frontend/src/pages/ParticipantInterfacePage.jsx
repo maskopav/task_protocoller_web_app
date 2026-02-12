@@ -9,6 +9,7 @@ import { VoiceRecorder } from "../components/VoiceRecorder/VoiceRecorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
+import D15Test from "../components/VisionTask/D15Test";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import "./Pages.css";
@@ -212,7 +213,7 @@ export default function ParticipantInterfacePage() {
     const currentTask = resolveTask(rawTask, t);
     console.log("▶ Current task:", currentTask);
 
-    // 1. Render Voice Task
+    // Render Voice Task
     if (currentTask.type === "voice")
       return (
         <VoiceRecorder
@@ -227,7 +228,7 @@ export default function ParticipantInterfacePage() {
           onLogEvent={logInteraction}
         />
       );
-    // 2. Render Questionnaire
+    // Render Questionnaire
     if (currentTask.type === "questionnaire") {
       // Construct the data object expected by your Questionnaire component
       const questionnaireData = {
@@ -243,6 +244,16 @@ export default function ParticipantInterfacePage() {
           onNextTask={handleTaskComplete}
           // Pass logging helper to track answer clicks
           onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
+        />
+      );
+    }
+
+    // Render vision task
+    if (currentTask.type === "vision") {
+      return (
+        <D15Test 
+          key={taskIndex}
+          onNextTask={handleTaskComplete}
         />
       );
     }

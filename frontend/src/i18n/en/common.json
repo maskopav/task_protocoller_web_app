@@ -39,6 +39,8 @@
       "voice": "Vocal Task",
       "motor": "Motor Task",
       "camera": "Camera Task",
+      "vision": "Vision Task",
+      "hearing": "Hearing Task",
       "questionnaire": "Questionnaire"
     },
     "questionnaire": {
