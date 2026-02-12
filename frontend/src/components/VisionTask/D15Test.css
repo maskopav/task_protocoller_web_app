@@ -1,8 +1,11 @@
 .tray-row-container {
   display: flex;
-  justify-content: center;
-  padding: 20px 5px;
-  overflow-x: hidden; /* Prevent side-scrolling to keep it "one row" */
+  justify-content: flex-start; 
+  align-items: center;
+  padding: 20px 10px;
+  overflow-x: auto; 
+  min-height: 80px;
+  gap: -15px;
 }
 
 .cap.disc {
@@ -10,9 +13,14 @@
   height: 45px;
   border-radius: 50%;
   border: 2px solid #fff;
-  margin-left: -15px; /* The "Overlap" logic */
-  transition: transform 0.2s;
+  margin-left: 0; 
+  transition: all 0.3s ease;
   position: relative;
+  flex-shrink: 0;
+}
+
+.cap.disc:not(:first-child) {
+  margin-left: -20px; 
 }
 
 /* Make the last cap stand out so they know where to compare */
@@ -22,6 +30,29 @@
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 
-.cap.disc:first-child {
-  margin-left: 0;
+/* Visual cue for the reference cap */
+.cap.disc.reference {
+  border: 3px solid #555;
+  z-index: 1;
+}
+
+
+
+
+/* Wider screens: Make spaces wider (shrink the overlap) */
+@media (min-width: 480px) {
+  .cap.disc:not(:first-child) {
+    margin-left: -10px; 
+  }
+}
+
+@media (min-width: 768px) {
+  .cap.disc:not(:first-child) {
+
+    margin-left: 2px; /* Overlap is gone, now there is a small gap */
+  }
+  .tray-row-container {
+    align-items: center;
+    justify-content: center; /* Center the test only on large screens */
+  }
 }

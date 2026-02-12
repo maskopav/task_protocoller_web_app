@@ -61,7 +61,7 @@ export default function D15Test({ onNextTask }) {
               }}
               onClick={() => handleUndo(color, i)}
             >
-              {i === 0 && <span className="ref-label">S</span>}
+              {i === 0 && <span className="ref-label"></span>}
             </div>
           ))}
         </div>
