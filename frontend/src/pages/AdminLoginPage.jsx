@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import AuthForm from "../components/AuthForm/AuthForm";
-import { loginAdmin, adminForgotPasswordApi } from "../api/auth"; // FIXED: Added missing import
+import { loginAdmin, adminForgotPasswordApi } from "../api/auth";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import { useUser } from "../context/UserContext";
 import "./AdminLoginPage.css";
@@ -34,6 +34,9 @@ export default function AdminLoginPage() {
         } else {
           navigate("/admin");
         }
+      } else {
+        // Handle cases where res.success is false but no exception was thrown
+        throw new Error("credentials"); 
       }
     } catch (err) {
       console.error("Login submission error:", err);
@@ -50,6 +53,7 @@ export default function AdminLoginPage() {
       }
       
       setStatus({ type: "error", message: msg });
+      throw new Error(msg);
     } finally {
       setIsSubmitting(false);
     }

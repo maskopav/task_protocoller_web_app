@@ -99,13 +99,15 @@
       "invalidPhone": "Invalid phone format",
       "invalidGender": "Please select your gender",
       "underAge": "You must be at least 18 years old to participate.",
-      "overAge": "You are too old, check the year of the birth.",
+      "overAge": "Please enter a valid birth date.",
       "signupSuccessTitle": "Registration Successful!",
       "signupSuccessDetail": "Your credentials and unique access link have been sent to your email.",
       "spamNote": "Please check your spam folder if you don't see it shortly.",
       "smartphoneNote": "For the best experience, please scan the QR code using your smartphone.",
       "show": "Show",
-      "hide": "Hide"
+      "hide": "Hide",
+      "futureDateError": "Birth date cannot be in the future",
+      "birthDateRequired": "Birth date is required"
    },
    "confirmModal": {
     "info":"Information"

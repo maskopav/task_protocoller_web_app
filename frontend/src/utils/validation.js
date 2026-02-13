@@ -12,6 +12,11 @@ const rules = {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   },
 
+  isValidPhone: (phone) => {
+    if (!phone) return true;
+    return /^\+?[\d\s-]{9,15}$/.test(phone);
+  },
+
   checkAge: (dobString) => {
     if (!dobString) return "birthDateRequired";
     const today = new Date();
@@ -23,8 +28,8 @@ const rules = {
     const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
     
-    if (age < 18) return "ageRestriction";
-    if (age > 120) return "tooOldError";
+    if (age < 18) return "underAge";
+    if (age > 120) return "overAge";
     return true; 
   }
 };
@@ -77,5 +82,43 @@ export const validate = {
       isValid: Object.keys(errors).length === 0,
       errors
     };
+  },
+
+  auth: {
+    field: (name, value, isRequired = false) => {
+      if (isRequired && !rules.isRequired(value)) return "required";
+      
+      if (name === "email" && !rules.isValidEmail(value)) return "invalidEmail";
+      
+      if (name === "phone" && value && !rules.isValidPhone(value)) return "invalidPhone";
+      
+      if (name === "birth_date" && value) {
+        const ageStatus = rules.checkAge(value);
+        return ageStatus === true ? "" : ageStatus;
+      }
+
+      if (name === "full_name" && value && value.trim().split(" ").length < 2) {
+        return "nameTooShort";
+      }
+
+      if (name === "sex" && (value === "not_selected" || value === "-- Choose --")) {
+        return "invalidGender";
+      }
+
+      return "";
+    },
+    login: (data) => {
+      const errors = {};
+      const emailErr = validate.auth.field("email", data.email, true);
+      const passErr = validate.auth.field("password", data.password, true);
+
+      if (emailErr) errors.email = emailErr;
+      if (passErr) errors.password = passErr;
+
+      return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+      };
+    }
   }
 };

@@ -1,6 +1,7 @@
 // src/components/Common/AuthForm.jsx
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { validate } from "../../utils/validation";
 import "./AuthForm.css";
 
 export default function AuthForm({
@@ -23,44 +24,10 @@ export default function AuthForm({
   const [formData, setFormData] = useState(initialData);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateField = (name, value, isRequired = false) => {
-    let errorMsg = "";
-    // Check if required and empty
-    if (isRequired && (!value || value.toString().trim() === "")) {
-        return t("auth.required");
-      }
-  
-    // Specific Format Validations
-    if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value)) errorMsg = t("auth.invalidEmail");
-    } else if (name === "full_name") {
-      if (value.trim().split(" ").length < 2) errorMsg = t("auth.nameTooShort");
-    } else if (name === "phone" && value) {
-      const phoneRegex = /^\+?[\d\s-]{9,15}$/;
-      if (!phoneRegex.test(value)) errorMsg = t("auth.invalidPhone");
-    } else if (name === "sex") {
-        if (value === "not_selected" || value === "-- Choose --") {
-        errorMsg = t("auth.invalidGender");
-        }
-    } else if (name === "birth_date") {
-        const birthDate = new Date(value);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        
-        // Adjust age if birthday hasn't occurred yet this year
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-        }
-
-        if (age < 18) {
-            errorMsg = t("auth.underAge");
-        } else if (age > 120) {
-            errorMsg = t("auth.overAge")
-        }
-    }
-    return errorMsg;
+  // Helper to translate error keys returned by the validation utility
+  const getErrorMessage = (errorKey) => {
+    if (!errorKey) return "";
+    return t(`auth.${errorKey}`); 
   };
 
   const handleChange = (e) => {
@@ -70,12 +37,12 @@ export default function AuthForm({
     // For select fields, validate immediately on change
     if (e.target.tagName === "SELECT") {
         const fieldDef = signupFields.find(f => f.name === name);
-        const errorMsg = validateField(name, value, fieldDef?.required);
-        setFieldErrors(prev => ({ ...prev, [name]: errorMsg }));
+        const errorKey = validate.auth.field(name, value, fieldDef?.required);
+        setFieldErrors(prev => ({ ...prev, [name]: getErrorMessage(errorKey) }));
     } else if (fieldErrors[name]) {
       // For text inputs, just clear the error while typing
-      setFieldErrors({ ...fieldErrors, [name]: "" });
-    }
+        setFieldErrors({ ...fieldErrors, [name]: "" });
+      }
   };
 
   const handleBlur = (e) => {
@@ -88,8 +55,8 @@ export default function AuthForm({
       if (fieldDef) required = fieldDef.required;
     }
   
-    const errorMsg = validateField(name, value, required);
-    setFieldErrors(prev => ({ ...prev, [name]: errorMsg }));
+    const errorMsg = validate.auth.field(name, value, required);
+    setFieldErrors(prev => ({ ...prev, [name]: getErrorMessage(errorMsg) }));
   };
 
   const handleSubmit = async (e) => {
@@ -97,30 +64,28 @@ export default function AuthForm({
     setError("");
     setSuccessMsg("");
 
-    const newErrors = {};
-
-    // Validate Email (common to all modes)
-    const emailErr = validateField("email", formData.email, true);
-    if (emailErr) newErrors.email = emailErr;
-
-    // Validate Password (login mode)
+    let validation;
     if (mode === "login") {
-      const passErr = validateField("password", formData.password, true);
-      if (passErr) newErrors.password = passErr;
-    }
-
-    // Validate all dynamic Signup Fields
-    if (mode === "signup") {
-      signupFields.forEach(field => {
-        const value = formData[field.name];
-        const msg = validateField(field.name, value, field.required);
-        if (msg) newErrors[field.name] = msg;
+      validation = validate.auth.login(formData);
+    } else if (mode === "signup") {
+      const errors = {};
+      signupFields.forEach(f => {
+        const key = validate.auth.field(f.name, formData[f.name], f.required);
+        if (key) errors[f.name] = getErrorMessage(key);
       });
+      validation = { isValid: Object.keys(errors).length === 0, errors };
+    } else {
+      const key = validate.auth.field("email", formData.email, true);
+      validation = { isValid: !key, errors: key ? { email: getErrorMessage(key) } : {} };
     }
 
-    // If there are any errors, stop submission and show them
-    if (Object.keys(newErrors).length > 0) {
-      setFieldErrors(newErrors);
+    if (!validation.isValid) {
+      // Map validation error keys to translated strings
+      const translatedErrors = {};
+      Object.keys(validation.errors).forEach(key => {
+        translatedErrors[key] = getErrorMessage(validation.errors[key]);
+      });
+      setFieldErrors(translatedErrors);
       return;
     }
 
@@ -136,7 +101,7 @@ export default function AuthForm({
         await onLogin(formData);
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || t("auth.errorGeneric"));
     } finally {
       setLoading(false);
     }
