@@ -150,9 +150,9 @@ async function sync() {
 
         console.log(`\n${colors.magenta}${colors.bright}STEP 1: Check Task Type${colors.reset}`);
         console.log(`${colors.gray}Run this to ensure the '${config.type}' type exists and get its ID:${colors.reset}`);
-        console.log(`${colors.bright}  SELECT id FROM task_types WHERE name = '${config.type}';${colors.reset}`);
+        console.log(`${colors.bright}  SELECT id FROM task_types WHERE type = '${config.type}';${colors.reset}`);
         console.log(`${colors.gray}If no ID returns, create it first:${colors.reset}`);
-        console.log(`${colors.bright}  INSERT IGNORE INTO task_types (name) VALUES ('${config.type}');${colors.reset}`);
+        console.log(`${colors.bright}  INSERT IGNORE INTO task_types (type) VALUES ('${config.type}');${colors.reset}`);
 
         const typeId = await question(`\n${colors.yellow}▶ Enter the resulting type_id for '${config.type}': ${colors.reset}`);
 
@@ -176,7 +176,7 @@ async function sync() {
             `  updated_at = NOW();`
         ];
 
-        sqlLines.forEach(line => console.log(`${colors.cyan}│${colors.reset} ${colors.bright}${line.padEnd(76)}${colors.reset} ${colors.cyan}│${colors.reset}`));
+        sqlLines.forEach(line => console.log(` ${colors.bright}${line.padEnd(76)}${colors.reset}`));
         console.log(`${colors.cyan}└${"─".repeat(78)}┘${colors.reset}`);
     }
 
