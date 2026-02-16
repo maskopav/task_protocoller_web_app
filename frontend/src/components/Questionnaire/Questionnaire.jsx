@@ -79,7 +79,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
         {data.questions.map((q, index) => (
           <div key={q.id} className="question-card">
             <div className="question-header">
-              <span className="question-number">{index + 1}.</span>
+              {/*<span className="question-number"></span>*/}
               <h4 className="question-text">{q.text}</h4>
               <span className="question-required">
                 {t("questionnaire.required")}

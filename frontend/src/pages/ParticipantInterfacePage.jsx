@@ -71,6 +71,8 @@ export default function ParticipantInterfacePage() {
 
     const introSteps = [];
 
+    console.log(selectedProtocol)
+
     // 1. Add Info Page if text exists
     if (selectedProtocol.info_text) {
       introSteps.push({
@@ -89,7 +91,7 @@ export default function ParticipantInterfacePage() {
       });
     }
 
-    // 3. Prepare Voice Tasks
+    // 3. Prepare Tasks
     const configured = selectedProtocol.tasks ?? [];
     // We explicitly attach protocolTaskId here so it persists through resolution
     const rawVoiceTasks = configured.map((t) => ({
@@ -99,17 +101,6 @@ export default function ParticipantInterfacePage() {
     const resolvedVoiceTasks = resolveTasks(rawVoiceTasks);
 
     let finalTasks = [...introSteps, ...resolvedVoiceTasks];
-    
-    // 4. Check for Questionnaire
-    // Assuming protocolData.questionnaire contains the JSON object from the editor
-    // or it was fetched and attached to the protocol object.
-    if (selectedProtocol.questionnaire) {
-      finalTasks.push({
-        type: "questionnaire",
-        data: selectedProtocol.questionnaire,
-        category: "questionnaire"
-      });
-    }
 
     return finalTasks;
   }, [selectedProtocol, i18n.language]);
@@ -154,6 +145,12 @@ export default function ParticipantInterfacePage() {
     if (currentTaskObj.type === "info" || currentTaskObj.type === "consent") {
       logInteraction(`${currentTaskObj.type}_completed`);
       setTaskIndex((i) => i + 1)
+      return;
+    }
+
+    if (testingMode || editingMode || !sessionId) {
+      console.log("🛠️ Testing mode: skipping database save.");
+      proceedToNext(); 
       return;
     }
       
@@ -270,7 +267,7 @@ export default function ParticipantInterfacePage() {
       // Construct the data object expected by your Questionnaire component
       const questionnaireData = {
         title: currentTask.title,
-        instructions: currentTask.instructions,
+        instructions: currentTask.description || currentTask.instructions,
         questions: currentTask.resolvedParams.questions
       };
 
