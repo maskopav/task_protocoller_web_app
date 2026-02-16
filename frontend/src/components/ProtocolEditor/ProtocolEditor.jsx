@@ -57,7 +57,8 @@ export function ProtocolEditor({
   const protocols = mappings?.protocols || [];
 
   useEffect(() => {
-    if (protocol) {
+    // Only update if protocol actually contains data
+    if (protocol && Object.keys(protocol).length > 0) {
       setProtocolData(protocol);
       setSelectedProtocol(protocol);
     }
@@ -242,7 +243,7 @@ export function ProtocolEditor({
     navigate("/participant/test", {
       state: {
         protocol: { ...protocolData, tasks },
-        testingMode,
+        testingMode: true,
         editingMode,
       },
     });

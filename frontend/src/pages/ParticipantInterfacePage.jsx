@@ -10,7 +10,7 @@ import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import D15Test from "../components/VisionTask/D15Test";
-import { InfoPage, ConsentPage } from "../components/Onboarding/OnboardingSteps";
+import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import "./Pages.css";
@@ -149,7 +149,14 @@ export default function ParticipantInterfacePage() {
     const currentTaskObj = runtimeTasks[taskIndex]; // The task definition
     console.log(currentTaskObj);
     const nextTaskObj = runtimeTasks[taskIndex + 1];
-    
+
+    // EXIT EARLY if it's just an onboarding step (no data to save to the DB yet)
+    if (currentTaskObj.type === "info" || currentTaskObj.type === "consent") {
+      logInteraction(`${currentTaskObj.type}_completed`);
+      setTaskIndex((i) => i + 1)
+      return;
+    }
+      
     try {
       // 1. Identify the current task to get metadata
       // The `data` object from VoiceRecorder comes with audioURL (blob url)
@@ -161,7 +168,7 @@ export default function ParticipantInterfacePage() {
       }
 
       // Extract metadata
-      const paramValue = currentTaskObj.params[0];
+      const paramValue = currentTaskObj.params?.[0] || "";
       const repeatIndex = currentTaskObj._repeatIndex || 1;
 
       // 2. Upload
@@ -187,27 +194,28 @@ export default function ParticipantInterfacePage() {
         console.log("Questionnaire answers saved successfully");
       }
 
+      // Log the "Save" action
+      logInteraction("task_saved", { recordingDuration: data.recordingTime });
+      proceedToNext();
+
     } catch (err) {
       console.error("Failed to save result:", err);
       // Optional: Show error to user or retry
     }
 
-    // Log the "Save" action
-    logInteraction("task_saved", { recordingDuration: data.recordingTime });
 
-    // Check Completion
-    if (taskIndex + 1 >= runtimeTasks.length) {
-      console.log("🏁 Session Completed");
-      trackProgress(sessionId, null, true); // markCompleted = true
-    }
+    // Helper function to handle progression and praise screen
+    function proceedToNext() {
+      if (taskIndex + 1 >= runtimeTasks.length) {
+        trackProgress(sessionId, null, true);
+      }
 
-    // Check if the next task is a different type/category or if it's the end
-    if (nextTaskObj && nextTaskObj.type !== currentTaskObj.type) {
-      setCompletedCategory(currentTaskObj.type);
-      setShowPraise(true);
-    } else {    
-      // Move to next (existing logic)
-      setTaskIndex((i) => i + 1);
+      if (nextTaskObj && nextTaskObj.type !== currentTaskObj.type) {
+        setCompletedCategory(currentTaskObj.type);
+        setShowPraise(true);
+      } else {    
+        setTaskIndex((i) => i + 1);
+      }
     }
   };
 

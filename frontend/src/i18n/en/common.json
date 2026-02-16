@@ -36,6 +36,8 @@
       ]
     },
     "taskLabels": {
+      "info": "Information",
+      "consent": "Consent",
       "voice": "Vocal Task",
       "motor": "Motor Task",
       "camera": "Camera Task",

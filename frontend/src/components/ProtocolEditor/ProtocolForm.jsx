@@ -3,6 +3,19 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector";
 import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
+// Define formatting options (bold, headers, colors, etc.)
+const editorModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{'color': []}, {'background': []}],
+    [{'list': 'ordered'}, {'list': 'bullet'}],
+    ['clean'] // option to remove formatting
+  ],
+};
 
 export default function ProtocolForm({
   tasks,
@@ -36,6 +49,14 @@ export default function ProtocolForm({
   const handleDescriptionChange = (e) => {
     const description = e.target.value;
     setProtocolData((prev) => ({ ...prev, description }));
+  };
+
+  const handleInfoChange = (content) => {
+    setProtocolData(prev => ({ ...prev, info_text: content }));
+  };
+
+  const handleConsentChange = (content) => {
+    setProtocolData(prev => ({ ...prev, consent_text: content }));
   };
 
   return (
@@ -84,32 +105,34 @@ export default function ProtocolForm({
                 onChange={handleDescriptionChange}
               />
             </div>
-            
+
             <div className="protocol-field">
               <label className="protocol-label">
-                {t("protocolEditor.infoPageLabel", "Additional Info (Intro Page)")}:
+                {t("protocolEditor.infoPageLabel", "Additional Info (Intro Page):")}:
               </label>
-              <textarea
-                className="protocol-description-input"
-                placeholder={t("protocolEditor.infoPagePlaceholder", "Welcome text, instructions, or project details...")}
-                value={protocolData?.info_text || ""}
-                onChange={(e) => setProtocolData(prev => ({ ...prev, info_text: e.target.value }))}
-              />
+              <div className="editor-container">
+                <ReactQuill 
+                  theme="snow"
+                  value={protocolData?.info_text || ""}
+                  onChange={handleInfoChange}
+                  modules={editorModules}
+                />
+              </div>
             </div>
 
             <div className="protocol-field">
               <label className="protocol-label">
-                {t("protocolEditor.consentPageLabel", "Consent Form Text")}:
+                {t("protocolEditor.consentPageLabel", "Consent Form Text:")}:
               </label>
-              <textarea
-                className={`protocol-description-input ${validation.errors.consent ? "name-input-error" : ""}`}
-                placeholder={t("protocolEditor.consentPagePlaceholder", "The legal consent text the participant must agree to...")}
-                value={protocolData?.consent_text || ""}
-                onChange={(e) => setProtocolData(prev => ({ ...prev, consent_text: e.target.value }))}
-              />
+              <div className="editor-container">
+                <ReactQuill 
+                  theme="snow"
+                  value={protocolData?.consent_text || ""}
+                  onChange={handleConsentChange}
+                  modules={editorModules}
+                />
+              </div>
             </div>
-
-
           </div>
 
           <div className="button-block">
