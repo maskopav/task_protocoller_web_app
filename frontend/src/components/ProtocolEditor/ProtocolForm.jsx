@@ -3,19 +3,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector";
 import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
-
-// Define formatting options (bold, headers, colors, etc.)
-const editorModules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{'color': []}, {'background': []}],
-    [{'list': 'ordered'}, {'list': 'bullet'}],
-    ['clean'] // option to remove formatting
-  ],
-};
 
 export default function ProtocolForm({
   tasks,
@@ -33,6 +20,8 @@ export default function ProtocolForm({
   dragIndex,
   validation,
   editingMode,
+  onEditIntro,
+  onEditConsent,
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
 
@@ -106,33 +95,6 @@ export default function ProtocolForm({
               />
             </div>
 
-            <div className="protocol-field">
-              <label className="protocol-label">
-                {t("protocolEditor.infoPageLabel", "Additional Info (Intro Page):")}:
-              </label>
-              <div className="editor-container">
-                <ReactQuill 
-                  theme="snow"
-                  value={protocolData?.info_text || ""}
-                  onChange={handleInfoChange}
-                  modules={editorModules}
-                />
-              </div>
-            </div>
-
-            <div className="protocol-field">
-              <label className="protocol-label">
-                {t("protocolEditor.consentPageLabel", "Consent Form Text:")}:
-              </label>
-              <div className="editor-container">
-                <ReactQuill 
-                  theme="snow"
-                  value={protocolData?.consent_text || ""}
-                  onChange={handleConsentChange}
-                  modules={editorModules}
-                />
-              </div>
-            </div>
           </div>
 
           <div className="button-block">
@@ -146,6 +108,15 @@ export default function ProtocolForm({
             >
               {reorderMode ? t("protocolEditor.finishReordering") : t("protocolEditor.reorderTasks")}
             </button>
+
+            <div className="onboarding-actions-row">
+          <button className="btn-onboarding" onClick={onEditIntro}>
+              {protocolData?.info_text ? "Edit Intro Page ✅" : "Add Intro Page +"}
+            </button>
+            <button className="btn-onboarding" onClick={onEditConsent}>
+              {protocolData?.consent_text ? "Edit Consent Form ✅" : "Add Consent Form +"}
+            </button>
+          </div>
 
           </div>
       </div>

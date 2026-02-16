@@ -521,7 +521,126 @@
   .mt-1 { margin-top: 4px; }
   .mt-2 { margin-top: 8px; }
   .mt-3 { margin-top: 12px; }
+
+  /* =========================================================
+    ONBOARDING - INTRO PLUS CONSENT COMPONENTS 
+     ========================================================= */
+  .onboarding-actions-row {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+  }
   
+  .btn-onboarding {
+    flex: 1;
+    padding: 10px;
+    background-color: var(--warning);
+    border: 1px dashed #cbd5e0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-onboarding:hover {
+    background-color: #e2e8f0;
+    border-color: #4a5568;
+  }
+  
+  /* Smartphone Preview Styling */
+  .mobile-preview-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background-color: #f7fafc;
+  }
+  
+  .mobile-phone-frame {
+    width: 375px; /* Standard smartphone width */
+    height: 667px;
+    background: white;
+    border: 12px solid #2d3748; /* Phone bezel */
+    border-radius: 36px;
+    padding: 20px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .mobile-screen {
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  /* Fix Quill height inside the phone screen */
+  .mobile-screen .quill {
+    height: calc(100% - 42px); /* Leave room for toolbar */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-screen .ql-container {
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .ql-editor, .ql-container {
+    font-family: inherit !important
+  }
+  
+  /* Ensure bullet points have their markers */
+  .ql-editor ul, 
+  .ql-editor ol {
+    margin-bottom: 1.2em !important;
+  }
+
+  .ql-editor li {
+    margin-bottom: 0.em;
+    list-style-type: none; 
+  }
+
+  .ql-editor, 
+  .ql-editor p, 
+  .ql-editor ol, 
+  .ql-editor ul, 
+  .ql-editor li {
+    font-size: 16px; 
+    line-height: 1.6;
+  }
+
+  .ql-editor .ql-size-12px { font-size: 12px !important; }
+  .ql-editor .ql-size-20px { font-size: 20px !important; }
+  .ql-editor .ql-size-28px { font-size: 28px !important; }
+
+  /* Ensure the participant view understands Quill's classes */
+  .ql-editor .ql-align-center { text-align: center; }
+  .ql-editor .ql-align-right { text-align: right; }
+  .ql-editor .ql-align-justify { text-align: justify; }
+
+  /* Fix Indentation (up to 3 levels) */
+  .ql-editor .ql-indent-1 { padding-left: 3em; }
+  .ql-editor .ql-indent-2 { padding-left: 6em; }
+  .ql-editor .ql-indent-3 { padding-left: 9em; }
+
+  .ql-editor {
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    -ms-hyphens: none !important;
+
+    /* Ensure words don't overflow the phone screen, but wrap naturally */
+    word-wrap: none !important;
+    overflow-wrap: anywhere !important;
+    word-break: none !important;
+    
+    /* Improve readability for neuroSHARE participants */
+    line-height: 1.6;
+  }
+
+  .ql-editor p, 
+  .ql-editor div {
+    margin-bottom: 1.2em !important; 
+  }
+
+
+    
   /* =========================================================
    MOBILE FRIENDLY LAYOUT IMPROVEMENTS
    ========================================================= */

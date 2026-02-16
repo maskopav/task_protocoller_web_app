@@ -15,8 +15,29 @@ import { useProtocolManager } from "../../hooks/useProtocolManager";
 import { ProtocolContext } from "../../context/ProtocolContext";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext"; // Import confirm
 import { validate } from "../../utils/validation";
+import AdminModal from "./Modal";
+import ReactQuill, { Quill } from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 import "./ProtocolEditor.css";
+
+// Force Quill to use inline styles instead of classes for font sizes
+const Size = Quill.import('attributors/style/size');
+Size.whitelist = ['12px', '16px', '20px', '28px']; // small, normal, large, huge equivalents
+Quill.register(Size, true);
+
+const editorModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    [{ 'size': ['12px', false, '20px', '28px'] }], // 'false' defaults to your base 16px
+    ['bold', 'italic', 'underline'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'align': [] }], // Adds Left, Center, Right, Justify
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }], // Adds Indentation
+    ['clean']
+  ],
+};
 
 export function ProtocolEditor({ 
   initialTasks = [], 
@@ -33,6 +54,7 @@ export function ProtocolEditor({
   const { mappings, loading, error } = useMappings();
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
   const { saveNewProtocol } = useProtocolManager();
+  
 
   const confirm = useConfirm();
 
@@ -49,6 +71,9 @@ export function ProtocolEditor({
   const [showTaskModal, setShowTaskModal] = useState(false);
   // Controls visibility of the Questionnaire Modal
   const [showQuestionnaireModal, setShowQuestionnaireModal] = useState(false);
+  // Intro components modals
+  const [showIntroModal, setShowIntroModal] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
 
   // --- State: UI & Validation ---
   const [reorderMode, setReorderMode] = useState(false);
@@ -249,6 +274,11 @@ export function ProtocolEditor({
     });
   }
 
+  // Helper to update protocol data fields
+  const updateProtocolField = (field, value) => {
+    setProtocolData(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="admin-container">
       <h2>{t("protocolEditor.title")}</h2>
@@ -272,8 +302,54 @@ export function ProtocolEditor({
           onShowProtocol={handleShowProtocol}
           validation={validation} 
           editingMode={editingMode}
+          onEditIntro={() => setShowIntroModal(true)}
+          onEditConsent={() => setShowConsentModal(true)}
         />
       </div>
+
+      {/* --- Intro Page Rich Text Modal --- */}
+      <AdminModal
+        open={showIntroModal}
+        title={t("protocolEditor.editIntroTitle", "Edit Intro Page")}
+        onClose={() => setShowIntroModal(false)}
+        onSave={() => setShowIntroModal(false)}
+      >
+        <div className="mobile-preview-wrapper">
+          <div className="mobile-phone-frame">
+            <div className="mobile-screen">
+               <ReactQuill 
+                theme="snow"
+                modules={editorModules}
+                value={protocolData?.info_text || ""}
+                onChange={(val) => updateProtocolField("info_text", val)}
+                placeholder="Welcome text for participants..."
+              />
+            </div>
+          </div>
+        </div>
+      </AdminModal>
+
+      {/* --- Consent Page Rich Text Modal --- */}
+      <AdminModal
+        open={showConsentModal}
+        title={t("protocolEditor.editConsentTitle", "Edit Consent Form")}
+        onClose={() => setShowConsentModal(false)}
+        onSave={() => setShowConsentModal(false)}
+      >
+        <div className="mobile-preview-wrapper">
+          <div className="mobile-phone-frame">
+            <div className="mobile-screen ql-editor">
+               <ReactQuill 
+                theme="snow"
+                modules={editorModules}
+                value={protocolData?.consent_text || ""}
+                onChange={(val) => updateProtocolField("consent_text", val)}
+                placeholder="Legal consent text..."
+              />
+            </div>
+          </div>
+        </div>
+      </AdminModal>
 
 
       {/* Task edit/create modal */}
