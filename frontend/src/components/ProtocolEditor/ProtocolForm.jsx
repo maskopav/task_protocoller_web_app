@@ -84,6 +84,31 @@ export default function ProtocolForm({
                 onChange={handleDescriptionChange}
               />
             </div>
+            
+            <div className="protocol-field">
+              <label className="protocol-label">
+                {t("protocolEditor.infoPageLabel", "Additional Info (Intro Page)")}:
+              </label>
+              <textarea
+                className="protocol-description-input"
+                placeholder={t("protocolEditor.infoPagePlaceholder", "Welcome text, instructions, or project details...")}
+                value={protocolData?.info_text || ""}
+                onChange={(e) => setProtocolData(prev => ({ ...prev, info_text: e.target.value }))}
+              />
+            </div>
+
+            <div className="protocol-field">
+              <label className="protocol-label">
+                {t("protocolEditor.consentPageLabel", "Consent Form Text")}:
+              </label>
+              <textarea
+                className={`protocol-description-input ${validation.errors.consent ? "name-input-error" : ""}`}
+                placeholder={t("protocolEditor.consentPagePlaceholder", "The legal consent text the participant must agree to...")}
+                value={protocolData?.consent_text || ""}
+                onChange={(e) => setProtocolData(prev => ({ ...prev, consent_text: e.target.value }))}
+              />
+            </div>
+
 
           </div>
 

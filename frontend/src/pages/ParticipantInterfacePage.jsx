@@ -10,6 +10,7 @@ import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import D15Test from "../components/VisionTask/D15Test";
+import { InfoPage, ConsentPage } from "../components/Onboarding/OnboardingSteps";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import "./Pages.css";
@@ -68,7 +69,27 @@ export default function ParticipantInterfacePage() {
   const runtimeTasks = useMemo(() => {
     if (!selectedProtocol) return [];
 
-    // 1. Prepare Voice Tasks
+    const introSteps = [];
+
+    // 1. Add Info Page if text exists
+    if (selectedProtocol.info_text) {
+      introSteps.push({
+        type: "info",
+        content: selectedProtocol.info_text,
+        category: "introduction"
+      });
+    }
+
+    // 2. Add Consent Page if text exists
+    if (selectedProtocol.consent_text) {
+      introSteps.push({
+        type: "consent",
+        content: selectedProtocol.consent_text,
+        category: "consent"
+      });
+    }
+
+    // 3. Prepare Voice Tasks
     const configured = selectedProtocol.tasks ?? [];
     // We explicitly attach protocolTaskId here so it persists through resolution
     const rawVoiceTasks = configured.map((t) => ({
@@ -76,23 +97,21 @@ export default function ParticipantInterfacePage() {
       protocolTaskId: t.protocol_task_id 
     }));
     const resolvedVoiceTasks = resolveTasks(rawVoiceTasks);
+
+    let finalTasks = [...introSteps, ...resolvedVoiceTasks];
     
-    // 2. Check for Questionnaire
+    // 4. Check for Questionnaire
     // Assuming protocolData.questionnaire contains the JSON object from the editor
     // or it was fetched and attached to the protocol object.
     if (selectedProtocol.questionnaire) {
-      const qTask = {
+      finalTasks.push({
         type: "questionnaire",
         data: selectedProtocol.questionnaire,
-        category: "questionnaire" // for label lookup
-      };
-      
-      // Decide position: usually at the end or beginning. 
-      // Let's append it to the end for now.
-      return [...resolvedVoiceTasks, qTask];
+        category: "questionnaire"
+      });
     }
 
-    return resolvedVoiceTasks;
+    return finalTasks;
   }, [selectedProtocol, i18n.language]);
 
 
@@ -209,6 +228,16 @@ export default function ParticipantInterfacePage() {
   const renderCurrentTask = () => {
     const rawTask = runtimeTasks[taskIndex];
     if (!rawTask) return <CompletionScreen />;
+
+    // Render Info Page
+    if (rawTask.type === "info") {
+      return <InfoPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'info' })} />;
+    }
+
+    // Render Consent Page
+    if (rawTask.type === "consent") {
+      return <ConsentPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'consent' })} />;
+    }
 
     const currentTask = resolveTask(rawTask, t);
     console.log("▶ Current task:", currentTask);
