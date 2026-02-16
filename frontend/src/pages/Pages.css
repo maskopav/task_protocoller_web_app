@@ -104,9 +104,9 @@ body {
   padding: 0.5rem 0.2rem;
   box-sizing: border-box;
   overflow-y: auto; /* internal scroll */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; /* keep instruction Y-position stable */
+  display: block;
+  /*flex-direction: column;
+  justify-content: flex-start;*/
   text-align: center;
 }
 
@@ -253,6 +253,26 @@ button:disabled {
   align-items: center;
   justify-content: center; /* Keeps everything centered together */
   width: 100%;
+}
+
+
+/* Intro page, consent styling: Explicitly restore list styles for Quill content in Participant View */
+.ql-editor ol, .ql-editor ul {
+  padding-left: 1.5rem !important;
+  margin-bottom: 1rem;
+  color: var(--muted) !important; /* Force them to match your 'muted' text color */
+}
+
+.ql-editor li {
+  list-style-type: inherit !important; /* Ensure markers show up */
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  display: list-item; /* Essential for bullets to render */
+}
+
+/* Ensure General Text in the Editor matches your Theme */
+.ql-editor p, .ql-editor span, .ql-editor div {
+  line-height: 1.6;
 }
 
 /* Mobile-friendly adjustments */

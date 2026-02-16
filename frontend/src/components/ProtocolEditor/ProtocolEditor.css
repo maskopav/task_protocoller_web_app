@@ -610,6 +610,23 @@
   .ql-editor .ql-size-20px { font-size: 20px !important; }
   .ql-editor .ql-size-28px { font-size: 28px !important; }
 
+
+  .ql-snow .ql-picker.ql-size .ql-picker-label::before,
+  .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+    content: 'Normal';
+  }
+  .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+  .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before {
+    content: 'Small';
+  }
+  .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+  .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before {
+    content: 'Large';
+  }
+  .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+  .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before {
+    content: 'Huge';
+}
   /* Ensure the participant view understands Quill's classes */
   .ql-editor .ql-align-center { text-align: center; }
   .ql-editor .ql-align-right { text-align: right; }
