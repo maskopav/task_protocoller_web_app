@@ -274,9 +274,18 @@ export function ProtocolEditor({
     });
   }
 
+  const isQuillEmpty = (content) => {
+    if (!content) return true;
+    // Strip HTML tags and check if the remaining text is just whitespace
+    const plainText = content.replace(/<(.|\n)*?>/g, '').trim();
+    return plainText.length === 0;
+  };
+
   // Helper to update protocol data fields
   const updateProtocolField = (field, value) => {
-    setProtocolData(prev => ({ ...prev, [field]: value }));
+    // If the editor only contains empty tags, save it as an empty string
+    const cleanValue = isQuillEmpty(value) ? "" : value;
+    setProtocolData(prev => ({ ...prev, [field]: cleanValue }));
   };
 
   async function handleDeleteIntro() {

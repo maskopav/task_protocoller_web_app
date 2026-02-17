@@ -50,6 +50,14 @@ export default function ProtocolForm({
     setProtocolData(prev => ({ ...prev, consent_text: content }));
   };
 
+  // Helper to check if Quill content is truly empty
+  const isQuillEmpty = (content) => {
+    if (!content) return true;
+    // Strip HTML tags and check if the remaining text is just whitespace
+    const plainText = content.replace(/<(.|\n)*?>/g, '').trim();
+    return plainText.length === 0;
+  };
+
   return (
     <div className="protocol-section">
       <div className="protocol-header">
@@ -99,7 +107,7 @@ export default function ProtocolForm({
 
             <div className="protocol-pages-row">
               {/* Intro Page Logic */}
-              {!protocolData?.info_text ? (
+              {isQuillEmpty(protocolData?.info_text) ? (
                 <button className="btn-add-page-minimal" onClick={onEditIntro}>
                   + Add Intro Page
                 </button>
@@ -114,7 +122,7 @@ export default function ProtocolForm({
               )}
 
               {/* Consent Form Logic */}
-              {!protocolData?.consent_text ? (
+              {isQuillEmpty(protocolData?.consent_text)? (
                 <button className="btn-add-page-minimal" onClick={onEditConsent}>
                   + Add Consent Form
                 </button>

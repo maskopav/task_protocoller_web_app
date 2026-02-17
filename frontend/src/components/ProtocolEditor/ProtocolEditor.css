@@ -38,6 +38,7 @@
     flex-direction: column;
     overflow: hidden; /* prevent them from stretching and causing full-page scroll */
     min-height: 0;
+    height: 75vh;
   }
   
   .task-section {
@@ -157,6 +158,7 @@
   .btn-add-questionnaire,
   .reorder-btn,
   .btn-randomize,
+  .btn-add-page-minimal,
   .button-show-tasks,
   .button-save,
   .btn-save,
@@ -251,11 +253,12 @@
   .button-row {
     position: sticky;
     bottom: 0;
-    padding: 8px 0;
+    padding: 5px 0;
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 15px;
     z-index: 1; 
+    margin: 0;
   }
   
   /* =========================================================
@@ -269,8 +272,9 @@
     padding: 0;
     overflow-y: auto;      /* enables scrolling */
     scrollbar-width: thin;
+    margin: 0;
   }
-  
+   
   .protocol-item, .task-option {
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -539,18 +543,24 @@
     gap: 15px;
     margin-top: 8px;
     padding-top: 8px;
-    align-items: flex-end;
+    align-items: center;
     flex: 4;
   }
 
   .page-item-minimal {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: space-around;
     background: #fff;
-    padding: 4px 10px;
-    border-radius: 6px;
+    border-radius: var(--radius);
+    padding: 6px 12px;
     border: 1px solid #ddd;
-    font-size: 0.85rem;
+    font-size: 1rem;
+    flex: 1;
+  }
+
+  .btn-add-page-minimal {
+    flex: 1;
   }
 
   .page-label {
@@ -560,7 +570,7 @@
 
   .page-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
   }
 
   .edit-icon-small {
@@ -573,7 +583,6 @@
     cursor: pointer;
     font-weight: bold;
   }
-
   
   /* Smartphone Preview Styling */
   .mobile-preview-wrapper {
@@ -717,34 +726,32 @@
   .protocol-header {
     flex-direction: column;
     align-items: stretch;
+    margin: 0;
   }
 
   .protocol-field {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+    flex-direction: column; /* Stack label on top of input */
     align-items: stretch;
-    max-height: min-content;
+    gap: 2px;
+    margin-bottom: 2px;
   }
 
   .protocol-label {
+    flex: none;         /* Remove the 180px fixed width */
+    width: 100%;
     text-align: left;
     padding-right: 0;
+    margin-bottom: 2px;
     font-size: 0.95rem;
-    margin-bottom: 0px;
-    flex: none; 
-    width: auto;
   }
 
   .protocol-name-input,
   .protocol-language-select,
   .protocol-description-input {
-    width: 100%;
-    box-sizing: border-box; /* Crucial: padding won't push width past 100% */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px; /* Prevents iOS auto-zoom */
+    flex: none;         /* Stop flex-basis (200px) from forcing width */
+    width: 100% !important; 
+    max-width: 100%;    /* Allow it to fill the screen */
+    box-sizing: border-box;
   }
 
   /* Set reasonable heights */
@@ -753,7 +760,7 @@
   }
 
   .protocol-description-input {
-    min-height: 80px; /* Height for the textarea */
+    min-height: 50px; /* Height for the textarea */
     resize: vertical;
   }
 
@@ -764,12 +771,17 @@
     display: block;
   }
 
-  /* Buttons */
+  .page-item-minimal {
+    width: 100%;
+    justify-content: space-between; /* Put icons on the right */
+    box-sizing: border-box;
+    padding: 10px;
+  }
 
+  /* Buttons */
   .button-block button,
   .button-save,
-  .button-show-tasks,
-  .btn-add-page-minimal {
+  .button-show-tasks {
     width: 100%;
     font-size: 1rem;
     padding: 10px 5px;

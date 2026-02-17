@@ -17,6 +17,8 @@
   --transition: all 0.2s ease;
 }
 
+
+
 body {
   font-family: "Inter", system-ui, sans-serif;
   background: var(--bg);
@@ -24,7 +26,7 @@ body {
   margin: 0;
 }
 
-.dashboard-page {
+.dashboard-page, .protocol-editor-page {
   display: flex;
   flex-direction: column;
   width: 98%;            /* Full width */
@@ -59,6 +61,10 @@ body {
   box-shadow: var(--sharp-shadow);
   padding: 0.8rem 1rem; /* Compact padding */
   margin-bottom: 0.6rem;
+}
+
+.card input, .card textarea {
+  max-width: 100%;
 }
 
 .top-controls-participant {
@@ -276,7 +282,7 @@ button:disabled {
 }
 
 /* Mobile-friendly adjustments */
-@media (max-width: 600px) {
+@media (max-width: 850px) {
   .task-wrapper {
     height: 100vh; /* Use almost full height */
     width: 100%;
@@ -297,4 +303,32 @@ button:disabled {
     flex-direction: column; /* Stack buttons vertically for full-width tap areas */
     gap: 0.5rem;
   }
+
+  /* Admin Management Page*/
+  .project-description {
+    font-size: 1.1rem;
+  }
+
+  /* Transform the header from side-by-side to a vertical stack */
+  .section-header.create-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+
+  .section-header-row {
+    flex-direction: row !important; 
+    align-items: center !important;
+  }
+
+  /* Force dashboard buttons to be full width on mobile */
+  .header-actions button {
+    width: 100%;
+    margin: 0;
+    padding: 8px;
+    justify-content: center;
+    font-size: 1rem;
+    height: auto !important;
+  }
+  
 }
