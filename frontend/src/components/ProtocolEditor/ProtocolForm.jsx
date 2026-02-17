@@ -21,7 +21,9 @@ export default function ProtocolForm({
   validation,
   editingMode,
   onEditIntro,
+  onDeleteIntro,
   onEditConsent,
+  onDeleteConsent,
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
 
@@ -95,28 +97,54 @@ export default function ProtocolForm({
               />
             </div>
 
+            <div className="protocol-pages-row">
+              {/* Intro Page Logic */}
+              {!protocolData?.info_text ? (
+                <button className="btn-add-page-minimal" onClick={onEditIntro}>
+                  + Add Intro Page
+                </button>
+              ) : (
+                <div className="page-item-minimal">
+                  <span className="page-label">Intro Page ✅</span>
+                  <div className="page-actions">
+                    <span className="edit-icon-small" title="Edit" onClick={onEditIntro}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={onDeleteIntro}>✖</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Consent Form Logic */}
+              {!protocolData?.consent_text ? (
+                <button className="btn-add-page-minimal" onClick={onEditConsent}>
+                  + Add Consent Form
+                </button>
+              ) : (
+                <div className="page-item-minimal">
+                  <span className="page-label">Consent Form ✅</span>
+                  <div className="page-actions">
+                    <span className="edit-icon-small" title="Edit" onClick={onEditConsent}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={onDeleteConsent}>✖</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="button-block">
             <button className="btn-add-questionnaire" onClick={onAddQuestionnaire}>
-              {t("protocolEditor.addQuestionnaire")}
+              📋{t("protocolEditor.addQuestionnaire")}
             </button>
 
             <button
               className={`reorder-btn ${reorderMode ? "active" : ""}`}
               onClick={() => setReorderMode(!reorderMode)}
             >
-              {reorderMode ? t("protocolEditor.finishReordering") : t("protocolEditor.reorderTasks")}
+              {reorderMode ? t("protocolEditor.finishReordering") : `🔁 ${t("protocolEditor.reorderTasks")}`}
             </button>
 
-            <div className="onboarding-actions-row">
-          <button className="btn-onboarding" onClick={onEditIntro}>
-              {protocolData?.info_text ? "Edit Intro Page ✅" : "Add Intro Page +"}
+            <button className="btn-randomize" onClick={() => console.log("Randomize module clicked")}>
+               🎲 Randomize Task Modules
             </button>
-            <button className="btn-onboarding" onClick={onEditConsent}>
-              {protocolData?.consent_text ? "Edit Consent Form ✅" : "Add Consent Form +"}
-            </button>
-          </div>
 
           </div>
       </div>

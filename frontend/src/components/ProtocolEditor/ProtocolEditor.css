@@ -71,7 +71,9 @@
   .protocol-values { 
     display: flex;
     flex-direction:column;
+    width: auto;
     margin: 5px;
+    box-sizing: border-box;
   }
 
   /* a single field row: label + input */
@@ -138,8 +140,9 @@
   .button-block {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    max-width: 200px; /* keeps consistent width for stacked buttons */
+    gap: 0px;
+    max-width: 100%;
+    width: auto; 
   }
 
   .version-warning {
@@ -153,6 +156,7 @@
   
   .btn-add-questionnaire,
   .reorder-btn,
+  .btn-randomize,
   .button-show-tasks,
   .button-save,
   .btn-save,
@@ -160,7 +164,7 @@
   .btn-add-option,
   .btn-remove-option,
   .btn-remove-question-icon {
-    padding: 8px 12px;
+    padding: 6px 12px;
     border-radius: var(--radius);
     cursor: pointer;
     transition: background var(--transition), transform 0.08s;
@@ -168,6 +172,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.2rem;
   }
   
   /* primary visual variants */
@@ -175,13 +180,16 @@
     background: var(--purple);
     color: white;
   }
-  .btn-add-questionnaire:hover { background: #6a2fd6; }
   
   .reorder-btn {
     background: var(--primary);
     color: white;
   }
   .reorder-btn.active { background: var(--success); }
+
+  .btn-randomize {
+    background-color: var(--warning);
+  }
   
   .button-show-tasks {
     background: #5a5a5a;
@@ -525,25 +533,47 @@
   /* =========================================================
     ONBOARDING - INTRO PLUS CONSENT COMPONENTS 
      ========================================================= */
-  .onboarding-actions-row {
+  /* Minimalist Row for Intro/Consent */
+  .protocol-pages-row {
     display: flex;
-    gap: 10px;
-    margin: 15px 0;
+    gap: 15px;
+    margin-top: 8px;
+    padding-top: 8px;
+    align-items: flex-end;
+    flex: 4;
   }
-  
-  .btn-onboarding {
-    flex: 1;
-    padding: 10px;
-    background-color: var(--warning);
-    border: 1px dashed #cbd5e0;
+
+  .page-item-minimal {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+  }
+
+  .page-label {
+    font-weight: 500;
+    margin-right: 10px;
+  }
+
+  .page-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .edit-icon-small {
+    color: var(--primary);
     cursor: pointer;
-    transition: all 0.2s;
   }
-  
-  .btn-onboarding:hover {
-    background-color: #e2e8f0;
-    border-color: #4a5568;
+
+  .delete-icon-small {
+    color: var(--danger);
+    cursor: pointer;
+    font-weight: bold;
   }
+
   
   /* Smartphone Preview Styling */
   .mobile-preview-wrapper {
@@ -656,7 +686,6 @@
     margin-bottom: 1.2em !important; 
   }
 
-
     
   /* =========================================================
    MOBILE FRIENDLY LAYOUT IMPROVEMENTS
@@ -691,8 +720,11 @@
   }
 
   .protocol-field {
+    display: flex;
     flex-direction: column;
+    width: 100%;
     align-items: stretch;
+    max-height: min-content;
   }
 
   .protocol-label {
@@ -708,24 +740,40 @@
   .protocol-language-select,
   .protocol-description-input {
     width: 100%;
-    max-width: none;
-    font-size: 1rem;
+    box-sizing: border-box; /* Crucial: padding won't push width past 100% */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px; /* Prevents iOS auto-zoom */
+  }
+
+  /* Set reasonable heights */
+  .protocol-name-input {
+    height: 45px;
+  }
+
+  .protocol-description-input {
+    min-height: 80px; /* Height for the textarea */
+    resize: vertical;
+  }
+
+  /* Ensure the label is block-level */
+  .protocol-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
   }
 
   /* Buttons */
-  .button-block {
-    flex-direction: column;
-    gap: 0px;
-    max-width: 100%;
-    width: auto; 
-  }
 
   .button-block button,
   .button-save,
-  .button-show-tasks {
+  .button-show-tasks,
+  .btn-add-page-minimal {
     width: 100%;
     font-size: 1rem;
-    padding: 5px;
+    padding: 10px 5px;
+    gap: 0 ;
   }
 
   /* Reduce font sizes slightly */
@@ -745,4 +793,6 @@
     max-height: 93vh;
     padding: 0.5rem;
   }
+
+
 }

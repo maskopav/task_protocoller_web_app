@@ -279,6 +279,30 @@ export function ProtocolEditor({
     setProtocolData(prev => ({ ...prev, [field]: value }));
   };
 
+  async function handleDeleteIntro() {
+    const isConfirmed = await confirm({
+      title: t("protocolEditor.confirmDeleteIntroTitle", "Delete Intro Page?"),
+      message: t("protocolEditor.confirmDeleteIntroMsg", "Are you sure you want to remove the introduction text?"),
+      confirmText: t("common.delete", "Delete"),
+      cancelText: t("common.cancel", "Cancel")
+    });
+    if (isConfirmed) {
+      updateProtocolField("info_text", "");
+    }
+  }
+
+  async function handleDeleteConsent() {
+    const isConfirmed = await confirm({
+      title: t("protocolEditor.confirmDeleteConsentTitle", "Delete Consent Form?"),
+      message: t("protocolEditor.confirmDeleteConsentMsg", "Are you sure you want to remove the consent form text?"),
+      confirmText: t("common.delete", "Delete"),
+      cancelText: t("common.cancel", "Cancel")
+    });
+    if (isConfirmed) {
+      updateProtocolField("consent_text", "");
+    }
+  }
+
   return (
     <div className="admin-container">
       <h2>{t("protocolEditor.title")}</h2>
@@ -303,7 +327,9 @@ export function ProtocolEditor({
           validation={validation} 
           editingMode={editingMode}
           onEditIntro={() => setShowIntroModal(true)}
+          onDeleteIntro={handleDeleteIntro}
           onEditConsent={() => setShowConsentModal(true)}
+          onDeleteConsent={handleDeleteConsent}
         />
       </div>
 
