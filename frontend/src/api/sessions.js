@@ -1,7 +1,7 @@
 // src/api/sessions.js
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-export async function initSession(token, taskOrder) {
+export async function initSession({token, taskOrder}) {
   if (!token) throw new Error("initSession: Missing token");
   if (!taskOrder) throw new Error("initSession: Missing taskOrder");
 

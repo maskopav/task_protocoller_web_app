@@ -209,6 +209,13 @@ export const getProtocolById = async (req, res) => {
       return res.status(404).json({ error: 'Protocol not found' });
     }
     const protocol = protocolRows[0];
+    if (protocol.randomization && typeof protocol.randomization === 'string') {
+      try {
+          protocol.randomization = JSON.parse(protocol.randomization);
+      } catch (e) {
+          protocol.randomization = {};
+      }
+    }
 
     // Get tasks assigned to that protocol
     const taskRows = await executeQuery(

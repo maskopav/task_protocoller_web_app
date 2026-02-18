@@ -281,12 +281,18 @@
     },
     "buttons": {
       "cancel": "Cancel",
-      "save": "Save Changes"
+      "save": "Save Changes",
+      "confirm": "Confirm"
     },
     "modal": {
       "title": "Edit Task",
       "cancel": "Cancel",
       "save": "Save Changes"
+    },
+    "confirmBack": {
+      "title": "Unsaved Changes",
+      "message": "Are you sure you want to go back? Any unsaved changes will be lost.",
+      "confirmText": "Yes, go back"
     },
     "randomization": {
       "title": "Protocol Flow & Randomization",

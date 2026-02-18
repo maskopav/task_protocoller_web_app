@@ -2,12 +2,12 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { LanguageSwitcher } from "../components/LanguageSwitcher/LanguageSwitcher";
 import ProtocolEditor from "../components/ProtocolEditor";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
 import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar"; //
+import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
+import { getProtocolById } from "../api/protocols"; // 1. Import API
 import "./Pages.css"
 
 function attachIds(protocol, projectId, protocolId) {
@@ -20,7 +20,7 @@ function attachIds(protocol, projectId, protocolId) {
 }  
 
 export default function ProtocolEditorPage() {
-  const { t } = useTranslation(["tasks", "common"]);
+  const { t } = useTranslation(["admin"]);
   const { projectId, protocolId } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -65,10 +65,10 @@ export default function ProtocolEditorPage() {
   // Back navigation handler
   async function handleBack() {
     const isConfirmed = await confirm({
-      title: "Any unsaved changes will be lost!",
-      message: "Are you sure you want to go back? Any unsaved changes will be lost.",
-      confirmText: "Yes, go back",
-      cancelText: "Cancel"
+      title: t("protocolEditor.confirmBack.title"),
+      message: t("protocolEditor.confirmBack.message"),
+      confirmText: t("protocolEditor.confirmBack.confirmText"),
+      cancelText: t("protocolEditor.buttons.cancel") //
     });
 
     if (isConfirmed) {

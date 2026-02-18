@@ -52,8 +52,18 @@ export async function resolveParticipantToken(req, res) {
       `SELECT randomization FROM protocols WHERE id = ?`,
       [view.protocol_id]
     );
-    const randomizationSettings = protocolConfig ? protocolConfig.randomization : {};
-
+    let randomizationSettings = {};
+    if (protocolConfig && protocolConfig.randomization) {
+      try {
+        const raw = protocolConfig.randomization;
+        // If it's a string, parse it. If it's already an object (mysql2 driver feature), keep it.
+        randomizationSettings = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch (e) {
+        console.error("Error parsing randomization JSON:", e);
+        randomizationSettings = {};
+      }
+    }
+    
     // 4. Load tasks for the protocol
     const tasks = await executeQuery(
       `

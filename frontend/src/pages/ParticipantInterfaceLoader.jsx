@@ -53,17 +53,7 @@ export default function ParticipantInterfaceLoader() {
 
         // 3: Apply Randomization
         // We use the settings from the protocol to shuffle the mapped tasks
-        let randomizationSettings = rawProtocol.randomization;
-        // Check if it is a JSON string and parse it manually if needed
-        if (typeof randomizationSettings === 'string') {
-          try {
-            randomizationSettings = JSON.parse(randomizationSettings);
-          } catch (e) {
-            console.error("Error parsing randomization settings:", e);
-            randomizationSettings = {}; 
-          }
-        }
-        randomizationSettings = randomizationSettings || {};
+        let randomizationSettings = rawProtocol.randomization || {};
         const shuffledTasks = randomizeTasks(mappedProtocol.tasks, randomizationSettings);
         
         // Update the protocol object with the new order
