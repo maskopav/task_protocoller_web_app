@@ -53,7 +53,9 @@ CREATE TABLE `protocols` (
   `created_by` integer,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_by` integer,
-  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }'
+  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
+  `info_text` TEXT DEFAULT NULL,
+  `consent_text` TEXT DEFAULT NULL
 );
 
 CREATE TABLE `project_protocols` (

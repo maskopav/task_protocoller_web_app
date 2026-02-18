@@ -16,7 +16,10 @@ export const saveProtocol = async (req, res) => {
     updated_by, 
     tasks,
     project_id,
-    editingMode 
+    editingMode,
+    randomization,
+    info_text,
+    consent_text
   } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
@@ -78,8 +81,8 @@ export const saveProtocol = async (req, res) => {
 
       // Insert the new protocol
       const [result] = await conn.query(
-        `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, info_text, consent_text)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           groupId,
           name || 'Placeholder Protocol',
@@ -88,6 +91,9 @@ export const saveProtocol = async (req, res) => {
           newVersion || 1,
           created_by || 1,
           updated_by || 1,
+          JSON.stringify(randomization || {}),
+          info_text || null,    
+          consent_text || null
         ]
       );
 

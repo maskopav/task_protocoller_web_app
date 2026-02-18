@@ -1,7 +1,10 @@
 // src/api/sessions.js
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-export async function initSession(token) {
+export async function initSession(token, taskOrder) {
+  if (!token) throw new Error("initSession: Missing token");
+  if (!taskOrder) throw new Error("initSession: Missing taskOrder");
+
   // Collect basic client-side metadata
   const deviceMetadata = {
     screenWidth: window.screen.width,
@@ -14,7 +17,11 @@ export async function initSession(token) {
   const res = await fetch(`${API_BASE}/sessions/init`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, deviceMetadata }),
+    body: JSON.stringify({ 
+      token, 
+      deviceMetadata,
+      taskOrder
+    }),
   });
 
   if (!res.ok) {

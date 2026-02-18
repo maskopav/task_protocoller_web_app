@@ -5,7 +5,7 @@ import { logToFile } from '../utils/logger.js';
 
 // POST /api/sessions/init
 export const initSession = async (req, res) => {
-  const { token, deviceMetadata } = req.body;
+  const { token, deviceMetadata, taskOrder } = req.body;
   const userAgent = req.headers["user-agent"];
   // Get IP (handles proxies like Nginx/Cloudflare if configured, or direct)
   const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
@@ -33,13 +33,14 @@ export const initSession = async (req, res) => {
     // 3. Insert New Session
     const [insertResult] = await pool.query(
       `INSERT INTO sessions 
-      (participant_protocol_id, session_date, user_agent, ip_address, device_metadata) 
-      VALUES (?, NOW(), ?, ?, ?)`,
+      (participant_protocol_id, session_date, user_agent, ip_address, device_metadata, task_order) 
+      VALUES (?, NOW(), ?, ?, ?, ?)`,
       [
         participantProtocolId, 
         userAgent, 
         ipAddress, 
-        JSON.stringify(deviceMetadata || {})
+        JSON.stringify(deviceMetadata || {}),
+        JSON.stringify(taskOrder || [])
       ]
     );
 

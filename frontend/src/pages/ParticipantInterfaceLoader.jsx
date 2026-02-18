@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
 import { fetchParticipantProtocol } from "../api/participantProtocols";
+import { randomizeTasks } from '../utils/randomizer';
 import { initSession } from "../api/sessions";
 
 export default function ParticipantInterfaceLoader() {
@@ -47,11 +48,40 @@ export default function ParticipantInterfaceLoader() {
         const rawProtocol = response.protocol;
         if (!rawProtocol) throw new Error("Protocol missing");
 
-        // 2. Initialize Session (Track visit)
+        // 2. Map Data using existing function
+        const mappedProtocol = mapProtocol(rawProtocol, mappings);
+
+        // 3: Apply Randomization
+        // We use the settings from the protocol to shuffle the mapped tasks
+        let randomizationSettings = rawProtocol.randomization;
+        // Check if it is a JSON string and parse it manually if needed
+        if (typeof randomizationSettings === 'string') {
+          try {
+            randomizationSettings = JSON.parse(randomizationSettings);
+          } catch (e) {
+            console.error("Error parsing randomization settings:", e);
+            randomizationSettings = {}; 
+          }
+        }
+        randomizationSettings = randomizationSettings || {};
+        const shuffledTasks = randomizeTasks(mappedProtocol.tasks, randomizationSettings);
+        
+        // Update the protocol object with the new order
+        console.log(mappedProtocol.tasks)
+        console.log(shuffledTasks)
+        mappedProtocol.tasks = shuffledTasks;
+
+        // 4: Initialize Session with the specific task order
+        // We extract the IDs to send to the backend
+        const taskOrder = shuffledTasks.map(t => t.protocol_task_id);
+
         // We do this in parallel or sequence. Sequence is safer to ensure we have a session ID.
         let sessionId = null;
         try {
-            const sessionData = await initSession(token);
+            const sessionData = await initSession(
+              token, 
+              taskOrder // Send the shuffled order to DB
+            );
             sessionId = sessionData.sessionId;
             console.log("Session started:", sessionId);
         } catch (err) {
@@ -59,17 +89,14 @@ export default function ParticipantInterfaceLoader() {
             // Decide if you want to block user or let them continue without tracking
         }
 
-        // 3. Map Data using existing function
-        const mapped = mapProtocol(rawProtocol, mappings);
-
         // save to global context
-        setSelectedProtocol(mapped);
+        setSelectedProtocol(mappedProtocol);
 
         // --- 3) navigate to real participant interface
         navigate("/participant/interface", {
           replace: true,
           state: {
-            protocol: mapped,
+            protocol: mappedProtocol,
             testingMode: false,
             editingMode: false,
             participant: response.participant,
@@ -139,5 +166,6 @@ function mapProtocol(raw, mappings) {
     protocol_group_id: raw.protocol_group_id,
     language: language?.code || "en",
     tasks: mappedTasks,
+    randomization: raw.randomization
   };
 }

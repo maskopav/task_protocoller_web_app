@@ -47,7 +47,14 @@ export async function resolveParticipantToken(req, res) {
       });
     }
 
-    // 3. Load tasks for the protocol
+    // 3. Fetch Randomization Settings directly from protocols table
+    const [protocolConfig] = await executeQuery(
+      `SELECT randomization FROM protocols WHERE id = ?`,
+      [view.protocol_id]
+    );
+    const randomizationSettings = protocolConfig ? protocolConfig.randomization : {};
+
+    // 4. Load tasks for the protocol
     const tasks = await executeQuery(
       `
         SELECT id, task_id, task_order, params
@@ -65,7 +72,7 @@ export async function resolveParticipantToken(req, res) {
       params: typeof t.params === "string" ? JSON.parse(t.params) : t.params
     }));
 
-    // 4. Response = view + tasks
+    // 5. Response = view + tasks
     res.json({
       participant: {
         id: view.participant_id,
@@ -86,6 +93,7 @@ export async function resolveParticipantToken(req, res) {
         name: view.protocol_name,
         version: view.protocol_version,
         language_id: view.language_id,
+        randomization: randomizationSettings,
         tasks: formattedTasks
       }
     });

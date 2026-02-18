@@ -17,6 +17,7 @@ export function useProtocolManager() {
       description: selectedProtocol.description,
       version: version,
       created_by: 1,
+      randomization: selectedProtocol.randomization,
       tasks: tasks.map((task, index) => ({
         task_id: mappings.tasks.find(t => t.category === task.category)?.id,
         task_order: index + 1,
@@ -24,6 +25,8 @@ export function useProtocolManager() {
       })),
       project_id: Number(projectId),  
       editingMode,
+      info_text: selectedProtocol.info_text,
+      consent_text: selectedProtocol.consent_text
     };
     console.log("Saving protocol:", protocolData);
     const result = await saveProtocolToBackend(protocolData);
