@@ -1,7 +1,8 @@
 // src/components/ProtocolEditor/ProtocolForm.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector";
+import AdminModal from "./Modal";
 import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
 
 export default function ProtocolForm({
@@ -26,6 +27,7 @@ export default function ProtocolForm({
   onDeleteConsent,
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
+  const [showRandomSettings, setShowRandomSettings] = useState(false);
 
   const handleLanguageChange = (lang) => {
     setProtocolData((prev) => ({ ...prev, language: lang }));
@@ -48,6 +50,39 @@ export default function ProtocolForm({
 
   const handleConsentChange = (content) => {
     setProtocolData(prev => ({ ...prev, consent_text: content }));
+  };
+
+  // --- Randomization Logic ---
+  // Safely access nested properties
+  const randomStrategy = protocolData?.randomization?.strategy || 'none';
+  const moduleSettings = protocolData?.randomization?.moduleSettings || { shuffleBlocks: false, shuffleWithin: false };
+
+  const handleStrategyChange = (e) => {
+    const newStrategy = e.target.value;
+    setProtocolData(prev => ({
+      ...prev,
+      randomization: {
+        ...prev.randomization,
+        strategy: newStrategy,
+        // Reset module settings if switching away from module strategy? 
+        // Optional: keeping them makes it easier if user switches back.
+        moduleSettings: prev.randomization?.moduleSettings || { shuffleBlocks: false, shuffleWithin: false }
+      }
+    }));
+  };
+
+  const handleModuleSettingChange = (e) => {
+    const { name, checked } = e.target;
+    setProtocolData(prev => ({
+      ...prev,
+      randomization: {
+        ...prev.randomization,
+        moduleSettings: {
+          ...prev.randomization?.moduleSettings,
+          [name]: checked
+        }
+      }
+    }));
   };
 
   // Helper to check if Quill content is truly empty
@@ -150,12 +185,110 @@ export default function ProtocolForm({
               {reorderMode ? t("protocolEditor.finishReordering") : `🔁 ${t("protocolEditor.reorderTasks")}`}
             </button>
 
-            <button className="btn-randomize" onClick={() => console.log("Randomize module clicked")}>
-               🎲 Randomize Task Modules
+            <button 
+              className={`btn-randomize ${randomStrategy !== 'none' ? 'active-strategy' : ''}`} 
+              onClick={() => setShowRandomSettings(true)}
+              title={t("protocolEditor.randomization.title")}
+            >
+               🎲 {t("protocolEditor.randomization.button")}
+               {randomStrategy !== 'none' && <span className="strategy-badge" />}
             </button>
 
           </div>
       </div>
+
+      {/* --- Randomization Settings Modal --- */}
+      <AdminModal
+        open={showRandomSettings}
+        title={t("protocolEditor.randomization.title")}
+        onClose={() => setShowRandomSettings(false)}
+        onSave={() => setShowRandomSettings(false)} // Just closes, data is synced live
+        showFooter={true} // Ensure we have a Close/Save button
+      >
+        <div className="randomization-settings">
+          <h4>{t("protocolEditor.randomization.strategyLabel")}</h4>
+          
+          {/* Strategy: None (Strict) */}
+          <label className="radio-option">
+            <input 
+              type="radio" 
+              name="strategy" 
+              value="none" 
+              checked={randomStrategy === 'none'}
+              onChange={handleStrategyChange}
+            />
+            <div className="radio-content">
+              <strong>{t("protocolEditor.randomization.none")}</strong>
+              <small>{t("protocolEditor.randomization.noneDesc")}</small>
+            </div>
+          </label>
+
+          {/* Strategy: Global Shuffle */}
+          <label className="radio-option">
+            <input 
+              type="radio" 
+              name="strategy" 
+              value="global" 
+              checked={randomStrategy === 'global'}
+              onChange={handleStrategyChange}
+            />
+            <div className="radio-content">
+              <strong>{t("protocolEditor.randomization.global")}</strong>
+              <small>{t("protocolEditor.randomization.globalDesc")}</small>
+            </div>
+          </label>
+
+          {/* Strategy: Module Logic */}
+          <label className="radio-option">
+            <input 
+              type="radio" 
+              name="strategy" 
+              value="module" 
+              checked={randomStrategy === 'module'}
+              onChange={handleStrategyChange}
+            />
+            <div className="radio-content">
+              <strong>{t("protocolEditor.randomization.module")}</strong>
+              <small>{t("protocolEditor.randomization.moduleDesc")}</small>
+            </div>
+          </label>
+
+          {/* Sub-options for Module Logic */}
+          {randomStrategy === 'module' && (
+            <div className="sub-options">
+              <h5>{t("protocolEditor.randomization.moduleOptions")}</h5>
+              
+              <label className="checkbox-option">
+                <input 
+                  type="checkbox" 
+                  name="shuffleBlocks"
+                  checked={moduleSettings.shuffleBlocks}
+                  onChange={handleModuleSettingChange}
+                />
+                <span>
+                  {t("protocolEditor.randomization.shuffleBlocks")}
+                  <br/>
+                  <small>{t("protocolEditor.randomization.shuffleBlocksDesc")}</small>
+                </span>
+              </label>
+
+              <label className="checkbox-option">
+                <input 
+                  type="checkbox" 
+                  name="shuffleWithin"
+                  checked={moduleSettings.shuffleWithin}
+                  onChange={handleModuleSettingChange}
+                />
+                <span>
+                  {t("protocolEditor.randomization.shuffleWithin")}
+                  <br/>
+                  <small>{t("protocolEditor.randomization.shuffleWithinDesc")}</small>
+                </span>
+              </label>
+            </div>
+          )}
+        </div>
+      </AdminModal>
 
       {/* --- Version warning --- */}
       {editingMode && (

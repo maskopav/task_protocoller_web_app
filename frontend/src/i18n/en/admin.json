@@ -287,6 +287,22 @@
       "title": "Edit Task",
       "cancel": "Cancel",
       "save": "Save Changes"
+    },
+    "randomization": {
+      "title": "Protocol Flow & Randomization",
+      "button": "Flow Settings",
+      "strategyLabel": "Execution Strategy",
+      "none": "Strict Sequence (Fixed)",
+      "noneDesc": "Participants see tasks exactly as ordered below.",
+      "global": "Global Shuffle",
+      "globalDesc": "All tasks are randomized completely. No grouping.",
+      "module": "Module-Based Logic",
+      "moduleDesc": "Tasks are grouped by type (e.g. Voice, Vision).",
+      "moduleOptions": "Module Options",
+      "shuffleBlocks": "Shuffle Module Order",
+      "shuffleBlocksDesc": "Randomize which block comes first (e.g. Vision before Voice).",
+      "shuffleWithin": "Shuffle Within Modules",
+      "shuffleWithinDesc": "Randomize the order of tasks inside their specific module."
     }
   },
   "participantProtocol": {

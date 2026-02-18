@@ -695,6 +695,75 @@
     margin-bottom: 1.2em !important; 
   }
 
+  /* Randomization Settings Styling */
+  .randomization-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .radio-option:hover {
+    background: #f9f9f9;
+  }
+
+  .radio-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .radio-content small {
+    color: #666;
+    margin-top: 2px;
+  }
+
+  .sub-options {
+    margin-left: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-left: 3px solid #007bff;
+    border-radius: 4px;
+  }
+
+  .sub-options h5 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .checkbox-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+  }
+
+  .btn-randomize.active-strategy {
+    background-color: #e3f2fd; /* Light blue to indicate active settings */
+    border-color: #2196f3;
+    color: #0d47a1;
+  }
+
+  .strategy-badge {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #2196f3;
+    border-radius: 50%;
+    margin-left: 6px;
+  }
+
     
   /* =========================================================
    MOBILE FRIENDLY LAYOUT IMPROVEMENTS
