@@ -48,19 +48,12 @@ CREATE TABLE `protocols` (
   `language_id` integer NOT NULL,
   `description` text,
   `version` integer NOT NULL DEFAULT 1,
-  `questionnaires_id` integer,
   `is_current` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by` integer,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `updated_by` integer
-);
-
-CREATE TABLE `questionnaires` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `questions` JSON NOT NULL,
-  `version` integer DEFAULT 1,
-  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP
+  `updated_by` integer,
+  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }'
 );
 
 CREATE TABLE `project_protocols` (
@@ -136,7 +129,8 @@ CREATE TABLE `sessions` (
   `completed` boolean DEFAULT false,
   `user_agent` varchar(512) DEFAULT NULL,
   `ip_address` varchar(45) DEFAULT NULL,
-  `device_metadata` JSON DEFAULT NULL COMMENT 'Screen size, platform, etc.'
+  `device_metadata` JSON DEFAULT NULL COMMENT 'Screen size, platform, etc.',
+  `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed'
 );
 
 CREATE TABLE `recordings` (
@@ -182,8 +176,6 @@ ALTER TABLE `projects` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
 ALTER TABLE `projects` ADD FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`);
 
 ALTER TABLE `protocols` ADD FOREIGN KEY (`language_id`) REFERENCES `languages` (`id`);
-
-ALTER TABLE `protocols` ADD FOREIGN KEY (`questionnaires_id`) REFERENCES `questionnaires` (`id`);
 
 ALTER TABLE `protocols` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
 
