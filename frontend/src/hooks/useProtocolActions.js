@@ -110,6 +110,9 @@ function mapProtocolWithNames(raw, mappings) {
     version: raw.version,
     description: raw.description,
     language: language?.code || "unknown",
+    randomization: raw.randomization || {}, 
+    info_text: raw.info_text || "",
+    consent_text: raw.consent_text || "",
     tasks: mappedTasks,
   };
 }
