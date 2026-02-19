@@ -156,6 +156,8 @@ function mapProtocol(raw, mappings) {
     protocol_group_id: raw.protocol_group_id,
     language: language?.code || "en",
     tasks: mappedTasks,
-    randomization: raw.randomization
+    randomization: raw.randomization,
+    info_text: raw.info_text,
+    consent_text: raw.consent_text
   };
 }

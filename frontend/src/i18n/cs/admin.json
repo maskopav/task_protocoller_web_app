@@ -80,7 +80,7 @@
     "title": "Editor úloh protokolu",
     "availableTasks": "Dostupné úlohy:",
     "currentProtocol": "Aktuální protokol:",
-    "noTasks": "Zatím nejsou přidány žádné úlohy.",
+    "noTasks": "Zatím nebyly přidány žádné úlohy.",
     "editTask": "Upravit úlohu: {{category}}",
     "addTask": "Přidat úlohu: {{category}}",
     "editorLanguage": "🌍 Jazyk editoru:",
@@ -91,6 +91,24 @@
     "showProtocol": "Zobrazit navržený protokol",
     "saveProtocol": "Uložit protokol",
     "params": "Parametry",
+    "addIntroPage": "Přidat úvodní stránku",
+    "introPageAdded": "Úvodní stránka",
+    "addConsentForm": "Přidat formulář souhlasu",
+    "consentFormAdded": "Formulář souhlasu",
+    "simulateRandomization": "Simulovat průběh (randomizace)",
+    "versionWarning": "! Úprava protokolu {{name}}: verze se zvýší a protokol bude označen jako aktuální!",
+    "confirmUpdateTitle": "Aktualizovat aktivní protokol?",
+    "confirmUpdateMsg": "Aktualizujete existující protokol. Všichni účastníci přiřazení k tomuto protokolu budou automaticky přesunuti na tuto novou verzi. Jejich stávající unikátní odkazy budou nadále fungovat, ale načtou tento nový obsah.\n\nOpravdu chcete pokračovat?",
+    "saveFailedTitle": "Uložení selhalo",
+    "saveFailedMsg": "Nepodařilo se uložit protokol.",
+    "editIntroTitle": "Upravit úvodní stránku",
+    "introPlaceholder": "Uvítací text pro účastníky...",
+    "editConsentTitle": "Upravit formulář souhlasu",
+    "consentPlaceholder": "Text právního souhlasu...",
+    "confirmDeleteIntroTitle": "Smazat úvodní stránku?",
+    "confirmDeleteIntroMsg": "Opravdu chcete odstranit úvodní text?",
+    "confirmDeleteConsentTitle": "Smazat formulář souhlasu?",
+    "confirmDeleteConsentMsg": "Opravdu chcete odstranit text formuláře souhlasu?",
     "questionnaire": {
       "questionnaireTitle": "Název dotazníku",
       "enterTitle": "Zadejte název dotazníku",
@@ -101,9 +119,9 @@
       "enterQuestionText": "Zadejte text otázky",
       "answerType": "Typ odpovědi",
       "Open answer": "Otevřená odpověď",
-      "Single choice": "Jedna možnost (radio)",
-      "Multiple choice": "Více možností (checkbox)",
-      "Dropdown": "Rozbalovací nabídka",
+      "Single choice": "Jedna možnost (přepínač)",
+      "Multiple choice": "Více možností (zaškrtávací políčko)",
+      "Dropdown": "Rozbalovací seznam",
       "answerOptions": "Možnosti odpovědí",
       "Option": "Možnost",
       "addOption": "Přidat možnost",
@@ -116,12 +134,47 @@
     },
     "buttons": {
       "cancel": "Zrušit",
-      "save": "Uložit změny"
+      "save": "Uložit změny",
+      "confirm": "Potvrdit",
+      "updateEveryone": "Ano, aktualizovat všem",
+      "backToEditor": "Zpět do editoru"
     },
     "modal": {
-      "title": "Úprava úlohy",
+      "title": "Upravit úlohu",
       "cancel": "Zrušit",
       "save": "Uložit změny"
+    },
+    "confirmBack": {
+      "title": "Neuložené změny",
+      "message": "Opravdu se chcete vrátit? Veškeré neuložené změny budou ztraceny.",
+      "confirmText": "Ano, vrátit se"
+    },
+    "randomization": {
+      "title": "Průběh protokolu a randomizace",
+      "button": "Nastavení průběhu",
+      "strategyLabel": "Strategie průběhu úkolů",
+      "none": "Přesné pořadí (fixní)",
+      "noneDesc": "Účastníci uvidí úlohy přesně v níže uvedeném pořadí.",
+      "global": "Globální zamíchání",
+      "globalDesc": "Všechny úlohy jsou kompletně náhodně zamíchány. Bez seskupování.",
+      "module": "Modulární logika",
+      "moduleDesc": "Úlohy jsou seskupeny do modulů podle typu (např. Hlasové, Zrakové).",
+      "moduleOptions": "Možnosti modulu",
+      "shuffleBlocks": "Zamíchat pořadí modulů",
+      "shuffleBlocksDesc": "Náhodně určit, který modul bude první (např. Zrakový před Hlasovým).",
+      "shuffleWithin": "Zamíchat uvnitř modulů",
+      "shuffleWithinDesc": "Náhodně zamíchat pořadí úloh uvnitř jejich specifického modulu."
+    },
+    "testingBadge": {
+      "randomization": "Randomizace",
+      "blocks": "Moduly",
+      "within": "Uvnitř",
+      "on": "ON",
+      "off": "OFF",
+      "strategies": {
+        "global": "globalní",
+        "module": "moduly"
+      }
     }
   },
   "participantProtocol": {

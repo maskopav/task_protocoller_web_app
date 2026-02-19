@@ -28,6 +28,7 @@ export default function ProtocolForm({
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
   const [showRandomSettings, setShowRandomSettings] = useState(false);
+  const [previewRandomized, setPreviewRandomized] = useState(true);
 
   const handleLanguageChange = (lang) => {
     setProtocolData((prev) => ({ ...prev, language: lang }));
@@ -44,16 +45,7 @@ export default function ProtocolForm({
     setProtocolData((prev) => ({ ...prev, description }));
   };
 
-  const handleInfoChange = (content) => {
-    setProtocolData(prev => ({ ...prev, info_text: content }));
-  };
-
-  const handleConsentChange = (content) => {
-    setProtocolData(prev => ({ ...prev, consent_text: content }));
-  };
-
   // --- Randomization Logic ---
-  // Safely access nested properties
   const randomStrategy = protocolData?.randomization?.strategy || 'none';
   const moduleSettings = protocolData?.randomization?.moduleSettings || { shuffleBlocks: false, shuffleWithin: false };
 
@@ -144,11 +136,11 @@ export default function ProtocolForm({
               {/* Intro Page Logic */}
               {isQuillEmpty(protocolData?.info_text) ? (
                 <button className="btn-add-page-minimal" onClick={onEditIntro}>
-                  + Add Intro Page
+                  + {t("protocolEditor.addIntroPage")}
                 </button>
               ) : (
                 <div className="page-item-minimal">
-                  <span className="page-label">Intro Page ✅</span>
+                  <span className="page-label">{t("protocolEditor.introPageAdded")} ✅</span>
                   <div className="page-actions">
                     <span className="edit-icon-small" title="Edit" onClick={onEditIntro}>✎</span>
                     <span className="delete-icon-small" title="Delete" onClick={onDeleteIntro}>✖</span>
@@ -159,11 +151,11 @@ export default function ProtocolForm({
               {/* Consent Form Logic */}
               {isQuillEmpty(protocolData?.consent_text)? (
                 <button className="btn-add-page-minimal" onClick={onEditConsent}>
-                  + Add Consent Form
+                  + {t("protocolEditor.addConsentForm")}
                 </button>
               ) : (
                 <div className="page-item-minimal">
-                  <span className="page-label">Consent Form ✅</span>
+                  <span className="page-label">{t("protocolEditor.consentFormAdded")} ✅</span>
                   <div className="page-actions">
                     <span className="edit-icon-small" title="Edit" onClick={onEditConsent}>✎</span>
                     <span className="delete-icon-small" title="Delete" onClick={onDeleteConsent}>✖</span>
@@ -293,7 +285,7 @@ export default function ProtocolForm({
       {/* --- Version warning --- */}
       {editingMode && (
         <div className="version-warning">
-          ! Editing {protocolData?.name || ""} protocol: version will be incremented, protocol will be marked as current!
+          {t("protocolEditor.versionWarning", { name: protocolData?.name || "" })}
         </div>
       )}
 
@@ -357,10 +349,30 @@ export default function ProtocolForm({
       </ul>
 
       <div className="button-row">
-        <button className="button-show-tasks" onClick={onShowProtocol} disabled={!tasks.length || reorderMode}>
+        
+        {/* Only show the checkbox if a randomization strategy is active */}
+        {randomStrategy !== 'none' && (
+          <label className="preview-random-toggle">
+            <input 
+              type="checkbox" 
+              checked={previewRandomized} 
+              onChange={(e) => setPreviewRandomized(e.target.checked)} 
+              disabled={reorderMode}
+            />
+            {t("protocolEditor.simulateRandomization")}
+          </label>
+        )}
+
+        <button 
+          className="button-show-tasks" 
+          onClick={() => onShowProtocol(previewRandomized)} 
+          disabled={!tasks.length || reorderMode}
+        >
           {t("protocolEditor.showProtocol")}
         </button>
-        <button className="button-save" 
+        
+        <button 
+          className="button-save" 
           onClick={() => onSave()} 
           disabled={!validation.isValid || reorderMode}
         >

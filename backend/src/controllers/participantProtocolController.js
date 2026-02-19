@@ -49,7 +49,7 @@ export async function resolveParticipantToken(req, res) {
 
     // 3. Fetch Randomization Settings directly from protocols table
     const [protocolConfig] = await executeQuery(
-      `SELECT randomization FROM protocols WHERE id = ?`,
+      `SELECT randomization, info_text, consent_text FROM protocols WHERE id = ?`,
       [view.protocol_id]
     );
     let randomizationSettings = {};
@@ -104,6 +104,8 @@ export async function resolveParticipantToken(req, res) {
         version: view.protocol_version,
         language_id: view.language_id,
         randomization: randomizationSettings,
+        info_text: protocolConfig.info_text,
+        consent_text: protocolConfig.consent_text,
         tasks: formattedTasks
       }
     });

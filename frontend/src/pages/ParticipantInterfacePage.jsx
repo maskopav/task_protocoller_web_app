@@ -16,7 +16,7 @@ import { uploadRecording } from "../api/recordings";
 import "./Pages.css";
 
 export default function ParticipantInterfacePage() {
-  const { i18n, t } = useTranslation(["tasks", "common"]);
+  const { i18n, t } = useTranslation(["tasks", "common", "admin"]);
   const navigate = useNavigate();
   const location = useLocation();
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
@@ -35,6 +35,8 @@ export default function ParticipantInterfacePage() {
   const testingMode = location.state?.testingMode ?? false;
   const editingMode = location.state?.editingMode ?? false;
   const protocolData = location.state?.protocol || selectedProtocol;  
+  const randomStrategy = protocolData?.randomization?.strategy || 'none';
+  const moduleSettings = protocolData?.randomization?.moduleSettings || {};
   // For saving recordings in the future.....
   const participant = location.state?.participant;
   const accessToken = location.state?.token;
@@ -93,6 +95,7 @@ export default function ParticipantInterfacePage() {
 
     // 3. Prepare Tasks
     const configured = selectedProtocol.tasks ?? [];
+
     // We explicitly attach protocolTaskId here so it persists through resolution
     const rawVoiceTasks = configured.map((t) => ({
       ...createTask(t.category, t),
@@ -316,23 +319,42 @@ export default function ParticipantInterfacePage() {
         )}
       <div className="task-wrapper">
         <div className="top-controls-participant">
-          {testingMode && (
-            <button className="btn-back" onClick={handleBack}>
-              ← {t("buttons.back", { ns: "common" })}
-            </button>
-          )}
-          {taskIndex < runtimeTasks.length && (
-            <>
+        <div className="top-left-controls">
+            {testingMode && (
+              <button className="btn-back" onClick={handleBack}>
+                ← {t("buttons.back", { ns: "common" })}
+              </button>
+            )}
+
+            {testingMode && randomStrategy !== 'none' && (
+              <div className="testing-mode-badge">
+                🎲 {t("protocolEditor.testingBadge.randomization", { ns: "admin" })}: {t(`protocolEditor.testingBadge.strategies.${randomStrategy}`, { ns: "admin" })}
+                {randomStrategy === 'module' && (
+                  <span className="badge-subtext">
+                    ({t("protocolEditor.testingBadge.blocks", { ns: "admin" })}: {moduleSettings.shuffleBlocks ? t("protocolEditor.testingBadge.on", { ns: "admin" }) : t("protocolEditor.testingBadge.off", { ns: "admin" })} | {t("protocolEditor.testingBadge.within", { ns: "admin" })}: {moduleSettings.shuffleWithin ? t("protocolEditor.testingBadge.on", { ns: "admin" }) : t("protocolEditor.testingBadge.off", { ns: "admin" })})
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 2. CENTER: Task Progress */}
+          <div className="top-center-controls">
+            {taskIndex < runtimeTasks.length && (
               <div className="task-progress">
                 {taskLabel || "Task"} {currentOfType}/{totalOfType}
               </div>
-              {testingMode && (
-                <button className="btn-skip" onClick={handleSkip}>
-                  {t("buttons.skip", { ns: "common" })} →
-                </button>
-              )}
-            </>
-          )}
+            )}
+          </div>
+
+          {/* 3. RIGHT SIDE: Skip Button */}
+          <div className="top-right-controls">
+            {taskIndex < runtimeTasks.length && testingMode && (
+              <button className="btn-skip" onClick={handleSkip}>
+                {t("buttons.skip", { ns: "common" })} →
+              </button>
+            )}
+          </div>
         </div>
         <div className="task-card">{renderCurrentTask()}</div>
       </div>

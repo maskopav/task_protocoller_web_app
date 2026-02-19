@@ -67,14 +67,6 @@ body {
   max-width: 100%;
 }
 
-.top-controls-participant {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10%;
-  width: 100%;
-}
-
 .task-wrapper {
   display: flex;
   flex-direction: column;
@@ -89,8 +81,34 @@ body {
   gap: 0.1rem; /* space between progress and card */
 }
 
+.top-controls-participant {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* Left takes available space, Center fits content, Right takes available space */
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  padding: 0.5rem 0;
+}
+
+.top-left-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 15px; /* Spacing between Back button and Badge */
+}
+
+.top-center-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.top-right-controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .task-progress {
-  flex: 3;
+  /* Removed 'flex: 3' because we are using Grid now */
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--muted);
@@ -99,6 +117,7 @@ body {
   padding: 0.5rem 1rem;
   border-radius: var(--sharp-radius);
   z-index: 2;
+  white-space: nowrap; /* Prevents text from stacking awkwardly on small screens */
 }
 
 .task-card {
@@ -119,6 +138,22 @@ body {
 .completion-screen {
   padding: 2vh;
   margin-bottom: 10vh;
+}
+
+.testing-mode-badge {
+  background-color: var(--purple);
+  color: white;
+  padding: 4px 15px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+.testing-mode-badge .badge-subtext {
+  font-weight: normal;
+  font-size: 0.8rem;
+  margin-left: 6px;
+  opacity: 0.9;
 }
 
 h1 {

@@ -256,6 +256,24 @@
     "showProtocol": "Show designed protocol",
     "saveProtocol": "Save protocol",
     "params": "Parameters",
+    "addIntroPage": "Add Intro Page",
+    "introPageAdded": "Intro Page",
+    "addConsentForm": "Add Consent Form",
+    "consentFormAdded": "Consent Form",
+    "simulateRandomization": "Simulate Randomization",
+    "versionWarning": "! Editing {{name}} protocol: version will be incremented, protocol will be marked as current!",
+    "confirmUpdateTitle": "Update Active Protocol?",
+    "confirmUpdateMsg": "You are updating an existing protocol. All participants assigned to this protocol will be automatically moved to this new version. Their existing unique links will continue to work but will load this new content.\n\nAre you sure you want to proceed?",
+    "saveFailedTitle": "Save Failed",
+    "saveFailedMsg": "Failed to save protocol.",
+    "editIntroTitle": "Edit Intro Page",
+    "introPlaceholder": "Welcome text for participants...",
+    "editConsentTitle": "Edit Consent Form",
+    "consentPlaceholder": "Legal consent text...",
+    "confirmDeleteIntroTitle": "Delete Intro Page?",
+    "confirmDeleteIntroMsg": "Are you sure you want to remove the introduction text?",
+    "confirmDeleteConsentTitle": "Delete Consent Form?",
+    "confirmDeleteConsentMsg": "Are you sure you want to remove the consent form text?",
     "questionnaire": {
       "questionnaireTitle": "Questionnaire Title",
       "enterTitle": "Enter questionnaire title",
@@ -282,7 +300,9 @@
     "buttons": {
       "cancel": "Cancel",
       "save": "Save Changes",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "updateEveryone": "Yes, Update Everyone",
+      "backToEditor": "Back to Editor"
     },
     "modal": {
       "title": "Edit Task",
@@ -309,6 +329,17 @@
       "shuffleBlocksDesc": "Randomize which block comes first (e.g. Vision before Voice).",
       "shuffleWithin": "Shuffle Within Modules",
       "shuffleWithinDesc": "Randomize the order of tasks inside their specific module."
+    },
+    "testingBadge": {
+      "randomization": "Randomization",
+      "blocks": "Modules",
+      "within": "Within",
+      "on": "ON",
+      "off": "OFF",
+      "strategies": {
+        "global": "global",
+        "module": "module"
+      }
     }
   },
   "participantProtocol": {

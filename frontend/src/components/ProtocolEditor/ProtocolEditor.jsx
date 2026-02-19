@@ -16,6 +16,7 @@ import { ProtocolContext } from "../../context/ProtocolContext";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext"; // Import confirm
 import { validate } from "../../utils/validation";
 import AdminModal from "./Modal";
+import { randomizeTasks } from "../../utils/randomizer";
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -48,13 +49,13 @@ export function ProtocolEditor({
   editingMode
   }
 ) {
-  const { t } = useTranslation(["admin"]);
+  const { t } = useTranslation(["admin", "common"]);
   const navigate = useNavigate();
   const { projectId } = useParams();
   const { mappings, loading, error } = useMappings();
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
   const { saveNewProtocol } = useProtocolManager();
-  
+
 
   const confirm = useConfirm();
 
@@ -126,13 +127,8 @@ export function ProtocolEditor({
     }
   }, [tasks, onChange]);  
 
-  if (loading) {
-    return <p>Loading mappings...</p>;
-  }
-
-  if (error) {
-    return <p>Error: {error.message}</p>;
-  }
+  if (loading) return <p>{t("common:loading")}</p>;
+  if (error) return <p>{t("common:error")}: {error.message}</p>;
 
   // Start creating a standard task (opens TaskModal)
   function handleCreateTask(category) {
@@ -231,10 +227,10 @@ export function ProtocolEditor({
     // If Editing Mode: Ask for confirmation
     if (editingMode) {
       const isConfirmed = await confirm({
-          title: "Update Active Protocol?",
-          message: "You are updating an existing protocol. All participants assigned to this protocol will be automatically moved to this new version. Their existing unique links will continue to work but will load this new content.\n\nAre you sure you want to proceed?",
-          confirmText: "Yes, Update Everyone",
-          cancelText: "Cancel"
+        title: t("protocolEditor.confirmUpdateTitle"),
+        message: t("protocolEditor.confirmUpdateMsg"),
+        confirmText: t("protocolEditor.buttons.updateEveryone"),
+        cancelText: t("common:cancel")
       });
 
       if (!isConfirmed) return;
@@ -252,22 +248,37 @@ export function ProtocolEditor({
       navigate(`/admin/projects/${projectId}/protocols`);
     } catch (err) {
       // Show the specific error message from the backend (Conflict 409)
-      const errorMsg = err.response?.data?.error || err.message || "Failed to save protocol.";
+      const errorMsg = err.response?.data?.error || err.message || t("protocolEditor.saveFailedMsg");
       console.error("Save Error:", err);
       
       await confirm({
-        title: "Save Failed",
+        title: t("protocolEditor.saveFailedTitle"),
         message: errorMsg,
-        confirmText: "Back to Editor"
+        confirmText: t("protocolEditor.buttons.backToEditor")
       });
     }
   }
 
-  function handleShowProtocol() {
-    setSelectedProtocol({ ...protocolData, tasks });
+  function handleShowProtocol(simulateRandomization = false) {
+    let previewTasks = tasks;
+
+    // Only apply the randomizer if the checkbox is checked
+    if (simulateRandomization) {
+      const randomizationSettings = protocolData.randomization || {};
+      previewTasks = randomizeTasks(tasks, randomizationSettings);
+    }
+
+    // Create a temporary protocol object with the final task list
+    const previewProtocol = { 
+      ...protocolData, 
+      tasks: previewTasks 
+    };
+
+    // Send the version to the interface
+    setSelectedProtocol(previewProtocol);
     navigate("/participant/test", {
       state: {
-        protocol: { ...protocolData, tasks },
+        protocol: previewProtocol,
         testingMode: true,
         editingMode,
       },
@@ -290,10 +301,10 @@ export function ProtocolEditor({
 
   async function handleDeleteIntro() {
     const isConfirmed = await confirm({
-      title: t("protocolEditor.confirmDeleteIntroTitle", "Delete Intro Page?"),
-      message: t("protocolEditor.confirmDeleteIntroMsg", "Are you sure you want to remove the introduction text?"),
-      confirmText: t("common.delete", "Delete"),
-      cancelText: t("common.cancel", "Cancel")
+      title: t("protocolEditor.confirmDeleteIntroTitle"),
+      message: t("protocolEditor.confirmDeleteIntroMsg"),
+      confirmText: t("common:delete"),
+      cancelText: t("common:cancel")
     });
     if (isConfirmed) {
       updateProtocolField("info_text", "");
@@ -302,10 +313,10 @@ export function ProtocolEditor({
 
   async function handleDeleteConsent() {
     const isConfirmed = await confirm({
-      title: t("protocolEditor.confirmDeleteConsentTitle", "Delete Consent Form?"),
-      message: t("protocolEditor.confirmDeleteConsentMsg", "Are you sure you want to remove the consent form text?"),
-      confirmText: t("common.delete", "Delete"),
-      cancelText: t("common.cancel", "Cancel")
+      title: t("protocolEditor.confirmDeleteConsentTitle"),
+      message: t("protocolEditor.confirmDeleteConsentMsg"),
+      confirmText: t("common:delete"),
+      cancelText: t("common:cancel")
     });
     if (isConfirmed) {
       updateProtocolField("consent_text", "");
@@ -345,7 +356,7 @@ export function ProtocolEditor({
       {/* --- Intro Page Rich Text Modal --- */}
       <AdminModal
         open={showIntroModal}
-        title={t("protocolEditor.editIntroTitle", "Edit Intro Page")}
+        title={t("protocolEditor.editIntroTitle")}
         onClose={() => setShowIntroModal(false)}
         onSave={() => setShowIntroModal(false)}
       >
@@ -357,7 +368,7 @@ export function ProtocolEditor({
                 modules={editorModules}
                 value={protocolData?.info_text || ""}
                 onChange={(val) => updateProtocolField("info_text", val)}
-                placeholder="Welcome text for participants..."
+                placeholder={t("protocolEditor.introPlaceholder")}
               />
             </div>
           </div>
@@ -367,7 +378,7 @@ export function ProtocolEditor({
       {/* --- Consent Page Rich Text Modal --- */}
       <AdminModal
         open={showConsentModal}
-        title={t("protocolEditor.editConsentTitle", "Edit Consent Form")}
+        title={t("protocolEditor.editConsentTitle")}
         onClose={() => setShowConsentModal(false)}
         onSave={() => setShowConsentModal(false)}
       >
@@ -379,13 +390,12 @@ export function ProtocolEditor({
                 modules={editorModules}
                 value={protocolData?.consent_text || ""}
                 onChange={(val) => updateProtocolField("consent_text", val)}
-                placeholder="Legal consent text..."
+                placeholder={t("protocolEditor.consentPlaceholder")}
               />
             </div>
           </div>
         </div>
       </AdminModal>
-
 
       {/* Task edit/create modal */}
       <TaskModal
