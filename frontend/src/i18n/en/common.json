@@ -44,7 +44,11 @@
       "camera": "Camera Task",
       "vision": "Vision Task",
       "hearing": "Hearing Task",
-      "questionnaire": "Questionnaire"
+      "questionnaire": "Questionnaire",
+      "task": "Task",
+      "milestone_25": "Over 25% ",
+      "milestone_50": "Halfway there! Over 50% ",
+      "milestone_75": "Almost done! Over 75% "
     },
     "questionnaire": {
       "selectOption": "Select an option...",

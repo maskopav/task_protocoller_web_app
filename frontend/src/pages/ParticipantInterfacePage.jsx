@@ -13,6 +13,7 @@ import D15Test from "../components/VisionTask/D15Test";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
+import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import "./Pages.css";
 
 export default function ParticipantInterfacePage() {
@@ -208,16 +209,20 @@ export default function ParticipantInterfacePage() {
     function proceedToNext() {
       if (taskIndex + 1 >= runtimeTasks.length) {
         trackProgress(sessionId, null, true);
+        setTaskIndex((i) => i + 1); // Move to completion screen
+        return;
       }
-
-      if (nextTaskObj && nextTaskObj.type !== currentTaskObj.type) {
-        setCompletedCategory(currentTaskObj.type);
+    
+      const { showOverlay, category } = checkCompletionOverlay(runtimeTasks, taskIndex, randomStrategy);
+    
+      if (showOverlay) {
+        setCompletedCategory(category);
         setShowPraise(true);
-      } else {    
+      } else {
         setTaskIndex((i) => i + 1);
       }
     }
-  };
+  }
 
   function handleBack() {
     if (location.state?.returnTo === "dashboard") {
@@ -297,14 +302,8 @@ export default function ParticipantInterfacePage() {
     return <p>Unknown task type: {currentTask.type}</p>;
   };
 
-  const currentTask = runtimeTasks[taskIndex];
-  const currentType = currentTask?.type;
-  const totalOfType = runtimeTasks.filter((t) => t.type === currentType).length;
-  const currentOfType = runtimeTasks
-    .slice(0, taskIndex + 1)
-    .filter((t) => t.type === currentType).length;
+  const progressDisplay = getTaskProgressDisplay(runtimeTasks, taskIndex, randomStrategy, t);
 
-  const taskLabel = t(`taskLabels.${currentType}`, { ns: "common" });
 
   return (
     <div className="app-container">
@@ -340,11 +339,11 @@ export default function ParticipantInterfacePage() {
 
           {/* 2. CENTER: Task Progress */}
           <div className="top-center-controls">
-            {taskIndex < runtimeTasks.length && (
-              <div className="task-progress">
-                {taskLabel || "Task"} {currentOfType}/{totalOfType}
-              </div>
-            )}
+          {taskIndex < runtimeTasks.length && progressDisplay && (
+            <div className="task-progress">
+              {progressDisplay.label} {progressDisplay.current}/{progressDisplay.total}
+            </div>
+          )}
           </div>
 
           {/* 3. RIGHT SIDE: Skip Button */}

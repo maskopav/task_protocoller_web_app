@@ -26,11 +26,19 @@ export const ModuleCompletionOverlay = ({ category, onComplete }) => {
         return () => clearTimeout(timer);
     }, [onComplete]);
 
+    // Check if the current overlay is for a milestone instead of a task module
+    const isMilestone = category?.startsWith('milestone_');
+
     return (
         <div className="module-overlay">
             <div className="praise-card">
                 <h2>{praise}</h2>
-                <h3>{t(`taskLabels.${category}`)}{t("completion.completedModule")}</h3>
+                <h3>
+                    {isMilestone 
+                        ? t(`taskLabels.${category}`) 
+                        : `${t(`taskLabels.${category}`)} ${t("completion.completedModule")}`
+                    }
+                </h3>
             </div>
         </div>
     );
