@@ -24,8 +24,9 @@
       "recorded": "✅ Recorded"
     },
     "completion": {
-      "title": "All Tasks Completed!",
-      "message": "🎉 You have successfully finished all assignments.",
+      "thankYouTitle": "Testing Complete!",
+      "thankYouMessage": "Thank you for your participation. Your data has been successfully recorded and saved.",
+      "safeToClose": "You may now safely close this browser window.",
       "completedModule": ": module completed!",
       "praises": [
         "🌟 Great job!",

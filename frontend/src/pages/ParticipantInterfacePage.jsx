@@ -7,7 +7,7 @@ import { createTask } from "../tasks";
 import { resolveTasks, resolveTask } from "../utils/taskResolver";
 import { VoiceRecorder } from "../components/VoiceRecorder/VoiceRecorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
-import CompletionScreen from "../components/CompletionScreen";
+import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import D15Test from "../components/VisionTask/D15Test";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";

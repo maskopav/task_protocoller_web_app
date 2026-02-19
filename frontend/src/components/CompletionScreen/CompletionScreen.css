@@ -1,0 +1,50 @@
+/* src/components/CompletionScreen/CompletionScreen.css */
+.completion-screen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    /* Uses the same light green background as the module overlay */
+    background: rgba(211, 244, 185, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.completion-card {
+    text-align: center;
+    max-width: 600px;
+    padding: 2rem;
+    /* Uses the same popIn animation for consistency */
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.completion-icon {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1.5rem;
+}
+
+.completion-card h1 {
+    font-size: 2.5rem;
+    color: #2d5a27; /* Darker green for readability */
+    margin-bottom: 1rem;
+}
+
+.completion-message {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.instruction-box {
+    background: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    font-weight: 500;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
