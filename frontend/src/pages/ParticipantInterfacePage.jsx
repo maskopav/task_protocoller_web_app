@@ -268,6 +268,7 @@ export default function ParticipantInterfacePage() {
           duration={currentTask.recording.duration}
           onNextTask={handleTaskComplete}
           onLogEvent={logInteraction}
+          useVAD={true}
         />
       );
     // Render Questionnaire

@@ -332,6 +332,7 @@ return {
     // State
     recordingStatus,
     permission,
+    stream,
     audioURL,
     recordingTime,
     remainingTime,

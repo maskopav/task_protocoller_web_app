@@ -168,6 +168,38 @@
   margin: 0.5rem auto;
 }
 
+/* VAD Silence Warning Banner */
+.vad-warning-banner {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Optional: Gentle pulse on the container when VAD detects speech */
+.recording-area.is-speaking {
+  /* You can apply a subtle glow or border change here if you want */
+  /* border-color: #4CAF50; */
+  /* box-shadow: 0 0 15px rgba(76, 175, 80, 0.2); */
+  transition: all 0.3s ease;
+}
+
+/* Red glow on the main container when warning is active */
+.task-container.vad-warning-active {
+  box-shadow: 0 0 0 2px #dc3545; /* subtle red border/glow */
+  transition: box-shadow 0.3s ease;
+}
 
 /* Mobile-friendly adjustments */
 @media (max-width: 600px) {
