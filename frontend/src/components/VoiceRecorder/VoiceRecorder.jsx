@@ -41,8 +41,8 @@ export const VoiceRecorder = ({
         audioExample,
         mode,
         duration,
-        // If VAD is on, freeze timer until they speak. Otherwise, normal timer.
-        isTimerActive: !useVAD || hasSpoken
+        // If VAD is on, freeze timer until participant speaks. Otherwise, normal timer.
+        isTimerActive: !useVAD || (hasSpoken && !showSilenceWarning)
     });
 
     const {
