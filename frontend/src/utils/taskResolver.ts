@@ -40,6 +40,7 @@ export function resolveTasks(tasks: TaskInstance[]) {
     return {
       ...task,
       resolvedParams,
+      useVAD: task.useVAD,
       title:
         (task._repeatTotal ?? 1) > 1
           ? `${titleBase} #${task._repeatIndex ?? 1}`

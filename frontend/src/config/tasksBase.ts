@@ -15,6 +15,7 @@ export interface TaskBase {
   type: "voice" | "camera" | "motoric" | "questionnaire" | "vision"; 
   recording: RecordingMode;
   params: Record<string, TaskParamDef>;
+  useVAD?: boolean; // Voice Activity Detector (Silero model, React version), defaultly as true - waits for participant to speak for start the timer, stops timer if the pause of participant is more than 4 s
   repeat?: number;
   illustration?: string;
 }
@@ -34,6 +35,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
   phonation: {
     type: "voice",
     recording: { mode: "delayedStop", duration: 5 },
+    useVAD: false,
     params: {
       phoneme: { default: "a" },
       repeat: { default: 1 },

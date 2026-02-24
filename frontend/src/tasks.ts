@@ -8,6 +8,7 @@ export interface TaskInstance {
   instructionsActive?: string;
   recording: RecordingMode;
   params: Record<string, any>;
+  useVAD?: boolean;
   repeat?: number;
   illustration?: string;
   _repeatIndex?: number;
@@ -40,6 +41,7 @@ export function createTask(category: string, overrides: Record<string, any> = {}
     instructionsActive,
     recording: recording,
     params,
+    useVAD: overrides.useVAD ?? def.useVAD ?? true,
     repeat: def.repeat ?? params.repeat ?? 1,
     illustration
   };
