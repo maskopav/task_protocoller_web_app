@@ -1,5 +1,5 @@
 // hooks/useVoiceRecorder.js - Reusable hook for voice recording logic
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export const useVoiceRecorder = (options = {}) => {
     const {
@@ -10,7 +10,8 @@ export const useVoiceRecorder = (options = {}) => {
         instructionsActive,     // instructions after START
         audioExample,       // optional audio example URL
         mode = "basicStop",  // "basicStop" | "countDown" | "delayedStop"
-        duration         // optional duration of task in seconds
+        duration,         // optional duration of task in seconds
+        isTimerActive = true  // VAD timer control
     } = options;
 
     // Recording states
@@ -77,43 +78,42 @@ export const useVoiceRecorder = (options = {}) => {
             return false;
         }
     };
-  
 
-    // Timer functions
-    const startTimer = () => {
-        timerInterval.current = setInterval(() => {
-            if (mode === "countDown") {
-                setRemainingTime(prev => {
-                    if (prev == null) return null;
-                    if (prev <= 1) {
-                        stopRecording(); // stop automatically when countdown hits 0
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            } else if (mode === "delayedStop") {
-                // Count up normally, mark duration as expired when reached
-                setRecordingTime(prev => {
-                  const newTime = prev + 1;
-                  if (duration && newTime >= duration) {
-                    // Mark duration as expired but keep counting
-                    setDurationExpired(true);
-                  }
-                  return newTime;
-                });
-            } else if (mode === "basicStop") {
-                // Just count up, never auto-stop
-                setRecordingTime(prev => prev + 1);
-            }
-        }, 1000);
-    };
+    // Timer effect
+    useEffect(() => {
+        let interval = null;
 
-    const stopTimer = () => {
-        if (timerInterval.current) {
-            clearInterval(timerInterval.current);
-            timerInterval.current = null;
+        // Only tick if we are officially recording AND the VAD says they have spoken
+        if (recordingStatus === RECORDING && isTimerActive) {
+            interval = setInterval(() => {
+                if (mode === "countDown") {
+                    setRemainingTime(prev => {
+                        if (prev == null) return null;
+                        if (prev <= 1) {
+                            stopRecording(); // stop automatically when countdown hits 0
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                } else if (mode === "delayedStop") {
+                    setRecordingTime(prev => {
+                        const newTime = prev + 1;
+                        if (duration && newTime >= duration) {
+                            setDurationExpired(true);
+                        }
+                        return newTime;
+                    });
+                } else if (mode === "basicStop") {
+                    setRecordingTime(prev => prev + 1);
+                }
+            }, 1000);
         }
-    };
+
+        // Cleanup interval automatically when paused, stopped, or waiting for speech
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [recordingStatus, isTimerActive, mode, duration]);
 
     // Recording functions
     const startRecording = () => {
@@ -137,7 +137,6 @@ export const useVoiceRecorder = (options = {}) => {
         mediaRecorder.current = recorder;
         
         recorder.start();
-        startTimer();
         
         recorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -160,7 +159,6 @@ export const useVoiceRecorder = (options = {}) => {
         if (mediaRecorder.current && recordingStatus === RECORDING) {
             setRecordingStatus(PAUSED);
             mediaRecorder.current.pause();
-            stopTimer();
         }
     };
 
@@ -168,13 +166,11 @@ export const useVoiceRecorder = (options = {}) => {
         if (mediaRecorder.current && recordingStatus === PAUSED) {
             setRecordingStatus(RECORDING);
             mediaRecorder.current.resume();
-            startTimer();
         }
     };
 
-    const stopRecording = () => {
+    const stopRecording = useCallback(() => {
         setRecordingStatus(RECORDED);
-        stopTimer();
         
         if (animationFrame.current) {
             cancelAnimationFrame(animationFrame.current);
@@ -189,7 +185,7 @@ export const useVoiceRecorder = (options = {}) => {
                 onRecordingComplete(audioBlob, url);
             };
         }
-    };
+    }, [audioFormat, onRecordingComplete]); // wrapped in useCallback to safely trigger inside the timer
 
     const repeatRecording = () => {
         stopExample(); // stop example playback if active
@@ -204,7 +200,6 @@ export const useVoiceRecorder = (options = {}) => {
         setRecordingStatus(IDLE);
         setAudioLevels(new Array(12).fill(0));
         setDurationExpired(false); // Reset duration expired state
-        stopTimer();
         
         if (animationFrame.current) {
             cancelAnimationFrame(animationFrame.current);
@@ -309,7 +304,6 @@ export const useVoiceRecorder = (options = {}) => {
     // Cleanup effect
     useEffect(() => {
         return () => {
-        stopTimer();
         if (audioURL) {
             URL.revokeObjectURL(audioURL);
         }

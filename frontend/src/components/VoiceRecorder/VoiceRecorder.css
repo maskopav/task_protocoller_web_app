@@ -168,37 +168,58 @@
   margin: 0.5rem auto;
 }
 
-/* VAD Silence Warning Banner */
-.vad-warning-banner {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-  padding: 10px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-weight: 500;
-  text-align: center;
-  animation: fadeIn 0.3s ease-in-out;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+/* VAD */
+.vad-status-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  width: 100%;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+/* The base pill design: Big text, rounded, elegant shadow */
+.vad-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 1.15rem; /* Noticeably larger text */
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Optional: Gentle pulse on the container when VAD detects speech */
-.recording-area.is-speaking {
-  /* You can apply a subtle glow or border change here if you want */
-  /* border-color: #4CAF50; */
-  /* box-shadow: 0 0 15px rgba(76, 175, 80, 0.2); */
-  transition: all 0.3s ease;
+/* Icon sizing */
+.vad-status-pill .vad-icon {
+    font-size: 1.3rem;
 }
 
-/* Red glow on the main container when warning is active */
-.task-container.vad-warning-active {
-  box-shadow: 0 0 0 2px #dc3545; /* subtle red border/glow */
-  transition: box-shadow 0.3s ease;
+/* 1. Waiting State (Soft Amber/Yellow) */
+.vad-pill-waiting {
+    background-color: #fff9e6;
+    color: #b78103;
+    border: 1px solid #ffe082;
+}
+
+/* 2. Warning State (Soft Red with a subtle pulse) */
+.vad-pill-warning {
+    background-color: #fff0f0;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+    animation: slideUpFade 0.4s ease-out, subtlePulse 2s infinite ease-in-out;
+}
+
+/* Smooth pop-in animation */
+@keyframes slideUpFade {
+    0% { opacity: 0; transform: translateY(15px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Very gentle breathing effect for the warning, not an aggressive flash */
+@keyframes subtlePulse {
+    0% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
+    50% { box-shadow: 0 4px 25px rgba(211, 47, 47, 0.25); }
+    100% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
 }
 
 /* Mobile-friendly adjustments */

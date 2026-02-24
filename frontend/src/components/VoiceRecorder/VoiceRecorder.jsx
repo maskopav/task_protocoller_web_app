@@ -27,6 +27,12 @@ export const VoiceRecorder = ({
     useVAD = false, 
     vadSilenceThreshold = 4000 // 4 seconds of silence before warning
 }) => {
+    // --- VAD State & Logic ---
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [showSilenceWarning, setShowSilenceWarning] = useState(false);
+    const [hasSpoken, setHasSpoken] = useState(false);
+    
+
     const voiceRecorder = useVoiceRecorder({
         onRecordingComplete,
         onError,
@@ -34,7 +40,9 @@ export const VoiceRecorder = ({
         instructionsActive,
         audioExample,
         mode,
-        duration
+        duration,
+        // If VAD is on, freeze timer until they speak. Otherwise, normal timer.
+        isTimerActive: !useVAD || hasSpoken
     });
 
     const {
@@ -57,10 +65,6 @@ export const VoiceRecorder = ({
         RECORDING_STATES
     } = voiceRecorder;
 
-    // --- VAD State & Logic ---
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [showSilenceWarning, setShowSilenceWarning] = useState(false);
-    
     const silenceTimer = useRef(null);
     const vadInstance = useRef(null);
     const statusRef = useRef(recordingStatus);
@@ -89,6 +93,7 @@ export const VoiceRecorder = ({
                     onSpeechStart: () => {
                         setIsSpeaking(true);
                         setShowSilenceWarning(false);
+                        setHasSpoken(true);
                         if (silenceTimer.current) clearTimeout(silenceTimer.current);
                     },
                     onSpeechEnd: () => {
@@ -147,6 +152,8 @@ export const VoiceRecorder = ({
     // --- Wrappers ---
     const handleStart = () => {
         onLogEvent("button_start");
+        setHasSpoken(false); 
+        setShowSilenceWarning(false);
         startRecording();
     };
 
@@ -204,19 +211,27 @@ export const VoiceRecorder = ({
         onNextTask(taskData);
     };
 
+    // Determine the visual state of the recorder for CSS styling
+    let vadVisualState = "idle";
+    let vadStatusText = "";
+    
+    if (useVAD && recordingStatus === RECORDING_STATES.RECORDING) {
+        if (!hasSpoken) {
+            vadVisualState = "waiting";
+            vadStatusText = "Feel free to start whenever you want! Waiting for you to speak...";
+        } else if (showSilenceWarning) {
+            vadVisualState = "warning";
+            vadStatusText = "Are you still there? Please continue or click on Stop if possible...";
+        } else if (isSpeaking) {
+            vadVisualState = "speaking";
+        }
+    }
+
     return (
-        <div className={`task-container ${className} ${showSilenceWarning ? 'vad-warning-active' : ''}`}>
+        <div className={`task-container ${className} vad-${vadVisualState}`}>
             <h1>{title}</h1>
             <p>{activeInstructions}</p>
-
-            {/* Silence Warning Banner */}
-            {useVAD && showSilenceWarning && (
-                <div className="vad-warning-banner">
-                    ⚠️ We don't hear anything. Please make sure you are speaking.
-                </div>
-            )}
-
-            <div className={`recording-area ${isSpeaking ? 'is-speaking' : ''}`}>
+            <div className={`recording-area`}>
 
                 <RecordingTimer
                 time={recordingTime}
@@ -233,33 +248,45 @@ export const VoiceRecorder = ({
                     />
                 )}
                 </RecordingTimer>
-                
-                <StatusIndicator status={recordingStatus} />
 
-                <div className="bottom-controls">
-                <RecordingControls
-                recordingStatus={recordingStatus}
-                disableControls={mode === 'countDown'}
-                permission={permission}
-                onStart={handleStart}
-                onPause={pauseRecording}
-                onResume={resumeRecording}
-                onStop={stopRecording}
-                onPermission={getMicrophonePermission}
-                disableStop={mode === 'delayedStop' && !durationExpired}
-                showPause={false}
-                RECORDING_STATES={RECORDING_STATES}
-                />
+                {useVAD && vadStatusText && (
+                    <div className="vad-status-wrapper">
+                        <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
+                            {vadVisualState === 'waiting' && <span className="vad-icon">⏳</span>}
+                            {vadVisualState === 'warning' && <span className="vad-icon">👋</span>}
+                            <span>{vadStatusText}</span>
+                        </div>
+                    </div>
+                )}
 
-                <PlaybackSection
-                audioURL={audioURL}
-                recordingStatus={recordingStatus}
-                onRepeat={handleRepeat}
-                onNextTask={handleNextTask}
-                showNextButton={showNextButton}
-                />
-                </div>
             </div>
+            
+            <StatusIndicator status={recordingStatus} />
+
+            <div className="bottom-controls">
+            <RecordingControls
+            recordingStatus={recordingStatus}
+            disableControls={mode === 'countDown'}
+            permission={permission}
+            onStart={handleStart}
+            onPause={pauseRecording}
+            onResume={resumeRecording}
+            onStop={stopRecording}
+            onPermission={getMicrophonePermission}
+            disableStop={mode === 'delayedStop' && !durationExpired}
+            showPause={false}
+            RECORDING_STATES={RECORDING_STATES}
+            />
+
+            <PlaybackSection
+            audioURL={audioURL}
+            recordingStatus={recordingStatus}
+            onRepeat={handleRepeat}
+            onNextTask={handleNextTask}
+            showNextButton={showNextButton}
+            />
+            </div>
+
         </div>
     );
 };
