@@ -329,7 +329,14 @@ export default function ProtocolForm({
                     // Skip rendering the full questions array in the small list view
                     if (key === 'questions') return null; 
 
-                    const resolvedVal = resolved[key] ?? task[key];
+                    let resolvedVal = resolved[key] ?? task[key];
+                    // Handle multiple values selection for the UI Summary 
+                    if (Array.isArray(resolvedVal)) {
+                      // Extract just the 'label' from the objects and join them with commas
+                      resolvedVal = resolvedVal
+                        .map(v => typeof v === 'object' ? v.label || v.topicDescription : v)
+                        .join("; ");
+                  }
                     return (
                       <span key={key}>
                         {i > 0 && " • "}

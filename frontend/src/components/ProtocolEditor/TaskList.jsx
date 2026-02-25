@@ -67,11 +67,23 @@ export default function TaskList({ onCreate }) {
                     <div className="param-inline">
                       {Object.entries(params).map(([key, p], i) => {
                         const val = defaults[key] ?? p.default ?? "";
-                        const enumLabel = p.values?.find((v) => v.key === val)?.label || val;
+                        
+                        // Handle multiple values selection for default values
+                        let displayLabel = val;
+                        if (Array.isArray(val)) {
+                          // Map over the array of keys and find the label for each one
+                          displayLabel = val
+                            .map(vKey => p.values?.find((v) => v.key === vKey)?.label || vKey)
+                            .join("; ");
+                        } else {
+                          // Normal single-value extraction
+                          displayLabel = p.values?.find((v) => v.key === val)?.label || val;
+                        }
+
                         return (
                           <span key={key}>
                             {i > 0 && " • "}
-                            <strong>{p.label}:</strong> <em>{enumLabel}</em>
+                            <strong>{p.label}:</strong> <em>{displayLabel}</em>
                           </span>
                         );
                       })}

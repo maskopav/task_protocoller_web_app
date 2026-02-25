@@ -147,7 +147,7 @@
       "instructionsActive": "Speak about: {{topicDescription}}",
       "params": {
         "topics": {
-          "label": "Select multiple topics for this task",
+          "label": "Select multiple topics",
           "values": {
             "hobbies": {
               "label": "Hobbies",
