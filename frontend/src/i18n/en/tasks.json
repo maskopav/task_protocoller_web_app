@@ -139,6 +139,39 @@
       }
     },
 
+    "dynamic_monologue": {
+      "name": "Dynamic monologue",
+      "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
+      "title": "Dynamic Monologue",
+      "instructions": "You will be presented with a series of topics. Please speak continuously about the topic shown on the screen. After some while the topic may change automatically.",
+      "instructionsActive": "Speak about: {{topicDescription}}",
+      "params": {
+        "topics": {
+          "label": "Select multiple topics for this task",
+          "values": {
+            "hobbies": {
+              "label": "Hobbies",
+              "topicDescription": "What are your hobbies? What do you do in your free time?"
+            },
+            "everyday": {
+              "label": "Everydays routine",
+              "topicDescription": "Tell me about your everyday routine. How does your usual day look like?"
+            },
+            "family": {
+              "label": "Movies, books, sports, culture",
+              "topicDescription": "What kind of movies or books do you enjoy? Are you into sports or culture?"
+            },
+            "eating": {
+              "label": "Eating",
+              "topicDescription": "Do you like eating in restaurants? Do you cook often?"
+            }
+          }
+        },
+        "duration": {
+          "label": "Total task duration (seconds)"
+        }
+      }
+    },
     "farnsworthD15": {
       "name": "Farnsworth D-15 Color Test",
       "description": "A color vision test where the participant arranges 15 colored caps in a sequence. It helps identify the type and severity of color vision deficiency (Protan, Deutan, or Tritan).",

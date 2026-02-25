@@ -73,6 +73,7 @@ export function getAllParams(category: string): Record<string, any> {
 
       // --- CASE 1: translated string-based options (e.g. phoneme, fairytale, topic)
       if (hasEnumValues) {
+        const isMultiple = paramDef.multiple === true;
         const values = Object.keys(translatedValues).map((vKey) => ({
           key: vKey,
           label: translateParamValue(category, paramKey, vKey),
@@ -84,7 +85,7 @@ export function getAllParams(category: string): Record<string, any> {
             key: paramKey,
             label: translateParamName(category, paramKey),
             values,
-            type: "enum",
+            type: isMultiple ? "multiselect" : "enum",
           },
         ];
       }
@@ -130,18 +131,31 @@ export function getResolvedParams(category: string, actualParams: Record<string,
 
     // If parameter has value map, try to find the entry for the current value
     if (paramTranslation.values && typeof paramTranslation.values === "object") {
-      const valueDef = paramTranslation.values[actualValue];
-      if (typeof valueDef === "string") {
-        // simple case (like phonation: "a": "aaa")
-        result[paramKey] = valueDef;
-      } else if (typeof valueDef === "object" && valueDef !== null) {
-        // deep object (like monologue.topic.any)
-        // flatten into result (topic label, topicDescription, etc.)
-        for (const [k, v] of Object.entries(valueDef)) {
-          if (k === "label") {
-            result[paramKey] = v; // main param label replaces original value
-          } else {
-            result[k] = v; // other nested info (topicDescription, text, etc.)
+
+      // Handle Arrays (Multi-select) 
+      if (Array.isArray(actualValue)) {
+        result[paramKey] = actualValue.map(key => {
+          const valDef = paramTranslation.values[key];
+          // Returns the full object containing label & topicDescription!
+          if (typeof valDef === "object" && valDef !== null) return valDef;
+          return { label: key, topicDescription: valDef || key }; 
+        });
+      } 
+      // --- EXISTING: Handle Single-select ---
+      else {
+        const valueDef = paramTranslation.values[actualValue];
+        if (typeof valueDef === "string") {
+          // simple case (like phonation: "a": "aaa")
+          result[paramKey] = valueDef;
+        } else if (typeof valueDef === "object" && valueDef !== null) {
+          // deep object (like monologue.topic.any)
+          // flatten into result (topic label, topicDescription, etc.)
+          for (const [k, v] of Object.entries(valueDef)) {
+            if (k === "label") {
+              result[paramKey] = v; // main param label replaces original value
+            } else {
+              result[k] = v; // other nested info (topicDescription, text, etc.)
+            }
           }
         }
       }
@@ -166,12 +180,19 @@ export function getDefaultParams(category: string): Record<string, any> {
   const params = taskBaseConfig[category]?.params || {};
   const translationTree = i18next.t(category, { ns: "tasks", returnObjects: true }) as Record<string, any>;
 
-    return Object.fromEntries(
+  return Object.fromEntries(
     Object.entries(params).map(([key, def]) => {
       let defaultValue = def.default;
       const possibleValues = Object.keys(translationTree?.params?.[key]?.values || {});
-      if (defaultValue === undefined && possibleValues.length > 0) {
-        defaultValue = possibleValues[0]; // fallback
+      
+      if (defaultValue === undefined) {
+        if (def.multiple) {
+          // If it's a multiple select, fallback to empty array or all options
+          defaultValue = []; 
+        } else if (possibleValues.length > 0) {
+          // If it's a single select, fallback to the first available option
+          defaultValue = possibleValues[0];
+        }
       }
       return [key, defaultValue];
     })

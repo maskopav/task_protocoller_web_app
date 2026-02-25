@@ -69,7 +69,34 @@ export default function TaskModal({
             <div key={param} className="form-group">
               <label>{paramInfo.label}</label>
 
-              {hasEnumValues ? (
+              {/* MULTISELECT CHECKBOX RENDERER */}
+              {paramInfo.type === "multiselect" ? (
+                <div className="multiselect-group">
+                  {paramInfo.values.map((v) => {
+                    const isChecked = Array.isArray(value) && value.includes(v.key);
+                    
+                    return (
+                      <label key={v.key} className="multiselect-option">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentArr = Array.isArray(value) ? value : [];
+                            const newArr = e.target.checked
+                              ? [...currentArr, v.key]
+                              : currentArr.filter((item) => item !== v.key);
+                            
+                            setEditingData((prev) => ({ ...prev, [param]: newArr }));
+                          }}
+                        />
+                        {v.label}
+                      </label>
+                    );
+                  })}
+                </div>
+
+              // EXISTING: Dropdown for Enum
+              ) : hasEnumValues ? (
                 <select
                   value={value}
                   onChange={(e) =>

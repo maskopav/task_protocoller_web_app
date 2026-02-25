@@ -9,6 +9,8 @@ export interface TaskParamDef {
   default: any;
   // `values` now optional because they’ll be dynamically extracted from translations
   values?: string[];
+  // Tells the UI to allow multiple values selections
+  multiple?: boolean;
 }
 
 export interface TaskBase {
@@ -78,6 +80,16 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       topic: { default: "hobbies" },
       repeat: { default: 1 },
       duration: { default: 10 },
+    },
+  },
+
+  dynamic_monologue: {
+    type: "voice",
+    recording: { mode: "delayedStop", duration: 60 }, // Example: 60 seconds total task duration
+    useVAD: true,
+    params: {
+      topics: { default: ["hobbies", "everyday", "eating"], multiple: true }, // Default selected array
+      duration: { default: 60 },
     },
   },
 

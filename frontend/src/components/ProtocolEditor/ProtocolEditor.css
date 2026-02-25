@@ -504,6 +504,52 @@
     min-height: 80px;
   }
   
+  /* --- Multiselect Checkbox Group for Task Modal --- */
+  .multiselect-group {
+    display: flex;
+    flex-direction: column; 
+    gap: 8px;               
+    flex: 1;                
+    border-radius: 4px;
+    border: 1px solid #cad1da;
+    padding: 12px;
+    background-color: #f8f9fa;
+    margin: 5px;
+  }
+
+  /* Override the global .form-group label (which forces 180px width & right align) */
+  .modal-form .form-group label.multiselect-option {
+    flex: none;               
+    text-align: left;         
+    display: flex;
+    align-items: flex-start; 
+    justify-content: flex-start;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #2c3e50;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-form .form-group label.multiselect-option:hover {
+    opacity: 0.8;
+  }
+
+  /* --- Protect checkboxes from global .modal-form input rules --- */
+  .modal-form .form-group .multiselect-option input[type="checkbox"] {
+    flex: 0 0 16px !important; /* Forces it to stay exactly 16px, never squish */
+    width: 16px !important; 
+    height: 16px !important; 
+    padding: 0 !important;   
+    margin: 3px 0 0 0 !important; /* Tiny top margin to visually center with text */
+    cursor: pointer;
+    accent-color: var(--success);
+    border-radius: 4px;
+  }
+
   /* =========================================================
      INFO TOOLTIP
      ========================================================= */
