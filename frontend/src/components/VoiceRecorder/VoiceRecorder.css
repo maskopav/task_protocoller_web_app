@@ -222,6 +222,51 @@
     100% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
 }
 
+/* --- Dynamic Topic Text Animation --- */
+.dynamic-topic-text {
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 1.2rem; /* Slightly larger padding for a bigger visual box */
+  border-left: 5px solid #4CAF50;
+  border-radius: 8px;
+  margin: 1rem 0;
+
+  /* Increased duration to 3 seconds so they have plenty of time to notice it */
+  animation: topicSwitchHighlight 5s ease-out forwards;
+  transform-origin: left center;
+}
+
+/* 1. Starts with a highly visible light-green background and a soft glow
+  2. Pops out slightly
+  3. Holds the green highlight for a full second
+  4. Very slowly fades back to the normal gray background over 2 seconds
+*/
+@keyframes topicSwitchHighlight {
+    0% { 
+        opacity: 0;
+        background-color: #e8f5e9; /* Light green background */
+        color: #1b5e20; /* Darker green text for contrast */
+        transform: translateY(5px) scale(0.98); 
+    }
+    10% { 
+        opacity: 1;
+        transform: translateY(0) scale(1.02); /* Slight pop forward */
+        background-color: #e8f5e9; 
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    30% { 
+        transform: scale(1); 
+        background-color: #e8f5e9; /* HOLD the green background for a full second */
+        color: #1b5e20;
+        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.15);
+    }
+    100% { 
+        background-color: #f8f9fa; /* Slowly fade back to normal light gray */
+        color: #2c3e50; /* Normal text color */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); /* Normal flat shadow */
+    }
+}
+
 /* Mobile-friendly adjustments */
 @media (max-width: 600px) {
   .timer-wrapper {

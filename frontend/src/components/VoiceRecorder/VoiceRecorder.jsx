@@ -25,7 +25,8 @@ export const VoiceRecorder = ({
     showNextButton = true,
     className = "",
     useVAD = false, 
-    vadSilenceThreshold = 4000 // 4 seconds of silence before warning
+    vadSilenceThreshold = 4000, // 4 seconds of silence before warning
+    taskParams = {} 
 }) => {
     // --- VAD State & Logic ---
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -73,6 +74,29 @@ export const VoiceRecorder = ({
     const lastSpeechTimeRef = useRef(Date.now()); 
     const speechSegments = useRef([]);
     const currentSpeechStart = useRef(null);
+
+    // Finds the first parameter that is an array (e.g., topics, questions, etc.)
+    const dynamicArray = Object.values(taskParams).find(val => Array.isArray(val)) || [];
+    const [dynamicIndex, setDynamicIndex] = useState(0);
+
+    //vGeneric 20-Second Switcher
+    useEffect(() => {
+        // Only run if we are recording and there is more than 1 item in the array
+        if (recordingStatus === RECORDING_STATES.RECORDING && dynamicArray.length > 1) {
+            const interval = setInterval(() => {
+                setDynamicIndex(prevIndex => {
+                    if (prevIndex < dynamicArray.length - 1) {
+                        return prevIndex + 1;
+                    } else {
+                        clearInterval(interval);
+                        return prevIndex;
+                    }
+                });
+            }, 20000); // Switches every 20 seconds
+
+            return () => clearInterval(interval);
+        }
+    }, [recordingStatus, dynamicArray.length, RECORDING_STATES.RECORDING]);
 
     // Keep our reference to the recording status fresh for the AI callbacks
     useEffect(() => {
@@ -125,7 +149,7 @@ export const VoiceRecorder = ({
                     positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
                     negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
                     redemptionMs: 2000, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
-                    preSpeechPadMs: 500, // number - number of milliseconds of audio to prepend to a speech segment. default: 800
+                    preSpeechPadMs: 800, // number - number of milliseconds of audio to prepend to a speech segment. default: 800
                     minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
                     
                     onFrameProcessed: (probs) => {
@@ -223,6 +247,7 @@ export const VoiceRecorder = ({
         onLogEvent("button_repeat");
         speechSegments.current = []; // Clear old metadata
         currentSpeechStart.current = null;
+        setDynamicIndex(0);
         repeatRecording();
     };
 
@@ -293,10 +318,41 @@ export const VoiceRecorder = ({
         }
     }
 
+    // Generic Instruction Interpolator 
+    let displayInstructions = activeInstructions;
+    
+    if (dynamicArray.length > 0) {
+        const currentItem = dynamicArray[dynamicIndex];
+        
+        // If the item is an object { label: "...", topicDescription: "..." }
+        if (typeof currentItem === 'object' && currentItem !== null) {
+            Object.entries(currentItem).forEach(([key, value]) => {
+                // Dynamically replaces {{topicDescription}}, {{label}}, etc.
+                const regex = new RegExp(`{{${key}}}`, 'g');
+                displayInstructions = displayInstructions.replace(regex, String(value));
+            });
+        } 
+        // Fallback: If the array just contains simple strings ["cat", "dog"]
+        else if (typeof currentItem === 'string') {
+            // Find the parameter name (e.g., 'topics') and replace {{topics}}
+            const paramKey = Object.keys(taskParams).find(k => taskParams[k] === dynamicArray);
+            if (paramKey) {
+                const regex = new RegExp(`{{${paramKey}}}`, 'g');
+                displayInstructions = displayInstructions.replace(regex, currentItem);
+            }
+        }
+    }
+
     return (
         <div className={`task-container ${className} vad-${vadVisualState}`}>
             <h1>{title}</h1>
-            <p>{activeInstructions}</p>
+            {/* The key={dynamicIndex} forces React to replay the CSS animation every time it changes */}
+            <p 
+                key={dynamicIndex}  
+                className="active-instructions dynamic-topic-text"
+            >
+                {displayInstructions}
+            </p>
             <div className={`recording-area`}>
 
                 <RecordingTimer

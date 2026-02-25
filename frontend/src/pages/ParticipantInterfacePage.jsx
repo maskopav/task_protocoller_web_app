@@ -266,6 +266,7 @@ export default function ParticipantInterfacePage() {
           audioExample={currentTask.illustration}
           mode={currentTask.recording.mode}
           duration={currentTask.recording.duration}
+          taskParams={currentTask.resolvedParams}
           onNextTask={handleTaskComplete}
           onLogEvent={logInteraction}
           useVAD={currentTask.useVAD}
