@@ -31,7 +31,7 @@ export const VoiceRecorder = ({
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [showSilenceWarning, setShowSilenceWarning] = useState(false);
     const [hasSpoken, setHasSpoken] = useState(false);
-    
+    const [speechProb, setSpeechProb] = useState(0);
 
     const voiceRecorder = useVoiceRecorder({
         onRecordingComplete,
@@ -65,16 +65,47 @@ export const VoiceRecorder = ({
         RECORDING_STATES
     } = voiceRecorder;
 
-    const silenceTimer = useRef(null);
     const vadInstance = useRef(null);
     const statusRef = useRef(recordingStatus);
+
+    // Speech Metadata Trackers
+    const isSpeakingRef = useRef(false);
+    const lastSpeechTimeRef = useRef(Date.now()); 
+    const speechSegments = useRef([]);
+    const currentSpeechStart = useRef(null);
 
     // Keep our reference to the recording status fresh for the AI callbacks
     useEffect(() => {
         statusRef.current = recordingStatus;
-    }, [recordingStatus]);
+        // Fresh 4 seconds whenever Start or Resume is hitted
+        if (recordingStatus === RECORDING_STATES.RECORDING) {
+            lastSpeechTimeRef.current = Date.now();
+        }
+    }, [recordingStatus, RECORDING_STATES.RECORDING]);
 
-    // 3. Initialize the VAD AI Model
+    // 1. This guarantees exactly 4 seconds of true silence before warning
+    useEffect(() => {
+        if (!useVAD) return;
+
+        const interval = setInterval(() => {
+            if (statusRef.current === RECORDING_STATES.RECORDING) {
+                if (isSpeakingRef.current) {
+                    // While speaking, freeze the countdown clock
+                    lastSpeechTimeRef.current = Date.now();
+                } else {
+                    // While silent, check if 4 seconds have passed since they stopped
+                    const silenceDuration = Date.now() - lastSpeechTimeRef.current;
+                    if (silenceDuration >= vadSilenceThreshold) {
+                        setShowSilenceWarning(true);
+                    }
+                }
+            }
+        }, 500); // Check every half second
+
+        return () => clearInterval(interval);
+    }, [useVAD, vadSilenceThreshold]);
+
+    // 2. Initialize the VAD AI Model
     useEffect(() => {
         if (!useVAD || !stream) return;
 
@@ -90,19 +121,48 @@ export const VoiceRecorder = ({
                     stream: stream, 
                     onnxWASMBasePath: "/vad/",
                     baseAssetPath: "/vad/",
+                    // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
+                    positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
+                    negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
+                    redemptionMs: 2000, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
+                    preSpeechPadMs: 500, // number - number of milliseconds of audio to prepend to a speech segment. default: 800
+                    minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
+                    
+                    onFrameProcessed: (probs) => {
+                        // Updates the UI state 30 times a second!
+                        setSpeechProb(probs.isSpeech); 
+                    },
                     onSpeechStart: () => {
+                        isSpeakingRef.current = true;
                         setIsSpeaking(true);
-                        setShowSilenceWarning(false);
                         setHasSpoken(true);
-                        if (silenceTimer.current) clearTimeout(silenceTimer.current);
+                        setShowSilenceWarning(false); // Instantly hide warning
+                        lastSpeechTimeRef.current = Date.now(); // Reset silence clock
+
+                        if (statusRef.current === RECORDING_STATES.RECORDING) {
+                            currentSpeechStart.current = Date.now();
+                        }
+                    },
+                    onVADMisfire: () => {
+                        // A misfire (throat clear) counts as a sound, so we reset the 4s clock!
+                        isSpeakingRef.current = false;
+                        setIsSpeaking(false);
+                        lastSpeechTimeRef.current = Date.now(); 
                     },
                     onSpeechEnd: () => {
+                        isSpeakingRef.current = false;
                         setIsSpeaking(false);
-                        // If we are still officially recording, start the silence countdown
-                        if (statusRef.current === RECORDING_STATES.RECORDING) {
-                            silenceTimer.current = setTimeout(() => {
-                                setShowSilenceWarning(true);
-                            }, vadSilenceThreshold);
+                        
+                        // The exact millisecond they stopped speaking. The 4s countdown starts NOW.
+                        lastSpeechTimeRef.current = Date.now(); 
+
+                        if (statusRef.current === RECORDING_STATES.RECORDING && currentSpeechStart.current) {
+                            speechSegments.current.push({
+                                startTime: currentSpeechStart.current,
+                                endTime: Date.now(),
+                                durationMs: Date.now() - currentSpeechStart.current
+                            });
+                            currentSpeechStart.current = null; 
                         }
                     },
                 });
@@ -124,30 +184,32 @@ export const VoiceRecorder = ({
                 vadInstance.current.pause();
                 vadInstance.current = null;
             }
-            if (silenceTimer.current) clearTimeout(silenceTimer.current);
         };
-    }, [useVAD, stream, vadSilenceThreshold, RECORDING_STATES.RECORDING]);
+    }, [useVAD, stream, RECORDING_STATES.RECORDING]);
 
-    // 4. Sync VAD processing with your Record/Pause buttons
+    // Save final segment if user hits Stop mid-sentence
+    useEffect(() => {
+        if (recordingStatus === RECORDING_STATES.RECORDED && currentSpeechStart.current) {
+            speechSegments.current.push({
+                startTime: currentSpeechStart.current,
+                endTime: Date.now(),
+                durationMs: Date.now() - currentSpeechStart.current
+            });
+            currentSpeechStart.current = null;
+        }
+    }, [recordingStatus, RECORDING_STATES.RECORDED]);
+
+    // Sync VAD Engine with Pause/Play
     useEffect(() => {
         if (!useVAD || !vadInstance.current) return;
-
         if (recordingStatus === RECORDING_STATES.RECORDING) {
             vadInstance.current.start();
             setShowSilenceWarning(false);
-            if (silenceTimer.current) clearTimeout(silenceTimer.current);
-            
-            // Start the initial silence timer just in case they don't say anything initially
-            silenceTimer.current = setTimeout(() => {
-                setShowSilenceWarning(true);
-            }, vadSilenceThreshold);
         } else {
-            // Stop processing audio when paused or stopped to save CPU
             vadInstance.current.pause();
             setShowSilenceWarning(false);
-            if (silenceTimer.current) clearTimeout(silenceTimer.current);
         }
-    }, [recordingStatus, useVAD, vadSilenceThreshold, RECORDING_STATES.RECORDING]);
+    }, [recordingStatus, useVAD, RECORDING_STATES.RECORDING]);
 
     // --- Wrappers ---
     const handleStart = () => {
@@ -159,6 +221,8 @@ export const VoiceRecorder = ({
 
     const handleRepeat = () => {
         onLogEvent("button_repeat");
+        speechSegments.current = []; // Clear old metadata
+        currentSpeechStart.current = null;
         repeatRecording();
     };
 
@@ -204,8 +268,10 @@ export const VoiceRecorder = ({
             recordingTime: recordingTime,
             timestamp: new Date().toISOString(),
             taskTitle: title,
-            taskType: 'voice'
+            taskType: 'voice',
+            speechSegments: speechSegments.current
         };
+        console.log(speechSegments.current)
         
         // Call the parent's provided function
         onNextTask(taskData);
@@ -248,6 +314,21 @@ export const VoiceRecorder = ({
                     />
                 )}
                 </RecordingTimer>
+
+                {/* NEW: VAD Probability Debug Bar (Only visible when Recording & VAD active) */}
+                {useVAD && recordingStatus === RECORDING_STATES.RECORDING && (
+                    <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
+                        <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
+                        <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
+                            <div style={{ 
+                                width: `${Math.min(speechProb * 100, 100)}%`, 
+                                height: '100%', 
+                                background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', 
+                                transition: 'width 0.1s linear, background 0.1s' 
+                            }} />
+                        </div>
+                    </div>
+                )}
 
                 {useVAD && vadStatusText && (
                     <div className="vad-status-wrapper">
