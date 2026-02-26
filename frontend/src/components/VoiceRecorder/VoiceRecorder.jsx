@@ -7,7 +7,20 @@ import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
 
-
+// VAD config - all parameters
+const VAD_CONFIG = {
+    // TIMING
+    silenceFreezeMs: 3000,       // time until the timer freezes (and warning appears for static tasks)
+    adaptiveSwitchMs: 5000,      // time until the topic automatically switches (Dynamic Tasks only)
+    
+    // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
+    positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
+    negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
+    redemptionMs: 1500, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
+    preSpeechPadMs: 800, // number - number of milliseconds of audio to prepend to a speech segment. default: 800
+    minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
+};
+                    
 // components/VoiceRecorder/VoiceRecorder.jsx - Main component
 export const VoiceRecorder = ({ 
     title = "🎙️ Voice Recorder",
@@ -25,14 +38,27 @@ export const VoiceRecorder = ({
     showNextButton = true,
     className = "",
     useVAD = false, 
-    vadSilenceThreshold = 4000, // 4 seconds of silence before warning
     taskParams = {} 
 }) => {
     // --- VAD State & Logic ---
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [showSilenceWarning, setShowSilenceWarning] = useState(false);
+    const [isSilentPause, setIsSilentPause] = useState(false);
     const [hasSpoken, setHasSpoken] = useState(false);
     const [speechProb, setSpeechProb] = useState(0);
+
+    // --- Dynamic Task Detection ---
+    const dynamicArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
+    const dynamicArray = Array.isArray(dynamicArrayParam) ? dynamicArrayParam : [];
+    const isDynamicTask = dynamicArray.length > 0;
+    const isAdaptiveSwitching = dynamicArray.length > 1;
+    
+    const [dynamicIndex, setDynamicIndex] = useState(0);
+
+    // --- UI Logic: When to show the actual warning about silence
+    const isLastTopic = !isAdaptiveSwitching || dynamicIndex >= dynamicArray.length - 1;
+    // We only bug the user with a warning if the timer is frozen AND there are no more topics to show them!
+    const showSilenceWarning = isSilentPause && isLastTopic;
+    const canEarlyStop = showSilenceWarning;
 
     const voiceRecorder = useVoiceRecorder({
         onRecordingComplete,
@@ -43,7 +69,7 @@ export const VoiceRecorder = ({
         mode,
         duration,
         // If VAD is on, freeze timer until participant speaks. Otherwise, normal timer.
-        isTimerActive: !useVAD || (hasSpoken && !showSilenceWarning)
+        isTimerActive: !useVAD || (hasSpoken && !isSilentPause)
     });
 
     const {
@@ -74,30 +100,7 @@ export const VoiceRecorder = ({
     const lastSpeechTimeRef = useRef(Date.now()); 
     const speechSegments = useRef([]);
     const currentSpeechStart = useRef(null);
-
-    // Finds the first parameter that is an array (e.g., topics, questions, etc.)
-    const dynamicArray = Object.values(taskParams).find(val => Array.isArray(val)) || [];
-    const [dynamicIndex, setDynamicIndex] = useState(0);
-
-    //vGeneric 20-Second Switcher
-    useEffect(() => {
-        // Only run if we are recording and there is more than 1 item in the array
-        if (recordingStatus === RECORDING_STATES.RECORDING && dynamicArray.length > 1) {
-            const interval = setInterval(() => {
-                setDynamicIndex(prevIndex => {
-                    if (prevIndex < dynamicArray.length - 1) {
-                        return prevIndex + 1;
-                    } else {
-                        clearInterval(interval);
-                        return prevIndex;
-                    }
-                });
-            }, 20000); // Switches every 20 seconds
-
-            return () => clearInterval(interval);
-        }
-    }, [recordingStatus, dynamicArray.length, RECORDING_STATES.RECORDING]);
-
+    
     // Keep our reference to the recording status fresh for the AI callbacks
     useEffect(() => {
         statusRef.current = recordingStatus;
@@ -107,29 +110,36 @@ export const VoiceRecorder = ({
         }
     }, [recordingStatus, RECORDING_STATES.RECORDING]);
 
-    // 1. This guarantees exactly 4 seconds of true silence before warning
+    // Adaptive tasks
     useEffect(() => {
         if (!useVAD) return;
 
         const interval = setInterval(() => {
             if (statusRef.current === RECORDING_STATES.RECORDING) {
                 if (isSpeakingRef.current) {
-                    // While speaking, freeze the countdown clock
                     lastSpeechTimeRef.current = Date.now();
                 } else {
-                    // While silent, check if 4 seconds have passed since they stopped
                     const silenceDuration = Date.now() - lastSpeechTimeRef.current;
-                    if (silenceDuration >= vadSilenceThreshold) {
-                        setShowSilenceWarning(true);
+                    const hasMoreTopics = isAdaptiveSwitching && dynamicIndex < dynamicArray.length - 1;
+                    
+                    // Check for Timer Freeze (Triggered at 3s)
+                    if (silenceDuration >= VAD_CONFIG.silenceFreezeMs) {
+                        setIsSilentPause(true); // Freezes the clock immediately
+                    }
+
+                    // Check for Topic Switch (Triggered at 5s, Dynamic Tasks only)
+                    if (hasMoreTopics && silenceDuration >= VAD_CONFIG.adaptiveSwitchMs) {
+                        setDynamicIndex(prev => prev + 1);
+                        lastSpeechTimeRef.current = Date.now(); // Reset silence clock for the new topic
                     }
                 }
             }
-        }, 500); // Check every half second
+        }, 500); 
 
         return () => clearInterval(interval);
-    }, [useVAD, vadSilenceThreshold]);
+    }, [useVAD, isAdaptiveSwitching, dynamicArray.length, dynamicIndex, RECORDING_STATES.RECORDING]);
 
-    // 2. Initialize the VAD AI Model
+    // Initialize the VAD AI Model
     useEffect(() => {
         if (!useVAD || !stream) return;
 
@@ -146,11 +156,11 @@ export const VoiceRecorder = ({
                     onnxWASMBasePath: "/vad/",
                     baseAssetPath: "/vad/",
                     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
-                    positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
-                    negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
-                    redemptionMs: 2000, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
-                    preSpeechPadMs: 800, // number - number of milliseconds of audio to prepend to a speech segment. default: 800
-                    minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
+                    positiveSpeechThreshold: VAD_CONFIG.positiveSpeechThreshold, 
+                    negativeSpeechThreshold: VAD_CONFIG.negativeSpeechThreshold,
+                    redemptionMs: VAD_CONFIG.redemptionMs,
+                    preSpeechPadMs: VAD_CONFIG.preSpeechPadMs,
+                    minSpeechMs: VAD_CONFIG.minSpeechMs,
                     
                     onFrameProcessed: (probs) => {
                         // Updates the UI state 30 times a second!
@@ -160,7 +170,7 @@ export const VoiceRecorder = ({
                         isSpeakingRef.current = true;
                         setIsSpeaking(true);
                         setHasSpoken(true);
-                        setShowSilenceWarning(false); // Instantly hide warning
+                        setIsSilentPause(false); 
                         lastSpeechTimeRef.current = Date.now(); // Reset silence clock
 
                         if (statusRef.current === RECORDING_STATES.RECORDING) {
@@ -172,6 +182,7 @@ export const VoiceRecorder = ({
                         isSpeakingRef.current = false;
                         setIsSpeaking(false);
                         lastSpeechTimeRef.current = Date.now(); 
+                        setIsSilentPause(false);
                     },
                     onSpeechEnd: () => {
                         isSpeakingRef.current = false;
@@ -228,10 +239,10 @@ export const VoiceRecorder = ({
         if (!useVAD || !vadInstance.current) return;
         if (recordingStatus === RECORDING_STATES.RECORDING) {
             vadInstance.current.start();
-            setShowSilenceWarning(false);
+            setIsSilentPause(false);
         } else {
             vadInstance.current.pause();
-            setShowSilenceWarning(false);
+            setIsSilentPause(false);
         }
     }, [recordingStatus, useVAD, RECORDING_STATES.RECORDING]);
 
@@ -239,15 +250,16 @@ export const VoiceRecorder = ({
     const handleStart = () => {
         onLogEvent("button_start");
         setHasSpoken(false); 
-        setShowSilenceWarning(false);
+        setIsSilentPause(false);
         startRecording();
     };
 
     const handleRepeat = () => {
         onLogEvent("button_repeat");
-        speechSegments.current = []; // Clear old metadata
+        speechSegments.current = []; 
         currentSpeechStart.current = null;
         setDynamicIndex(0);
+        setIsSilentPause(false);
         repeatRecording();
     };
 
@@ -273,7 +285,6 @@ export const VoiceRecorder = ({
             const res = await fetch(audioExample, { method: "HEAD" });
             const type = res.headers.get("content-type") || "";
             const ok = res.ok && type.includes("audio");
-            console.log(`Checking example: ${audioExample} → ${res.status} ${type} ok=${ok}`);
             setExampleExists(ok);
           } catch {
             setExampleExists(false);
@@ -282,8 +293,6 @@ export const VoiceRecorder = ({
         checkExample();
       }, [audioExample]);
       
-
-
     const handleNextTask = () => {
         if (!onNextTask) return;
 
@@ -312,29 +321,24 @@ export const VoiceRecorder = ({
             vadStatusText = "Feel free to start whenever you want! Waiting for you to speak...";
         } else if (showSilenceWarning) {
             vadVisualState = "warning";
-            vadStatusText = "Are you still there? Please continue or click on Stop if possible...";
+            vadStatusText = canEarlyStop 
+                ? "If you have nothing more to say, you can click Stop to finish." 
+                : "Are you still there? Please continue...";
         } else if (isSpeaking) {
             vadVisualState = "speaking";
         }
     }
 
-    // Generic Instruction Interpolator 
+    // --- INSTRUCTION INTERPOLATION ---
     let displayInstructions = activeInstructions;
-    
-    if (dynamicArray.length > 0) {
+    if (isDynamicTask && activeInstructions) {
         const currentItem = dynamicArray[dynamicIndex];
-        
-        // If the item is an object { label: "...", topicDescription: "..." }
         if (typeof currentItem === 'object' && currentItem !== null) {
             Object.entries(currentItem).forEach(([key, value]) => {
-                // Dynamically replaces {{topicDescription}}, {{label}}, etc.
                 const regex = new RegExp(`{{${key}}}`, 'g');
                 displayInstructions = displayInstructions.replace(regex, String(value));
             });
-        } 
-        // Fallback: If the array just contains simple strings ["cat", "dog"]
-        else if (typeof currentItem === 'string') {
-            // Find the parameter name (e.g., 'topics') and replace {{topics}}
+        } else if (typeof currentItem === 'string') {
             const paramKey = Object.keys(taskParams).find(k => taskParams[k] === dynamicArray);
             if (paramKey) {
                 const regex = new RegExp(`{{${paramKey}}}`, 'g');
@@ -348,8 +352,8 @@ export const VoiceRecorder = ({
             <h1>{title}</h1>
             {/* The key={dynamicIndex} forces React to replay the CSS animation every time it changes */}
             <p 
-                key={dynamicIndex}  
-                className="active-instructions dynamic-topic-text"
+                key={isAdaptiveSwitching ? dynamicIndex : 'static'} 
+                className={`active-instructions ${isAdaptiveSwitching ? 'dynamic-topic-text' : ''}`}
             >
                 {displayInstructions}
             </p>
@@ -371,7 +375,7 @@ export const VoiceRecorder = ({
                 )}
                 </RecordingTimer>
 
-                {/* NEW: VAD Probability Debug Bar (Only visible when Recording & VAD active) */}
+                {/* VAD Probability Debug Bar (Only visible when Recording & VAD active) */}
                 {useVAD && recordingStatus === RECORDING_STATES.RECORDING && (
                     <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
                         <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
