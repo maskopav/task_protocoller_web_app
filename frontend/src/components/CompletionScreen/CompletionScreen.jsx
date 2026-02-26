@@ -9,7 +9,7 @@ export default function CompletionScreen() {
 
   useEffect(() => {
     // Play the same success sound as in ModuleCompletionOverlay
-    const audio = new Audio('/sounds/success_fanfare.mp3');
+    const audio = new Audio('/audio/sounds/success_fanfare.mp3');
     audio.play().catch(e => console.log("Audio play blocked", e));
   }, []);
 

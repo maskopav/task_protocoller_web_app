@@ -23,5 +23,5 @@ export function getIllustrationPath(category: string, params: Record<string, any
   const basePath = (import.meta as EnvImportMeta).env.BASE_URL || '/';
 
   // Return just the base path (actual existence check will happen in VoiceRecorder)
-  return `${basePath}illustrations/${baseName}.mp3`;
+  return `${basePath}audio/illustrations/${baseName}.mp3`;
 }

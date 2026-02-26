@@ -12,12 +12,13 @@ const VAD_CONFIG = {
     // TIMING
     silenceFreezeMs: 3000,       // time until the timer freezes (and warning appears for static tasks)
     adaptiveSwitchMs: 5000,      // time until the topic automatically switches (Dynamic Tasks only)
+    earlyStopMs: 10000,          // total silence time on static task (or last dynamic topic) before early stop unlocks
     
     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
     positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
     negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
     redemptionMs: 1500, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
-    preSpeechPadMs: 800, // number - number of milliseconds of audio to prepend to a speech segment. default: 800
+    preSpeechPadMs: 800, // number of milliseconds of audio to prepend to a speech segment. default: 800
     minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
 };
                     
@@ -43,6 +44,7 @@ export const VoiceRecorder = ({
     // --- VAD State & Logic ---
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isSilentPause, setIsSilentPause] = useState(false);
+    const [canEarlyStop, setCanEarlyStop] = useState(false);
     const [hasSpoken, setHasSpoken] = useState(false);
     const [speechProb, setSpeechProb] = useState(0);
 
@@ -58,7 +60,6 @@ export const VoiceRecorder = ({
     const isLastTopic = !isAdaptiveSwitching || dynamicIndex >= dynamicArray.length - 1;
     // We only bug the user with a warning if the timer is frozen AND there are no more topics to show them!
     const showSilenceWarning = isSilentPause && isLastTopic;
-    const canEarlyStop = showSilenceWarning;
 
     const voiceRecorder = useVoiceRecorder({
         onRecordingComplete,
@@ -132,6 +133,11 @@ export const VoiceRecorder = ({
                         setDynamicIndex(prev => prev + 1);
                         lastSpeechTimeRef.current = Date.now(); // Reset silence clock for the new topic
                     }
+
+                    // Check for Early Stop (Triggered at 10s on static tasks or final topic)
+                    if (!hasMoreTopics && silenceDuration >= VAD_CONFIG.earlyStopMs) {
+                        setCanEarlyStop(true);
+                    }
                 }
             }
         }, 500); 
@@ -171,6 +177,7 @@ export const VoiceRecorder = ({
                         setIsSpeaking(true);
                         setHasSpoken(true);
                         setIsSilentPause(false); 
+                        setCanEarlyStop(false);
                         lastSpeechTimeRef.current = Date.now(); // Reset silence clock
 
                         if (statusRef.current === RECORDING_STATES.RECORDING) {
@@ -181,8 +188,9 @@ export const VoiceRecorder = ({
                         // A misfire (throat clear) counts as a sound, so we reset the 4s clock!
                         isSpeakingRef.current = false;
                         setIsSpeaking(false);
-                        lastSpeechTimeRef.current = Date.now(); 
                         setIsSilentPause(false);
+                        setCanEarlyStop(false);
+                        lastSpeechTimeRef.current = Date.now(); 
                     },
                     onSpeechEnd: () => {
                         isSpeakingRef.current = false;
@@ -240,9 +248,11 @@ export const VoiceRecorder = ({
         if (recordingStatus === RECORDING_STATES.RECORDING) {
             vadInstance.current.start();
             setIsSilentPause(false);
+            setCanEarlyStop(false);
         } else {
             vadInstance.current.pause();
             setIsSilentPause(false);
+            setCanEarlyStop(false);
         }
     }, [recordingStatus, useVAD, RECORDING_STATES.RECORDING]);
 
@@ -251,6 +261,10 @@ export const VoiceRecorder = ({
         onLogEvent("button_start");
         setHasSpoken(false); 
         setIsSilentPause(false);
+        setCanEarlyStop(false);
+        setSpeechProb(0);
+        lastSpeechTimeRef.current = Date.now(); 
+        
         startRecording();
     };
 
@@ -259,7 +273,13 @@ export const VoiceRecorder = ({
         speechSegments.current = []; 
         currentSpeechStart.current = null;
         setDynamicIndex(0);
+        setHasSpoken(false); 
+        setIsSpeaking(false);
         setIsSilentPause(false);
+        setCanEarlyStop(false);
+        setSpeechProb(0);
+        lastSpeechTimeRef.current = Date.now();
+
         repeatRecording();
     };
 
@@ -414,7 +434,8 @@ export const VoiceRecorder = ({
             onResume={resumeRecording}
             onStop={stopRecording}
             onPermission={getMicrophonePermission}
-            disableStop={mode === 'delayedStop' && !durationExpired}
+            // Stop button is locked UNLESS the duration is met OR the earlyStopMs rule unlocks it
+            disableStop={mode === 'delayedStop' && !durationExpired && !canEarlyStop}
             showPause={false}
             RECORDING_STATES={RECORDING_STATES}
             />

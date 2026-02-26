@@ -18,7 +18,7 @@ export const ModuleCompletionOverlay = ({ category, onComplete }) => {
 
     useEffect(() => {
         // Play a success sound
-        const audio = new Audio('/sounds/success_fanfare.mp3');
+        const audio = new Audio('/audio/sounds/success_fanfare.mp3');
         audio.play().catch(e => console.log("Audio play blocked", e));
 
         // Auto-close after 2.5 seconds
