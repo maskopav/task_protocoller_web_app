@@ -103,7 +103,7 @@ export default function ProtocolForm({
                 placeholder={t("protocolDashboard.namePlaceholder")}
                 value={protocolData?.name || ""}
                 onChange={handleNameChange}
-                disabled={editingMode} 
+                disabled={editingMode || reorderMode} 
               />
               {validation.errors.name && (
                 <div className="error-text">
@@ -115,6 +115,7 @@ export default function ProtocolForm({
             <ProtocolLanguageSelector
               value={protocolData?.language || "en"}
               onChange={handleLanguageChange}
+              disabled={reorderMode}
             />
 
 
@@ -129,6 +130,7 @@ export default function ProtocolForm({
                 )}
                 value={protocolData?.description || ""}
                 onChange={handleDescriptionChange}
+                disabled={reorderMode}
               />
             </div>
 
@@ -142,23 +144,23 @@ export default function ProtocolForm({
                 <div className="page-item-minimal">
                   <span className="page-label">{t("protocolEditor.introPageAdded")} ✅</span>
                   <div className="page-actions">
-                    <span className="edit-icon-small" title="Edit" onClick={onEditIntro}>✎</span>
-                    <span className="delete-icon-small" title="Delete" onClick={onDeleteIntro}>✖</span>
+                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditIntro}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteIntro}>✖</span>
                   </div>
                 </div>
               )}
 
               {/* Consent Form Logic */}
               {isQuillEmpty(protocolData?.consent_text)? (
-                <button className="btn-add-page-minimal" onClick={onEditConsent}>
+                <button className="btn-add-page-minimal" onClick={onEditConsent} disabled={reorderMode}>
                   + {t("protocolEditor.addConsentForm")}
                 </button>
               ) : (
                 <div className="page-item-minimal">
                   <span className="page-label">{t("protocolEditor.consentFormAdded")} ✅</span>
                   <div className="page-actions">
-                    <span className="edit-icon-small" title="Edit" onClick={onEditConsent}>✎</span>
-                    <span className="delete-icon-small" title="Delete" onClick={onDeleteConsent}>✖</span>
+                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditConsent}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteConsent}>✖</span>
                   </div>
                 </div>
               )}
@@ -166,7 +168,7 @@ export default function ProtocolForm({
           </div>
 
           <div className="button-block">
-            <button className="btn-add-questionnaire" onClick={onAddQuestionnaire}>
+            <button className="btn-add-questionnaire" onClick={onAddQuestionnaire} disabled={reorderMode}>
               📋{t("protocolEditor.addQuestionnaire")}
             </button>
 
@@ -181,6 +183,7 @@ export default function ProtocolForm({
               className={`btn-randomize ${randomStrategy !== 'none' ? 'active-strategy' : ''}`} 
               onClick={() => setShowRandomSettings(true)}
               title={t("protocolEditor.randomization.title")}
+              disabled={reorderMode}
             >
                🎲 {t("protocolEditor.randomization.button")}
                {randomStrategy !== 'none' && <span className="strategy-badge" />}

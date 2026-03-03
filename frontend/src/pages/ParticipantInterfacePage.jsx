@@ -240,8 +240,15 @@ export default function ParticipantInterfacePage() {
 
   const renderCurrentTask = () => {
     const rawTask = runtimeTasks[taskIndex];
-    if (!rawTask) return <CompletionScreen />;
-
+    if (!rawTask) {
+       return (
+        <CompletionScreen 
+          testingMode={testingMode}
+          onBack={handleBack}
+        />
+      );
+    }
+    
     // Render Info Page
     if (rawTask.type === "info") {
       return <InfoPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'info' })} />;

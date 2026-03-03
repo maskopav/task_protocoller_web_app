@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import doneCheckmarkIcon from "../../assets/done-checkmark-icon.svg";
 import "./CompletionScreen.css"; 
 
-export default function CompletionScreen() {
-  const { t } = useTranslation(["common"]);
+export default function CompletionScreen({ testingMode, onBack }) {
+  const { t } = useTranslation(["common", "admin"]);
 
   useEffect(() => {
     // Play the same success sound as in ModuleCompletionOverlay
@@ -30,6 +30,15 @@ export default function CompletionScreen() {
         <div className="instruction-box">
           <p>{t("completion.safeToClose")}</p>
         </div>
+
+        {/* For Admin Testing Mode */}
+        {testingMode && (
+          <div className="admin-actions">
+            <button className="btn-primary-back" onClick={onBack}>
+              {t("buttons.backToEditor", { ns: "admin", defaultValue: "← Back to Editor" })}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
