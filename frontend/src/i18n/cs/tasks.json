@@ -71,7 +71,7 @@
     "name": "Čtení textu",
     "description": "Účastník čte krátký text zobrazený na obrazovce nahlas, aby se posoudila plynulost, artikulace a prozodie řeči. Záznam probíhá v režimu *manuálního zastavení* — spustí se po stisknutí START a ukončí po stisknutí STOP účastníkem nebo administrátorem. Administrátor by měl zvolit téma textu ('topic') a počet opakování ('repeat').",
     "title": "Čtení: {{topic}}",
-    "instructions": "Stiskněte START a čtěte text na obrazovce pohodlným tempem. Na konci stiskněte STOP.",
+    "instructions": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
     "instructionsActive": "{{text}}",
     "params": {
       "topic": {
@@ -99,7 +99,7 @@
     "name": "Monolog na téma",
     "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
     "title": "Monolog na téma: {{topic}}",
-    "instructions": "Stiskněte START a mluvte o {{topicDescription}}, dokud nebude možné stisknout STOP po {{duration}} sekundách.",
+    "instructions": "Pokuste se co nejdetailněji popsat {{topicDescription}}. Až budete připraven/a zmačkněte tlačítko START a začněte vyprávět dokud nebude možné stisknout STOP po {{duration}} sekundách.",
     "params": {
       "topic": {
         "label": "Téma monologu",
@@ -108,9 +108,9 @@
             "label": "Koníčky",
             "topicDescription": "koníčky (sport, hudba, čtení, zahradničení, domácí mazlíčci apod.)"
           },
-          "any": {
-            "label": "Libovolné téma",
-            "topicDescription": "cokoli, co vás napadne"
+          "yesterday": {
+            "label": "Průběh Vašeho včerejšího dne, týdne nebo měsíce",
+            "topicDescription": "Průběh Vašeho včerejšího dne, týdne nebo měsíce. Snažte se zahrnout i detaily, například co jste měl/a k snídani, co zajímavého jste zažil/a nebo s kým se setkal/a."
           },
           "family": {
             "label": "Rodina",

@@ -68,10 +68,10 @@ export default function ParticipantInterfaceLoader() {
         // We do this in parallel or sequence. Sequence is safer to ensure we have a session ID.
         let sessionId = null;
         try {
-            const sessionData = await initSession(
+            const sessionData = await initSession({
               token, 
               taskOrder // Send the shuffled order to DB
-            );
+            });
             sessionId = sessionData.sessionId;
             console.log("Session started:", sessionId);
         } catch (err) {

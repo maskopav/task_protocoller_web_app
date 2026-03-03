@@ -1,4 +1,7 @@
 // server.js
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import mappingsRouter from "./src/routes/mappings.js";
 import protocolsRouter from "./src/routes/protocols.js";
@@ -18,7 +21,6 @@ app.use(cors());
 app.use(express.json());
 
 // Test routes
-app.get('/parkinson', (req, res) => res.json({ status: 'ok' }));
 app.get('/test', (req, res) => res.json({ response: 'test' }));
 app.get('/envtest', (req, res) => {
   res.json({
