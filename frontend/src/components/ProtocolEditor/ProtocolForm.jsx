@@ -23,8 +23,8 @@ export default function ProtocolForm({
   editingMode,
   previewRandomized, 
   setPreviewRandomized,
-  onEditIntro,
-  onDeleteIntro,
+  onEditInfo,
+  onDeleteInfo,
   onEditConsent,
   onDeleteConsent,
 }) {
@@ -136,17 +136,17 @@ export default function ProtocolForm({
             </div>
 
             <div className="protocol-pages-row">
-              {/* Intro Page Logic */}
+              {/* Info Page Logic */}
               {isQuillEmpty(protocolData?.info_text) ? (
-                <button className="btn-add-page-minimal" onClick={onEditIntro}>
-                  + {t("protocolEditor.addIntroPage")}
+                <button className="btn-add-page-minimal" onClick={onEditInfo}>
+                  + {t("protocolEditor.addInfoPage")}
                 </button>
               ) : (
                 <div className="page-item-minimal">
                   <span className="page-label">{t("protocolEditor.introPageAdded")} ✅</span>
                   <div className="page-actions">
-                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditIntro}>✎</span>
-                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteIntro}>✖</span>
+                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditInfo}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteInfo}>✖</span>
                   </div>
                 </div>
               )}

@@ -53,9 +53,7 @@ CREATE TABLE `protocols` (
   `created_by` integer,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_by` integer,
-  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
-  `info_text` TEXT DEFAULT NULL,
-  `consent_text` TEXT DEFAULT NULL
+  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }'
 );
 
 CREATE TABLE `project_protocols` (
@@ -63,6 +61,24 @@ CREATE TABLE `project_protocols` (
   `project_id` integer NOT NULL,
   `protocol_id` integer NOT NULL,
   `access_token` char(64) UNIQUE DEFAULT NULL
+);
+
+CREATE TABLE `protocol_contents` (
+  `protocol_id` integer PRIMARY KEY,
+  `info_text` LONGTEXT DEFAULT NULL,
+  `consent_text` LONGTEXT DEFAULT NULL,
+  FOREIGN KEY (`protocol_id`) REFERENCES `protocols` (`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `protocol_contents` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `protocol_id` integer NOT NULL,
+  `protocol_task_id` integer DEFAULT NULL, -- NULL for global, ID for specific task
+  `content_type` varchar(50) NOT NULL,    -- 'info', 'consent', 'instruction', etc.
+  `text_html` LONGTEXT NOT NULL,
+  FOREIGN KEY (`protocol_id`) REFERENCES `protocols` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`) ON DELETE CASCADE,
+  UNIQUE KEY `unique_task_content` (`protocol_id`, `protocol_task_id`, `content_type`)
 );
 
 CREATE TABLE `protocol_tasks` (

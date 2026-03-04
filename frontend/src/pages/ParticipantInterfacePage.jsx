@@ -83,7 +83,7 @@ export default function ParticipantInterfacePage() {
       introSteps.push({
         type: "info",
         content: selectedProtocol.info_text,
-        category: "introduction"
+        category: "info"
       });
     }
 

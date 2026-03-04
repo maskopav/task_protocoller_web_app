@@ -81,8 +81,8 @@ export const saveProtocol = async (req, res) => {
 
       // Insert the new protocol
       const [result] = await conn.query(
-        `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, info_text, consent_text)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           groupId,
           name || 'Placeholder Protocol',
@@ -91,28 +91,57 @@ export const saveProtocol = async (req, res) => {
           newVersion || 1,
           created_by || 1,
           updated_by || 1,
-          JSON.stringify(randomization || {}),
-          info_text || null,    
-          consent_text || null
+          JSON.stringify(randomization || {})
         ]
       );
 
       const newProtocolId = result.insertId;
       logToFile(`✅ Inserted protocol with id=${newProtocolId}, group_id=${groupId}, version=${newVersion}`);
 
+      // Save GLOBAL content (where protocol_task_id is NULL)
+      if (typeof info_text === 'string' && info_text.trim() !== '') {
+        await conn.query(
+          `INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) 
+           VALUES (?, NULL, 'info', ?)`, 
+          [newProtocolId, info_text]
+        );
+      }
+      if (typeof consent_text === 'string' && consent_text.trim() !== '') {
+        await conn.query(
+          `INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) 
+           VALUES (?, NULL, 'consent', ?)`, 
+          [newProtocolId, consent_text]
+        );
+      }
+
+      // Save TASK-SPECIFIC content
       const insertTask = `INSERT INTO protocol_tasks
         (protocol_id, task_id, task_order, params)
         VALUES (?, ?, ?, ?)`;
 
       for (let i = 0; i < tasks.length; i++) {
         const t = tasks[i];
-        await conn.query(insertTask, [
+        const [taskResult] = await conn.query(insertTask, [
           newProtocolId,
           t.task_id,
           t.task_order || i + 1,
           JSON.stringify(t.params || {}),
         ]);
+        const newProtocolTaskId = taskResult.insertId;
         logToFile(`→ Added task ${t.task_id} to protocol ${newProtocolId}`);
+
+        // Save multiple content types for this specific task if they exist in t.contents
+        if (t.contents && Array.isArray(t.contents)) {
+          for (const content of t.contents) {
+             if (content.html && content.html.trim() !== '') {
+                await conn.query(
+                  `INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) 
+                   VALUES (?, ?, ?, ?)`,
+                  [newProtocolId, newProtocolTaskId, content.type, content.html]
+                );
+             }
+          }
+        }
       }
 
       // Generate unique token
@@ -217,23 +246,41 @@ export const getProtocolById = async (req, res) => {
       }
     }
 
+    // 2. Get all contents (Global and Task-specific)
+    const contents = await executeQuery(
+      `SELECT protocol_task_id, content_type, text_html FROM protocol_contents WHERE protocol_id = ?`,
+      [id]
+    );
+
     // Get tasks assigned to that protocol
     const taskRows = await executeQuery(
-      `SELECT task_id, task_order, params
+      `SELECT id, task_id, task_order, params
        FROM protocol_tasks
        WHERE protocol_id = ?
        ORDER BY task_order ASC`,
       [id]
     );
 
-    // Parse params JSON
+    // Group contents by their protocol_task_id
+    const contentMap = contents.reduce((acc, c) => {
+      const key = c.protocol_task_id || 'global';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push({ type: c.content_type, html: c.text_html });
+      return acc;
+    }, {});
+
     const tasks = taskRows.map(t => ({
       ...t,
-      params: t.params ? JSON.parse(t.params) : {}
+      params: t.params ? JSON.parse(t.params) : {},
+      contents: contentMap[t.id] || [] // Array of {type, html}
     }));
 
-    // Return structured result
-    const result = { ...protocol, tasks };
+    // Add global content to the root response
+    const result = { 
+      ...protocol, 
+      global_contents: contentMap['global'] || [],
+      tasks 
+    };
     res.json(result);
 
   } catch (err) {

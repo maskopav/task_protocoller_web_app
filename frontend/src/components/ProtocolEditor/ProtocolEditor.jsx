@@ -74,7 +74,7 @@ export function ProtocolEditor({
   // Controls visibility of the Questionnaire Modal
   const [showQuestionnaireModal, setShowQuestionnaireModal] = useState(false);
   // Intro components modals
-  const [showIntroModal, setShowIntroModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
 
   // --- State: UI & Validation ---
@@ -306,10 +306,10 @@ export function ProtocolEditor({
     setProtocolData(prev => ({ ...prev, [field]: cleanValue }));
   };
 
-  async function handleDeleteIntro() {
+  async function handleDeleteInfo() {
     const isConfirmed = await confirm({
-      title: t("protocolEditor.confirmDeleteIntroTitle"),
-      message: t("protocolEditor.confirmDeleteIntroMsg"),
+      title: t("protocolEditor.confirmDeleteInfoTitle"),
+      message: t("protocolEditor.confirmDeleteInfoMsg"),
       confirmText: t("common:delete"),
       cancelText: t("common:cancel")
     });
@@ -355,8 +355,8 @@ export function ProtocolEditor({
           editingMode={editingMode}
           previewRandomized={previewRandomized}
           setPreviewRandomized={setPreviewRandomized}
-          onEditIntro={() => setShowIntroModal(true)}
-          onDeleteIntro={handleDeleteIntro}
+          onEditInfo={() => setShowInfoModal(true)}
+          onDeleteInfo={handleDeleteInfo}
           onEditConsent={() => setShowConsentModal(true)}
           onDeleteConsent={handleDeleteConsent}
         />
@@ -364,10 +364,10 @@ export function ProtocolEditor({
 
       {/* --- Intro Page Rich Text Modal --- */}
       <AdminModal
-        open={showIntroModal}
-        title={t("protocolEditor.editIntroTitle")}
-        onClose={() => setShowIntroModal(false)}
-        onSave={() => setShowIntroModal(false)}
+        open={showInfoModal}
+        title={t("protocolEditor.editInfoTitle")}
+        onClose={() => setShowInfoModal(false)}
+        onSave={() => setShowInfoModal(false)}
       >
         <div className="mobile-preview-wrapper">
           <div className="mobile-phone-frame">
