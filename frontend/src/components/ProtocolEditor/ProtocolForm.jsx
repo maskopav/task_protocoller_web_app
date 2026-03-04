@@ -21,6 +21,8 @@ export default function ProtocolForm({
   dragIndex,
   validation,
   editingMode,
+  previewRandomized, 
+  setPreviewRandomized,
   onEditIntro,
   onDeleteIntro,
   onEditConsent,
@@ -28,7 +30,6 @@ export default function ProtocolForm({
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
   const [showRandomSettings, setShowRandomSettings] = useState(false);
-  const [previewRandomized, setPreviewRandomized] = useState(true);
 
   const handleLanguageChange = (lang) => {
     setProtocolData((prev) => ({ ...prev, language: lang }));

@@ -1,6 +1,6 @@
 // src/components/ProtocolEditor/ProtocolEditor.jsx
 import React, { useState, useContext, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { taskBaseConfig } from "../../config/tasksBase";
@@ -58,6 +58,7 @@ export function ProtocolEditor({
 
 
   const confirm = useConfirm();
+  const location = useLocation();
 
   // State: Tasks & Protocol Data 
   const [tasks, setTasks] = useState(initialTasks);
@@ -79,6 +80,10 @@ export function ProtocolEditor({
   // --- State: UI & Validation ---
   const [reorderMode, setReorderMode] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
+
+  const [previewRandomized, setPreviewRandomized] = useState(
+    location.state?.previewRandomized ?? true
+  );
 
   const protocols = mappings?.protocols || [];
 
@@ -279,6 +284,8 @@ export function ProtocolEditor({
     navigate("/participant/test", {
       state: {
         protocol: previewProtocol,
+        originalTasks: tasks, // untouched tasks list
+        previewRandomized: simulateRandomization,
         testingMode: true,
         editingMode,
       },
@@ -346,6 +353,8 @@ export function ProtocolEditor({
           onShowProtocol={handleShowProtocol}
           validation={validation} 
           editingMode={editingMode}
+          previewRandomized={previewRandomized}
+          setPreviewRandomized={setPreviewRandomized}
           onEditIntro={() => setShowIntroModal(true)}
           onDeleteIntro={handleDeleteIntro}
           onEditConsent={() => setShowConsentModal(true)}

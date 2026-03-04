@@ -28,9 +28,15 @@ export default function ProtocolEditorPage() {
   const { refreshMappings } = useMappings();
   const confirm = useConfirm();
 
-  const [configuredTasks, setConfiguredTasks] = useState(state?.protocol?.tasks || selectedProtocol?.tasks || []);
+  // 1. Prepare restored data
+  const restoredTasks = state?.originalTasks || state?.protocol?.tasks || selectedProtocol?.tasks || [];
+  
+  // 2. If we have original tasks, ensure the protocol object passed to the editor uses them
+  const restoredProtocol = state?.protocol ? { ...state.protocol, tasks: restoredTasks } : selectedProtocol;
+
+  const [configuredTasks, setConfiguredTasks] = useState(restoredTasks);
   const [protocolData, setProtocolData] = useState(
-    attachIds(state?.protocol || selectedProtocol || null, projectId, protocolId)
+    attachIds(restoredProtocol || null, projectId, protocolId)
   );
 
   const testingMode = state?.testingMode ?? false;

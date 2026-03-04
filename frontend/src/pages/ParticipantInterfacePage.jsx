@@ -20,6 +20,8 @@ export default function ParticipantInterfacePage() {
   const { i18n, t } = useTranslation(["tasks", "common", "admin"]);
   const navigate = useNavigate();
   const location = useLocation();
+  const originalTasks = location.state?.originalTasks;
+  const previewRandomized = location.state?.previewRandomized;
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
 
   const [taskIndex, setTaskIndex] = useState(0);
@@ -232,7 +234,13 @@ export default function ParticipantInterfacePage() {
   
     // default → return to editor
     navigate(`/admin/projects/${protocolData.projectId}/protocols/${protocolData.id}`, {
-      state: { protocol: protocolData, testingMode, editingMode },
+      state: { 
+        protocol: protocolData, 
+        originalTasks, 
+        previewRandomized,
+        testingMode, 
+        editingMode
+      },
     });
   }
 
