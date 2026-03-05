@@ -49,7 +49,7 @@ export async function resolveParticipantToken(req, res) {
 
     // 3. Fetch Randomization Settings directly from protocols table
     const [protocolConfig] = await executeQuery(
-      `SELECT randomization, info_text, consent_text FROM protocols WHERE id = ?`,
+      `SELECT randomization FROM protocols WHERE id = ?`,
       [view.protocol_id]
     );
     let randomizationSettings = {};
@@ -63,8 +63,30 @@ export async function resolveParticipantToken(req, res) {
         randomizationSettings = {};
       }
     }
-    
-    // 4. Load tasks for the protocol
+
+    // 4. Fetch all contents (Global and Task-specific)
+    const contents = await executeQuery(
+      `SELECT protocol_task_id, content_type, text_html 
+       FROM protocol_contents 
+       WHERE protocol_id = ?`,
+      [view.protocol_id]
+    );
+
+    // Group contents by their level (global or task_id)
+    const contentMap = contents.reduce((acc, c) => {
+      const key = c.protocol_task_id || 'global';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push({ type: c.content_type, html: c.text_html });
+      return acc;
+    }, {});
+
+    // Helper for root level legacy support (frontend info_text/consent_text)
+    const globalContentByRef = {};
+    (contentMap['global'] || []).forEach(c => {
+      globalContentByRef[`${c.type}_text`] = c.html;
+    });
+
+    // 5. Load tasks for the protocol
     const tasks = await executeQuery(
       `
         SELECT id, task_id, task_order, params
@@ -79,7 +101,8 @@ export async function resolveParticipantToken(req, res) {
       protocol_task_id: t.id,
       task_id: t.task_id,
       task_order: t.task_order,
-      params: typeof t.params === "string" ? JSON.parse(t.params) : t.params
+      params: typeof t.params === "string" ? JSON.parse(t.params) : t.params,
+      contents: contentMap[t.id] || []
     }));
 
     // 5. Response = view + tasks
@@ -104,8 +127,9 @@ export async function resolveParticipantToken(req, res) {
         version: view.protocol_version,
         language_id: view.language_id,
         randomization: randomizationSettings,
-        info_text: protocolConfig.info_text,
-        consent_text: protocolConfig.consent_text,
+        info_text: globalContentByRef.info_text || "",
+        consent_text: globalContentByRef.consent_text || "",
+        global_contents: contentMap['global'] || [],
         tasks: formattedTasks
       }
     });

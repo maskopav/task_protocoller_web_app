@@ -78,20 +78,27 @@ export default function ParticipantInterfacePage() {
 
     console.log(selectedProtocol)
 
-    // 1. Add Info Page if text exists
-    if (selectedProtocol.info_text) {
+    // Helper to find content by type in the global_contents array
+    const findGlobalContent = (type) => {
+      return selectedProtocol.global_contents?.find(c => c.type === type)?.html;
+    };
+
+    // 1. Add Info Page (check root field OR new array)
+    const infoHtml = selectedProtocol.info_text || findGlobalContent('info');
+    if (infoHtml) {
       introSteps.push({
         type: "info",
-        content: selectedProtocol.info_text,
+        content: infoHtml,
         category: "info"
       });
     }
 
-    // 2. Add Consent Page if text exists
-    if (selectedProtocol.consent_text) {
+    // 2. Add Consent Page (check root field OR new array)
+    const consentHtml = selectedProtocol.consent_text || findGlobalContent('consent');
+    if (consentHtml) {
       introSteps.push({
         type: "consent",
-        content: selectedProtocol.consent_text,
+        content: consentHtml,
         category: "consent"
       });
     }

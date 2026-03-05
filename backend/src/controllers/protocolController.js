@@ -246,22 +246,13 @@ export const getProtocolById = async (req, res) => {
       }
     }
 
-    // 2. Get all contents (Global and Task-specific)
+    // 1. Get the new content rows
     const contents = await executeQuery(
       `SELECT protocol_task_id, content_type, text_html FROM protocol_contents WHERE protocol_id = ?`,
       [id]
     );
 
-    // Get tasks assigned to that protocol
-    const taskRows = await executeQuery(
-      `SELECT id, task_id, task_order, params
-       FROM protocol_tasks
-       WHERE protocol_id = ?
-       ORDER BY task_order ASC`,
-      [id]
-    );
-
-    // Group contents by their protocol_task_id
+    // 2. Map contents
     const contentMap = contents.reduce((acc, c) => {
       const key = c.protocol_task_id || 'global';
       if (!acc[key]) acc[key] = [];
@@ -269,19 +260,31 @@ export const getProtocolById = async (req, res) => {
       return acc;
     }, {});
 
+    // 3. Create a helper object to restore the old 'info_text' and 'consent_text' fields
+    const globalFields = {};
+    (contentMap['global'] || []).forEach(c => {
+      // Maps 'info' -> 'info_text' and 'consent' -> 'consent_text'
+      globalFields[`${c.type}_text`] = c.html;
+    });
+
+    const taskRows = await executeQuery(
+      `SELECT id, task_id, task_order, params FROM protocol_tasks WHERE protocol_id = ? ORDER BY task_order ASC`,
+      [id]
+    );
+
     const tasks = taskRows.map(t => ({
       ...t,
       params: t.params ? JSON.parse(t.params) : {},
-      contents: contentMap[t.id] || [] // Array of {type, html}
+      contents: contentMap[t.id] || []
     }));
 
-    // Add global content to the root response
-    const result = { 
+    // 4. Spread globalFields into the result so the frontend sees .info_text
+    res.json({ 
       ...protocol, 
+      ...globalFields, // RESTORES info_text and consent_text
       global_contents: contentMap['global'] || [],
       tasks 
-    };
-    res.json(result);
+    });
 
   } catch (err) {
     logToFile(`❌ Error fetching protocol: ${err.stack || err}`);
