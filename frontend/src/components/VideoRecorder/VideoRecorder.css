@@ -1,0 +1,147 @@
+/* components/VideoRecorder/VideoRecorder.css */
+
+.video-recorder-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #ffffff;
+    background-color: #1a1a1a;
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+/* The parent container for both video and SVG */
+.viewfinder-container {
+    position: relative; /* Crucial for absolute children */
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 4px solid #333;
+    transition: border-color 0.3s ease;
+}
+
+/* Visual feedback: border turns green when steady */
+.viewfinder-container.steady {
+    border-color: #4caf50;
+}
+
+.viewfinder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures video fills the frame */
+    transform: scaleX(-1); /* Mirror effect for the user */
+}
+
+/* The Overlay layer */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Allows clicking through the SVG */
+}
+
+.face-frame {
+    width: 60%; /* Adjust size of the head frame */
+    height: 80%;
+}
+
+.warning-toast {
+    position: absolute;
+    bottom: 10%;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: bold;
+    animation: pulse 1s infinite;
+}
+
+.detection-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* User clicks pass through to video/controls */
+    z-index: 5;
+    /* Since video is scaledX(-1) for mirror effect, canvas must be too */
+    transform: scaleX(-1); 
+}
+
+.accessibility-toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-primary:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+
+/* components/VideoRecorder/VideoRecorder.css */
+
+.guidance-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.arrow {
+    position: absolute;
+    font-size: 3rem;
+    color: rgba(255, 255, 0, 0.7);
+    text-shadow: 0 0 10px black;
+    animation: bounce 0.5s infinite alternate;
+}
+
+.arrow-right { right: 20px; }
+.arrow-left  { left: 20px; transform: rotate(180deg); }
+.arrow-up    { top: 20px; transform: rotate(-90deg); }
+.arrow-down  { bottom: 20px; transform: rotate(90deg); }
+
+.rotation-guide {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: yellow;
+    font-weight: bold;
+}
+
+@keyframes bounce {
+    from { transform: scale(1); }
+    to { transform: scale(1.2); }
+}
