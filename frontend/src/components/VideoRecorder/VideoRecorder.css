@@ -6,111 +6,51 @@
     align-items: center;
     gap: 1.5rem;
     width: 100%;
-    max-width: 800px;
+    max-width: 600px; /* Slightly narrower for a better mobile layout */
     margin: 0 auto;
     color: #ffffff;
     background-color: #1a1a1a;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 12px;
 }
 
-/* The parent container for both video and SVG */
+/* The parent container */
 .viewfinder-container {
-    position: relative; /* Crucial for absolute children */
+    position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    /* 3:4 portrait ratio is best for mobile face recording */
+    aspect-ratio: 3 / 4; 
+    max-height: 70vh; /* Prevents overflow on very small screens */
     background: #000;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     border: 4px solid #333;
     transition: border-color 0.3s ease;
 }
 
-/* Visual feedback: border turns green when steady */
-.viewfinder-container.steady {
-    border-color: #4caf50;
+.viewfinder-container.warning-border {
+    border-color: #ff3333;
 }
 
-.viewfinder {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensures video fills the frame */
-    transform: scaleX(-1); /* Mirror effect for the user */
-}
-
-/* The Overlay layer */
-.overlay {
+/* Both video and canvas mirrored & sized identically */
+.viewfinder, .mesh-canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    pointer-events: none; /* Allows clicking through the SVG */
+    object-fit: cover;
+    transform: scaleX(-1); /* Creates the mirror effect */
 }
 
-.face-frame {
-    width: 60%; /* Adjust size of the head frame */
-    height: 80%;
-}
-
-.warning-toast {
-    position: absolute;
-    bottom: 10%;
-    background: rgba(255, 0, 0, 0.8);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-weight: bold;
-    animation: pulse 1s infinite;
-}
-
-.detection-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* User clicks pass through to video/controls */
+.mesh-canvas {
     z-index: 5;
-    /* Since video is scaledX(-1) for mirror effect, canvas must be too */
-    transform: scaleX(-1); 
+    pointer-events: none;
 }
 
-.accessibility-toolbar {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
+/* --- Calibration Overlay & Oval --- */
 
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.btn-primary:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-
-/* components/VideoRecorder/VideoRecorder.css */
-
-.guidance-overlay {
+.calibration-overlay {
     position: absolute;
     inset: 0;
     display: flex;
@@ -120,28 +60,95 @@
     z-index: 10;
 }
 
-.arrow {
+.face-oval {
     position: absolute;
-    font-size: 3rem;
-    color: rgba(255, 255, 0, 0.7);
-    text-shadow: 0 0 10px black;
-    animation: bounce 0.5s infinite alternate;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Responsive sizing based on screen dimensions */
+    width: 55%; 
+    height: 55%;
+    max-width: 280px;
+    max-height: 380px;
+    
+    border: 4px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); /* Darkens background outside oval */
+    transition: border-color 0.3s ease;
 }
 
-.arrow-right { right: 20px; }
-.arrow-left  { left: 20px; transform: rotate(180deg); }
-.arrow-up    { top: 20px; transform: rotate(-90deg); }
-.arrow-down  { bottom: 20px; transform: rotate(90deg); }
+.face-oval.ready {
+    border-color: #00FF00; /* Turns green when aligned */
+}
 
-.rotation-guide {
-    background: rgba(0, 0, 0, 0.6);
-    padding: 10px 20px;
-    border-radius: 20px;
-    color: yellow;
+/* --- Text Messages & Warnings --- */
+
+.warning-toast {
+    position: absolute;
+    bottom: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    width: 80%;
+    max-width: 320px;
+    backdrop-filter: blur(4px);
+}
+
+.recording-alert-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 0, 0, 0.2);
+    z-index: 20;
+}
+
+.alert-box {
+    background: rgba(255, 0, 0, 0.9);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
     font-weight: bold;
+    font-size: 1.2rem;
+    animation: alert-pulse 1s infinite alternate;
 }
 
-@keyframes bounce {
-    from { transform: scale(1); }
-    to { transform: scale(1.2); }
+/* --- Buttons --- */
+
+.controls {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.2s, opacity 0.2s;
+    width: 100%;
+    max-width: 300px;
+}
+
+.btn-primary:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+@keyframes alert-pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
 }
