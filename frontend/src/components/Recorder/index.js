@@ -1,5 +1,5 @@
 // components/VoiceRecorder/index.js - Barrel export
-export { VoiceRecorder as default } from './VoiceRecorder';
+export { Recorder as default } from './Recorder';
 export { RecordingTimer } from './RecordingTimer';
 export { RecordingControls } from './RecordingControls';
 export { PlaybackSection } from './PlaybackSection';

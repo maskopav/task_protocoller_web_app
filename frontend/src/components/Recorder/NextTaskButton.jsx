@@ -1,4 +1,4 @@
-// components/VoiceRecorder/NextTaskButton.jsx
+// components/Recorder/NextTaskButton.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
 

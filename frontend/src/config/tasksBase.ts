@@ -11,6 +11,7 @@ export interface TaskParamDef {
   values?: string[];
   // Tells the UI to allow multiple values selections
   multiple?: boolean;
+  recordVideo?: boolean;
 }
 
 export interface TaskBase {
@@ -42,6 +43,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       phoneme: { default: "a" },
       repeat: { default: 1 },
       duration: { default: 5 },
+      recordVideo: { default: false },
     },
   },
 
@@ -52,6 +54,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       syllable: { default: "pataka" },
       repeat: { default: 1 },
       duration: { default: 3 },
+      recordVideo: { default: false },
     },
   },
 
@@ -61,6 +64,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       fairytale: { default: "snowWhite" },
       repeat: { default: 1 },
+      recordVideo: { default: false },
     },
   },
 
@@ -70,6 +74,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       topic: { default: "seedling" },
       repeat: { default: 1 },
+      recordVideo: { default: false },
     },
   },
 
@@ -80,6 +85,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       topic: { default: "hobbies" },
       repeat: { default: 1 },
       duration: { default: 10 },
+      recordVideo: { default: false },
     },
   },
 
@@ -90,6 +96,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       topics: { default: ["hobbies", "everyday", "eating"], multiple: true }, // Default selected array
       duration: { default: 60 },
+      recordVideo: { default: false },
     },
   },
 

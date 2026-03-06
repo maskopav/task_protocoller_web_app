@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
-import './VoiceRecorder.css';
+import { useVideoRecorder } from '../../hooks/useVideoRecorder';
+import './Recorder.css';
 import { RecordingTimer } from './RecordingTimer';
 import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
@@ -22,9 +23,9 @@ const VAD_CONFIG = {
     minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
 };
                     
-// components/VoiceRecorder/VoiceRecorder.jsx - Main component
-export const VoiceRecorder = ({ 
-    title = "🎙️ Voice Recorder",
+// components/Recorder/Recorder.jsx - Main component
+export const Recorder = ({ 
+    title = "🎙️ Task Recorder",
     instructions = "Record, pause, resume, and save your audio with real-time visualization",
     instructionsActive,
     audioExample,
@@ -39,8 +40,13 @@ export const VoiceRecorder = ({
     showNextButton = true,
     className = "",
     useVAD = false, 
-    taskParams = {} 
+    taskParams = {},
+    recordVideo = false
 }) => {
+    // --- Phase State ---
+    // If video is required, start in SETUP. Otherwise, jump straight to RECORDING.
+    const [phase, setPhase] = useState(recordVideo ? 'SETUP' : 'RECORDING');
+
     // --- VAD State & Logic ---
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isSilentPause, setIsSilentPause] = useState(false);
@@ -61,6 +67,15 @@ export const VoiceRecorder = ({
     // We only bug the user with a warning if the timer is frozen AND there are no more topics to show them!
     const showSilenceWarning = isSilentPause && isLastTopic;
 
+    // --- Video Recorder Hook ---
+    const videoRecorder = useVideoRecorder({
+        onRecordingComplete: (videoData) => {
+            console.log("Video data processed!", videoData);
+            // TODO: Merge this with audio data in the next step!
+        }
+    });
+
+    // --- Voice Recorder Hook ---
     const voiceRecorder = useVoiceRecorder({
         onRecordingComplete,
         onError,
@@ -75,7 +90,7 @@ export const VoiceRecorder = ({
 
     const {
         recordingStatus,
-        permission,
+        permission: audioPermission,
         stream,
         audioURL,
         recordingTime,
@@ -83,10 +98,10 @@ export const VoiceRecorder = ({
         activeInstructions,
         durationExpired,
         getMicrophonePermission,
-        startRecording,
+        startRecording: startAudioRecording,
         pauseRecording,
         resumeRecording,
-        stopRecording,
+        stopRecording: stopAudioRecording,
         repeatRecording,
         playExample,
         stopExample,

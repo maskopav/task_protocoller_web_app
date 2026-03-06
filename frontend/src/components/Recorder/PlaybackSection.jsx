@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { NextTaskButton } from "./NextTaskButton";
 
-// components/VoiceRecorder/PlaybackSection.jsx - Audio playback component
+// components/Recorder/PlaybackSection.jsx - Audio playback component
 export const PlaybackSection = ({ 
     audioURL, 
     recordingStatus, 

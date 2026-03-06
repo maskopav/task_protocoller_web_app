@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from "react-i18next";
 
-// components/VoiceRecorder/RecordingControls.jsx - Control buttons component
+// components/Recorder/RecordingControls.jsx - Control buttons component
 export const RecordingControls = ({
     recordingStatus,
     permission,

@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { createTask } from "../tasks";
 import { resolveTasks, resolveTask } from "../utils/taskResolver";
-import { VoiceRecorder } from "../components/VoiceRecorder/VoiceRecorder";
+import { Recorder } from "../components/Recorder/Recorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
@@ -169,7 +169,7 @@ export default function ParticipantInterfacePage() {
       
     try {
       // 1. Identify the current task to get metadata
-      // The `data` object from VoiceRecorder comes with audioURL (blob url)
+      // The `data` object from Recorder comes with audioURL (blob url)
       // We need to fetch the actual Blob from that URL to send it
       let blob = null;
       if (data.audioURL) {
@@ -280,7 +280,7 @@ export default function ParticipantInterfacePage() {
     // Render Voice Task
     if (currentTask.type === "voice")
       return (
-        <VoiceRecorder
+        <Recorder
           key={taskIndex}
           title={currentTask.title}
           instructions={currentTask.instructions}

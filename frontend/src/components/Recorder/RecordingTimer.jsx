@@ -1,7 +1,7 @@
 import React from 'react';
-import './VoiceRecorder.css';
+import './Recorder.css';
 
-// components/VoiceRecorder/RecordingTimer.jsx - Timer circle component
+// components/Recorder/RecordingTimer.jsx - Timer circle component
 export const RecordingTimer = ({ 
     time, 
     remainingTime,
