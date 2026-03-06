@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 const DEV_MODE = true; // Set to false when deploying
-const FRAME_RATE_MS = 33;
+const FRAME_RATE_MS = 20; // Processing of the video frame takes time -> plus around 40ms 
 
 export const useVideoRecorder = (options = {}) => {
     const { onRecordingComplete = () => {}, onError = () => {} } = options;

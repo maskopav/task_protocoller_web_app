@@ -4,35 +4,53 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
     width: 100%;
-    max-width: 600px; /* Slightly narrower for a better mobile layout */
+    max-width: 600px;
     margin: 0 auto;
-    color: #ffffff;
-    background-color: #1a1a1a;
-    padding: 1.5rem;
-    border-radius: 12px;
+    padding: var(--spacing-lg, 2rem);
+    background-color: var(--bg-surface, #1e1e1e);
+    border-radius: var(--border-radius-lg, 12px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--text-primary, #ffffff);
 }
 
-/* The parent container */
+.task-header {
+    text-align: center;
+    margin-bottom: var(--spacing-lg, 1.5rem);
+}
+
+.task-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary, #ffffff);
+}
+
+.task-instructions {
+    font-size: 1rem;
+    color: var(--text-secondary, #b3b3b3);
+    max-width: 90%;
+    margin: 0 auto;
+}
+
+/* --- Viewfinder --- */
 .viewfinder-container {
     position: relative;
     width: 100%;
-    /* 3:4 portrait ratio is best for mobile face recording */
     aspect-ratio: 3 / 4; 
-    max-height: 70vh; /* Prevents overflow on very small screens */
-    background: #000;
-    border-radius: 12px;
+    max-height: 60vh;
+    background: var(--bg-dark, #000000);
+    border-radius: var(--border-radius-md, 8px);
     overflow: hidden;
-    border: 4px solid #333;
+    border: 3px solid var(--border-color, #333333);
     transition: border-color 0.3s ease;
+    margin-bottom: var(--spacing-lg, 1.5rem);
 }
 
 .viewfinder-container.warning-border {
-    border-color: #ff3333;
+    border-color: var(--danger-color, #ff4444);
 }
 
-/* Both video and canvas mirrored & sized identically */
 .viewfinder, .mesh-canvas {
     position: absolute;
     top: 0;
@@ -40,7 +58,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scaleX(-1); /* Creates the mirror effect */
+    transform: scaleX(-1); /* Mirror effect */
 }
 
 .mesh-canvas {
@@ -48,8 +66,7 @@
     pointer-events: none;
 }
 
-/* --- Calibration Overlay & Oval --- */
-
+/* --- Calibration --- */
 .calibration-overlay {
     position: absolute;
     inset: 0;
@@ -65,39 +82,35 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    
-    /* Responsive sizing based on screen dimensions */
     width: 55%; 
     height: 55%;
     max-width: 280px;
     max-height: 380px;
-    
-    border: 4px solid white;
+    border: 3px solid rgba(255, 255, 255, 0.8);
     border-radius: 50%;
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); /* Darkens background outside oval */
-    transition: border-color 0.3s ease;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .face-oval.ready {
-    border-color: #00FF00; /* Turns green when aligned */
+    border-color: var(--success-color, #4caf50);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4); /* Lighten background slightly when ready */
 }
-
-/* --- Text Messages & Warnings --- */
 
 .warning-toast {
     position: absolute;
-    bottom: 12%;
+    bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.75);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
+    background-color: var(--bg-overlay, rgba(30, 30, 30, 0.85));
+    color: var(--text-primary, #ffffff);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-sm, 6px);
+    font-weight: 500;
     text-align: center;
-    width: 80%;
-    max-width: 320px;
+    width: 85%;
     backdrop-filter: blur(4px);
+    border: 1px solid var(--border-color, #444);
 }
 
 .recording-alert-overlay {
@@ -106,49 +119,45 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(255, 0, 0, 0.2);
+    background: rgba(255, 68, 68, 0.15);
     z-index: 20;
 }
 
 .alert-box {
-    background: rgba(255, 0, 0, 0.9);
+    background: var(--danger-color, #ff4444);
     color: white;
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-sm, 6px);
+    font-weight: 600;
     animation: alert-pulse 1s infinite alternate;
 }
 
-/* --- Buttons --- */
-
-.controls {
+/* --- Controls --- */
+.controls-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
+    gap: var(--spacing-sm, 0.75rem);
 }
 
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+.btn-stop {
+    background-color: var(--danger-color, #ff4444) !important;
+    color: white !important;
+}
+
+.btn-stop:hover {
+    background-color: var(--danger-hover, #cc0000) !important;
+}
+
+.completion-text {
+    color: var(--success-color);
+    font-weight: 600;
     font-size: 1.1rem;
-    font-weight: bold;
-    transition: background-color 0.2s, opacity 0.2s;
-    width: 100%;
-    max-width: 300px;
-}
-
-.btn-primary:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-    opacity: 0.7;
+    margin-top: var(--spacing-sm, 0.5rem);
 }
 
 @keyframes alert-pulse {
     0% { transform: scale(1); }
-    100% { transform: scale(1.05); }
+    100% { transform: scale(1.03); }
 }

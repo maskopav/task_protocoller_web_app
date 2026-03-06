@@ -17,18 +17,21 @@ export const VideoRecorder = ({ title, instructions, onNextTask }) => {
         startFaceDetection,
         startRecording,
         stopRecording
-    } = useVideoRecorder();
+    } = useVideoRecorder({
+        onRecordingComplete: (data) => {
+            if (onNextTask) {
+                onNextTask(data);
+            }
+        }
+    });
 
     const handleStartCalibration = async () => {
-        console.log("DEBUG: 'Start Calibration' button clicked");
         const hasPermission = await getMediaPermission();
-        
         if (hasPermission) {
-            console.log("DEBUG: Permission granted, moving to CALIBRATE phase");
             setPhase('CALIBRATE');
             startFaceDetection();
         } else {
-            console.error("DEBUG: Permission denied or failed");
+            console.error("Camera/Mic permission denied or failed.");
         }
     };
 
@@ -37,26 +40,25 @@ export const VideoRecorder = ({ title, instructions, onNextTask }) => {
 
     return (
         <div className="video-recorder-container">
-            <h1>{title}</h1>
+            {/* Consistent Task Header */}
+            <div className="task-header">
+                <h2 className="task-title">{title}</h2>
+                {instructions && <p className="task-instructions">{instructions}</p>}
+            </div>
             
             <div className={`viewfinder-container ${(recordingStatus === 'recording' && showWarning) ? 'warning-border' : ''}`}>
                 <video ref={videoRef} autoPlay playsInline muted className="viewfinder" />
                 <canvas ref={canvasRef} className="mesh-canvas" />
                 
-                {/* 1. Calibration Overlay */}
                 {phase === 'CALIBRATE' && (
                     <div className="calibration-overlay">
-                        {/* The dynamic CSS Oval */}
                         <div className={`face-oval ${isReady ? 'ready' : ''}`}></div>
-                        
-                        {/* Floating Warning Message */}
                         <div className="warning-toast">
                             {faceMessage}
                         </div>
                     </div>
                 )}
 
-                {/* 2. Persistent Recording Warning */}
                 {recordingStatus === 'recording' && showWarning && (
                     <div className="recording-alert-overlay">
                         <div className="alert-box">
@@ -66,20 +68,38 @@ export const VideoRecorder = ({ title, instructions, onNextTask }) => {
                 )}
             </div>
             
-            <div className="controls">
+            <div className="controls-container">
                 {phase === 'SETUP' && (
                     <button className="btn-primary" onClick={handleStartCalibration}>
                         Start Calibration
                     </button>
                 )}
+                
                 {phase === 'CALIBRATE' && (
                     <button 
                         className="btn-primary" 
                         disabled={!isReady} 
-                        onClick={() => { setPhase('RECORDING'); startRecording(); }}
+                        onClick={() => { 
+                            setPhase('RECORDING'); 
+                            startRecording(); 
+                            // Optional: play successAudio.current.play() here if desired
+                        }}
                     >
                         {isReady ? "Start Recording" : "Awaiting Correct Position..."}
                     </button>
+                )}
+
+                {phase === 'RECORDING' && (
+                    <button 
+                        className="btn-primary btn-stop" 
+                        onClick={() => { setPhase('DONE'); stopRecording(); }}
+                    >
+                        Stop Recording
+                    </button>
+                )}
+                
+                {phase === 'DONE' && (
+                    <p className="completion-text">Recording Complete! Processing data...</p>
                 )}
             </div>
         </div>
