@@ -12,7 +12,7 @@ export const VideoRecorder = ({ title, instructions, onNextTask }) => {
         recordingStatus,
         isSteady,
         isFaceCorrect,
-        faceMessage,
+        guidance,
         getMediaPermission,
         startFaceDetection,
         startRecording,
@@ -52,9 +52,39 @@ export const VideoRecorder = ({ title, instructions, onNextTask }) => {
                 
                 {phase === 'CALIBRATE' && (
                     <div className="calibration-overlay">
-                        <div className={`face-oval ${isReady ? 'ready' : ''}`}></div>
+                        <div className={`face-oval ${isReady ? 'ready' : ''}`}>
+                            
+                            {/* Directional Arrows */}
+                            {guidance.arrow === 'MOVE_UP' && <div className="calib-icon icon-up">⇧</div>}
+                            {guidance.arrow === 'MOVE_DOWN' && <div className="calib-icon icon-down">⇩</div>}
+                            {guidance.arrow === 'MOVE_LEFT' && <div className="calib-icon icon-left">⇦</div>}
+                            {guidance.arrow === 'MOVE_RIGHT' && <div className="calib-icon icon-right">⇨</div>}
+                            
+                            {guidance.arrow === 'TURN_LEFT' && (
+                                <div className="calib-icon icon-turn-left">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                        <polyline points="12 5 19 12 12 19" />
+                                    </svg>
+                                </div>
+                            )}
+
+                            {guidance.arrow === 'TURN_RIGHT' && (
+                                <div className="calib-icon icon-turn-right">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="19" y1="12" x2="5" y2="12" />
+                                        <polyline points="12 19 5 12 12 5" />
+                                    </svg>
+                                </div>
+                            )}
+                            
+                            {guidance.arrow === 'MOVE_CLOSER' && <div className="calib-icon icon-center">+</div>}
+                            {guidance.arrow === 'MOVE_FURTHER' && <div className="calib-icon icon-center">-</div>}
+                            {guidance.arrow === 'READY'}
+                            
+                        </div>
                         <div className="warning-toast">
-                            {faceMessage}
+                            {guidance.text}
                         </div>
                     </div>
                 )}

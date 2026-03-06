@@ -10,7 +10,7 @@ export const useVideoRecorder = (options = {}) => {
     const [recordingStatus, setRecordingStatus] = useState("idle");
     const [isSteady, setIsSteady] = useState(false);
     const [isFaceCorrect, setIsFaceCorrect] = useState(false);
-    const [faceMessage, setFaceMessage] = useState("Positioning...");
+    const [guidance, setGuidance] = useState({ text: "Positioning...", arrow: null });
     
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
@@ -84,15 +84,6 @@ export const useVideoRecorder = (options = {}) => {
                 if (result.faceLandmarks && result.faceLandmarks.length > 0) {
                     const landmarks = result.faceLandmarks[0]; 
 
-                    if (DEV_MODE) {
-                        ctx.fillStyle = "#ffffff"; 
-                        for (const point of landmarks) {
-                            ctx.beginPath();
-                            ctx.arc(point.x * canvas.width, point.y * canvas.height, 1.5, 0, 2 * Math.PI);
-                            ctx.fill();
-                        }
-                    }
-
                     let minX = 1, maxX = 0, minY = 1, maxY = 0;
                     for (const point of landmarks) {
                         if (point.x < minX) minX = point.x;
@@ -106,22 +97,59 @@ export const useVideoRecorder = (options = {}) => {
                     const centerX = minX + faceWidth / 2;
                     const centerY = minY + faceHeight / 2;
 
-                    const isCentered = Math.abs(centerX - 0.5) < 0.1 && Math.abs(centerY - 0.5) < 0.1;
+                    // Head Rotation Check
+                    const noseTip = landmarks[1];
+                    const rightEye = landmarks[33];
+                    const leftEye = landmarks[263];
+
+                    const rightDist = Math.hypot(rightEye.x - noseTip.x, rightEye.y - noseTip.y);
+                    const leftDist = Math.hypot(leftEye.x - noseTip.x, leftEye.y - noseTip.y);
+                    const symmetryRatio = Math.min(leftDist, rightDist) / Math.max(leftDist, rightDist);
+                    
+                    // Validations
+                    const isLookingForward = symmetryRatio > 0.75;
+                    const isCenteredX = Math.abs(centerX - 0.5) < 0.1;
+                    const isCenteredY = Math.abs(centerY - 0.5) < 0.1;
                     const isRightSize = faceHeight > 0.4 && faceHeight < 0.65; 
 
-                    if (isCentered && isRightSize) {
+                    // Generate specific guidance
+                    let newGuidance = { text: "Detecting...", arrow: null };
+
+                    if (!isLookingForward) {
+                        if (leftDist < rightDist) {
+                            newGuidance = { text: "Turn head slightly left", arrow: "TURN_LEFT" };
+                        } else {
+                            newGuidance = { text: "Turn head slightly right", arrow: "TURN_RIGHT" };
+                        }
+                    } else if (!isCenteredX) {
+                        newGuidance = centerX < 0.4 
+                            ? { text: "Move camera left", arrow: "MOVE_LEFT" } 
+                            : { text: "Move camera right", arrow: "MOVE_RIGHT" };
+                    } else if (!isCenteredY) {
+                        newGuidance = centerY < 0.4 
+                            ? { text: "Move camera down", arrow: "MOVE_DOWN" } 
+                            : { text: "Move camera up", arrow: "MOVE_UP" };
+                    } else if (!isRightSize) {
+                        newGuidance = faceHeight < 0.4 
+                            ? { text: "Move phone closer", arrow: "MOVE_CLOSER" } 
+                            : { text: "Move phone further", arrow: "MOVE_FURTHER" };
+                    } else {
+                        newGuidance = { text: "Perfect! Hold still...", arrow: "READY" };
+                    }
+
+                    setGuidance(newGuidance);
+
+                    if (isCenteredX && isCenteredY && isRightSize && isLookingForward) {
                         setIsFaceCorrect(true); 
                         setIsSteady(true); 
-                        setFaceMessage("Perfect! Hold still...");
                     } else {
                         setIsFaceCorrect(false);
                         setIsSteady(false);
-                        setFaceMessage(!isCentered ? "Center your face in the oval" : "Move closer or further away");
                     }
                 } else {
                     setIsFaceCorrect(false);
                     setIsSteady(false);
-                    setFaceMessage("No face detected. Look at the camera.");
+                    setGuidance({ text: "No face detected. Look at the camera.", arrow: null });
                 }
             }
 
@@ -197,7 +225,7 @@ export const useVideoRecorder = (options = {}) => {
 
     return {
         videoRef, canvasRef, recordingStatus, isSteady, 
-        isFaceCorrect, faceMessage, getMediaPermission, 
+        isFaceCorrect, guidance, getMediaPermission, 
         startFaceDetection, startRecording, stopRecording
     };
 };
