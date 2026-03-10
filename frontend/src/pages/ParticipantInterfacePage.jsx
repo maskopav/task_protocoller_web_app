@@ -278,7 +278,7 @@ export default function ParticipantInterfacePage() {
     console.log("▶ Current task:", currentTask);
 
     // Render Voice Task
-    if (currentTask.type === "voice")
+    if (currentTask.type === "voice" || currentTask.type === 'camera')
       return (
         <Recorder
           key={taskIndex}
@@ -289,6 +289,7 @@ export default function ParticipantInterfacePage() {
           mode={currentTask.recording.mode}
           duration={currentTask.recording.duration}
           taskParams={currentTask.resolvedParams}
+          recordVideo={currentTask.resolvedParams?.recordVideo || false}
           onNextTask={handleTaskComplete}
           onLogEvent={logInteraction}
           useVAD={currentTask.useVAD}

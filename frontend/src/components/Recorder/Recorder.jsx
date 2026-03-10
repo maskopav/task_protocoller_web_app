@@ -45,7 +45,8 @@ export const Recorder = ({
 }) => {
     // --- Phase State ---
     // If video is required, start in SETUP. Otherwise, jump straight to RECORDING.
-    const [phase, setPhase] = useState(recordVideo ? 'SETUP' : 'RECORDING');
+    const isVideoEnabled = String(recordVideo) === 'true';
+    const [phase, setPhase] = useState(isVideoEnabled ? 'SETUP' : 'RECORDING');
 
     // --- VAD State & Logic ---
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -280,7 +281,21 @@ export const Recorder = ({
         setSpeechProb(0);
         lastSpeechTimeRef.current = Date.now(); 
         
-        startRecording();
+        // Start audio
+        startAudioRecording();
+        
+        // Start video if enabled
+        if (isVideoEnabled) {
+            videoRecorder.startRecording();
+            setPhase('RECORDING');
+        }
+    };
+
+    const handleStop = () => {
+        stopAudioRecording();
+        if (isVideoEnabled) {
+            videoRecorder.stopRecording();
+        }
     };
 
     const handleRepeat = () => {
@@ -296,6 +311,11 @@ export const Recorder = ({
         lastSpeechTimeRef.current = Date.now();
 
         repeatRecording();
+
+        // Send user back to SETUP phase if video is enabled
+        if (isVideoEnabled) {
+            setPhase('SETUP');
+        }
     };
 
     // We pass the logger to the example button so it can log clicks itself
@@ -307,9 +327,13 @@ export const Recorder = ({
     // Auto-request permission on mount if enabled
     React.useEffect(() => {
         if (autoPermission) {
-            getMicrophonePermission();
+            if (isVideoEnabled) {
+                videoRecorder.getMediaPermission(); // Gets both mic and camera
+            } else {
+                getMicrophonePermission(); // Gets only mic
+            }
         }
-    }, [autoPermission]);
+    }, [autoPermission, isVideoEnabled]);
 
     const [exampleExists, setExampleExists] = React.useState(false);
 
@@ -338,12 +362,25 @@ export const Recorder = ({
             timestamp: new Date().toISOString(),
             taskTitle: title,
             taskType: 'voice',
-            speechSegments: speechSegments.current
+            speechSegments: speechSegments.current,
+            // If video was recorded, attach its specific data output here
+            ...(isVideoEnabled && videoRecorder.videoData && { videoData: videoRecorder.videoData })
         };
-        console.log(speechSegments.current)
+        console.log("Saving Task Data:", taskData);
         
         // Call the parent's provided function
         onNextTask(taskData);
+    };
+
+    // Start Video Calibration
+    const handleStartCalibration = async () => {
+        const hasPermission = await videoRecorder.getMediaPermission();
+        if (hasPermission) {
+            setPhase('CALIBRATE');
+            videoRecorder.startFaceDetection();
+        } else {
+            console.error("Camera/Mic permission denied or failed.");
+        }
     };
 
     // Determine the visual state of the recorder for CSS styling
@@ -385,85 +422,133 @@ export const Recorder = ({
     return (
         <div className={`task-container ${className} vad-${vadVisualState}`}>
             <h1>{title}</h1>
-            {/* The key={dynamicIndex} forces React to replay the CSS animation every time it changes */}
-            <p 
-                key={isAdaptiveSwitching ? dynamicIndex : 'static'} 
-                className={`active-instructions ${isAdaptiveSwitching ? 'dynamic-topic-text' : ''}`}
-            >
+            <p key={isAdaptiveSwitching ? dynamicIndex : 'static'} className={`active-instructions ${isAdaptiveSwitching ? 'dynamic-topic-text' : ''}`}>
                 {displayInstructions}
             </p>
-            <div className={`recording-area`}>
 
-                <RecordingTimer
-                time={recordingTime}
-                remainingTime={voiceRecorder.remainingTime}
-                status={recordingStatus}
-                audioLevels={audioLevels}
-                showVisualizer={showVisualizer}
-                >
-                {exampleExists && (
-                    <AudioExampleButton 
-                    recordingStatus={recordingStatus}
-                    audioExample={audioExample} 
-                    playExample={handlePlayExample} 
-                    />
-                )}
-                </RecordingTimer>
-
-                {/* VAD Probability Debug Bar (Only visible when Recording & VAD active) */}
-                {useVAD && recordingStatus === RECORDING_STATES.RECORDING && (
-                    <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
-                        <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
-                        <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
-                            <div style={{ 
-                                width: `${Math.min(speechProb * 100, 100)}%`, 
-                                height: '100%', 
-                                background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', 
-                                transition: 'width 0.1s linear, background 0.1s' 
-                            }} />
+            {/* --- THE CAMERA VIEWFINDER (Always rendered if video is enabled!) --- */}
+            {isVideoEnabled && (
+                <div className={`viewfinder-container ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`} style={{ marginBottom: '1rem', height: phase === 'RECORDING' ? '250px' : 'auto', transition: 'height 0.3s ease' }}>
+                    <video ref={videoRecorder.videoRef} autoPlay playsInline muted className="viewfinder" />
+                    <canvas ref={videoRecorder.canvasRef} className="mesh-canvas" />
+                    
+                    {/* Calibration Overlay */}
+                    {phase === 'CALIBRATE' && (
+                        <div className="calibration-overlay">
+                            <div className={`face-oval ${videoRecorder.isSteady && videoRecorder.isFaceCorrect ? 'ready' : ''}`}>
+                                {videoRecorder.guidance?.arrow === 'MOVE_UP' && <div className="calib-icon icon-up">⇧</div>}
+                                {videoRecorder.guidance?.arrow === 'MOVE_DOWN' && <div className="calib-icon icon-down">⇩</div>}
+                                {videoRecorder.guidance?.arrow === 'MOVE_LEFT' && <div className="calib-icon icon-left">⇦</div>}
+                                {videoRecorder.guidance?.arrow === 'MOVE_RIGHT' && <div className="calib-icon icon-right">⇨</div>}
+                                {videoRecorder.guidance?.arrow === 'READY'}
+                            </div>
+                            <div className="warning-toast">
+                                {videoRecorder.guidance?.text}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {useVAD && vadStatusText && (
-                    <div className="vad-status-wrapper">
-                        <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
-                            {vadVisualState === 'waiting' && <span className="vad-icon">⏳</span>}
-                            {vadVisualState === 'warning' && <span className="vad-icon">👋</span>}
-                            <span>{vadStatusText}</span>
+                    {/* Recording Phase Warning Overlay */}
+                    {phase === 'RECORDING' && recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect) && (
+                        <div className="recording-alert-overlay">
+                            <div className="alert-box">
+                                ⚠️ {!videoRecorder.isSteady ? "Hold Phone Steady!" : (videoRecorder.faceMessage || "Adjust your face!")}
+                            </div>
                         </div>
+                    )}
+                </div>
+            )}
+
+            {/* --- PHASE 1: VIDEO SETUP CONTROLS --- */}
+            {isVideoEnabled && phase === 'SETUP' && (
+                <div className="controls-container" style={{ textAlign: 'center', marginTop: '2rem' }}>
+                    <button className="btn-primary" onClick={handleStartCalibration}>
+                        Start Camera Calibration
+                    </button>
+                </div>
+            )}
+
+            {/* --- PHASE 2: VIDEO CALIBRATION CONTROLS --- */}
+            {isVideoEnabled && phase === 'CALIBRATE' && (
+                <div className="controls-container" style={{ marginTop: '1rem', textAlign: 'center' }}>
+                    <button 
+                        className="btn-primary" 
+                        disabled={!(videoRecorder.isSteady && videoRecorder.isFaceCorrect)} 
+                        onClick={() => { setPhase('RECORDING'); }}
+                    >
+                        {(videoRecorder.isSteady && videoRecorder.isFaceCorrect) ? "Position Correct - Continue" : "Awaiting Correct Position..."}
+                    </button>
+                </div>
+            )}
+
+            {/* --- PHASE 3: RECORDING CONTROLS (Audio Timer + Start/Stop) --- */}
+            {phase === 'RECORDING' && (
+                <>
+                    <div className={`recording-area`}>
+                        <RecordingTimer
+                            time={recordingTime}
+                            remainingTime={voiceRecorder.remainingTime}
+                            status={recordingStatus}
+                            audioLevels={audioLevels}
+                            showVisualizer={showVisualizer}
+                        >
+                            {exampleExists && (
+                                <AudioExampleButton 
+                                    recordingStatus={recordingStatus}
+                                    audioExample={audioExample} 
+                                    playExample={handlePlayExample} 
+                                />
+                            )}
+                        </RecordingTimer>
+
+                        {/* VAD Probability Debug Bar */}
+                        {useVAD && recordingStatus === RECORDING_STATES.RECORDING && (
+                            <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
+                                <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
+                                <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
+                                    <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
+                                </div>
+                            </div>
+                        )}
+
+                        {useVAD && vadStatusText && (
+                            <div className="vad-status-wrapper">
+                                <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
+                                    {vadVisualState === 'waiting' && <span className="vad-icon">⏳</span>}
+                                    {vadVisualState === 'warning' && <span className="vad-icon">👋</span>}
+                                    <span>{vadStatusText}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
+                    
+                    <StatusIndicator status={recordingStatus} />
 
-            </div>
-            
-            <StatusIndicator status={recordingStatus} />
+                    <div className="bottom-controls">
+                        <RecordingControls
+                            recordingStatus={recordingStatus}
+                            disableControls={mode === 'countDown'}
+                            permission={audioPermission}
+                            onStart={handleStart}
+                            onPause={pauseRecording}
+                            onResume={resumeRecording}
+                            onStop={handleStop}
+                            onPermission={getMicrophonePermission}
+                            disableStop={mode === 'delayedStop' && !durationExpired && !canEarlyStop}
+                            showPause={false}
+                            RECORDING_STATES={RECORDING_STATES}
+                        />
 
-            <div className="bottom-controls">
-            <RecordingControls
-            recordingStatus={recordingStatus}
-            disableControls={mode === 'countDown'}
-            permission={permission}
-            onStart={handleStart}
-            onPause={pauseRecording}
-            onResume={resumeRecording}
-            onStop={stopRecording}
-            onPermission={getMicrophonePermission}
-            // Stop button is locked UNLESS the duration is met OR the earlyStopMs rule unlocks it
-            disableStop={mode === 'delayedStop' && !durationExpired && !canEarlyStop}
-            showPause={false}
-            RECORDING_STATES={RECORDING_STATES}
-            />
-
-            <PlaybackSection
-            audioURL={audioURL}
-            recordingStatus={recordingStatus}
-            onRepeat={handleRepeat}
-            onNextTask={handleNextTask}
-            showNextButton={showNextButton}
-            />
-            </div>
-
+                        <PlaybackSection
+                            audioURL={audioURL}
+                            recordingStatus={recordingStatus}
+                            onRepeat={handleRepeat}
+                            onNextTask={handleNextTask}
+                            showNextButton={showNextButton}
+                        />
+                    </div>
+                </>
+            )}
         </div>
     );
 };
