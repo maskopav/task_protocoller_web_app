@@ -296,24 +296,50 @@ button:disabled {
   width: 100%;
 }
 
-
-/* Intro page, consent styling: Explicitly restore list styles for Quill content in Participant View */
-.ql-editor ol, .ql-editor ul {
-  padding-left: 1.5rem !important;
-  margin-bottom: 1rem;
-  color: var(--muted) !important; /* Force them to match your 'muted' text color */
+/* --- Clean Read-Only Rich Text Styling --- */
+.onboarding-step {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 0.5rem; 
+  text-align: left; /* Ensures text is readable, not centered */
 }
 
-.ql-editor li {
-  list-style-type: inherit !important; /* Ensure markers show up */
+.participant-rich-text {
+  font-family: inherit;
+  color: var(--muted);
+  line-height: 1.2;
+  
+  /* Standard browser text wrapping - NO forced breaks */
+  white-space: normal  !important; 
+  word-break: normal  !important;
+  overflow-wrap: break-word !important; /* Only breaks giant words like URLs */
+}
+
+/* Ensure paragraphs space out nicely */
+.participant-rich-text p {
   margin-bottom: 0.5rem;
-  padding-left: 0.5rem;
-  display: list-item; /* Essential for bullets to render */
+  white-space: normal;
+  word-break: normal;
 }
 
-/* Ensure General Text in the Editor matches your Theme */
-.ql-editor p, .ql-editor span, .ql-editor div {
-  line-height: 1.6;
+/* Restore bullet points and numbers (since we removed Quill's classes) */
+.participant-rich-text ul, 
+.participant-rich-text ol {
+  padding-left: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.participant-rich-text li {
+  margin-bottom: 0.5rem;
+  list-style-position: outside;
+}
+
+/* Ensure images/videos scale nicely */
+.participant-rich-text img, 
+.participant-rich-text video {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--sharp-radius);
 }
 
 /* Mobile-friendly adjustments */

@@ -133,7 +133,7 @@ CREATE TABLE `participant_protocols` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `participant_id` integer NOT NULL,
   `project_protocol_id` integer NOT NULL,
-  `access_token` char(64) UNIQUE NOT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
+  `access_token` char(64) UNIQUE DEFAULT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
   `start_date` date,
   `end_date` date,
   `is_active` BOOLEAN DEFAULT FALSE
