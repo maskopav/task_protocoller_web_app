@@ -1,6 +1,5 @@
 // server.js
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
 
 import express from "express";
 import mappingsRouter from "./src/routes/mappings.js";
@@ -26,7 +25,11 @@ app.get('/envtest', (req, res) => {
   res.json({
     DB_HOST: process.env.DB_HOST,
     DB_USER: process.env.DB_USER,
-    DB_NAME: process.env.DB_NAME
+    DB_NAME: process.env.DB_NAME,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS ? "Loaded!" : "Missing or undefined",
   });
 });
 

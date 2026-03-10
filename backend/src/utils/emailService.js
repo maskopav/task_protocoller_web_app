@@ -1,4 +1,5 @@
-// src/utils/emailService.js
+// src/utils/emailService.js¨
+import "dotenv/config";
 import nodemailer from "nodemailer";
 import QRCode from "qrcode";
 import path from "path";
