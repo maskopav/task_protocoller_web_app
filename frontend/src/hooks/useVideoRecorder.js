@@ -70,7 +70,14 @@ export const useVideoRecorder = ({
 
             const video = videoRef.current;
             const canvas = canvasRef.current;
+
+            // Ensure resolution matches BEFORE getting context
+            if (video.videoWidth > 0 && (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
             const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (canvas.width !== video.videoWidth && video.videoWidth > 0) {
                 canvas.width = video.videoWidth;
@@ -183,7 +190,7 @@ export const useVideoRecorder = ({
         if (requestRef.current) {
             cancelAnimationFrame(requestRef.current);
         }
-        
+
         if (canvasRef.current) {
             const canvas = canvasRef.current;
             const ctx = canvas.getContext("2d");

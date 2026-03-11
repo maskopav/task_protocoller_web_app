@@ -268,51 +268,61 @@
 }
 
 /* --- VIDEO RECORDER STYLES --- */
+
 .viewfinder-container {
     position: relative;
     width: 100%;
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0 auto 1.5rem;
+    background-color: #000;
     border-radius: 12px;
     overflow: hidden;
-    background-color: #000;
+    /* Use aspect-ratio to prevent the container from collapsing when children are absolute */
+    aspect-ratio: 4 / 3; 
+    transition: all 0.4s ease-in-out;
 }
 
-.viewfinder {
-    width: 100%;
-    height: auto;
-    display: block;
-    max-height: 35vh;     /* Keep the anti-scrolling limit */
-    object-fit: contain;  /* Preserves the true camera aspect ratio */
-    transform: scaleX(-1); /* Mirrors the camera like a selfie */
+/* NORMAL VIEW (Not PiP) */
+.viewfinder-container:not(.pip-mode) {
+    max-height: 40vh; /* Keeps the anti-scrolling limit */
 }
 
+/* BOTH the video and canvas must be identical to align dots correctly */
+.viewfinder, 
 .mesh-canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    transform: scaleX(-1); /* Match the video mirror */
+    /* 'cover' ensures the video fills the box; 'contain' is also fine, 
+       but BOTH must use the same one. 'cover' is usually better for face tasks. */
+    object-fit: cover; 
+    object-position: center;
+    transform: scaleX(-1); /* Mirrors the camera like a selfie */
+    display: block;
+}
+
+.mesh-canvas {
+    z-index: 5; /* Ensure dots are on top of the video */
     pointer-events: none; /* Let clicks pass through */
 }
 
+/* --- OVERLAYS --- */
+
 .calibration-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0; /* Shorthand for top/left/right/bottom: 0 */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    z-index: 10;
     pointer-events: none;
 }
 
 .face-oval {
-    width: 200px; /* Adjust based on your preferred face size */
+    width: 200px; 
     height: 280px;
     border: 4px dashed rgba(255, 255, 255, 0.5);
     border-radius: 50%;
@@ -320,114 +330,77 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    /* Create a dark dimming effect outside the oval */
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); 
 }
 
 .face-oval.ready {
     border-color: #4caf50;
     background-color: rgba(76, 175, 80, 0.2);
-}
-
-.calib-icon {
-    font-size: 3rem;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    border-style: solid;
 }
 
 .warning-toast {
     position: absolute;
     bottom: 20px;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 10px 20px;
+    border-radius: 24px;
     font-weight: bold;
+    text-align: center;
+    width: 80%;
 }
 
 .warning-border {
-    border: 4px solid #f44336;
+    border: 4px solid #f44336 !important;
+}
+
+/* --- RECORDING PHASE (Picture-in-Picture mode) --- */
+
+.viewfinder-container.pip-mode {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 120px;      /* Slightly larger for visibility */
+    height: 120px;     /* Square PiP */
+    aspect-ratio: 1 / 1;
+    z-index: 1000;
+    border-radius: 50%; /* Circular PiP looks professional */
+    opacity: 0.9;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* In PiP mode, hide the calibration dots/oval to keep it clean */
+.pip-mode .mesh-canvas,
+.pip-mode .calibration-overlay {
+    display: none;
 }
 
 .recording-alert-overlay {
     position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    inset: 0;
     display: flex;
     justify-content: center;
+    align-items: center;
+    z-index: 20;
 }
 
 .alert-box {
     background-color: #f44336;
     color: white;
-    padding: 5px 15px;
+    padding: 6px 12px;
     border-radius: 4px;
     font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* --- CALIBRATION PHASE (Normal view) --- */
-/* Limits height to 40% of viewport to prevent scrolling */
-.viewfinder-container:not(.pip-mode) {
-    max-height: 40vh;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    position: relative;
-    margin-bottom: 1rem;
-    overflow: hidden;
-    border-radius: 12px;
-}
-
-.viewfinder-container:not(.pip-mode) .viewfinder,
-.viewfinder-container:not(.pip-mode) .mesh-canvas {
-    max-height: 40vh;
-    width: auto;
-    max-width: 100%;
-    object-fit: cover;
-}
-
-/* --- RECORDING PHASE (Picture-in-Picture mode) --- */
-.viewfinder-container.pip-mode {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 100px;      /* Small, unobtrusive width */
-    height: 130px;     /* Small, unobtrusive height */
-    z-index: 1000;     /* Floats above everything */
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    opacity: 0.7;      /* Slightly transparent to avoid distraction */
-    pointer-events: none; /* Prevents accidental taps */
-    transition: all 0.4s ease-in-out;
-}
-
-/* Make sure video and canvas fit perfectly inside the small box */
-.viewfinder-container.pip-mode .viewfinder,
-.viewfinder-container.pip-mode .mesh-canvas {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-/* Shrink the warning alert so it fits inside the tiny PiP box */
-.viewfinder-container.pip-mode .recording-alert-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 0, 0, 0.4);
-}
-
-.viewfinder-container.pip-mode .alert-box {
-    font-size: 0.65rem; /* Tiny font for the PiP */
-    padding: 4px;
-    text-align: center;
-    line-height: 1.1;
+/* Smaller alert for PiP mode */
+.pip-mode .alert-box {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    background-color: rgba(244, 67, 54, 0.9);
 }
 
 /* Mobile-friendly adjustments */

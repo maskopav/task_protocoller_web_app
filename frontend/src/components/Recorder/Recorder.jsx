@@ -442,8 +442,11 @@ export const Recorder = ({
             {isVideoEnabled && (
                 <div className={`viewfinder-container ${phase === 'RECORDING' ? 'pip-mode' : ''} ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`}>
                     <video ref={videoRecorder.videoRef} autoPlay playsInline muted className="viewfinder" />
-                    <canvas ref={videoRecorder.canvasRef} className="mesh-canvas" />
                     
+                    {phase === 'CALIBRATE' && (
+                        <canvas ref={videoRecorder.canvasRef} className="mesh-canvas" />
+                    )}
+
                     {/* Calibration Overlay */}
                     {phase === 'CALIBRATE' && (
                         <div className="calibration-overlay">
