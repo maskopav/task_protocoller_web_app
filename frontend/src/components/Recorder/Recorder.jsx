@@ -422,10 +422,20 @@ export const Recorder = ({
         }
     }
 
+    // --- 2. OVERRIDE INSTRUCTIONS FOR CALIBRATION PHASE (Applies to ALL task types) ---
+    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
+    
+    if (isCalibrationPhase) {
+        displayInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. It is very important that you do not move the phone once the calibration is complete.";
+    }
+
     return (
         <div className={`task-container ${className} vad-${vadVisualState}`}>
-            <h1>{title}</h1>
-            <p key={isAdaptiveSwitching ? dynamicIndex : 'static'} className={`active-instructions ${isAdaptiveSwitching ? 'dynamic-topic-text' : ''}`}>
+            <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+            <p 
+                key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
+                className={`active-instructions ${isAdaptiveSwitching && !isCalibrationPhase ? 'dynamic-topic-text' : ''}`}
+            >
                 {displayInstructions}
             </p>
 
