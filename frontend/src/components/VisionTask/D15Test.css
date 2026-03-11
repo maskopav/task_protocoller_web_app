@@ -1,58 +1,164 @@
-.tray-row-container {
+/* --- MAIN LAYOUT --- */
+/* --- MAIN LAYOUT --- */
+.vision-task-container {
   display: flex;
-  justify-content: flex-start; 
+  flex-direction: column;
   align-items: center;
-  padding: 20px 10px;
-  overflow-x: auto; 
-  min-height: 80px;
-  gap: -15px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 1rem 0.5rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06); /* Soft, modern drop shadow */
+  border: 1px solid #edf2f7; /* Very light, clean border */
+  box-sizing: border-box; 
+  overflow: hidden;
 }
 
-.cap.disc {
-  width: 45px; 
-  height: 45px;
+.instructions-header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  width: 100%; 
+  box-sizing: border-box;
+}
+
+.instructions-header p {
+  margin: 0;
+}
+
+/* --- TRAY SECTION --- */
+.d15-tray-section,
+.d15-options-section {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.undo-instructions {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+}
+
+.d15-tray-container {
+  display: flex;
+  flex-wrap: nowrap; 
+  overflow-x: auto;  
+  align-items: center;
+  justify-content: flex-start; /* Ensures both rows start from the exact same left edge */
+  padding: 5px 5px 16px 5px;
+  background-color: transparent; 
+  box-shadow: none;
+  min-height: 90px;
+  
+  /* Force both trays to be identical widths --- */
+  width: 100%;
+  box-sizing: border-box;
+  
+  -webkit-overflow-scrolling: touch;
+  scroll-padding: 5px; 
+}
+
+/* The Empty Slots */
+.d15-tray-slot {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  border: 2px solid #fff;
-  margin-left: 0; 
-  transition: all 0.3s ease;
+  border: 2px dashed #cbd5e1; 
+  background-color: transparent; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Prevents caps from squeezing smaller */
   position: relative;
-  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-.cap.disc:not(:first-child) {
-  margin-left: -20px; 
+/* THIS CREATES THE OVERLAP! Every slot pulls itself 15px over the previous one */
+.d15-tray-slot + .d15-tray-slot {
+  margin-left: -18px; 
 }
 
-/* Make the last cap stand out so they know where to compare */
-.cap.disc:last-child {
-  transform: scale(1.1);
-  z-index: 10;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+.d15-tray-slot:not(.reference-slot):hover {
+  transform: translateY(-4px); /* Lift up slightly instead of scaling to avoid overlap clipping */
 }
 
-/* Visual cue for the reference cap */
-.cap.disc.reference {
-  border: 3px solid #555;
-  z-index: 1;
+.d15-tray-slot.reference-slot {
+  border: 2px solid #94a3b8; 
+  cursor: default;
 }
 
+/* --- THE CAPS --- */
+.d15-cap {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: absolute; /* Fills the slot perfectly */
+  top: 0;
+  left: 0;
+  box-shadow: 2px 0px 5px rgba(0,0,0,0.15); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+/* --- OPTIONS SECTION (Unsorted Caps) --- */
+.d15-options-section {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: center; 
+}
 
+/* Inherit the dashed border from the top tray, just ensure it's not clickable when empty */
+.d15-tray-slot.option-slot {
+  background-color: transparent;
+  border: 2px dashed #cbd5e1; 
+  cursor: default; 
+}
 
-/* Wider screens: Make spaces wider (shrink the overlap) */
-@media (min-width: 480px) {
-  .cap.disc:not(:first-child) {
-    margin-left: -10px; 
+/* Prevent empty dashed circles in the bottom tray from lifting when hovered */
+.d15-tray-slot.option-slot:hover {
+  transform: none; 
+}
+
+/* Ensure the button fills the slot perfectly */
+.selectable-cap {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-shadow: 2px 0px 5px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 0; 
+  margin: 0;
+}
+
+.selectable-cap:hover {
+  transform: translateY(-4px); 
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 600px) {
+  .d15-tray-slot, .selectable-cap, .d15-option-socket {
+    width: 40px; 
+    height: 40px;
   }
-}
-
-@media (min-width: 768px) {
-  .cap.disc:not(:first-child) {
-
-    margin-left: 2px; /* Overlap is gone, now there is a small gap */
+  
+  .d15-tray-container {
+    padding: 15px 10px;
   }
-  .tray-row-container {
-    align-items: center;
-    justify-content: center; /* Center the test only on large screens */
+
+  .d15-options-grid {
+    gap: 10px; /* Tighter grid spacing for small screens */
+    padding: 15px;
   }
 }

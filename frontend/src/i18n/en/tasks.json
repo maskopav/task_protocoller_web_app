@@ -180,6 +180,7 @@
       "controls": {
         "reset": "Reset",
         "submit": "Submit Result",
+        "select_next": "Tap a next cap in the tray to select it",
         "undo": "Tap a cap in the tray to move it back"
       },
       "params": {
