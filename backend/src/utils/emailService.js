@@ -153,11 +153,13 @@ export async function sendAdminWelcomeEmail(email, { fullName, tempPassword, log
 /**
  * HELPER: Send Manual/Optional Protocol Email (with QR and custom body)
  */
-export async function sendManualProtocolEmail(email, { customBody, link }, lang = "en") {
+export async function sendManualProtocolEmail(email, { customBody, link, subject }, lang = "en") {
   const t = i18next.getFixedT(lang, "common");
   
   // Generate QR code from the protocol link
   const qrCodeBuffer = await QRCode.toBuffer(link);
+
+  const finalSubject = subject || t("email.subjectProtocol");
 
   // Wrap the custom body in basic styling and include the QR code
   const html = `
@@ -174,7 +176,7 @@ export async function sendManualProtocolEmail(email, { customBody, link }, lang 
 
   return sendEmail({
     to: email,
-    subject: t("email.subjectProtocol"),
+    subject: finalSubject,
     html,
     attachments: [{ filename: "qrcode.png", content: qrCodeBuffer, cid: "qrcode" }],
     lang

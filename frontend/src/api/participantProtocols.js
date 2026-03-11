@@ -70,11 +70,11 @@ export async function assignProtocolToParticipant(data) {
   return res.json();
 }
 
-export async function sendProtocolEmailApi({ email, body, link, lang }) {
+export async function sendProtocolEmailApi({ email, subject, body, link, lang }) {
   const res = await fetch(`${API_BASE}/participant-protocols/send-manual-email`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, body, link, lang }),
+    body: JSON.stringify({ email, subject, body, link, lang }),
   });
   if (!res.ok) {
     const err = await res.json();

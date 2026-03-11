@@ -265,7 +265,7 @@ export const assignProtocol = async (req, res) => {
 
 // POST /api/participant-protocol/send-manual-email
 export const sendManualEmail = async (req, res) => {
-  const { email, body, link, lang = "en" } = req.body;
+  const { email, body, link, subject, lang = "en" } = req.body;
 
   if (!email || !body || !link) {
     return res.status(400).json({ error: "Missing email, body, or link" });
@@ -274,7 +274,8 @@ export const sendManualEmail = async (req, res) => {
   try {
     const success = await sendManualProtocolEmail(email, { 
       customBody: body, 
-      link 
+      link,
+      subject
     }, lang);
 
     if (success) {

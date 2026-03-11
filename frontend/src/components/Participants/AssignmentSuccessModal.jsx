@@ -18,6 +18,7 @@ export default function AssignmentSuccessModal({
   const qrRef = useRef(null);
   
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
   const [editableBody, setEditableBody] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sentSuccessfully, setSentSuccessfully] = useState(false);
@@ -25,6 +26,7 @@ export default function AssignmentSuccessModal({
   useEffect(() => {
     if (open) {
       setRecipientEmail(participantEmail || "");
+      setEmailSubject(t("assignmentModal.emailSubject"));
       setEditableBody(emailText || t("assignmentModal.emailText", { 
         name: participantName || t("assignmentModal.participant"), 
         link: link 
@@ -56,7 +58,7 @@ export default function AssignmentSuccessModal({
     if (!recipientEmail) return;
     setIsSending(true);
     try {
-      await onSendEmail(recipientEmail, editableBody);
+      await onSendEmail(recipientEmail, editableBody, emailSubject);
       setSentSuccessfully(true);
     } catch (err) {
       console.error("Failed to send email:", err);

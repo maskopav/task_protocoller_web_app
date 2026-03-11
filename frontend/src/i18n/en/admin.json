@@ -392,7 +392,8 @@
     "emailMessage": "Email Message",
     "copyEmail": "Copy Email Text",
     "close": "Close",
-    "emailText": "Dear {{name}},\n\nYou have been assigned a new assessment protocol.\nPlease open the following link:\n\n{{link}}\n\nIf you prefer, you may scan the QR code in the attached image.\n\nThank you.",
+    "emailSubject": "Your link to participate in the neuroSHARE study",
+    "emailText": "Dear {{name}},\n\nA short while ago, we sent you information about the neuroSHARE study, a research project focused on healthy aging and the early detection of neurodegenerative diseases.\n\nWe are now inviting you to participate in this brief health assessment using your smartphone. Your contribution is vital to helping us develop new tools for the future of healthcare.\nAccess the study here:\n\n{{link}}\n\nIf you prefer, you may scan the QR code in the attached image.\n\nBefore you begin, please keep these points in mind:\n* Time: The tasks will take approximately 20–25 minutes to complete.\n* No installation needed: The link opens directly in your phone's web browser.\n* Preparation: Please find a quiet room and sit at a table where you can rest your phone.\n* Connection: We recommend using a Wi-Fi connection.\n* Reward: You will receive a CHF 30 voucher after completing the assessment.\n\nThank you for your valuable contribution!\n\nKind regards,\nThe SHARE Team",
     "emailSentSuccess": "Email was successfully sent!",
     "participant": "participant"
   },

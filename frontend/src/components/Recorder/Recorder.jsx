@@ -175,8 +175,8 @@ export const Recorder = ({
                 // Instantiate the local model
                 vadInstance.current = await window.vad.MicVAD.new({
                     stream: stream, 
-                    onnxWASMBasePath: "/vad/",
-                    baseAssetPath: "/vad/",
+                    onnxWASMBasePath: `${import.meta.env.BASE_URL}vad/`,
+                    baseAssetPath: `${import.meta.env.BASE_URL}vad/`,
                     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
                     positiveSpeechThreshold: VAD_CONFIG.positiveSpeechThreshold, 
                     negativeSpeechThreshold: VAD_CONFIG.negativeSpeechThreshold,

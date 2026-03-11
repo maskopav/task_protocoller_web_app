@@ -176,10 +176,11 @@ export default function ParticipantDashboardPage() {
     return protocols;
   };
 
-  const handleSendProtocolEmail = async (email, customBody) => {
+  const handleSendProtocolEmail = async (email, customBody, subject) => {
     try {
       await sendProtocolEmailApi({
          email,
+         subject,
          body: customBody,
          link: successModal.link,
          lang: i18n.language
