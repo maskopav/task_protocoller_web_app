@@ -362,6 +362,70 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
+/* --- CALIBRATION PHASE (Normal view) --- */
+/* Limits height to 40% of viewport to prevent scrolling */
+.viewfinder-container:not(.pip-mode) {
+    max-height: 40vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.viewfinder-container:not(.pip-mode) .viewfinder,
+.viewfinder-container:not(.pip-mode) .mesh-canvas {
+    max-height: 40vh;
+    width: auto;
+    max-width: 100%;
+    object-fit: cover;
+}
+
+/* --- RECORDING PHASE (Picture-in-Picture mode) --- */
+.viewfinder-container.pip-mode {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 100px;      /* Small, unobtrusive width */
+    height: 130px;     /* Small, unobtrusive height */
+    z-index: 1000;     /* Floats above everything */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    opacity: 0.7;      /* Slightly transparent to avoid distraction */
+    pointer-events: none; /* Prevents accidental taps */
+    transition: all 0.4s ease-in-out;
+}
+
+/* Make sure video and canvas fit perfectly inside the small box */
+.viewfinder-container.pip-mode .viewfinder,
+.viewfinder-container.pip-mode .mesh-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Shrink the warning alert so it fits inside the tiny PiP box */
+.viewfinder-container.pip-mode .recording-alert-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 0, 0, 0.4);
+}
+
+.viewfinder-container.pip-mode .alert-box {
+    font-size: 0.65rem; /* Tiny font for the PiP */
+    padding: 4px;
+    text-align: center;
+    line-height: 1.1;
+}
 
 /* Mobile-friendly adjustments */
 @media (max-width: 600px) {

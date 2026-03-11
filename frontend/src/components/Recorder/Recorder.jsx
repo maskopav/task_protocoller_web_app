@@ -8,6 +8,8 @@ import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
 
+const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
+
 // VAD config - all parameters
 const VAD_CONFIG = {
     // TIMING
@@ -70,6 +72,7 @@ export const Recorder = ({
 
     // --- Video Recorder Hook ---
     const videoRecorder = useVideoRecorder({
+        debugMode: DEBUG_MODE,
         onRecordingComplete: (videoData) => {
             console.log("Video data processed!", videoData);
             // TODO: Merge this with audio data in the next step!
@@ -426,9 +429,8 @@ export const Recorder = ({
                 {displayInstructions}
             </p>
 
-            {/* --- THE CAMERA VIEWFINDER (Always rendered if video is enabled!) --- */}
             {isVideoEnabled && (
-                <div className={`viewfinder-container ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`} style={{ marginBottom: '1rem', height: phase === 'RECORDING' ? '250px' : 'auto', transition: 'height 0.3s ease' }}>
+                <div className={`viewfinder-container ${phase === 'RECORDING' ? 'pip-mode' : ''} ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`}>
                     <video ref={videoRecorder.videoRef} autoPlay playsInline muted className="viewfinder" />
                     <canvas ref={videoRecorder.canvasRef} className="mesh-canvas" />
                     
@@ -502,7 +504,7 @@ export const Recorder = ({
                         </RecordingTimer>
 
                         {/* VAD Probability Debug Bar */}
-                        {useVAD && recordingStatus === RECORDING_STATES.RECORDING && (
+                        {useVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
                             <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
                                 <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
                                 <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>

@@ -696,32 +696,64 @@
   .ql-editor, .ql-container {
     font-family: inherit !important
   }
+
+  .ql-editor {
+    font-size: 16px; 
+    line-height: 1;
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    -ms-hyphens: none !important;
+    word-wrap: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .ql-editor p, 
+  .ql-editor div {
+    margin-bottom: 0.8em !important; 
+  }
   
-  /* Ensure bullet points have their markers */
   .ql-editor ul, 
   .ql-editor ol {
-    margin-bottom: 1.2em !important;
+    margin-bottom: 0.2em !important;
   }
 
   .ql-editor li {
-    margin-bottom: 0.em;
+    margin-bottom: 0.2em !important;
     list-style-type: none; 
   }
 
-  .ql-editor, 
-  .ql-editor p, 
-  .ql-editor ol, 
-  .ql-editor ul, 
-  .ql-editor li {
-    font-size: 16px; 
-    line-height: 1.6;
+  .ql-editor .ql-size-12px { 
+    font-size: 12px !important; 
+    line-height: 0.1 !important; /* Tighter row spacing for small fonts */
+  }
+  .ql-editor .ql-size-20px { 
+    font-size: 20px !important; 
+    line-height: 1.3 !important; 
+  }
+  .ql-editor .ql-size-28px { 
+    font-size: 28px !important; 
+    line-height: 1.4 !important; 
   }
 
-  .ql-editor .ql-size-12px { font-size: 12px !important; }
-  .ql-editor .ql-size-20px { font-size: 20px !important; }
-  .ql-editor .ql-size-28px { font-size: 28px !important; }
+  .ql-editor li[data-list]:has(.ql-size-12px)::before,
+  .ql-editor li[data-list].ql-size-12px::before { 
+    font-size: 12px !important; 
+    line-height: 1.1 !important;
+  }
 
+  .ql-editor li[data-list]:has(.ql-size-20px)::before,
+  .ql-editor li[data-list].ql-size-20px::before { 
+    font-size: 20px !important; 
+    line-height: 1.3 !important;
+  }
 
+  .ql-editor li[data-list]:has(.ql-size-28px)::before,
+  .ql-editor li[data-list].ql-size-28px::before { 
+    font-size: 28px !important; 
+    line-height: 1.4 !important;
+  }
+
+  /* --- QUILL TOOLBAR DROPDOWN LABELS --- */
   .ql-snow .ql-picker.ql-size .ql-picker-label::before,
   .ql-snow .ql-picker.ql-size .ql-picker-item::before {
     content: 'Normal';
@@ -737,35 +769,16 @@
   .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
   .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before {
     content: 'Huge';
-}
-  /* Ensure the participant view understands Quill's classes */
+  }
+
+  /* --- QUILL INDENTATION & ALIGNMENT --- */
   .ql-editor .ql-align-center { text-align: center; }
   .ql-editor .ql-align-right { text-align: right; }
   .ql-editor .ql-align-justify { text-align: justify; }
 
-  /* Fix Indentation (up to 3 levels) */
   .ql-editor .ql-indent-1 { padding-left: 3em; }
   .ql-editor .ql-indent-2 { padding-left: 6em; }
   .ql-editor .ql-indent-3 { padding-left: 9em; }
-
-  .ql-editor {
-    hyphens: none !important;
-    -webkit-hyphens: none !important;
-    -ms-hyphens: none !important;
-
-    /* Ensure words don't overflow the phone screen, but wrap naturally */
-    word-wrap: none !important;
-    overflow-wrap: anywhere !important;
-    word-break: none !important;
-    
-    /* Improve readability for neuroSHARE participants */
-    line-height: 1.6;
-  }
-
-  .ql-editor p, 
-  .ql-editor div {
-    margin-bottom: 1.2em !important; 
-  }
 
   /* Randomization Settings Styling */
   .randomization-settings {

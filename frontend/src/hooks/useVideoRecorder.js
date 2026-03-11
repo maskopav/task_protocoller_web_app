@@ -4,9 +4,11 @@ import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 const DEV_MODE = true; // Set to false when deploying
 const FRAME_RATE_MS = 20; // Processing of the video frame takes time -> plus around 40ms 
 
-export const useVideoRecorder = (options = {}) => {
-    const { onRecordingComplete = () => {}, onError = () => {} } = options;
-
+export const useVideoRecorder = ({ 
+    onRecordingComplete = () => {}, 
+    onError = () => {}, 
+    debugMode = false 
+}) => {
     const [recordingStatus, setRecordingStatus] = useState("idle");
     const [isSteady, setIsSteady] = useState(false);
     const [isFaceCorrect, setIsFaceCorrect] = useState(false);
@@ -82,7 +84,18 @@ export const useVideoRecorder = (options = {}) => {
                 const result = faceDetector.current.detectForVideo(video, now);
 
                 if (result.faceLandmarks && result.faceLandmarks.length > 0) {
-                    const landmarks = result.faceLandmarks[0]; 
+                    const landmarks = result.faceLandmarks[0];
+                    
+                    // Draw DEBUG coordinates
+                    if (debugMode) {
+                        ctx.fillStyle = 'white';
+                        for (const point of landmarks) {
+                            ctx.beginPath();
+                            // Multiply 0-1 values by width/height to get actual pixels
+                            ctx.arc(point.x * canvas.width, point.y * canvas.height, 1.5, 0, 2 * Math.PI);
+                            ctx.fill();
+                        }
+                    }
 
                     let minX = 1, maxX = 0, minY = 1, maxY = 0;
                     for (const point of landmarks) {
@@ -116,23 +129,23 @@ export const useVideoRecorder = (options = {}) => {
                     let newGuidance = { text: "Detecting...", arrow: null };
 
                     if (!isLookingForward) {
-                        if (leftDist < rightDist) {
+                        if (leftDist > rightDist) {
                             newGuidance = { text: "Turn head slightly left", arrow: "TURN_LEFT" };
                         } else {
                             newGuidance = { text: "Turn head slightly right", arrow: "TURN_RIGHT" };
                         }
                     } else if (!isCenteredX) {
                         newGuidance = centerX < 0.4 
-                            ? { text: "Move camera left", arrow: "MOVE_LEFT" } 
-                            : { text: "Move camera right", arrow: "MOVE_RIGHT" };
+                            ? { text: "Move left", arrow: "MOVE_LEFT" } 
+                            : { text: "Move right", arrow: "MOVE_RIGHT" };
                     } else if (!isCenteredY) {
                         newGuidance = centerY < 0.4 
-                            ? { text: "Move camera down", arrow: "MOVE_DOWN" } 
-                            : { text: "Move camera up", arrow: "MOVE_UP" };
+                            ? { text: "Move down", arrow: "MOVE_DOWN" } 
+                            : { text: "Move up", arrow: "MOVE_UP" };
                     } else if (!isRightSize) {
                         newGuidance = faceHeight < 0.4 
-                            ? { text: "Move phone closer", arrow: "MOVE_CLOSER" } 
-                            : { text: "Move phone further", arrow: "MOVE_FURTHER" };
+                            ? { text: "Move closer", arrow: "MOVE_CLOSER" } 
+                            : { text: "Move further", arrow: "MOVE_FURTHER" };
                     } else {
                         newGuidance = { text: "Perfect! Hold still...", arrow: "READY" };
                     }
@@ -165,6 +178,17 @@ export const useVideoRecorder = (options = {}) => {
         if (!streamRef.current) return;
         
         isCalibratingRef.current = false; // Stop drawing green dots
+
+        // Clear the canvas so the frozen dots disappear
+        if (requestRef.current) {
+            cancelAnimationFrame(requestRef.current);
+        }
+        
+        if (canvasRef.current) {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
 
         audioChunks.current = [];
         coordinateTimeline.current = []; 
