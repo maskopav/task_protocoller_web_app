@@ -168,6 +168,7 @@
   flex-direction: column;
   align-items: center;
   font-size: 1.5rem;
+  gap: 0.2rem;
 }
 
 .button-group,
@@ -193,6 +194,21 @@
 .playback-section button {
   display: block;
   margin: 0.5rem auto;
+}
+
+.playback-section audio {
+  width: 95%; /* Matches the width of your control buttons */
+  max-width: 400px; /* Prevents it from getting ridiculously wide on large laptop screens */
+  height: 54px; /* Makes the player noticeably taller and easier to click on laptops */
+  border-radius: 50px; /* Perfectly rounded pill shape */
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Elegant soft shadow */
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.playback-section audio:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); /* Shadow lifts slightly on laptop mouse hover */
 }
 
 /* VAD */
@@ -452,6 +468,16 @@
 
   .timer-display {
     font-size: 1.6rem;   /* smaller digits */
+  }
+
+  .playback-section audio {
+    width: 90%;         /* Force it to be as wide as the bottom buttons */
+    max-width: 100%;    /* Override the laptop max-width restriction */
+    height: 50px;       /* Excellent height for elderly thumbs to drag the timeline */
+  }
+
+  .playback-section {
+    gap: 0.8rem; /* Slightly tighter spacing on small smartphone screens */
   }
 
   .button-group {

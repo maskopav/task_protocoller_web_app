@@ -8,7 +8,7 @@ import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
 
-const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
+const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 
 // VAD config - all parameters
 const VAD_CONFIG = {
