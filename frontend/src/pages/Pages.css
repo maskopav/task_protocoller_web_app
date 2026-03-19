@@ -124,7 +124,6 @@ body {
   padding: clamp(0.4rem, 1vw, 0.8rem) clamp(0.2rem, 1vw, 0.4rem);
   box-sizing: border-box;
   overflow-y: auto; 
-  display: block;
   text-align: center;
   display: flex;
   flex-direction: column;

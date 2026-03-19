@@ -1,16 +1,22 @@
 /* =========================================
    Recorder.css
    ========================================= */
+.task-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1; 
+  width: 100%;
+}
+
 .recording-area {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* flex: 1 tells this area to magically expand and absorb ALL empty vertical space on the screen.
-     flex-shrink: 0 ensures it doesn't get squished on tiny phone screens. */
-  flex: 1 0 auto; 
   width: 100%;
   padding: clamp(10px, 2vw, 20px) 0;
+  flex: 1; 
+  min-height: 150px;
 }
 
 /* --- Timer --- */
@@ -103,7 +109,7 @@
 }
 
 .active-instructions {
-  font-size: clamp(1.5rem, 4.5vw, 1.7rem);
+  font-size: clamp(1.55rem, 4.6vw, 1.7rem);
   color: var(--muted);
   text-align: center;
   width: 100%;
@@ -115,7 +121,7 @@
   width: fit-content;
   gap: clamp(8px, 2vw, 12px);
   padding: clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 24px);
-  font-size: clamp(1.5rem, 4.5vw, 1.7rem);
+  font-size: clamp(1.55rem, 4.6vw, 1.7rem);
   background-color: var(--primary);
   border-radius: var(--radius);
   cursor: pointer;
@@ -152,13 +158,14 @@
 
 /* --- Bottom Controls & Playback --- */
 .bottom-controls {
-  margin: clamp(0.3rem, 1vw, 0.5rem);
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 95%;
   align-self: center;
   gap: clamp(0.3rem, 1vw, 0.5rem);
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+  flex-shrink: 0;
 } 
 
 .controls,

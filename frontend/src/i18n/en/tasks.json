@@ -39,7 +39,7 @@
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
-      "instructions": "Press START and repeat /{{syllable}}/ as quickly and accurately as possible.",
+      "instructions": "Please draw a deep breath and repeat /{{syllable}}/ as quickly and clearly as possible on a single breath. {{example}} Press START and repeat /{{syllable}}/ until the timer runs out.",
       "params": {
         "syllable": {
           "label": "Syllable",
