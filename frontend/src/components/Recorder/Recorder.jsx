@@ -545,6 +545,7 @@ export const Recorder = ({
                             status={recordingStatus}
                             audioLevels={audioLevels}
                             showVisualizer={showVisualizer}
+                            isReadyToStop={recordingStatus === RECORDING_STATES.RECORDING && !(mode === 'delayedStop' && !durationExpired && !canEarlyStop)}
                         >
                         </RecordingTimer>
 

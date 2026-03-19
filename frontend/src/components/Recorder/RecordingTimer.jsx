@@ -8,8 +8,7 @@ export const RecordingTimer = ({
     status, 
     audioLevels = [], 
     showVisualizer = true,
-    className = "",
-    children
+    isReadyToStop = false
 }) => {
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -21,16 +20,25 @@ export const RecordingTimer = ({
     const avgLevel = audioLevels.length
         ? audioLevels.reduce((a,b) => a+b, 0) / audioLevels.length
         : 0;
-    const intensityScale = 1 + avgLevel / 140; // scaling factor for circle size
-    const intensityOpacity = Math.min(0.2 + avgLevel / 200, 1); // glow visibility
+
+    // This makes quiet laptop sounds (e.g., level 4) scale up fast (sqrt(4) = 2), 
+    // but keeps loud phone sounds (e.g., level 64) from breaking the screen (sqrt(64) = 8).
+    const baseScale = 1 + (Math.sqrt(avgLevel) / 3.8);
+    const intensityScale = Math.min(baseScale, 2.5);
+    
+    // Make the opacity slightly stronger so it's easier for elderly eyes to see
+    const intensityOpacity = Math.min(0.2 + (avgLevel / 50), 0.85);
+
+    // Determine the color class based on the prop
+    const readyClass = isReadyToStop ? "ready-to-stop" : "";
 
     return (
         <div className="timer-wrapper" style={{ flexDirection: 'column' }}>
             <div className="timer-core">
                 {/* Outer intensity circle */}
-                {status === 'recording' && (
+                {status === 'recording' && showVisualizer &&(
                     <div
-                        className="intensity-circle"
+                        className={`intensity-circle ${readyClass}`}
                         style={{
                             transform: `scale(${intensityScale})`,
                             opacity: intensityOpacity,
@@ -39,15 +47,12 @@ export const RecordingTimer = ({
                 )}
 
                 {/* Timer circle */}
-                <div className={`timer-circle ${status}`}>
+                <div className={`timer-circle ${status} ${readyClass}`}>
                     <div className={`timer-display ${status === 'recording' ? 'recording' : ''}`}>
                         {remainingTime !== null ? formatTime(remainingTime) : formatTime(time)}
                     </div>
                 </div>
             </div>
-
-            {/* Extra control (e.g. play example button) */}
-            {children && <div className="extra-control">{children}</div>}
         </div>
     );
 };

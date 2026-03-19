@@ -15,27 +15,33 @@
 /* Wrap timer + intensity circle together */
 .timer-core {
   position: relative;
-  width: 150px;   /* matches intensity circle size */
-  height: 150px;
+  width: 140px;   /* matches intensity circle size */
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 20px;
+  margin: 30px;
 }
 
 /* Intensity circle always centered */
 .intensity-circle {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  background: rgba(255, 0, 0, 0.3); /* red glow, tweak as needed */
-  transition: transform 0.08s linear, opacity 0.08s linear;
+  background: rgba(244, 67, 54, 0.35); 
+  /* Faster transition (0.05s) makes it match the voice in real-time */
+  transition: transform 0.05s ease-out, opacity 0.05s ease-out; 
   z-index: 0;
+}
+
+.intensity-circle.ready-to-stop {
+  background: rgba(76, 175, 80, 0.35); 
 }
 
 /* Timer circle on top */
 .timer-circle {
+  box-sizing: border-box;
   width: 140px;
   height: 140px;
   border-radius: 50%;
@@ -52,6 +58,9 @@
 }
 .timer-circle.paused {
   border-color: var(--warning);
+}
+.timer-circle.recording.ready-to-stop {
+  border-color: var(--success); 
 }
 .timer-display {
   font-size: 2rem;
@@ -429,17 +438,20 @@
   }
 
   .timer-core {
-    margin-top: 5px;
+    margin: 15px;
+    width: 120px;
+    height: 120px;
   }
 
   .timer-circle {
+    box-sizing: border-box;
     width: 120px;         /* smaller timer */
     height: 120px;
-    border-width: 4px;
+    border-width: 6px;
   }
 
   .timer-display {
-    font-size: 1.5rem;   /* smaller digits */
+    font-size: 1.6rem;   /* smaller digits */
   }
 
   .button-group {
