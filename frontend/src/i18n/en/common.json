@@ -1,11 +1,11 @@
 {
     "buttons": {
-      "next": "➡️ Next",
-      "repeat": "🔄 Repeat",
-      "start": "🔴 START",
-      "pause": "⏸️ PAUSE",
-      "resume": "▶️ RESUME",
-      "stop": "⏹️ STOP",
+      "next": "➜ Next",
+      "repeat": "⭮ Retry",
+      "start": "⏺ START",
+      "pause": "❚❚ PAUSE",
+      "resume": "▶ RESUME",
+      "stop": "◼ STOP",
       "playExample": "Play example audio",
       "stopExample": "Stop example audio",
       "disabledWhileRecording": "Disabled while recording",

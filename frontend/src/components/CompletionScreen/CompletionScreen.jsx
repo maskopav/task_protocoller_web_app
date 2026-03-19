@@ -9,7 +9,7 @@ export default function CompletionScreen({ testingMode, onBack }) {
 
   useEffect(() => {
     // Play the same success sound as in ModuleCompletionOverlay
-    const audio = new Audio('/audio/sounds/success_fanfare.mp3');
+    const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_fanfare.mp3`);
     audio.play().catch(e => console.log("Audio play blocked", e));
   }, []);
 

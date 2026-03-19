@@ -33,8 +33,8 @@ export const RecordingTimer = ({
     const readyClass = isReadyToStop ? "ready-to-stop" : "";
 
     return (
-        <div className="timer-wrapper" style={{ flexDirection: 'column' }}>
-            <div className="timer-core">
+        <div className={`timer-wrapper ${status}`} style={{ flexDirection: 'column' }}>
+            <div className={`timer-core ${status}`}>
                 {/* Outer intensity circle */}
                 {status === 'recording' && showVisualizer &&(
                     <div

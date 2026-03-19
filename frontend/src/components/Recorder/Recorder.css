@@ -10,6 +10,7 @@
   max-width: 100%;
   box-sizing: border-box;
   gap: 25px;
+  transition: margin 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
 
 /* Wrap timer + intensity circle together */
@@ -21,6 +22,7 @@
   align-items: center;
   justify-content: center;
   margin: 30px;
+  transition: margin 0.3s ease-in-out;
 }
 
 /* Intensity circle always centered */
@@ -65,6 +67,12 @@
 .timer-display {
   font-size: 2rem;
   font-weight: bold;
+}
+.timer-core.recorded {
+  margin-top: 5px; 
+}
+.timer-wrapper.recorded {
+  margin-bottom: -15px; /* Pulls the playback section closer to the timer */
 }
 
 /* Extra control (speaker button) */
@@ -198,11 +206,8 @@
 
 .playback-section audio {
   width: 95%; /* Matches the width of your control buttons */
-  max-width: 400px; /* Prevents it from getting ridiculously wide on large laptop screens */
+  max-width: 400px; 
   height: 54px; /* Makes the player noticeably taller and easier to click on laptops */
-  border-radius: 50px; /* Perfectly rounded pill shape */
-  background-color: #f8f9fa;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Elegant soft shadow */
   outline: none;
   transition: all 0.2s ease;
 }
@@ -452,11 +457,18 @@
     flex-direction: column;
     padding: 1vh;
   }
+  .timer-wrapper.recorded {
+    margin-bottom: -20px; /* Pull playback controls up even tighter on small screens */
+    padding-bottom: 0;
+  }
 
   .timer-core {
     margin: 15px;
     width: 120px;
     height: 120px;
+  }
+  .timer-core.recorded {
+    margin-top: 0px;
   }
 
   .timer-circle {
