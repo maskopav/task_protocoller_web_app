@@ -24,7 +24,7 @@ const VAD_CONFIG = {
     preSpeechPadMs: 800, // number of milliseconds of audio to prepend to a speech segment. default: 800
     minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
 };
-                    
+   
 // components/Recorder/Recorder.jsx - Main component
 export const Recorder = ({ 
     title = "🎙️ Task Recorder",
@@ -386,6 +386,32 @@ export const Recorder = ({
         }
     };
 
+    // --- Toggle Logic ---
+    const handleToggleExample = () => {
+        if (voiceRecorder.exampleAudio) {
+            voiceRecorder.stopExample(); 
+        } else {
+            handlePlayExample(); 
+        }
+    };
+
+    // --- Updated Formatter Function ---
+    const formatInstructionsWithButton = (text, buttonComponent) => {
+        if (!text || !text.includes('{{example}}')) return text;
+
+        const parts = text.split('{{example}}');
+        return (
+            <>
+                {parts[0]}
+                {/* Wrapping in a div ensures it takes its own row */}
+                <div className="instruction-example-row">
+                    {buttonComponent}
+                </div>
+                {parts[1]}
+            </>
+        );
+    };
+
     // Determine the visual state of the recorder for CSS styling
     let vadVisualState = "idle";
     let vadStatusText = "";
@@ -422,7 +448,20 @@ export const Recorder = ({
         }
     }
 
-    // --- 2. OVERRIDE INSTRUCTIONS FOR CALIBRATION PHASE (Applies to ALL task types) ---
+    // Button Component for an example
+    const inlineExampleButton = exampleExists ? (
+        <AudioExampleButton 
+            recordingStatus={recordingStatus}
+            audioExample={audioExample} 
+            isPlaying={!!voiceRecorder.exampleAudio} 
+            onToggle={handleToggleExample}
+        />
+    ) : null;
+
+    // Format the display instructions
+    displayInstructions = formatInstructionsWithButton(displayInstructions, inlineExampleButton);
+
+    // OVERRIDE INSTRUCTIONS FOR CALIBRATION PHASE (Applies to ALL task types) ---
     const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
     
     if (isCalibrationPhase) {
@@ -432,12 +471,12 @@ export const Recorder = ({
     return (
         <div className={`task-container ${className} vad-${vadVisualState}`}>
             <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
-            <p 
+            <div
                 key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
-                className={`active-instructions ${isAdaptiveSwitching && !isCalibrationPhase ? 'dynamic-topic-text' : ''}`}
+                className={`active-instructions`}
             >
                 {displayInstructions}
-            </p>
+            </div>
 
             {isVideoEnabled && (
                 <div className={`viewfinder-container ${phase === 'RECORDING' ? 'pip-mode' : ''} ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`}>
@@ -507,13 +546,6 @@ export const Recorder = ({
                             audioLevels={audioLevels}
                             showVisualizer={showVisualizer}
                         >
-                            {exampleExists && (
-                                <AudioExampleButton 
-                                    recordingStatus={recordingStatus}
-                                    audioExample={audioExample} 
-                                    playExample={handlePlayExample} 
-                                />
-                            )}
                         </RecordingTimer>
 
                         {/* VAD Probability Debug Bar */}
@@ -537,7 +569,10 @@ export const Recorder = ({
                         )}
                     </div>
                     
-                    <StatusIndicator status={recordingStatus} />
+                    {DEBUG_MODE &&
+                        <StatusIndicator status={recordingStatus} />
+                    }
+                    
 
                     <div className="bottom-controls">
                         <RecordingControls

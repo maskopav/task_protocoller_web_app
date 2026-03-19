@@ -69,29 +69,47 @@
   flex-shrink: 0; /* Prevents button from squishing */
 }
 
-
-/* Audio Example icon*/
-.audio-example-btn {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important; 
-  align-items: center;
-  cursor: pointer;
-  padding: 0;
-  justify-content: center;
+/* Container for the button to force it to a new row */
+.instruction-example-row {
+    display: flex;
+    margin: 0.5rem; /* Spacing above and below the button */
+    justify-content: center;
 }
 
-.audio-example-btn.disabled {
-  opacity: 0.8;
-  cursor: not-allowed;
+.active-instructions {
+  font-size: 1.3rem;
+  color: var(--muted);
+  text-align: center;
+  width: 100%;
 }
 
-.audio-example-btn img {
-  display: block;
-  width: 70px; 
-  height: 70px;
+/* Make the button bigger and style the label */
+.active-instructions .audio-example-btn {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    gap: 12px;
+    padding: 12px 24px;
+    font-size: 1.1rem; /* Bigger text */
+    background-color: var(--primary);
+    border-radius: (--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
+.active-instructions .audio-example-btn.playing {
+    background-color: var(--danger);
+}
+
+.active-instructions .audio-example-btn img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+}
+
+.active-instructions .btn-label {
+    font-weight: 600;
+}
 
 /* Status badge */
 .status {
