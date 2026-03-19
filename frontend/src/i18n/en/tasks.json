@@ -14,7 +14,7 @@
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed stop mode* — the STOP button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the STOP button appears ('duration').",
       "title": "Prolonged phonation /{{phoneme}}/",
-      "instructions": "Please draw a deep breath and perform sustained phonation of vowel /{{phoneme}}/ as constant and long as possible per one breath. Please play an example. {{example}}  Press START and sustain /{{phoneme}}/ for at least {{duration}} seconds.",
+      "instructions": "Please draw a deep breath and perform sustained phonation of vowel /{{phoneme}}/ as constant and long as possible per one breath. {{example}}  Press START and sustain /{{phoneme}}/ for at least {{duration}} seconds.",
       "params": {
         "phoneme": {
           "label": "Phoneme",

@@ -1,38 +1,53 @@
-/* Recorder.css */
-
-/* Timer */
-.timer-wrapper {
+/* =========================================
+   Recorder.css
+   ========================================= */
+.recording-area {
   display: flex;
-  flex-direction: row;     /* On mobile this should probably be column */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;             /* Ensure it doesn't exceed parent */
+  /* flex: 1 tells this area to magically expand and absorb ALL empty vertical space on the screen.
+     flex-shrink: 0 ensures it doesn't get squished on tiny phone screens. */
+  flex: 1 0 auto; 
+  width: 100%;
+  padding: clamp(10px, 2vw, 20px) 0;
+}
+
+/* --- Timer --- */
+.timer-wrapper {
+  display: flex;
+  flex-direction: row; 
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  gap: 25px;
+  /* Gap grows smoothly from 10px on mobile to 25px on laptops */
+  gap: clamp(10px, 3vw, 25px);
   transition: margin 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
 
 /* Wrap timer + intensity circle together */
 .timer-core {
   position: relative;
-  width: 140px;   /* matches intensity circle size */
-  height: 140px;
+  width: clamp(120px, 40vw, 180px);   
+  height: clamp(120px, 40vw, 180px);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 30px;
+  /* Margins scale smoothly */
+  margin: clamp(15px, 5vw, 30px);
   transition: margin 0.3s ease-in-out;
 }
 
 /* Intensity circle always centered */
 .intensity-circle {
   position: absolute;
-  width: 140px;
-  height: 140px;
+  /* Match timer-core exactly */
+  width: clamp(120px, 40vw, 180px);
+  height: clamp(120px, 40vw, 180px);
   border-radius: 50%;
   background: rgba(244, 67, 54, 0.35); 
-  /* Faster transition (0.05s) makes it match the voice in real-time */
   transition: transform 0.05s ease-out, opacity 0.05s ease-out; 
   z-index: 0;
 }
@@ -44,123 +59,106 @@
 /* Timer circle on top */
 .timer-circle {
   box-sizing: border-box;
-  width: 140px;
-  height: 140px;
+  width: clamp(120px, 40vw, 180px);
+  height: clamp(120px, 40vw, 180px);
   border-radius: 50%;
   background: white;
-  border: 8px solid #6b7280;
+  /* Border thickness grows from 5px on mobile to 8px on laptop */
+  border: clamp(5px, 1.5vw, 8px) solid var(--dark-gray);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: border-color 0.3s ease;
-  z-index: 1; /* above intensity*/
-}
-.timer-circle.recording {
-  border-color: var(--danger);
-}
-.timer-circle.paused {
-  border-color: var(--warning);
-}
-.timer-circle.recording.ready-to-stop {
-  border-color: var(--success); 
-}
-.timer-display {
-  font-size: 2rem;
-  font-weight: bold;
-}
-.timer-core.recorded {
-  margin-top: 5px; 
-}
-.timer-wrapper.recorded {
-  margin-bottom: -15px; /* Pulls the playback section closer to the timer */
+  z-index: 1;
 }
 
-/* Extra control (speaker button) */
+.timer-circle.recording { border-color: var(--danger); }
+.timer-circle.paused { border-color: var(--warning); }
+.timer-circle.recording.ready-to-stop { border-color: var(--success); }
+
+.timer-display {
+  /* Text scales beautifully without snapping between two sizes */
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  font-weight: bold;
+}
+
+.timer-core.recorded { margin-top: clamp(0px, 1vw, 5px); }
+.timer-wrapper.recorded { margin-bottom: clamp(-20px, -2vw, -15px); }
+
+/* --- Extra controls & Instructions --- */
 .extra-control {
   position: relative; 
-  width: 80px;
-  height: 80px;
+  width: clamp(60px, 15vw, 80px);
+  height: clamp(60px, 15vw, 80px);
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-shrink: 0; /* Prevents button from squishing */
+  flex-shrink: 0; 
 }
 
-/* Container for the button to force it to a new row */
 .instruction-example-row {
-    display: flex;
-    margin: 0.5rem; /* Spacing above and below the button */
-    justify-content: center;
+  display: flex;
+  margin: clamp(0.3rem, 1.5vw, 0.5rem); 
+  justify-content: center;
 }
 
 .active-instructions {
-  font-size: 1.3rem;
+  font-size: clamp(1.5rem, 4.5vw, 1.7rem);
   color: var(--muted);
   text-align: center;
   width: 100%;
 }
 
-/* Make the button bigger and style the label */
 .active-instructions .audio-example-btn {
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    gap: 12px;
-    padding: 12px 24px;
-    font-size: 1.1rem; /* Bigger text */
-    background-color: var(--primary);
-    border-radius: (--border-radius);
-    cursor: pointer;
-    transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: clamp(8px, 2vw, 12px);
+  padding: clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 24px);
+  font-size: clamp(1.5rem, 4.5vw, 1.7rem);
+  background-color: var(--primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.active-instructions .audio-example-btn.playing {
-    background-color: var(--danger);
-}
+.active-instructions .audio-example-btn.playing { background-color: var(--danger); }
 
 .active-instructions .audio-example-btn img {
-    width: 24px;
-    height: 24px;
-    filter: brightness(0) invert(1);
+  width: clamp(18px, 4.1vw, 24px);
+  height: clamp(18px, 4.1vw, 24px);
+  filter: brightness(0) invert(1);
 }
 
-.active-instructions .btn-label {
-    font-weight: 600;
-}
+.active-instructions .btn-label { font-weight: 600; }
 
-/* Status badge */
+/* --- Status Badge --- */
 .status {
-  margin: 0.3rem 0;
+  margin: clamp(0.2rem, 1vw, 0.3rem) 0;
   font-weight: 600;
   display: inline-block;
-  padding: 0.6rem 0.8rem;
+  padding: clamp(0.4rem, 1.5vw, 0.6rem) clamp(0.6rem, 2vw, 0.8rem);
   border-radius: 9999px;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.2rem);
   background: var(--muted);
   color: white;
   z-index: 1;
 }
-.status.recording {
-  background: var(--danger);
-}
-.status.paused {
-  background: var(--warning);
-}
-.status.ready {
-  background: var(--primary);
-}
-.status.done {
-  background: var(--success);
-}
 
-/* Bottom recording controls */
+.status.recording { background: var(--danger); }
+.status.paused { background: var(--warning); }
+.status.ready { background: var(--primary); }
+.status.done { background: var(--success); }
+
+/* --- Bottom Controls & Playback --- */
 .bottom-controls {
-  margin: 0.5rem;
+  margin: clamp(0.3rem, 1vw, 0.5rem);
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 95%;
-  gap: 0.5rem;
+  align-self: center;
+  gap: clamp(0.3rem, 1vw, 0.5rem);
 } 
 
 .controls,
@@ -173,332 +171,232 @@
 }
 
 .playback-section {
-  flex-direction: column;
-  align-items: center;
-  font-size: 1.5rem;
-  gap: 0.2rem;
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  gap: clamp(0.4rem, 1.5vw, 0.8rem); /* Adapts spacing */
 }
 
+/* Smart Buttons */
 .button-group,
 .controls button,
 .playback-section button {
   width: 95%;
+  max-width: 400px; 
 }
 
 .button-group {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: clamp(0.3rem, 1.5vw, 0.5rem);
   margin-bottom: 0;
 }
 
 .button-group button {
   flex: 1;
-  min-width: 0; /* ensures even distribution */
+  min-width: 0; 
 }
 
-/* Single buttons (like Start) will still center properly */
 .controls button,
 .playback-section button {
   display: block;
-  margin: 0.5rem auto;
+  margin: clamp(0.3rem, 1vw, 0.5rem) auto;
 }
 
 .playback-section audio {
-  width: 95%; /* Matches the width of your control buttons */
+  width: 95%; 
   max-width: 400px; 
-  height: 54px; /* Makes the player noticeably taller and easier to click on laptops */
+  /* Height drops from 54px on laptop to 48px on tiny phones */
+  height: clamp(48px, 12vw, 54px); 
   outline: none;
+  border-radius: 50px;
   transition: all 0.2s ease;
 }
 
 .playback-section audio:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); /* Shadow lifts slightly on laptop mouse hover */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* VAD */
+/* --- VAD (Voice Activity Detection) --- */
 .vad-status-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 1.5rem;
+  margin-top: clamp(1rem, 3vw, 1.5rem);
   width: 100%;
 }
 
-/* The base pill design: Big text, rounded, elegant shadow */
 .vad-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-size: 1.15rem; /* Noticeably larger text */
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(6px, 2vw, 10px);
+  padding: clamp(8px, 2vw, 12px) clamp(16px, 4vw, 24px);
+  border-radius: 50px;
+  font-size: clamp(1rem, 3.5vw, 1.15rem);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Icon sizing */
-.vad-status-pill .vad-icon {
-    font-size: 1.3rem;
-}
+.vad-status-pill .vad-icon { font-size: clamp(1.1rem, 4vw, 1.3rem); }
 
-/* 1. Waiting State (Soft Amber/Yellow) */
-.vad-pill-waiting {
-    background-color: #fff9e6;
-    color: #b78103;
-    border: 1px solid #ffe082;
-}
+.vad-pill-waiting { background-color: #fff9e6; color: #b78103; border: 1px solid #ffe082; }
+.vad-pill-warning { background-color: #fff0f0; color: #d32f2f; border: 1px solid #ffcdd2; animation: slideUpFade 0.4s ease-out, subtlePulse 2s infinite ease-in-out; }
 
-/* 2. Warning State (Soft Red with a subtle pulse) */
-.vad-pill-warning {
-    background-color: #fff0f0;
-    color: #d32f2f;
-    border: 1px solid #ffcdd2;
-    animation: slideUpFade 0.4s ease-out, subtlePulse 2s infinite ease-in-out;
-}
-
-/* Smooth pop-in animation */
 @keyframes slideUpFade {
-    0% { opacity: 0; transform: translateY(15px) scale(0.95); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% { opacity: 0; transform: translateY(15px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Very gentle breathing effect for the warning, not an aggressive flash */
 @keyframes subtlePulse {
-    0% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
-    50% { box-shadow: 0 4px 25px rgba(211, 47, 47, 0.25); }
-    100% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
+  0% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
+  50% { box-shadow: 0 4px 25px rgba(211, 47, 47, 0.25); }
+  100% { box-shadow: 0 4px 15px rgba(211, 47, 47, 0.08); }
 }
 
-/* --- Dynamic Topic Text Animation --- */
 .dynamic-topic-text {
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 3.5vw, 1.3rem);
   font-weight: 700;
-  padding: 1.2rem; /* Slightly larger padding for a bigger visual box */
+  padding: clamp(0.8rem, 2.5vw, 1.2rem); 
   border-left: 5px solid #4CAF50;
   border-radius: 8px;
-  margin: 1rem 0;
-
-  /* Increased duration to 3 seconds so they have plenty of time to notice it */
+  margin: clamp(0.5rem, 2vw, 1rem) 0;
   animation: topicSwitchHighlight 5s ease-out forwards;
   transform-origin: left center;
 }
 
-/* 1. Starts with a highly visible light-green background and a soft glow
-  2. Pops out slightly
-  3. Holds the green highlight for a full second
-  4. Very slowly fades back to the normal gray background over 2 seconds
-*/
 @keyframes topicSwitchHighlight {
-    0% { 
-        opacity: 0;
-        background-color: #e8f5e9; /* Light green background */
-        color: #1b5e20; /* Darker green text for contrast */
-        transform: translateY(5px) scale(0.98); 
-    }
-    10% { 
-        opacity: 1;
-        transform: translateY(0) scale(1.02); /* Slight pop forward */
-        background-color: #e8f5e9; 
-        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-    }
-    30% { 
-        transform: scale(1); 
-        background-color: #e8f5e9; /* HOLD the green background for a full second */
-        color: #1b5e20;
-        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.15);
-    }
-    100% { 
-        background-color: #f8f9fa; /* Slowly fade back to normal light gray */
-        color: #2c3e50; /* Normal text color */
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); /* Normal flat shadow */
-    }
+  0% { opacity: 0; background-color: #e8f5e9; color: #1b5e20; transform: translateY(5px) scale(0.98); }
+  10% { opacity: 1; transform: translateY(0) scale(1.02); background-color: #e8f5e9; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3); }
+  30% { transform: scale(1); background-color: #e8f5e9; color: #1b5e20; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.15); }
+  100% { background-color: #f8f9fa; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 }
 
-/* --- VIDEO RECORDER STYLES --- */
-
+/* --- VIDEO RECORDER --- */
 .viewfinder-container {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto 1.5rem;
-    background-color: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    /* Use aspect-ratio to prevent the container from collapsing when children are absolute */
-    aspect-ratio: 4 / 3; 
-    transition: all 0.4s ease-in-out;
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto clamp(1rem, 3vw, 1.5rem);
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3; 
+  transition: all 0.4s ease-in-out;
 }
 
-/* NORMAL VIEW (Not PiP) */
 .viewfinder-container:not(.pip-mode) {
-    max-height: 40vh; /* Keeps the anti-scrolling limit */
+  max-height: 40vh; 
 }
 
-/* BOTH the video and canvas must be identical to align dots correctly */
-.viewfinder, 
-.mesh-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* 'cover' ensures the video fills the box; 'contain' is also fine, 
-       but BOTH must use the same one. 'cover' is usually better for face tasks. */
-    object-fit: cover; 
-    object-position: center;
-    transform: scaleX(-1); /* Mirrors the camera like a selfie */
-    display: block;
+.viewfinder, .mesh-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; 
+  object-position: center;
+  transform: scaleX(-1); 
+  display: block;
 }
 
-.mesh-canvas {
-    z-index: 5; /* Ensure dots are on top of the video */
-    pointer-events: none; /* Let clicks pass through */
-}
+.mesh-canvas { z-index: 5; pointer-events: none; }
 
-/* --- OVERLAYS --- */
-
+/* Overlays */
 .calibration-overlay {
-    position: absolute;
-    inset: 0; /* Shorthand for top/left/right/bottom: 0 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    pointer-events: none;
+  position: absolute;
+  inset: 0; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .face-oval {
-    width: 200px; 
-    height: 280px;
-    border: 4px dashed rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    /* Create a dark dimming effect outside the oval */
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); 
+  /* Scales the calibration oval fluidly so it fits small and big phones */
+  width: clamp(140px, 45vw, 200px); 
+  height: clamp(196px, 63vw, 280px);
+  border: 4px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); 
 }
 
 .face-oval.ready {
-    border-color: #4caf50;
-    background-color: rgba(76, 175, 80, 0.2);
-    border-style: solid;
+  border-color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.2);
+  border-style: solid;
 }
 
 .warning-toast {
-    position: absolute;
-    bottom: 20px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 24px;
-    font-weight: bold;
-    text-align: center;
-    width: 80%;
+  position: absolute;
+  bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px);
+  border-radius: 24px;
+  font-weight: bold;
+  text-align: center;
+  width: 80%;
+  font-size: clamp(0.9rem, 3vw, 1rem);
 }
 
-.warning-border {
-    border: 4px solid #f44336 !important;
-}
+.warning-border { border: 4px solid #f44336 !important; }
 
-/* --- RECORDING PHASE (Picture-in-Picture mode) --- */
-
+/* Picture-in-Picture mode */
 .viewfinder-container.pip-mode {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 120px;      /* Slightly larger for visibility */
-    height: 120px;     /* Square PiP */
-    aspect-ratio: 1 / 1;
-    z-index: 1000;
-    border-radius: 50%; /* Circular PiP looks professional */
-    opacity: 0.9;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  position: fixed;
+  bottom: clamp(10px, 3vw, 20px);
+  right: clamp(10px, 3vw, 20px);
+  /* PiP resizes based on screen size so it isn't massive on phones */
+  width: clamp(90px, 25vw, 120px);      
+  height: clamp(90px, 25vw, 120px);     
+  aspect-ratio: 1 / 1;
+  z-index: 1000;
+  border-radius: 50%; 
+  opacity: 0.9;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
-/* In PiP mode, hide the calibration dots/oval to keep it clean */
 .pip-mode .mesh-canvas,
 .pip-mode .calibration-overlay {
-    display: none;
+  display: none;
 }
 
 .recording-alert-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
 }
 
 .alert-box {
-    background-color: #f44336;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 0.9rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  background-color: #f44336;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* Smaller alert for PiP mode */
 .pip-mode .alert-box {
-    font-size: 0.7rem;
-    padding: 4px 8px;
-    background-color: rgba(244, 67, 54, 0.9);
+  font-size: clamp(0.6rem, 2vw, 0.7rem);
+  padding: 4px 8px;
+  background-color: rgba(244, 67, 54, 0.9);
 }
 
-/* Mobile-friendly adjustments */
+/* --- Mobile Specific Overrides --- */
 @media (max-width: 600px) {
   .timer-wrapper {
     flex-direction: column;
     padding: 1vh;
   }
-  .timer-wrapper.recorded {
-    margin-bottom: -20px; /* Pull playback controls up even tighter on small screens */
-    padding-bottom: 0;
-  }
-
-  .timer-core {
-    margin: 15px;
-    width: 120px;
-    height: 120px;
-  }
-  .timer-core.recorded {
-    margin-top: 0px;
-  }
-
-  .timer-circle {
-    box-sizing: border-box;
-    width: 120px;         /* smaller timer */
-    height: 120px;
-    border-width: 6px;
-  }
-
-  .timer-display {
-    font-size: 1.6rem;   /* smaller digits */
-  }
-
+  
   .playback-section audio {
-    width: 90%;         /* Force it to be as wide as the bottom buttons */
-    max-width: 100%;    /* Override the laptop max-width restriction */
-    height: 50px;       /* Excellent height for elderly thumbs to drag the timeline */
-  }
-
-  .playback-section {
-    gap: 0.8rem; /* Slightly tighter spacing on small smartphone screens */
-  }
-
-  .button-group {
-    gap: 0.1rem;
-  }
-
-  .status {
-    font-size: 1.2rem;   /* compact status badge */
-    padding: 0.4rem 0.8rem;
-    margin: 0;
+    max-width: 100%; /* Ensure it spans properly below buttons on narrow screens */
   }
 }
