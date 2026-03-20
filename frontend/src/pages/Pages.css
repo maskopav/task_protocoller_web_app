@@ -70,9 +70,9 @@ body {
   height: 100dvh;
   max-width: 1400px;
   margin: 0 auto;
-  padding: clamp(4px, 1dvh, 8px) clamp(4px, 1dvw, 8px);
+  padding: clamp(3px, 0.4dvh, 6px) clamp(4px, 1dvw, 8px);
   box-sizing: border-box;
-  gap: clamp(4px, 1dvh, 8px);
+  gap: clamp(4px, 0.6dvh, 8px);
 }
 
 .top-controls-participant {
@@ -108,7 +108,7 @@ body {
   color: var(--muted);
   text-align: center;
   background: var(--bg);
-  padding: clamp(4px, 1dvh, 8px) clamp(12px, 3dvw, 24px);
+  padding: clamp(3px, 0.5dvh, 6px) clamp(12px, 3dvw, 24px);
   border-radius: var(--sharp-radius);
   z-index: 2;
   white-space: nowrap; 
@@ -121,7 +121,7 @@ body {
   width: 100%;
   flex: 1; 
   min-height: 0;
-  padding: clamp(6px, 1.5dvh, 12px) clamp(4px, 1dvw, 8px);
+  padding: clamp(4px, 1dvh, 8px) clamp(2px, 0.6dvw, 4px);
   box-sizing: border-box;
   overflow-y: auto; 
   text-align: center;
@@ -169,7 +169,7 @@ button {
   width: 100%;
   /* Noticeably taller on phones, comfortable on laptops */
   padding: clamp(12px, 2dvh, 16px) clamp(16px, 3dvw, 20px);
-  margin: clamp(4px, 1.2dvh, 8px) 0;
+  margin: clamp(3px, 0.7dvh, 6px) 0;
   /* Font size matches playback controls */
   font-size: clamp(1.4rem, min(4.5dvw, 3dvh), 1.7rem);
   font-weight: 600;
@@ -199,7 +199,8 @@ button:disabled {
 
 .button-group {
   display: flex;
-  gap: clamp(0.4rem, 1.5vw, 0.8rem);
+  gap: clamp(0.4rem, 1.2vw, 0.8rem);
+  margin: 0;
 }
 .button-group button {
   flex: 1;
@@ -339,7 +340,7 @@ button:disabled {
 
   .button-group {
     flex-direction: column; /* Keep vertical stacking on mobile */
-    gap: 0.5rem;
+    gap: 0.2rem;
   }
 
   /* Admin Management Page */

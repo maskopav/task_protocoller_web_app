@@ -70,6 +70,21 @@
       "title": "Invalid token",
       "message": "The token is invalid. Please check the URL link or contact your administrator."
     },
+    "micCheck": {
+      "setupTitle": "Microphone Setup & Calibration",
+      "permissionWarning": "In the next step, the browser will ask for permission to use your microphone.",
+      "permissionInstruction": "Please click \"Allow\" in the popup window so we can calibrate your audio.",
+      "btnUnderstand": "Understand & Continue",
+      "noiseTitle": "Background Noise Check",
+      "noiseInstructions": "Please remain completely silent. Click Start and wait for the 5-second countdown to finish so we can measure the room's background noise.",
+      "analyzing": "Analyzing background noise...",
+      "failedTitle": "⚠️ Too Noisy",
+      "failedMessage": "We detected too much background noise ({{score}} dB).",
+      "failedInstructions": "For accurate results, you need to be in a quiet environment. Please close any open windows, turn off noisy appliances (like fans or AC), or move to a quieter room.",
+      "btnTryAgain": "Try Again",
+      "speechTitle": "Microphone Test",
+      "speechInstructions": "Your environment is perfectly quiet! Now, please count out loud from 1 to 5 at your normal speaking volume. Stop the recording, listen to the playback, and click Next if it sounds clear."
+    },
     "auth": {
       "signupTitle": "New Participant",
       "loginTitle": "Welcome Back",

@@ -331,7 +331,10 @@ export const Recorder = ({
     React.useEffect(() => {
         if (autoPermission) {
             if (isVideoEnabled) {
-                videoRecorder.getMediaPermission(); // Gets both mic and camera
+                videoRecorder.getMediaPermission().then(() => {
+                    // Sync the audio hook's permission state as well
+                    getMicrophonePermission(); 
+                }); 
             } else {
                 getMicrophonePermission(); // Gets only mic
             }
@@ -379,6 +382,7 @@ export const Recorder = ({
     const handleStartCalibration = async () => {
         const hasPermission = await videoRecorder.getMediaPermission();
         if (hasPermission) {
+            await getMicrophonePermission();
             setPhase('CALIBRATE');
             videoRecorder.startFaceDetection();
         } else {

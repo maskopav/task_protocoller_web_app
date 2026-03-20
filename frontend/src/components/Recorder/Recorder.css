@@ -52,8 +52,8 @@
 /* Wrap timer + intensity circle together */
 .timer-core {
   position: relative;
-  width: clamp(85px, min(35vw, 25dvh), 180px);   
-  height: clamp(85px, min(35vw, 25dvh), 180px);
+  width: clamp(85px, min(35vw, 20dvh), 180px);   
+  height: clamp(85px, min(35vw, 20dvh), 180px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,8 +65,8 @@
 .intensity-circle {
   position: absolute;
   /* Match timer-core exactly */
-  width: clamp(85px, min(35vw, 25dvh), 180px);   
-  height: clamp(85px, min(35vw, 25dvh), 180px);
+  width: clamp(85px, min(35vw, 20dvh), 180px);   
+  height: clamp(85px, min(35vw, 20dvh), 180px);
   border-radius: 50%;
   background: rgba(244, 67, 54, 0.35); 
   transition: transform 0.05s ease-out, opacity 0.05s ease-out; 
@@ -80,8 +80,8 @@
 /* Timer circle on top */
 .timer-circle {
   box-sizing: border-box;
-  width: clamp(85px, min(35vw, 25dvh), 180px);   
-  height: clamp(85px, min(35vw, 25dvh), 180px);
+  width: clamp(85px, min(35vw, 20dvh), 180px);   
+  height: clamp(85px, min(35vw, 20dvh), 180px);
   border-radius: 50%;
   background: white;
   /* Border thickness grows from 5px on mobile to 8px on laptop */
@@ -103,8 +103,8 @@
   font-weight: bold;
 }
 
-.timer-core.recorded { margin-top: clamp(0px, 1dvh, 5px); }
-.timer-wrapper.recorded { margin-bottom: clamp(-20px, -2dvh, -15px); }
+.timer-core.recorded { margin-top: clamp(0px, 0.6dvh, 4px); }
+.timer-wrapper.recorded { margin-bottom: clamp(-25px, -2.1dvh, -20px); }
 
 /* --- Extra controls & Instructions --- */
 .minimalist-page-flash {
@@ -442,6 +442,25 @@
   font-size: clamp(0.6rem, 2vw, 0.7rem);
   padding: 4px 8px;
   background-color: rgba(244, 67, 54, 0.9);
+}
+
+/* --- MicCheck Calibration Utility Classes --- */
+.pulse-animation {
+  animation: pulse 1.5s infinite;
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.warning-text-highlight {
+  color: var(--error-color, #dc3545);
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 /* --- Mobile Specific Overrides --- */

@@ -11,6 +11,7 @@ import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import D15Test from "../components/VisionTask/D15Test";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
+import MicCheck from "../components/Recorder/MicCheck";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
@@ -113,7 +114,21 @@ export default function ParticipantInterfacePage() {
     }));
     const resolvedVoiceTasks = resolveTasks(rawVoiceTasks);
 
-    let finalTasks = [...introSteps, ...resolvedVoiceTasks];
+    // Check if there are any voice/camera tasks that require the microphone
+    const requiresMic = resolvedVoiceTasks.some(t => t.type === 'voice' || t.type === 'camera');
+
+    let finalTasks = [...introSteps];
+    
+    // Inject the calibration/setup step if a mic is needed
+    if (requiresMic) {
+      finalTasks.push({ 
+        type: "mic_check", 
+        category: "setup", 
+        title: "Microphone Setup" 
+      });
+    }
+
+    finalTasks = [...finalTasks, ...resolvedVoiceTasks];
 
     return finalTasks;
   }, [selectedProtocol, i18n.language]);
@@ -272,6 +287,11 @@ export default function ParticipantInterfacePage() {
     // Render Consent Page
     if (rawTask.type === "consent") {
       return <ConsentPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'consent' })} />;
+    }
+
+    // Render the Mic Check component
+    if (rawTask.type === "mic_check") {
+      return <MicCheck onNext={() => handleTaskComplete({ type: 'mic_check' })} />;
     }
 
     const currentTask = resolveTask(rawTask, t);
