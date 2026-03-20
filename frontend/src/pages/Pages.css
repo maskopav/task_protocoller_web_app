@@ -21,9 +21,10 @@
 html, body, #root {
   height: 100%;
   height: 100dvh;
+  width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevents the whole browser window from rubber-band scrolling */
+  position: fixed;
   box-sizing: border-box;
 }
 
@@ -52,9 +53,9 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100dvh;
-  width: 100vw;
-  overflow: hidden;      
+  height: 100%; 
+  width: 100%;
+  overflow-x: hidden;      
   padding: 0;
 }
 
@@ -81,12 +82,15 @@ body {
   align-items: center;
   justify-content: flex-start; 
   width: 100%;
-  height: 100dvh;
+  height: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: clamp(3px, 0.4dvh, 6px) clamp(4px, 1dvw, 8px);
   box-sizing: border-box;
   gap: clamp(4px, 0.6dvh, 8px);
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .top-controls-participant {
@@ -348,7 +352,7 @@ button:disabled {
 /* --- Mobile-friendly adjustments --- */
 @media (max-width: 850px) {
   .task-wrapper {
-    height: 100vh; 
+    height: 100%; 
     width: 100%;
   }
 

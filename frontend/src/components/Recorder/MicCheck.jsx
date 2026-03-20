@@ -109,7 +109,7 @@ export default function MicCheck({ onNext }) {
             <h2>{loadingText}</h2>
           </div>
         </div>
-        <div className="recording-area"></div>
+        <div className="recording-area" style={{ minHeight: 0 }}></div>
         <div className="bottom-controls"></div>
       </div>
     );
@@ -216,7 +216,7 @@ export default function MicCheck({ onNext }) {
         </div>
       </div>
       {/* Empty area dynamically absorbs remaining space, pushing the button nicely to the bottom */}
-      <div className="recording-area"></div>
+      <div className="recording-area" style={{ minHeight: 0 }}></div>
       <div className="bottom-controls">
         <button className="btn-primary" onClick={onBtnClick}>
           {btnText}
