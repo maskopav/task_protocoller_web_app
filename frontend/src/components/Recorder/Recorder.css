@@ -7,12 +7,11 @@
 .task-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; 
   align-items: center;
-  height: 100%; 
-  flex: 1; 
+  flex: 1 1 0%;
   width: 100%;
-  overflow: auto; 
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .task-header {
@@ -20,8 +19,8 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  flex: 0 1 auto; 
-  height: 40dvh auto; 
+  flex: 0 0 auto;
+  height: auto; 
   padding: clamp(5px, 1.5dvh, 10px) 0; 
 }
 
@@ -31,9 +30,9 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  flex: 0 0 auto; 
+  flex: 1 1 0%;
   padding: clamp(5px, 1.5dvh, 15px) 0; 
-  min-height: 12dvh; 
+  min-height: 0; 
 }
 
 /* --- Timer --- */
@@ -232,8 +231,9 @@
   width: 95%;
   align-self: center;
   gap: clamp(0.2rem, 1.5dvh, 0.5rem); 
+  padding-bottom: env(safe-area-inset-bottom, 15px);
   margin-bottom: clamp(10px, 3dvh, 30px);
-  flex-shrink: 0;
+  flex: 0 0 auto;
 } 
 
 .controls,
@@ -452,7 +452,13 @@
 }
 
 .warning-text-highlight {
-  color: var(--error-color, #dc3545);
+  color: var(--danger, #dc3545);
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.success-text-highlight {
+  color: var(--success, #28a745);
   font-weight: 600;
   font-size: 1.1em;
 }

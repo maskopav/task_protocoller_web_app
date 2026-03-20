@@ -401,7 +401,8 @@ export const Recorder = ({
 
     // --- Updated Formatter Function ---
     const formatInstructionsWithButton = (text, buttonComponent) => {
-        if (!text || !text.includes('{{example}}')) return text;
+        // Added "typeof text !== 'string'" check to safely handle <Trans> components!
+        if (!text || typeof text !== 'string' || !text.includes('{{example}}')) return text;
 
         const parts = text.split('{{example}}');
         return (
@@ -436,7 +437,9 @@ export const Recorder = ({
 
     // --- INSTRUCTION INTERPOLATION ---
     let displayInstructions = activeInstructions;
-    if (isDynamicTask && activeInstructions) {
+    
+    // Ensure displayInstructions is a string before running .replace()
+    if (isDynamicTask && activeInstructions && typeof displayInstructions === 'string') {
         const currentItem = dynamicArray[dynamicIndex];
         if (typeof currentItem === 'object' && currentItem !== null) {
             Object.entries(currentItem).forEach(([key, value]) => {

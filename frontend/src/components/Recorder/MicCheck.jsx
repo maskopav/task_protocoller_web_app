@@ -1,11 +1,11 @@
 // src/components/Recorder/MicCheck.jsx
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import "./Recorder.css";
 
 // Helper function to analyze the volume of the recorded blob
-async function analyzeNoiseLevel(audioUrl) {
+async function analyzeAudioLevel(audioUrl) {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const response = await fetch(audioUrl);
@@ -37,9 +37,12 @@ export default function MicCheck({ onNext }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking');
   const [noiseScore, setNoiseScore] = useState(0);
+  const [speechScore, setSpeechScore] = useState(0);
 
-  const NOISE_THRESHOLD = -40; 
-
+  const NOISE_THRESHOLD = -40; // Anything above this is too noisy for testing
+  const SPEECH_QUIET_THRESHOLD = -42; // Anything below this is a whisper or mic is too far
+  const SPEECH_LOUD_THRESHOLD = -15;  // Anything above this is extremely loud and might distort
+  
   // Silently check permission on mount ---
   useEffect(() => {
     async function checkMicPermission() {
@@ -63,9 +66,10 @@ export default function MicCheck({ onNext }) {
     }
   }, []);
 
+  // Handler for Phase 1: Noise
   const handleNoiseCheckComplete = async (taskData) => {
     setPhase('analyzing');
-    const dB = await analyzeNoiseLevel(taskData.audioURL);
+    const dB = await analyzeAudioLevel(taskData.audioURL);
     setNoiseScore(dB.toFixed(1));
 
     if (dB > NOISE_THRESHOLD) {
@@ -75,47 +79,49 @@ export default function MicCheck({ onNext }) {
     }
   };
 
-  // PHASE -1: Checking Permission (Blank/Loading state for a few milliseconds)
-  if (phase === 'checking') {
+  // Handler for Phase 2: Speech
+  const handleSpeechCheckComplete = async (taskData) => {
+    setPhase('analyzing-speech');
+    const dB = await analyzeAudioLevel(taskData.audioURL);
+    setSpeechScore(dB.toFixed(1));
+
+    if (dB < SPEECH_QUIET_THRESHOLD) {
+      setPhase('speech-quiet');
+    } else if (dB > SPEECH_LOUD_THRESHOLD) {
+      setPhase('speech-loud');
+    } else {
+      setPhase('speech-success');
+    }
+  };
+
+  // 1. Unified Loading States
+  if (['checking', 'analyzing', 'analyzing-speech'].includes(phase)) {
+    const loadingText = phase === 'checking' 
+      ? <Trans i18nKey="micCheck.loading" /> 
+      : phase === 'analyzing' 
+        ? <Trans i18nKey="micCheck.analyzing" /> 
+        : <Trans i18nKey="micCheck.analyzingSpeech" />;
+
     return (
       <div className="task-container">
         <div className="task-header">
           <div className="active-instructions pulse-animation">
-            <h2>{t("micCheck.loading", "Loading...")}</h2>
+            <h2>{loadingText}</h2>
           </div>
         </div>
+        <div className="recording-area"></div>
+        <div className="bottom-controls"></div>
       </div>
     );
   }
 
-  // PHASE 0: Warning / Permission Screen
-  if (phase === 'warning') {
-    return (
-      <div className="task-container">
-        <div className="task-header">
-          <h1>{t("micCheck.setupTitle", "Microphone Setup & Calibration")}</h1>
-          <div className="active-instructions">
-            {t("micCheck.permissionWarning", "In the next step, the browser will ask for permission to use your microphone.")}
-            <br /><br />
-            {t("micCheck.permissionInstruction", 'Please click "Allow" in the popup window so we can calibrate your audio.')}
-          </div>
-        </div>
-        <div className="bottom-controls" style={{ marginTop: "auto" }}>
-          <button className="btn-primary" onClick={() => setPhase('noise')}>
-            {t("micCheck.btnUnderstand", "Understand & Continue")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // PHASE 1: Background Noise Check (5-second countdown)
+  // 2. The Native Recorder Component States
   if (phase === 'noise') {
     return (
       <Recorder
         key="noise-phase"
-        title={t("micCheck.noiseTitle", "Background Noise Check")}
-        instructions={t("micCheck.noiseInstructions", "Please remain completely silent. Click Start and wait for the 5-second countdown to finish so we can measure the room's background noise.")}
+        title={<Trans i18nKey="micCheck.noiseTitle" />}
+        instructions={<Trans i18nKey="micCheck.noiseInstructions" />}
         mode="countDown"
         duration={5}
         autoPermission={true}
@@ -126,57 +132,96 @@ export default function MicCheck({ onNext }) {
     );
   }
 
-  // PHASE 1.5: Loading State
-  if (phase === 'analyzing') {
-    return (
-      <div className="task-container">
-        <div className="task-header">
-          <div className="active-instructions pulse-animation">
-            <h2>{t("micCheck.analyzing", "Analyzing background noise... ⏱️")}</h2>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // PHASE 1.5b: Failed Noise Check
-  if (phase === 'noise-failed') {
-    return (
-      <div className="task-container">
-        <div className="task-header">
-          <h1>{t("micCheck.failedTitle", "⚠️ Too Noisy")}</h1>
-          <div className="active-instructions">
-            <span className="warning-text-highlight">
-              {t("micCheck.failedMessage", { score: noiseScore, defaultValue: `We detected too much background noise (${noiseScore} dB).` })}
-            </span>
-            <br /><br />
-            {t("micCheck.failedInstructions", "For accurate results, you need to be in a quiet environment. Please close any open windows, turn off noisy appliances (like fans or AC), or move to a quieter room.")}
-          </div>
-        </div>
-        <div className="bottom-controls" style={{ marginTop: "auto" }}>
-          <button className="btn-primary" onClick={() => setPhase('noise')}>
-            {t("micCheck.btnTryAgain", "Try Again")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // PHASE 2: Speech Calibration (Counting 1 to 5)
   if (phase === 'speech') {
     return (
       <Recorder
         key="speech-phase" 
-        title={t("micCheck.speechTitle", "Microphone Test")}
-        instructions={t("micCheck.speechInstructions", "Your environment is perfectly quiet! Now, please count out loud from 1 to 5 at your normal speaking volume. Stop the recording, listen to the playback, and click Next if it sounds clear.")}
+        title={<Trans i18nKey="micCheck.speechTitle" />}
+        instructions={<Trans i18nKey="micCheck.speechInstructions" />}
         mode="basicStop"
         autoPermission={true} 
         useVAD={false}
         showNextButton={true}
-        onNextTask={onNext} 
+        onNextTask={handleSpeechCheckComplete}
       />
     );
   }
 
-  return null;
+  let title, message, instructions, btnText, onBtnClick;
+  let isSuccessState = false;
+
+  switch (phase) {
+    case 'warning':
+      title = <Trans i18nKey="micCheck.setupTitle" />;
+      instructions = (
+        <>
+          {<Trans i18nKey="micCheck.permissionWarning" />}
+          <br /><br />
+          {<Trans i18nKey="micCheck.permissionInstruction" />}
+        </>
+      );
+      btnText = <Trans i18nKey="micCheck.btnUnderstand" />;
+      onBtnClick = () => setPhase('noise');
+      break;
+
+    case 'noise-failed':
+      title = <Trans i18nKey="micCheck.failedTitle" />;
+      message = <Trans i18nKey="micCheck.failedMessage" values={{ score: noiseScore }} />;
+      instructions = <Trans i18nKey="micCheck.failedInstructions" />;
+      btnText = <Trans i18nKey="micCheck.btnTryAgain" />;
+      onBtnClick = () => setPhase('noise');
+      break;
+
+    case 'speech-quiet':
+      title = <Trans i18nKey="micCheck.speechQuietTitle" />;
+      message = <Trans i18nKey="micCheck.speechQuietMessage" values={{ score: speechScore }} />;
+      instructions = <Trans i18nKey="micCheck.speechQuietInstructions" />;
+      btnText = <Trans i18nKey="micCheck.btnTryAgain" />;
+      onBtnClick = () => setPhase('speech');
+      break;
+
+    case 'speech-loud':
+      title = <Trans i18nKey="micCheck.speechLoudTitle" /> ;
+      message = <Trans i18nKey="micCheck.speechLoudMessage" values={{ score: speechScore }} />;
+      instructions = <Trans i18nKey="micCheck.speechLoudInstructions" />;
+      btnText = <Trans i18nKey="micCheck.btnTryAgain" />;
+      onBtnClick = () => setPhase('speech');
+      break;
+
+    case 'speech-success':
+      title = <Trans i18nKey="micCheck.speechSuccessTitle" />;
+      message = <Trans i18nKey="micCheck.speechSuccessMessage" values={{ score: speechScore }} />;
+      instructions = <Trans i18nKey="micCheck.speechSuccessInstructions" />;
+      btnText = <Trans i18nKey="micCheck.btnProceed" />;
+      onBtnClick = onNext;
+      isSuccessState = true;
+      break;
+      
+    default:
+      return null;
+  }
+
+  return (
+    <div className="task-container">
+      <div className="task-header">
+        <h1>{title}</h1>
+        <div className="active-instructions">
+          {message && (
+            <span className={isSuccessState ? "success-text-highlight" : "warning-text-highlight"}>
+              {message}
+            </span>
+          )}
+          {message && <><br /><br /></>}
+          {instructions}
+        </div>
+      </div>
+      {/* Empty area dynamically absorbs remaining space, pushing the button nicely to the bottom */}
+      <div className="recording-area"></div>
+      <div className="bottom-controls">
+        <button className="btn-primary" onClick={onBtnClick}>
+          {btnText}
+        </button>
+      </div>
+    </div>
+  );
 }
