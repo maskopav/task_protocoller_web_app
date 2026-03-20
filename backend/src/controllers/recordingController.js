@@ -41,7 +41,11 @@ export const uploadRecording = async (req, res) => {
     await connection.query(
       `INSERT INTO recordings 
       (session_id, protocol_task_id, recording_url, duration_seconds, repeat_index) 
-      VALUES (?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE 
+      recording_url = VALUES(recording_url), 
+      duration_seconds = VALUES(duration_seconds),
+      created_at = CURRENT_TIMESTAMP`,
       [sessionId, protocolTaskId, filename, Math.round(duration || 0), safeRep]
     );
 

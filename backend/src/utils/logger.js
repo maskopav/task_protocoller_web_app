@@ -16,9 +16,13 @@ if (!fs.existsSync(logDir)) {
 }
 
 // Append a message with timestamp
-export function logToFile(message) {
+export function logToFile(message, error = null) {
   try {
-    fs.appendFileSync(logPath, `${new Date().toISOString()} - ${message}\n`);
+    let logString = `${new Date().toISOString()} - ${message}`;
+    if (error) {
+      logString += `\n${error.stack || error}`;
+    }
+    fs.appendFileSync(logPath, `${logString}\n`);
   } catch (err) {
     console.error("Logging failed:", err);
   }

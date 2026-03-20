@@ -470,14 +470,19 @@ export const Recorder = ({
 
     return (
         <div className={`task-container ${className} vad-${vadVisualState}`}>
-            <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
-            <div
-                key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
-                className={`active-instructions`}
-            >
-                {displayInstructions}
+            {isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING && (
+                <div key={`flash-${dynamicIndex}`} className="minimalist-page-flash" />
+            )}
+            <div className='task-header'>
+                <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+                <div
+                    key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
+                    className={`active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'highlight-flash' : ''}`}
+                >
+                    {displayInstructions}
+                </div>
             </div>
-
+            
             {isVideoEnabled && (
                 <div className={`viewfinder-container ${phase === 'RECORDING' ? 'pip-mode' : ''} ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`}>
                     <video ref={videoRecorder.videoRef} autoPlay playsInline muted className="viewfinder" />
