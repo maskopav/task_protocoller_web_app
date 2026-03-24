@@ -7,6 +7,7 @@ import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
+import FormattedText from "../FormattedText/FormattedText";
 
 const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -399,24 +400,6 @@ export const Recorder = ({
         }
     };
 
-    // --- Updated Formatter Function ---
-    const formatInstructionsWithButton = (text, buttonComponent) => {
-        // Added "typeof text !== 'string'" check to safely handle <Trans> components!
-        if (!text || typeof text !== 'string' || !text.includes('{{example}}')) return text;
-
-        const parts = text.split('{{example}}');
-        return (
-            <>
-                {parts[0]}
-                {/* Wrapping in a div ensures it takes its own row */}
-                <div className="instruction-example-row">
-                    {buttonComponent}
-                </div>
-                {parts[1]}
-            </>
-        );
-    };
-
     // Determine the visual state of the recorder for CSS styling
     let vadVisualState = "idle";
     let vadStatusText = "";
@@ -435,44 +418,41 @@ export const Recorder = ({
         }
     }
 
-    // --- INSTRUCTION INTERPOLATION ---
-    let displayInstructions = activeInstructions;
-    
-    // Ensure displayInstructions is a string before running .replace()
-    if (isDynamicTask && activeInstructions && typeof displayInstructions === 'string') {
+    // 1. Prepare the Slot for the button
+    const slots = {
+        example: exampleExists ? (
+            <div className="instruction-example-row">
+                <AudioExampleButton 
+                    recordingStatus={recordingStatus}
+                    audioExample={audioExample} 
+                    isPlaying={!!voiceRecorder.exampleAudio} 
+                    onToggle={handleToggleExample}
+                />
+            </div>
+        ) : null
+    };
+
+    // 2. Prepare the String (Handling Calibration and Interpolation)
+    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
+    let rawInstructions = isCalibrationPhase 
+        ? "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete."
+        : (activeInstructions || instructions);
+
+    // Handle dynamic interpolation (keep this as string manipulation)
+    if (isDynamicTask && typeof rawInstructions === 'string') {
         const currentItem = dynamicArray[dynamicIndex];
         if (typeof currentItem === 'object' && currentItem !== null) {
             Object.entries(currentItem).forEach(([key, value]) => {
                 const regex = new RegExp(`{{${key}}}`, 'g');
-                displayInstructions = displayInstructions.replace(regex, String(value));
+                rawInstructions = rawInstructions.replace(regex, String(value));
             });
         } else if (typeof currentItem === 'string') {
             const paramKey = Object.keys(taskParams).find(k => taskParams[k] === dynamicArray);
             if (paramKey) {
                 const regex = new RegExp(`{{${paramKey}}}`, 'g');
-                displayInstructions = displayInstructions.replace(regex, currentItem);
+                rawInstructions = rawInstructions.replace(regex, currentItem);
             }
         }
-    }
-
-    // Button Component for an example
-    const inlineExampleButton = exampleExists ? (
-        <AudioExampleButton 
-            recordingStatus={recordingStatus}
-            audioExample={audioExample} 
-            isPlaying={!!voiceRecorder.exampleAudio} 
-            onToggle={handleToggleExample}
-        />
-    ) : null;
-
-    // Format the display instructions
-    displayInstructions = formatInstructionsWithButton(displayInstructions, inlineExampleButton);
-
-    // OVERRIDE INSTRUCTIONS FOR CALIBRATION PHASE (Applies to ALL task types) ---
-    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
-    
-    if (isCalibrationPhase) {
-        displayInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. It is very important that you do not move the phone once the calibration is complete.";
     }
 
     return (
@@ -486,7 +466,7 @@ export const Recorder = ({
                     key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
                     className={`active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'highlight-flash' : ''}`}
                 >
-                    {displayInstructions}
+                    <FormattedText text={rawInstructions} slots={slots} />
                 </div>
             </div>
             

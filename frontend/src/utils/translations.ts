@@ -5,31 +5,35 @@ import { taskBaseConfig } from "../config/tasksBase.js";
 // -----------------------------
 // TRANSLATION HELPERS
 // -----------------------------
+const i18nOptions = { 
+  ns: "tasks", 
+  interpolation: { escapeValue: false } 
+};
 
 export function translateTaskName(category: string): string {
-  return i18next.t(`${category}.name`, { ns: "tasks", defaultValue: category });
+  return i18next.t(`${category}.name`, { ...i18nOptions,defaultValue: category });
 }
 
 export function translateTaskDescription(category: string): string {
-  return i18next.t(`${category}.description`, { ns: "tasks", defaultValue: "" });
+  return i18next.t(`${category}.description`, { ...i18nOptions,defaultValue: "" });
 }
 
 export function translateTaskTitle(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.title`, { ns: "tasks", ...params, defaultValue: category });
+  return i18next.t(`${category}.title`, { ...i18nOptions,...params, defaultValue: category });
 }
 
 
 export function translateTaskInstructions(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructions`, { ns: "tasks", ...params, defaultValue: "" });
+  return i18next.t(`${category}.instructions`, { ...i18nOptions,...params, defaultValue: "" });
 }
 
 export function translateTaskInstructionsActive(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructionsActive`, { ns: "tasks", ...params, defaultValue: "" });
+  return i18next.t(`${category}.instructionsActive`, { ...i18nOptions,...params, defaultValue: "" });
 }
 
 export function translateParamName(category: string, param: string): string {
   const key = `${category}.params.${param}.label`;
-  const taskLabel = i18next.t(key, { ns: "tasks", defaultValue: "" });
+  const taskLabel = i18next.t(key, { ...i18nOptions,defaultValue: "" });
   if (taskLabel) return taskLabel as string;
   return param;
 }
@@ -38,7 +42,7 @@ export function translateParamValue(category: string, param: string, value: stri
   const key = `${category}.params.${param}.values.${value}`;
 
   // Use returnObjects:true so i18next can return nested structures when needed
-  const translated = i18next.t(key, { ns: "tasks", defaultValue: value, returnObjects: true });
+  const translated = i18next.t(key, { ...i18nOptions,defaultValue: value, returnObjects: true });
 
   if (typeof translated === "object" && translated !== null) {
     // Case: structured translation (like reading/monologue)
@@ -61,7 +65,7 @@ export function getAllParams(category: string): Record<string, any> {
   if (!params) return {};
 
   // load translations for this category
-  const translationTree = i18next.t(category, { ns: "tasks", returnObjects: true }) as Record<string, any>;
+  const translationTree = i18next.t(category, { ...i18nOptions,returnObjects: true }) as Record<string, any>;
 
   return Object.fromEntries(
     Object.entries(params).map(([paramKey, paramDef]) => {
@@ -116,7 +120,7 @@ export function getAllParams(category: string): Record<string, any> {
  */
 export function getResolvedParams(category: string, actualParams: Record<string, any> = {}): Record<string, any> {
   // Translation tree for the given task (from en.json or loaded i18n)
-  const translationTree = i18next.t(category, { ns: "tasks", returnObjects: true }) as Record<string, any>;
+  const translationTree = i18next.t(category, { ...i18nOptions,returnObjects: true }) as Record<string, any>;
 
   if (!translationTree || typeof translationTree !== "object" || !translationTree.params) {
     console.warn(`⚠️ No translation structure found for category: ${category}`);
@@ -178,7 +182,7 @@ export function getResolvedParams(category: string, actualParams: Record<string,
 // Returns default params
 export function getDefaultParams(category: string): Record<string, any> {
   const params = taskBaseConfig[category]?.params || {};
-  const translationTree = i18next.t(category, { ns: "tasks", returnObjects: true }) as Record<string, any>;
+  const translationTree = i18next.t(category, { ...i18nOptions,returnObjects: true }) as Record<string, any>;
 
   return Object.fromEntries(
     Object.entries(params).map(([key, def]) => {

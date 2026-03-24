@@ -14,7 +14,7 @@
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed stop mode* — the STOP button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the STOP button appears ('duration').",
       "title": "Prolonged phonation /{{phoneme}}/",
-      "instructions": "Please draw a deep breath and perform sustained phonation of vowel /{{phoneme}}/ as constant and long as possible per one breath. {{example}}  Press START and sustain /{{phoneme}}/ for at least {{duration}} seconds.",
+      "instructions": "Press the START button, <strong>draw a deep breath</strong>, and attempt to produce the longest and most stable phonation of the /{{phoneme}}/ vowel possible on a single breath. {{example}} Try to sustain it for at least {{duration}} seconds. Once you run out of breath, press the STOP button.",
       "params": {
         "phoneme": {
           "label": "Phoneme",
@@ -39,7 +39,7 @@
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
-      "instructions": "Please draw a deep breath and repeat /{{syllable}}/ as quickly and clearly as possible on a single breath. {{example}} Press START and repeat /{{syllable}}/ until the timer runs out.",
+      "instructions": "Press the START button, <strong>draw a deep breath</strong>, and attempt to repeat the syllables /{{syllable}}-{{syllable}}/ as quickly and accurately as possible until the timer expires. {{example}}",
       "params": {
         "syllable": {
           "label": "Syllable",
@@ -81,23 +81,23 @@
       "name": "Reading text",
       "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
       "title": "Reading {{topic}}",
-      "instructions": "Press START to read the text on screen at a comfortable pace. Press STOP at the end.",
+      "instructions": "Press the START button and then read the text displayed on the screen at a natural volume and pace. Press the STOP button when you finish.",
       "instructionsActive": "{{text}}",
       "params": {
         "topic": {
           "label":"Text topic",
           "values": {
-            "seedling": {
-              "label":"Seedling",
-              "text": "When you first put a seedling in the ground..."
+            "northWind": {
+              "label":"The North Wind and the Sun",
+              "text": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in,making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
             },
-            "dog": {
-              "label":"Dog",
-              "text": "I have a dog and I like to play with it..."
+            "grandfather": {
+              "label":"The Grandfather",
+              "text": "You wished to know all about my grandfather. Well, he is nearly ninety-three years old; he dresses himself in an ancient black frock coat, usually minus several buttons; yet he still thinks as swiftly as ever. A long, flowing beard clings to his chin, giving those who observe him a pronounced feeling of the utmost respect. When he speaks, his voice is just a bit cracked and quivers a trifle. Twice each day he plays skilfully and with zest upon our small organ. Except in the winter when the ooze or snow or ice prevents, he slowly takes a short walk in the open air each day. We have often urged him to walk more and smoke less, but he always answers, “Banana oil!” Grandfather likes to be modern in his language."
             },
-            "raining": {
-              "label":"Raining",
-              "text": "It is November..."
+            "rainbow": {
+              "label":"The Rainbow",
+              "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
             }
           }
         },
@@ -110,23 +110,15 @@
     "monologue": {
       "name": "Monologue on topic",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
-      "title": "Monologue on: {{topic}}",
-      "instructions": "Press START and talk about {{topicDescription}} until the timer runs out.",
+      "title": "Monologue",
+      "instructions": "{{topicDescription}}",
       "params": {
         "topic": {
           "label":"Monologue topic",
           "values": {
-            "hobbies": {
-              "label":"Hobbies",
-              "topicDescription": "hobbies (sport, music, reading, gardening, pets, etc.)"
-            },
-            "any": {
-              "label":"Any topic",
-              "topicDescription": "anything which come to your mind"
-            },
-            "family": {
-              "label":"Family",
-              "topicDescription": "family"
+            "dayDescription": {
+              "label":"Day description",
+              "topicDescription": "Please try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the START button and begin speaking."
             }
           }
         },
@@ -143,8 +135,8 @@
       "name": "Dynamic monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Dynamic Monologue",
-      "instructions": "You will be presented with a series of topics. Please speak continuously about the topic shown on the screen. After some while the topic may change automatically.",
-      "instructionsActive": "Speak about: {{topicDescription}}",
+      "instructions": "You will be presented with a series of topics. Speak about the topic shown. If you run out of things to say, the topic will change automatically to help you continue. Please speak for <strong>two minutes in total</strong>. Press START when you are ready.",
+      "instructionsActive": "{{topicDescription}}",
       "params": {
         "topics": {
           "label": "Select multiple topics",
