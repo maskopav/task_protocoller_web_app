@@ -15,8 +15,8 @@ const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 const VAD_CONFIG = {
     // TIMING
     silenceFreezeMs: 3000,       // time until the timer freezes (and warning appears for static tasks)
-    adaptiveSwitchMs: 5000,      // time until the topic automatically switches (Dynamic Tasks only)
-    earlyStopMs: 10000,          // total silence time on static task (or last dynamic topic) before early stop unlocks
+    adaptiveSwitchMs: 9000,      // time until the topic automatically switches (Dynamic Tasks only)
+    earlyStopMs: 13000,          // total silence time on static task (or last dynamic topic) before early stop unlocks
     
     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
     positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
@@ -53,6 +53,7 @@ export const Recorder = ({
     const [phase, setPhase] = useState(isVideoEnabled ? 'SETUP' : 'RECORDING');
 
     // --- VAD State & Logic ---
+    const [isVadLoaded, setIsVadLoaded] = useState(!useVAD);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isSilentPause, setIsSilentPause] = useState(false);
     const [canEarlyStop, setCanEarlyStop] = useState(false);
@@ -119,6 +120,7 @@ export const Recorder = ({
 
     // Speech Metadata Trackers
     const isSpeakingRef = useRef(false);
+    const hasSpokenRef = useRef(false);
     const lastSpeechTimeRef = useRef(Date.now()); 
     const speechSegments = useRef([]);
     const currentSpeechStart = useRef(null);
@@ -140,7 +142,7 @@ export const Recorder = ({
             if (statusRef.current === RECORDING_STATES.RECORDING) {
                 if (isSpeakingRef.current) {
                     lastSpeechTimeRef.current = Date.now();
-                } else {
+                } else if (hasSpokenRef.current) {
                     const silenceDuration = Date.now() - lastSpeechTimeRef.current;
                     const hasMoreTopics = isAdaptiveSwitching && dynamicIndex < dynamicArray.length - 1;
                     
@@ -177,6 +179,9 @@ export const Recorder = ({
             }
 
             try {
+                console.log("VAD Model is loading..."); 
+                setIsVadLoaded(false);
+
                 // Instantiate the local model
                 vadInstance.current = await window.vad.MicVAD.new({
                     stream: stream, 
@@ -195,6 +200,7 @@ export const Recorder = ({
                     },
                     onSpeechStart: () => {
                         isSpeakingRef.current = true;
+                        hasSpokenRef.current = true;
                         setIsSpeaking(true);
                         setHasSpoken(true);
                         setIsSilentPause(false); 
@@ -230,6 +236,9 @@ export const Recorder = ({
                         }
                     },
                 });
+
+                console.log("VAD Model loaded successfully!");
+                setIsVadLoaded(true);
 
                 // If user clicked record while the AI was still loading, start it immediately
                 if (statusRef.current === RECORDING_STATES.RECORDING) {
@@ -280,6 +289,7 @@ export const Recorder = ({
     // --- Wrappers ---
     const handleStart = () => {
         onLogEvent("button_start");
+        hasSpokenRef.current = false;
         setHasSpoken(false); 
         setIsSilentPause(false);
         setCanEarlyStop(false);
@@ -308,6 +318,7 @@ export const Recorder = ({
         speechSegments.current = []; 
         currentSpeechStart.current = null;
         setDynamicIndex(0);
+        hasSpokenRef.current = false;
         setHasSpoken(false); 
         setIsSpeaking(false);
         setIsSilentPause(false);
@@ -574,12 +585,19 @@ export const Recorder = ({
                     {DEBUG_MODE &&
                         <StatusIndicator status={recordingStatus} />
                     }
+
+                    {useVAD && !isVadLoaded && stream && (
+                        <div className="vad-loading-indicator" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
+                            Loading Speech Detector...
+                        </div>
+                    )}
                     
 
                     <div className="bottom-controls">
                         <RecordingControls
                             recordingStatus={recordingStatus}
                             disableControls={mode === 'countDown'}
+                            disableStart={useVAD && !isVadLoaded}
                             permission={audioPermission}
                             onStart={handleStart}
                             onPause={pauseRecording}

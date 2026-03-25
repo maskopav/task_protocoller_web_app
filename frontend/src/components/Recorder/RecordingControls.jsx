@@ -12,6 +12,7 @@ export const RecordingControls = ({
     onPermission,
     disableControls = false,
     disableStop,
+    disableStart = false,
     showPause = true, // Pause button is shown by default
     RECORDING_STATES,
     className = "control-buttons"
@@ -35,7 +36,11 @@ export const RecordingControls = ({
         {permission && (
             <>
             {recordingStatus === IDLE && (
-                <button onClick={onStart} className="btn-start">
+                <button 
+                    onClick={onStart} 
+                    className={`btn-start ${disableStart ? 'disabled' : ''}`}
+                    disabled={disableStart} 
+                >
                 {t("buttons.start")}
                 </button>
             )}
