@@ -15,8 +15,8 @@ const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 const VAD_CONFIG = {
     // TIMING
     silenceFreezeMs: 3000,       // time until the timer freezes (and warning appears for static tasks)
-    adaptiveSwitchMs: 9000,      // time until the topic automatically switches (Dynamic Tasks only)
-    earlyStopMs: 13000,          // total silence time on static task (or last dynamic topic) before early stop unlocks
+    adaptiveSwitchMs: 9500,      // time until the topic automatically switches (Dynamic Tasks only)
+    earlyStopMs: 13500,          // total silence time on static task (or last dynamic topic) before early stop unlocks
     
     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
     positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3

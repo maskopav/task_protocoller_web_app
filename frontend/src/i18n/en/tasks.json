@@ -62,13 +62,15 @@
       "name": "Fairytale retelling",
       "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
       "title": "Retelling {{fairytale}}",
-      "instructions": "Press START and retell the fairytale: {{fairytale}}.",
+      "instructions": "Press START and tell the story of {{fairytale}} from the beginning to the end. Try to include all the main events and as much detail as you can remember.",
       "params": {
         "fairytale": {
           "label": "Fairytale",
           "values": {
             "hanselAndGretel": "Hansel and Gretel",
-            "snowWhite": "Snow White"
+            "snowWhite": "Snow White",
+            "cinderella": "Cinderella",
+            "redRidingHood": "Little Red Riding Hood"
           }
         },
         "repeat": {
@@ -142,20 +144,40 @@
           "label": "Select multiple topics",
           "values": {
             "hobbies": {
-              "label": "Hobbies",
-              "topicDescription": "What are your hobbies? What do you do in your free time?"
+              "label": "Free Time & Interests",
+              "topicDescription": "How do you like to spend your free time? Tell me about an activity you enjoy, how you got started with it, and why you find it interesting."
             },
             "everyday": {
-              "label": "Everydays routine",
-              "topicDescription": "Tell me about your everyday routine. How does your usual day look like?"
+              "label": "Daily Routine",
+              "topicDescription": "Describe a typical day for you from the moment you wake up. What is your morning like, and what are some things you usually do every afternoon or evening?"
             },
-            "family": {
-              "label": "Movies, books, sports, culture",
-              "topicDescription": "What kind of movies or books do you enjoy? Are you into sports or culture?"
+            "entertainment": {
+              "label": "Movies, Books, and Media",
+              "topicDescription": "Tell me about a movie, book, or TV show you have seen or read recently. What was it about, and would you recommend it to others?"
             },
             "eating": {
-              "label": "Eating",
-              "topicDescription": "Do you like eating in restaurants? Do you cook often?"
+              "label": "Food & Cooking",
+              "topicDescription": "Do you prefer cooking at home or eating out? Tell me about a meal you enjoy or a restaurant you like to go to."
+            },
+            "neighborhood": {
+              "label": "Neighborhood",
+              "topicDescription": "Describe the area where you live. What does it look like, and what are some places nearby that you visit often?"
+            },
+            "shopping": {
+              "label": "Grocery Shopping",
+              "topicDescription": "Describe how you usually go grocery shopping. Tell me about the process from making a list to visiting the different aisles, and how you feel about shopping in-person versus online."
+            },
+            "travel": {
+              "label": "Travel and Transport",
+              "topicDescription": "Tell me about how you get from place to place. Describe your usual commute or favorite way to travel, and talk about a trip or a place you have visited that you found interesting."
+            },
+            "typicalWeekend": {
+              "label": "Typical Weekend",
+              "topicDescription": "Describe what a normal weekend looks like for you. What are some of the things you usually do on a Saturday or Sunday, and how do these days differ from your work week?"
+            },
+            "work": {
+              "label": "Education and Work",
+              "topicDescription": "Tell me about your background in school or your professional life. What were some of the daily tasks or subjects you focused on, and what did you enjoy most about that environment?"
             }
           }
         },
