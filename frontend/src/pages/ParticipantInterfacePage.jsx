@@ -27,6 +27,7 @@ export default function ParticipantInterfacePage() {
 
   const [taskIndex, setTaskIndex] = useState(0);
   const [langReady, setLangReady] = useState(false);
+  const [isRecordingActive, setIsRecordingActive] = useState(false);
 
   // Add state for the completionoverlay
   const [showPraise, setShowPraise] = useState(false);
@@ -268,6 +269,17 @@ export default function ParticipantInterfacePage() {
 
   const handleSkip = () => setTaskIndex((i) => Math.min(i + 1, runtimeTasks.length));
 
+  const rawTask = runtimeTasks[taskIndex];
+  
+  // Try to resolve the current task if it exists and isn't a special screen (info/consent/mic_check)
+  let currentTask = null;
+  let isReadingTask = false;
+
+  if (rawTask && !['info', 'consent', 'mic_check'].includes(rawTask.type)) {
+     currentTask = resolveTask(rawTask, t);
+     isReadingTask = currentTask?.category === 'reading'; 
+  }
+
   const renderCurrentTask = () => {
     const rawTask = runtimeTasks[taskIndex];
     if (!rawTask) {
@@ -313,6 +325,8 @@ export default function ParticipantInterfacePage() {
           onNextTask={handleTaskComplete}
           onLogEvent={logInteraction}
           useVAD={currentTask.useVAD}
+          hideTitle={isReadingTask}
+          onRecordingStateChange={setIsRecordingActive}
         />
       );
     // Render Questionnaire
@@ -353,23 +367,25 @@ export default function ParticipantInterfacePage() {
   return (
     <div className="app-container">
       {showPraise && (
-            <ModuleCompletionOverlay 
-                category={completedCategory} 
-                onComplete={() => {
-                    setShowPraise(false);
-                    setTaskIndex((i) => i + 1); // Move to next module
-                }} 
-            />
-        )}
+        <ModuleCompletionOverlay 
+          category={completedCategory} 
+          onComplete={() => {
+            setShowPraise(false);
+            setTaskIndex((i) => i + 1); // Move to next module
+          }} 
+        />
+      )}
       <div className="task-wrapper">
         <div className="top-controls-participant">
-        <div className="top-left-controls">
+          <div className="top-left-controls">
             {testingMode && (
               <button className="btn-back" onClick={handleBack}>
                 ← {t("buttons.back", { ns: "common" })}
               </button>
             )}
+          </div>
 
+          <div className="top-center-controls">
             {testingMode && randomStrategy !== 'none' && (
               <div className="testing-mode-badge">
                 🎲 {t("protocolEditor.testingBadge.randomization", { ns: "admin" })}: {t(`protocolEditor.testingBadge.strategies.${randomStrategy}`, { ns: "admin" })}
@@ -382,16 +398,7 @@ export default function ParticipantInterfacePage() {
             )}
           </div>
 
-          {/* 2. CENTER: Task Progress */}
-          <div className="top-center-controls">
-          {taskIndex < runtimeTasks.length && progressDisplay && (
-            <div className="task-progress">
-              {progressDisplay.label} {progressDisplay.current}/{progressDisplay.total}
-            </div>
-          )}
-          </div>
-
-          {/* 3. RIGHT SIDE: Skip Button */}
+          {/* RIGHT SIDE: Skip Button */}
           <div className="top-right-controls">
             {taskIndex < runtimeTasks.length && testingMode && (
               <button className="btn-skip" onClick={handleSkip}>
@@ -400,7 +407,17 @@ export default function ParticipantInterfacePage() {
             )}
           </div>
         </div>
-        <div className="task-card">{renderCurrentTask()}</div>
+
+        <div className="task-card">
+          {taskIndex < runtimeTasks.length && progressDisplay && !(isReadingTask && isRecordingActive) && (
+            <div className="task-progress">
+              {progressDisplay.label} {progressDisplay.current} / {progressDisplay.total}
+            </div>
+          )}
+          
+          {/* Task Content */}
+          {renderCurrentTask()}
+        </div>
       </div>
     </div>
   );

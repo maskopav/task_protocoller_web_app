@@ -121,15 +121,12 @@ body {
 
 .task-progress {
   /* Matches .active-instructions in Recorder.css */
-  font-size: clamp(1.2rem, min(4dvw, 3dvh), 1.6rem);
-  font-weight: 600;
+  font-size: clamp(1rem, min(4dvw, 3dvh), 1.5rem);
+  font-weight: 500;
   color: var(--muted);
   text-align: center;
-  background: var(--bg);
-  padding: clamp(3px, 0.5dvh, 6px) clamp(12px, 3dvw, 24px);
-  border-radius: var(--sharp-radius);
-  z-index: 2;
-  white-space: nowrap; 
+  margin: 0;
+  padding: 0;
 }
 
 .task-card {

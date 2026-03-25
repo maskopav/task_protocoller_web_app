@@ -45,7 +45,9 @@ export const Recorder = ({
     useVAD = false, 
     taskParams = {},
     recordVideo = false,
-    showMicIcon
+    hideTitle = false,
+    showMicIcon,
+    onRecordingStateChange
 }) => {
     // --- Phase State ---
     // If video is required, start in SETUP. Otherwise, jump straight to RECORDING.
@@ -133,6 +135,12 @@ export const Recorder = ({
             lastSpeechTimeRef.current = Date.now();
         }
     }, [recordingStatus, RECORDING_STATES.RECORDING]);
+
+    useEffect(() => {
+        if (onRecordingStateChange) {
+            onRecordingStateChange(recordingStatus === RECORDING_STATES.RECORDING);
+        }
+    }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING]);
 
     // Adaptive tasks
     useEffect(() => {
@@ -419,7 +427,7 @@ export const Recorder = ({
     if (useVAD && recordingStatus === RECORDING_STATES.RECORDING) {
         if (!hasSpoken) {
             vadVisualState = "waiting";
-            vadStatusText = "Feel free to start whenever you want! Waiting for you to speak...";
+            // vadStatusText = "Feel free to start whenever you want! Waiting for you to speak...";
         } else if (showSilenceWarning) {
             vadVisualState = "warning";
             vadStatusText = canEarlyStop 
@@ -475,7 +483,9 @@ export const Recorder = ({
                 <div key={`flash-${dynamicIndex}`} className="minimalist-page-flash" />
             )}
             <div className='task-header'>
-                <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+                {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
+                    <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+                )}
                 <div
                     key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
                    className={`instruction-card active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'card-highlight-flash' : ''}`}

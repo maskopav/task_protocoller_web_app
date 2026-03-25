@@ -42,6 +42,7 @@
     "taskLabels": {
       "info": "Information",
       "consent": "Consent",
+      "mic_check": "Microphone Calibration",
       "voice": "Vocal Task",
       "motor": "Motor Task",
       "camera": "Camera Task",

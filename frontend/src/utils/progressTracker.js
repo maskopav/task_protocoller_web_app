@@ -42,7 +42,7 @@ export const checkCompletionOverlay = (runtimeTasks, currentTaskIndex, randomStr
     const nextTask = runtimeTasks[currentTaskIndex + 1];
 
     // If it's the very last task or an info/consent page, don't show the interim overlay
-    if (!nextTask || currentTask.type === "info" || currentTask.type === "consent") {
+    if (!nextTask || currentTask.type === "info" || currentTask.type === "consent" || currentTask.type === "mic_check") {
         return { showOverlay: false, category: null };
     }
 

@@ -21,9 +21,9 @@ export const RecordingTimer = ({
         ? audioLevels.reduce((a,b) => a+b, 0) / audioLevels.length
         : 0;
 
-    const baseScale = 1 + (Math.sqrt(avgLevel) / 3.8);
-    const intensityScale = Math.min(baseScale, 2.5);
-    const intensityOpacity = Math.min(0.2 + (avgLevel / 50), 0.85);
+    const baseScale = 1.02 + (avgLevel / 10); 
+    const intensityScale = Math.min(baseScale, 1.45); 
+    const intensityOpacity = Math.min(0.2 + (avgLevel / 7), 0.85);
     
     // This class determines if the timer (and now the mic) should turn green
     const readyClass = isReadyToStop ? "ready-to-stop" : "";
