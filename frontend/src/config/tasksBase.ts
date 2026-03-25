@@ -37,7 +37,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
 
   phonation: {
     type: "voice",
-    recording: { mode: "delayedStop", duration: 5 },
+    recording: { mode: "basicStop"},
     useVAD: false,
     params: {
       phoneme: { default: "a" },

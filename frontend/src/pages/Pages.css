@@ -4,7 +4,7 @@
   --card-bg: #ededed;
   --grey: #ced0d3;
   --dark-gray: #6b7280;
-  --text: #333;
+  --text: #000000;
   --muted: #575151;
   --border: #d6dfef;
   --primary: #3764df;
@@ -14,7 +14,7 @@
   --purple: #7e3ff4;
   --radius: 1rem;
   --sharp-radius: 4px;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
   --transition: all 0.2s ease;
 }
 

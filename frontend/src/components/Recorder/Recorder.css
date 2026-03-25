@@ -18,10 +18,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
+  width: auto;
   flex: 0 0 auto;
   height: auto; 
   padding: clamp(5px, 1.5dvh, 10px) 0; 
+}
+
+.instruction-card {
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: clamp(2px, 1dvh, 10px);
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.instruction-card p {
+  color: #000000 !important; 
+  margin: 0;
 }
 
 .recording-area {
@@ -32,7 +47,12 @@
   width: 100%;
   flex: 1 1 0%;
   padding: clamp(5px, 1.5dvh, 15px) 0; 
-  min-height: clamp(90px, 22dvh, 180px);
+  min-height: clamp(80px, 20dvh, 180px);
+}
+
+.recording-area.is-recorded {
+  min-height: 0 !important;
+  padding: 0;       
 }
 
 /* --- Timer --- */
@@ -51,8 +71,8 @@
 /* Wrap timer + intensity circle together */
 .timer-core {
   position: relative;
-  width: clamp(85px, min(35vw, 20dvh), 180px);   
-  height: clamp(85px, min(35vw, 20dvh), 180px);
+  width: clamp(70px, min(30vw, 20dvh), 180px);   
+  height: clamp(70px, min(30vw, 20dvh), 180px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,8 +84,8 @@
 .intensity-circle {
   position: absolute;
   /* Match timer-core exactly */
-  width: clamp(85px, min(35vw, 20dvh), 180px);   
-  height: clamp(85px, min(35vw, 20dvh), 180px);
+  width: clamp(70px, min(30vw, 20dvh), 180px);   
+  height: clamp(70px, min(30vw, 20dvh), 180px);
   border-radius: 50%;
   background: rgba(244, 67, 54, 0.35); 
   transition: transform 0.05s ease-out, opacity 0.05s ease-out; 
@@ -79,14 +99,16 @@
 /* Timer circle on top */
 .timer-circle {
   box-sizing: border-box;
-  width: clamp(85px, min(35vw, 20dvh), 180px);   
-  height: clamp(85px, min(35vw, 20dvh), 180px);
+  width: clamp(70px, min(30vw, 20dvh), 180px);   
+  height: clamp(70px, min(30vw, 20dvh), 180px);
   border-radius: 50%;
   background: white;
   /* Border thickness grows from 5px on mobile to 8px on laptop */
   border: clamp(5px, 1.5vw, 8px) solid var(--dark-gray);
   display: flex;
   align-items: center;
+  margin: 0 auto;
+  padding: 0;
   justify-content: center;
   transition: border-color 0.3s ease;
   z-index: 1;
@@ -97,13 +119,32 @@
 .timer-circle.recording.ready-to-stop { border-color: var(--success); }
 
 .timer-display {
-  /* Text scales beautifully without snapping between two sizes */
-  font-size: clamp(1.4rem, min(5vw, 4dvh), 2.2rem);
-  font-weight: bold;
+  font-size: clamp(1.6rem, min(10dvw, 10dvh), 2.3rem);
+  font-weight: 800;
 }
 
 .timer-core.recorded { margin-top: clamp(0px, 0.6dvh, 4px); }
 .timer-wrapper.recorded { margin-bottom: clamp(-25px, -2.1dvh, -20px); }
+
+.mic-icon-mask {
+  width: clamp(60px, 12vw, 85px);
+  height: clamp(60px, 12vw, 85px);
+  background-color: black;
+  -webkit-mask-image: url('../../assets/mic-icon.svg');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-image: url('../../assets/mic-icon.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+
+/* Instantly turns green when the duration is fulfilled */
+.timer-circle.ready-to-stop .mic-icon-mask {
+  background-color: var(--success, #4caf50);
+}
 
 /* --- Extra controls & Instructions --- */
 .minimalist-page-flash {
@@ -150,35 +191,33 @@
 }
 
 .active-instructions {
-  font-size: clamp(1.55rem, min(5vw, 4dvh), 1.8rem);
-  color: var(--muted);
+  font-size: clamp(1.42rem, min(5vw, 4dvh), 1.8rem);
   text-align: center;
-  width: 100%;
+  width: auto;
+  padding: 0.5em 0.3em;
 }
 
-.active-instructions.highlight-flash {
-  /* ease-out provides a very natural, smooth deceleration */
-  animation: textHighlightFlash 3s ease-out forwards; 
+.instruction-card.card-highlight-flash {
+  animation: simpleGreenHighlight 4.5s ease-out forwards; 
 }
 
-@keyframes textHighlightFlash {
+@keyframes simpleGreenHighlight {
   0% { 
-    background-color: transparent;
-    color: var(--primary); 
-    transform: scale(1.04); 
-    text-shadow: 0 0 1px var(--primary), 0 0 1px var(--primary);
+    border-color: var(--success, #4caf50); 
+    background-color: #f0fdf4; 
+    -webkit-text-stroke: 0.2px currentColor;
   }
   20% { 
-    background-color: transparent; 
-    color: var(--primary);
-    transform: scale(1.02); 
-    text-shadow: 0 0 1px var(--primary), 0 0 1px var(--primary);
+    /* Hold the highlight for a moment so it is clearly noticed */
+    border-color: var(--success, #4caf50);
+    background-color: #f0fdf4;
+    -webkit-text-stroke: 0.1px currentColor;
   }
   100% { 
-    background-color: transparent; 
-    color: var(--muted); 
-    transform: scale(1); 
-    text-shadow: 0 0 0 transparent;
+    /* Smoothly fade back to the normal white card */
+    border-color: transparent;
+    background-color: #ffffff;
+    -webkit-text-stroke: 0px transparent;
   }
 }
 
@@ -186,9 +225,9 @@
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  gap: clamp(8px, 2dvw, 12px);
+  gap: clamp(6px, 1.8dvw, 12px);
   padding: clamp(7px, 1.5dvh, 12px) clamp(10px, 3dvw, 20px);
-  font-size: clamp(1.55rem, min(4.5dvw, 3dvh), 1.7rem);
+  font-size: clamp(1.35rem, min(4.5dvw, 3dvh), 1.7rem);
   background-color: var(--primary);
   border-radius: var(--radius);
   cursor: pointer;
@@ -302,7 +341,7 @@
   align-items: center;
   gap: clamp(6px, 2vw, 10px);
   padding: clamp(8px, 1.5dvh, 12px) clamp(16px, 4dvw, 24px);
-  border-radius: 50px;
+  border-radius: var(--radius);
   font-size: clamp(1.1rem, min(3.7dvw, 2.7dvh), 1.3rem);
   font-weight: 600;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);

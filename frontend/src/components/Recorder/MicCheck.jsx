@@ -12,24 +12,19 @@ async function analyzeAudioLevel(audioUrl) {
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     
-    // Get the raw audio data from the first channel
     const channelData = audioBuffer.getChannelData(0); 
 
-    // Calculate RMS (Root Mean Square) to find average volume
     let sum = 0;
     for (let i = 0; i < channelData.length; i++) {
         sum += channelData[i] * channelData[i];
     }
     const rms = Math.sqrt(sum / channelData.length);
-    
-    // Convert to Decibels (dB). 
-    // This usually ranges from -100 (total silence) to 0 (loudest possible).
     const decibels = 20 * Math.log10(rms); 
     
     return decibels;
   } catch (error) {
     console.error("Error analyzing audio:", error);
-    return -100; // Assume quiet if error occurs so we don't block the user forever
+    return -100;
   }
 }
 
@@ -37,24 +32,21 @@ export default function MicCheck({ onNext }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking');
   const [noiseScore, setNoiseScore] = useState(0);
-  const [speechScore, setSpeechScore] = useState(0);
+  const [attempts, setAttempts] = useState(0); // Track attempts
 
   const NOISE_THRESHOLD = -40; // Anything above this is too noisy for testing
-  const SPEECH_QUIET_THRESHOLD = -42; // Anything below this is a whisper or mic is too far
-  const SPEECH_LOUD_THRESHOLD = -15;  // Anything above this is extremely loud and might distort
   
-  // Silently check permission on mount ---
+  // Silently check permission on mount
   useEffect(() => {
     async function checkMicPermission() {
       try {
         const result = await navigator.permissions.query({ name: 'microphone' });
         if (result.state === 'granted') {
-          setPhase('noise'); // Skip warning!
+          setPhase('noise');
         } else {
-          setPhase('warning'); // Show warning (they need to be prompted)
+          setPhase('warning');
         }
       } catch (error) {
-        // Fallback: If browser (like older Safari) doesn't support querying 'microphone'
         setPhase('warning');
       }
     }
@@ -66,41 +58,27 @@ export default function MicCheck({ onNext }) {
     }
   }, []);
 
-  // Handler for Phase 1: Noise
+  // Handler for Noise Phase
   const handleNoiseCheckComplete = async (taskData) => {
     setPhase('analyzing');
     const dB = await analyzeAudioLevel(taskData.audioURL);
     setNoiseScore(dB.toFixed(1));
 
+    const currentAttempts = attempts + 1;
+    setAttempts(currentAttempts);
+
     if (dB > NOISE_THRESHOLD) {
       setPhase('noise-failed');
     } else {
-      setPhase('speech');
+      setPhase('noise-success');
     }
   };
 
-  // Handler for Phase 2: Speech
-  const handleSpeechCheckComplete = async (taskData) => {
-    setPhase('analyzing-speech');
-    const dB = await analyzeAudioLevel(taskData.audioURL);
-    setSpeechScore(dB.toFixed(1));
-
-    if (dB < SPEECH_QUIET_THRESHOLD) {
-      setPhase('speech-quiet');
-    } else if (dB > SPEECH_LOUD_THRESHOLD) {
-      setPhase('speech-loud');
-    } else {
-      setPhase('speech-success');
-    }
-  };
-
-  // 1. Unified Loading States
-  if (['checking', 'analyzing', 'analyzing-speech'].includes(phase)) {
+  // 1. Loading States
+  if (['checking', 'analyzing'].includes(phase)) {
     const loadingText = phase === 'checking' 
       ? <Trans i18nKey="micCheck.loading" /> 
-      : phase === 'analyzing' 
-        ? <Trans i18nKey="micCheck.analyzing" /> 
-        : <Trans i18nKey="micCheck.analyzingSpeech" />;
+      : <Trans i18nKey="micCheck.analyzing" />;
 
     return (
       <div className="task-container">
@@ -128,21 +106,7 @@ export default function MicCheck({ onNext }) {
         useVAD={false}
         showNextButton={true}
         onNextTask={handleNoiseCheckComplete} 
-      />
-    );
-  }
-
-  if (phase === 'speech') {
-    return (
-      <Recorder
-        key="speech-phase" 
-        title={<Trans i18nKey="micCheck.speechTitle" />}
-        instructions={<Trans i18nKey="micCheck.speechInstructions" />}
-        mode="basicStop"
-        autoPermission={true} 
-        useVAD={false}
-        showNextButton={true}
-        onNextTask={handleSpeechCheckComplete}
+        showMicIcon={false}
       />
     );
   }
@@ -171,32 +135,16 @@ export default function MicCheck({ onNext }) {
       btnText = <Trans i18nKey="micCheck.btnTryAgain" />;
       onBtnClick = () => setPhase('noise');
       break;
-
-    case 'speech-quiet':
-      title = <Trans i18nKey="micCheck.speechQuietTitle" />;
-      message = <Trans i18nKey="micCheck.speechQuietMessage" values={{ score: speechScore }} />;
-      instructions = <Trans i18nKey="micCheck.speechQuietInstructions" />;
-      btnText = <Trans i18nKey="micCheck.btnTryAgain" />;
-      onBtnClick = () => setPhase('speech');
-      break;
-
-    case 'speech-loud':
-      title = <Trans i18nKey="micCheck.speechLoudTitle" /> ;
-      message = <Trans i18nKey="micCheck.speechLoudMessage" values={{ score: speechScore }} />;
-      instructions = <Trans i18nKey="micCheck.speechLoudInstructions" />;
-      btnText = <Trans i18nKey="micCheck.btnTryAgain" />;
-      onBtnClick = () => setPhase('speech');
-      break;
-
-    case 'speech-success':
-      title = <Trans i18nKey="micCheck.speechSuccessTitle" />;
-      message = <Trans i18nKey="micCheck.speechSuccessMessage" values={{ score: speechScore }} />;
-      instructions = <Trans i18nKey="micCheck.speechSuccessInstructions" />;
-      btnText = <Trans i18nKey="micCheck.btnProceed" />;
-      onBtnClick = onNext;
+    
+    case 'noise-success':
+      title = <Trans i18nKey="micCheck.successTitle"></Trans>;
+      message = <Trans i18nKey="micCheck.successMessage"></Trans>;
+      instructions = <Trans i18nKey="micCheck.successInstructions"></Trans>;
+      btnText = <Trans i18nKey="micCheck.btnProceed"></Trans>;
+      onBtnClick = onNext; 
       isSuccessState = true;
       break;
-      
+
     default:
       return null;
   }
@@ -204,7 +152,10 @@ export default function MicCheck({ onNext }) {
   return (
     <div className="task-container">
       <div className="task-header">
-        <h1>{title}</h1>
+        <h1>
+          {isSuccessState && <span className="check-icon-mask" />}
+            {title}
+        </h1>
         <div className="active-instructions">
           {message && (
             <span className={isSuccessState ? "success-text-highlight" : "warning-text-highlight"}>
@@ -215,12 +166,17 @@ export default function MicCheck({ onNext }) {
           {instructions}
         </div>
       </div>
-      {/* Empty area dynamically absorbs remaining space, pushing the button nicely to the bottom */}
       <div className="recording-area" style={{ minHeight: 0 }}></div>
-      <div className="bottom-controls">
+      <div className="bottom-controls" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
         <button className="btn-primary" onClick={onBtnClick}>
           {btnText}
         </button>
+        {/* Render 'Next' button if they've failed 2 or more times */}
+        {phase === 'noise-failed' && attempts >= 2 && (
+            <button className="btn-secondary" onClick={onNext}>
+              <Trans i18nKey="micCheck.btnProceed" />
+            </button>
+        )}
       </div>
     </div>
   );

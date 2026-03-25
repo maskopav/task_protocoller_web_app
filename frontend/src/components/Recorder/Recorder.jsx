@@ -44,7 +44,8 @@ export const Recorder = ({
     className = "",
     useVAD = false, 
     taskParams = {},
-    recordVideo = false
+    recordVideo = false,
+    showMicIcon
 }) => {
     // --- Phase State ---
     // If video is required, start in SETUP. Otherwise, jump straight to RECORDING.
@@ -455,6 +456,8 @@ export const Recorder = ({
         }
     }
 
+    const displayMicIcon = showMicIcon !== undefined ? showMicIcon : (mode === 'countDown');
+
     return (
         <div className={`task-container ${className} vad-${vadVisualState}`}>
             {isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING && (
@@ -464,7 +467,7 @@ export const Recorder = ({
                 <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
                 <div
                     key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
-                    className={`active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'highlight-flash' : ''}`}
+                   className={`instruction-card active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'card-highlight-flash' : ''}`}
                 >
                     <FormattedText text={rawInstructions} slots={slots} />
                 </div>
@@ -530,36 +533,42 @@ export const Recorder = ({
             {/* --- PHASE 3: RECORDING CONTROLS (Audio Timer + Start/Stop) --- */}
             {phase === 'RECORDING' && (
                 <>
-                    <div className={`recording-area`}>
-                        <RecordingTimer
-                            time={recordingTime}
-                            remainingTime={voiceRecorder.remainingTime}
-                            status={recordingStatus}
-                            audioLevels={audioLevels}
-                            showVisualizer={showVisualizer}
-                            isReadyToStop={(!(mode === 'countDown') && durationExpired) || canEarlyStop || mode === 'basicStop'}
-                        >
-                        </RecordingTimer>
+                    <div className={`recording-area ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}`}>
+                    {recordingStatus !== RECORDING_STATES.RECORDED && (
+                        <>
+                            <RecordingTimer
+                                time={recordingTime}
+                                remainingTime={voiceRecorder.remainingTime}
+                                status={recordingStatus}
+                                audioLevels={audioLevels}
+                                showVisualizer={showVisualizer}
+                                isReadyToStop={(!(mode === 'countDown') && durationExpired) || canEarlyStop || mode === 'basicStop'}
+                                mode={mode}
+                                showMicIcon={displayMicIcon}
+                            >
+                            </RecordingTimer>
 
-                        {/* VAD Probability Debug Bar */}
-                        {useVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
-                            <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
-                                <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
-                                <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
-                                    <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
+                            {/* VAD Probability Debug Bar */}
+                            {useVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
+                                <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
+                                    <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
+                                    <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
+                                        <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {useVAD && vadStatusText && (
-                            <div className="vad-status-wrapper">
-                                <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
-                                    {vadVisualState === 'waiting' && <span className="vad-icon">⏳</span>}
-                                    {vadVisualState === 'warning' && <span className="vad-icon">👋</span>}
-                                    <span>{vadStatusText}</span>
+                            {useVAD && vadStatusText && (
+                                <div className="vad-status-wrapper">
+                                    <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
+                                        {vadVisualState === 'waiting' && <span className="vad-icon"></span>}
+                                        {vadVisualState === 'warning' && <span className="vad-icon"></span>}
+                                        <span>{vadStatusText}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </>
+                    )}
                     </div>
                     
                     {DEBUG_MODE &&
