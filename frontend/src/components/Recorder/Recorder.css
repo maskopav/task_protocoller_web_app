@@ -195,10 +195,21 @@
 }
 
 .active-instructions {
-  font-size: clamp(1.42rem, min(5vw, 4dvh), 1.8rem);
+  font-size: clamp(1.4rem, min(4.8vw, 3.8dvh), 1.6rem);
+  line-height: 1.3;
   text-align: center;
   width: auto;
   padding: 0.5em 0.3em;
+}
+
+.instruction-card.active-instructions {
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+  margin: 0;
+  width: 100%;
+  /* Just a little side padding so text doesn't touch phone edges */
+  padding: clamp(5px, 0.5dvh, 10px) clamp(10px, 1vw, 20px); 
 }
 
 .instruction-card.card-highlight-flash {

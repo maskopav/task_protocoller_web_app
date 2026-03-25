@@ -91,7 +91,7 @@
           "values": {
             "northWind": {
               "label":"The North Wind and the Sun",
-              "text": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in,making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
+              "text": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
             },
             "grandfather": {
               "label":"The Grandfather",
@@ -137,47 +137,47 @@
       "name": "Dynamic monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Dynamic Monologue",
-      "instructions": "You will be presented with a series of topics. Speak about the topic shown. If you run out of things to say, the topic will change automatically to help you continue. Please speak for <strong>two minutes in total</strong>. Press START when you are ready.",
+      "instructions": "You will be presented with a series of topics. Please speak freely about the topic shown. If you run out of things to say, the topic will change automatically to help you continue. Try to speak for <strong>two minutes in total</strong>. Press START when you are ready.",
       "instructionsActive": "{{topicDescription}}",
       "params": {
         "topics": {
           "label": "Select multiple topics",
           "values": {
-            "hobbies": {
-              "label": "Free Time & Interests",
-              "topicDescription": "How do you like to spend your free time? Tell me about an activity you enjoy, how you got started with it, and why you find it interesting."
-            },
             "everyday": {
               "label": "Daily Routine",
-              "topicDescription": "Describe a typical day for you from the moment you wake up. What is your morning like, and what are some things you usually do every afternoon or evening?"
+              "topicDescription": "What does a typical day look like for you from the moment you wake up? You might include what your morning routine is like and what you usually do later in the day."
             },
             "entertainment": {
               "label": "Movies, Books, and Media",
-              "topicDescription": "Tell me about a movie, book, or TV show you have seen or read recently. What was it about, and would you recommend it to others?"
+              "topicDescription": "What is your favourite movie, book, or TV show? You can describe what it is about, and whether you would recommend it to others."
+            },
+            "hobbies": {
+              "label": "Free Time & Interests",
+              "topicDescription": "How do you like to spend your free time? You can describe an activity you enjoy, how you got into it, and what makes it interesting for you."
             },
             "eating": {
               "label": "Food & Cooking",
-              "topicDescription": "Do you prefer cooking at home or eating out? Tell me about a meal you enjoy or a restaurant you like to go to."
-            },
-            "neighborhood": {
-              "label": "Neighborhood",
-              "topicDescription": "Describe the area where you live. What does it look like, and what are some places nearby that you visit often?"
-            },
-            "shopping": {
-              "label": "Grocery Shopping",
-              "topicDescription": "Describe how you usually go grocery shopping. Tell me about the process from making a list to visiting the different aisles, and how you feel about shopping in-person versus online."
-            },
-            "travel": {
-              "label": "Travel and Transport",
-              "topicDescription": "Tell me about how you get from place to place. Describe your usual commute or favorite way to travel, and talk about a trip or a place you have visited that you found interesting."
+              "topicDescription": "Do you prefer cooking at home or eating out? You can describe meals you enjoy or a restaurant you like to visit."
             },
             "typicalWeekend": {
               "label": "Typical Weekend",
-              "topicDescription": "Describe what a normal weekend looks like for you. What are some of the things you usually do on a Saturday or Sunday, and how do these days differ from your work week?"
+              "topicDescription": "What does a normal weekend look like for you? You can describe what you usually do on Saturdays or Sundays, and how do these days differ from your work week?"
             },
             "work": {
-              "label": "Education and Work",
-              "topicDescription": "Tell me about your background in school or your professional life. What were some of the daily tasks or subjects you focused on, and what did you enjoy most about that environment?"
+              "label": "Work",
+              "topicDescription": "What kind of work do you do, or have you done in the past? You might describe your profession and what your typical daily tasks look or looked like."
+            },
+            "travel": {
+              "label": "Travel and Transport",
+              "topicDescription": "How do you usually get from place to place? You can describe your usual commute or a favorite way of travelling and talk about a trip or a place you have found interesting."
+            },
+            "neighborhood": {
+              "label": "Neighborhood",
+              "topicDescription": "What is the place and neighborhood where you live like? You can describe its characteristics, and some places which you visit often."
+            },
+            "shopping": {
+              "label": "Grocery Shopping",
+              "topicDescription": "How do you usually go grocery shopping? You can describe the process from making a list to moving through the store, and how you feel about shopping in-person versus online."
             }
           }
         },
