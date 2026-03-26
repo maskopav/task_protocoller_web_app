@@ -1,7 +1,7 @@
 {
     "buttons": {
       "next": "Next",
-      "repeat": "Try again",
+      "repeat": "Try Again",
       "start": "Start",
       "pause": "Pause",
       "resume": "Resume",
@@ -80,7 +80,7 @@
       "noiseInstructions": "Please remain completely <strong>silent</strong>.<br/>Click Start and wait for the 5-second countdown to finish so we can measure the room's background noise.",
       "analyzing": "Analyzing background noise...",
       "failedTitle": "Too Noisy",
-      "failedMessage": "We detected too much background noise ({{score}} dB).",
+      "failedMessage": "We detected too much background noise.",
       "failedInstructions": "For accurate results, you need to be in a <strong>quiet environment</strong>. Please try to close any open windows, or move to a quieter room. Your results could be influenced by the noise.",
       "btnTryAgain": "Try Again",
       "successTitle": "Environment Check Passed",

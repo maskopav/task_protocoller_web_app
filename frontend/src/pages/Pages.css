@@ -85,12 +85,12 @@ body {
   height: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: clamp(3px, 0.4dvh, 6px) clamp(4px, 1dvw, 8px);
+  padding: clamp(3px, 0.4dvh, 6px) clamp(3px, 0.8dvw, 8px);
   box-sizing: border-box;
   gap: clamp(4px, 0.6dvh, 8px);
   flex: 1 1 0%;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .top-controls-participant {
@@ -121,7 +121,7 @@ body {
 
 .task-progress {
   /* Matches .active-instructions in Recorder.css */
-  font-size: clamp(1rem, min(4dvw, 3dvh), 1.5rem);
+  font-size: clamp(0.95rem, min(4dvw, 3dvh), 1.5rem);
   font-weight: 500;
   color: var(--muted);
   text-align: center;
@@ -136,7 +136,7 @@ body {
   width: 100%;
   flex: 1; 
   min-height: 0;
-  padding: clamp(4px, 1dvh, 8px) clamp(2px, 0.6dvw, 4px);
+  padding: clamp(3px, 0.6dvh, 8px) clamp(2px, 0.6dvw, 4px);
   box-sizing: border-box;
   overflow-y: auto; 
   text-align: center;
@@ -167,8 +167,8 @@ body {
 
 h1 {
   /* Matches standard prominent headers */
-  font-size: clamp(1.6rem, 5vw, 2.2rem); 
-  margin-bottom: clamp(0.2rem, 1.5vw, 0.5rem);
+  font-size: clamp(1.55rem, 5vw, 2.2rem); 
+  margin-bottom: clamp(0.1rem, 0.5vh, 0.5rem);
   margin-top: 0;
   font-weight: 600;
 }

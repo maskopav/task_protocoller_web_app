@@ -168,7 +168,10 @@ export default function MicCheck({ onNext }) {
       </div>
       <div className="recording-area" style={{ minHeight: 0 }}></div>
       <div className="bottom-controls" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        <button className="btn-primary" onClick={onBtnClick}>
+        <button 
+          className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} 
+          onClick={onBtnClick}
+        >
           {btnText}
         </button>
         {/* Render 'Next' button if they've failed 2 or more times */}
