@@ -120,7 +120,7 @@
 .timer-circle.recording.ready-to-stop { border-color: var(--success); }
 
 .timer-display {
-  font-size: clamp(1.65rem, min(10dvw, 10dvh), 2.3rem);
+  font-size: clamp(1.6rem, min(9.1dvw, 10dvh), 2.3rem);
   font-weight: 800;
   background-color: transparent;
 }

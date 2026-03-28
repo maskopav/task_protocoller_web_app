@@ -43,6 +43,12 @@ export const Recorder = ({
     showNextButton = true,
     className = "",
     useVAD = false, 
+    vadConfigOverride = {},        
+    suppressSilenceWarning = false, 
+    disableTimerFreeze = false,
+    forceTimerActive = false,
+    onVadSpeechStart = null,              
+    onVadSpeechEnd = null,
     taskParams = {},
     recordVideo = false,
     hideTitle = false,
@@ -73,7 +79,7 @@ export const Recorder = ({
     // --- UI Logic: When to show the actual warning about silence
     const isLastTopic = !isAdaptiveSwitching || dynamicIndex >= dynamicArray.length - 1;
     // We only bug the user with a warning if the timer is frozen AND there are no more topics to show them!
-    const showSilenceWarning = isSilentPause && isLastTopic;
+    const showSilenceWarning = isSilentPause && isLastTopic && !suppressSilenceWarning;
 
     // --- Video Recorder Hook ---
     const videoRecorder = useVideoRecorder({
@@ -94,7 +100,7 @@ export const Recorder = ({
         mode,
         duration,
         // If VAD is on, freeze timer until participant speaks. Otherwise, normal timer.
-        isTimerActive: !useVAD || (hasSpoken && !isSilentPause)
+        isTimerActive: forceTimerActive || !useVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause))
     });
 
     const {
@@ -126,6 +132,7 @@ export const Recorder = ({
     const lastSpeechTimeRef = useRef(Date.now()); 
     const speechSegments = useRef([]);
     const currentSpeechStart = useRef(null);
+    const recordingStartTimeRef = useRef(null);
     
     // Keep our reference to the recording status fresh for the AI callbacks
     useEffect(() => {
@@ -155,7 +162,7 @@ export const Recorder = ({
                     const hasMoreTopics = isAdaptiveSwitching && dynamicIndex < dynamicArray.length - 1;
                     
                     // Check for Timer Freeze (Triggered at 3s)
-                    if (silenceDuration >= VAD_CONFIG.silenceFreezeMs) {
+                    if (!disableTimerFreeze && silenceDuration >= VAD_CONFIG.silenceFreezeMs) {
                         setIsSilentPause(true); // Freezes the clock immediately
                     }
 
@@ -190,22 +197,21 @@ export const Recorder = ({
                 console.log("VAD Model is loading..."); 
                 setIsVadLoaded(false);
 
+                const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
+
                 // Instantiate the local model
                 vadInstance.current = await window.vad.MicVAD.new({
                     stream: stream, 
                     onnxWASMBasePath: `${import.meta.env.BASE_URL}vad/`,
                     baseAssetPath: `${import.meta.env.BASE_URL}vad/`,
                     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
-                    positiveSpeechThreshold: VAD_CONFIG.positiveSpeechThreshold, 
-                    negativeSpeechThreshold: VAD_CONFIG.negativeSpeechThreshold,
-                    redemptionMs: VAD_CONFIG.redemptionMs,
-                    preSpeechPadMs: VAD_CONFIG.preSpeechPadMs,
-                    minSpeechMs: VAD_CONFIG.minSpeechMs,
+                    positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold, 
+                    negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
+                    redemptionMs: activeVadConfig.redemptionMs,
+                    preSpeechPadMs: activeVadConfig.preSpeechPadMs,
+                    minSpeechMs: activeVadConfig.minSpeechMs,
                     
-                    onFrameProcessed: (probs) => {
-                        // Updates the UI state 30 times a second!
-                        setSpeechProb(probs.isSpeech); 
-                    },
+                    onFrameProcessed: (probs) => { setSpeechProb(probs.isSpeech); },
                     onSpeechStart: () => {
                         isSpeakingRef.current = true;
                         hasSpokenRef.current = true;
@@ -213,14 +219,16 @@ export const Recorder = ({
                         setHasSpoken(true);
                         setIsSilentPause(false); 
                         setCanEarlyStop(false);
-                        lastSpeechTimeRef.current = Date.now(); // Reset silence clock
+                        lastSpeechTimeRef.current = Date.now(); 
 
                         if (statusRef.current === RECORDING_STATES.RECORDING) {
                             currentSpeechStart.current = Date.now();
                         }
+                        
+                        // Trigger parent callback
+                        if (onVadSpeechStart) onVadSpeechStart();
                     },
                     onVADMisfire: () => {
-                        // A misfire (throat clear) counts as a sound, so we reset the 4s clock!
                         isSpeakingRef.current = false;
                         setIsSpeaking(false);
                         setIsSilentPause(false);
@@ -230,8 +238,6 @@ export const Recorder = ({
                     onSpeechEnd: () => {
                         isSpeakingRef.current = false;
                         setIsSpeaking(false);
-                        
-                        // The exact millisecond they stopped speaking. The 4s countdown starts NOW.
                         lastSpeechTimeRef.current = Date.now(); 
 
                         if (statusRef.current === RECORDING_STATES.RECORDING && currentSpeechStart.current) {
@@ -242,6 +248,9 @@ export const Recorder = ({
                             });
                             currentSpeechStart.current = null; 
                         }
+
+                        // Trigger parent callback
+                        if (onVadSpeechEnd) onVadSpeechEnd();
                     },
                 });
 
@@ -297,6 +306,7 @@ export const Recorder = ({
     // --- Wrappers ---
     const handleStart = () => {
         onLogEvent("button_start");
+        recordingStartTimeRef.current = Date.now();
         hasSpokenRef.current = false;
         setHasSpoken(false); 
         setIsSilentPause(false);
@@ -387,6 +397,7 @@ export const Recorder = ({
             audioURL: audioURL,
             recordingTime: recordingTime,
             timestamp: new Date().toISOString(),
+            recordingStartTime: recordingStartTimeRef.current,
             taskTitle: title,
             taskType: 'voice',
             speechSegments: speechSegments.current,
@@ -456,7 +467,7 @@ export const Recorder = ({
     const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
     let rawInstructions = isCalibrationPhase 
         ? "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete."
-        : (activeInstructions || instructions);
+        : (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE ? activeInstructions : instructions);
 
     // Handle dynamic interpolation (keep this as string manipulation)
     if (isDynamicTask && typeof rawInstructions === 'string') {

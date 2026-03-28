@@ -24,7 +24,6 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  position: fixed;
   box-sizing: border-box;
 }
 
@@ -43,9 +42,10 @@ body {
   display: flex;
   flex-direction: column;
   width: 98%;            
-  min-height: 90dvh;      
+  min-height: 100dvh;      
   background-color: var(--bg);
   padding: 0% 1%;
+  overflow-y: auto;
 }
 
 .app-container {
