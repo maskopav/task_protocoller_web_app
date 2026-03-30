@@ -53,7 +53,8 @@ export const Recorder = ({
     recordVideo = false,
     hideTitle = false,
     showMicIcon,
-    onRecordingStateChange
+    onRecordingStateChange,
+    autoSubmit = false
 }) => {
     // --- Phase State ---
     // If video is required, start in SETUP. Otherwise, jump straight to RECORDING.
@@ -410,6 +411,13 @@ export const Recorder = ({
         onNextTask(taskData);
     };
 
+    // Automatically submit if the recording is finished and autoSubmit is enabled
+    useEffect(() => {
+        if (autoSubmit && recordingStatus === RECORDING_STATES.RECORDED && audioURL) {
+            handleNextTask();
+        }
+    }, [recordingStatus, autoSubmit, audioURL]); //
+
     // Start Video Calibration
     const handleStartCalibration = async () => {
         const hasPermission = await videoRecorder.getMediaPermission();
@@ -458,6 +466,18 @@ export const Recorder = ({
                     audioExample={audioExample} 
                     isPlaying={!!voiceRecorder.exampleAudio} 
                     onToggle={handleToggleExample}
+                    variant="example"
+                />
+            </div>
+        ) : null,
+        playStory: exampleExists ? (
+            <div className="instruction-example-row">
+                <AudioExampleButton 
+                    recordingStatus={recordingStatus}
+                    audioExample={audioExample} 
+                    isPlaying={!!voiceRecorder.exampleAudio} 
+                    onToggle={handleToggleExample}
+                    variant="story"
                 />
             </div>
         ) : null

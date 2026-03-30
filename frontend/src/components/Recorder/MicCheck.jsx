@@ -189,7 +189,8 @@ export default function MicCheck({ onNext }) {
         duration={CONFIG.RECORDING_DURATION}
         autoPermission={true}
         useVAD={true}
-        showNextButton={true}
+        showNextButton={false}
+        autoSubmit={true}
         onNextTask={handleNoiseCheckComplete} 
         showMicIcon={false}
         suppressSilenceWarning={true} 

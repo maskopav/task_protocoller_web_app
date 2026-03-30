@@ -8,6 +8,8 @@
       "stop": "Stop",
       "playExample": "Play example",
       "stopExample": "Stop example",
+      "playStory": "Play story",
+      "stopStory": "Stop story",
       "disabledWhileRecording": "Disabled while recording",
       "permission": "Get Microphone Permission",
       "cancel": "Cancel",
