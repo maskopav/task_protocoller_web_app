@@ -98,9 +98,9 @@ function useMicCheckInstructions() {
 
   const getInstructionsText = () => {
     switch(promptPhase) {
-      case 'pre-start': return "In the following task, your microphone and environment will be tested. First, count from 1 to 5 at your normal volume. Then, remain completely silent so we can measure the background noise. Click START to begin.";
-      case 'counting': return "Count out loud from 1 to 5 at a normal volume and pace.";
-      case 'silence': return "Now remain completely silent until the timer finishes.";
+      case 'pre-start': return <Trans i18nKey="micCheck.noiseInstructions" />;
+      case 'counting': return <Trans i18nKey="micCheck.noiseInstructionsCounting" />;
+      case 'silence': return <Trans i18nKey="micCheck.noiseInstructionsSilence" />;
       default: return "";
     }
   };

@@ -137,7 +137,7 @@
       "name": "Dynamic monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Dynamic Monologue",
-      "instructions": "You will be presented with a series of topics. Please speak freely about the topic shown. If you run out of things to say, the topic will change automatically to help you continue. Try to speak for <strong>two minutes in total</strong>. Press START when you are ready.",
+      "instructions": "You will be presented with a series of topics. Please speak freely about the topic shown. If you run out of things to say, the topic will change automatically to help you continue. Try to speak for <strong>{{duration}} seconds in total</strong>. Press START when you are ready.",
       "instructionsActive": "{{topicDescription}}",
       "params": {
         "topics": {
