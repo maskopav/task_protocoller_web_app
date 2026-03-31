@@ -327,6 +327,7 @@ export default function ParticipantInterfacePage() {
           useVAD={currentTask.useVAD}
           hideTitle={isReadingTask}
           onRecordingStateChange={setIsRecordingActive}
+          showMicIcon={isReadingTask ? true : undefined}
         />
       );
     // Render Questionnaire

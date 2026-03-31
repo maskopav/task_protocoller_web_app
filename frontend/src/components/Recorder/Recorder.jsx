@@ -451,7 +451,7 @@ export const Recorder = ({
             vadVisualState = "warning";
             vadStatusText = canEarlyStop 
                 ? "If you have nothing more to say, you can click Stop to finish." 
-                : "Are you still there? Please continue...";
+                : "If possible, try to speak a little longer.";
         } else if (isSpeaking) {
             vadVisualState = "speaking";
         }

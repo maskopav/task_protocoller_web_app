@@ -142,12 +142,6 @@
   mask-position: center;
 }
 
-
-/* Instantly turns green when the duration is fulfilled */
-.timer-circle.ready-to-stop .mic-icon-mask {
-  background-color: var(--success, #4caf50);
-}
-
 /* --- Extra controls & Instructions --- */
 .minimalist-page-flash {
   position: absolute;
