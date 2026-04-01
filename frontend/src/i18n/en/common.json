@@ -74,7 +74,7 @@
       "message": "The token is invalid. Please check the URL link or contact your administrator."
     },
     "micCheck": {
-      "setupTitle": "Microphone Setup & Calibration",
+      "calibrationTitle": "Microphone Setup & Calibration",
       "permissionWarning": "In the next step, the browser will ask for permission to use your microphone.",
       "permissionInstruction": "Please click <strong>Allow</strong> in the popup window so we can calibrate your audio.<br/>This is required to record your vocal tasks.",
       "btnUnderstand": "Understand & Continue",
@@ -96,7 +96,33 @@
       "successTitle": "Environment Check Passed",
       "successMessage": "Your environment is quiet enough and everything is set up.",
       "successInstructions": "Please try to keep the background this quiet for the entire duration of the survey.",
-      "btnProceed": "Proceed to First Task"
+      "btnProceed": "Proceed to First Task",
+      "guide": {
+        "titleBrowser": "Microphone is Blocked",
+        "titleSystem": "Phone is Blocking Mic",
+        "titleHardware": "Microphone Not Ready",
+        "descBrowser": "This website does not have permission to use your microphone.",
+        "descSystem": "Your phone's security settings are blocking the browser.",
+        "descBusy": "Another app (like Zoom or a call) is using your microphone.",
+        "descMissing": "We can't find a microphone. Please check your connection.",
+        "descGeneric": "Microphone access is required to proceed.",
+        "btnRetry": "Try Again",
+        "tabAndroid": "Android",
+        "tabIos": "iPhone",
+        "howToFix": "Solution",
+        "steps": {
+          "android": {
+            "browser": "Next to the website name at the top, tap the icon (such as a lock, settings, or crossed mic) > Permissions > Microphone > ON or Reset",
+            "system": "Phone Settings > Apps > Chrome > Permissions > Microphone > Allow",
+            "hardware": "Check your plug or Bluetooth. Ensure your mic doesn't have a physical mute switch turned on."
+          },
+          "ios": {
+            "browser": "Next to the website name at the top, tap the icon (such as AA, a lock, or settings) > Website Settings > Microphone > Allow",
+            "system": "Phone Settings > Privacy & Security > Microphone > Ensure the switch for Chrome is ON (Green)",
+            "hardware": "Close any other active calls (Phone/FaceTime) or other recording apps, then check your connection."
+          }
+        }
+      }
     },
     "auth": {
       "signupTitle": "New Participant",

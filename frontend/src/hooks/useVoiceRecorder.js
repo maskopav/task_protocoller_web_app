@@ -67,15 +67,10 @@ export const useVoiceRecorder = (options = {}) => {
             setStream(streamData);
             return true;
         } catch (err) {
-            // Handle errors explicitly
-            if (err.name === "NotAllowedError") {
-                onError(new Error("Microphone access was denied. Please allow it in browser settings."));
-            } else if (err.name === "NotFoundError") {
-                onError(new Error("No microphone device found."));
-            } else {
-                onError(err);
-            }
             setPermission(false);
+            // PASS THE ENTIRE ERROR OBJECT to the handler
+            console.error("DEBUG: Full Mic Error Object:", err);
+            onError(err); 
             return false;
         }
     };
