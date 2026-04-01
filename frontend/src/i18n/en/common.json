@@ -79,7 +79,7 @@
       "permissionInstruction": "Please click <strong>Allow</strong> in the popup window so we can calibrate your audio.<br/>This is required to record your vocal tasks.",
       "btnUnderstand": "Understand & Continue",
       "noiseTitle": "Background Noise Check",
-      "noiseInstructions": "In the following task, your microphone and environment will be tested. First, count from 1 to 5 at your normal volume. Then, remain completely silent so we can measure the background noise. Click START to begin.",
+      "noiseInstructions": "In the following task, your microphone and environment will be tested. <br> First, <strong>count</strong> from 1 to 5 at your normal volume. Then, remain completely <strong>silent</strong> so we can measure the background noise. Click START to begin.",
       "noiseInstructionsCounting": "<strong>Count</strong> out loud from 1 to 5 at a normal volume and pace.",
       "noiseInstructionsSilence": "Now remain completely <strong>silent</strong> until the timer finishes.",
       "analyzing": "Analyzing background noise...",

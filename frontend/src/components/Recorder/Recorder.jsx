@@ -513,7 +513,7 @@ export const Recorder = ({
     const displayMicIcon = showMicIcon !== undefined ? showMicIcon : (mode === 'countDown');
 
     return (
-        <div className={`task-container ${className} vad-${vadVisualState}`}>
+        <div className={`task-container ${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}>
             {isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING && (
                 <div key={`flash-${dynamicIndex}`} className="minimalist-page-flash" />
             )}
@@ -523,8 +523,8 @@ export const Recorder = ({
                 )}
                 <div
                     key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
-                   className={`instruction-card active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'card-highlight-flash' : ''}
-                   ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
+                    className={`instruction-card active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'card-highlight-flash' : ''}
+                    ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
                 >
                     <FormattedText text={rawInstructions} slots={slots} />
                 </div>
@@ -591,7 +591,7 @@ export const Recorder = ({
             {phase === 'RECORDING' && (
                 <>
                     <div className={`recording-area ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}`}>
-                    {recordingStatus !== RECORDING_STATES.RECORDED && (
+                    {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && (
                         <>
                             <RecordingTimer
                                 time={recordingTime}

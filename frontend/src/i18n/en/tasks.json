@@ -92,7 +92,7 @@
       "name": "Reading text",
       "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
       "title": "Reading {{topic}}",
-      "instructions": "Press the START button and then read the text displayed on the screen at a natural volume and pace. Press the STOP button when you finish.",
+      "instructions": "Press the START button, then read aloud the text displayed on the screen. Press the STOP button when you finish.",
       "instructionsActive": "{{text}}",
       "params": {
         "topic": {

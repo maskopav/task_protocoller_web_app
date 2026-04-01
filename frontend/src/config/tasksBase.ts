@@ -50,12 +50,11 @@ export const taskBaseConfig: Record<string, TaskBase> = {
 
   syllableRepeating: {
     type: "voice",
-    recording: { mode: "countDown", duration: 5 },
+    recording: { mode: "countDown", duration: 7 },
     params: {
       syllable: { default: "pataka" },
       repeat: { default: 1 },
       duration: { default: 7 },
-      maxDuration: { default: 60 },
       recordVideo: { default: false },
     },
   },
