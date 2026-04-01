@@ -11,6 +11,7 @@ export const useVoiceRecorder = (options = {}) => {
         audioExample,       // optional audio example URL
         mode = "basicStop",  // "basicStop" | "countDown" | "delayedStop"
         duration,         // optional duration of task in seconds
+        maxDuration,      // optional max duration after which recording will auto-stop
         isTimerActive = true  // VAD timer control
     } = options;
 
@@ -115,6 +116,7 @@ export const useVoiceRecorder = (options = {}) => {
         };
     }, [recordingStatus, isTimerActive, mode, duration]);
 
+
     // Recording functions
     const startRecording = () => {
         if (!stream) return;
@@ -210,6 +212,14 @@ export const useVoiceRecorder = (options = {}) => {
             audioContext.current = null;
         }
     };
+
+    // Monitor the recording time and force stop
+    useEffect(() => {
+        if (recordingStatus === RECORDING && maxDuration && recordingTime >= maxDuration) {
+            stopRecording(); // Automatically stops when limit is hit
+        }
+    }, [recordingTime, maxDuration, recordingStatus, stopRecording]);
+
 
     // Play audio example
     const playExample = () => {

@@ -30,7 +30,10 @@
           "label": "Repetitions"
         },
         "duration": {
-          "label": "Duration"
+          "label": "Required Duration (s)"
+        },
+          "maxDuration": {
+          "label": "Max Duration (s)"
         }
       }
     },
@@ -50,7 +53,10 @@
           }
         },
         "duration": {
-          "label": "Duration"
+          "label": "Required Duration (s)"
+        },
+          "maxDuration": {
+          "label": "Max Duration (s)"
         },
         "repeat": {
           "label": "Repetitions"
@@ -75,6 +81,9 @@
         },
         "repeat": {
           "label": "Repetitions"
+        },
+          "maxDuration": {
+          "label": "Max Duration (s)"
         }
       }
     },
@@ -105,6 +114,9 @@
         },
         "repeat": {
           "label": "Repetitions"
+        },
+          "maxDuration": {
+          "label": "Max Duration (s)"
         }
       }
     },
@@ -128,7 +140,10 @@
           "label": "Repetitions"
         },
         "duration": {
-          "label": "Duration"
+          "label": "Required Duration (s)"
+        },
+          "maxDuration": {
+          "label": "Max Duration (s)"
         }
       }
     },
@@ -182,7 +197,10 @@
           }
         },
         "duration": {
-          "label": "Total task duration (seconds)"
+          "label": "Total task duration (s)"
+        },
+          "maxDuration": {
+          "label": "Max Duration (s)"
         }
       }
     },

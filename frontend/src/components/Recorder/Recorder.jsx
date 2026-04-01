@@ -82,6 +82,9 @@ export const Recorder = ({
     // We only bug the user with a warning if the timer is frozen AND there are no more topics to show them!
     const showSilenceWarning = isSilentPause && isLastTopic && !suppressSilenceWarning;
 
+    // Extract maxDuration from the parameters set by the Admin
+    const { maxDuration } = taskParams;
+
     // --- Video Recorder Hook ---
     const videoRecorder = useVideoRecorder({
         debugMode: DEBUG_MODE,
@@ -100,6 +103,7 @@ export const Recorder = ({
         audioExample,
         mode,
         duration,
+        maxDuration,
         // If VAD is on, freeze timer until participant speaks. Otherwise, normal timer.
         isTimerActive: forceTimerActive || !useVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause))
     });
