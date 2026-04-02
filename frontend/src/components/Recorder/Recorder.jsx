@@ -19,11 +19,11 @@ const VAD_CONFIG = {
     earlyStopMs: 13500,          // total silence time on static task (or last dynamic topic) before early stop unlocks
     
     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
-    positiveSpeechThreshold: 0.5, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
+    positiveSpeechThreshold: 0.4, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
     negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
     redemptionMs: 1500, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
     preSpeechPadMs: 800, // number of milliseconds of audio to prepend to a speech segment. default: 800
-    minSpeechMs: 600, // minimum duration in milliseconds for a speech segment, default: 400
+    minSpeechMs: 500, // minimum duration in milliseconds for a speech segment, default: 400
 };
    
 // components/Recorder/Recorder.jsx - Main component

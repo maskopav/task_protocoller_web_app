@@ -281,11 +281,13 @@ function PermissionGuide({ onRetry, errorType }) {
     return 'hardware'; // Fallback for missing/busy
   };
 
+  const baseKey = `micCheck.guide.steps.${activeTab}.${getStepKey()}`;
+  const stepsArray = t(baseKey, { returnObjects: true });
+
   return (
     <div className="permission-guide-container">
       <div className="guide-card">
         <div className="guide-header">
-          <div className={`status-icon ${config.icon}`}></div>
           <h2>{t(`micCheck.guide.${config.title}`)}</h2>
           <p className="error-description">{t(`micCheck.guide.${config.desc}`)}</p>
         </div>
@@ -295,15 +297,24 @@ function PermissionGuide({ onRetry, errorType }) {
             {t("micCheck.guide.tabAndroid")}
           </button>
           <button className={activeTab === 'ios' ? 'active' : ''} onClick={() => setActiveTab('ios')}>
-            {t("micCheck.guide.tabIos")}
+            {t("micCheck.guide.tabIos"  )}
           </button>
         </div>
 
         <div className="instruction-steps">
-          <div className="breadcrumb-step">
-            <strong>{t("micCheck.guide.howToFix")}:</strong><br />
-            {t(`micCheck.guide.steps.${activeTab}.${getStepKey()}`)}
-          </div>
+          <div className="solution-label">{t("micCheck.guide.howToFix")}</div>
+          <ul className="steps-list">
+            {Array.isArray(stepsArray) && stepsArray.map((step, index) => (
+              <li key={index}>
+                <span className="step-number">{index + 1}</span>
+                <Trans 
+                  i18nKey={`common:${baseKey}.${index}`} 
+                  t={t}
+                  components={{ bold: <strong /> }}
+                />
+              </li>
+            ))}
+          </ul>
         </div>
 
         <button className="btn-primary full-width" onClick={onRetry}>
@@ -349,5 +360,134 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
       isSuccess: true
     };
     default: return null;
+  }
+}
+
+// Extracted Debug UI
+const DebugPanel = ({ debugOutput, noiseScore }) => (
+  <div style={{ marginTop: '2rem', padding: '1rem', background: '#1e1e1e', color: '#00ff00', borderRadius: '8px', fontSize: '0.8rem', fontFamily: 'monospace', textAlign: 'left', overflowX: 'auto' }}>
+      <h4 style={{ margin: '0 0 10px 0', color: '#fff' }}>🛠️ Math Debug Output</h4>
+      <div><strong>Calculated SNR:</strong> {noiseScore} dB</div>
+      <div><strong>Target Required:</strong> {CONFIG.TARGET_SNR} dB</div>
+      <hr style={{ borderColor: '#333', margin: '10px 0' }}/>
+      <div><strong>Total Audio Duration:</strong> {debugOutput.totalDurationSec?.toFixed(2)}s</div>
+      <div><strong>VAD Speech Segments:</strong> {debugOutput.speechSegmentsExtracted}</div>
+      <ul style={{ paddingLeft: '20px', margin: '5px 0' }}>
+        {debugOutput.speechIndices.map((seg, i) => (
+          <li key={i}>Segment {i+1}: {seg.startSec}s ➔ {seg.endSec}s</li>
+        ))}
+      </ul>
+      <hr style={{ borderColor: '#333', margin: '10px 0' }}/>
+      <div><strong>Signal (Voice) RMS:</strong> {debugOutput.signalRms?.toExponential(3)}</div>
+      <div><strong>Noise (Silence) RMS:</strong> {debugOutput.noiseRms?.toExponential(3)}</div>
+      <div style={{ color: '#888', marginTop: '5px' }}>
+          *If Signal RMS is less than e-2, voice is very quiet.<br/>
+          *If Noise RMS is higher than e-3, background is very noisy.
+      </div>
+  </div>
+);
+
+// Helper function to analyze real SNR using VAD segments
+// Helper function to analyze real SNR using VAD segments
+async function calculateSNR(audioUrl, speechSegments, recordingStartTime) {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const response = await fetch(audioUrl);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // NEW FAILSAFE 1: If the file is basically empty (just headers), the mic gave no data.
+    if (arrayBuffer.byteLength < 500) {
+       console.log("Audio file is empty. Likely hardware mute or OS-level block.");
+       return { snr: 0, error: 'muted', debugData: { byteLength: arrayBuffer.byteLength } };
+    }
+
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const channelData = audioBuffer.getChannelData(0);
+    const sampleRate = audioBuffer.sampleRate;
+
+    // DEAD MIC / HARDWARE MUTE CHECK ---
+    let maxAmplitude = 0;
+    for (let i = 0; i < channelData.length; i++) {
+      const absValue = Math.abs(channelData[i]);
+      if (absValue > maxAmplitude) maxAmplitude = absValue;
+    }
+    
+    // FAILSAFE 2: If it recorded a file, but the loudest sound is pure digital zeroes
+    if (maxAmplitude < 0.001) {
+       console.log("Audio is completely silent (Max Amplitude:", maxAmplitude, ")");
+       return { snr: 0, error: 'muted', debugData: { maxAmplitude } };
+    }
+
+    const debugData = {
+        sampleRate,
+        totalDurationSec: channelData.length / sampleRate,
+        maxAmplitude,
+        speechSegmentsExtracted: speechSegments.length,
+        signalSum: 0, signalCount: 0, noiseSum: 0, noiseCount: 0,
+        signalRms: 0, noiseRms: 0,
+        speechIndices: []
+    };
+
+    if (!speechSegments || speechSegments.length === 0) {
+      console.log("No speech segments detected by VAD. Cannot calculate SNR.");
+      return { snr: 0, error: 'no-speech', debugData };
+    }
+
+    const speechIndices = speechSegments.map(seg => {
+      const startMs = Math.max(0, seg.startTime - recordingStartTime);
+      const endMs = Math.max(0, seg.endTime - recordingStartTime);
+      return {
+        startIdx: Math.floor((startMs / 1000) * sampleRate),
+        endIdx: Math.floor((endMs / 1000) * sampleRate),
+        startSec: (startMs / 1000).toFixed(2),
+        endSec: (endMs / 1000).toFixed(2)
+      };
+    });
+    
+    debugData.speechIndices = speechIndices;
+
+    let signalSum = 0; let signalCount = 0;
+    let noiseSum = 0; let noiseCount = 0;
+
+    for (let i = 0; i < channelData.length; i++) {
+      const isSpeech = speechIndices.some(range => i >= range.startIdx && i <= range.endIdx);
+      const power = channelData[i] * channelData[i];
+
+      if (isSpeech) {
+        signalSum += power;
+        signalCount++;
+      } else {
+        noiseSum += power;
+        noiseCount++;
+      }
+    }
+
+    debugData.signalSum = signalSum;
+    debugData.signalCount = signalCount;
+    debugData.noiseSum = noiseSum;
+    debugData.noiseCount = noiseCount;
+
+    if (noiseCount === 0 || noiseSum === 0) return { snr: 100, error: 'no-noise', debugData }; 
+    if (signalCount === 0) return { snr: 0, error: 'no-speech', debugData };
+
+    const signalRms = Math.sqrt(signalSum / signalCount);
+    const noiseRms = Math.sqrt(noiseSum / noiseCount);
+    
+    debugData.signalRms = signalRms;
+    debugData.noiseRms = noiseRms;
+
+    const snrDb = 20 * Math.log10(signalRms / noiseRms);
+    return { snr: snrDb, error: null, debugData };
+
+  } catch (error) {
+    console.error("Error analyzing audio SNR:", error);
+    
+    // NEW FAILSAFE 3: If decodeAudioData crashes entirely, treat it as a dead mic
+    if (error.name === 'EncodingError' || String(error).includes('decode')) {
+       console.log("Decoding failed - audio stream was likely empty due to hardware mute.");
+       return { snr: 0, error: 'muted', debugData: null };
+    }
+    
+    return { snr: 0, error: 'processing-error', debugData: null };
   }
 }

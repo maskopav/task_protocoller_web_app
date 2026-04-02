@@ -112,14 +112,36 @@
         "howToFix": "Solution",
         "steps": {
           "android": {
-            "browser": "Next to the website name at the top, tap the icon (such as a lock, settings, or crossed mic) > Permissions > Microphone > ON or Reset",
-            "system": "Phone Settings > Apps > Chrome > Permissions > Microphone > Allow",
-            "hardware": "Check your plug or Bluetooth. Ensure your mic doesn't have a physical mute switch turned on."
+            "browser": [
+              "Next to the website name at the top, tap the icon on left (Lock, Settings, or Crossed Mic)",
+              "Tap 'Permissions'",
+              "Switch 'Microphone' to ON or 'Reset permission'"
+            ],
+            "system": [
+              "Open Phone Settings",
+              "Go to Apps > Chrome > Permissions",
+              "Ensure 'Microphone' is set to 'Allow'"
+            ],
+            "hardware": [
+              "Check your plug or Bluetooth connection",
+              "Ensure the mic doesn't have a physical mute switch on"
+            ]
           },
           "ios": {
-            "browser": "Next to the website name at the top, tap the icon (such as AA, a lock, or settings) > Website Settings > Microphone > Allow",
-            "system": "Phone Settings > Privacy & Security > Microphone > Ensure the switch for Chrome is ON (Green)",
-            "hardware": "Close any other active calls (Phone/FaceTime) or other recording apps, then check your connection."
+            "browser": [
+              "Next to the website name at the top, tap the icon (AA, Lock, or Settings)",
+              "Tap 'Website Settings'",
+              "Set 'Microphone' to 'Allow'"
+            ],
+            "system": [
+              "Open Phone Settings",
+              "Go to Privacy & Security > Microphone",
+              "Ensure the switch for 'Chrome' (or Safari) is ON (Green)"
+            ],
+            "hardware": [
+              "Close other active calls (Phone/FaceTime) or recording apps",
+              "Check your headphone connection or Bluetooth"
+            ]
           }
         }
       }
