@@ -6,43 +6,83 @@
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    padding: clamp(5px, 1vw, 15px);
   }
   
   .confirm-dialog {
     background: #fff;
-    padding: 24px;
-    border-radius: 12px;
-    min-width: 320px;
+    padding: clamp(20px, 4vw, 25px);
+    border-radius: var(--radius);
+    width: 100%;
     max-width: 420px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    animation: fadeInDialog 0.2s ease-out;
   }
   
   .confirm-dialog h2 {
     margin-top: 0;
-    font-size: 20px;
+    font-size: clamp(1.3rem, 4.5vw, 1.6rem);
   }
   
   .confirm-dialog p {
-    margin: 14px 0;
+    margin: clamp(10px, 2.5vw, 15px) 0 clamp(15px, 3vw, 20px);
+    font-size: clamp(1.15rem, 3.5vw, 1.25rem);
+    line-height: 1.4;
   }
   
   .confirm-buttons {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 20px;
+    gap: clamp(10px, 2vw, 15px);
   }
   
-  .btn-cancel {
-    background: #e0e0e0;
-    padding: 8px 16px;
-    border-radius: 6px;
-  }
-  
+  .btn-cancel,
   .btn-confirm {
-    background: var(--primary);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: clamp(1.15rem, 3vw, 1.15rem) !important;
+    padding: clamp(10px, 2dvh, 12px) clamp(16px, 4vw, 24px) !important;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    font-family: inherit;
   }
-  
+
+  .btn-cancel {
+    background-color: #e2e8f0;
+    color: #334155;
+  }
+
+  .btn-cancel:hover {
+    background-color: #cbd5e1;
+  }
+
+  .btn-confirm {
+    background-color: var(--primary);
+    color: white;
+  }
+
+  .btn-confirm:hover {
+    filter: brightness(0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Smooth entry animation */
+  @keyframes fadeInDialog {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Ensure buttons stack nicely on extremely narrow screens (like older iPhones) */
+  @media (max-width: 400px) {
+    .confirm-buttons {
+      flex-direction: column-reverse; /* Puts the primary action at the top */
+      width: 100%;
+    }
+    
+    .btn-cancel,
+    .btn-confirm {
+      width: 100%;
+      padding: 12px;
+    }
+  }

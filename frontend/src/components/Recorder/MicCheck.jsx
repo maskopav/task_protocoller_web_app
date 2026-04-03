@@ -281,8 +281,7 @@ function PermissionGuide({ onRetry, errorType }) {
     return 'hardware'; // Fallback for missing/busy
   };
 
-  const baseKey = `micCheck.guide.steps.${activeTab}.${getStepKey()}`;
-  const stepsArray = t(baseKey, { returnObjects: true });
+  const baseKey = `common:micCheck.guide.steps.${activeTab}.${getStepKey()}`;
 
   return (
     <div className="permission-guide-container">
@@ -293,28 +292,28 @@ function PermissionGuide({ onRetry, errorType }) {
         </div>
 
         <div className="tab-switcher">
-          <button className={activeTab === 'android' ? 'active' : ''} onClick={() => setActiveTab('android')}>
+          <button 
+            className={`tab-btn ${activeTab === 'android' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('android')}
+          >
             {t("micCheck.guide.tabAndroid")}
           </button>
-          <button className={activeTab === 'ios' ? 'active' : ''} onClick={() => setActiveTab('ios')}>
-            {t("micCheck.guide.tabIos"  )}
+          <button 
+            className={`tab-btn ${activeTab === 'ios' ? 'active' : ''}`} 
+            onClick={() => setActiveTab('ios')}
+          >
+            {t("micCheck.guide.tabIos")}
           </button>
         </div>
 
         <div className="instruction-steps">
           <div className="solution-label">{t("micCheck.guide.howToFix")}</div>
-          <ul className="steps-list">
-            {Array.isArray(stepsArray) && stepsArray.map((step, index) => (
-              <li key={index}>
-                <span className="step-number">{index + 1}</span>
-                <Trans 
-                  i18nKey={`common:${baseKey}.${index}`} 
-                  t={t}
-                  components={{ bold: <strong /> }}
-                />
-              </li>
-            ))}
-          </ul>
+          <div className="steps-text-block">
+            <Trans 
+              i18nKey={baseKey} 
+              t={t}
+            />
+          </div>
         </div>
 
         <button className="btn-primary full-width" onClick={onRetry}>
