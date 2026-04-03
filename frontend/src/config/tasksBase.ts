@@ -99,7 +99,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     recording: { mode: "delayedStop", duration: 60 }, // Example: 60 seconds total task duration
     useVAD: true,
     params: {
-      topics: { default: ["hobbies", "everyday", "eating"], multiple: true }, // Default selected array
+      topics: { default: ["everyday", "hobbies", "travel", "eating"], multiple: true }, // Default selected array
       duration: { default: 60 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },

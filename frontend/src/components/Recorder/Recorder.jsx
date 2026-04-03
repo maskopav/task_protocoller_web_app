@@ -8,6 +8,7 @@ import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
 import FormattedText from "../FormattedText/FormattedText";
+import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 
 const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -15,7 +16,7 @@ const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 const VAD_CONFIG = {
     // TIMING
     silenceFreezeMs: 3000,       // time until the timer freezes (and warning appears for static tasks)
-    adaptiveSwitchMs: 9500,      // time until the topic automatically switches (Dynamic Tasks only)
+    topicPromptDelayMs: 9500,      // time until the topic automatically switches (Dynamic Tasks only)
     earlyStopMs: 13500,          // total silence time on static task (or last dynamic topic) before early stop unlocks
     
     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
@@ -72,15 +73,13 @@ export const Recorder = ({
     // --- Dynamic Task Detection ---
     const dynamicArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
     const dynamicArray = Array.isArray(dynamicArrayParam) ? dynamicArrayParam : [];
-    const isDynamicTask = dynamicArray.length > 0;
-    const isAdaptiveSwitching = dynamicArray.length > 1;
-    
-    const [dynamicIndex, setDynamicIndex] = useState(0);
+    const isDynamicTask = dynamicArray.length > 0
 
-    // --- UI Logic: When to show the actual warning about silence
-    const isLastTopic = !isAdaptiveSwitching || dynamicIndex >= dynamicArray.length - 1;
-    // We only bug the user with a warning if the timer is frozen AND there are no more topics to show them!
-    const showSilenceWarning = isSilentPause && isLastTopic && !suppressSilenceWarning;
+    const [dynamicIndex, setDynamicIndex] = useState(0);
+    const [promptTopicSwitch, setPromptTopicSwitch] = useState(false);
+    const [awaitingNextTopic, setAwaitingNextTopic] = useState(false);
+
+    const confirm = useConfirm();
 
     // Extract maxDuration from the parameters set by the Admin
     const { maxDuration } = taskParams;
@@ -128,6 +127,10 @@ export const Recorder = ({
         RECORDING_STATES
     } = voiceRecorder;
 
+    // Calculate Stop Button & Warning Logic 
+    const isReadyToStop = (!(mode === 'countDown') && durationExpired) || canEarlyStop || mode === 'basicStop';
+    const showSilenceWarning = isSilentPause && !suppressSilenceWarning && !isReadyToStop;
+
     const vadInstance = useRef(null);
     const statusRef = useRef(recordingStatus);
 
@@ -159,12 +162,12 @@ export const Recorder = ({
         if (!useVAD) return;
 
         const interval = setInterval(() => {
-            if (statusRef.current === RECORDING_STATES.RECORDING) {
+            if (statusRef.current === RECORDING_STATES.RECORDING && !awaitingNextTopic) {
                 if (isSpeakingRef.current) {
                     lastSpeechTimeRef.current = Date.now();
                 } else if (hasSpokenRef.current) {
                     const silenceDuration = Date.now() - lastSpeechTimeRef.current;
-                    const hasMoreTopics = isAdaptiveSwitching && dynamicIndex < dynamicArray.length - 1;
+                    const hasMoreTopics = isDynamicTask && dynamicIndex < dynamicArray.length - 1;
                     
                     // Check for Timer Freeze (Triggered at 3s)
                     if (!disableTimerFreeze && silenceDuration >= VAD_CONFIG.silenceFreezeMs) {
@@ -172,9 +175,10 @@ export const Recorder = ({
                     }
 
                     // Check for Topic Switch (Triggered at 5s, Dynamic Tasks only)
-                    if (hasMoreTopics && silenceDuration >= VAD_CONFIG.adaptiveSwitchMs) {
-                        setDynamicIndex(prev => prev + 1);
-                        lastSpeechTimeRef.current = Date.now(); // Reset silence clock for the new topic
+                    if (hasMoreTopics && silenceDuration >= VAD_CONFIG.topicPromptDelayMs && !promptTopicSwitch) {
+                        setPromptTopicSwitch(true); // Show the prompt overlay
+                        pauseRecording();           // Stop the clock and audio instantly
+                        lastSpeechTimeRef.current = Date.now(); // Reset silence clock
                     }
 
                     // Check for Early Stop (Triggered at 10s on static tasks or final topic)
@@ -186,7 +190,7 @@ export const Recorder = ({
         }, 500); 
 
         return () => clearInterval(interval);
-    }, [useVAD, isAdaptiveSwitching, dynamicArray.length, dynamicIndex, RECORDING_STATES.RECORDING]);
+    }, [useVAD, isDynamicTask, dynamicArray.length, dynamicIndex, RECORDING_STATES.RECORDING, awaitingNextTopic, promptTopicSwitch]);
 
     // Initialize the VAD AI Model
     useEffect(() => {
@@ -308,16 +312,22 @@ export const Recorder = ({
         }
     }, [recordingStatus, useVAD, RECORDING_STATES.RECORDING]);
 
-    // --- Wrappers ---
-    const handleStart = () => {
-        onLogEvent("button_start");
-        recordingStartTimeRef.current = Date.now();
+    const resetSpeechTrackers = () => {
+        isSpeakingRef.current = false;
+        setIsSpeaking(false);
         hasSpokenRef.current = false;
         setHasSpoken(false); 
         setIsSilentPause(false);
         setCanEarlyStop(false);
         setSpeechProb(0);
         lastSpeechTimeRef.current = Date.now(); 
+    };
+
+    // --- Wrappers ---
+    const handleStart = () => {
+        onLogEvent("button_start");
+        recordingStartTimeRef.current = Date.now();
+        resetSpeechTrackers();
         
         // Start audio
         startAudioRecording();
@@ -338,17 +348,15 @@ export const Recorder = ({
 
     const handleRepeat = () => {
         onLogEvent("button_repeat");
+        // Reset dynamic task UI states
+        setDynamicIndex(0);
+        setAwaitingNextTopic(false); 
+        setPromptTopicSwitch(false);
+        // Reset data containers
         speechSegments.current = []; 
         currentSpeechStart.current = null;
-        setDynamicIndex(0);
-        hasSpokenRef.current = false;
-        setHasSpoken(false); 
-        setIsSpeaking(false);
-        setIsSilentPause(false);
-        setCanEarlyStop(false);
-        setSpeechProb(0);
-        lastSpeechTimeRef.current = Date.now();
-
+        
+        resetSpeechTrackers(); // Clean VAD start
         repeatRecording();
 
         // Send user back to SETUP phase if video is enabled
@@ -358,10 +366,58 @@ export const Recorder = ({
     };
 
     // We pass the logger to the example button so it can log clicks itself
-    const handlePlayExample = () => {
-        onLogEvent("button_illustration");
-        playExample();
+    const handleToggleExample = () => {
+        if (voiceRecorder.exampleAudio) {
+            voiceRecorder.stopExample(); 
+        } else {
+            onLogEvent("button_illustration"); playExample(); 
+        }
     };
+
+    // --- Topic Switching Logic ---
+    const handleAcceptTopicSwitch = () => {
+        onLogEvent("topic_switch_accepted");
+        setDynamicIndex(prev => prev + 1); 
+        setPromptTopicSwitch(false);
+        setAwaitingNextTopic(true); // Tells UI to show the "Start" state again
+        resetSpeechTrackers();
+    };
+
+    const handleDeclineTopicSwitch = () => {
+        onLogEvent("topic_switch_declined");
+        setPromptTopicSwitch(false);
+        // We only want to clear the pause state and give them a fresh 9.5s, 
+        // but we want the app to remember they have already spoken for this topic.
+        setIsSilentPause(false);
+        lastSpeechTimeRef.current = Date.now();
+        resumeRecording(); 
+    };
+
+    const handleStartNextTopic = () => {
+        onLogEvent("start_next_topic");
+        setAwaitingNextTopic(false);
+        resetSpeechTrackers(); // Clean VAD start before unpausing
+        resumeRecording(); // Starts the clock and audio again
+    };
+
+    // Listen for the prompt state and fire the ConfirmDialog
+    useEffect(() => {
+        if (promptTopicSwitch) {
+            confirm({
+                title: "Ready for the next topic?",
+                message: "We noticed a pause. Would you like to switch to the next topic?",
+                confirmText: "Yes, switch",
+                cancelText: "No, continue"
+            }).then((isConfirmed) => {
+                if (isConfirmed) {
+                    handleAcceptTopicSwitch();
+                } else {
+                    handleDeclineTopicSwitch();
+                }
+            });
+        }
+    }, [promptTopicSwitch]);
+
 
     // Auto-request permission on mount if enabled
     React.useEffect(() => {
@@ -384,9 +440,7 @@ export const Recorder = ({
           if (!audioExample) return;
           try {
             const res = await fetch(audioExample, { method: "HEAD" });
-            const type = res.headers.get("content-type") || "";
-            const ok = res.ok && type.includes("audio");
-            setExampleExists(ok);
+            setExampleExists(res.ok && (res.headers.get("content-type") || "").includes("audio"));
           } catch {
             setExampleExists(false);
           }
@@ -420,7 +474,7 @@ export const Recorder = ({
         if (autoSubmit && recordingStatus === RECORDING_STATES.RECORDED && audioURL) {
             handleNextTask();
         }
-    }, [recordingStatus, autoSubmit, audioURL]); //
+    }, [recordingStatus, autoSubmit, audioURL]); 
 
     // Start Video Calibration
     const handleStartCalibration = async () => {
@@ -434,97 +488,58 @@ export const Recorder = ({
         }
     };
 
-    // --- Toggle Logic ---
-    const handleToggleExample = () => {
-        if (voiceRecorder.exampleAudio) {
-            voiceRecorder.stopExample(); 
-        } else {
-            handlePlayExample(); 
-        }
-    };
-
-    // Determine the visual state of the recorder for CSS styling
-    let vadVisualState = "idle";
-    let vadStatusText = "";
-    
-    if (useVAD && recordingStatus === RECORDING_STATES.RECORDING) {
-        if (!hasSpoken) {
-            vadVisualState = "waiting";
-            // vadStatusText = "Feel free to start whenever you want! Waiting for you to speak...";
-        } else if (showSilenceWarning) {
-            vadVisualState = "warning";
-            vadStatusText = canEarlyStop 
-                ? "If you have nothing more to say, you can click Stop to finish." 
-                : "If possible, try to speak a little longer.";
-        } else if (isSpeaking) {
-            vadVisualState = "speaking";
-        }
-    }
-
-    // 1. Prepare the Slot for the button
-    const slots = {
-        example: exampleExists ? (
-            <div className="instruction-example-row">
-                <AudioExampleButton 
-                    recordingStatus={recordingStatus}
-                    audioExample={audioExample} 
-                    isPlaying={!!voiceRecorder.exampleAudio} 
-                    onToggle={handleToggleExample}
-                    variant="example"
-                />
-            </div>
-        ) : null,
-        playStory: exampleExists ? (
-            <div className="instruction-example-row">
-                <AudioExampleButton 
-                    recordingStatus={recordingStatus}
-                    audioExample={audioExample} 
-                    isPlaying={!!voiceRecorder.exampleAudio} 
-                    onToggle={handleToggleExample}
-                    variant="story"
-                />
-            </div>
-        ) : null
-    };
-
-    // 2. Prepare the String (Handling Calibration and Interpolation)
+    // --- Prepare UI Strings (Simplified) ---
     const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
-    let rawInstructions = isCalibrationPhase 
-        ? "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete."
-        : (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE ? activeInstructions : instructions);
+    
+    // Choose which base instructions to show
+    let baseInstructions = instructions;
+    if (isCalibrationPhase) {
+        baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
+    } else if (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE && !awaitingNextTopic) {
+        // If recording and NOT waiting for the user to start a new topic, show active instructions
+        baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
+    }
+    
+    let rawInstructions = baseInstructions;
 
-    // Handle dynamic interpolation (keep this as string manipulation)
+    // Apply interpolation universally
     if (isDynamicTask && typeof rawInstructions === 'string') {
         const currentItem = dynamicArray[dynamicIndex];
-        if (typeof currentItem === 'object' && currentItem !== null) {
+        const paramKey = Object.keys(taskParams).find(k => taskParams[k] === dynamicArray) || "topic";
+        
+        if (typeof currentItem === 'string') {
+            rawInstructions = rawInstructions.replace(new RegExp(`{{${paramKey}}}`, 'g'), currentItem);
+        } else if (typeof currentItem === 'object' && currentItem !== null) {
             Object.entries(currentItem).forEach(([key, value]) => {
-                const regex = new RegExp(`{{${key}}}`, 'g');
-                rawInstructions = rawInstructions.replace(regex, String(value));
+                rawInstructions = rawInstructions.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
             });
-        } else if (typeof currentItem === 'string') {
-            const paramKey = Object.keys(taskParams).find(k => taskParams[k] === dynamicArray);
-            if (paramKey) {
-                const regex = new RegExp(`{{${paramKey}}}`, 'g');
-                rawInstructions = rawInstructions.replace(regex, currentItem);
-            }
         }
     }
 
-    const displayMicIcon = showMicIcon !== undefined ? showMicIcon : (mode === 'countDown');
+    const slots = {
+        example: exampleExists ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="example"/></div> : null,
+        playStory: exampleExists ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="story"/></div> : null
+    };
+
+    let vadVisualState = "idle";
+    let vadStatusText = "";
+    if (useVAD && recordingStatus === RECORDING_STATES.RECORDING) {
+        if (!hasSpoken) vadVisualState = "waiting";
+        else if (showSilenceWarning) {
+            vadVisualState = "warning";
+            vadStatusText = canEarlyStop ? "If you have nothing more to say, you can click Stop to finish." : "If possible, try to speak a little longer.";
+        } else if (isSpeaking) vadVisualState = "speaking";
+    }
 
     return (
         <div className={`task-container ${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}>
-            {isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING && (
-                <div key={`flash-${dynamicIndex}`} className="minimalist-page-flash" />
-            )}
             <div className='task-header'>
                 {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
                     <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
                 )}
                 <div
-                    key={isCalibrationPhase ? 'calibration' : (isAdaptiveSwitching ? dynamicIndex : 'static')} 
-                    className={`instruction-card active-instructions ${(isAdaptiveSwitching && recordingStatus === RECORDING_STATES.RECORDING) ? 'card-highlight-flash' : ''}
-                    ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
+                    key={isCalibrationPhase ? 'calibration' : (isDynamicTask ? dynamicIndex : 'static')} 
+                    className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
                 >
                     <FormattedText text={rawInstructions} slots={slots} />
                 </div>
@@ -591,7 +606,8 @@ export const Recorder = ({
             {phase === 'RECORDING' && (
                 <>
                     <div className={`recording-area ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}`}>
-                    {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && (
+                    
+                    {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && !promptTopicSwitch && !awaitingNextTopic && (
                         <>
                             <RecordingTimer
                                 time={recordingTime}
@@ -599,9 +615,9 @@ export const Recorder = ({
                                 status={recordingStatus}
                                 audioLevels={audioLevels}
                                 showVisualizer={showVisualizer}
-                                isReadyToStop={(!(mode === 'countDown') && durationExpired) || canEarlyStop || mode === 'basicStop'}
+                                isReadyToStop={isReadyToStop}
                                 mode={mode}
-                                showMicIcon={displayMicIcon}
+                                showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
                             >
                             </RecordingTimer>
 
@@ -639,30 +655,38 @@ export const Recorder = ({
                     )}
                     
 
-                    <div className="bottom-controls">
-                        <RecordingControls
-                            recordingStatus={recordingStatus}
-                            disableControls={mode === 'countDown'}
-                            disableStart={useVAD && !isVadLoaded}
-                            permission={audioPermission}
-                            onStart={handleStart}
-                            onPause={pauseRecording}
-                            onResume={resumeRecording}
-                            onStop={handleStop}
-                            onPermission={getMicrophonePermission}
-                            disableStop={mode === 'delayedStop' && !durationExpired && !canEarlyStop}
-                            showPause={false}
-                            RECORDING_STATES={RECORDING_STATES}
-                        />
+                    {awaitingNextTopic ? (
+                        <div className="bottom-controls">
+                            <button className="btn-primary" onClick={handleStartNextTopic}>
+                                Start Next Topic
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="bottom-controls" style={{ visibility: promptTopicSwitch ? 'hidden' : 'visible' }}>
+                            <RecordingControls
+                                recordingStatus={recordingStatus}
+                                disableControls={mode === 'countDown'}
+                                disableStart={useVAD && !isVadLoaded}
+                                permission={audioPermission}
+                                onStart={handleStart}
+                                onPause={pauseRecording}
+                                onResume={resumeRecording}
+                                onStop={handleStop}
+                                onPermission={getMicrophonePermission}
+                                disableStop={!isReadyToStop}
+                                showPause={false}
+                                RECORDING_STATES={RECORDING_STATES}
+                            />
 
-                        <PlaybackSection
-                            audioURL={audioURL}
-                            recordingStatus={recordingStatus}
-                            onRepeat={handleRepeat}
-                            onNextTask={handleNextTask}
-                            showNextButton={showNextButton}
-                        />
-                    </div>
+                            <PlaybackSection
+                                audioURL={audioURL}
+                                recordingStatus={recordingStatus}
+                                onRepeat={handleRepeat}
+                                onNextTask={handleNextTask}
+                                showNextButton={showNextButton}
+                            />
+                        </div>
+                    )}
                 </>
             )}
         </div>
