@@ -79,7 +79,7 @@
       "permissionInstruction": "Please click <strong>Allow</strong> in the popup window so we can record your vocal tasks.",
       "btnUnderstand": "Understand & Continue",
       "noiseTitle": "Microphone Check",
-      "noiseInstructions": "In this task, your microphone and your surroundings will be tested. <br/> First, <strong>count slowly and out loud</strong> from 1 to 5, then remain completely <strong>silent</strong>. The task will finish automatically after 12 seconds. Click START to begin.",
+      "noiseInstructions": "In this task, your microphone and your surroundings will be tested. <br><br/> First, <strong>count slowly and out loud</strong> from 1 to 5, then remain completely <strong>silent</strong>. The task will finish automatically after 12 seconds. Click START to begin.",
       "noiseInstructionsCounting": "<strong>Count slowly and out loud</strong> from 1 to 5.",
       "noiseInstructionsSilence": "Now remain completely <strong>silent</strong> until the timer finishes.",
       "analyzing": "Checking the sound...",

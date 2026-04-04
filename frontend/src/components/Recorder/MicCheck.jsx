@@ -125,7 +125,7 @@ export default function MicCheck({ onNext }) {
   useEffect(() => {
     async function checkMicPermission() {
       if (!navigator.permissions?.query) {
-        setPhase('noise');
+        setPhase('intro');
         return;
       }
       try {
@@ -133,6 +133,8 @@ export default function MicCheck({ onNext }) {
         if (result.state === 'denied') {
           setErrorType(ERR.BROWSER);
           setPhase('warning');
+        } else if (result.state === 'prompt') {
+          setPhase('intro');
         } else {
           setPhase('noise');
         }
@@ -143,7 +145,7 @@ export default function MicCheck({ onNext }) {
           }
         };
       } catch (error) {
-        setPhase('noise');
+        setPhase('intro');
       }
     }
     checkMicPermission();
@@ -345,6 +347,20 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
   const common = { onBtnClick: onRetry, isSuccess: false, btnText: t("micCheck.btnTryAgain") };
   
   switch (phase) {
+    case 'intro': return {
+      title: <Trans i18nKey="micCheck.calibrationTitle" />,
+      message: null,
+      instructions: (
+        <>
+          <Trans i18nKey="micCheck.permissionWarning" />
+          <br /><br />
+          <Trans i18nKey="micCheck.permissionInstruction" />
+        </>
+      ),
+      btnText: <Trans i18nKey="micCheck.btnUnderstand" />, // The user clicks "I understand"
+      onBtnClick: onRetry, // onRetry triggers () => setPhase('noise'), which moves them to the next step!
+      isSuccess: false
+    };
     case 'noise-failed': 
       if (errorType === 'muted') return { 
         ...common, 
