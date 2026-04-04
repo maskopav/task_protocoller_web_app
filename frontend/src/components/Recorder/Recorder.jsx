@@ -535,8 +535,12 @@ export const Recorder = ({
         <div className={`task-container ${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}>
             <div className='task-header'>
                 {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
-                    <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+                    <>
+                        <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+                        <div className="flexible-spacer"></div>
+                    </>
                 )}
+                
                 <div
                     key={isCalibrationPhase ? 'calibration' : (isDynamicTask ? dynamicIndex : 'static')} 
                     className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}

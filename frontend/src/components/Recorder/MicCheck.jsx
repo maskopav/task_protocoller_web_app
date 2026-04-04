@@ -3,12 +3,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import "./Recorder.css";
+import androidBrowserImg from "../../assets/android-browser-help.png";
+import iosBrowserImg from "../../assets/ios-browser-help.png";
 
 // ==========================================
 // 1. CONFIGURATION & CONSTANTS
 // ==========================================
 const CONFIG = {
-  TARGET_SNR: 8,
+  TARGET_SNR: 7,
   RECORDING_DURATION: 12,
   VAD_REDEMPTION_MS: 1500,
   MAX_WAIT_TIME_MS: 4000,
@@ -275,6 +277,9 @@ function PermissionGuide({ onRetry, errorType }) {
     [ERR.GENERIC]: { title: 'titleBrowser', desc: 'descGeneric', icon: 'icon-lock' },
   }[errorType || ERR.GENERIC];
 
+  const showIllustration = errorType === 'BROWSER_DENIED';
+  const illustrationSrc = activeTab === 'android' ? androidBrowserImg : iosBrowserImg;
+
   const getStepKey = () => {
     if (errorType === ERR.BROWSER) return 'browser';
     if (errorType === ERR.SYSTEM) return 'system';
@@ -308,6 +313,15 @@ function PermissionGuide({ onRetry, errorType }) {
 
         <div className="instruction-steps">
           <div className="solution-label">{t("micCheck.guide.howToFix")}</div>
+          {showIllustration && (
+            <div className="illustration-container">
+              <img 
+                src={illustrationSrc} 
+                alt="Help illustration" 
+                className="instruction-image" 
+              />
+            </div>
+          )}
           <div className="steps-text-block">
             <Trans 
               i18nKey={baseKey} 
@@ -340,21 +354,21 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
       };
       if (errorType === 'no-speech') return { 
         ...common, 
-        title: t("micCheck.noSpeechTitle"), 
-        message: t("micCheck.noSpeechMessage"), 
-        instructions: t("micCheck.noSpeechInstructions") 
+        title: <Trans i18nKey="micCheck.noSpeechTitle" />, 
+        message: <Trans i18nKey="micCheck.noSpeechMessage" />, 
+        instructions: <Trans i18nKey="micCheck.noSpeechInstructions" /> 
       };
       return { 
         ...common, 
-        title: t("micCheck.failedTitle"), 
-        message: t("micCheck.failedMessage"), 
-        instructions: t("micCheck.failedInstructions") 
+        title: <Trans i18nKey="micCheck.failedTitle" />, 
+        message: <Trans i18nKey="micCheck.failedMessage" />, 
+        instructions: <Trans i18nKey="micCheck.failedInstructions" /> 
       };
     case 'noise-success': return {
-      title: t("micCheck.successTitle"),
-      message: t("micCheck.successMessage"),
-      instructions: t("micCheck.successInstructions"),
-      btnText: t("micCheck.btnProceed"),
+      title: <Trans i18nKey="micCheck.successTitle" />,
+      message: <Trans i18nKey="micCheck.successMessage" />,
+      instructions: <Trans i18nKey="micCheck.successInstructions" />,
+      btnText: <Trans i18nKey="micCheck.btnProceed" />,
       onBtnClick: onNext,
       isSuccess: true
     };

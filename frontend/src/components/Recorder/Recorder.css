@@ -18,8 +18,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: auto;
-  flex: 0 0 auto;
+  width: 100%;
+  flex: 0 1 auto;
   height: auto; 
   justify-content: center;
   padding: clamp(5px, 1.5dvh, 10px) 0 0 0;
@@ -27,14 +27,25 @@
 
 .task-header h1 {
   margin-top: 0;
-  margin-bottom: clamp(25px, 7dvh, 50px);
+  margin-bottom: 0;
   font-size: clamp(1.4rem, 5.5vw, 2.2rem);
   color: var(--muted);
   flex: 0 0 auto;
 }
 
+.flexible-spacer {
+  width: 100%;
+  height: clamp(25px, 6dvh, 50px); 
+  transition: height 0.5s ease-in-out;
+}
+
+.status-recording .flexible-spacer,
+.status-paused .flexible-spacer {
+  height: clamp(10px, 2dvh, 10px); 
+}
+
 .instruction-card {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   background-color: #ffffff;
   color: #000000;
   border-radius: var(--radius);
@@ -407,19 +418,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
-  padding: 10px;
+  padding: 5px;
   animation: fadeIn 0.3s ease-out;
-}
-
-.guide-card {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  padding: 15px;
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
 }
 
 .guide-header h2 {
@@ -441,7 +441,7 @@
   background: #f0f2f5;
   border-radius: var(--radius);
   padding: 3px;
-  margin: 0 auto 20px auto;
+  margin: 0 auto 10px auto;
   max-width: 280px;
 }
 
@@ -488,12 +488,23 @@
   margin-bottom: 12px;
 }
 
+.instruction-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  /* Ensure the image doesn't get too big on desktop */
+  max-width: 320px; 
+  margin: 0 auto;
+}
+
 .steps-text-block {
   text-align: left;
   font-size: 1.2rem;
   line-height: 1.6; /* Increased for better spacing between bullet lines */
   color: #1e293b;
   white-space: pre-line; /* Helps preserve spacing from the JSON if needed */
+  margin-top: 10px;
 }
 
 .steps-text-block strong {
