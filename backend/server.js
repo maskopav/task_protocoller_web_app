@@ -12,12 +12,14 @@ import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
 import userProjectsRouter from "./src/routes/userProjects.js";
+import { logFrontendToFile } from "./src/utils/logger.js";
 
 import cors from "cors";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
 
 // Test routes
 app.get('/test', (req, res) => res.json({ response: 'test' }));
@@ -44,6 +46,14 @@ app.use("/auth", authRouter);
 app.use("/users", usersRouter)
 app.use("/projects", projectsRouter)
 app.use("/user-projects", userProjectsRouter)
+
+app.post("/logs/frontend", (req, res) => {
+  const { message, details } = req.body;
+  if (message) {
+    logFrontendToFile(message, details);
+  }
+  res.status(200).json({ success: true });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
