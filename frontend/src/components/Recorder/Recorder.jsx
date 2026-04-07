@@ -9,6 +9,7 @@ import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
+import { logToServer } from '../../utils/frontendLogger';
 
 const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -20,8 +21,8 @@ const VAD_CONFIG = {
     earlyStopMs: 13500,          // total silence time on static task (or last dynamic topic) before early stop unlocks
     
     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
-    positiveSpeechThreshold: 0.4, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
-    negativeSpeechThreshold: 0.45, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
+    positiveSpeechThreshold: 0.35, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
+    negativeSpeechThreshold: 0.25, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
     redemptionMs: 1500, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
     preSpeechPadMs: 800, // number of milliseconds of audio to prepend to a speech segment. default: 800
     minSpeechMs: 500, // minimum duration in milliseconds for a speech segment, default: 400
@@ -64,6 +65,9 @@ export const Recorder = ({
 
     // --- VAD State & Logic ---
     const [isVadLoaded, setIsVadLoaded] = useState(!useVAD);
+    const [vadFailed, setVadFailed] = useState(false);
+    const activeUseVAD = useVAD && !vadFailed;
+
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isSilentPause, setIsSilentPause] = useState(false);
     const [canEarlyStop, setCanEarlyStop] = useState(false);
@@ -104,7 +108,7 @@ export const Recorder = ({
         duration,
         maxDuration,
         // If VAD is on, freeze timer until participant speaks. Otherwise, normal timer.
-        isTimerActive: forceTimerActive || !useVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause))
+        isTimerActive: forceTimerActive || !activeUseVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause))
     });
 
     const {
@@ -159,7 +163,7 @@ export const Recorder = ({
 
     // Adaptive tasks
     useEffect(() => {
-        if (!useVAD) return;
+        if (!activeUseVAD) return;
 
         const interval = setInterval(() => {
             if (statusRef.current === RECORDING_STATES.RECORDING && !awaitingNextTopic) {
@@ -190,21 +194,27 @@ export const Recorder = ({
         }, 500); 
 
         return () => clearInterval(interval);
-    }, [useVAD, isDynamicTask, dynamicArray.length, dynamicIndex, RECORDING_STATES.RECORDING, awaitingNextTopic, promptTopicSwitch]);
+    }, [activeUseVAD, isDynamicTask, dynamicArray.length, dynamicIndex, RECORDING_STATES.RECORDING, awaitingNextTopic, promptTopicSwitch]);
 
     // Initialize the VAD AI Model
     useEffect(() => {
-        if (!useVAD || !stream) return;
+        if (!activeUseVAD || !stream) return;
+
+        let frameCount = 0;
 
         const initVAD = async () => {
             if (!window.vad) {
-                console.error("VAD script is missing! Make sure script tags are in index.html");
+                logToServer("VAD script missing in index.html");
                 return;
             }
 
             try {
-                console.log("VAD Model is loading..."); 
                 setIsVadLoaded(false);
+                // Force single threading for mobile browsers.
+                // This prevents the dreaded SharedArrayBuffer crash.
+                if (window.ort && window.ort.env && window.ort.env.wasm) {
+                    window.ort.env.wasm.numThreads = 1;
+                }
 
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
 
@@ -220,7 +230,15 @@ export const Recorder = ({
                     preSpeechPadMs: activeVadConfig.preSpeechPadMs,
                     minSpeechMs: activeVadConfig.minSpeechMs,
                     
-                    onFrameProcessed: (probs) => { setSpeechProb(probs.isSpeech); },
+                    onFrameProcessed: (probs) => { 
+                        setSpeechProb(probs.isSpeech); 
+                        // Log the first 3 frames to prove the AudioContext is running
+                        // and see what probability scores the mic is generating
+                        if (frameCount < 3) {
+                            logToServer(`VAD Frame Processed [${frameCount}]`, { probability: probs.isSpeech });
+                            frameCount++;
+                        }
+                    },
                     onSpeechStart: () => {
                         isSpeakingRef.current = true;
                         hasSpokenRef.current = true;
@@ -263,7 +281,6 @@ export const Recorder = ({
                     },
                 });
 
-                console.log("VAD Model loaded successfully!");
                 setIsVadLoaded(true);
 
                 // If user clicked record while the AI was still loading, start it immediately
@@ -272,6 +289,9 @@ export const Recorder = ({
                 }
             } catch (error) {
                 console.error("Failed to load VAD model:", error);
+                logToServer("Failed to load VAD model", error.message || error.toString());
+                setVadFailed(true);     // Mark VAD as failed
+                setIsVadLoaded(true);   // Pretend it loaded so the UI 'Start' button unlocks
             }
         };
 
@@ -284,7 +304,7 @@ export const Recorder = ({
                 vadInstance.current = null;
             }
         };
-    }, [useVAD, stream, RECORDING_STATES.RECORDING]);
+    }, [activeUseVAD, stream, RECORDING_STATES.RECORDING]);
 
     // Save final segment if user hits Stop mid-sentence
     useEffect(() => {
@@ -300,7 +320,7 @@ export const Recorder = ({
 
     // Sync VAD Engine with Pause/Play
     useEffect(() => {
-        if (!useVAD || !vadInstance.current) return;
+        if (!activeUseVAD || !vadInstance.current) return;
         if (recordingStatus === RECORDING_STATES.RECORDING) {
             vadInstance.current.start();
             setIsSilentPause(false);
@@ -310,7 +330,7 @@ export const Recorder = ({
             setIsSilentPause(false);
             setCanEarlyStop(false);
         }
-    }, [recordingStatus, useVAD, RECORDING_STATES.RECORDING]);
+    }, [recordingStatus, activeUseVAD, RECORDING_STATES.RECORDING]);
 
     const resetSpeechTrackers = () => {
         isSpeakingRef.current = false;
@@ -523,7 +543,7 @@ export const Recorder = ({
 
     let vadVisualState = "idle";
     let vadStatusText = "";
-    if (useVAD && recordingStatus === RECORDING_STATES.RECORDING) {
+    if (activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING) {
         if (!hasSpoken) vadVisualState = "waiting";
         else if (showSilenceWarning) {
             vadVisualState = "warning";
@@ -626,7 +646,7 @@ export const Recorder = ({
                             </RecordingTimer>
 
                             {/* VAD Probability Debug Bar */}
-                            {useVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
+                            {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
                                 <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
                                     <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
                                     <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
@@ -635,7 +655,7 @@ export const Recorder = ({
                                 </div>
                             )}
 
-                            {useVAD && vadStatusText && (
+                            {activeUseVAD && vadStatusText && (
                                 <div className="vad-status-wrapper">
                                     <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
                                         {vadVisualState === 'waiting' && <span className="vad-icon"></span>}
@@ -652,7 +672,7 @@ export const Recorder = ({
                         <StatusIndicator status={recordingStatus} />
                     }
 
-                    {useVAD && !isVadLoaded && stream && (
+                    {activeUseVAD && !isVadLoaded && stream && (
                         <div className="vad-loading-indicator" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
                             Loading Speech Detector...
                         </div>
@@ -670,7 +690,7 @@ export const Recorder = ({
                             <RecordingControls
                                 recordingStatus={recordingStatus}
                                 disableControls={mode === 'countDown'}
-                                disableStart={useVAD && !isVadLoaded}
+                                disableStart={activeUseVAD && !isVadLoaded}
                                 permission={audioPermission}
                                 onStart={handleStart}
                                 onPause={pauseRecording}

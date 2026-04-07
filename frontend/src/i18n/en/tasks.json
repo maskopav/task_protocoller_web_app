@@ -14,7 +14,7 @@
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed stop mode* — the STOP button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the STOP button appears ('duration').",
       "title": "Prolonged phonation /{{phoneme}}/",
-      "instructions": "Press the START button, <strong>draw a deep breath</strong>, and attempt to produce the longest and most stable phonation of the /{{phoneme}}/ vowel possible on a single breath. {{example}} Try to sustain it for at least {{duration}} seconds. Once you run out of breath, press the STOP button.",
+      "instructions": "<strong>Draw a deep breath</strong>, and try to perform a sustained phonation of vowel /{{phoneme}}/ <strong>as constant and long as possible</strong> in one breath. {{example}} Try to sustain it for at least {{duration}} seconds. Press START to begin and STOP once you run out of breath.",
       "params": {
         "phoneme": {
           "label": "Phoneme",
@@ -42,7 +42,7 @@
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
-      "instructions": "Press the START button, <strong>draw a deep breath</strong>, and attempt to repeat the syllables /{{syllable}}-{{syllable}}/ as quickly and accurately as possible until the timer expires. {{example}}",
+      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables /{{syllable}}-{{syllable}}/ as quickly and accurately as possible until the timer stops. {{example}} Press START to begin.",
       "params": {
         "syllable": {
           "label": "Syllable",
@@ -92,7 +92,7 @@
       "name": "Reading text",
       "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
       "title": "Reading {{topic}}",
-      "instructions": "Press the START button, then read aloud the text displayed on the screen. Press the STOP button when you finish.",
+      "instructions": "Read the text on the screen out loud. Press START to begin and STOP when you are finished.",
       "instructionsActive": "{{text}}",
       "params": {
         "topic": {
@@ -147,12 +147,11 @@
         }
       }
     },
-
     "dynamic_monologue": {
       "name": "Monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Monologue",
-      "instructions": "Speak freely about the topic below for <strong>{{duration}} seconds</strong>.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}}",
+      "instructions": "Please speak about the topic below for a total of <strong>{{duration}} seconds</strong>. If you run out of things to say, an option to change the topic will appear to help you continue.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}} <br/>Press START when you are ready.",
       "params": {
         "topics": {
           "label": "Select multiple topics",
