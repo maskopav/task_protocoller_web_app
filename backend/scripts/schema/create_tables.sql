@@ -161,6 +161,17 @@ CREATE TABLE `recordings` (
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE `session_mic_checks` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `session_id` integer NOT NULL,
+  `recording_url` varchar(255) NOT NULL,
+  `snr_score` float DEFAULT NULL,
+  `duration_seconds` integer DEFAULT NULL,
+  `speech_segments` JSON DEFAULT NULL COMMENT 'Stores arrays of [start_ms, end_ms]',
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE
+);
+
 CREATE TABLE `questionnaire_responses` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `session_id` integer NOT NULL,

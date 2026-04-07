@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import "./Recorder.css";
+import { uploadMicCheck } from "../../api/recordings";
 import androidBrowserImg from "../../assets/android-browser-help.png";
 import iosBrowserImg from "../../assets/ios-browser-help.png";
 import { calculateSNR } from "../../utils/audioAnalysis";
@@ -111,7 +112,7 @@ function useMicCheckInstructions() {
 // ==========================================
 // 3. MAIN COMPONENT
 // ==========================================
-export default function MicCheck({ onNext }) {
+export default function MicCheck({ onNext, sessionId, token }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
@@ -171,6 +172,18 @@ export default function MicCheck({ onNext }) {
   };
 
   const handleNoiseCheckComplete = async (taskData) => {
+    // Fetch the blob IMMEDIATELY before changing any state.
+    let audioBlob;
+    let safeAudioUrl;
+    try {
+      const response = await fetch(taskData.audioURL);
+      audioBlob = await response.blob();
+      // Create a fresh URL that WE control, so it doesn't get destroyed by the Recorder unmounting
+      safeAudioUrl = URL.createObjectURL(audioBlob); 
+    } catch (err) {
+      logToServer("Failed to fetch audio blob for MicCheck", err);
+    }
+
     setPhase('analyzing');
     const result = await calculateSNR(taskData.audioURL, taskData.speechSegments, taskData.recordingStartTime);
     const calculatedScore = result.snr ? result.snr.toFixed(1) : 0;
@@ -179,6 +192,26 @@ export default function MicCheck({ onNext }) {
     setDebugOutput(result.debugData);
     setErrorType(result.error);
     setAttempts(prev => prev + 1);
+
+    try {
+      if (sessionId && token && audioBlob) {
+        await uploadMicCheck(audioBlob, {
+          sessionId,
+          token,
+          snrScore: calculatedScore,
+          duration: CONFIG.RECORDING_DURATION,
+          speechSegments: taskData.speechSegments
+        });
+      } else {
+        console.warn("Skipping mic check upload: sessionId or token missing.");
+      }
+    } catch (uploadError) {
+      logToServer("MicCheck Data Upload Failed", uploadError);
+    }
+
+    if (safeAudioUrl) {
+      URL.revokeObjectURL(safeAudioUrl);
+    }
 
     const nextPhase = result.error === 'no-speech' || result.snr < CONFIG.TARGET_SNR ? 'noise-failed' : 'noise-success';
     setPhase(nextPhase);

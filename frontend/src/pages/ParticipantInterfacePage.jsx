@@ -303,7 +303,7 @@ export default function ParticipantInterfacePage() {
 
     // Render the Mic Check component
     if (rawTask.type === "mic_check") {
-      return <MicCheck onNext={() => handleTaskComplete({ type: 'mic_check' })} />;
+      return <MicCheck onNext={() => handleTaskComplete({ type: 'mic_check' })} sessionId={sessionId} token={accessToken} />;
     }
 
     const currentTask = resolveTask(rawTask, t);

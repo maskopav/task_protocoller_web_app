@@ -1,12 +1,12 @@
 // src/utils/audioAnalysis.js
 import { logToServer } from "./frontendLogger";
 
-const FALLBACK_DURATION_MS = 8000;
+const FALLBACK_DURATION_MS = 5000;
 
 /**
  * Main entry point for SNR calculation
  */
-export async function calculateSNR(audioUrl, speechSegments, recordingStartTime) {
+export async function calculateSNR(audioUrl, speechSegments, recordingStartTime, fallbackDurationMs = FALLBACK_DURATION_MS) {
   try {
     // 1. Fetch and decode the audio
     const audioBuffer = await fetchAndDecodeAudio(audioUrl);
@@ -22,8 +22,8 @@ export async function calculateSNR(audioUrl, speechSegments, recordingStartTime)
       return { snr: 0, error: 'muted', debugData: { maxAmplitude } };
     }
 
-    // 3. Determine if we use VAD segments or the 8-second manual fallback
-    const { activeSegments, usedFallback } = determineSpeechSegments(speechSegments, recordingStartTime);
+    // 3. Determine if we use VAD segments or the manual fallback (based on instructions)
+    const { activeSegments, usedFallback } = determineSpeechSegments(speechSegments, recordingStartTime, fallbackDurationMs);
 
     // 4. Convert time segments into audio array indices
     const speechIndices = convertSegmentsToIndices(activeSegments, recordingStartTime, sampleRate);
@@ -82,14 +82,14 @@ function getMaxAmplitude(channelData) {
     return max;
 }
 
-function determineSpeechSegments(speechSegments, recordingStartTime) {
+function determineSpeechSegments(speechSegments, recordingStartTime, fallbackDurationMs) {
     if (!speechSegments || speechSegments.length === 0) {
         logToServer("VAD missed speech or failed. Applying manual fallback rule.");
         return {
             usedFallback: true,
             activeSegments: [{
                 startTime: recordingStartTime,
-                endTime: recordingStartTime + FALLBACK_DURATION_MS
+                endTime: recordingStartTime + fallbackDurationMs
             }]
         };
     }

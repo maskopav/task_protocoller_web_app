@@ -30,3 +30,27 @@ export async function uploadRecording(blob, metadata) {
 
   return res.json();
 }
+
+export async function uploadMicCheck(blob, metadata) {
+  const formData = new FormData();
+  
+  formData.append("audio", blob, "mic_check.webm");
+  formData.append("token", metadata.token);
+  formData.append("sessionId", metadata.sessionId);
+  formData.append("snrScore", metadata.snrScore);
+  formData.append("duration", metadata.duration);
+  // Stringify the JSON array so it travels safely in FormData
+  formData.append("speechSegments", JSON.stringify(metadata.speechSegments)); 
+
+  const res = await fetch(`${API_BASE}/recordings/mic-check`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Mic check upload failed");
+  }
+
+  return res.json();
+}
