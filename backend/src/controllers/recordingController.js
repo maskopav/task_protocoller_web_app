@@ -2,8 +2,13 @@
 import fs from "fs";
 import path from "path";
 import pool from "../db/connection.js";
+import { exec } from "child_process";
+import { promisify } from "util";
+import ffmpegStatic from "ffmpeg-static";
 import { logToFile } from '../utils/logger.js';
 import { dateInYyyyMmDdHhMmSs } from "../utils/dateFormatter.js";
+
+const execPromise = promisify(exec);
 
 // Configuration for file storage
 const UPLOAD_DIR = process.env.DATA_PATH; 
@@ -32,10 +37,11 @@ export const uploadRecording = async (req, res) => {
     const safeRep = repeatIndex || "1";
     // Use the date helper (defaults to now if empty)
     const timestamp = dateInYyyyMmDdHhMmSs();
-    const filename = `S${sessionId}_O${taskOrder}_C${safeCat}_R${safeRep}_D${timestamp}.webm`;
+    const baseFilename = `S${sessionId}_O${taskOrder}_C${safeCat}_R${safeRep}_D${timestamp}`;
     
-    const filePath = path.join(UPLOAD_DIR, filename);
-    await fs.promises.writeFile(filePath, file.buffer);
+    // Process it, and get back either the .wav or .webm filename depending on success
+    const finalFilename = await processAndSaveAudio(file.buffer, baseFilename);
+
 
     // 3. Insert directly using the IDs we received
     await connection.query(
@@ -46,12 +52,12 @@ export const uploadRecording = async (req, res) => {
       recording_url = VALUES(recording_url), 
       duration_seconds = VALUES(duration_seconds),
       created_at = CURRENT_TIMESTAMP`,
-      [sessionId, protocolTaskId, filename, Math.round(duration || 0), safeRep]
+      [sessionId, protocolTaskId, finalFilename, Math.round(duration || 0), safeRep]
     );
 
     await connection.commit();
-    logToFile(`✅ Saved recording: ${filename}`);
-    res.json({ success: true, filename });
+    logToFile(`✅ Saved recording: ${finalFilename}`);
+    res.json({ success: true, filename: finalFilename });
 
   } catch (err) {
     await connection.rollback();
@@ -78,10 +84,9 @@ export const uploadMicCheck = async (req, res) => {
 
     // Generate a unique filename for the mic check
     const timestamp = dateInYyyyMmDdHhMmSs();
-    const filename = `S${sessionId}_MICCHECK_D${timestamp}.webm`;
-    
-    const filePath = path.join(UPLOAD_DIR, filename);
-    await fs.promises.writeFile(filePath, file.buffer);
+    const baseFilename = `S${sessionId}_MICCHECK_D${timestamp}`;
+  
+    const finalFilename = await processAndSaveAudio(file.buffer, baseFilename);
 
     // Insert into the new session_mic_checks table
     await connection.query(
@@ -90,7 +95,7 @@ export const uploadMicCheck = async (req, res) => {
       VALUES (?, ?, ?, ?, ?)`,
       [
         sessionId, 
-        filename, 
+        finalFilename, 
         parseFloat(snrScore) || null, 
         parseInt(duration) || null, 
         speechSegments ? speechSegments : null // Express receives this as a stringified JSON
@@ -98,8 +103,8 @@ export const uploadMicCheck = async (req, res) => {
     );
 
     await connection.commit();
-    logToFile(`✅ Saved mic check recording: ${filename}`);
-    res.json({ success: true, filename });
+    logToFile(`✅ Saved mic check recording: ${finalFilename}`);
+    res.json({ success: true, filename: finalFilename });
 
   } catch (err) {
     await connection.rollback();
@@ -107,5 +112,29 @@ export const uploadMicCheck = async (req, res) => {
     res.status(500).json({ error: "Failed to save mic check" });
   } finally {
     connection.release();
+  }
+};
+
+const processAndSaveAudio = async (buffer, baseFilename) => {
+  const webmFilename = `${baseFilename}.webm`;
+  const wavFilename = `${baseFilename}.wav`;
+  
+  const webmPath = path.join(UPLOAD_DIR, webmFilename);
+  const wavPath = path.join(UPLOAD_DIR, wavFilename);
+
+  // ALWAYS save the original .webm file first
+  await fs.promises.writeFile(webmPath, buffer);
+
+  try {
+    // ffmpegStatic is just a string containing the direct path to the downloaded binary inside your node_modules!
+    await execPromise(`"${ffmpegStatic}" -i "${webmPath}" -c:a pcm_s16le -f wav -y "${wavPath}"`);
+
+    // If conversion succeeds, delete the .webm and return the .wav filename
+    await fs.promises.unlink(webmPath);
+    return wavFilename;
+
+  } catch (error) {
+    logToFile(`⚠️ Static FFmpeg conversion failed for ${baseFilename}. Falling back to .webm. Error:`, error.message);
+    return webmFilename; 
   }
 };
