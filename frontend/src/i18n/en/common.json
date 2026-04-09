@@ -57,6 +57,9 @@
       "milestone_50": "Halfway there! Over 50% ",
       "milestone_75": "Almost done! Over 75% "
     },
+    "repetition": {
+      "notice": "Please perform the task again."
+    },
     "questionnaire": {
       "selectOption": "Select an option...",
       "typeAnswer": "Type your answer here...",
@@ -75,11 +78,11 @@
       "message": "The token is invalid. Please check the URL link or contact your administrator."
     },
     "micCheck": {
-      "calibrationTitle": "Microphone Setup & Calibration",
+      "calibrationTitle": "Microphone Setup",
       "permissionWarning": "In the next step, your browser will ask for microphone access.",
       "permissionInstruction": "Please click <strong>Allow</strong> in the popup window so we can record your vocal tasks.",
       "btnUnderstand": "Understand & Continue",
-      "noiseTitle": "Microphone Check",
+      "noiseTitle": "Sound Test",
       "noiseInstructions": "In this task, your microphone and your surroundings will be tested. <br><br/> First, <strong>count slowly and out loud</strong> from 1 to 5, then remain completely <strong>silent</strong>. The task will finish automatically after 12 seconds. Click START to begin.",
       "noiseInstructionsCounting": "<strong>Count slowly and out loud</strong> from 1 to 5.",
       "noiseInstructionsSilence": "Now remain completely <strong>silent</strong> until the timer finishes.",
