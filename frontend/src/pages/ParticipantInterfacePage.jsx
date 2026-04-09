@@ -317,6 +317,7 @@ export default function ParticipantInterfacePage() {
           title={currentTask.title}
           instructions={currentTask.instructions}
           instructionsActive={currentTask.instructionsActive}
+          completedInstructions={t("completion.taskCompletedInstructions", { ns: "common" })}
           audioExample={currentTask.illustration}
           mode={currentTask.recording.mode}
           duration={currentTask.recording.duration}

@@ -29,6 +29,7 @@
       "recorded": "✅ Recorded"
     },
     "completion": {
+      "taskCompletedInstructions": "Task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",
       "thankYouTitle": "Testing Complete!",
       "thankYouMessage": "Thank you for your participation. Your data has been successfully recorded and saved.",
       "safeToClose": "You may now safely close this browser window.",

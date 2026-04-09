@@ -44,6 +44,7 @@ export const Recorder = ({
     title = "🎙️ Task Recorder",
     instructions = "Record, pause, resume, and save your audio with real-time visualization",
     instructionsActive,
+    completedInstructions = "The task was completed successfully. You can proceed to the next task, try again if you are not satisfied, or listen to your recording below.",
     audioExample,
     mode,
     duration,
@@ -543,6 +544,9 @@ export const Recorder = ({
     let baseInstructions = instructions;
     if (isCalibrationPhase) {
         baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
+    } else if (recordingStatus === RECORDING_STATES.RECORDED) {
+        // Show completion instructions when the task is finished
+        baseInstructions = completedInstructions;
     } else if (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE && !awaitingNextTopic) {
         // If recording and NOT waiting for the user to start a new topic, show active instructions
         baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
