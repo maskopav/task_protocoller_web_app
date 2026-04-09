@@ -10,8 +10,19 @@ import { AudioExampleButton } from './AudioExampleButton';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
+import { IncompatibleBrowser } from './IncompatibleBrowser';
 
 const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
+
+const getBrowserInfo = () => {
+    const ua = navigator.userAgent;
+    if (ua.includes('Firefox'))  return { browser: 'Firefox',  ua };
+    if (ua.includes('Edg/'))     return { browser: 'Edge',     ua };
+    if (ua.includes('OPR/') || ua.includes('Opera/')) return { browser: 'Opera', ua };
+    if (ua.includes('Chrome'))   return { browser: 'Chrome',   ua };
+    if (ua.includes('Safari'))   return { browser: 'Safari',   ua };
+    return { browser: 'Unknown', ua };
+};
 
 // VAD config - all parameters
 const VAD_CONFIG = {
@@ -120,6 +131,7 @@ export const Recorder = ({
         audioLevels,
         activeInstructions,
         durationExpired,
+        incompatibleBrowser,
         getMicrophonePermission,
         startRecording: startAudioRecording,
         pauseRecording,
@@ -137,6 +149,7 @@ export const Recorder = ({
 
     const vadInstance = useRef(null);
     const statusRef = useRef(recordingStatus);
+    const isInitializingVad = useRef(false);
 
     // Speech Metadata Trackers
     const isSpeakingRef = useRef(false);
@@ -208,21 +221,32 @@ export const Recorder = ({
                 return;
             }
 
-            try {
-                setIsVadLoaded(false);
-                // Force single threading for mobile browsers.
-                // This prevents the dreaded SharedArrayBuffer crash.
-                if (window.ort && window.ort.env && window.ort.env.wasm) {
-                    window.ort.env.wasm.numThreads = 1;
-                }
+            if (isInitializingVad.current) {
+                logToServer("VAD is already initializing, skipping...");
+                return; 
+            }
 
+            try {
+                isInitializingVad.current = true;
+                setIsVadLoaded(false);
+
+                // Dynamically get the correct path (e.g., /test/dist/vad/)
+                const basePath = `${import.meta.env.BASE_URL}vad/`;
+                
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
 
                 // Instantiate the local model
                 vadInstance.current = await window.vad.MicVAD.new({
                     stream: stream, 
-                    onnxWASMBasePath: `${import.meta.env.BASE_URL}vad/`,
-                    baseAssetPath: `${import.meta.env.BASE_URL}vad/`,
+                    onnxWASMBasePath: basePath,
+                    baseAssetPath: basePath,
+                    workletURL: basePath + "vad.worklet.bundle.min.js",
+                    modelURL: basePath + "silero_vad_v5.onnx",
+                    ortConfig: (ort) => {
+                        ort.env.wasm.simd = false;
+                        ort.env.wasm.numThreads = 1;
+                        ort.env.wasm.wasmPaths = basePath;
+                    },
                     // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
                     positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold, 
                     negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
@@ -289,16 +313,20 @@ export const Recorder = ({
                 }
             } catch (error) {
                 console.error("Failed to load VAD model:", error);
-                logToServer("Failed to load VAD model", error.message || error.toString());
+                logToServer("Failed to load VAD model", { ...getBrowserInfo(), error: error.message || error.toString() });
+                isInitializingVad.current = false;
                 setVadFailed(true);     // Mark VAD as failed
                 setIsVadLoaded(true);   // Pretend it loaded so the UI 'Start' button unlocks
             }
         };
 
-        initVAD();
+        const vadInitTimer = setTimeout(() => {
+            initVAD();
+        }, 500);
 
         // Cleanup: pause and destroy the AI when leaving the page
         return () => {
+            clearTimeout(vadInitTimer);
             if (vadInstance.current) {
                 vadInstance.current.pause();
                 vadInstance.current = null;
@@ -553,6 +581,12 @@ export const Recorder = ({
 
     return (
         <div className={`task-container ${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}>
+
+            {/* Incompatible browser overlay */}
+            {incompatibleBrowser && (
+                <IncompatibleBrowser browserName={incompatibleBrowser} />
+            )}
+
             <div className='task-header'>
                 {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
                     <>

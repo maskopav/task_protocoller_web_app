@@ -1,0 +1,112 @@
+/* components/Recorder/IncompatibleBrowser.css */
+.ib-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    padding: clamp(1rem, 4vw, 2rem);
+}
+
+.ib-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: clamp(0.6rem, 2dvh, 1rem);
+    max-width: 380px;
+    width: 100%;
+}
+
+.ib-icon {
+    font-size: clamp(2rem, 8vw, 3rem);
+    line-height: 1;
+}
+
+.ib-title {
+    margin: 0;
+    font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
+    font-weight: 700;
+    color: var(--text);
+}
+
+.ib-description {
+    margin: 0;
+    font-size: clamp(1.1rem, min(4.5vw, 3.5dvh), 1.3rem);
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.ib-instruction {
+    margin: 0;
+    font-size: clamp(1.1rem, min(4.5vw, 3.5dvh), 1.3rem);
+    color: var(--text);
+}
+
+/* Browser icons grid */
+.ib-browsers {
+    display: flex;
+    gap: clamp(1rem, 3.7vw, 1.6rem);
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.ib-browser-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(3px, 1vw, 6px);
+}
+
+.ib-browser-icon {
+    width: clamp(32px, 9vw, 44px);
+    height: clamp(32px, 9vw, 44px);
+    margin: clamp(8px, 1.3vw, 12px);
+}
+
+.ib-browser-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.ib-browser-name {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* URL box */
+.ib-url-box {
+    width: 100%;
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: clamp(0.4rem, 1.5dvh, 0.7rem) clamp(0.6rem, 2vw, 1rem);
+    word-break: break-all;
+}
+
+.ib-url-text {
+    font-size: clamp(0.65rem, 2.5vw, 0.8rem);
+    font-family: monospace;
+    color: var(--text);
+    user-select: all;
+}
+
+/* Copy button */
+.ib-copy-btn {
+    width: 100%;
+    background: var(--primary);
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.2s;
+}
+
+.ib-copy-btn--copied {
+    background: var(--success);
+}
+
+.ib-copy-btn:active {
+    opacity: 0.85;
+}

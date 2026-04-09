@@ -35,6 +35,8 @@ export default function ParticipantInterfaceLoader() {
     lastLoadedToken.current = token;
 
     async function load() {
+      // Save original token URL before any navigation happens
+      sessionStorage.setItem('originalParticipantUrl', window.location.href);
       try {
         // 1. call backend to resolve token
         const response = await fetchParticipantProtocol(token);

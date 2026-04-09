@@ -1,5 +1,7 @@
 // hooks/useVoiceRecorder.js - Reusable hook for voice recording logic
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { logToServer } from '../utils/frontendLogger';
+
 
 export const useVoiceRecorder = (options = {}) => {
     const {
@@ -22,6 +24,7 @@ export const useVoiceRecorder = (options = {}) => {
     const RECORDED = "recorded";
 
     // State management
+    const [incompatibleBrowser, setIncompatibleBrowser] = useState(null);
     const [recordingStatus, setRecordingStatus] = useState(IDLE);
     const [permission, setPermission] = useState(false);
     const [stream, setStream] = useState(null);
@@ -41,36 +44,73 @@ export const useVoiceRecorder = (options = {}) => {
     const audioContext = useRef(null);
     const animationFrame = useRef(null);
 
-    // Get microphone permission
     const getMicrophonePermission = async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            const error = new Error("Your browser does not support audio recording.");
-            onError(error);
+        const ua = navigator.userAgent;
+
+        // Detect known broken browsers
+        const browserName =
+            /Lite Browser/i.test(ua)   ? 'Xiaomi Lite Browser' :
+            /MiuiBrowser/i.test(ua)    ? 'MIUI Browser' :
+            /HuaweiBrowser/i.test(ua)  ? 'Huawei Browser' :
+            /HeyTapBrowser/i.test(ua)  ? 'OPPO Browser' :
+            /VivoBrowser/i.test(ua)    ? 'Vivo Browser' : null;
+
+        // Collect all pre-flight info in one log
+        logToServer("MIC | permission check", {
+            browser: browserName || ua.match(/(Chrome|Firefox|Safari|Edge)\/[\d.]+/)?.[0] || 'Unknown',
+            incompatible: !!browserName,
+            isSecureContext: window.isSecureContext,
+            protocol: location.protocol,
+            hasMediaDevices: !!navigator.mediaDevices?.getUserMedia,
+        });
+
+        // Block known broken browsers immediately
+        if (browserName) {
+            setIncompatibleBrowser(browserName);
             setPermission(false);
             return false;
         }
-    
+
+        if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+            const reason = !window.isSecureContext ? 'Not a secure context (HTTPS required)' : 'getUserMedia API not available';
+            logToServer("MIC | BLOCKED", { reason });
+            onError(new Error(reason));
+            setPermission(false);
+            return false;
+        }
+
         try {
-        // IMPORTANT: must be called from a user gesture
-        const streamData = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: {
-                // explicit constraints to disable processing
-                autoGainControl: false,
-                echoCancellation: false,
-                noiseSuppression: false,
-                // optional: ensures we get the rawest audio possible
-                channelCount: 1 
-            },
+            const streamData = await navigator.mediaDevices.getUserMedia({
+                video: false,
+                audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
             });
+
+            const track = streamData.getAudioTracks()[0];
+            logToServer("MIC | granted", {
+                label: track?.label || 'unknown',
+                readyState: track?.readyState,
+                settings: track?.getSettings?.() ?? 'unsupported',
+            });
+
             setPermission(true);
             setStream(streamData);
             return true;
+
         } catch (err) {
+            const diagnosisMap = {
+                NotAllowedError:       'Denied by user or silent system policy',
+                NotFoundError:         'No microphone hardware found',
+                NotReadableError:      'Mic in use by another app',
+                OverconstrainedError:  'Constraints not satisfiable on this device',
+                AbortError:            'Request aborted',
+                SecurityError:         'Blocked by browser security policy',
+            };
+            logToServer("MIC | denied", {
+                error: err.name,
+                diagnosis: diagnosisMap[err.name] || 'Unknown error',
+            });
             setPermission(false);
-            // PASS THE ENTIRE ERROR OBJECT to the handler
-            console.error("DEBUG: Full Mic Error Object:", err);
-            onError(err); 
+            onError(err);
             return false;
         }
     };
@@ -339,6 +379,7 @@ return {
     activeInstructions,
     exampleAudio,
     durationExpired,
+    incompatibleBrowser,
     
     // Actions
     getMicrophonePermission,

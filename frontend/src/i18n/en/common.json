@@ -124,6 +124,14 @@
         }
       }
     },
+    "incompatibleBrowser": {
+      "title": "Browser Not Supported",
+      "description": "does not support microphone access required for this task.",
+      "instruction": "Copy the link below and open it in one of these browsers:",
+      "fallbackPrompt": "Copy this link and open it in Chrome, Safari, Opera or Edge:",
+      "copied": "Copied!",
+      "copyBtn": "Copy Link"
+    },
     "auth": {
       "signupTitle": "New Participant",
       "loginTitle": "Welcome Back",
