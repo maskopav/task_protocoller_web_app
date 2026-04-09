@@ -222,7 +222,6 @@
 }
 
 .instruction-card.active-instructions.no-title {
-  background-color: transparent;
   box-shadow: none;
   border: none;
   margin: 0;

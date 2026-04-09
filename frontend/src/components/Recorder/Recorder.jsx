@@ -583,6 +583,49 @@ export const Recorder = ({
         } else if (isSpeaking) vadVisualState = "speaking";
     }
 
+    // 1. Detect if we are in the Reading Task (hideTitle is true) AND currently recording
+    const shouldShiftTimer = hideTitle && recordingStatus === RECORDING_STATES.RECORDING;
+
+    // 2. Wrap the entire recording-area into a clean reusable render function
+    const renderRecordingArea = () => (
+        <div className={`recording-area ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}`}>
+            {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && !promptTopicSwitch && !awaitingNextTopic && (
+                <>
+                    <RecordingTimer
+                        time={recordingTime}
+                        remainingTime={voiceRecorder.remainingTime}
+                        status={recordingStatus}
+                        audioLevels={audioLevels}
+                        showVisualizer={showVisualizer}
+                        isReadyToStop={isReadyToStop}
+                        mode={mode}
+                        showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
+                    />
+
+                    {/* VAD Probability Debug Bar */}
+                    {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
+                        <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
+                            <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
+                            <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
+                                <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeUseVAD && vadStatusText && (
+                        <div className="vad-status-wrapper">
+                            <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
+                                {vadVisualState === 'waiting' && <span className="vad-icon"></span>}
+                                {vadVisualState === 'warning' && <span className="vad-icon"></span>}
+                                <span>{vadStatusText}</span>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
+
     return (
         <div className={`task-container ${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}>
 
@@ -590,6 +633,8 @@ export const Recorder = ({
             {incompatibleBrowser && (
                 <IncompatibleBrowser browserName={incompatibleBrowser} />
             )}
+
+            {shouldShiftTimer && phase === 'RECORDING' && renderRecordingArea()}
 
             <div className='task-header'>
                 {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
@@ -667,44 +712,7 @@ export const Recorder = ({
             {/* --- PHASE 3: RECORDING CONTROLS (Audio Timer + Start/Stop) --- */}
             {phase === 'RECORDING' && (
                 <>
-                    <div className={`recording-area ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}`}>
-                    
-                    {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && !promptTopicSwitch && !awaitingNextTopic && (
-                        <>
-                            <RecordingTimer
-                                time={recordingTime}
-                                remainingTime={voiceRecorder.remainingTime}
-                                status={recordingStatus}
-                                audioLevels={audioLevels}
-                                showVisualizer={showVisualizer}
-                                isReadyToStop={isReadyToStop}
-                                mode={mode}
-                                showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
-                            >
-                            </RecordingTimer>
-
-                            {/* VAD Probability Debug Bar */}
-                            {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
-                                <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
-                                    <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
-                                    <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
-                                        <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeUseVAD && vadStatusText && (
-                                <div className="vad-status-wrapper">
-                                    <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
-                                        {vadVisualState === 'waiting' && <span className="vad-icon"></span>}
-                                        {vadVisualState === 'warning' && <span className="vad-icon"></span>}
-                                        <span>{vadStatusText}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </>
-                    )}
-                    </div>
+                    {!shouldShiftTimer && renderRecordingArea()}
                     
                     {DEBUG_MODE &&
                         <StatusIndicator status={recordingStatus} />
