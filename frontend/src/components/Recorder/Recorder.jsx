@@ -236,9 +236,12 @@ export const Recorder = ({
                 
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
 
+                const vadStream = stream.clone();
+
                 // Instantiate the local model
                 vadInstance.current = await window.vad.MicVAD.new({
-                    stream: stream, 
+                    stream: vadStream, 
+                    audioContext: voiceRecorder.audioContext?.current, // reuse existing AudioContext
                     onnxWASMBasePath: basePath,
                     baseAssetPath: basePath,
                     workletURL: basePath + "vad.worklet.bundle.min.js",
@@ -330,6 +333,9 @@ export const Recorder = ({
             clearTimeout(vadInitTimer);
             if (vadInstance.current) {
                 vadInstance.current.pause();
+                if (vadInstance.current.stream) {
+                    vadInstance.current.stream.getTracks().forEach(track => track.stop());
+                }
                 vadInstance.current = null;
             }
         };

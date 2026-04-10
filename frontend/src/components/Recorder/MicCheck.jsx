@@ -185,7 +185,7 @@ export default function MicCheck({ onNext, sessionId, token }) {
     }
 
     setPhase('analyzing');
-    const result = await calculateSNR(taskData.audioURL, taskData.speechSegments, taskData.recordingStartTime);
+    const result = await calculateSNR(safeAudioUrl, taskData.speechSegments, taskData.recordingStartTime);
     const calculatedScore = result.snr ? result.snr.toFixed(1) : 0;
     
     setNoiseScore(calculatedScore);

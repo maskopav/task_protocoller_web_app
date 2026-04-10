@@ -380,6 +380,7 @@ return {
     exampleAudio,
     durationExpired,
     incompatibleBrowser,
+    audioContext,
     
     // Actions
     getMicrophonePermission,
