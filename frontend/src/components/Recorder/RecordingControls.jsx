@@ -52,11 +52,10 @@ export const RecordingControls = ({
                 {t("buttons.pause")}
                 </button>
                 )}
-                {!disableStop && (
-                <button onClick={onStop} className="btn-stop">
+
+                <button onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
                 {t("buttons.stop")}
                 </button>
-                )}
                 </div>
             )}
 
@@ -66,11 +65,9 @@ export const RecordingControls = ({
                 {t("buttons.resume")}
                 </button>
 
-                {!disableStop && (
-                <button onClick={onStop} className="btn-stop">
+                <button onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
                 {t("buttons.stop")}
                 </button>
-                )}
                 </div>
             )}
             </>

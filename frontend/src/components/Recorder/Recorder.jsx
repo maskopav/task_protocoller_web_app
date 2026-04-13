@@ -550,6 +550,9 @@ export const Recorder = ({
     let baseInstructions = instructions;
     if (isCalibrationPhase) {
         baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
+    } else if (isDynamicTask && dynamicIndex > 0) {
+        // For dynamic tasks, after the first topic switch, only show topic info 
+        baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
     } else if (recordingStatus === RECORDING_STATES.RECORDED) {
         // Show completion instructions when the task is finished
         baseInstructions = completedInstructions;
@@ -594,7 +597,10 @@ export const Recorder = ({
 
     // 2. Wrap the entire recording-area into a clean reusable render function
     const renderRecordingArea = () => (
-        <div className={`recording-area ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}`}>
+        <div className={`recording-area 
+            ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}
+            ${shouldShiftTimer ? 'is-shifted' : ''}`}
+        >
             {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && !promptTopicSwitch && !awaitingNextTopic && (
                 <>
                     <RecordingTimer

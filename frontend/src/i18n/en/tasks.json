@@ -42,7 +42,7 @@
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
-      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables /{{syllable}}-{{syllable}}/ as quickly and accurately as possible until the timer stops. {{example}} Press START to begin.",
+      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables /{{syllable}}-{{syllable}}/ as quickly and accurately as possible until the task finishes automatically after {{duration}} seconds. {{example}} Press START to begin.",
       "params": {
         "syllable": {
           "label": "Syllable",
@@ -67,7 +67,7 @@
     "retelling": {
       "name": "Fairytale retelling",
       "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
-      "title": "Retelling {{fairytale}}",
+      "title": "Retelling fairytale",
       "instructions": "Please listen to a spoken fairytale story. After listening to the story, please <strong>retell the tale in your own words</strong> in 90 seconds. The goal is to speak continuously, so it doesn't matter if the retold tale is correct or complete. Press PLAY STORY button to play the story. {{playStory}}",
       "params": {
         "fairytale": {
@@ -92,7 +92,7 @@
       "name": "Reading text",
       "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
       "title": "Reading {{topic}}",
-      "instructions": "Read the text on the screen out loud. Press START to begin and STOP when you are finished.",
+      "instructions": "Read the text on the screen <strong>out loud</strong>. Press START to begin and reveal the text. You might need to <strong>scroll down</strong> to reach the end. Press STOP when you are finished.",
       "instructionsActive": "{{text}}",
       "params": {
         "topic": {
@@ -151,7 +151,8 @@
       "name": "Monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Monologue",
-      "instructions": "Please speak about the topic below for a total of <strong>{{duration}} seconds</strong>. If you run out of things to say, an option to change the topic will appear to help you continue.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}} <br/>Press START when you are ready.",
+      "instructions": "Please speak about the topic below for a total of <strong>{{duration}} seconds</strong>. If you run out of things to say, an option to change the topic will appear to help you continue.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press START when you are ready.",
+      "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
       "params": {
         "topics": {
           "label": "Select multiple topics",

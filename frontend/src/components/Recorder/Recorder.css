@@ -672,3 +672,14 @@
     max-width: 100%; /* Ensure it spans properly below buttons on narrow screens */
   }
 }
+
+.recording-area.is-shifted {
+  flex: 0 0 auto;       
+  min-height: auto;     
+  padding: clamp(5px, 1.5dvh, 15px);
+}
+
+/* Shrink the margins of the timer circle itself in shifted mode */
+.recording-area.is-shifted .timer-core {
+  margin: clamp(2px, 0.8dvh, 10px);
+}
