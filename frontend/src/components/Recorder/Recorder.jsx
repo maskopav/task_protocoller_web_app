@@ -94,6 +94,7 @@ export const Recorder = ({
     const [dynamicIndex, setDynamicIndex] = useState(0);
     const [promptTopicSwitch, setPromptTopicSwitch] = useState(false);
     const [awaitingNextTopic, setAwaitingNextTopic] = useState(false);
+    const [topicStartMark, setTopicStartMark] = useState(0);
 
     const confirm = useConfirm();
 
@@ -382,6 +383,14 @@ export const Recorder = ({
         }
     }, [recordingStatus, activeUseVAD, RECORDING_STATES.RECORDING]);
 
+    // Capture the current recording time whenever the topic index changes
+    useEffect(() => {
+        // If VAD failed, we need this bookmark to show the manual button at the right time
+        setTopicStartMark(voiceRecorder.recordingTime);
+        console.log(`Topic index changed to ${dynamicIndex}, setting topic start mark at ${voiceRecorder.recordingTime} seconds`);
+    }, [dynamicIndex]);
+
+
     const resetSpeechTrackers = () => {
         isSpeakingRef.current = false;
         setIsSpeaking(false);
@@ -470,12 +479,28 @@ export const Recorder = ({
         resumeRecording(); // Starts the clock and audio again
     };
 
+    const handleManualTopicSwitch = () => {
+        onLogEvent("topic_switch_manual_triggered");
+        pauseRecording();           // This freezes the timer and audio buffer
+        setPromptTopicSwitch(true); // This triggers the Confirm Dialog
+    };
+
+    // --- Manual Fallback Logic ---
+    // Show manual switch if: It's dynamic, we are recording, and user has talked for 30s 
+    // (or if VAD specifically failed)
+    const manualSwitchThresholdS = 20; 
+    const currentTopicDuration = voiceRecorder.recordingTime - topicStartMark;
+    const canShowManualSwitch = isDynamicTask && 
+        recordingStatus === RECORDING_STATES.RECORDING && 
+        currentTopicDuration >= manualSwitchThresholdS &&
+        vadFailed;
+
     // Listen for the prompt state and fire the ConfirmDialog
     useEffect(() => {
         if (promptTopicSwitch) {
             confirm({
-                title: "Ready for the next topic?",
-                message: "We noticed a pause. Would you like to switch to the next topic?",
+                title: "Another topic is available",
+                message: "Would you like to switch to the next topic?",
                 confirmText: "Yes, switch",
                 cancelText: "No, continue"
             }).then((isConfirmed) => {
@@ -677,6 +702,15 @@ export const Recorder = ({
                     className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
                 >
                     <FormattedText text={rawInstructions} slots={slots} />
+                    {/* Manual Fallback Button */}
+                    {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
+                        <button 
+                            className="btn-manual-switch"
+                            onClick={handleManualTopicSwitch}
+                        >
+                            Switch Topic
+                        </button>
+                    )}
                 </div>
             </div>
             
