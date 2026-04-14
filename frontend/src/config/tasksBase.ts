@@ -42,7 +42,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       phoneme: { default: "a" },
       repeat: { default: 1 },
-      duration: { default: 7 },
+      minDuration: { default: 7 },
       maxDuration: { default: 60 },
       recordVideo: { default: false },
     },
@@ -66,6 +66,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       fairytale: { default: "snowWhite" },
       repeat: { default: 1 },
+      minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
     },
@@ -77,6 +78,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       topic: { default: "seedling" },
       repeat: { default: 1 },
+      minDuration: { default: 30 },
       maxDuration: { default: 150 },
       recordVideo: { default: false },
     },
@@ -84,11 +86,12 @@ export const taskBaseConfig: Record<string, TaskBase> = {
 
   monologue: {
     type: "voice",
-    recording: { mode: "delayedStop", duration: 10 },
+    recording: { mode: "delayedStop", duration: 60 },
     params: {
       topic: { default: "hobbies" },
       repeat: { default: 1 },
-      duration: { default: 10 },
+      duration: { default: 60 },
+      minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
     },
@@ -101,6 +104,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       topics: { default: ["everyday", "hobbies", "travel", "eating"], multiple: true }, // Default selected array
       duration: { default: 60 },
+      minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
     },

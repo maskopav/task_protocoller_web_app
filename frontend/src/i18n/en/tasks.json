@@ -14,7 +14,7 @@
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed stop mode* — the STOP button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the STOP button appears ('duration').",
       "title": "Prolonged phonation /{{phoneme}}/",
-      "instructions": "<strong>Draw a deep breath</strong>, and try to perform a sustained phonation of vowel /{{phoneme}}/ <strong>as constant and long as possible</strong> in one breath. {{example}} Try to sustain it for at least {{duration}} seconds. Press START to begin and STOP once you run out of breath.",
+      "instructions": "<strong>Draw a deep breath</strong>, and try to perform a sustained phonation of vowel /{{phoneme}}/ <strong>as constant and long as possible</strong> in one breath. {{example}} Try to sustain it for at least {{minDuration}} seconds. Press START to begin and STOP once you run out of breath.",
       "params": {
         "phoneme": {
           "label": "Phoneme",
@@ -29,8 +29,8 @@
         "repeat": {
           "label": "Repetitions"
         },
-        "duration": {
-          "label": "Required Duration (s)"
+          "minDuration": {
+          "label": "Min Duration (s)"
         },
           "maxDuration": {
           "label": "Max Duration (s)"
@@ -82,6 +82,9 @@
         "repeat": {
           "label": "Repetitions"
         },
+          "minDuration": {
+          "label": "Min Duration (s)"
+        },
           "maxDuration": {
           "label": "Max Duration (s)"
         }
@@ -115,6 +118,9 @@
         "repeat": {
           "label": "Repetitions"
         },
+          "minDuration": {
+          "label": "Min Duration (s)"
+        },
           "maxDuration": {
           "label": "Max Duration (s)"
         }
@@ -141,6 +147,9 @@
         },
         "duration": {
           "label": "Required Duration (s)"
+        },
+          "minDuration": {
+          "label": "Min Duration (s)"
         },
           "maxDuration": {
           "label": "Max Duration (s)"
@@ -196,7 +205,10 @@
           }
         },
         "duration": {
-          "label": "Total task duration (s)"
+          "label": "Required Duration (s)"
+        },
+          "minDuration": {
+          "label": "Min Duration (s)"
         },
           "maxDuration": {
           "label": "Max Duration (s)"

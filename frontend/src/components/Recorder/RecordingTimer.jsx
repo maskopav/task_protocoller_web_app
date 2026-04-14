@@ -9,7 +9,8 @@ export const RecordingTimer = ({
     audioLevels = [], 
     showVisualizer = true,
     isReadyToStop = false,
-    showMicIcon = false
+    showMicIcon = false,
+    visualPhase
 }) => {
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -29,7 +30,7 @@ export const RecordingTimer = ({
     const readyClass = isReadyToStop ? "ready-to-stop" : "";
 
     return (
-        <div className={`timer-wrapper ${status}`} style={{ flexDirection: 'column' }}>
+        <div className={`timer-wrapper ${status} phase-${visualPhase}`} style={{ flexDirection: 'column' }}>
             <div className={`timer-core ${status}`}>
                 {/* Outer intensity circle */}
                 {status === 'recording' && showVisualizer &&(

@@ -108,6 +108,18 @@
   transition: margin 0.3s ease-in-out;
 }
 
+.recording-area.is-shifted {
+  flex: 0 0 auto;       
+  min-height: auto;     
+  padding: clamp(5px, 1.5dvh, 15px);
+}
+
+/* Shrink the margins of the timer circle itself in shifted mode */
+.recording-area.is-shifted .timer-core {
+  margin: clamp(2px, 0.8dvh, 10px);
+}
+
+
 /* Intensity circle always centered */
 .intensity-circle {
   position: absolute;
@@ -142,9 +154,17 @@
   z-index: 1;
 }
 
-.timer-circle.recording { border-color: var(--danger); }
-.timer-circle.paused { border-color: var(--warning); }
-.timer-circle.recording.ready-to-stop { border-color: var(--success); }
+.phase-red .timer-circle { border-color: var(--danger); }
+.phase-orange .timer-circle { border-color: var(--warning); }
+.phase-green .timer-circle { border-color: var(--success); }
+
+/* Ensure the intensity (pulsing) circle matches the phase */
+.phase-red .intensity-circle { background: var(--danger); }
+.phase-orange .intensity-circle { background: var(--warning); }
+.phase-green .intensity-circle { background: var(--success); }
+
+/* Handle the 'Paused' override separately if needed */
+.timer-circle.paused { border-color: var(--warning) !important; }
 
 .timer-display {
   font-size: clamp(1.6rem, min(9.1dvw, 10dvh), 2.3rem);
@@ -673,13 +693,3 @@
   }
 }
 
-.recording-area.is-shifted {
-  flex: 0 0 auto;       
-  min-height: auto;     
-  padding: clamp(5px, 1.5dvh, 15px);
-}
-
-/* Shrink the margins of the timer circle itself in shifted mode */
-.recording-area.is-shifted .timer-core {
-  margin: clamp(2px, 0.8dvh, 10px);
-}

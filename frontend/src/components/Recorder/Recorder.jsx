@@ -97,8 +97,8 @@ export const Recorder = ({
 
     const confirm = useConfirm();
 
-    // Extract maxDuration from the parameters set by the Admin
-    const { maxDuration } = taskParams;
+    // Extract minimal duration and forced maximal duration from the parameters set by the Admin
+    const { minDuration, maxDuration } = taskParams;
 
     // --- Video Recorder Hook ---
     const videoRecorder = useVideoRecorder({
@@ -145,8 +145,23 @@ export const Recorder = ({
     } = voiceRecorder;
 
     // Calculate Stop Button & Warning Logic 
-    const isReadyToStop = (!(mode === 'countDown') && durationExpired) || canEarlyStop || mode === 'basicStop';
-    const showSilenceWarning = isSilentPause && !suppressSilenceWarning && !isReadyToStop;
+    const minimalDurationMs = minDuration || 0; // Default to 0 if not set
+    const isMinimalReached = voiceRecorder.recordingTime >= minimalDurationMs;
+    const isReadyToStop = (!(mode === 'countDown') && isMinimalReached) ||
+                        canEarlyStop || 
+                        mode === 'basicStop' ||
+                        (isDynamicTask && dynamicIndex >= 2);
+    const showSilenceWarning = isSilentPause && !suppressSilenceWarning &&  voiceRecorder.recordingTime <= duration;
+    
+    // Determine the visual "Semaphore" phase
+    let visualPhase = 'orange';
+    if (!isReadyToStop) {
+        visualPhase = 'red';
+    } else if (durationExpired || (mode === 'basicStop' && isMinimalReached)) {  
+        visualPhase = 'green';
+    } else if (isMinimalReached) {
+        visualPhase = 'orange';
+    }
 
     const vadInstance = useRef(null);
     const statusRef = useRef(recordingStatus);
@@ -612,6 +627,7 @@ export const Recorder = ({
                         isReadyToStop={isReadyToStop}
                         mode={mode}
                         showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
+                        visualPhase={visualPhase}
                     />
 
                     {/* VAD Probability Debug Bar */}
