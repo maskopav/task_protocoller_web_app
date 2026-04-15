@@ -66,7 +66,6 @@ export const Recorder = ({
     // Extract minimal duration and forced maximal duration from the parameters set by the Admin
     const { minDuration, maxDuration } = taskParams;
 
-
     // --- Video Recorder Hook ---
     const videoRecorder = useVideoRecorder({
         debugMode: DEBUG_MODE,
@@ -75,7 +74,6 @@ export const Recorder = ({
             // TODO: Merge this with audio data in the next step!
         }
     });
-
 
     // --- Voice Recorder Hook ---
     const voiceRecorder = useVoiceRecorder({

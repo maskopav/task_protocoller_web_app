@@ -14,6 +14,7 @@ const VAD_CONFIG = {
     redemptionMs: 1500,            // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
     preSpeechPadMs: 800,           // number of milliseconds of audio to prepend to a speech segment. default: 800
     minSpeechMs: 500,              // minimum duration in milliseconds for a speech segment, default: 400
+    vadFallbackMs: 8000,           // time (ms) before fallback if no speech is detected at start
 };
 
 const getBrowserInfo = () => {
@@ -128,6 +129,7 @@ export const useVadLogic = ({
         if (!activeUseVAD || !stream) return;
 
         let frameCount = 0;
+        let isEffectActive = true; // Tracks if the user switched tasks
 
         const initVAD = async () => {
             if (!window.vad) {
@@ -148,7 +150,7 @@ export const useVadLogic = ({
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
                 const vadStream = stream.clone();
 
-                vadInstance.current = await window.vad.MicVAD.new({
+                const newVadInstance = await window.vad.MicVAD.new({
                     stream: vadStream,
                     audioContext: audioContext?.current,
                     onnxWASMBasePath: basePath,
@@ -213,7 +215,17 @@ export const useVadLogic = ({
                     },
                 });
 
+                // If the user rapidly switched tasks while the AI was loading, 
+                // destroy this incoming instance immediately.
+                if (!isEffectActive) {
+                    newVadInstance.pause();
+                    isInitializingVad.current = false;
+                    return;
+                }
+
+                vadInstance.current = newVadInstance;
                 setIsVadLoaded(true);
+                isInitializingVad.current = false;
 
                 // If the user clicked Record while the model was still loading, start it immediately
                 if (statusRef.current === RECORDING_STATES.RECORDING) {
@@ -231,6 +243,7 @@ export const useVadLogic = ({
         const vadInitTimer = setTimeout(initVAD, 500);
 
         return () => {
+            isEffectActive = false;
             clearTimeout(vadInitTimer);
             if (vadInstance.current) {
                 vadInstance.current.pause();
@@ -239,8 +252,9 @@ export const useVadLogic = ({
                 }
                 vadInstance.current = null;
             }
+            isInitializingVad.current = false;
         };
-    }, [activeUseVAD, stream, RECORDING_STATES.RECORDING]);
+    }, [activeUseVAD, stream]);
 
     // --- Save final segment if the user hits Stop mid-sentence ---
     useEffect(() => {
@@ -267,6 +281,34 @@ export const useVadLogic = ({
             setCanEarlyStop(false);
         }
     }, [recordingStatus, activeUseVAD, RECORDING_STATES.RECORDING]);
+
+    // --- Anti-Stuck Fallback (Failsafe) ---
+    useEffect(() => {
+        let fallbackTimer;
+
+        // Only start the timer if VAD is active, we are currently recording, and the user hasn't spoken yet.
+        if (activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && !hasSpoken) {
+            
+            const timeoutMs = vadConfigOverride.vadFallbackMs || VAD_CONFIG.vadFallbackMs;
+            
+            fallbackTimer = setTimeout(() => {
+                // Double check the ref just in case of micro-second race conditions
+                if (!hasSpokenRef.current) {
+                    console.warn(`VAD Fallback triggered: No speech detected after ${timeoutMs / 1000}s`);
+                    logToServer("VAD Fallback triggered: No speech detected at start.");
+                    
+                    // This will instantly set activeUseVAD to false, 
+                    // which automatically unfreezes the timer in Recorder.jsx!
+                    setVadFailed(true); 
+                }
+            }, timeoutMs); 
+        }
+
+        // Clean up the timer if the user speaks, stops recording, or switches tasks
+        return () => {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
+        };
+    }, [activeUseVAD, recordingStatus, hasSpoken, RECORDING_STATES.RECORDING, vadConfigOverride.vadFallbackMs]);
 
     // --- Helpers exposed to Recorder ---
 
