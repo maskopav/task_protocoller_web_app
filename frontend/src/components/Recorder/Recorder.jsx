@@ -8,6 +8,7 @@ import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
+import { VideoViewfinder } from './VideoViewfinder';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
@@ -495,38 +496,11 @@ export const Recorder = ({
             </div>
             
             {isVideoEnabled && (
-                <div className={`viewfinder-container ${phase === 'RECORDING' ? 'pip-mode' : ''} ${(recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect)) ? 'warning-border' : ''}`}>
-                    <video ref={videoRecorder.videoRef} autoPlay playsInline muted className="viewfinder" />
-                    
-                    {phase === 'CALIBRATE' && (
-                        <canvas ref={videoRecorder.canvasRef} className="mesh-canvas" />
-                    )}
-
-                    {/* Calibration Overlay */}
-                    {phase === 'CALIBRATE' && (
-                        <div className="calibration-overlay">
-                            <div className={`face-oval ${videoRecorder.isSteady && videoRecorder.isFaceCorrect ? 'ready' : ''}`}>
-                                {videoRecorder.guidance?.arrow === 'MOVE_UP' && <div className="calib-icon icon-up">⇧</div>}
-                                {videoRecorder.guidance?.arrow === 'MOVE_DOWN' && <div className="calib-icon icon-down">⇩</div>}
-                                {videoRecorder.guidance?.arrow === 'MOVE_LEFT' && <div className="calib-icon icon-left">⇦</div>}
-                                {videoRecorder.guidance?.arrow === 'MOVE_RIGHT' && <div className="calib-icon icon-right">⇨</div>}
-                                {videoRecorder.guidance?.arrow === 'READY'}
-                            </div>
-                            <div className="warning-toast">
-                                {videoRecorder.guidance?.text}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Recording Phase Warning Overlay */}
-                    {phase === 'RECORDING' && recordingStatus === RECORDING_STATES.RECORDING && (!videoRecorder.isSteady || !videoRecorder.isFaceCorrect) && (
-                        <div className="recording-alert-overlay">
-                            <div className="alert-box">
-                                ⚠️ {!videoRecorder.isSteady ? "Hold Phone Steady!" : (videoRecorder.faceMessage || "Adjust your face!")}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <VideoViewfinder 
+                    phase={phase} 
+                    videoRecorder={videoRecorder} 
+                    isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
+                />
             )}
 
             {/* --- PHASE 1: VIDEO SETUP CONTROLS --- */}
