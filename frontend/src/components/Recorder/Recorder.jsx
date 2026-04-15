@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
+import { useVadLogic } from '../../hooks/useVADLogic';
 import './Recorder.css';
 import { RecordingTimer } from './RecordingTimer';
 import { StatusIndicator } from './StatusIndicator';
@@ -14,31 +15,7 @@ import { IncompatibleBrowser } from './IncompatibleBrowser';
 
 const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
 
-const getBrowserInfo = () => {
-    const ua = navigator.userAgent;
-    if (ua.includes('Firefox'))  return { browser: 'Firefox',  ua };
-    if (ua.includes('Edg/'))     return { browser: 'Edge',     ua };
-    if (ua.includes('OPR/') || ua.includes('Opera/')) return { browser: 'Opera', ua };
-    if (ua.includes('Chrome'))   return { browser: 'Chrome',   ua };
-    if (ua.includes('Safari'))   return { browser: 'Safari',   ua };
-    return { browser: 'Unknown', ua };
-};
 
-// VAD config - all parameters
-const VAD_CONFIG = {
-    // TIMING
-    silenceFreezeMs: 3000,       // time until the timer freezes (and warning appears for static tasks)
-    topicPromptDelayMs: 9500,      // time until the topic automatically switches (Dynamic Tasks only)
-    earlyStopMs: 13500,          // total silence time on static task (or last dynamic topic) before early stop unlocks
-    
-    // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
-    positiveSpeechThreshold: 0.35, // determines the threshold over which a probability is considered to indicate the presence of speech, default: 0.3
-    negativeSpeechThreshold: 0.25, // determines the threshold under which a probability is considered to indicate the absence of speech, default: 0.25
-    redemptionMs: 1500, // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
-    preSpeechPadMs: 800, // number of milliseconds of audio to prepend to a speech segment. default: 800
-    minSpeechMs: 500, // minimum duration in milliseconds for a speech segment, default: 400
-};
-   
 // components/Recorder/Recorder.jsx - Main component
 export const Recorder = ({ 
     title = "🎙️ Task Recorder",
@@ -75,17 +52,6 @@ export const Recorder = ({
     const isVideoEnabled = String(recordVideo) === 'true';
     const [phase, setPhase] = useState(isVideoEnabled ? 'SETUP' : 'RECORDING');
 
-    // --- VAD State & Logic ---
-    const [isVadLoaded, setIsVadLoaded] = useState(!useVAD);
-    const [vadFailed, setVadFailed] = useState(false);
-    const activeUseVAD = useVAD && !vadFailed;
-
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isSilentPause, setIsSilentPause] = useState(false);
-    const [canEarlyStop, setCanEarlyStop] = useState(false);
-    const [hasSpoken, setHasSpoken] = useState(false);
-    const [speechProb, setSpeechProb] = useState(0);
-
     // --- Dynamic Task Detection ---
     const dynamicArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
     const dynamicArray = Array.isArray(dynamicArrayParam) ? dynamicArrayParam : [];
@@ -95,20 +61,23 @@ export const Recorder = ({
     const [promptTopicSwitch, setPromptTopicSwitch] = useState(false);
     const [awaitingNextTopic, setAwaitingNextTopic] = useState(false);
     const [topicStartMark, setTopicStartMark] = useState(0);
+    const [isTimerActive, setIsTimerActive] = useState(forceTimerActive || !useVAD);
 
     const confirm = useConfirm();
 
     // Extract minimal duration and forced maximal duration from the parameters set by the Admin
     const { minDuration, maxDuration } = taskParams;
 
+
     // --- Video Recorder Hook ---
     const videoRecorder = useVideoRecorder({
         debugMode: DEBUG_MODE,
         onRecordingComplete: (videoData) => {
-            console.log("Video data processed!", videoData);
+            logToServer("Video data processed!", videoData);
             // TODO: Merge this with audio data in the next step!
         }
     });
+
 
     // --- Voice Recorder Hook ---
     const voiceRecorder = useVoiceRecorder({
@@ -120,8 +89,7 @@ export const Recorder = ({
         mode,
         duration,
         maxDuration,
-        // If VAD is on, freeze timer until participant speaks. Otherwise, normal timer.
-        isTimerActive: forceTimerActive || !activeUseVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause))
+        isTimerActive
     });
 
     const {
@@ -145,6 +113,39 @@ export const Recorder = ({
         RECORDING_STATES
     } = voiceRecorder;
 
+    // --- VAD Logic Hook --- 
+    const VADmodel = useVadLogic({
+        useVAD,
+        vadConfigOverride,
+        stream,                            
+        audioContext: voiceRecorder.audioContext, 
+        recordingStatus,                   
+        RECORDING_STATES,                  
+        pauseRecording,                    
+        resumeRecording,                   
+        onVadSpeechStart,
+        onVadSpeechEnd,
+        isDynamicTask,
+        dynamicArray,
+        dynamicIndex,
+        awaitingNextTopic,
+        promptTopicSwitch,
+        setPromptTopicSwitch,
+        disableTimerFreeze
+    });
+
+    const { 
+        isVadLoaded, vadFailed, activeUseVAD, isSpeaking, isSilentPause, 
+        canEarlyStop, hasSpoken, speechProb, speechSegments, 
+        resetSpeechTrackers, resetSilenceClock, clearSilenceState, clearSpeechSegments
+    } = VADmodel;
+
+    // Update the Timer State whenever VAD state changes
+    useEffect(() => {
+        const timerShouldRun = forceTimerActive || !activeUseVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause));
+        setIsTimerActive(timerShouldRun);
+    }, [forceTimerActive, activeUseVAD, hasSpoken, disableTimerFreeze, isSilentPause]);
+
     // Calculate Stop Button & Warning Logic 
     const minimalDurationMs = minDuration || 0; // Default to 0 if not set
     const isMinimalReached = voiceRecorder.recordingTime >= minimalDurationMs;
@@ -152,7 +153,7 @@ export const Recorder = ({
                         canEarlyStop || 
                         mode === 'basicStop' ||
                         (isDynamicTask && dynamicIndex >= 2);
-    const showSilenceWarning = isSilentPause && !suppressSilenceWarning &&  voiceRecorder.recordingTime <= duration;
+    const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning &&  voiceRecorder.recordingTime <= duration;
     
     // Determine the visual "Semaphore" phase
     let visualPhase = 'orange';
@@ -163,27 +164,9 @@ export const Recorder = ({
     } else if (isMinimalReached) {
         visualPhase = 'orange';
     }
-
-    const vadInstance = useRef(null);
-    const statusRef = useRef(recordingStatus);
-    const isInitializingVad = useRef(false);
-
+   
     // Speech Metadata Trackers
-    const isSpeakingRef = useRef(false);
-    const hasSpokenRef = useRef(false);
-    const lastSpeechTimeRef = useRef(Date.now()); 
-    const speechSegments = useRef([]);
-    const currentSpeechStart = useRef(null);
     const recordingStartTimeRef = useRef(null);
-    
-    // Keep our reference to the recording status fresh for the AI callbacks
-    useEffect(() => {
-        statusRef.current = recordingStatus;
-        // Fresh 4 seconds whenever Start or Resume is hitted
-        if (recordingStatus === RECORDING_STATES.RECORDING) {
-            lastSpeechTimeRef.current = Date.now();
-        }
-    }, [recordingStatus, RECORDING_STATES.RECORDING]);
 
     useEffect(() => {
         if (onRecordingStateChange) {
@@ -191,216 +174,13 @@ export const Recorder = ({
         }
     }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING]);
 
-    // Adaptive tasks
-    useEffect(() => {
-        if (!activeUseVAD) return;
-
-        const interval = setInterval(() => {
-            if (statusRef.current === RECORDING_STATES.RECORDING && !awaitingNextTopic) {
-                if (isSpeakingRef.current) {
-                    lastSpeechTimeRef.current = Date.now();
-                } else if (hasSpokenRef.current) {
-                    const silenceDuration = Date.now() - lastSpeechTimeRef.current;
-                    const hasMoreTopics = isDynamicTask && dynamicIndex < dynamicArray.length - 1;
-                    
-                    // Check for Timer Freeze (Triggered at 3s)
-                    if (!disableTimerFreeze && silenceDuration >= VAD_CONFIG.silenceFreezeMs) {
-                        setIsSilentPause(true); // Freezes the clock immediately
-                    }
-
-                    // Check for Topic Switch (Triggered at 5s, Dynamic Tasks only)
-                    if (hasMoreTopics && silenceDuration >= VAD_CONFIG.topicPromptDelayMs && !promptTopicSwitch) {
-                        setPromptTopicSwitch(true); // Show the prompt overlay
-                        pauseRecording();           // Stop the clock and audio instantly
-                        lastSpeechTimeRef.current = Date.now(); // Reset silence clock
-                    }
-
-                    // Check for Early Stop (Triggered at 10s on static tasks or final topic)
-                    if (!hasMoreTopics && silenceDuration >= VAD_CONFIG.earlyStopMs) {
-                        setCanEarlyStop(true);
-                    }
-                }
-            }
-        }, 500); 
-
-        return () => clearInterval(interval);
-    }, [activeUseVAD, isDynamicTask, dynamicArray.length, dynamicIndex, RECORDING_STATES.RECORDING, awaitingNextTopic, promptTopicSwitch]);
-
-    // Initialize the VAD AI Model
-    useEffect(() => {
-        if (!activeUseVAD || !stream) return;
-
-        let frameCount = 0;
-
-        const initVAD = async () => {
-            if (!window.vad) {
-                logToServer("VAD script missing in index.html");
-                return;
-            }
-
-            if (isInitializingVad.current) {
-                logToServer("VAD is already initializing, skipping...");
-                return; 
-            }
-
-            try {
-                isInitializingVad.current = true;
-                setIsVadLoaded(false);
-
-                // Dynamically get the correct path (e.g., /test/dist/vad/)
-                const basePath = `${import.meta.env.BASE_URL}vad/`;
-                
-                const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
-
-                const vadStream = stream.clone();
-
-                // Instantiate the local model
-                vadInstance.current = await window.vad.MicVAD.new({
-                    stream: vadStream, 
-                    audioContext: voiceRecorder.audioContext?.current, // reuse existing AudioContext
-                    onnxWASMBasePath: basePath,
-                    baseAssetPath: basePath,
-                    workletURL: basePath + "vad.worklet.bundle.min.js",
-                    modelURL: basePath + "silero_vad_v5.onnx",
-                    ortConfig: (ort) => {
-                        ort.env.wasm.simd = false;
-                        ort.env.wasm.numThreads = 1;
-                        ort.env.wasm.wasmPaths = basePath;
-                    },
-                    // TUNED PARAMETERS FOR LONG SPEECH (https://docs.vad.ricky0123.com/user-guide/algorithm/#configuration)
-                    positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold, 
-                    negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
-                    redemptionMs: activeVadConfig.redemptionMs,
-                    preSpeechPadMs: activeVadConfig.preSpeechPadMs,
-                    minSpeechMs: activeVadConfig.minSpeechMs,
-                    
-                    onFrameProcessed: (probs) => { 
-                        setSpeechProb(probs.isSpeech); 
-                        // Log the first 3 frames to prove the AudioContext is running
-                        // and see what probability scores the mic is generating
-                        if (frameCount < 3) {
-                            logToServer(`VAD Frame Processed [${frameCount}]`, { probability: probs.isSpeech });
-                            frameCount++;
-                        }
-                    },
-                    onSpeechStart: () => {
-                        isSpeakingRef.current = true;
-                        hasSpokenRef.current = true;
-                        setIsSpeaking(true);
-                        setHasSpoken(true);
-                        setIsSilentPause(false); 
-                        setCanEarlyStop(false);
-                        lastSpeechTimeRef.current = Date.now(); 
-
-                        if (statusRef.current === RECORDING_STATES.RECORDING) {
-                            currentSpeechStart.current = Date.now();
-                        }
-                        
-                        // Trigger parent callback
-                        if (onVadSpeechStart) onVadSpeechStart();
-                    },
-                    onVADMisfire: () => {
-                        isSpeakingRef.current = false;
-                        setIsSpeaking(false);
-                        setIsSilentPause(false);
-                        setCanEarlyStop(false);
-                        lastSpeechTimeRef.current = Date.now(); 
-                    },
-                    onSpeechEnd: () => {
-                        isSpeakingRef.current = false;
-                        setIsSpeaking(false);
-                        lastSpeechTimeRef.current = Date.now(); 
-
-                        if (statusRef.current === RECORDING_STATES.RECORDING && currentSpeechStart.current) {
-                            speechSegments.current.push({
-                                startTime: currentSpeechStart.current,
-                                endTime: Date.now(),
-                                durationMs: Date.now() - currentSpeechStart.current
-                            });
-                            currentSpeechStart.current = null; 
-                        }
-
-                        // Trigger parent callback
-                        if (onVadSpeechEnd) onVadSpeechEnd();
-                    },
-                });
-
-                setIsVadLoaded(true);
-
-                // If user clicked record while the AI was still loading, start it immediately
-                if (statusRef.current === RECORDING_STATES.RECORDING) {
-                    vadInstance.current.start();
-                }
-            } catch (error) {
-                console.error("Failed to load VAD model:", error);
-                logToServer("Failed to load VAD model", { ...getBrowserInfo(), error: error.message || error.toString() });
-                isInitializingVad.current = false;
-                setVadFailed(true);     // Mark VAD as failed
-                setIsVadLoaded(true);   // Pretend it loaded so the UI 'Start' button unlocks
-            }
-        };
-
-        const vadInitTimer = setTimeout(() => {
-            initVAD();
-        }, 500);
-
-        // Cleanup: pause and destroy the AI when leaving the page
-        return () => {
-            clearTimeout(vadInitTimer);
-            if (vadInstance.current) {
-                vadInstance.current.pause();
-                if (vadInstance.current.stream) {
-                    vadInstance.current.stream.getTracks().forEach(track => track.stop());
-                }
-                vadInstance.current = null;
-            }
-        };
-    }, [activeUseVAD, stream, RECORDING_STATES.RECORDING]);
-
-    // Save final segment if user hits Stop mid-sentence
-    useEffect(() => {
-        if (recordingStatus === RECORDING_STATES.RECORDED && currentSpeechStart.current) {
-            speechSegments.current.push({
-                startTime: currentSpeechStart.current,
-                endTime: Date.now(),
-                durationMs: Date.now() - currentSpeechStart.current
-            });
-            currentSpeechStart.current = null;
-        }
-    }, [recordingStatus, RECORDING_STATES.RECORDED]);
-
-    // Sync VAD Engine with Pause/Play
-    useEffect(() => {
-        if (!activeUseVAD || !vadInstance.current) return;
-        if (recordingStatus === RECORDING_STATES.RECORDING) {
-            vadInstance.current.start();
-            setIsSilentPause(false);
-            setCanEarlyStop(false);
-        } else {
-            vadInstance.current.pause();
-            setIsSilentPause(false);
-            setCanEarlyStop(false);
-        }
-    }, [recordingStatus, activeUseVAD, RECORDING_STATES.RECORDING]);
-
     // Capture the current recording time whenever the topic index changes
     useEffect(() => {
         // If VAD failed, we need this bookmark to show the manual button at the right time
         setTopicStartMark(voiceRecorder.recordingTime);
-        console.log(`Topic index changed to ${dynamicIndex}, setting topic start mark at ${voiceRecorder.recordingTime} seconds`);
+        logToServer(`Topic index changed to ${dynamicIndex}, setting topic start mark at ${voiceRecorder.recordingTime} seconds`);
     }, [dynamicIndex]);
 
-
-    const resetSpeechTrackers = () => {
-        isSpeakingRef.current = false;
-        setIsSpeaking(false);
-        hasSpokenRef.current = false;
-        setHasSpoken(false); 
-        setIsSilentPause(false);
-        setCanEarlyStop(false);
-        setSpeechProb(0);
-        lastSpeechTimeRef.current = Date.now(); 
-    };
 
     // --- Wrappers ---
     const handleStart = () => {
@@ -431,10 +211,8 @@ export const Recorder = ({
         setDynamicIndex(0);
         setAwaitingNextTopic(false); 
         setPromptTopicSwitch(false);
-        // Reset data containers
-        speechSegments.current = []; 
-        currentSpeechStart.current = null;
-        
+
+        clearSpeechSegments();
         resetSpeechTrackers(); // Clean VAD start
         repeatRecording();
 
@@ -465,17 +243,15 @@ export const Recorder = ({
     const handleDeclineTopicSwitch = () => {
         onLogEvent("topic_switch_declined");
         setPromptTopicSwitch(false);
-        // We only want to clear the pause state and give them a fresh 9.5s, 
-        // but we want the app to remember they have already spoken for this topic.
-        setIsSilentPause(false);
-        lastSpeechTimeRef.current = Date.now();
+        clearSilenceState();
+        resetSilenceClock();
         resumeRecording(); 
     };
 
     const handleStartNextTopic = () => {
         onLogEvent("start_next_topic");
         setAwaitingNextTopic(false);
-        resetSpeechTrackers(); // Clean VAD start before unpausing
+        resetSpeechTrackers();
         resumeRecording(); // Starts the clock and audio again
     };
 
@@ -558,7 +334,7 @@ export const Recorder = ({
             // If video was recorded, attach its specific data output here
             ...(isVideoEnabled && videoRecorder.videoData && { videoData: videoRecorder.videoData })
         };
-        console.log("Saving Task Data:", taskData);
+        logToServer("Saving Task Data:", taskData);
         
         // Call the parent's provided function
         onNextTask(taskData);
