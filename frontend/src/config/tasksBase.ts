@@ -62,10 +62,11 @@ export const taskBaseConfig: Record<string, TaskBase> = {
 
   retelling: {
     type: "voice",
-    recording: { mode: "basicStop"},
+    recording: { mode: "delayedStop", duration: 90 },
     params: {
       fairytale: { default: "snowWhite" },
       repeat: { default: 1 },
+      duration: { default: 90 },
       minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
@@ -78,7 +79,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       topic: { default: "seedling" },
       repeat: { default: 1 },
-      minDuration: { default: 30 },
+      minDuration: { default: 0 },
       maxDuration: { default: 150 },
       recordVideo: { default: false },
     },

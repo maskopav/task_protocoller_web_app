@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
 import { useVadLogic } from '../../hooks/useVADLogic';
+import { useTaskTopics } from '../../hooks/useTaskTopics';
 import './Recorder.css';
 import { RecordingTimer } from './RecordingTimer';
 import { StatusIndicator } from './StatusIndicator';
@@ -59,13 +60,8 @@ export const Recorder = ({
     const dynamicArray = Array.isArray(dynamicArrayParam) ? dynamicArrayParam : [];
     const isDynamicTask = dynamicArray.length > 0
 
-    const [dynamicIndex, setDynamicIndex] = useState(0);
-    const [promptTopicSwitch, setPromptTopicSwitch] = useState(false);
-    const [awaitingNextTopic, setAwaitingNextTopic] = useState(false);
-    const [topicStartMark, setTopicStartMark] = useState(0);
+    // --- Timer State (for VAD-controlled timing) ---
     const [isTimerActive, setIsTimerActive] = useState(forceTimerActive || !useVAD);
-
-    const confirm = useConfirm();
 
     // Extract minimal duration and forced maximal duration from the parameters set by the Admin
     const { minDuration, maxDuration } = taskParams;
@@ -115,6 +111,30 @@ export const Recorder = ({
         RECORDING_STATES
     } = voiceRecorder;
 
+    // --- Safe Bridge between Topic Logic and VAD Logic ---
+    const vadHelpersRef = useRef(null);
+
+    // --- Topic Logic Hook ---
+    const taskTopics = useTaskTopics({
+        recordingTime: voiceRecorder.recordingTime,
+        pauseRecording: voiceRecorder.pauseRecording,
+        resumeRecording: voiceRecorder.resumeRecording,
+        onLogEvent,
+        onTopicAccepted: () => vadHelpersRef.current?.resetSpeechTrackers(),
+        onTopicDeclined: () => {
+            vadHelpersRef.current?.clearSilenceState();
+            vadHelpersRef.current?.resetSilenceClock();
+        },
+        onStartNextTopic: () => vadHelpersRef.current?.resetSpeechTrackers()
+    });
+
+    // Destructure for easy access in the UI
+    const {
+        dynamicIndex, promptTopicSwitch, setPromptTopicSwitch,
+        awaitingNextTopic, topicStartMark, handleStartNextTopic,
+        handleManualTopicSwitch, resetTopics
+    } = taskTopics;
+
     // --- VAD Logic Hook --- 
     const VADmodel = useVadLogic({
         useVAD,
@@ -142,11 +162,17 @@ export const Recorder = ({
         resetSpeechTrackers, resetSilenceClock, clearSilenceState, clearSpeechSegments
     } = VADmodel;
 
+    useEffect(() => {
+        vadHelpersRef.current = VADmodel;
+    }, [VADmodel]);
+
     // Update the Timer State whenever VAD state changes
     useEffect(() => {
         const timerShouldRun = forceTimerActive || !activeUseVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause));
         setIsTimerActive(timerShouldRun);
     }, [forceTimerActive, activeUseVAD, hasSpoken, disableTimerFreeze, isSilentPause]);
+
+
 
     // Calculate Stop Button & Warning Logic 
     const minimalDurationMs = minDuration || 0; // Default to 0 if not set
@@ -155,7 +181,7 @@ export const Recorder = ({
                         canEarlyStop || 
                         mode === 'basicStop' ||
                         (isDynamicTask && dynamicIndex >= 2);
-    const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning &&  voiceRecorder.recordingTime <= duration;
+    const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning; // &&  voiceRecorder.recordingTime <= duration
     
     // Determine the visual "Semaphore" phase
     let visualPhase = 'orange';
@@ -175,13 +201,6 @@ export const Recorder = ({
             onRecordingStateChange(recordingStatus === RECORDING_STATES.RECORDING);
         }
     }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING]);
-
-    // Capture the current recording time whenever the topic index changes
-    useEffect(() => {
-        // If VAD failed, we need this bookmark to show the manual button at the right time
-        setTopicStartMark(voiceRecorder.recordingTime);
-        logToServer(`Topic index changed to ${dynamicIndex}, setting topic start mark at ${voiceRecorder.recordingTime} seconds`);
-    }, [dynamicIndex]);
 
 
     // --- Wrappers ---
@@ -209,10 +228,7 @@ export const Recorder = ({
 
     const handleRepeat = () => {
         onLogEvent("button_repeat");
-        // Reset dynamic task UI states
-        setDynamicIndex(0);
-        setAwaitingNextTopic(false); 
-        setPromptTopicSwitch(false);
+        resetTopics();
 
         clearSpeechSegments();
         resetSpeechTrackers(); // Clean VAD start
@@ -233,63 +249,15 @@ export const Recorder = ({
         }
     };
 
-    // --- Topic Switching Logic ---
-    const handleAcceptTopicSwitch = () => {
-        onLogEvent("topic_switch_accepted");
-        setDynamicIndex(prev => prev + 1); 
-        setPromptTopicSwitch(false);
-        setAwaitingNextTopic(true); // Tells UI to show the "Start" state again
-        resetSpeechTrackers();
-    };
-
-    const handleDeclineTopicSwitch = () => {
-        onLogEvent("topic_switch_declined");
-        setPromptTopicSwitch(false);
-        clearSilenceState();
-        resetSilenceClock();
-        resumeRecording(); 
-    };
-
-    const handleStartNextTopic = () => {
-        onLogEvent("start_next_topic");
-        setAwaitingNextTopic(false);
-        resetSpeechTrackers();
-        resumeRecording(); // Starts the clock and audio again
-    };
-
-    const handleManualTopicSwitch = () => {
-        onLogEvent("topic_switch_manual_triggered");
-        pauseRecording();           // This freezes the timer and audio buffer
-        setPromptTopicSwitch(true); // This triggers the Confirm Dialog
-    };
-
     // --- Manual Fallback Logic ---
     // Show manual switch if: It's dynamic, we are recording, and user has talked for 30s 
     // (or if VAD specifically failed)
-    const manualSwitchThresholdS = 20; 
-    const currentTopicDuration = voiceRecorder.recordingTime - topicStartMark;
+    const manualSwitchThresholds = 20; 
+    const currentTopicDuration = recordingTime - topicStartMark;
     const canShowManualSwitch = isDynamicTask && 
         recordingStatus === RECORDING_STATES.RECORDING && 
-        currentTopicDuration >= manualSwitchThresholdS &&
-        vadFailed;
-
-    // Listen for the prompt state and fire the ConfirmDialog
-    useEffect(() => {
-        if (promptTopicSwitch) {
-            confirm({
-                title: "Another topic is available",
-                message: "Would you like to switch to the next topic?",
-                confirmText: "Yes, switch",
-                cancelText: "No, continue"
-            }).then((isConfirmed) => {
-                if (isConfirmed) {
-                    handleAcceptTopicSwitch();
-                } else {
-                    handleDeclineTopicSwitch();
-                }
-            });
-        }
-    }, [promptTopicSwitch]);
+        ((currentTopicDuration >= manualSwitchThresholds && vadFailed) ||
+        VADmodel.isSilentPause);
 
 
     // Auto-request permission on mount if enabled
@@ -409,7 +377,7 @@ export const Recorder = ({
         if (!hasSpoken) vadVisualState = "waiting";
         else if (showSilenceWarning) {
             vadVisualState = "warning";
-            vadStatusText = canEarlyStop ? "If you have nothing more to say, you can click Stop to finish." : "If possible, try to speak a little longer.";
+            vadStatusText = durationExpired ? "If you have nothing more to say, you can click Stop to finish." : "If possible, try to speak a little longer.";
         } else if (isSpeaking) vadVisualState = "speaking";
     }
 
