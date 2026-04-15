@@ -6,6 +6,7 @@ import "./Recorder.css";
 import { uploadMicCheck } from "../../api/recordings";
 import androidBrowserImg from "../../assets/android-browser-help.png";
 import iosBrowserImg from "../../assets/ios-browser-help.png";
+import warningIcon from "../../assets/warning-icon.svg";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logToServer } from "../../utils/frontendLogger";
 
@@ -403,25 +404,43 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
       onBtnClick: onRetry, // onRetry triggers () => setPhase('noise'), which moves them to the next step!
       isSuccess: false
     };
-    case 'noise-failed': 
+    case 'noise-failed': {
+      // Create a safe inline wrapper for the icon and text
+      const WarningTitle = ({ children }) => (
+        <div className="warning-title-container">
+          <div 
+            className="warning-icon-mask" 
+            style={{ 
+              WebkitMaskImage: `url(${warningIcon})`, 
+              maskImage: `url(${warningIcon})` 
+            }} 
+          />
+          <span>{children}</span>
+        </div>
+      );
+      
+      // Wrap the titles in the new component
       if (errorType === 'muted') return { 
         ...common, 
-        title: t("micCheck.mutedTitle"), 
-        message: t("micCheck.mutedMessage"), 
-        instructions: t("micCheck.mutedInstructions") 
+        title: <WarningTitle><Trans i18nKey="micCheck.mutedTitle" /></WarningTitle>, 
+        message: <Trans i18nKey="micCheck.mutedMessage" />, 
+        instructions: <Trans i18nKey="micCheck.mutedInstructions" /> 
       };
+      
       if (errorType === 'no-speech') return { 
         ...common, 
-        title: <Trans i18nKey="micCheck.noSpeechTitle" />, 
+        title: <WarningTitle><Trans i18nKey="micCheck.noSpeechTitle" /></WarningTitle>, 
         message: <Trans i18nKey="micCheck.noSpeechMessage" />, 
         instructions: <Trans i18nKey="micCheck.noSpeechInstructions" /> 
       };
+      
       return { 
         ...common, 
-        title: <Trans i18nKey="micCheck.failedTitle" />, 
+        title: <WarningTitle><Trans i18nKey="micCheck.failedTitle" /></WarningTitle>, 
         message: <Trans i18nKey="micCheck.failedMessage" />, 
         instructions: <Trans i18nKey="micCheck.failedInstructions" /> 
       };
+    }
     case 'noise-success': return {
       title: <Trans i18nKey="micCheck.successTitle" />,
       message: <Trans i18nKey="micCheck.successMessage" />,

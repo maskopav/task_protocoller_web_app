@@ -202,6 +202,32 @@
   border-radius: inherit;
 }
 
+/* --- Warning Title Layout --- */
+.warning-title-container {
+  display: flex;
+  flex-direction: column; /* Stacks the icon ABOVE the title */
+  align-items: center;    /* Centers them horizontally */
+  justify-content: center;
+  gap: clamp(6px, 1.5dvh, 12px); /* Adds space between the icon and title */
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* --- SVG Mask Magic (Colorize external SVGs) --- */
+.warning-icon-mask {
+  width: clamp(60px, 12vw, 85px);
+  height: clamp(60px, 12vw, 85px);
+  background-color: var(--danger); /* Use the danger color for the icon */
+  -webkit-mask-image: url('../../assets/warning-icon.svg');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-image: url('../../assets/warning-icon.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
 @keyframes pageFlashMinimalist {
   0% { 
     /* A soft, warm amber/gold glow instead of blue */

@@ -1,5 +1,8 @@
 /* Pages.css */ 
 :root {
+  color-scheme: light;
+} 
+:root {
   --bg: #f9fafb;
   --card-bg: #ededed;
   --grey: #ced0d3;
