@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
 import { useVadLogic } from '../../hooks/useVADLogic';
@@ -11,6 +11,7 @@ import { AudioExampleButton } from './AudioExampleButton';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
+import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
 
 const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
@@ -362,36 +363,39 @@ export const Recorder = ({
     // --- Prepare UI Strings (Simplified) ---
     const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
     
-    // Choose which base instructions to show
-    let baseInstructions = instructions;
-    if (isCalibrationPhase) {
-        baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
-    } else if (isDynamicTask && dynamicIndex > 0) {
-        // For dynamic tasks, after the first topic switch, only show topic info 
-        baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
-    } else if (recordingStatus === RECORDING_STATES.RECORDED) {
-        // Show completion instructions when the task is finished
-        baseInstructions = completedInstructions;
-    } else if (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE && !awaitingNextTopic) {
-        // If recording and NOT waiting for the user to start a new topic, show active instructions
-        baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
-    }
-    
-    let rawInstructions = baseInstructions;
+    // --- Instruction Parsing & Interpolation ---
+    const parsedInstructions = useMemo(() => {
+        let baseInstructions = instructions;
 
-    // Apply interpolation universally
-    if (isDynamicTask && typeof rawInstructions === 'string') {
-        const currentItem = dynamicArray[dynamicIndex];
-        const paramKey = Object.keys(taskParams).find(k => taskParams[k] === dynamicArray) || "topic";
-        
-        if (typeof currentItem === 'string') {
-            rawInstructions = rawInstructions.replace(new RegExp(`{{${paramKey}}}`, 'g'), currentItem);
-        } else if (typeof currentItem === 'object' && currentItem !== null) {
-            Object.entries(currentItem).forEach(([key, value]) => {
-                rawInstructions = rawInstructions.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
-            });
+        // Determine which text to show based on the current phase
+        if (isCalibrationPhase) {
+            baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
+        } else if (isDynamicTask && dynamicIndex > 0) {
+            baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
+        } else if (recordingStatus === RECORDING_STATES.RECORDED) {
+            baseInstructions = completedInstructions;
+        } else if (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE && !awaitingNextTopic) {
+            baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
         }
-    }
+
+        // Interpolate dynamic variables (e.g. {{topic}}) into the text
+        const currentItem = isDynamicTask ? dynamicArray[dynamicIndex] : null;
+        return interpolateInstructions(baseInstructions, isDynamicTask, currentItem, taskParams, dynamicArray);
+
+    }, [
+        instructions, 
+        instructionsActive, 
+        completedInstructions, 
+        isCalibrationPhase, 
+        isDynamicTask, 
+        dynamicIndex, 
+        recordingStatus, 
+        awaitingNextTopic, 
+        voiceRecorder.activeInstructions, 
+        dynamicArray, 
+        taskParams, 
+        RECORDING_STATES
+    ]);
 
     const slots = {
         example: exampleExists ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="example"/></div> : null,
@@ -477,7 +481,7 @@ export const Recorder = ({
                     key={isCalibrationPhase ? 'calibration' : (isDynamicTask ? dynamicIndex : 'static')} 
                     className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
                 >
-                    <FormattedText text={rawInstructions} slots={slots} />
+                    <FormattedText text={parsedInstructions} slots={slots} />
                     {/* Manual Fallback Button */}
                     {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
                         <button 
