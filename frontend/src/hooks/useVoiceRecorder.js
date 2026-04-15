@@ -43,6 +43,7 @@ export const useVoiceRecorder = (options = {}) => {
     const analyser = useRef(null);
     const audioContext = useRef(null);
     const animationFrame = useRef(null);
+    const vizStreamRef = useRef(null);  
 
     const getMicrophonePermission = async () => {
         const ua = navigator.userAgent;
@@ -185,7 +186,10 @@ export const useVoiceRecorder = (options = {}) => {
         if (!audioContext.current) {
             audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
         }
-        const source = audioContext.current.createMediaStreamSource(stream);
+        // Clone so MediaRecorder keeps exclusive use of the original stream (Samsung fix)
+        const vizStream = stream.clone();
+        vizStreamRef.current = vizStream;
+        const source = audioContext.current.createMediaStreamSource(vizStream);
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 256;
         source.connect(analyser.current);
@@ -245,6 +249,11 @@ export const useVoiceRecorder = (options = {}) => {
         if (audioContext.current && audioContext.current.state !== "closed") {
             audioContext.current.close();
             audioContext.current = null;
+        }
+
+        if (vizStreamRef.current) {
+            vizStreamRef.current.getTracks().forEach(t => t.stop());
+            vizStreamRef.current = null;
         }
     };
 
@@ -352,9 +361,11 @@ export const useVoiceRecorder = (options = {}) => {
         if (audioURL) {
             URL.revokeObjectURL(audioURL);
         }
+        
         if (animationFrame.current) {
             cancelAnimationFrame(animationFrame.current);
         }
+
         if (audioContext.current) {
             // Only close if it's not already closed
             if (audioContext.current.state !== "closed") {
@@ -363,7 +374,12 @@ export const useVoiceRecorder = (options = {}) => {
                 });
             }
             audioContext.current = null; // reset ref
-                }
+        }
+
+        if (vizStreamRef.current) {
+            vizStreamRef.current.getTracks().forEach(t => t.stop());
+            vizStreamRef.current = null;
+        }
         };
     }, [audioURL]);
 
