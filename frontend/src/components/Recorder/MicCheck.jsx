@@ -7,6 +7,7 @@ import { uploadMicCheck } from "../../api/recordings";
 import androidBrowserImg from "../../assets/android-browser-help.png";
 import iosBrowserImg from "../../assets/ios-browser-help.png";
 import warningIcon from "../../assets/warning-icon.svg";
+import iosPopUpImg from "../../assets/popup-window.jpeg";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logToServer } from "../../utils/frontendLogger";
 
@@ -239,7 +240,7 @@ export default function MicCheck({ onNext, sessionId, token }) {
     return (
       <Recorder
         key="noise-phase"
-        title={t("micCheck.calibrationTitle")}
+        title={t("micCheck.noiseTitle")}
         instructions={currentInstructions}
         mode="countDown"
         duration={CONFIG.RECORDING_DURATION}
@@ -279,7 +280,8 @@ export default function MicCheck({ onNext, sessionId, token }) {
           {uiState.isSuccess && <span className="check-icon-mask" />}
           {uiState.title}
         </h1>
-        <div className="active-instructions">
+        <div className="flexible-spacer"></div>
+        <div className="active-instructions instruction-card">
           {uiState.message && (
             <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
               {uiState.message}
@@ -396,7 +398,9 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
       instructions: (
         <>
           <Trans i18nKey="micCheck.permissionWarning" />
-          <br /><br />
+          <div className="intro-visual-container">
+            <img src={iosPopUpImg} alt="Microphone access guide" className="intro-preview-img" />
+          </div>
           <Trans i18nKey="micCheck.permissionInstruction" />
         </>
       ),

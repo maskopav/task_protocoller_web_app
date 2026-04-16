@@ -146,22 +146,44 @@ export const useVadLogic = ({
                 isInitializingVad.current = true;
                 setIsVadLoaded(false);
 
-                const basePath = `${import.meta.env.BASE_URL}vad/`;
+                const basePath = `${import.meta.env.BASE_URL}vad/`; 
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
                 const vadStream = stream.clone();
 
                 const newVadInstance = await window.vad.MicVAD.new({
                     stream: vadStream,
                     audioContext: audioContext?.current,
+                    
+                    // 1. Tell ONNX exactly where the WASM and MJS files are
                     onnxWASMBasePath: basePath,
-                    baseAssetPath: basePath,
+                    baseAssetPath: basePath, 
+                    
+                    // 2. Explicitly point to the VAD files
                     workletURL: basePath + "vad.worklet.bundle.min.js",
-                    modelURL: basePath + "silero_vad_v5.onnx",
+                    modelURL: basePath + "silero_vad_v5.onnx", // Or silero_vad.onnx depending on what you copied
+                    
+                    // 3. The exact path mapping to bypass the SIMD crash
                     ortConfig: (ort) => {
-                        ort.env.wasm.simd = false;
-                        ort.env.wasm.numThreads = 1;
-                        ort.env.wasm.wasmPaths = basePath;
+                        const isFirefoxAndroid = navigator.userAgent.includes('Firefox') && navigator.userAgent.includes('Android');
+                        
+                        if (isFirefoxAndroid) {
+                            logToServer("[VAD] Firefox Android detected: Forcing non-SIMD CPU fallback");
+                            ort.env.wasm.simd = false;
+                            ort.env.wasm.numThreads = 1; 
+                            
+                            // Nuclear path mapping: Physically hand it the safe basic file
+                            ort.env.wasm.wasmPaths = {
+                                "ort-wasm.wasm": basePath + "ort-wasm.wasm",
+                                "ort-wasm-threaded.wasm": basePath + "ort-wasm.wasm",
+                                "ort-wasm-simd.wasm": basePath + "ort-wasm.wasm",
+                                "ort-wasm-simd-threaded.wasm": basePath + "ort-wasm.wasm" 
+                            };
+                        } else {
+                            // Let all other normal browsers use the default paths
+                            ort.env.wasm.wasmPaths = basePath;
+                        }
                     },
+                    
                     positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold,
                     negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
                     redemptionMs: activeVadConfig.redemptionMs,

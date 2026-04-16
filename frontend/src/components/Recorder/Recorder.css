@@ -701,6 +701,27 @@
   font-size: 1.1em;
 }
 
+/* In Recorder.css */
+.intro-preview-img {
+  /* Use width to set a specific size */
+  width: 200px; 
+  
+  /* Use max-width to ensure it doesn't break small screens */
+  max-width: 100%; 
+  
+  /* Maintain aspect ratio */
+  height: auto; 
+  
+  /* Optional: Limit the height if the JPEG is very long */
+  max-height: 250px;
+  
+  /* Optional: If you use fixed width/height, this prevents stretching */
+  object-fit: contain; 
+  
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
 @keyframes pulse {
   0% { opacity: 0.6; }
   50% { opacity: 1; }

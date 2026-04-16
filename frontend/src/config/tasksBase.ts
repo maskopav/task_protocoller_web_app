@@ -42,7 +42,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       phoneme: { default: "a" },
       repeat: { default: 1 },
-      minDuration: { default: 7 },
+      minDuration: { default: 10 },
       maxDuration: { default: 60 },
       recordVideo: { default: false },
     },
