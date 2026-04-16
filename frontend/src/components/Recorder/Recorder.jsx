@@ -56,9 +56,18 @@ export const Recorder = ({
     const [phase, setPhase] = useState(isVideoEnabled ? 'SETUP' : 'RECORDING');
 
     // --- Dynamic Task Detection ---
-    const dynamicArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
-    const dynamicArray = Array.isArray(dynamicArrayParam) ? dynamicArrayParam : [];
-    const isDynamicTask = dynamicArray.length > 0
+    const rawArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
+    // Filter out empty strings, nulls, or undefined values to get the TRUE length
+    const dynamicArray = Array.isArray(rawArrayParam) 
+        ? rawArrayParam.filter(item => item !== null && item !== undefined && item !== '') 
+        : [];
+    const isDynamicTask = dynamicArray.length > 0;
+    // Log when the component mounts or the array changes
+    useEffect(() => {
+        if (isDynamicTask) {
+            logToServer(`Recorder initialized with dynamic task: ${isDynamicTask}, true array length: ${dynamicArray.length}, raw array: ${JSON.stringify(rawArrayParam)}`);
+        }
+    }, [isDynamicTask, dynamicArray.length]);
 
     // --- Timer State (for VAD-controlled timing) ---
     const [isTimerActive, setIsTimerActive] = useState(forceTimerActive || !useVAD);
@@ -178,7 +187,7 @@ export const Recorder = ({
     const isReadyToStop = (!(mode === 'countDown') && isMinimalReached) ||
                         canEarlyStop || 
                         mode === 'basicStop' ||
-                        (isDynamicTask && dynamicIndex >= 2);
+                        (isDynamicTask && dynamicIndex >= dynamicArray.length - 1);
     const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning; // &&  voiceRecorder.recordingTime <= duration
     
     // Determine the visual "Semaphore" phase
@@ -252,7 +261,8 @@ export const Recorder = ({
     // (or if VAD specifically failed)
     const manualSwitchThresholds = 20; 
     const currentTopicDuration = recordingTime - topicStartMark;
-    const canShowManualSwitch = isDynamicTask && 
+    const hasMoreTopics = isDynamicTask && dynamicIndex < dynamicArray.length - 1;
+    const canShowManualSwitch = hasMoreTopics &&
         recordingStatus === RECORDING_STATES.RECORDING && 
         ((currentTopicDuration >= manualSwitchThresholds && vadFailed) ||
         VADmodel.isSilentPause);

@@ -345,6 +345,7 @@ export const useVadLogic = ({
         setSpeechProb(0);
         lastSpeechTimeRef.current = Date.now();
         currentSpeechStart.current = null;
+        setVadFailed(false);
     };
 
     const clearSpeechSegments = () => {
