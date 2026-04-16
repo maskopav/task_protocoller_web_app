@@ -2,6 +2,7 @@
 import React, { useState, useContext, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import { usePreventNavigation } from "../hooks/usePreventNavigation";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { createTask } from "../tasks";
 import { resolveTasks, resolveTask } from "../utils/taskResolver";
@@ -134,6 +135,10 @@ export default function ParticipantInterfacePage() {
     return finalTasks;
   }, [selectedProtocol, i18n.language]);
 
+  const isSessionActive = taskIndex < runtimeTasks.length && !testingMode && !editingMode;
+
+  // Protect the page from accidental reloads/closes
+  usePreventNavigation(isSessionActive);
 
   //  Central Logger Helper 
   const logInteraction = (action, extra = {}) => {
