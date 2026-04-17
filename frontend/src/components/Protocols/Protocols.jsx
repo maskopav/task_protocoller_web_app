@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useMappings } from "../../context/MappingContext";
-import ProtocolLanguageSelector from "../ProtocolLanguageSelector";
+import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
 import { useProtocolActions } from "../../hooks/useProtocolActions";
 import { useParams } from "react-router-dom";
 import { getProtocolsByProjectId } from "../../api/protocols";

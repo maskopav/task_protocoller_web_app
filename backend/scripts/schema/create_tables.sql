@@ -180,9 +180,9 @@ CREATE TABLE `questionnaire_responses` (
 
 CREATE UNIQUE INDEX `user_projects_index_0` ON `user_projects` (`user_id`, `project_id`);
 
-CREATE UNIQUE INDEX `protocols_index_1` ON `protocols` (`protocol_group_id`, `version`);
+CREATE UNIQUE INDEX `protocols_index_1` ON `protocols` (`protocol_group_id`, `version`, `language_id`);
 
-CREATE UNIQUE INDEX `protocols_index_2` ON `protocols` (`name`, `version`);
+CREATE UNIQUE INDEX `protocols_index_2` ON `protocols` (`name`, `version`, `language_id`);
 
 CREATE UNIQUE INDEX `project_protocols_index_3` ON `project_protocols` (`project_id`, `protocol_id`);
 

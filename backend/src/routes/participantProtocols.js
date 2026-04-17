@@ -7,7 +7,8 @@ import {
   activateParticipantProtocol,
   deactivateParticipantProtocol,
   assignProtocol,
-  sendManualEmail
+  sendManualEmail,
+  swapParticipantProtocolLanguage
 } from "../controllers/participantProtocolController.js";
 
 const router = express.Router();
@@ -36,5 +37,8 @@ router.get("/:id", getParticipantProtocolViewById);
   
 // POST /api/participant-protocol/send-manual-email
 router.post("/send-manual-email", sendManualEmail);
+
+// PATCH /api/participant-protocol/:token/language
+router.patch("/:token/language", swapParticipantProtocolLanguage);
 
 export default router;

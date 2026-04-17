@@ -274,6 +274,11 @@
     "confirmDeleteInfoMsg": "Are you sure you want to remove the introduction text?",
     "confirmDeleteConsentTitle": "Delete Consent Form?",
     "confirmDeleteConsentMsg": "Are you sure you want to remove the consent form text?",
+    "currentlyEditingLang": "Currently Editing Variant:",
+    "smartSyncNote": "Smart Sync is active.",
+    "smartSyncWarning": "Structural changes (adding, reordering, deleting tasks) will automatically sync to all other language variants of this protocol. Text changes will only apply to this language.",
+    "selectLanguagesToCreate": "Target Languages:",
+    "createMultipleLangsHelper": "Select all languages you want to generate this protocol for. You will need to translate the text in the other variants later.",
     "questionnaire": {
       "questionnaireTitle": "Questionnaire Title",
       "enterTitle": "Enter questionnaire title",

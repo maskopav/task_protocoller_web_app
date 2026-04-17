@@ -1,0 +1,90 @@
+/* frontend/src/components/ProtocolLanguageSelector/ProtocolLanguageSelector.css */
+
+/* Editing Mode Styles */
+.protocol-lang-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border-radius: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.protocol-lang-warning {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.4;
+  background-color: #f9fafb;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 4px solid #3b82f6;
+}
+
+/* Creation Mode Styles */
+.protocol-lang-pill-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.protocol-lang-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid #d1d5db;
+  background-color: white;
+  color: #4b5563;
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s;
+}
+
+.protocol-lang-pill.selected {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: bold;
+}
+
+.protocol-lang-pill.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.protocol-lang-pill input[type="checkbox"] {
+  display: none;
+}
+
+.protocol-lang-helper {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.protocol-lang-add-section {
+  margin-top: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px dashed #9ca3af;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.protocol-lang-add-label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #374151;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.protocol-lang-pill.small {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+.protocol-lang-add-helper {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 6px;
+}

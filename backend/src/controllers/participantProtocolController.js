@@ -105,7 +105,26 @@ export async function resolveParticipantToken(req, res) {
       contents: contentMap[t.id] || []
     }));
 
-    // 5. Response = view + tasks
+    // 6. Fetch Available Languages
+    const siblingRows = await executeQuery(
+      `SELECT pp.id AS project_protocol_id, p.language_id, l.code, l.name
+       FROM project_protocols pp
+       JOIN protocols p ON pp.protocol_id = p.id
+       JOIN languages l ON p.language_id = l.id
+       WHERE p.protocol_group_id = (SELECT protocol_group_id FROM protocols WHERE id = ?)
+         AND p.is_current = 1
+         AND pp.project_id = ?`,
+      [view.protocol_id, view.project_id]
+    );
+
+    const available_languages = siblingRows.map(r => ({
+      project_protocol_id: r.project_protocol_id,
+      language_id: r.language_id,
+      code: r.code,
+      name: r.name
+    }));
+
+    // 7. Response = view + tasks + languages
     res.json({
       participant: {
         id: view.participant_id,
@@ -130,7 +149,8 @@ export async function resolveParticipantToken(req, res) {
         info_text: globalContentByRef.info_text || "",
         consent_text: globalContentByRef.consent_text || "",
         global_contents: contentMap['global'] || [],
-        tasks: formattedTasks
+        tasks: formattedTasks,
+        available_languages: available_languages
       }
     });
 
@@ -288,3 +308,32 @@ export const sendManualEmail = async (req, res) => {
     res.status(500).json({ error: "Internal server error during email dispatch" });
   }
 };
+
+// PATCH /api/participant-protocol/:token/language
+export async function swapParticipantProtocolLanguage(req, res) {
+  const { token } = req.params;
+  const { new_project_protocol_id } = req.body;
+
+  try {
+    // 1. Verify token exists
+    const [pp] = await pool.query(
+      `SELECT id FROM participant_protocols WHERE access_token = ?`,
+      [token]
+    );
+    
+    if (pp.length === 0) {
+      return res.status(404).json({ error: "Invalid token" });
+    }
+
+    // 2. Update the assignment to point to the new language variant
+    await pool.query(
+      `UPDATE participant_protocols SET project_protocol_id = ? WHERE access_token = ?`,
+      [new_project_protocol_id, token]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Swap language error:", err);
+    res.status(500).json({ error: "Internal error while swapping language" });
+  }
+}

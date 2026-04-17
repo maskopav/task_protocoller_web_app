@@ -1,7 +1,7 @@
 // src/components/ProtocolEditor/ProtocolForm.jsx
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import ProtocolLanguageSelector from "../ProtocolLanguageSelector";
+import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
 import AdminModal from "./Modal";
 import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
 
@@ -117,6 +117,7 @@ export default function ProtocolForm({
               value={protocolData?.language || "en"}
               onChange={handleLanguageChange}
               disabled={reorderMode}
+              editingMode={editingMode}
             />
 
 
