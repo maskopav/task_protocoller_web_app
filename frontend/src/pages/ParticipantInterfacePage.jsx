@@ -16,19 +16,33 @@ import MicCheck from "../components/Recorder/MicCheck";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
+import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
 import "./Pages.css";
+import { logToServer } from "../utils/frontendLogger";
 
 export default function ParticipantInterfacePage() {
   const { i18n, t } = useTranslation(["tasks", "common", "admin"]);
   const navigate = useNavigate();
   const location = useLocation();
+  const confirm = useConfirm();
   const originalTasks = location.state?.originalTasks;
   const previewRandomized = location.state?.previewRandomized;
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
+  const startingTaskIndex = parseInt(location.state?.startingTaskIndex || 0, 10);
+  const isResumed = location.state?.isResumed || false;
 
-  const [taskIndex, setTaskIndex] = useState(0);
+  const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
   const [langReady, setLangReady] = useState(false);
   const [isRecordingActive, setIsRecordingActive] = useState(false);
+
+  useEffect(() => {
+    if (startingTaskIndex > 0) {
+      setTaskIndex(startingTaskIndex);
+    }
+  }, [startingTaskIndex]);
+
+  // Show a brief "Welcome back" banner if resumed
+  const [showResumedToast, setShowResumedToast] = useState(isResumed);
 
   // Add state for the completionoverlay
   const [showPraise, setShowPraise] = useState(false);
@@ -73,13 +87,23 @@ export default function ParticipantInterfacePage() {
     };
   }, [protocolData, i18n]);
 
+  // Show welcome-back dialog once on mount if this is a resumed session
+  useEffect(() => {
+    if (isResumed) {
+      confirm({
+        infoOnly: true,
+        title: t("session.resumed.title", "Welcome back!"),
+        message: t("session.resumed.message", "We saved your progress. You will continue from where you left off."),
+        confirmText: t("session.resumed.continue", "Continue"),
+      });
+    }
+  }, []); 
+
   // Generate runtime tasks + inject Questionnaire if present from the selected protocol
   const runtimeTasks = useMemo(() => {
     if (!selectedProtocol) return [];
 
     const introSteps = [];
-
-    console.log(selectedProtocol)
 
     // Helper to find content by type in the global_contents array
     const findGlobalContent = (type) => {
@@ -170,9 +194,7 @@ export default function ParticipantInterfacePage() {
 
   // --- Handlers
   async function handleTaskComplete(data) {
-    console.log("✅ Task Completed, saving...", data);
     const currentTaskObj = runtimeTasks[taskIndex]; // The task definition
-    console.log(currentTaskObj);
     const nextTaskObj = runtimeTasks[taskIndex + 1];
 
     // EXIT EARLY if it's just an onboarding step (no data to save to the DB yet)
@@ -183,7 +205,7 @@ export default function ParticipantInterfacePage() {
     }
 
     if (testingMode || editingMode || !sessionId) {
-      console.log("🛠️ Testing mode: skipping database save.");
+      console.log(" Testing mode: skipping database save.");
       proceedToNext(); 
       return;
     }
@@ -215,14 +237,12 @@ export default function ParticipantInterfacePage() {
           repeatIndex: repeatIndex,
           timeStamp: data.timestamp
         });
-        console.log("Upload successful");
       } else if (currentTaskObj.type === "questionnaire") {
         await saveQuestionnaireAnswers({
           sessionId: sessionId,
           protocolTaskId: currentTaskObj.protocolTaskId,
           answers: data.answers
         });
-        console.log("Questionnaire answers saved successfully");
       }
 
       // Log the "Save" action
@@ -231,6 +251,7 @@ export default function ParticipantInterfacePage() {
 
     } catch (err) {
       console.error("Failed to save result:", err);
+      logToServer(`Failed to save result for task ${currentTaskObj.protocolTaskId} at index ${taskIndex + 1}: ${err.message}`);
       // Optional: Show error to user or retry
     }
 
@@ -312,7 +333,6 @@ export default function ParticipantInterfacePage() {
     }
 
     const currentTask = resolveTask(rawTask, t);
-    console.log("▶ Current task:", currentTask);
 
     // Render Voice Task
     if (currentTask.type === "voice" || currentTask.type === 'camera')

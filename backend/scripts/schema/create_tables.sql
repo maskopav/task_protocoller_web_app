@@ -149,6 +149,8 @@ CREATE TABLE `sessions` (
   `ip_address` varchar(45) DEFAULT NULL,
   `device_metadata` JSON DEFAULT NULL COMMENT 'Screen size, platform, etc.',
   `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed'
+  `current_task_index` integer NOT NULL DEFAULT 1,
+  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 );
 
 CREATE TABLE `recordings` (

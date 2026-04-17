@@ -26,15 +26,37 @@ export const initSession = async (req, res) => {
     }
     const participantProtocolId = ppRow.id;
 
-    // 2. Check for an existing incomplete session for today (Optional Logic)
-    // If you want to resume sessions, keep this. If every link click = new session, remove this block.
-    // Here we create a NEW session every time the app is loaded to ensure we capture the specific environment.
+    // 2. Check for an existing incomplete session for today (last 12 hours))
+    const [existingSession] = await executeQuery(
+      `SELECT id, current_task_index, progress, task_order 
+       FROM sessions 
+       WHERE participant_protocol_id = ? 
+         AND completed = false 
+         AND last_activity_at >= NOW() - INTERVAL 12 HOUR 
+       ORDER BY last_activity_at DESC 
+       LIMIT 1`,
+      [participantProtocolId]
+    );
+
+    // If an active session exists, return it to resume!
+    if (existingSession) {
+      logToFile(`Resuming session: ID ${existingSession.id} for PP_ID ${participantProtocolId}. Jumping to task index: ${existingSession.current_task_index}`);
+      
+      return res.json({ 
+        success: true, 
+        sessionId: existingSession.id,
+        currentTaskIndex: existingSession.current_task_index, // Frontend will use this to skip previous tasks
+        taskOrder: typeof existingSession.task_order === 'string' ? JSON.parse(existingSession.task_order) : existingSession.task_order,
+        progress: typeof existingSession.progress === 'string' ? JSON.parse(existingSession.progress) : (existingSession.progress || []),
+        resumed: true // Flag so frontend knows it's a resumed session
+      });
+    }
     
     // 3. Insert New Session
     const [insertResult] = await pool.query(
       `INSERT INTO sessions 
-      (participant_protocol_id, session_date, user_agent, ip_address, device_metadata, task_order) 
-      VALUES (?, NOW(), ?, ?, ?, ?)`,
+      (participant_protocol_id, session_date, last_activity_at, current_task_index, user_agent, ip_address, device_metadata, task_order) 
+      VALUES (?, NOW(), NOW(), 1, ?, ?, ?, ?)`,
       [
         participantProtocolId, 
         userAgent, 
@@ -56,11 +78,6 @@ export const initSession = async (req, res) => {
 };
 
 // POST /api/sessions/progress
-// backend/src/controllers/sessionController.js
-
-// ... (imports)
-
-// POST /api/sessions/progress
 export const updateProgress = async (req, res) => {
   const { sessionId, event, markCompleted } = req.body;
 
@@ -73,12 +90,25 @@ export const updateProgress = async (req, res) => {
     try {
       // 1. Append Event to Progress Log
       if (event) {
-        // CHANGED: Used JSON_EXTRACT(?, '$') instead of CAST(? AS JSON)
+        let taskIndexQuery = "";
+        let queryParams = [JSON.stringify(event)];
+
+        // If a task is completely saved, update the pointer to the NEXT task
+        // We ensure event.taskIndex is provided in the JSON to avoid errors
+        if (event.action === 'task_saved' && event.taskIndex !== undefined) {
+          taskIndexQuery = ", current_task_index = ?";
+          // We set it to the NEXT task index so when they resume, they start fresh on the next one
+          queryParams.push(event.taskIndex + 1); 
+        }
+
+        queryParams.push(sessionId);
+        // Update last_activity_at will as well
         await connection.query(
           `UPDATE sessions 
            SET progress = JSON_ARRAY_APPEND(COALESCE(progress, JSON_ARRAY()), '$', JSON_EXTRACT(?, '$'))
+            ${taskIndexQuery}
            WHERE id = ?`,
-          [JSON.stringify(event), sessionId]
+         queryParams
         );
       }
 
@@ -96,6 +126,7 @@ export const updateProgress = async (req, res) => {
     }
   } catch (err) {
     console.error("❌ Progress Update Error:", err);
+    logToFile(`❌ Progress Update Error for Session ${sessionId}:`, err);
     res.status(200).json({ warning: "Logging failed", error: err.message });
   }
 };

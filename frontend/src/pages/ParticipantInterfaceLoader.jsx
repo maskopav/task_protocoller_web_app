@@ -7,6 +7,7 @@ import { useMappings } from "../context/MappingContext";
 import { fetchParticipantProtocol } from "../api/participantProtocols";
 import { randomizeTasks } from '../utils/randomizer';
 import { initSession } from "../api/sessions";
+import { logToServer } from "../utils/frontendLogger";
 
 export default function ParticipantInterfaceLoader() {
   const { token } = useParams();
@@ -40,13 +41,6 @@ export default function ParticipantInterfaceLoader() {
       try {
         // 1. call backend to resolve token
         const response = await fetchParticipantProtocol(token);
-        console.log(response);
-        // response contains:
-        // {
-        //   participant: {...}
-        //   project_protocol: {...}
-        //   protocol: {... raw protocol ...}
-        // }
         const rawProtocol = response.protocol;
         if (!rawProtocol) throw new Error("Protocol missing");
 
@@ -56,11 +50,8 @@ export default function ParticipantInterfaceLoader() {
         // 3: Apply Randomization
         // We use the settings from the protocol to shuffle the mapped tasks
         let randomizationSettings = rawProtocol.randomization || {};
-        const shuffledTasks = randomizeTasks(mappedProtocol.tasks, randomizationSettings);
-        
+        let shuffledTasks = randomizeTasks(mappedProtocol.tasks, randomizationSettings);
         // Update the protocol object with the new order
-        console.log(mappedProtocol.tasks)
-        console.log(shuffledTasks)
         mappedProtocol.tasks = shuffledTasks;
 
         // 4: Initialize Session with the specific task order
@@ -69,19 +60,38 @@ export default function ParticipantInterfaceLoader() {
 
         // We do this in parallel or sequence. Sequence is safer to ensure we have a session ID.
         let sessionId = null;
+        let startingTaskIndex = 0;
+        let isResumed = false;
         try {
             const sessionData = await initSession({
               token, 
               taskOrder // Send the shuffled order to DB
             });
             sessionId = sessionData.sessionId;
-            console.log("Session started:", sessionId);
+            isResumed = sessionData.resumed || false;
+
+            // If we are resuming, we MUST use the exact same task order they had before!
+            if (isResumed && sessionData.taskOrder && sessionData.taskOrder.length > 0) {
+              const savedOrder = sessionData.taskOrder.map(Number); 
+              
+              shuffledTasks = [...mappedProtocol.tasks].sort((a, b) => {
+                return savedOrder.indexOf(Number(a.protocol_task_id)) - savedOrder.indexOf(Number(b.protocol_task_id));
+              });
+            }
+
+            // Convert backend's 1-based index back to React's 0-based array index
+            if (sessionData.currentTaskIndex !== undefined) {
+              startingTaskIndex = Math.max(0, parseInt(sessionData.currentTaskIndex, 10) - 1);
+            }
+            
+            logToServer(isResumed ? ` Resumed session: ${sessionId} at index ${startingTaskIndex}` : `New session started: ${sessionId}`);
         } catch (err) {
             console.error("Warning: Could not init session, proceeding anyway", err);
             // Decide if you want to block user or let them continue without tracking
         }
 
         // save to global context
+        mappedProtocol.tasks = shuffledTasks;
         setSelectedProtocol(mappedProtocol);
 
         // --- 3) navigate to real participant interface
@@ -93,7 +103,9 @@ export default function ParticipantInterfaceLoader() {
             editingMode: false,
             participant: response.participant,
             token,
-            sessionId
+            sessionId,
+            startingTaskIndex,
+            isResumed
           }
         });
 

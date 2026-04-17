@@ -10,6 +10,7 @@ export function ConfirmDialogProvider({ children }) {
     message: "",
     confirmText: "Confirm",
     cancelText: "Cancel",
+    infoOnly: false,
     resolve: null,
   });
 
@@ -21,6 +22,7 @@ export function ConfirmDialogProvider({ children }) {
         message: options.message || "",
         confirmText: options.confirmText || "Confirm",
         cancelText: options.cancelText || "Cancel",
+        infoOnly: options.infoOnly || false,
         resolve,
       });
     });
@@ -47,12 +49,20 @@ export function ConfirmDialogProvider({ children }) {
             <p>{dialog.message}</p>
 
             <div className="confirm-buttons">
-              <button className="btn-cancel" onClick={handleCancel}>
-                {dialog.cancelText}
-              </button>
-              <button className="btn-confirm" onClick={handleConfirm}>
-                {dialog.confirmText}
-              </button>
+              {dialog.infoOnly ? (
+                <button className="btn-confirm" onClick={handleConfirm}>
+                  {dialog.confirmText}
+                </button>
+              ) : (
+                <>
+                  <button className="btn-cancel" onClick={handleCancel}>
+                    {dialog.cancelText}
+                  </button>
+                  <button className="btn-confirm" onClick={handleConfirm}>
+                    {dialog.confirmText}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
