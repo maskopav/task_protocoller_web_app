@@ -546,6 +546,7 @@ export const Recorder = ({
                                 onRepeat={handleRepeat}
                                 onNextTask={handleNextTask}
                                 showNextButton={showNextButton}
+                                onLogEvent={onLogEvent}
                             />
                         </div>
                     )}
