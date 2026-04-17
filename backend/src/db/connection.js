@@ -15,7 +15,8 @@ const pool = await mysql.createPool({
   connectionLimit: 10,
   charset: 'utf8mb4',
   multipleStatements: true,
-  dateStrings: true
+  dateStrings: true,
+  timezone: 'Z'
 });
 
 export default pool;

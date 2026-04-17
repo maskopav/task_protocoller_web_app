@@ -32,7 +32,7 @@ export const initSession = async (req, res) => {
        FROM sessions 
        WHERE participant_protocol_id = ? 
          AND completed = false 
-         AND last_activity_at >= NOW() - INTERVAL 12 HOUR 
+         AND last_activity_at >= UTC_TIMESTAMP() - INTERVAL 12 HOUR 
        ORDER BY last_activity_at DESC 
        LIMIT 1`,
       [participantProtocolId]
@@ -56,7 +56,7 @@ export const initSession = async (req, res) => {
     const [insertResult] = await pool.query(
       `INSERT INTO sessions 
       (participant_protocol_id, session_date, last_activity_at, current_task_index, user_agent, ip_address, device_metadata, task_order) 
-      VALUES (?, NOW(), NOW(), 1, ?, ?, ?, ?)`,
+      VALUES (?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, ?, ?, ?, ?)`,
       [
         participantProtocolId, 
         userAgent, 
@@ -105,7 +105,8 @@ export const updateProgress = async (req, res) => {
         // Update last_activity_at will as well
         await connection.query(
           `UPDATE sessions 
-           SET progress = JSON_ARRAY_APPEND(COALESCE(progress, JSON_ARRAY()), '$', JSON_EXTRACT(?, '$'))
+           SET progress = JSON_ARRAY_APPEND(COALESCE(progress, JSON_ARRAY()), '$', JSON_EXTRACT(?, '$')),
+            last_activity_at = UTC_TIMESTAMP()
             ${taskIndexQuery}
            WHERE id = ?`,
          queryParams

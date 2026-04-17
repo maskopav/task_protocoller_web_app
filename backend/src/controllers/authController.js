@@ -71,7 +71,7 @@ export const participantSignup = async (req, res) => {
       const assignment = await assignProtocolToParticipant(conn, participantId, project_id, protocol_id);
       
       // Activate
-      await conn.query(`UPDATE participant_protocols SET is_active=1, start_date = NOW() WHERE id=?`, [assignment.participant_protocol_id]);
+      await conn.query(`UPDATE participant_protocols SET is_active=1, start_date = UTC_TIMESTAMP() WHERE id=?`, [assignment.participant_protocol_id]);
 
       // Send Email
       // Use Referer to get the full path before the hash (e.g., /test/dist/)
@@ -129,7 +129,7 @@ export const participantLogin = async (req, res) => {
       
       const token = await executeTransaction(async (conn) => {
         const assignment = await assignProtocolToParticipant(conn, participant.id, project_id, protocol_id);
-        await conn.query(`UPDATE participant_protocols SET is_active=1, start_date = NOW() WHERE id=?`, [assignment.participant_protocol_id]);
+        await conn.query(`UPDATE participant_protocols SET is_active=1, start_date = UTC_TIMESTAMP() WHERE id=?`, [assignment.participant_protocol_id]);
         return assignment.unique_token;
       });
       
@@ -156,12 +156,11 @@ export const forgotPassword = async (req, res) => {
 
     // Generate Token
     const token = crypto.randomBytes(32).toString('hex');
-    const expireTime = new Date(Date.now() + 3600000); // 1 hour
 
     // Save to DB
     await executeQuery(
-      `UPDATE participants SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?`,
-      [token, expireTime, participant.id]
+      `UPDATE participants SET reset_password_token = ?, reset_password_expires = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 HOUR) WHERE id = ?`,
+      [token, participant.id]
     );
 
     // Send Email
@@ -187,7 +186,7 @@ export const resetPassword = async (req, res) => {
   try {
     // Verify Token
     const rows = await executeQuery(
-      `SELECT * FROM participants WHERE reset_password_token = ? AND reset_password_expires > NOW()`,
+      `SELECT * FROM participants WHERE reset_password_token = ? AND reset_password_expires > UTC_TIMESTAMP()`,
       [token]
     );
 
@@ -272,11 +271,10 @@ export const adminForgotPassword = async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const expireTime = new Date(Date.now() + 3600000); // 1 hour
 
     await executeQuery(
-      `UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?`,
-      [token, expireTime, rows[0].id]
+      `UPDATE users SET reset_password_token = ?, reset_password_expires = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 HOUR) WHERE id = ?`,
+      [token, rows[0].id]
     );
 
     let baseUrl = req.headers.referer || req.headers.origin;
@@ -300,7 +298,7 @@ export const adminResetPassword = async (req, res) => {
   const { token, password } = req.body;
   try {
     const rows = await executeQuery(
-      `SELECT id FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()`,
+      `SELECT id FROM users WHERE reset_password_token = ? AND reset_password_expires > UTC_TIMESTAMP()`,
       [token]
     );
 
@@ -332,7 +330,7 @@ export const setupAdminProfile = async (req, res) => {
        SET full_name = ?, 
            password_hash = ?, 
            must_change_password = 0, 
-           updated_at = NOW() 
+           updated_at = UTC_TIMESTAMP() 
        WHERE id = ?`,
       [fullName, hashedPassword, userId]
     );

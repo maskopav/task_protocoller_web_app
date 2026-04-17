@@ -118,7 +118,7 @@ export const updateParticipant = async (req, res) => {
     // 2. Update
     const updateSql = `
       UPDATE participants 
-      SET full_name=?, external_id=?, birth_date=?, sex=?, contact_email=?, contact_phone=?, notes=?, updated_at=NOW()
+      SET full_name=?, external_id=?, birth_date=?, sex=?, contact_email=?, contact_phone=?, notes=?, updated_at=UTC_TIMESTAMP()
       WHERE id=?
     `;
 

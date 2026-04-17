@@ -205,7 +205,7 @@ export async function activateParticipantProtocol(req, res) {
       `UPDATE participant_protocols 
        SET 
         is_active = 1, 
-        start_date = IFNULL(start_date, NOW()),
+        start_date = IFNULL(start_date, UTC_TIMESTAMP()),
         end_date = NULL
        WHERE id = ?`,
       [participant_protocol_id]
@@ -228,7 +228,7 @@ export async function deactivateParticipantProtocol(req, res) {
 
     await pool.query(
       `UPDATE participant_protocols 
-       SET is_active = 0, end_date = NOW()
+       SET is_active = 0, end_date = UTC_TIMESTAMP()
        WHERE id = ?`,
       [participant_protocol_id]
     );

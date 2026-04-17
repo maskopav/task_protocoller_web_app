@@ -74,7 +74,7 @@ export const saveProtocol = async (req, res) => {
 
         // 2. Mark old versions as not current
         await conn.query(
-          `UPDATE protocols SET is_current = 0, updated_at = NOW() WHERE protocol_group_id = ? AND is_current = 1`,
+          `UPDATE protocols SET is_current = 0, updated_at = UTC_TIMESTAMP() WHERE protocol_group_id = ? AND is_current = 1`,
           [groupId]
         );
       }
@@ -189,7 +189,7 @@ export const saveProtocol = async (req, res) => {
             // 3. Archive old record
             await conn.query(
               `UPDATE participant_protocols 
-               SET is_active = 0, end_date = NOW(), access_token = NULL
+               SET is_active = 0, end_date = UTC_TIMESTAMP(), access_token = NULL
                WHERE id = ?;`,
               [p.id]
             );

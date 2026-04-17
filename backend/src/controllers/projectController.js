@@ -38,7 +38,7 @@
     try {
         const result = await executeQuery(
             `INSERT INTO projects (name, description, frequency, country, contact_person, created_by, updated_by, start_date, updated_at, is_active)
-             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
             [name, description, frequency, country, contact_person, created_by, created_by]
         );
         res.json({ success: true, id: result.insertId });
@@ -65,11 +65,11 @@
                     If activated (1) -> set end_date to NULL. 
                     If metadata update (null/undefined) -> keep current date. */
                  end_date = CASE 
-                    WHEN ? = 0 THEN CURRENT_DATE 
+                    WHEN ? = 0 THEN UTC_DATE() 
                     WHEN ? = 1 THEN NULL 
                     ELSE end_date 
                  END,
-                 updated_at = CURRENT_TIMESTAMP, 
+                 updated_at = UTC_TIMESTAMP(), 
                  updated_by = ? 
              WHERE id = ?`,
             [

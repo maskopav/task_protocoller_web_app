@@ -9,7 +9,7 @@ CREATE TABLE `users` (
   `is_active` boolean NOT NULL DEFAULT true,
   `must_change_password` boolean NOT NULL DEFAULT true,
   `reset_password_token` varchar(255) DEFAULT NULL,
-  `reset_password_expires` DATETIME DEFAULT NULL
+  `reset_password_expires` TIMESTAMP DEFAULT NULL
 );
 
 CREATE TABLE `roles` (
@@ -63,12 +63,6 @@ CREATE TABLE `project_protocols` (
   `access_token` char(64) UNIQUE DEFAULT NULL
 );
 
-CREATE TABLE `protocol_contents` (
-  `protocol_id` integer PRIMARY KEY,
-  `info_text` LONGTEXT DEFAULT NULL,
-  `consent_text` LONGTEXT DEFAULT NULL,
-  FOREIGN KEY (`protocol_id`) REFERENCES `protocols` (`id`) ON DELETE CASCADE
-);
 
 CREATE TABLE `protocol_contents` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
@@ -148,9 +142,9 @@ CREATE TABLE `sessions` (
   `user_agent` varchar(512) DEFAULT NULL,
   `ip_address` varchar(45) DEFAULT NULL,
   `device_metadata` JSON DEFAULT NULL COMMENT 'Screen size, platform, etc.',
-  `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed'
+  `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
   `current_task_index` integer NOT NULL DEFAULT 1,
-  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
 );
 
 CREATE TABLE `recordings` (

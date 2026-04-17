@@ -51,7 +51,7 @@ export const uploadRecording = async (req, res) => {
       ON DUPLICATE KEY UPDATE 
       recording_url = VALUES(recording_url), 
       duration_seconds = VALUES(duration_seconds),
-      created_at = CURRENT_TIMESTAMP`,
+      created_at = UTC_TIMESTAMP()`,
       [sessionId, protocolTaskId, finalFilename, Math.round(duration || 0), safeRep]
     );
 

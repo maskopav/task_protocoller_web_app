@@ -7,15 +7,15 @@ function padTwoDigits(num) {
 export function dateInYyyyMmDdHhMmSs(date = new Date(), dateDivider = "-") {
 return (
     [
-    date.getFullYear(),
-    padTwoDigits(date.getMonth() + 1),
-    padTwoDigits(date.getDate()),
+    date.getUTCFullYear(),
+    padTwoDigits(date.getUTCMonth() + 1),
+    padTwoDigits(date.getUTCDate()),
     ].join(dateDivider) +
     "_" + // Changed space to underscore for safer filenames
     [
-    padTwoDigits(date.getHours()),
-    padTwoDigits(date.getMinutes()),
-    padTwoDigits(date.getSeconds()),
+    padTwoDigits(date.getUTCHours()),
+    padTwoDigits(date.getUTCMinutes()),
+    padTwoDigits(date.getUTCSeconds()),
     ].join("-") // Changed colon to dash for safer filenames
 );
 }
