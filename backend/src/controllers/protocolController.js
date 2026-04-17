@@ -234,6 +234,21 @@ export const getProtocolById = async (req, res) => {
       }
     }
 
+    // Fetch all active sibling languages for this protocol group
+    const siblingRows = await executeQuery(
+      `SELECT l.code, p.id as protocol_id
+       FROM protocols p
+       JOIN languages l ON p.language_id = l.id
+       WHERE p.protocol_group_id = ? AND p.is_current = 1`,
+      [protocol.protocol_group_id]
+    );
+
+    // Sort the languages so the one we are actively fetching is first in the array
+    const primaryLangRow = siblingRows.find(row => row.protocol_id === parseInt(id));
+    const primaryCode = primaryLangRow ? primaryLangRow.code : 'en';
+    const otherCodes = siblingRows.filter(row => row.protocol_id !== parseInt(id)).map(r => r.code);
+    const finalLanguageArray = [primaryCode, ...otherCodes];
+
     // 1. Get the new content rows
     const contents = await executeQuery(
       `SELECT protocol_task_id, content_type, text_html FROM protocol_contents WHERE protocol_id = ?`,
@@ -269,6 +284,7 @@ export const getProtocolById = async (req, res) => {
     // 4. Spread globalFields into the result so the frontend sees .info_text
     res.json({ 
       ...protocol, 
+      language: finalLanguageArray,
       ...globalFields, // RESTORES info_text and consent_text
       global_contents: contentMap['global'] || [],
       tasks 

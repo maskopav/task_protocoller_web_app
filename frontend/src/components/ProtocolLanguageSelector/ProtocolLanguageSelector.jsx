@@ -1,87 +1,148 @@
-import React from "react";
+import React, { useState, useRef, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "../../i18n";
+import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext"; 
 import "./ProtocolLanguageSelector.css"; 
 
 export default function ProtocolLanguageSelector({ value, onChange, disabled, editingMode }) {
-  const { t } = useTranslation(["admin"]);
+  const { t } = useTranslation(["admin", "common"]);
+  const { confirm } = useContext(ConfirmDialogContext);
 
-  // Normalize the value to always be an array for easier handling
   const selectedLangs = Array.isArray(value) ? value : (value ? [value] : ["en"]);
+  
+  // Local state to track if multi-language is enabled (defaults to true if array has > 1)
+  const [isMulti, setIsMulti] = useState(selectedLangs.length > 1);
 
-  const toggleLanguage = (code) => {
+  const initialLangsRef = useRef(null);
+  if (editingMode && !initialLangsRef.current && value) {
+    initialLangsRef.current = selectedLangs;
+  }
+  const initialLangs = initialLangsRef.current || [];
+
+  // Handles the checkbox toggle
+  const handleMultiCheck = async (e) => {
     if (disabled) return;
-    if (selectedLangs.includes(code)) {
-      // Prevent unchecking the very last language
-      if (selectedLangs.length === 1) return;
-      onChange(selectedLangs.filter((c) => c !== code));
+    
+    if (e.target.checked) {
+       // Ask for confirmation before enabling
+       const confirmed = await confirm({
+          title: t("protocolEditor.multiLangTitle"),
+          message: t("protocolEditor.multiLangMessage"),
+          confirmText: t("common:yes", "Yes, enable"),
+          cancelText: t("common:cancel", "Cancel")
+       });
+       if (confirmed) {
+         setIsMulti(true);
+       }
     } else {
-      onChange([...selectedLangs, code]);
+       // Disable and reset to just the first selected language
+       setIsMulti(false);
+       if (selectedLangs.length > 1) {
+         onChange([selectedLangs[0]]);
+       }
     }
   };
 
-  // --- EDITING MODE: Show Read-Only Badge & Add Variant Option ---
+  const toggleLanguage = async (code) => {
+    if (disabled) return;
+
+    // Trigger confirm dialog if they try to add a new variant in EDIT mode
+    if (editingMode && !selectedLangs.includes(code)) {
+        const confirmed = await confirm({
+            title: t("protocolEditor.addVariantTitle"),
+            message: t("protocolEditor.addVariantMessage"),
+            confirmText: t("common:add", "Add Variant"),
+            cancelText: t("common:cancel", "Cancel")
+        });
+        if (!confirmed) return;
+    }
+
+    if (selectedLangs.includes(code)) {
+      if (selectedLangs.length === 1) return; 
+      if (editingMode && initialLangs.includes(code)) return; 
+      onChange(selectedLangs.filter((c) => c !== code));
+    } else {
+      if (!editingMode && !isMulti) {
+         // Single select mode: Replace the selection
+         onChange([code]);
+      } else {
+         // Multi select mode: Append to array
+         onChange([...selectedLangs, code]);
+      }
+    }
+  };
+
+  // --- EDITING MODE ---
   if (editingMode) {
-    const currentLangObj = LANGUAGES.find(l => l.code === (selectedLangs[0] || "en"));
-    
-    // Find any additional languages the admin clicked to add during this edit session
-    const newlyAddedLangs = selectedLangs.slice(1); 
+    const missingLangs = LANGUAGES.filter(l => !selectedLangs.includes(l.code));
 
     return (
       <div className="protocol-field">
         <label className="protocol-label">
-          {t("protocolEditor.currentlyEditingLang")}
+          {t("protocolEditor.currentlyEditingLang", "Currently Editing Variant:")}
         </label>
-        <div className="protocol-lang-badge">
-          {currentLangObj?.label || selectedLangs[0]}
+        
+        <div className="protocol-lang-badge-container">
+          {selectedLangs.map(code => {
+            const langObj = LANGUAGES.find(l => l.code === code);
+            const isInitial = initialLangs.includes(code);
+
+            if (isInitial) {
+              return (
+                <div key={code} className="protocol-lang-badge">
+                  {langObj?.label || code}
+                </div>
+              );
+            } else {
+              return (
+                <div 
+                  key={code} 
+                  className="protocol-lang-badge removable" 
+                  onClick={() => toggleLanguage(code)}
+                >
+                  {langObj?.label || code} ✕
+                </div>
+              );
+            }
+          })}
         </div>
 
-        {/* Add Missing Language Variants*/}
-        <div className="protocol-lang-add-section">
-          <label className="protocol-lang-add-label">
-            ➕ {t("protocolEditor.addNewVariant", "Add New Language Variant")}
-          </label>
-          <div className="protocol-lang-pill-container">
-            {LANGUAGES.map((lang) => {
-              if (lang.code === selectedLangs[0]) return null; // Hide the primary language
-
-              const isSelected = newlyAddedLangs.includes(lang.code);
-              return (
+        {missingLangs.length > 0 && (
+          <div className="protocol-lang-add-section">
+            <label className="protocol-lang-add-label">
+              ➕ {t("protocolEditor.addNewVariant", "Add New Language Variant")}
+            </label>
+            <div className="protocol-lang-pill-container">
+              {missingLangs.map((lang) => (
                 <label 
                   key={lang.code} 
-                  className={`protocol-lang-pill small ${isSelected ? "selected" : ""} ${disabled ? "disabled" : ""}`}
+                  className={`protocol-lang-pill small ${disabled ? "disabled" : ""}`}
                 >
                   <input
                     type="checkbox"
-                    checked={isSelected}
+                    checked={false} 
                     onChange={() => toggleLanguage(lang.code)}
                     disabled={disabled}
                   />
-                  {lang.label}
+                  {lang.code}
                 </label>
-              );
-            })}
+              ))}
+            </div>
           </div>
-          <div className="protocol-lang-add-helper">
-            {t("protocolEditor.addNewVariantHelper", "Selecting a language here will generate a new variant for it when you save.")}
-          </div>
-        </div>
-
-        <div className="protocol-lang-warning">
-          💡 <strong>{t("protocolEditor.smartSyncNote")}</strong><br/>
-          {t("protocolEditor.smartSyncWarning")}
-        </div>
+        )}
       </div>
     );
   }
 
-  // --- CREATION MODE: Show Multiple Select Pills ---
+  // --- CREATION MODE ---
   return (
-    <div className="protocol-field">
+    <div className="create-inputs-container">
+
       <label className="protocol-label">
         {t("protocolEditor.selectLanguagesToCreate")}
       </label>
-      <div className="protocol-lang-pill-container">
+      
+      <div className="protocol-field protocol-lang-pill-container">
         {LANGUAGES.map((lang) => {
           const isSelected = selectedLangs.includes(lang.code);
           return (
@@ -95,14 +156,21 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
                 onChange={() => toggleLanguage(lang.code)}
                 disabled={disabled}
               />
-              {lang.label}
+              {lang.code}
             </label>
           );
         })}
       </div>
-      <div className="protocol-lang-helper">
-        {t("protocolEditor.createMultipleLangsHelper")}
-      </div>
+
+      <label className={`protocol-multi-select-label ${disabled ? "disabled" : ""}`}>
+         <input 
+            type="checkbox" 
+            checked={isMulti} 
+            onChange={handleMultiCheck}
+            disabled={disabled}
+         />
+         {t("protocolEditor.allowMultiSelect")}
+      </label>
     </div>
   );
 }

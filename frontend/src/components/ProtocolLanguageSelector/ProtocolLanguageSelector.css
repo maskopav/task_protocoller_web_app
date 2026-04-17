@@ -1,27 +1,33 @@
 /* frontend/src/components/ProtocolLanguageSelector/ProtocolLanguageSelector.css */
+.protocol-lang-badge-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
 
-/* Editing Mode Styles */
 .protocol-lang-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   padding: 6px 12px;
   background-color: #e0e7ff;
   color: #3730a3;
   border-radius: 16px;
   font-weight: bold;
-  margin-bottom: 8px;
 }
 
-.protocol-lang-warning {
-  font-size: 0.85rem;
-  color: #6b7280;
-  line-height: 1.4;
-  background-color: #f9fafb;
-  padding: 10px;
-  border-radius: 6px;
-  border-left: 4px solid #3b82f6;
+.protocol-lang-badge.removable {
+  cursor: pointer;
+  background-color: #dbeafe;
+  border: 1px solid #3b82f6;
+  transition: background-color 0.2s;
+  gap: 6px;
 }
 
-/* Creation Mode Styles */
+.protocol-lang-badge.removable:hover {
+  background-color: #bfdbfe;
+}
+
 .protocol-lang-pill-container {
   display: flex;
   gap: 8px;
@@ -56,14 +62,8 @@
   display: none;
 }
 
-.protocol-lang-helper {
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
 .protocol-lang-add-section {
   margin-top: 12px;
-  margin-bottom: 16px;
   padding: 12px;
   border: 1px dashed #9ca3af;
   border-radius: 8px;
@@ -83,8 +83,14 @@
   font-size: 0.85rem;
 }
 
-.protocol-lang-add-helper {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 6px;
+/* Style for the multiple language checkbox */
+.protocol-multi-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 12px;
+  cursor: pointer;
 }

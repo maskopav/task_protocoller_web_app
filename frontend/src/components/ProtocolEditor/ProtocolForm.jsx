@@ -112,15 +112,7 @@ export default function ProtocolForm({
                 </div>
               )}
             </div>
-
-            <ProtocolLanguageSelector
-              value={protocolData?.language || "en"}
-              onChange={handleLanguageChange}
-              disabled={reorderMode}
-              editingMode={editingMode}
-            />
-
-
+            
             <div className="protocol-field">
               <label className="protocol-label">
                 {t("protocolDashboard.descriptionPlaceholder")}:
@@ -135,6 +127,14 @@ export default function ProtocolForm({
                 disabled={reorderMode}
               />
             </div>
+
+            <ProtocolLanguageSelector
+              value={protocolData?.language || "en"}
+              onChange={handleLanguageChange}
+              disabled={reorderMode}
+              editingMode={editingMode}
+            />
+
 
             <div className="protocol-pages-row">
               {/* Info Page Logic */}

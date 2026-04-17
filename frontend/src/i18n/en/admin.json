@@ -279,6 +279,11 @@
     "smartSyncWarning": "Structural changes (adding, reordering, deleting tasks) will automatically sync to all other language variants of this protocol. Text changes will only apply to this language.",
     "selectLanguagesToCreate": "Target Languages:",
     "createMultipleLangsHelper": "Select all languages you want to generate this protocol for. You will need to translate the text in the other variants later.",
+    "allowMultiSelect": "Allow participants to select between multiple languages",
+    "multiLangTitle": "Enable Multiple Languages?",
+    "multiLangMessage": "If checked, it is possible to create protocols in multiple languages at once. They will have the completely same structure of the task including all parameters. Only the texts (consent, intro page, questionnaire) must be updated manually based on the language in the protocols overview. Structural changes will automatically update all versions.\n\nAre you sure you want this? If not, you can create different versions of the protocol in other languages separately (participants won't be able to change the language).",
+    "addVariantTitle": "Add Language Variant?",
+    "addVariantMessage": "Selecting a new language will generate a variant for it when you save. It will share the exact same structural changes. Texts must be updated manually. Continue?",
     "questionnaire": {
       "questionnaireTitle": "Questionnaire Title",
       "enterTitle": "Enter questionnaire title",
