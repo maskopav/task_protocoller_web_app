@@ -1,0 +1,97 @@
+/* frontend/src/components/LanguageSwitcher/ParticipantLanguageSelector.css */
+
+.language-selector-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f3f4f6;
+  padding: 20px;
+}
+
+.language-selector-card {
+  background-color: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 450px;
+  width: 100%;
+}
+
+.language-selector-title {
+  margin-bottom: 24px;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.language-selector-subtitle {
+  font-size: 1.1rem;
+  color: #6b7280;
+  font-weight: normal;
+  display: block;
+  margin-top: 6px;
+}
+
+.language-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px; /* Extra space before the confirm button */
+}
+
+.language-btn {
+  padding: 14px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  border: 2px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: bold;
+}
+
+/* Hover state for unselected buttons */
+.language-btn:hover:not(:disabled):not(.selected) {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Selected State */
+.language-btn.selected {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.language-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Confirm Button */
+.language-confirm-btn {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 1.15rem;
+  border-radius: 8px;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.language-confirm-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.language-confirm-btn:disabled {
+  background-color: #9ca3af;
+  box-shadow: none;
+  cursor: not-allowed;
+}

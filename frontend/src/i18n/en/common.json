@@ -19,7 +19,8 @@
       "back": "Back",
       "ok": "Ok",
       "logout": "Log out",
-      "edit": "Edit"
+      "edit": "Edit",
+      "confirm": "Confirm"
       
     },
     "status": {
@@ -27,6 +28,9 @@
       "recording": "🔴 Recording...",
       "paused": "⏸️ Paused",
       "recorded": "✅ Recorded"
+    },
+    "languageSelector": {
+      "title": "Please select your language"
     },
     "completion": {
       "taskCompletedInstructions": "Task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",

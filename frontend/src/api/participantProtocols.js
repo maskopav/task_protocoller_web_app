@@ -82,3 +82,19 @@ export async function sendProtocolEmailApi({ email, subject, body, link, lang })
   }
   return res.json();
 }
+
+// Swap participant protocol - different language version
+export const swapParticipantProtocolLanguage = async (token, new_project_protocol_id) => {
+  const response = await fetch(`${API_BASE}/participant-protocols/${token}/language`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ new_project_protocol_id }),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to change language");
+  }
+  
+  return response.json();
+};

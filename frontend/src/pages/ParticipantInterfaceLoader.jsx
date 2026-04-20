@@ -1,5 +1,5 @@
 // src/pages/ParticipantInterfaceLoader.jsx
-import { useEffect, useState, useContext, useRef } from "react";
+import { useEffect, useState, useContext, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ProtocolContext } from "../context/ProtocolContext";
@@ -8,6 +8,7 @@ import { fetchParticipantProtocol } from "../api/participantProtocols";
 import { randomizeTasks } from '../utils/randomizer';
 import { initSession } from "../api/sessions";
 import { logToServer } from "../utils/frontendLogger";
+import ParticipantLanguageSelector from "../components/LanguageSwitcher/ParticipantLanguageSelector";
 
 export default function ParticipantInterfaceLoader() {
   const { token } = useParams();
@@ -15,142 +16,144 @@ export default function ParticipantInterfaceLoader() {
   const { t } = useTranslation(["common"]);
   const { setSelectedProtocol } = useContext(ProtocolContext);
   const { mappings } = useMappings();
+  
+  // Hold the raw data here if we need to ask the participant for their language
+  const [pendingLangData, setPendingLangData] = useState(null);
 
   // Ref to track if we have already started initialization
   const lastLoadedToken = useRef(null);
 
-  useEffect(() => {
-    // Ensure mappings (languages and tasks) are loaded before running logic.
-    // This effect will re-run automatically when 'mappings' updates.
-    if (!mappings || !mappings.languages || !mappings.tasks) {
-      return;
+  // 1. Shared Error Handler
+  const handleError = useCallback((e) => {
+    let errorState = {};
+    if (e.message && e.message.includes("active")) {
+      errorState = { title: t("inactive.title"), message: t("inactive.message"), isWarning: true };
+    } else if (e.message && e.message.includes("token")) {
+      errorState = { title: t("invalidToken.title"), message: t("invalidToken.message"), isWarning: true };
+    } else {
+      errorState = { title: t("error.title", "Unable to Load Protocol"), message: e.message || t("error.generic", "An unexpected error occurred."), isWarning: false };
     }
+    navigate("/error", { replace: true, state: errorState });
+  }, [navigate, t]);
 
-    // Check if we have already loaded THIS specific token
-    // If the token matches the last one we processed, stop.
-    if (lastLoadedToken.current === token) {
-      return;
-    }
+  // 2. Finalize Load Function (Handles Mapping, Sessions, and Navigation)
+  const finalizeLoad = useCallback(async (response) => {
+    try {
+      // Map Data using existing function
+      const mappedProtocol = mapProtocol(response.protocol, mappings);
 
-    // Mark this token as processed immediately
-    lastLoadedToken.current = token;
+      // Apply Randomization
+      let randomizationSettings = response.protocol.randomization || {};
+      let shuffledTasks = randomizeTasks(mappedProtocol.tasks, randomizationSettings);
+      mappedProtocol.tasks = shuffledTasks;
 
-    async function load() {
-      // Save original token URL before any navigation happens
-      sessionStorage.setItem('originalParticipantUrl', window.location.href);
+      // Initialize Session
+      const taskOrder = shuffledTasks.map(t => t.protocol_task_id);
+      let sessionId = null;
+      let startingTaskIndex = 0;
+      let isResumed = false;
+
       try {
-        // 1. call backend to resolve token
-        const response = await fetchParticipantProtocol(token);
-        const rawProtocol = response.protocol;
-        if (!rawProtocol) throw new Error("Protocol missing");
+        const sessionData = await initSession({ token, taskOrder });
+        sessionId = sessionData.sessionId;
+        isResumed = sessionData.resumed || false;
 
-        // 2. Map Data using existing function
-        const mappedProtocol = mapProtocol(rawProtocol, mappings);
-
-        // 3: Apply Randomization
-        // We use the settings from the protocol to shuffle the mapped tasks
-        let randomizationSettings = rawProtocol.randomization || {};
-        let shuffledTasks = randomizeTasks(mappedProtocol.tasks, randomizationSettings);
-        // Update the protocol object with the new order
-        mappedProtocol.tasks = shuffledTasks;
-
-        // 4: Initialize Session with the specific task order
-        // We extract the IDs to send to the backend
-        const taskOrder = shuffledTasks.map(t => t.protocol_task_id);
-
-        // We do this in parallel or sequence. Sequence is safer to ensure we have a session ID.
-        let sessionId = null;
-        let startingTaskIndex = 0;
-        let isResumed = false;
-        try {
-            const sessionData = await initSession({
-              token, 
-              taskOrder // Send the shuffled order to DB
-            });
-            sessionId = sessionData.sessionId;
-            isResumed = sessionData.resumed || false;
-
-            // If we are resuming, we MUST use the exact same task order they had before!
-            if (isResumed && sessionData.taskOrder && sessionData.taskOrder.length > 0) {
-              const savedOrder = sessionData.taskOrder.map(Number); 
-              
-              shuffledTasks = [...mappedProtocol.tasks].sort((a, b) => {
-                return savedOrder.indexOf(Number(a.protocol_task_id)) - savedOrder.indexOf(Number(b.protocol_task_id));
-              });
-            }
-
-            // Convert backend's 1-based index back to React's 0-based array index
-            if (sessionData.currentTaskIndex !== undefined) {
-              startingTaskIndex = Math.max(0, parseInt(sessionData.currentTaskIndex, 10) - 1);
-            }
-            
-            logToServer(isResumed ? ` Resumed session: ${sessionId} at index ${startingTaskIndex}` : `New session started: ${sessionId}`);
-        } catch (err) {
-            console.error("Warning: Could not init session, proceeding anyway", err);
-            // Decide if you want to block user or let them continue without tracking
+        // If resuming, restore the EXACT order from the database
+        if (isResumed && sessionData.taskOrder && sessionData.taskOrder.length > 0) {
+          const savedOrder = sessionData.taskOrder.map(Number); 
+          shuffledTasks = [...mappedProtocol.tasks].sort((a, b) => {
+            return savedOrder.indexOf(Number(a.protocol_task_id)) - savedOrder.indexOf(Number(b.protocol_task_id));
+          });
         }
 
-        // save to global context
-        mappedProtocol.tasks = shuffledTasks;
-        setSelectedProtocol(mappedProtocol);
-
-        // --- 3) navigate to real participant interface
-        navigate("/participant/interface", {
-          replace: true,
-          state: {
-            protocol: mappedProtocol,
-            testingMode: false,
-            editingMode: false,
-            participant: response.participant,
-            token,
-            sessionId,
-            startingTaskIndex,
-            isResumed
-          }
-        });
-
-     } catch (e) {
-        // --- ERROR HANDLING LOGIC ---
-        let errorState = {};
-
-        // 1. Check for "Inactive" error specifically
-        if (e.message && e.message.includes("active")) { // "not active" or "is not active"
-            errorState = {
-                title: t("inactive.title"),
-                message: t("inactive.message"),
-                isWarning: true
-            };
-        } else if (e.message && e.message.includes("token")) { // "not active" or "is not active"
-              errorState = {
-                  title: t("invalidToken.title"),
-                  message: t("invalidToken.message"),
-                  isWarning: true
-              };
-        } else {
-            // 2. Default/Network errors
-            errorState = {
-                title: t("error.title", "Unable to Load Protocol"),
-                message: e.message || t("error.generic", "An unexpected error occurred."),
-                isWarning: false
-            };
+        if (sessionData.currentTaskIndex !== undefined) {
+          startingTaskIndex = Math.max(0, parseInt(sessionData.currentTaskIndex, 10) - 1);
         }
+        
+        logToServer(isResumed ? `Resumed session: ${sessionId} at index ${startingTaskIndex}` : `New session started: ${sessionId}`);
+      } catch (err) {
+        console.error("Warning: Could not init session, proceeding anyway", err);
+      }
 
-        // Navigate to the Error/404 page with the specific state
-        navigate("/error", { 
-            replace: true, 
-            state: errorState 
-        });
-     }
+      // Save to global context
+      mappedProtocol.tasks = shuffledTasks;
+      setSelectedProtocol(mappedProtocol);
+
+      // Navigate to real participant interface
+      navigate("/participant/interface", {
+        replace: true,
+        state: {
+          protocol: mappedProtocol,
+          testingMode: false,
+          editingMode: false,
+          participant: response.participant,
+          token,
+          sessionId,
+          startingTaskIndex,
+          isResumed
+        }
+      });
+    } catch (e) {
+      handleError(e);
     }
+  }, [mappings, navigate, setSelectedProtocol, token, handleError]);
 
+  // 3. Main Load Function (Fetches data and intercepts if multiple languages)
+  const load = useCallback(async () => {
+    sessionStorage.setItem('originalParticipantUrl', window.location.href);
+    try {
+      const response = await fetchParticipantProtocol(token);
+      if (!response.protocol) throw new Error("Protocol missing");
+
+      console.log("Fetched participant protocol:", response);
+
+      // Intercept: If multiple languages exist, pause and show the selector!
+      if (response.protocol.available_languages?.length > 1) {
+        setPendingLangData(response); 
+        return; 
+      }
+
+      // Single language: Proceed directly to finalization
+      await finalizeLoad(response);
+
+    } catch (e) {
+      handleError(e);
+    }
+  }, [token, finalizeLoad, handleError]);
+
+  // 4. Trigger Load on Mount
+  useEffect(() => {
+    if (!mappings || !mappings.languages || !mappings.tasks) return;
+    if (lastLoadedToken.current === token) return;
+    
+    lastLoadedToken.current = token;
     load();
-  }, [token, mappings, navigate, setSelectedProtocol]);
+  }, [token, mappings, load]);
 
+  // 5. Render Language Selector (if intercepted)
+  if (pendingLangData) {
+    return (
+      <ParticipantLanguageSelector 
+        languages={pendingLangData.protocol.available_languages}
+        currentAssignedId={pendingLangData.project_protocol.id}
+        token={token}
+        onConfirm={() => {
+           setPendingLangData(null);
+           finalizeLoad(pendingLangData);
+        }}
+        onSwap={() => {
+           setPendingLangData(null);
+           load(); 
+        }}
+      />
+    );
+  }
+
+  // 6. Render Loading Screen
   return <div className="app-container"><p>{t("loading", "Loading...")}</p></div>;
 }
 
-
-// --- helper
+// --- helper ---
 function mapProtocol(raw, mappings) {
   const language = mappings.languages.find(l => l.id === raw.language_id);
   const mappedTasks = raw.tasks.map(t => {

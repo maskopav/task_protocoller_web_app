@@ -11,13 +11,17 @@
       "save": "Uložit",
       "done": "Hotovo",
       "skip": "Přeskočit",
-      "back": "Zpět"
+      "back": "Zpět",
+      "confirm": "Potvrdit"
     },
     "status": {
       "ready": "⚪ Připraveno",
       "recording": "🔴 Nahrávání...",
       "paused": "⏸️ Pozastaveno",
       "recorded": "✅ Nahráno"
+    },
+    "languageSelector": {
+      "title": "Prosím, vyberte jazyk"
     },
     "completion": {
       "title": "Všechny úkoly dokončeny!",
