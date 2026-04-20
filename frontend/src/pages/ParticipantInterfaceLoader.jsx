@@ -99,7 +99,7 @@ export default function ParticipantInterfaceLoader() {
   }, [mappings, navigate, setSelectedProtocol, token, handleError]);
 
   // 3. Main Load Function (Fetches data and intercepts if multiple languages)
-  const load = useCallback(async () => {
+  const load = useCallback(async (skipSelector = false) => {
     sessionStorage.setItem('originalParticipantUrl', window.location.href);
     try {
       const response = await fetchParticipantProtocol(token);
@@ -108,7 +108,7 @@ export default function ParticipantInterfaceLoader() {
       console.log("Fetched participant protocol:", response);
 
       // Intercept: If multiple languages exist, pause and show the selector!
-      if (response.protocol.available_languages?.length > 1) {
+      if (!skipSelector && response.protocol.available_languages?.length > 1) {
         setPendingLangData(response); 
         return; 
       }
@@ -143,7 +143,7 @@ export default function ParticipantInterfaceLoader() {
         }}
         onSwap={() => {
            setPendingLangData(null);
-           load(); 
+           load(true); // Skip selector on reload since they just swapped
         }}
       />
     );
