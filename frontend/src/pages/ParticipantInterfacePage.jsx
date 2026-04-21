@@ -1,6 +1,6 @@
 // src/pages/ParticipantInterfacePage.jsx
 import React, { useState, useContext, useMemo, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePreventNavigation } from "../hooks/usePreventNavigation";
 import { ProtocolContext } from "../context/ProtocolContext";
@@ -92,9 +92,9 @@ export default function ParticipantInterfacePage() {
     if (isResumed) {
       confirm({
         infoOnly: true,
-        title: t("session.resumed.title", "Welcome back!"),
-        message: t("session.resumed.message", "We saved your progress. You will continue from where you left off."),
-        confirmText: t("session.resumed.continue", "Continue"),
+        title: <Trans i18nKey="resumedSession.title"></Trans>,
+        message: <Trans i18nKey="resumedSession.message"></Trans>,
+        confirmText: <Trans i18nKey="resumedSession.continue"></Trans>,
       });
     }
   }, []); 

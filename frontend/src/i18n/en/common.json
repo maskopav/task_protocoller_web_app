@@ -81,6 +81,11 @@
       "title": "Invalid token",
       "message": "The token is invalid. Please check the URL link or contact your administrator."
     },
+    "resumedSession": {
+      "title": "Welcome back!",
+      "message": "Your progress has been saved. To ensure the best results, please make sure you are in the <strong>same quiet environment</strong> as before and try to complete the remaining tasks at once.",
+      "continue": "Continue"
+    },
     "micCheck": {
       "calibrationTitle": "Microphone Setup",
       "permissionWarning": "Next, your browser will ask for microphone access.",
