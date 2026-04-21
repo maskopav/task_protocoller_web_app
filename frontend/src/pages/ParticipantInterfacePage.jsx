@@ -57,6 +57,9 @@ export default function ParticipantInterfacePage() {
   const protocolData = location.state?.protocol || selectedProtocol;  
   const randomStrategy = protocolData?.randomization?.strategy || 'none';
   const moduleSettings = protocolData?.randomization?.moduleSettings || {};
+  // Extract language info to know if we should show the button
+  const availableLanguages = protocolData?.available_languages || [];
+  const hasMultipleLanguages = availableLanguages.length > 1;
   // For saving recordings in the future.....
   const participant = location.state?.participant;
   const accessToken = location.state?.token;
@@ -427,6 +430,22 @@ export default function ParticipantInterfacePage() {
 
           {/* RIGHT SIDE: Skip Button */}
           <div className="top-right-controls">
+            {hasMultipleLanguages && taskIndex === 0 && (
+              <button 
+                className="btn-lang" 
+                onClick={() => {
+                  logInteraction("language_change_clicked");
+                  // Redirect back to the loader, and pass the force flag!
+                  navigate(`/participant/${accessToken}`, { 
+                    replace: true, 
+                    state: { forceLanguageSelector: true } 
+                  });
+                }}
+              >
+                🌐 {t("languageSelector.change", "Language")}
+              </button>
+            )}
+
             {taskIndex < runtimeTasks.length && testingMode && (
               <button className="btn-skip" onClick={handleSkip}>
                 {t("buttons.skip", { ns: "common" })} →

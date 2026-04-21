@@ -128,8 +128,8 @@ CREATE TABLE `participant_protocols` (
   `participant_id` integer NOT NULL,
   `project_protocol_id` integer NOT NULL,
   `access_token` char(64) UNIQUE DEFAULT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
-  `start_date` date,
-  `end_date` date,
+  `start_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `end_date` timestamp DEFAULT NULL,
   `is_active` BOOLEAN DEFAULT FALSE
 );
 

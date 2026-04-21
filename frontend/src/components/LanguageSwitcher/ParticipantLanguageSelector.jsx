@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { swapParticipantProtocolLanguage } from "../../api/participantProtocols";
 import "./ParticipantLanguageSelector.css"; 
 
-export default function ParticipantLanguageSelector({ languages, currentAssignedId, token, onConfirm, onSwap }) {
+export default function ParticipantLanguageSelector({ languages, currentAssignedId, token, onConfirm, onSwap, onCancel }) {
   // Extract i18n to can change the global language
   const { t, i18n } = useTranslation(["common"]); 
   const [isSwapping, setIsSwapping] = useState(false);
@@ -59,15 +59,27 @@ export default function ParticipantLanguageSelector({ languages, currentAssigned
           ))}
         </div>
 
-        <button 
-          className="language-confirm-btn"
-          onClick={handleConfirmClick}
-          disabled={isSwapping || !selectedLang}
-        >
-          {/* These will also instantly translate! */}
-          {isSwapping ? t("saving", "Saving...") : t("buttons.confirm")}
-        </button>
+        <div className="language-buttons-row" style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+          {/* ADD THE CANCEL BUTTON (only shows if onCancel is provided) */}
+          {onCancel && (
+            <button 
+              className="language-cancel-btn"
+              onClick={onCancel}
+              disabled={isSwapping}
+            >
+              {t("buttons.cancel", "Cancel")}
+            </button>
+          )}
 
+            <button 
+            className="language-confirm-btn"
+            onClick={handleConfirmClick}
+            disabled={isSwapping || !selectedLang}
+            >
+            {/* These will also instantly translate! */}
+            {isSwapping ? t("saving", "Saving...") : t("buttons.confirm")}
+            </button>
+        </div>
       </div>
     </div>
   );

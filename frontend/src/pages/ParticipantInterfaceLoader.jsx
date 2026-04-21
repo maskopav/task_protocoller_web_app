@@ -1,6 +1,6 @@
 // src/pages/ParticipantInterfaceLoader.jsx
 import { useEffect, useState, useContext, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
@@ -13,6 +13,7 @@ import ParticipantLanguageSelector from "../components/LanguageSwitcher/Particip
 export default function ParticipantInterfaceLoader() {
   const { token } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation(["common"]);
   const { setSelectedProtocol } = useContext(ProtocolContext);
   const { mappings } = useMappings();
@@ -37,10 +38,17 @@ export default function ParticipantInterfaceLoader() {
   }, [navigate, t]);
 
   // 2. Finalize Load Function (Handles Mapping, Sessions, and Navigation)
-  const finalizeLoad = useCallback(async (response) => {
+  const finalizeLoad = useCallback(async (response, skipSelector = false) => {
     try {
       // Map Data using existing function
       const mappedProtocol = mapProtocol(response.protocol, mappings);
+
+      // We attach the language data so the interface knows if it has multiple languages
+      mappedProtocol.available_languages = response.protocol.available_languages || [];
+      mappedProtocol.project_protocol_id = response.project_protocol?.id;
+
+      // Check if Language button was manually clicked in the firtst task, if so, force show the selector again to pick the new language
+      const forceLang = location.state?.forceLanguageSelector;
 
       // Apply Randomization
       let randomizationSettings = response.protocol.randomization || {};
@@ -75,9 +83,26 @@ export default function ParticipantInterfaceLoader() {
         console.error("Warning: Could not init session, proceeding anyway", err);
       }
 
+      // If multiple languages exist AND the session is NOT resumed, pause and show the selector!
+      if (!skipSelector && (!isResumed || forceLang) && response.protocol.available_languages?.length > 1) {
+        // Save everything we computed so we can just resume without re-running initialization
+        setPendingLangData({
+          originalResponse: response,
+          mappedProtocol,
+          shuffledTasks,
+          sessionId,
+          startingTaskIndex,
+          isResumed: false
+        }); 
+        return; 
+      }
+
       // Save to global context
       mappedProtocol.tasks = shuffledTasks;
       setSelectedProtocol(mappedProtocol);
+
+      // Only show the "Welcome Back" dialog if they didn't just come from the language selector
+      const shouldShowResumedAlert = isResumed && !forceLang && !skipSelector;
 
       // Navigate to real participant interface
       navigate("/participant/interface", {
@@ -90,13 +115,14 @@ export default function ParticipantInterfaceLoader() {
           token,
           sessionId,
           startingTaskIndex,
-          isResumed
+          isResumed: shouldShowResumedAlert
         }
       });
     } catch (e) {
+      console.error("Finalization error:", e);
       handleError(e);
     }
-  }, [mappings, navigate, setSelectedProtocol, token, handleError]);
+  }, [mappings, navigate, setSelectedProtocol, token, handleError, location.state]);
 
   // 3. Main Load Function (Fetches data and intercepts if multiple languages)
   const load = useCallback(async (skipSelector = false) => {
@@ -107,14 +133,8 @@ export default function ParticipantInterfaceLoader() {
 
       console.log("Fetched participant protocol:", response);
 
-      // Intercept: If multiple languages exist, pause and show the selector!
-      if (!skipSelector && response.protocol.available_languages?.length > 1) {
-        setPendingLangData(response); 
-        return; 
-      }
-
       // Single language: Proceed directly to finalization
-      await finalizeLoad(response);
+      await finalizeLoad(response, skipSelector);
 
     } catch (e) {
       handleError(e);
@@ -127,19 +147,39 @@ export default function ParticipantInterfaceLoader() {
     if (lastLoadedToken.current === token) return;
     
     lastLoadedToken.current = token;
-    load();
-  }, [token, mappings, load]);
+    // If we just swapped the language manually, skip the selector screen
+    load(location.state?.skipLanguageSelector); 
+  }, [token, mappings, load, location.state]);
 
   // 5. Render Language Selector (if intercepted)
   if (pendingLangData) {
     return (
       <ParticipantLanguageSelector 
-        languages={pendingLangData.protocol.available_languages}
-        currentAssignedId={pendingLangData.project_protocol.id}
+        languages={pendingLangData.originalResponse.protocol.available_languages}
+        currentAssignedId={pendingLangData.originalResponse.project_protocol.id}
         token={token}
         onConfirm={() => {
+           // We already mapped the data and initialized the session before pausing. 
+           // Just unpack the data and navigate to the interface!
+           const { originalResponse, mappedProtocol, shuffledTasks, sessionId, startingTaskIndex, isResumed } = pendingLangData;
            setPendingLangData(null);
-           finalizeLoad(pendingLangData);
+           
+           mappedProtocol.tasks = shuffledTasks;
+           setSelectedProtocol(mappedProtocol);
+
+           navigate("/participant/interface", {
+             replace: true,
+             state: {
+               protocol: mappedProtocol,
+               testingMode: false,
+               editingMode: false,
+               participant: originalResponse.participant,
+               token,
+               sessionId,
+               startingTaskIndex,
+               isResumed
+             }
+           });
         }}
         onSwap={() => {
            setPendingLangData(null);

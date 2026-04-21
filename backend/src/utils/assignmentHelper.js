@@ -33,8 +33,8 @@ export async function assignProtocolToParticipant(conn, participantId, projectId
   // 3. Insert assignment
   const [result] = await conn.query(
     `INSERT INTO participant_protocols 
-     (participant_id, project_protocol_id, access_token)
-     VALUES (?, ?, ?)`,
+     (participant_id, project_protocol_id, access_token, start_date, is_active)
+     VALUES (?, ?, ?, UTC_TIMESTAMP(), 1)`,
     [participantId, projectProtocolId, token]
   );
 

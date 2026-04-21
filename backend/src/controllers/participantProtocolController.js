@@ -13,7 +13,7 @@ export async function resolveParticipantToken(req, res) {
   try {
     // 1. Load from PARTICIPANT-PROTOCOLS table → get its id
     const rows = await executeQuery(
-      `SELECT id FROM participant_protocols WHERE access_token = ?`,
+      `SELECT id FROM participant_protocols WHERE access_token = ? and is_active = true`,
       [token]
     );
 
@@ -314,26 +314,55 @@ export async function swapParticipantProtocolLanguage(req, res) {
   const { token } = req.params;
   const { new_project_protocol_id } = req.body;
 
+  // 1. Get a dedicated connection for the transaction
+  const connection = await pool.getConnection();
+
   try {
-    // 1. Verify token exists
-    const [pp] = await pool.query(
-      `SELECT id FROM participant_protocols WHERE access_token = ?`,
+    await connection.beginTransaction();
+
+    // 2. Find the current active assignment
+    const [pp] = await connection.query(
+      `SELECT * FROM participant_protocols WHERE access_token = ? AND is_active = true`,
       [token]
     );
     
     if (pp.length === 0) {
-      return res.status(404).json({ error: "Invalid token" });
+      await connection.rollback();
+      return res.status(404).json({ error: "Invalid or inactive token" });
     }
 
-    // 2. Update the assignment to point to the new language variant
-    await pool.query(
-      `UPDATE participant_protocols SET project_protocol_id = ? WHERE access_token = ?`,
-      [new_project_protocol_id, token]
+    const currentProtocol = pp[0];
+
+    // 3. ARCHIVE THE OLD ROW
+    // Set token to NULL to free up the UNIQUE constraint, and set end_date
+    await connection.query(
+      `UPDATE participant_protocols 
+       SET is_active = false, 
+           end_date = UTC_TIMESTAMP(), 
+           access_token = NULL 
+       WHERE id = ?`,
+      [currentProtocol.id]
     );
 
+    // 4. CREATE THE NEW ROW
+    // Re-use the token, set it to active, and point to the new language
+    await connection.query(
+      `INSERT INTO participant_protocols 
+       (participant_id, project_protocol_id, access_token, start_date, is_active)
+       VALUES (?, ?, ?, UTC_TIMESTAMP(), true)`,
+      [currentProtocol.participant_id, new_project_protocol_id, token]
+    );
+
+    // 5. Commit the transaction
+    await connection.commit();
     res.json({ success: true });
+
   } catch (err) {
+    // If anything fails, revert all changes so data isn't corrupted
+    await connection.rollback();
     console.error("Swap language error:", err);
     res.status(500).json({ error: "Internal error while swapping language" });
+  } finally {
+    connection.release();
   }
 }

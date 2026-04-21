@@ -57,7 +57,8 @@ LEFT JOIN (
     FROM protocol_tasks pt 
     JOIN tasks t ON pt.task_id = t.id 
     GROUP BY pt.protocol_id
-) agg ON agg.protocol_id = proto.id;
+) agg ON agg.protocol_id = proto.id
+WHERE pp.access_token IS NOT NULL;
 
 
 CREATE OR REPLACE VIEW v_project_protocols AS
