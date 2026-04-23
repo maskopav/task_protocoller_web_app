@@ -51,6 +51,7 @@ export default function ParticipantInterfacePage() {
   // Add a Ref to track the last logged task 
   // We initialize it to -1 so that index 0 is always logged the first time.
   const lastLoggedIndex = useRef(-1);
+  const initialLangRef = useRef(i18n.language);
 
   const testingMode = location.state?.testingMode ?? false;
   const editingMode = location.state?.editingMode ?? false;
@@ -80,6 +81,9 @@ export default function ParticipantInterfacePage() {
 
     setLangReady(false);
     if (protocolLang !== prevLang) {
+      if (initialLangRef.current && initialLangRef.current !== protocolLang) {
+          logInteraction("language_switched", { lang: protocolLang });
+      }
       i18n.changeLanguage(protocolLang).then(() => setLangReady(true));
     } else {
       setLangReady(true);
@@ -93,6 +97,7 @@ export default function ParticipantInterfacePage() {
   // Show welcome-back dialog once on mount if this is a resumed session
   useEffect(() => {
     if (isResumed) {
+      logInteraction("is_resumed");
       confirm({
         infoOnly: true,
         title: <Trans i18nKey="resumedSession.title"></Trans>,
@@ -249,7 +254,7 @@ export default function ParticipantInterfacePage() {
       }
 
       // Log the "Save" action
-      logInteraction("task_saved", { recordingDuration: data.recordingTime });
+      logInteraction("task_saved");
       proceedToNext();
 
     } catch (err) {
@@ -430,22 +435,7 @@ export default function ParticipantInterfacePage() {
 
           {/* RIGHT SIDE: Skip Button */}
           <div className="top-right-controls">
-            {hasMultipleLanguages && taskIndex === 0 && (
-              <button 
-                className="btn-lang" 
-                onClick={() => {
-                  logInteraction("language_change_clicked");
-                  // Redirect back to the loader, and pass the force flag!
-                  navigate(`/participant/${accessToken}`, { 
-                    replace: true, 
-                    state: { forceLanguageSelector: true } 
-                  });
-                }}
-              >
-                🌐 {t("languageSelector.change", "Language")}
-              </button>
-            )}
-
+            
             {taskIndex < runtimeTasks.length && testingMode && (
               <button className="btn-skip" onClick={handleSkip}>
                 {t("buttons.skip", { ns: "common" })} →
@@ -455,11 +445,36 @@ export default function ParticipantInterfacePage() {
         </div>
 
         <div className="task-card">
-          {taskIndex < runtimeTasks.length && progressDisplay && !(isReadingTask && isRecordingActive) && (
-            <div className="task-progress">
-              {progressDisplay.label} {progressDisplay.current} / {progressDisplay.total}
+          <div className="task-header-row">
+            
+            <div className="task-header-left">
+              {hasMultipleLanguages && taskIndex === 0 && (
+                <button 
+                  className="btn-lang" 
+                  onClick={() => {
+                    logInteraction("language_change_clicked");
+                    // Redirect back to the loader, and pass the force flag!
+                    navigate(`/participant/${accessToken}`, { 
+                      replace: true, 
+                      state: { forceLanguageSelector: true } 
+                    });
+                  }}
+                >
+                  ← {t("languageSelector.change", "Back")}
+                </button>
+              )}
             </div>
-          )}
+
+            <div className="task-header-center">
+              {taskIndex < runtimeTasks.length && progressDisplay && !(isReadingTask && isRecordingActive) && (
+                <div className="task-progress task-progress-inline">
+                  {progressDisplay.label} {progressDisplay.current} / {progressDisplay.total}
+                </div>
+              )}
+            </div>
+            <div className="task-header-right"></div>
+
+          </div>
           
           {/* Task Content */}
           {renderCurrentTask()}

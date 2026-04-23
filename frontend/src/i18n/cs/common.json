@@ -21,7 +21,8 @@
       "recorded": "✅ Nahráno"
     },
     "languageSelector": {
-      "title": "Prosím, vyberte jazyk"
+      "title": "neuroSHARE test",
+      "languageWarning": "Vyberte si prosím jazyk, kterým mluvíte nejplynuleji, ideálně svůj mateřský jazyk. Jakmile úkoly začnou, tuto volbu již nebudete moci změnit."
     },
     "completion": {
       "title": "Všechny úkoly dokončeny!",

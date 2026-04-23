@@ -227,6 +227,7 @@ export const Recorder = ({
     };
 
     const handleStop = () => {
+        onLogEvent("button_stop", { task_recording_duration: recordingTime });
         stopAudioRecording();
         if (isVideoEnabled) {
             videoRecorder.stopRecording();
@@ -250,9 +251,10 @@ export const Recorder = ({
     // We pass the logger to the example button so it can log clicks itself
     const handleToggleExample = () => {
         if (voiceRecorder.exampleAudio) {
+            onLogEvent("button_stop_example");
             voiceRecorder.stopExample(); 
         } else {
-            onLogEvent("button_illustration"); playExample(); 
+            onLogEvent("button_play_example"); playExample(); 
         }
     };
 

@@ -40,11 +40,15 @@ export default function ParticipantLanguageSelector({ languages, currentAssigned
   return (
     <div className="language-selector-overlay">
       <div className="language-selector-card">
-        
-        <h2 className="language-selector-title">
-          {/* This title will now instantly translate when a button is clicked! */}
-          {t("languageSelector.title", "Please select your language")}
-        </h2>
+        <div className="language-selector-header">
+            <h2 className="language-selector-title">
+            {/* This title will now instantly translate when a button is clicked! */}
+            {t("languageSelector.title", "Please select your language")}
+            </h2>
+            <p className="language-selector-warning">
+            {t("languageSelector.languageWarning", "Please select the language you speak most fluently, preferably your native language. You will not be able to change this once the tasks begin.")}
+            </p>
+        </div>
         
         <div className="language-options-list">
           {languages.map((lang) => (

@@ -13,7 +13,7 @@
 .language-selector-card {
   background-color: white;
   padding: 40px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
   max-width: 450px;
@@ -21,17 +21,15 @@
 }
 
 .language-selector-title {
-  margin-bottom: 24px;
   color: #1f2937;
-  line-height: 1.4;
 }
 
-.language-selector-subtitle {
-  font-size: 1.1rem;
+.language-selector-warning {
+  font-size: 1.4rem;
   color: #6b7280;
   font-weight: normal;
   display: block;
-  margin-top: 6px;
+  margin-bottom: clamp(20px, 3vw, 28px);
 }
 
 .language-options-list {
@@ -44,7 +42,7 @@
 .language-btn {
   padding: 14px 24px;
   font-size: 1.1rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 2px solid #d1d5db;
   background-color: #ffffff;
   color: #374151;
@@ -76,7 +74,7 @@
   width: 100%;
   padding: 16px 24px;
   font-size: 1.15rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: none;
   background-color: #3b82f6;
   color: white;

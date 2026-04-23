@@ -17,6 +17,9 @@
       "paused": "⏸️ Paused",
       "recorded": "✅ Recorded"
     },
+    "languageSelector": {
+      "title": "neuroSHARE Fernbeurteilung",
+      "languageWarning": "Bitte wählen Sie die Sprache, die Sie am fließendsten sprechen, vorzugsweise Ihre Muttersprache. Sie können diese Auswahl nicht mehr ändern, sobald die Aufgaben beginnen."    },
     "completion": {
       "title": "All Tasks Completed!",
       "message": "You have successfully finished all assignments."

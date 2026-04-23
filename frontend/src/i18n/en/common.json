@@ -30,7 +30,8 @@
       "recorded": "✅ Recorded"
     },
     "languageSelector": {
-      "title": "Please select your language"
+      "title": "neuroSHARE remote assessment",
+      "languageWarning": "Please select the language you speak most fluently, preferably your native language. You will not be able to change this once the tasks begin."    
     },
     "completion": {
       "taskCompletedInstructions": "Task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",
