@@ -40,6 +40,12 @@ export const initSession = async (req, res) => {
 
     // If an active session exists, return it to resume!
     if (existingSession) {
+      // Log the new environment they are using to resume
+      await pool.query(
+        `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata) 
+         VALUES (?, ?, ?, ?)`,
+        [existingSession.id, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
+      );
       logToFile(`Resuming session: ID ${existingSession.id} for PP_ID ${participantProtocolId}. Jumping to task index: ${existingSession.current_task_index}`);
       
       return res.json({ 
@@ -55,18 +61,23 @@ export const initSession = async (req, res) => {
     // 3. Insert New Session
     const [insertResult] = await pool.query(
       `INSERT INTO sessions 
-      (participant_protocol_id, session_date, last_activity_at, current_task_index, user_agent, ip_address, device_metadata, task_order) 
-      VALUES (?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, ?, ?, ?, ?)`,
+      (participant_protocol_id, session_date, last_activity_at, current_task_index, task_order) 
+      VALUES (?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, ?)`,
       [
         participantProtocolId, 
-        userAgent, 
-        ipAddress, 
-        JSON.stringify(deviceMetadata || {}),
         JSON.stringify(taskOrder || [])
       ]
     );
 
     const newSessionId = insertResult.insertId;
+    // Log the initial environment
+    await connection.query(
+        `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata) 
+         VALUES (?, ?, ?, ?)`,
+        [newSessionId, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
+      );
+
+      await connection.commit();
     logToFile(`✅ Session initialized: ID ${newSessionId} for PP_ID ${participantProtocolId}`);
 
     res.json({ success: true, sessionId: newSessionId });

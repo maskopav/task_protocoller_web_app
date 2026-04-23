@@ -139,12 +139,19 @@ CREATE TABLE `sessions` (
   `session_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `progress` JSON COMMENT 'Stores completed task IDs and timestamps',
   `completed` boolean DEFAULT false,
-  `user_agent` varchar(512) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `device_metadata` JSON DEFAULT NULL COMMENT 'Screen size, platform, etc.',
   `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
   `current_task_index` integer NOT NULL DEFAULT 1,
   `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+);
+
+CREATE TABLE `session_environments` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `session_id` integer NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(512) DEFAULT NULL,
+  `device_metadata` JSON DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`session_id`) REFERENCES `sessions`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `recordings` (
