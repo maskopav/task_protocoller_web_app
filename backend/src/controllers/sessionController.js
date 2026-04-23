@@ -59,29 +59,37 @@ export const initSession = async (req, res) => {
     }
     
     // 3. Insert New Session
-    const [insertResult] = await pool.query(
-      `INSERT INTO sessions 
-      (participant_protocol_id, session_date, last_activity_at, current_task_index, task_order) 
-      VALUES (?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, ?)`,
-      [
-        participantProtocolId, 
-        JSON.stringify(taskOrder || [])
-      ]
-    );
+    const connection = await pool.getConnection(); 
+    try {
+      await connection.beginTransaction();
+      const [insertResult] = await pool.query(
+        `INSERT INTO sessions 
+        (participant_protocol_id, session_date, last_activity_at, current_task_index, task_order) 
+        VALUES (?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, ?)`,
+        [
+          participantProtocolId, 
+          JSON.stringify(taskOrder || [])
+        ]
+      );
 
-    const newSessionId = insertResult.insertId;
-    // Log the initial environment
-    await connection.query(
-        `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata) 
-         VALUES (?, ?, ?, ?)`,
-        [newSessionId, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
+      const newSessionId = insertResult.insertId;
+      // Log the initial environment
+      await connection.query(
+          `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata) 
+          VALUES (?, ?, ?, ?)`,
+          [newSessionId, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
       );
 
       await connection.commit();
-    logToFile(`✅ Session initialized: ID ${newSessionId} for PP_ID ${participantProtocolId}`);
+      logToFile(`✅ Session initialized: ID ${newSessionId} for PP_ID ${participantProtocolId}`);
 
-    res.json({ success: true, sessionId: newSessionId });
-
+      res.json({ success: true, sessionId: newSessionId });
+    } catch (dbErr) {
+      await connection.rollback(); // Undo if anything failed
+      throw dbErr; // Throw to the outer catch block to log it
+    } finally {
+      connection.release(); // ALWAYS release the connection back to the pool
+    }
   } catch (err) {
     logToFile("❌ Session Init Error:", err);
     res.status(500).json({ error: "Failed to initialize session" });
