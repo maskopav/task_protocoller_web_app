@@ -51,7 +51,6 @@ export default function ParticipantInterfacePage() {
   // Add a Ref to track the last logged task 
   // We initialize it to -1 so that index 0 is always logged the first time.
   const lastLoggedIndex = useRef(-1);
-  const initialLangRef = useRef(i18n.language);
 
   const testingMode = location.state?.testingMode ?? false;
   const editingMode = location.state?.editingMode ?? false;
@@ -81,9 +80,6 @@ export default function ParticipantInterfacePage() {
 
     setLangReady(false);
     if (protocolLang !== prevLang) {
-      if (initialLangRef.current && initialLangRef.current !== protocolLang) {
-          logInteraction("language_switched", { lang: protocolLang });
-      }
       i18n.changeLanguage(protocolLang).then(() => setLangReady(true));
     } else {
       setLangReady(true);
@@ -94,7 +90,7 @@ export default function ParticipantInterfacePage() {
     };
   }, [protocolData, i18n]);
 
-  // Show welcome-back dialog once on mount if this is a resumed session
+  // Show welcome-back dialog once on mount if this is a resumed session plus log if language was just switched
   useEffect(() => {
     if (isResumed) {
       logInteraction("is_resumed");
@@ -104,6 +100,11 @@ export default function ParticipantInterfacePage() {
         message: <Trans i18nKey="resumedSession.message"></Trans>,
         confirmText: <Trans i18nKey="resumedSession.continue"></Trans>,
       });
+    }
+
+    if (sessionStorage.getItem("justSwitchedLanguage") === "true") {
+      logInteraction("language_switched", { lang: protocolData?.language || "unknown" });
+      sessionStorage.removeItem("justSwitchedLanguage"); 
     }
   }, []); 
 

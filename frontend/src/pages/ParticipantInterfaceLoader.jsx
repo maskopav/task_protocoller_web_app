@@ -183,6 +183,7 @@ export default function ParticipantInterfaceLoader() {
         }}
         onSwap={() => {
            setPendingLangData(null);
+           sessionStorage.setItem("justSwitchedLanguage", "true");
            load(true); // Skip selector on reload since they just swapped
         }}
       />
