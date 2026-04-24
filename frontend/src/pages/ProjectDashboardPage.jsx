@@ -106,7 +106,7 @@ export default function ProjectDashboardPage() {
       <ProjectActions 
         onParticipants={() => navigate(`/admin/projects/${projectId}/participants`)}
         onProtocols={() => navigate(`/admin/projects/${projectId}/protocols`)}
-        onData={() => navigate(`/admin/projects/${projectId}/data`)}
+        onData={() => navigate(`/admin/projects/${projectId}/fieldwork`)}
       />
 
       {project && (

@@ -24,11 +24,11 @@ export default function ProjectActions({ onParticipants, onProtocols, onData }) 
         </div>
       </button>
 
-      <button className="action-card btn-data" onClick={onData} disabled>
+      <button className="action-card btn-data" onClick={onData}>
         <div className="icon">📊</div>
         <div className="text">
-          <h3>{t("projectDashboard.actions.data")}</h3>
-          <p>{t("projectDashboard.actions.dataDesc")}</p>
+          <h3>{t("projectDashboard.actions.fieldwork")}</h3>
+          <p>{t("projectDashboard.actions.fieldworkDesc")}</p>
         </div>
       </button>
     </div>

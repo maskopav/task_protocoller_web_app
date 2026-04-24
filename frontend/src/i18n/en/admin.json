@@ -135,8 +135,8 @@
       "participantsDesc": "Manage subjects, enroll new participants, assign and activate protocols.",
       "protocols": "Protocols",
       "protocolsDesc": "Design new tasks, edit existing protocols (version changes), and manage languages.",
-      "data": "Data Explorer",
-      "dataDesc": "Visualize collected recordings and export data (Coming Soon)."
+      "fieldwork": "Fieldwork Management",
+      "fieldworkDesc": "Monitor data collection in real time, track participant progress and export these data."
     }
   },
   

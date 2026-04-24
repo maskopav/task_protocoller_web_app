@@ -7,7 +7,7 @@ import ProjectManagementPage from "./pages/ProjectManagementPage";
 import ProjectDashboardPage from "./pages/ProjectDashboardPage";
 import ProtocolDashboardPage from "./pages/ProtocolDashboardPage";
 import ProtocolEditorPage from "./pages/ProtocolEditorPage";
-// import DataExplorerPage from "./pages/DataExplorerPage";
+import ProjectFieldworkPage from "./pages/ProjectFieldworkPage";
 import ParticipantInterfacePage from "./pages/ParticipantInterfacePage";
 import ParticipantInterfaceLoader from "./pages/ParticipantInterfaceLoader";
 import ParticipantDashboardPage from "./pages/ParticipantDashboardPage";
@@ -52,6 +52,10 @@ export default function App() {
       
       <Route path="/admin/projects/:projectId" element={
         <ProtectedRoute><ProjectDashboardPage /></ProtectedRoute>
+      } />
+      
+      <Route path="/admin/projects/:projectId/fieldwork" element={
+        <ProtectedRoute><ProjectFieldworkPage /></ProtectedRoute>
       } />
       
       <Route path="/admin/projects/:projectId/participants" element={

@@ -329,61 +329,58 @@ LEFT JOIN tasks t ON pt.task_id = t.id
 ORDER BY fd.session_id, fd.event_time;
 
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_summary AS
-WITH RECURSIVE seq AS (
-    -- 1. Flatten the JSON progress log to access all timestamps
-    SELECT 
-        id AS session_id,
-        participant_protocol_id,
-        progress,
-        completed,
-        0 AS n
-    FROM sessions
-    WHERE JSON_LENGTH(progress) > 0
-    
-    UNION ALL
-    
-    SELECT 
-        session_id,
-        participant_protocol_id,
-        progress,
-        completed,
-        n + 1
-    FROM seq
-    WHERE n + 1 < JSON_LENGTH(progress)
-),
-session_events AS (
-    -- 2. Convert ISO strings to actual MariaDB Datetime format
-    SELECT 
-        session_id,
-        participant_protocol_id,
-        completed,
-        CAST(REPLACE(REPLACE(JSON_VALUE(progress, CONCAT('$[', n, '].timestamp')), 'T', ' '), 'Z', '') AS DATETIME(3)) AS event_time
-    FROM seq
-)
--- 3. Aggregate results to find total duration and metadata
 SELECT 
-    se.session_id,
+    s.id AS session_id,
+    vpp.project_id,
     vpp.participant_id,
-    vpp.full_name AS participant_name,
+    
+    -- Participant Identifier Logic:
+    -- Tries to use external_id. If NULL or empty, it falls back to "Name, Date, Sex"
+    COALESCE(
+        NULLIF(part.external_id, ''),
+        CONCAT_WS(', ', part.full_name, part.birth_date, part.sex)
+    ) AS participant_identifier,
+    
     vpp.project_name,
     vpp.protocol_name,
     
-    -- Timestamps
-    MIN(se.event_time) AS session_started_at,
-    MAX(se.event_time) AS session_last_activity_at,
+    -- 1. Language Information
+    lang.name AS protocol_language,
+    lang.code AS protocol_language_code,
     
-    -- Overall Duration in Seconds
-    -- This calculates the time elapsed from the very first event to the very last
-    TIMESTAMPDIFF(SECOND, MIN(se.event_time), MAX(se.event_time)) AS total_duration_seconds,
+    -- 2. Timestamps
+    CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)) AS session_started_at,
+    s.last_activity_at AS session_last_activity_at,
     
-    -- Finished Status
-    -- Pulls directly from the 'completed' column in the sessions table
+    -- 3. Total Duration
+    TIMESTAMPDIFF(
+        SECOND, 
+        CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)), 
+        s.last_activity_at
+    ) AS total_duration_seconds,
+    
+    -- 4. JSON Flags
+    IF(s.progress LIKE '%"resumed"%', TRUE, FALSE) AS was_resumed,
+    IF(s.progress LIKE '%"language_switched"%', TRUE, FALSE) AS language_switched,
+    
+    -- 5. Finished / Resumed / Incomplete Status
     CASE 
-        WHEN se.completed = 1 THEN 'Finished' 
+        WHEN s.completed = 1 THEN 'Finished' 
+        -- Checks if incomplete AND last activity is strictly within the last 12 hours of the current UTC time
+        WHEN (s.completed = 0 OR s.completed IS NULL) 
+             AND s.last_activity_at >= (UTC_TIMESTAMP() - INTERVAL 12 HOUR) THEN 'Resumed'
         ELSE 'Incomplete' 
     END AS protocol_status,
     
-    se.completed AS is_finished_flag
-FROM session_events se
-JOIN v_participant_protocols vpp ON se.participant_protocol_id = vpp.participant_protocol_id
-GROUP BY se.session_id;
+    s.completed AS is_finished_flag
+
+FROM sessions s
+JOIN v_participant_protocols vpp ON s.participant_protocol_id = vpp.participant_protocol_id
+JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+
+-- Added JOIN to the participants table to access external_id, birth_date, and sex
+JOIN participants part ON pp.participant_id = part.id
+
+JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
+JOIN protocols p ON proj_p.protocol_id = p.id
+JOIN languages lang ON p.language_id = lang.id;

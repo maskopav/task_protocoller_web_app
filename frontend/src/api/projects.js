@@ -50,3 +50,17 @@ export async function updateProjectApi(payload) {
   if (!res.ok) throw new Error(json.error || "Failed to update project");
   return json;
 }
+
+// Add to src/api/projects.js
+export async function getProjectFieldwork(projectId) {
+  try {
+    const data = await getMappings(["v_session_summary"]);
+    const allSessions = data.v_session_summary || [];
+    
+    // Filter client-side for the specific project
+    return allSessions.filter(s => s.project_id === Number(projectId));
+  } catch (err) {
+    console.error("Failed to load fieldwork data:", err);
+    throw err;
+  }
+}
