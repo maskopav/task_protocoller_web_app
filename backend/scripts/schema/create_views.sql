@@ -269,7 +269,6 @@ SELECT
 FROM questionnaire_responses qr
 JOIN v_quest_definitions def ON qr.protocol_task_id = def.protocol_task_id;
 
-
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_progress_detailed AS
 WITH RECURSIVE seq AS (
     -- 1. Flatten the JSON progress array
@@ -299,7 +298,11 @@ flattened_data AS (
         CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, CONCAT('$[', s.n, '].timestamp')), 'T', ' '), 'Z', '') AS DATETIME(3)) AS event_time,
         JSON_VALUE(s.progress, CONCAT('$[', s.n, '].action')) AS action,
         JSON_VALUE(s.progress, CONCAT('$[', s.n, '].taskIndex')) AS task_sequence,
+        
+        -- Extract the ID and the Task Name directly from JSON
         JSON_VALUE(s.progress, CONCAT('$[', s.n, '].protocolTaskId')) AS protocol_task_id,
+        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].taskName')) AS task_name,
+        
         JSON_VALUE(s.progress, CONCAT('$[', s.n, '].questionId')) AS question_id,
         JSON_VALUE(s.progress, CONCAT('$[', s.n, '].value')) AS interaction_value
     FROM seq s
@@ -319,7 +322,10 @@ SELECT
     fd.action,
     fd.task_sequence,
     fd.protocol_task_id,
-    t.category AS task_category,
+    
+    -- Display Name: If it's a real task, grab category from DB. If not, use taskName from JSON.
+    COALESCE(t.category, fd.task_name) AS task_category_or_name,
+    
     fd.question_id,
     fd.interaction_value
 FROM flattened_data fd
@@ -327,15 +333,13 @@ JOIN v_participant_protocols vpp ON fd.participant_protocol_id = vpp.participant
 LEFT JOIN protocol_tasks pt ON fd.protocol_task_id = pt.id
 LEFT JOIN tasks t ON pt.task_id = t.id
 ORDER BY fd.session_id, fd.event_time;
-
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_summary AS
 SELECT 
     s.id AS session_id,
     vpp.project_id,
     vpp.participant_id,
     
-    -- Participant Identifier Logic:
-    -- Tries to use external_id. If NULL or empty, it falls back to "Name, Date, Sex"
+    -- Participant Identifier
     COALESCE(
         NULLIF(part.external_id, ''),
         CONCAT_WS(', ', part.full_name, part.birth_date, part.sex)
@@ -366,21 +370,32 @@ SELECT
     -- 5. Finished / Resumed / Incomplete Status
     CASE 
         WHEN s.completed = 1 THEN 'Finished' 
-        -- Checks if incomplete AND last activity is strictly within the last 12 hours of the current UTC time
         WHEN (s.completed = 0 OR s.completed IS NULL) 
              AND s.last_activity_at >= (UTC_TIMESTAMP() - INTERVAL 12 HOUR) THEN 'Resumed'
         ELSE 'Incomplete' 
     END AS protocol_status,
     
-    s.completed AS is_finished_flag
+    s.completed AS is_finished_flag,
+
+    -- 6. Current Task Name
+    -- If completed, return NULL. Otherwise, get DB category OR fallback to the JSON taskName of the last event.
+    IF(s.completed = 1, NULL, 
+        COALESCE(
+            t.category, 
+            JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
+        )
+    ) AS last_activity_task_name
 
 FROM sessions s
 JOIN v_participant_protocols vpp ON s.participant_protocol_id = vpp.participant_protocol_id
 JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
-
--- Added JOIN to the participants table to access external_id, birth_date, and sex
 JOIN participants part ON pp.participant_id = part.id
-
 JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
 JOIN protocols p ON proj_p.protocol_id = p.id
-JOIN languages lang ON p.language_id = lang.id;
+JOIN languages lang ON p.language_id = lang.id
+
+-- Dynamically join to find the task category using the protocolTaskId of the LAST event in the JSON
+LEFT JOIN protocol_tasks pt 
+    ON pt.id = JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].protocolTaskId'))
+LEFT JOIN tasks t 
+    ON pt.task_id = t.id;
