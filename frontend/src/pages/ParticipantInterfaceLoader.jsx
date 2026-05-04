@@ -60,6 +60,8 @@ export default function ParticipantInterfaceLoader() {
       let sessionId = null;
       let startingTaskIndex = 0;
       let isResumed = false;
+      localStorage.setItem("neuroSHARE_tokenId", token);
+      logToServer(`[DEBUG - Loader] Token explicitly saved to localStorage: ${token}`);
 
       try {
         const sessionData = await initSession({ token, taskOrder });

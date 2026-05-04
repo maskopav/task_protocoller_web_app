@@ -127,7 +127,6 @@ function computeSNRMetrics(channelData, speechIndices) {
     }
 
     if (noiseCount === 0 || noiseSum === 0) return { error: 'no-noise', snr: 100 }; 
-    if (signalCount === 0) return { error: 'no-speech', snr: 0 };
 
     return {
         signalSum, signalCount,

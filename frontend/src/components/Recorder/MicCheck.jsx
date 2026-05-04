@@ -26,8 +26,7 @@ const CONFIG = {
 
 // Standardized error types to avoid "NotAllowedError" casing bugs
 const ERR = {
-  BROWSER: 'BROWSER_DENIED',
-  SYSTEM: 'SYSTEM_DENIED',
+  DENIED: 'PERMISSION_DENIED',
   MISSING: 'HARDWARE_MISSING',
   BUSY: 'HARDWARE_IN_USE',
   GENERIC: 'GENERIC'
@@ -114,7 +113,7 @@ function useMicCheckInstructions() {
 // ==========================================
 // 3. MAIN COMPONENT
 // ==========================================
-export default function MicCheck({ onNext, sessionId, token }) {
+export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
@@ -136,7 +135,8 @@ export default function MicCheck({ onNext, sessionId, token }) {
       try {
         const result = await navigator.permissions.query({ name: 'microphone' });
         if (result.state === 'denied') {
-          setErrorType(ERR.BROWSER);
+          logToServer("MicCheck Error: Permission explicitly denied by browser/OS on load, result:", result);
+          setErrorType(ERR.DENIED);
           setPhase('warning');
         } else if (result.state === 'prompt') {
           setPhase('intro');
@@ -150,6 +150,7 @@ export default function MicCheck({ onNext, sessionId, token }) {
           }
         };
       } catch (error) {
+        logToServer("MicCheck Error: navigator.permissions.query failed", error);
         setPhase('intro');
       }
     }
@@ -157,12 +158,14 @@ export default function MicCheck({ onNext, sessionId, token }) {
   }, []);
 
   const handleMicError = (err) => {
-    logToServer("MicCheck Error:", err.name, err.message);
+    logToServer("MicCheck Error:", { name: err.name, message: err.message });
     const message = (err.message || '').toLowerCase();
     let type = ERR.GENERIC;
 
+    // Unify the denied errors because browsers can't reliably distinguish 
+    // OS-level blocks from Browser-level blocks
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      type = message.includes('system') ? ERR.SYSTEM : ERR.BROWSER;
+      type = ERR.DENIED;
     } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
       type = ERR.MISSING;
     } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
@@ -189,6 +192,11 @@ export default function MicCheck({ onNext, sessionId, token }) {
     setPhase('analyzing');
     const result = await calculateSNR(safeAudioUrl, taskData.speechSegments, taskData.recordingStartTime);
     const calculatedScore = result.snr ? result.snr.toFixed(1) : 0;
+
+    let evaluatedError = result.error;
+    if (!evaluatedError && result.snr < CONFIG.TARGET_SNR) {
+        evaluatedError = "too-much-noise";
+    }
     
     setNoiseScore(calculatedScore);
     setDebugOutput(result.debugData);
@@ -215,11 +223,18 @@ export default function MicCheck({ onNext, sessionId, token }) {
       URL.revokeObjectURL(safeAudioUrl);
     }
 
-    const nextPhase = result.error === 'no-speech' || result.snr < CONFIG.TARGET_SNR ? 'noise-failed' : 'noise-success';
+    const nextPhase = evaluatedError ? 'noise-failed' : 'noise-success';
+    if (onLogEvent) {
+       onLogEvent("mic_check_result", {
+          snr_score: calculatedScore,
+          error_type: evaluatedError || "none",
+          passed: nextPhase === 'noise-success'
+       });
+    }
     setPhase(nextPhase);
 
     logToServer(`MicCheck completed. Phase result: ${nextPhase}. SNR: ${calculatedScore} dB`, {
-      errorType: result.error,
+      errorType: evaluatedError,
       debugData: result.debugData
     });
   };
@@ -270,7 +285,7 @@ export default function MicCheck({ onNext, sessionId, token }) {
     );
   }
 
-  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => setPhase('noise'), t);
+  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => setPhase('noise'), t, onLogEvent);
   if (!uiState) return null;
 
   return (
@@ -317,19 +332,17 @@ function PermissionGuide({ onRetry, errorType }) {
 
   // Map errors to specific translation keys and icons
   const config = {
-    [ERR.BROWSER]: { title: 'titleBrowser', desc: 'descBrowser', icon: 'icon-lock' },
-    [ERR.SYSTEM]:  { title: 'titleSystem',  desc: 'descSystem',  icon: 'icon-lock' },
+    [ERR.DENIED]:  { title: 'titleDenied', desc: 'descDenied', icon: 'icon-lock' },
     [ERR.MISSING]: { title: 'titleHardware', desc: 'descMissing', icon: 'icon-hardware' },
     [ERR.BUSY]:    { title: 'titleHardware', desc: 'descBusy',    icon: 'icon-hardware' },
-    [ERR.GENERIC]: { title: 'titleBrowser', desc: 'descGeneric', icon: 'icon-lock' },
+    [ERR.GENERIC]: { title: 'titleGeneric', desc: 'descGeneric', icon: 'icon-lock' },
   }[errorType || ERR.GENERIC];
 
   const showIllustration = errorType === 'BROWSER_DENIED';
   const illustrationSrc = activeTab === 'android' ? androidBrowserImg : iosBrowserImg;
 
   const getStepKey = () => {
-    if (errorType === ERR.BROWSER) return 'browser';
-    if (errorType === ERR.SYSTEM) return 'system';
+    if (errorType === ERR.DENIED) return 'systemAndBrowser';
     return 'hardware'; // Fallback for missing/busy
   };
 
@@ -388,8 +401,15 @@ function PermissionGuide({ onRetry, errorType }) {
 // ==========================================
 // 5. UTILITIES
 // ==========================================
-function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
-  const common = { onBtnClick: onRetry, isSuccess: false, btnText: t("micCheck.btnTryAgain") };
+function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onLogEvent) {
+  const common = { 
+    onBtnClick: () => {
+      if (onLogEvent) onLogEvent("button_repeat", { previous_error: errorType });
+      onRetry();
+    }, 
+    isSuccess: false, 
+    btnText: t("micCheck.btnTryAgain") 
+  };
   
   switch (phase) {
     case 'intro': return {
@@ -405,7 +425,10 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
         </>
       ),
       btnText: <Trans i18nKey="micCheck.btnUnderstand" />, // The user clicks "I understand"
-      onBtnClick: onRetry, // onRetry triggers () => setPhase('noise'), which moves them to the next step!
+      onBtnClick: () => {
+        if (onLogEvent) onLogEvent("button_start");
+        onRetry();
+      }, // onRetry triggers () => setPhase('noise'), which moves them to the next step!
       isSuccess: false
     };
     case 'noise-failed': {
@@ -431,13 +454,6 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
         instructions: <Trans i18nKey="micCheck.mutedInstructions" /> 
       };
       
-      if (errorType === 'no-speech') return { 
-        ...common, 
-        title: <WarningTitle><Trans i18nKey="micCheck.noSpeechTitle" /></WarningTitle>, 
-        message: <Trans i18nKey="micCheck.noSpeechMessage" />, 
-        instructions: <Trans i18nKey="micCheck.noSpeechInstructions" /> 
-      };
-      
       return { 
         ...common, 
         title: <WarningTitle><Trans i18nKey="micCheck.failedTitle" /></WarningTitle>, 
@@ -450,7 +466,10 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t) {
       message: <Trans i18nKey="micCheck.successMessage" />,
       instructions: <Trans i18nKey="micCheck.successInstructions" />,
       btnText: <Trans i18nKey="micCheck.btnProceed" />,
-      onBtnClick: onNext,
+      onBtnClick: () => {
+        if (onLogEvent) onLogEvent("button_proceed");
+        onNext();
+      },
       isSuccess: true
     };
     default: return null;

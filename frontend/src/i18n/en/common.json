@@ -104,37 +104,32 @@
       "mutedTitle": "No Sound Detected",
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
-      "noSpeechTitle": "Voice Not Detected",
-      "noSpeechMessage": "We couldn't hear your voice clearly during the counting task.",
-      "noSpeechInstructions": "To fix this, please <strong>speak slowly and out loud</strong> while counting from 1 to 5. When ready, try again.",
+      
       "btnTryAgain": "Try Again",
       "successTitle": "Microphone Ready",
       "successMessage": "Your microphone works perfectly and your surroundings are quiet.",
       "successInstructions":"To ensure the best recording, please <strong>stay in this quiet area</strong> until you have finished all the tasks.",
       "btnProceed": "Proceed to First Task",
       "guide": {
-        "titleBrowser": "Microphone Permission Denied",
-        "titleSystem": "Microphone is Blocked",
-        "titleHardware": "Microphone Not Found",
-        "descBrowser": "To record your voice, this website needs permission to use your microphone.",
-        "descSystem": "Your phone's security settings are blocking the browser.",
-        "descBusy": "Another app (like Zoom or a call) is using your microphone.",
-        "descMissing": "We can't find a microphone. Please check your connection.",
-        "descGeneric": "Microphone access is required to proceed.",
+        "titleDenied": "Microphone Access Denied",
+        "titleHardware": "Microphone Issue",
+        "titleGeneric": "Microphone Required",
+        "descDenied": "Your device or browser is blocking the microphone. Both must allow access to continue.",
+        "descBusy": "Another app (like a phone call or Zoom) is currently using your microphone. Please close it.",
+        "descMissing": "We cannot detect a microphone. Please check your connection or try another device.",
+        "descGeneric": "Microphone access is required to proceed with this task.",
         "btnRetry": "Try Again",
         "tabAndroid": "Android",
         "tabIos": "iPhone",
         "howToFix": "Solution",
         "steps": {
           "android": {
-            "browser": "• At the top left <strong>next to the website name</strong>, tap the setting icon<br/>• Select <strong>Permissions</strong><br/>• Switch Microphone to <strong>ON</strong> or click on <strong>Reset Permissions</strong>.",
-            "system": "• Open Phone <strong>Settings</strong>.<br/>• Go to <strong>Apps > Chrome > Permissions</strong>.<br/>• Set Microphone to <strong>Allow</strong>.",
-            "hardware": "• Check your plug or Bluetooth connection.<br/>• Ensure the mic doesn't have a physical <strong>mute switch</strong> on."
+            "systemAndBrowser":"1. Open iPhone <strong>Settings</strong>, search for your browser (e.g., Safari), and set Microphone to <strong>Allow</strong> or toggle <strong>ON</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
+            "hardware": "• Close any active calls (Phone, FaceTime) or other recording apps.<br/>• Check your Bluetooth settings and disconnect any wireless headphones that might be using the microphone.<br/>"
           },
           "ios": {
-            "browser": "• At the bottom left <strong>next to the website name</strong>, tap the setting icon.<br/>• Tap <strong>Website Settings</strong>.<br/>• Set Microphone to <strong>Allow</strong>.",
-            "system": "• Open Phone <strong>Settings</strong>.<br/>• Go to <strong>Privacy & Security > Microphone</strong>.<br/>• Ensure the switch for <strong>Chrome</strong> is ON.",
-            "hardware": "• Close other calls (Phone/FaceTime) or recording apps.<br/>• Check your connection or Bluetooth."
+            "systemAndBrowser": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Microphone switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the microphone.",
+            "hardware": "• Close any active calls (Phone, FaceTime) or other recording apps.<br/>• Check your Bluetooth settings and disconnect any wireless headphones that might be using the microphone.<br/>"
           }
         }
       }

@@ -10,7 +10,7 @@ import { Recorder } from "../components/Recorder/Recorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
-import D15Test from "../components/VisionTask/D15Test";
+import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import MicCheck from "../components/Recorder/MicCheck";
 import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
@@ -125,7 +125,8 @@ export default function ParticipantInterfacePage() {
       introSteps.push({
         type: "info",
         content: infoHtml,
-        category: "info"
+        category: "info",
+        isSystemTask: true
       });
     }
 
@@ -135,7 +136,8 @@ export default function ParticipantInterfacePage() {
       introSteps.push({
         type: "consent",
         content: consentHtml,
-        category: "consent"
+        category: "consent",
+        isSystemTask: true
       });
     }
 
@@ -158,8 +160,9 @@ export default function ParticipantInterfacePage() {
     if (requiresMic) {
       finalTasks.push({ 
         type: "mic_check", 
-        category: "setup", 
-        title: "Microphone Setup" 
+        category: "audio_setup", 
+        title: "Microphone Setup",
+        isSystemTask: true
       });
     }
 
@@ -178,11 +181,17 @@ export default function ParticipantInterfacePage() {
     if (!sessionId) return;
     
     const currentTask = runtimeTasks[taskIndex];
+    
+    // Simplified, flat event data structure
     const eventData = {
-      protocolTaskId: currentTask?.protocolTaskId,
-      taskIndex: taskIndex + 1, // Human readable 1-based
-      action, // 'task_opened', 'button_start', etc.
-      ...extra
+      action: action,
+      taskIndex: taskIndex + 1, // Human readable 1-based UI position
+      taskName: currentTask?.type || "unknown", // "info", "consent", "mic_check", "syllableRepeating", etc.
+      
+      // Send the ID for real tasks, but send strict 'null' for system pages
+      protocolTaskId: currentTask?.isSystemTask ? null : (currentTask?.protocolTaskId || null),
+      
+      ...extra // Allows attaching snr_score, duration, etc.
     };
     
     trackProgress(sessionId, eventData);
@@ -196,6 +205,26 @@ export default function ParticipantInterfacePage() {
     }
   }, [taskIndex, runtimeTasks]);
 
+  // --- Handle missing state (Refresh fallback) ---
+  useEffect(() => {
+    if (!protocolData) {
+      const savedToken = localStorage.getItem("neuroSHARE_tokenId");
+      
+      // --- DEBUG LOGGING ---
+      console.log(`[DEBUG - Page] State lost! Checking storage for token...`);
+      logToServer(`[DEBUG - Page] Found token in storage:`, savedToken);
+      // ---------------------
+
+      if (savedToken) {
+        logToServer("State lost due to refresh. Reloading via token to resume...");
+        navigate("/participant/" + savedToken, { replace: true });
+      } else {
+        console.warn(`[DEBUG - Page] No token found in storage! Sending to /not-found`);
+        logToServer(`[DEBUG - Page] No token found in storage! Sending to /not-found`);
+        navigate('/not-found', { replace: true });
+      }
+    }
+  }, [protocolData, navigate]);
 
   // --- early return only after all hooks are declared
   if (!protocolData) return <p>No protocol selected.</p>;
@@ -317,7 +346,8 @@ export default function ParticipantInterfacePage() {
 
   const renderCurrentTask = () => {
     const rawTask = runtimeTasks[taskIndex];
-    if (!rawTask) {
+      if (!rawTask) {
+        localStorage.removeItem("neuroSHARE_tokenId"); // Clear token from localStorage once we're in the interface
        return (
         <CompletionScreen 
           testingMode={testingMode}
@@ -338,7 +368,7 @@ export default function ParticipantInterfacePage() {
 
     // Render the Mic Check component
     if (rawTask.type === "mic_check") {
-      return <MicCheck onNext={() => handleTaskComplete({ type: 'mic_check' })} sessionId={sessionId} token={accessToken} />;
+      return <MicCheck onNext={() => handleTaskComplete({ type: 'mic_check' })} sessionId={sessionId} token={accessToken} onLogEvent={logInteraction}/>;
     }
 
     const currentTask = resolveTask(rawTask, t);
@@ -388,7 +418,7 @@ export default function ParticipantInterfacePage() {
     // Render vision task
     if (currentTask.type === "vision") {
       return (
-        <D15Test 
+        <VisionTaskWrapper 
           key={taskIndex}
           onNextTask={handleTaskComplete}
         />
