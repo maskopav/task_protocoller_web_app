@@ -325,6 +325,10 @@
   
   .task-title {
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
   
   .protocol-item.dragging {

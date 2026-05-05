@@ -57,62 +57,6 @@
   gap: 0.4rem;
 }
 
-.info-button {
-  background: none;
-  border: none;
-  color: #3b82f6;
-  font-size: 0.85rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0 4px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.info-button:hover {
-  background-color: #eff6ff;
-  color: #2563eb;
-}
-
-/* The popup box */
-.info-window {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #3b82f6; /* Blue accent line on the left */
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  margin-top: 0.2rem;
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  animation: fadeInDown 0.2s ease-out;
-}
-
-.item-info-text {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #475569;
-  line-height: 1.4;
-}
-
-/* The 'X' button inside the popup */
-.close-info-btn {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.close-info-btn:hover {
-  color: #0f172a;
-}
-
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -182,4 +126,17 @@
 
 .start-button:not(:disabled):hover {
   background-color: #2563eb;
+}
+
+.item-label-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.item-label {
+  margin: 0;
+  font-weight: 500;
+  color: #334155;
 }

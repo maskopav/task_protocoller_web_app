@@ -1,0 +1,31 @@
+/* src/components/InfoTooltip/InfoToolTip.css */
+button.info-tooltip-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 0 8px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer !important;
+}
+
+button.info-tooltip-btn:hover {
+  opacity: 0.6;
+}
+
+/* 2. Force the icon size to stay strictly small */
+.info-icon-svg {
+  width: clamp(18px, 1.5rem, 2rem) !important; 
+  height: clamp(18px, 1.5rem, 2rem) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  /* Soft gray filter to match text */
+  filter: invert(47%) sepia(13%) saturate(762%) hue-rotate(178deg) brightness(96%) contrast(89%);
+}

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { taskBaseConfig } from "../../config/tasksBase";
 import { translateTaskName, translateTaskDescription, getAllParams, getDefaultParams } from "../../utils/translations";
-import InfoTooltip from "./InfoTooltip";
+import InfoTooltip from "../InfoToolTip/InfoTooltip";
 
 export default function TaskList({ onCreate }) {
   const { t } = useTranslation(["admin", "tasks", "common"]);
@@ -62,7 +62,7 @@ export default function TaskList({ onCreate }) {
                   <li key={category} className="task-option" onClick={() => onCreate(category)}>
                     <div className="task-title">
                       {translatedName}
-                      <InfoTooltip text={description} />
+                      <InfoTooltip title={translatedName} text={description} />
                     </div>
                     <div className="param-inline">
                       {Object.entries(params).map(([key, p], i) => {
