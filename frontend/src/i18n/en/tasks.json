@@ -242,6 +242,37 @@
           }
         }
       }
+    },
+    "preTestChecklist": {
+      "title": "Vision Task Setup",
+      "subtitle": "Please complete the following steps. Tap the info icon for help, then mark your status for each step.",
+      "buttons": {
+        "done": "Done",
+        "cannot": "Can't / Don't Know",
+        "start": "Start Test"
+      },
+      "items": {
+        "landscape": {
+          "label": "Rotate your phone sideways (Landscape mode).",
+          "helpText": "Turn your phone sideways so the screen is wider than it is tall.<br/><br/>If the screen doesn't rotate, swipe down to open your Control Center and ensure the <strong>Orientation Lock</strong> ( something similar to <imgA/> or <imgB/> or <imgC/> ) is turned off."
+        },
+        "brightness": {
+          "label": "Set your screen brightness to maximum.",
+          "helpText": "Open your device's Control Center and drag the <strong>Brightness Slider</strong> <imgA/> all the way to 100%.<br/><br/>For reference, it should look something like this:<br/><br/><imgSlider/>"
+        },
+        "colorFilters": {
+          "label": "Turn off device color filters (Night Shift / True Tone).",
+          "helpText": "Go to your device <strong>Settings > Display</strong>.<br/><br/>Ensure features like <em>'True Tone'</em> or <em>'Night Shift'</em> (Apple), or <em>'Eye Comfort Shield'</em> / <em>'Blue Light Filter'</em> (Android) are completely disabled. These settings warm up the screen and will invalidate your test results."
+        },
+        "privacyScreen": {
+          "label": "Ensure you are not using a privacy screen protector.",
+          "helpText": "Privacy screen protectors block light from side angles and severely distort screen brightness and color accuracy.<br/><br/>If you currently have a dark privacy film attached to your screen, please select <strong>'Can't / Don't Know'</strong>."
+        },
+        "environment": {
+          "label": "Sit indoors in a well-lit room, avoiding direct sunlight.",
+          "helpText": "Direct sunlight shining on your screen causes glare that washes out colors. Please take this test inside under standard room lighting."
+        }
+      }
     }
   }
   

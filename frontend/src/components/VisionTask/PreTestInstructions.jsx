@@ -1,44 +1,86 @@
 import React, { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import InfoToolTip from "../InfoToolTip/InfoToolTip";
 import "./PreTestInstructions.css";
 
-// We added 'helpText' to explicitly tell them HOW to do it
-const INSTRUCTIONS = [
-  {
-    id: "landscape",
-    label: "Rotate your phone horizontally (Landscape mode).",
-    helpText: "Turn your phone sideways so the screen is wider than it is tall. If it doesn't rotate, swipe down from the top of your screen and ensure the 'Portrait Orientation Lock' (padlock icon) is turned off."
-  },
-  {
-    id: "brightness",
-    label: "Turn your screen brightness up to 100%.",
-    helpText: "Open your phone's Control Center (swipe down from the top right on newer iPhones, or up from the bottom on older phones/Androids) and drag the sun/brightness slider all the way to the maximum."
-  },
-  {
-    id: "color_filters",
-    label: "Turn off Night Shift, True Tone, or Eye Comfort Shield.",
-    helpText: "Go to your device Settings > Display. Ensure 'True Tone' or 'Night Shift' (Apple) or 'Eye Comfort Shield' / 'Blue Light Filter' (Android) are completely turned off, as these alter colors and will invalidate the test."
-  },
-  {
-    id: "privacy_screen",
-    label: "Ensure you do not have a privacy screen protector on.",
-    helpText: "Privacy screen protectors block light from certain angles and severely distort brightness and color. If you have a physical privacy film on your screen, click 'Can't / Don't Know'."
-  },
-  {
-    id: "environment",
-    label: "Be indoors in a well-lit room, away from direct sunlight.",
-    helpText: "Direct sunlight on your screen causes glare that washes out colors. Please take this test inside with standard room lighting turned on."
-  }
-];
+// IMPORT YOUR ICONS HERE
+import rotateIconA from "../../assets/mobile-rotate-icon.svg"; 
+import rotateIconB from "../../assets/lock-reset-icon.svg"; 
+import rotateIconC from "../../assets/screen-rotation-icon.svg"; 
+import brightnessIcon from "../../assets/brightness-icon.svg"; 
+import brightnessSlider from "../../assets/brightness-slider.png";
 
 export default function PreTestInstructions({ onComplete }) {
+  // Load the translation hook for the "tasks" namespace
+  const { t } = useTranslation(["tasks"]); 
   const [answers, setAnswers] = useState({});
 
+  // Dynamic Instructions Array using <Trans> for embedded formatting and images
+  const INSTRUCTIONS = [
+    {
+      id: "landscape",
+      label: t("preTestChecklist.items.landscape.label"),
+      helpText: (
+        <Trans 
+          t={t} /* <--- THIS FIXES THE RENDER ISSUE */
+          i18nKey="preTestChecklist.items.landscape.helpText"
+          components={{
+            br: <br />,
+            strong: <strong />,
+            imgA: <img src={rotateIconA} alt="rotate" className="inline-help-icon" />,
+            imgB: <img src={rotateIconB} alt="rotate" className="inline-help-icon" />,
+            imgC: <img src={rotateIconC} alt="rotate" className="inline-help-icon" />
+          }}
+        />
+      )
+    },
+    {
+      id: "brightness",
+      label: t("preTestChecklist.items.brightness.label"),
+      helpText: (
+        <Trans 
+          t={t}
+          i18nKey="preTestChecklist.items.brightness.helpText"
+          components={{
+            br: <br />,
+            strong: <strong />,
+            imgA: <img src={brightnessIcon} alt="brightness" className="inline-help-icon" />,
+            imgSlider: <img src={brightnessSlider} alt="slider" style={{ width: "96%", maxWidth: "400px", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.2)" }} />
+          }}
+        />
+      )
+    },
+    {
+      id: "color_filters",
+      label: t("preTestChecklist.items.colorFilters.label"),
+      helpText: (
+        <Trans 
+          t={t}
+          i18nKey="preTestChecklist.items.colorFilters.helpText"
+          components={{ br: <br />, strong: <strong />, em: <em /> }}
+        />
+      )
+    },
+    {
+      id: "privacy_screen",
+      label: t("preTestChecklist.items.privacyScreen.label"),
+      helpText: (
+        <Trans 
+          t={t}
+          i18nKey="preTestChecklist.items.privacyScreen.helpText"
+          components={{ br: <br />, strong: <strong /> }}
+        />
+      )
+    },
+    {
+      id: "environment",
+      label: t("preTestChecklist.items.environment.label"),
+      helpText: t("preTestChecklist.items.environment.helpText") // Standard text, no <Trans> needed
+    }
+  ];
+
   const handleSelect = (id, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [id]: value
-    }));
+    setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
   const allAnswered = INSTRUCTIONS.every((item) => answers[item.id]);
@@ -49,10 +91,9 @@ export default function PreTestInstructions({ onComplete }) {
 
   return (
     <div className="instructions-container">
-      <h2>Pre-Test Checklist</h2>
+      <h2>{t("preTestChecklist.title")}</h2>
       <h3 className="instructions-subtext">
-        For accurate results, please adjust your device and environment. 
-        Select your status for each item below.
+        {t("preTestChecklist.subtitle")}
       </h3>
 
       <div className="checklist-wrapper">
@@ -60,7 +101,6 @@ export default function PreTestInstructions({ onComplete }) {
           <div key={item.id} className="checklist-item">
             <div className="item-label-container">
               <p className="item-label">{item.label}</p>
-              {/* Render the tooltip here! */}
               <InfoToolTip title={item.label} text={item.helpText} />
             </div>
             
@@ -73,7 +113,7 @@ export default function PreTestInstructions({ onComplete }) {
                   checked={answers[item.id] === "done"}
                   onChange={() => handleSelect(item.id, "done")}
                 />
-                Done
+                {t("preTestChecklist.buttons.done")}
               </label>
               <label className={`radio-label ${answers[item.id] === 'cannot' ? 'selected-cannot' : ''}`}>
                 <input
@@ -83,7 +123,7 @@ export default function PreTestInstructions({ onComplete }) {
                   checked={answers[item.id] === "cannot"}
                   onChange={() => handleSelect(item.id, "cannot")}
                 />
-                Can't / Don't Know
+                {t("preTestChecklist.buttons.cannot")}
               </label>
             </div>
           </div>
@@ -95,7 +135,7 @@ export default function PreTestInstructions({ onComplete }) {
         disabled={!allAnswered}
         onClick={handleStart}
       >
-        Start Test
+        {t("preTestChecklist.buttons.start")}
       </button>
     </div>
   );

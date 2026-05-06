@@ -1,92 +1,103 @@
-/* --- EXISTING STYLES --- */
+/* src/components/VisionTask/PreTestInstructions.css */
+
 .instructions-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 800px;
+  /* Match Recorder instruction-card margins and look */
+  margin: 0 clamp(10px, 2vw, 20px) clamp(10px, 3dvh, 25px);
   background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-  border: 1px solid #edf2f7;
+  padding: clamp(15px, 3dvh, 30px) clamp(15px, 4vw, 30px);
+  border-radius: var(--radius, 16px);
+  box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));
+  border: 3px solid transparent;
   box-sizing: border-box;
 }
 
 .instructions-container h2 {
-  margin-top: 0;
-  color: #1e293b;
+  margin: 0;
+  /* Match Recorder h1 scaling */
+  font-size: clamp(1.4rem, 5.5vw, 2.2rem);
+  color: var(--muted, #64748b);
+  text-align: center;
 }
 
 .instructions-subtext {
   text-align: center;
-  color: #64748b;
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
+  color: #334155;
+  margin-bottom: clamp(1.5rem, 3dvh, 2.5rem);
+  /* Match Recorder active-instructions scaling */
+  font-size: clamp(1.1rem, min(4vw, 2.8dvh), 1.4rem);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.inline-help-icon {
+  height: 1.3em; /* Slightly larger for better visibility */
+  width: auto;
+  vertical-align: -0.25em; /* Aligns nicely with text */
+  margin: 0 4px;
+  display: inline-block;
+  /* Turns a black SVG into the exact #1e293b dark text color */
+  filter: invert(47%) sepia(13%) saturate(762%) hue-rotate(178deg) brightness(96%) contrast(89%);
 }
 
 .checklist-wrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: clamp(1rem, 2.5dvh, 1.8rem);
   margin-bottom: 2rem;
 }
 
 .checklist-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.8rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* --- NEW INFO BUTTON & WINDOW STYLES --- */
-.item-header {
+/* Ensure text and icon sit perfectly inline */
+.item-label-container {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
 }
 
 .item-label {
   margin: 0;
-  font-weight: 500;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  font-weight: 600;
+  color: #1e293b;
+  /* Match Recorder active-instructions scaling */
+  font-size: clamp(1.1rem, min(4.5vw, 3dvh), 1.4rem); 
+  line-height: 1.3;
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* --- EXISTING RADIO BUTTON STYLES --- */
 .radio-group {
   display: flex;
   gap: 1rem;
+  width: 100%;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex: 1;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  /* Scale padding and font size for mobile vs desktop */
+  padding: clamp(8px, 1.5dvh, 14px) clamp(10px, 2vw, 20px);
+  font-size: clamp(0.95rem, 3.5vw, 1.15rem);
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   background-color: #f8fafc;
   cursor: pointer;
-  font-size: 0.9rem;
   transition: all 0.2s ease;
-  flex: 1;
-  justify-content: center;
+  text-align: center;
 }
 
 .radio-label input[type="radio"] {
@@ -104,15 +115,18 @@
   background-color: #fee2e2;
   border-color: #ef4444;
   color: #991b1b;
+  font-weight: bold;
 }
 
 .start-button {
   width: 100%;
-  padding: 1rem;
-  font-size: 1.1rem;
-  border-radius: 10px;
+  max-width: 400px;
+  margin: clamp(0.5rem, 2dvh, 1rem) auto 0;
+  padding: clamp(12px, 2dvh, 16px);
+  font-size: clamp(1.1rem, 4vw, 1.3rem);
+  border-radius: var(--radius, 10px);
   border: none;
-  background-color: #3b82f6;
+  background-color: var(--primary, #3b82f6);
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -125,18 +139,5 @@
 }
 
 .start-button:not(:disabled):hover {
-  background-color: #2563eb;
-}
-
-.item-label-container {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 0.5rem;
-}
-
-.item-label {
-  margin: 0;
-  font-weight: 500;
-  color: #334155;
+  filter: brightness(0.9);
 }
