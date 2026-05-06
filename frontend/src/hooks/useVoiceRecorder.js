@@ -1,13 +1,13 @@
 // hooks/useVoiceRecorder.js - Reusable hook for voice recording logic
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { logToServer } from '../utils/frontendLogger';
-
+import { MediaRecorder } from 'extendable-media-recorder';
+import { registerWavEncoder } from '../utils/audioSetup';
 
 export const useVoiceRecorder = (options = {}) => {
     const {
         onRecordingComplete = () => {},
         onError = () => {},
-        audioFormat = "audio/webm",
         instructions,           // initial instructions
         instructionsActive,     // instructions after START
         audioExample,       // optional audio example URL
@@ -44,6 +44,10 @@ export const useVoiceRecorder = (options = {}) => {
     const audioContext = useRef(null);
     const animationFrame = useRef(null);
     const vizStreamRef = useRef(null);  
+
+    useEffect(() => {
+        registerWavEncoder();
+    }, []);
 
     const getMicrophonePermission = async () => {
         const ua = navigator.userAgent;
@@ -171,7 +175,7 @@ export const useVoiceRecorder = (options = {}) => {
             setActiveInstructions(instructionsActive); // switch instructions
         }
         
-        const recorder = new MediaRecorder(stream, { mimeType: audioFormat });
+        const recorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
         mediaRecorder.current = recorder;
         
         recorder.start();
@@ -220,13 +224,13 @@ export const useVoiceRecorder = (options = {}) => {
         if (mediaRecorder.current) {
             mediaRecorder.current.stop();
             mediaRecorder.current.onstop = () => {
-                const audioBlob = new Blob(audioChunks.current, { type: audioFormat });
+                const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
                 const url = URL.createObjectURL(audioBlob);
                 setAudioURL(url);
                 onRecordingComplete(audioBlob, url);
             };
         }
-    }, [audioFormat, onRecordingComplete]); // wrapped in useCallback to safely trigger inside the timer
+    }, [onRecordingComplete]); // wrapped in useCallback to safely trigger inside the timer
 
     const repeatRecording = () => {
         stopExample(); // stop example playback if active

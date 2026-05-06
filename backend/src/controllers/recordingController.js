@@ -2,13 +2,8 @@
 import fs from "fs";
 import path from "path";
 import pool from "../db/connection.js";
-import { exec } from "child_process";
-import { promisify } from "util";
-import ffmpegStatic from "ffmpeg-static";
 import { logToFile } from '../utils/logger.js';
 import { dateInYyyyMmDdHhMmSs } from "../utils/dateFormatter.js";
-
-const execPromise = promisify(exec);
 
 // Configuration for file storage
 const UPLOAD_DIR = process.env.DATA_PATH; 
@@ -116,25 +111,11 @@ export const uploadMicCheck = async (req, res) => {
 };
 
 const processAndSaveAudio = async (buffer, baseFilename) => {
-  const webmFilename = `${baseFilename}.webm`;
   const wavFilename = `${baseFilename}.wav`;
-  
-  const webmPath = path.join(UPLOAD_DIR, webmFilename);
   const wavPath = path.join(UPLOAD_DIR, wavFilename);
 
-  // ALWAYS save the original .webm file first
-  await fs.promises.writeFile(webmPath, buffer);
+  await fs.promises.writeFile(wavPath, buffer);
 
-  try {
-    // ffmpegStatic is just a string containing the direct path to the downloaded binary inside your node_modules!
-    await execPromise(`"${ffmpegStatic}" -i "${webmPath}" -c:a pcm_s16le -f wav -y "${wavPath}"`);
+  return wavFilename;
 
-    // If conversion succeeds, delete the .webm and return the .wav filename
-    await fs.promises.unlink(webmPath);
-    return wavFilename;
-
-  } catch (error) {
-    logToFile(`⚠️ Static FFmpeg conversion failed for ${baseFilename}. Falling back to .webm. Error:`, error.message);
-    return webmFilename; 
-  }
 };

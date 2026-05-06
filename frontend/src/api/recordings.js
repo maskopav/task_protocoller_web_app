@@ -5,7 +5,7 @@ export async function uploadRecording(blob, metadata) {
   const formData = new FormData();
   
   // Append the file
-  formData.append("audio", blob, "recording.webm");
+  formData.append("audio", blob, "recording.wav");
 
   // Append metadata
   formData.append("token", metadata.token);
@@ -34,7 +34,7 @@ export async function uploadRecording(blob, metadata) {
 export async function uploadMicCheck(blob, metadata) {
   const formData = new FormData();
   
-  formData.append("audio", blob, "mic_check.webm");
+  formData.append("audio", blob, "mic_check.wav");
   formData.append("token", metadata.token);
   formData.append("sessionId", metadata.sessionId);
   formData.append("snrScore", metadata.snrScore);
