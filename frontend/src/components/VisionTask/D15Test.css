@@ -22,14 +22,23 @@
   box-sizing: border-box;
 }
 
+.instructions-header h1 {
+  margin-top: 0;
+  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+  font-size: clamp(1.4rem, 5.5vw, 2.2rem);
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
 .instructions-header p {
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
+  line-height: clamp(1rem, 3vw, 1.2rem);
 }
 
 /* --- THE GREY BOARD --- */
 .d15-board {
-  background-color: rgb(170, 170, 170); 
+  background-color: rgb(211, 211, 211); 
   border-radius: 24px; 
   width: 100%;
   padding: 1rem 0.5rem; 
@@ -122,10 +131,22 @@
   justify-content: center;
 }
 
+.d15-cap-label {
+  color: #000000;
+  font-weight: bold;
+  opacity: 0.5;
+  pointer-events: none; /* Prevents the text from interfering with button clicks */
+  user-select: none; /* Prevents the user from accidentally highlighting the text */
+}
+
 /* --- OPTIONS SECTION (Unsorted Caps) --- */
 .d15-tray-slot.option-slot {
   background-color: #ffffff; 
   cursor: default; 
+}
+
+.btn-submit {
+  background-color: var(--success);
 }
 
 .selectable-cap {

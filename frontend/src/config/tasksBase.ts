@@ -111,12 +111,13 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     },
   },
 
-  farnsworthD15: {
+  d15colour: {
     type: "vision",
     recording: { mode: "basicStop" },
     params: {
       randomize: { default: true },
       repeat: { default: 1 },
+      version: { default: "desaturated", values: ["saturated", "desaturated"] },
       showNumbers: { default: "never", values: ["never", "after", "always"] },
     },
   },

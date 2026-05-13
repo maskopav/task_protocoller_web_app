@@ -420,6 +420,7 @@ export default function ParticipantInterfacePage() {
       return (
         <VisionTaskWrapper 
           key={taskIndex}
+          task={currentTask}
           onNextTask={handleTaskComplete}
         />
       );

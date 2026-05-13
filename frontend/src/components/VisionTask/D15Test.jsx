@@ -1,57 +1,67 @@
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { loadAndComputeD15Colors } from "../../utils/munsellUtils";
 import "./D15Test.css";
 
-export default function D15Test({ onNextTask }) {
+export default function D15Test({ task, onNextTask }) {
   const { t } = useTranslation("tasks");
   
   const [d15Colors, setD15Colors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- NEW: Add a state to track if the user has clicked submit ---
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const [tray, setTray] = useState([]);
   const [shuffledCaps, setShuffledCaps] = useState([]);
+
+  const version = task?.params?.version || "desaturated";
+  const randomize = task?.params?.randomize ?? true;
+  const showNumbers = task?.params?.showNumbers || "never";
 
   // Fetch and compute colors on component mount
   useEffect(() => {
     async function initColors() {
-      // By default, this computes Value 8, Chroma 2 (Lanthony Desaturated)
-      // To compute standard D-15, change this to ( "/data/realColor.dat", 5, 4 )
-      const colors = await loadAndComputeD15Colors("/data/realColor.dat", 8, 2);
+      const targetValue = version === "saturated" ? 5 : 8;
+      const targetChroma = version === "saturated" ? 4 : 2;
+
+      const colors = await loadAndComputeD15Colors("/data/realColor.dat", targetValue, targetChroma);
       
       setD15Colors(colors);
       
-      // Initialize the tray with the Pilot cap and empty slots
       const initialTray = Array(colors.length).fill(null);
       initialTray[0] = colors[0]; // Pilot cap
       setTray(initialTray);
       
-      // Shuffle the remaining caps
-      setShuffledCaps(colors.slice(1).sort(() => Math.random() - 0.5));
+      const remainingCaps = colors.slice(1);
+      if (randomize) {
+        setShuffledCaps(remainingCaps.sort(() => Math.random() - 0.5));
+      } else {
+        setShuffledCaps(remainingCaps);
+      }
+
       setIsLoading(false);
     }
     
     initColors();
-  }, []);
+  }, [version, randomize]);
 
   const handleSelect = (color) => {
-    // Only proceed if the color isn't already placed
+    if (isSubmitted) return;
+
     if (!tray.includes(color)) {
-      // Find the first empty slot (left to right)
       const firstEmptyIndex = tray.indexOf(null);
-      
       if (firstEmptyIndex !== -1) {
         const newTray = [...tray];
-        newTray[firstEmptyIndex] = color; // Fill the specific blank space
+        newTray[firstEmptyIndex] = color; 
         setTray(newTray);
       }
     }
   };
 
   const handleUndo = (color, index) => {
-    if (index === 0) return; // Prevent removing the reference cap
+    if (isSubmitted || index === 0) return; 
     
-    // Replace the removed cap with a null to keep the blank space
     const newTray = [...tray];
     newTray[index] = null; 
     setTray(newTray);
@@ -62,30 +72,51 @@ export default function D15Test({ onNextTask }) {
     resetTray[0] = d15Colors[0];
     setTray(resetTray);
     
-    setShuffledCaps(d15Colors.slice(1).sort(() => Math.random() - 0.5));
+    const remainingCaps = d15Colors.slice(1);
+    if (randomize) {
+      setShuffledCaps([...remainingCaps].sort(() => Math.random() - 0.5));
+    } else {
+      setShuffledCaps(remainingCaps);
+    }
   };
 
   const handleDone = () => {
+    if (showNumbers === "after" && !isSubmitted) {
+      setIsSubmitted(true);
+      return; 
+    }
+
+    // Proceed to next task
     const resultIndices = tray.map(c => d15Colors.indexOf(c));
     onNextTask({ result: resultIndices, timestamp: new Date().toISOString() });
   };
 
-  // The tray is full when there are no 'null' values left
   const isTrayFull = !tray.includes(null);
+
+  // Show numbers logic
+  const displayNumbers = showNumbers === "always" || (showNumbers === "after" && isSubmitted);
+
+  const getCapLabel = (color) => {
+    const index = d15Colors.indexOf(color);
+    return index; 
+  };
 
   return (
     <div className="vision-task-container">
       <div className="instructions-header">
-        <p>{t("farnsworthD15.instructions")}</p>
+        <h1>{t("d15colour.title")}</h1>
+        <p>
+          <Trans 
+            t={t}
+            i18nKey="d15colour.instructions" 
+            components={{ strong: <strong />, br: <br /> }} 
+          />
+        </p>
       </div>
       
-      {/* --- GREY BOARD WRAPPER --- */}
       <div className="d15-board">
-        
-        {/* --- THE TOP PREDEFINED TRAY --- */}
         <div className="d15-tray-section">
           <div className="d15-tray-container">
-            {/* Map directly over our fixed-length tray state array */}
             {tray.map((capColor, index) => {
               return (
                 <div 
@@ -94,7 +125,13 @@ export default function D15Test({ onNextTask }) {
                   onClick={() => capColor && handleUndo(capColor, index)}
                 >
                   {capColor && (
-                    <div className="d15-cap" style={{ backgroundColor: capColor }}></div>
+                    <div className="d15-cap" style={{ backgroundColor: capColor }}>
+                      {displayNumbers && (
+                        <span className="d15-cap-label">
+                          {getCapLabel(capColor)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -102,7 +139,6 @@ export default function D15Test({ onNextTask }) {
           </div>
         </div>
 
-        {/* --- THE UNSORTED CAPS TRAY --- */}
         <div className="d15-options-section">
           <div className="d15-tray-container options-tray">
             {shuffledCaps.map((color, index) => {
@@ -119,7 +155,14 @@ export default function D15Test({ onNextTask }) {
                       style={{ backgroundColor: color }} 
                       onClick={() => handleSelect(color)}
                       aria-label="Select color"
-                    />
+                      disabled={isSubmitted} // Prevent tabbing/clicking if submitted
+                    >
+                      {displayNumbers && (
+                        <span className="d15-cap-label">
+                          {getCapLabel(color)}
+                        </span>
+                      )}
+                    </button>
                   )}
                 </div>
               );
@@ -128,16 +171,20 @@ export default function D15Test({ onNextTask }) {
         </div>
       </div>
 
-      {/* --- CONTROLS --- */}
       <div className="vision-controls">
-        <button className="btn-secondary" onClick={handleReset}>
-          {t("farnsworthD15.controls.reset")}
-        </button>
-        {isTrayFull && (
-          <button className="btn-primary" onClick={handleDone}>
-            {t("farnsworthD15.controls.submit")}
+        {!isSubmitted && (
+          <button className="btn-secondary" onClick={handleReset}>
+            {t("d15colour.controls.reset")}
           </button>
         )}
+        
+        <button 
+          className="btn-submit" 
+          onClick={handleDone}
+          disabled={!isTrayFull}
+        >
+          {isSubmitted ? t("d15colour.controls.continue", "Continue") : t("d15colour.controls.submit")}
+        </button>
       </div>
     </div>
   );

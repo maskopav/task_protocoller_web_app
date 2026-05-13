@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PreTestInstructions from "./PreTestInstructions";
 import D15Test from "./D15Test";
 
-export default function VisionTaskWrapper({ onNextTask }) {
+export default function VisionTaskWrapper({ task, onNextTask }) {
   const [step, setStep] = useState("instructions");
   const [environmentData, setEnvironmentData] = useState(null);
 
@@ -28,7 +28,7 @@ export default function VisionTaskWrapper({ onNextTask }) {
       {step === "instructions" ? (
         <PreTestInstructions onComplete={handleInstructionsComplete} />
       ) : (
-        <D15Test onNextTask={handleTestComplete} />
+        <D15Test task={task} onNextTask={handleTestComplete} />
       )}
     </div>
   );

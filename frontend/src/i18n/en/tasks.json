@@ -215,11 +215,11 @@
         }
       }
     },
-    "farnsworthD15": {
-      "name": "Farnsworth D-15 Color Test",
-      "description": "A color vision test where the participant arranges 15 colored caps in a sequence. It helps identify the type and severity of color vision deficiency (Protan, Deutan, or Tritan).",
+    "d15colour": {
+      "name": "D-15 Color Test",
+      "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
       "title": "Color Arrangement Task",
-      "instructions": "Look at the last color in the tray. Find the color from the pile below that looks most like it. Tap it to move it. Do this until the pile is empty.",
+      "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><br/><strong>3.</strong> Repeat until the top row is full to unlock the Submit button.",
       "controls": {
         "reset": "Reset",
         "submit": "Submit Result",
@@ -227,6 +227,13 @@
         "undo": "Tap a cap in the tray to move it back"
       },
       "params": {
+        "version": {
+          "label": "Test Version",
+          "values": {
+            "saturated": "Saturated (Farnsworth)",
+            "desaturated": "Desaturated (Lanthony)"
+          }
+        },
         "randomize": { 
           "label": "Randomize caps" 
         },
