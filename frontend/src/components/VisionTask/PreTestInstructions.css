@@ -4,10 +4,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
   max-width: 800px;
   /* Match Recorder instruction-card margins and look */
-  margin: 0 clamp(10px, 2vw, 20px) clamp(10px, 3dvh, 25px);
+  margin: 0 auto;
   background-color: #ffffff;
   padding: clamp(15px, 3dvh, 30px) clamp(15px, 4vw, 30px);
   border-radius: var(--radius, 16px);

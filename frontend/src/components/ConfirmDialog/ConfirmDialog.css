@@ -14,9 +14,11 @@
     padding: clamp(20px, 4vw, 25px);
     border-radius: var(--radius);
     width: 100%;
-    max-width: 420px;
+    max-width: 85dvw;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     animation: fadeInDialog 0.2s ease-out;
+    max-height: 90dvh; 
+    overflow-y: auto;
   }
   
   .confirm-dialog h2 {
@@ -84,5 +86,26 @@
     .btn-confirm {
       width: 100%;
       padding: 12px;
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .confirm-dialog {
+      padding: clamp(15px, 3vh, 20px); /* Reduce padding to save vertical space */
+      max-height: 95dvh; /* Allow it to take up slightly more of the tiny vertical space */
+    }
+    
+    .confirm-dialog h2 {
+      margin-bottom: 5px;
+    }
+    
+    .confirm-dialog p {
+      margin: 10px 0 15px;
+    }
+
+    .btn-cancel,
+    .btn-confirm {
+      padding: 8px 16px !important; /* Shrink button padding */
+      font-size: 1rem !important;
     }
   }
