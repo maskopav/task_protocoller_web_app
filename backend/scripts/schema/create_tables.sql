@@ -63,7 +63,6 @@ CREATE TABLE `project_protocols` (
   `access_token` char(64) UNIQUE DEFAULT NULL
 );
 
-
 CREATE TABLE `protocol_contents` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `protocol_id` integer NOT NULL,
@@ -87,9 +86,6 @@ CREATE TABLE `tasks` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `category` varchar(50) UNIQUE NOT NULL COMMENT 'e.g. monologue, reading, phonation',
   `type_id` integer NOT NULL COMMENT 'id of voice, visual, cognitive, questionnaire',
-  `recording_mode` JSON,
-  `params` JSON COMMENT 'JSON schema of editable parameters - names not values',
-  `illustration` text,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -175,11 +171,12 @@ CREATE TABLE `session_mic_checks` (
   FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE
 );
 
-CREATE TABLE `questionnaire_responses` (
+CREATE TABLE `task_results` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `session_id` integer NOT NULL,
   `protocol_task_id` integer NOT NULL, 
-  `answers` JSON NOT NULL,            
+  `repeat_index` integer DEFAULT 1,
+  `payload` JSON NOT NULL,            
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`),
   FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`)

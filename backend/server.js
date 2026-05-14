@@ -8,6 +8,7 @@ import participantProtocolsRouter from "./src/routes/participantProtocols.js";
 import participantsRouter from "./src/routes/participants.js";
 import sessionsRouter from "./src/routes/sessions.js";
 import recordingsRouter from "./src/routes/recordings.js";
+import taskResultsRouter from "./src/routes/taskResults.js";
 import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
@@ -46,7 +47,7 @@ app.use("/auth", authRouter);
 app.use("/users", usersRouter)
 app.use("/projects", projectsRouter)
 app.use("/user-projects", userProjectsRouter)
-
+app.use("/task-results", taskResultsRouter)
 app.post("/logs/frontend", (req, res) => {
   const { message, details } = req.body;
   if (message) {

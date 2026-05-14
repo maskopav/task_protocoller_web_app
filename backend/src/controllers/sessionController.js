@@ -42,8 +42,8 @@ export const initSession = async (req, res) => {
     if (existingSession) {
       // Log the new environment they are using to resume
       await pool.query(
-        `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata) 
-         VALUES (?, ?, ?, ?)`,
+        `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata, created_at) 
+         VALUES (?, ?, ?, ?, UTC_TIMESTAMP())`,
         [existingSession.id, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
       );
       logToFile(`Resuming session: ID ${existingSession.id} for PP_ID ${participantProtocolId}. Jumping to task index: ${existingSession.current_task_index}`);
@@ -75,8 +75,8 @@ export const initSession = async (req, res) => {
       const newSessionId = insertResult.insertId;
       // Log the initial environment
       await connection.query(
-          `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata) 
-          VALUES (?, ?, ?, ?)`,
+          `INSERT INTO session_environments (session_id, ip_address, user_agent, device_metadata, created_at) 
+          VALUES (?, ?, ?, ?, UTC_TIMESTAMP())`,
           [newSessionId, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
       );
 
@@ -151,21 +151,3 @@ export const updateProgress = async (req, res) => {
   }
 };
 
-export const saveQuestionnaireResponse = async (req, res) => {
-  const { sessionId, protocolTaskId, answers } = req.body;
-  
-  if (!sessionId || !protocolTaskId || !answers) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  try {
-    await executeQuery(
-      "INSERT INTO questionnaire_responses (session_id, protocol_task_id, answers) VALUES (?, ?, ?)",
-      [sessionId, protocolTaskId, JSON.stringify(answers)]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error("❌ DB Error:", err);
-    res.status(500).json({ error: "Failed to save answers to database" });
-  }
-};

@@ -11,6 +11,9 @@ export default function D15Test({ task, onNextTask }) {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const [startTime, setStartTime] = useState(null);
+  const [events, setEvents] = useState([]);
+
   const [tray, setTray] = useState([]);
   const [shuffledCaps, setShuffledCaps] = useState([]);
 
@@ -40,6 +43,7 @@ export default function D15Test({ task, onNextTask }) {
       }
 
       setIsLoading(false);
+      setStartTime(Date.now());
     }
     
     initColors();
@@ -51,6 +55,12 @@ export default function D15Test({ task, onNextTask }) {
     if (!tray.includes(color)) {
       const firstEmptyIndex = tray.indexOf(null);
       if (firstEmptyIndex !== -1) {
+        setEvents(prev => [...prev, { 
+          action: "place", 
+          capIndex: d15Colors.indexOf(color), 
+          timestampMs: Date.now() - startTime 
+        }]);
+
         const newTray = [...tray];
         newTray[firstEmptyIndex] = color; 
         setTray(newTray);
@@ -60,6 +70,12 @@ export default function D15Test({ task, onNextTask }) {
 
   const handleUndo = (color, index) => {
     if (isSubmitted || index === 0) return; 
+
+    setEvents(prev => [...prev, { 
+      action: "undo", 
+      capIndex: d15Colors.indexOf(color), 
+      timestampMs: Date.now() - startTime 
+    }]);
     
     const newTray = [...tray];
     newTray[index] = null; 
@@ -67,6 +83,10 @@ export default function D15Test({ task, onNextTask }) {
   };
 
   const handleReset = () => {
+    setEvents(prev => [...prev, { 
+      action: "reset", 
+      timestampMs: Date.now() - startTime 
+    }]);
     const resetTray = Array(d15Colors.length).fill(null);
     resetTray[0] = d15Colors[0];
     setTray(resetTray);
@@ -85,9 +105,20 @@ export default function D15Test({ task, onNextTask }) {
       return; 
     }
 
-    // Proceed to next task
+    const endTime = Date.now();
     const resultIndices = tray.map(c => d15Colors.indexOf(c));
-    onNextTask({ result: resultIndices, timestamp: new Date().toISOString() });
+    
+    onNextTask({ 
+      result: resultIndices, 
+      events: events,
+      metrics: {
+        totalDurationMs: endTime - startTime,
+        totalMoves: events.filter(e => e.action === "place").length,
+        totalUndos: events.filter(e => e.action === "undo").length,
+        totalResets: events.filter(e => e.action === "reset").length,
+      },
+      timestamp: new Date(endTime).toISOString() 
+    });
   };
 
   const isTrayFull = !tray.includes(null);

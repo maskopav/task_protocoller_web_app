@@ -13,8 +13,9 @@ import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/M
 import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import MicCheck from "../components/Recorder/MicCheck";
-import { trackProgress, saveQuestionnaireAnswers } from "../api/sessions";
+import { trackProgress } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
+import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
 import "./Pages.css";
@@ -275,12 +276,17 @@ export default function ParticipantInterfacePage() {
           repeatIndex: repeatIndex,
           timeStamp: data.timestamp
         });
-      } else if (currentTaskObj.type === "questionnaire") {
-        await saveQuestionnaireAnswers({
-          sessionId: sessionId,
-          protocolTaskId: currentTaskObj.protocolTaskId,
-          answers: data.answers
-        });
+      } else if (data) {
+        try {
+          await saveTaskResult({
+            sessionId: sessionId,
+            protocolTaskId: currentTaskObj.protocolTaskId,                
+            repeat_index: repeatIndex || 1,
+            payload: data                               
+          });
+        } catch (error) {
+          console.error("Failed to save JSON task result:", error);
+        }
       }
 
       // Log the "Save" action

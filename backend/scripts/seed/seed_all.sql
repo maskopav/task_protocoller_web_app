@@ -19,41 +19,23 @@ INSERT INTO task_types (`type`) VALUES
 ('vision'),
 ('cognitive');
 
-INSERT INTO tasks (`category`, `type_id`, `recording_mode`, `params`, `illustration`)
+INSERT INTO tasks (`category`, `type_id`)
 VALUES
 ('phonation', 
- (SELECT id FROM task_types WHERE type='voice'),
- JSON_OBJECT('mode', 'delayedStop', 'duration', 10),
- JSON_ARRAY('phoneme', 'repeat', 'duration'),
- NULL
+ (SELECT id FROM task_types WHERE type='voice')
 ),
 ('syllableRepeating', 
- (SELECT id FROM task_types WHERE type='voice'),
- JSON_OBJECT('mode', 'countDown', 'duration', 8),
- JSON_ARRAY('syllable', 'repeat', 'duration'),
- NULL
+ (SELECT id FROM task_types WHERE type='voice')
 ),
 ('retelling',
- (SELECT id FROM task_types WHERE type='voice'),
- JSON_OBJECT('mode', 'basicStop'),
- JSON_ARRAY('fairytale', 'repeat'),
- NULL
+ (SELECT id FROM task_types WHERE type='voice')
 ),
 ('reading',
- (SELECT id FROM task_types WHERE type='voice'),
- JSON_OBJECT('mode', 'basicStop'),
- JSON_ARRAY('topic', 'repeat'),
- NULL
+ (SELECT id FROM task_types WHERE type='voice')
 ),
 ('monologue',
- (SELECT id FROM task_types WHERE type='voice'),
- JSON_OBJECT('mode', 'delayedStop', 'duration', 45),
- JSON_ARRAY('topic', 'repeat', 'duration'),
- NULL
+ (SELECT id FROM task_types WHERE type='voice')
 ),
 ('questionnaire',
- (SELECT id FROM task_types WHERE type='questionnaire'),
- NULL,
- NULL,
- NULL
+ (SELECT id FROM task_types WHERE type='questionnaire')
 );

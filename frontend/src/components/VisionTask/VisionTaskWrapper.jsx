@@ -24,9 +24,15 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
     // Merge the environment checklist data with the D15 results
     // so it all gets saved to your database together.
     const finalData = {
-      ...testResults,
-      environmentSettings: environmentData
+      version: task?.params?.version || "desaturated",
+      environmentSettings: environmentData,
+      metrics: testResults.metrics,
+      events: testResults.events,
+      resultIndices: testResults.result,
+      timestamp: testResults.timestamp
     };
+
+    console.log("Final D15 Test Data to Save:", finalData);
 
     // Trigger the dialog and halt execution until the user clicks OK
     await confirm({
