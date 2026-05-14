@@ -279,7 +279,12 @@
           "label": "Sit indoors in a well-lit room, avoiding direct sunlight.",
           "helpText": "Direct sunlight shining on your screen causes glare that washes out colors. Please take this test inside under standard room lighting."
         }
-      }
+      },
+      "rotateBack": {
+        "title": "Vision Test Complete",
+        "message": "You may now rotate your phone back to normal (portrait mode) to continue.",
+        "button": "Continue"
+       }
     }
   }
   

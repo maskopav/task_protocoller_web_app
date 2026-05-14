@@ -33,7 +33,7 @@
 .instructions-header p {
   margin: 0;
   font-weight: 400;
-  line-height: clamp(1rem, 3vw, 1.2rem);
+  line-height: clamp(0.85rem, 3vh, 1.2rem);
 }
 
 /* --- THE GREY BOARD --- */

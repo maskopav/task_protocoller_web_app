@@ -9,7 +9,6 @@ export default function D15Test({ task, onNextTask }) {
   const [d15Colors, setD15Colors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- NEW: Add a state to track if the user has clicked submit ---
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [tray, setTray] = useState([]);
@@ -25,7 +24,7 @@ export default function D15Test({ task, onNextTask }) {
       const targetValue = version === "saturated" ? 5 : 8;
       const targetChroma = version === "saturated" ? 4 : 2;
 
-      const colors = await loadAndComputeD15Colors("/data/realColor.dat", targetValue, targetChroma);
+      const colors = await loadAndComputeD15Colors(`${import.meta.env.VITE_APP_BASE_PATH}data/realColor.dat`, targetValue, targetChroma);
       
       setD15Colors(colors);
       
