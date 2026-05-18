@@ -14,10 +14,10 @@
     padding: clamp(20px, 4vw, 25px);
     border-radius: var(--radius);
     width: 100%;
+    max-height: 90dvh; 
     max-width: 85dvw;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     animation: fadeInDialog 0.2s ease-out;
-    max-height: 90dvh; 
     overflow-y: auto;
   }
   
@@ -29,7 +29,13 @@
   .confirm-dialog p {
     margin: clamp(10px, 2.5vw, 15px) 0 clamp(15px, 3vw, 20px);
     font-size: clamp(1.15rem, 3.5vw, 1.25rem);
-    line-height: 1.4;
+    line-height: clamp(1.2rem, 3.5vw, 1.4rem);
+  }
+
+  .confirm-message-content {
+    margin: clamp(10px, 2.5vw, 15px) 0 clamp(15px, 3vw, 20px);
+    font-size: clamp(1.15rem, 3.5vw, 1.25rem);
+    line-height: 1.1;
   }
   
   .confirm-buttons {

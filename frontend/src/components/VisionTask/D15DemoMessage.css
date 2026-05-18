@@ -1,0 +1,41 @@
+/* --- DEMO INSTRUCTIONS --- */
+.d15-demo-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.d15-demo-text {
+  font-size: clamp(1.1rem, 3.5vw, 1.15rem);
+  line-height: 1.4;
+  color: #1e293b;
+}
+
+.d15-demo-gif {
+  width: 100%;
+  max-width: 350px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* --- LANDSCAPE OPTIMIZATION FOR THE POPUP --- */
+@media (orientation: landscape) and (max-height: 600px) {
+  .d15-demo-container {
+    flex-direction: row; /* Places text and GIF side-by-side */
+    text-align: left;
+    align-items: center;
+  }
+
+  .d15-demo-text {
+    flex: 1; /* Allows text to take up remaining space */
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+  }
+
+  .d15-demo-gif {
+    width: 45%; /* Shrinks the GIF so it doesn't overwhelm the screen */
+    max-width: 250px;
+    margin: auto;
+  }
+}

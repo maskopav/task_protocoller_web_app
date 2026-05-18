@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { loadAndComputeD15Colors } from "../../utils/munsellUtils";
+import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import D15DemoMessage from "./D15DemoMessage";
 import "./D15Test.css";
 
 export default function D15Test({ task, onNextTask }) {
@@ -24,10 +26,24 @@ export default function D15Test({ task, onNextTask }) {
   // Fetch and compute colors on component mount
   useEffect(() => {
     async function initColors() {
-      const targetValue = version === "saturated" ? 5 : 8;
-      const targetChroma = version === "saturated" ? 4 : 2;
+      let colors;
 
-      const colors = await loadAndComputeD15Colors(`${import.meta.env.VITE_APP_BASE_PATH}data/realColor.dat`, targetValue, targetChroma);
+      if (version === "demo") {
+        // Simple, easily distinguishable colors for visualization
+        colors = [
+          "#d53e4f", // Dark Pink/Red (Pilot cap)
+          "#fc8d59", // Orange
+          "#fee08b", // Light Yellow
+          "#e6f598", // Light Yellow-Green
+          "#99d594", // Green
+          "#3288bd"  // Blue
+        ];
+      } else {
+        const targetValue = version === "saturated" ? 5 : 8;
+        const targetChroma = version === "saturated" ? 4 : 2;
+
+        colors = await loadAndComputeD15Colors(`${import.meta.env.VITE_APP_BASE_PATH}data/realColor.dat`, targetValue, targetChroma);
+      }
       
       setD15Colors(colors);
       
@@ -134,12 +150,16 @@ export default function D15Test({ task, onNextTask }) {
   return (
     <div className="vision-task-container">
       <div className="instructions-header">
-        <h1>{t("d15colour.title")}</h1>
+        <h1>{t("d15colour.title")}
+          <InfoTooltip 
+            title={t("d15colour.demoTitle", "How it works")}
+            text={<D15DemoMessage />} 
+          />
+        </h1>
         <p>
           <Trans 
             t={t}
             i18nKey="d15colour.instructions" 
-            components={{ strong: <strong />, br: <br /> }} 
           />
         </p>
       </div>

@@ -4,6 +4,7 @@ import useScrollToTop from "../../hooks/useScrollToTop";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
 import PreTestInstructions from "./PreTestInstructions";
 import D15Test from "./D15Test";
+import D15DemoMessage from "./D15DemoMessage";
 
 export default function VisionTaskWrapper({ task, onNextTask }) {
   const [step, setStep] = useState("instructions");
@@ -14,9 +15,16 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
 
   useScrollToTop(step);
 
-  const handleInstructionsComplete = (data) => {
+  const handleInstructionsComplete = async (data) => {
     // Save the checklist answers and move to the test
     setEnvironmentData(data);
+
+    await confirm({
+      title: t("d15colour.demoTitle", "How it works"),
+      message: <D15DemoMessage />, 
+      infoOnly: true
+    });
+
     setStep("test");
   };
 

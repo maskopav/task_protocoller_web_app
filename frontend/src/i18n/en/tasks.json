@@ -219,19 +219,20 @@
       "name": "D-15 Color Test",
       "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
       "title": "Color Arrangement Task",
-      "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><br/><strong>3.</strong> Repeat until the top row is full to unlock the Submit button.",
+      "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colors.",
+      "demoTitle": "How to do the task",
+      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colors.<br/><br/><strong>• Add a cap:</strong> Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
       "controls": {
         "reset": "Reset",
-        "submit": "Submit Result",
-        "select_next": "Tap a next cap in the tray to select it",
-        "undo": "Tap a cap in the tray to move it back"
+        "submit": "Submit Result"
       },
       "params": {
         "version": {
           "label": "Test Version",
           "values": {
             "saturated": "Saturated (Farnsworth)",
-            "desaturated": "Desaturated (Lanthony)"
+            "desaturated": "Desaturated (Lanthony)",
+            "demo": "Demo (For visualization)"
           }
         },
         "randomize": { 

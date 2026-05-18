@@ -28,12 +28,17 @@
   font-size: clamp(1.4rem, 5.5vw, 2.2rem);
   color: var(--muted);
   flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .instructions-header p {
   margin: 0;
   font-weight: 400;
-  line-height: clamp(0.85rem, 3vh, 1.2rem);
+  line-height: 1.1;
+  color: #000000;
 }
 
 /* --- THE GREY BOARD --- */
@@ -65,12 +70,14 @@
   overflow-x: auto;  
   align-items: center;
   justify-content: flex-start; 
-  padding: 1px; 
+  padding: 1px 1px 7px 1px;
   background-color: transparent; 
   gap: clamp(6px, 1.2vw, 11px);
   width: 100%;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; 
+  scrollbar-color: #a3a3a3 rgba(0, 0, 0, 0.05);
 }
 
 .d15-tray-container.options-tray {
@@ -82,14 +89,23 @@
 
 /* Custom Scrollbar  */
 .d15-tray-container::-webkit-scrollbar {
-  height: 6px;
+  height: 6px; /* Slightly thicker (8px instead of 6px) makes it easier to see on mobile */
+  -webkit-appearance: none; /* Forces display on iOS */
 }
+
 .d15-tray-container::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.05); /* A very faint grey track so it's always visible */
+  border-radius: 4px;
 }
+
 .d15-tray-container::-webkit-scrollbar-thumb {
   background: #a3a3a3;
   border-radius: 4px;
+}
+
+/* Optional: Make the thumb slightly darker when they actually touch/drag it */
+.d15-tray-container::-webkit-scrollbar-thumb:active {
+  background: #808080; 
 }
 
 /* --- THE EMPTY SLOTS (White blanks) --- */
@@ -180,18 +196,33 @@
     padding: 0.5rem;
   }
   
+  .instructions-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .instructions-header h1 {
+    font-size: clamp(1.3rem, 3.5vw, 1.5rem);
+    margin-bottom: 0.2rem;
+  }
+
   .d15-board {
-    padding: 1rem 0.5rem;
+    padding: 0.5rem;
     margin-bottom: 0.5rem;
   }
 
   .d15-tray-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
-}
 
-.vision-controls {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  /* Prevent caps from getting too tall in landscape */
+  .d15-tray-slot {
+    height: clamp(40px, 15vh, 55px);
+    width: clamp(30px, 10vh, 45px);
+  }
+
+  .vision-controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
 }

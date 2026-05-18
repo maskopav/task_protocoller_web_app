@@ -117,7 +117,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       randomize: { default: true },
       repeat: { default: 1 },
-      version: { default: "desaturated", values: ["saturated", "desaturated"] },
+      version: { default: "desaturated", values: ["saturated", "desaturated", "demo"] },
       showNumbers: { default: "never", values: ["never", "after", "always"] },
     },
   },

@@ -46,7 +46,9 @@ export function ConfirmDialogProvider({ children }) {
         <div className="confirm-backdrop">
           <div className="confirm-dialog">
             <h2>{dialog.title}</h2>
-            <p>{dialog.message}</p>
+            <div className="confirm-message-content">
+              {dialog.message}
+            </div>
 
             <div className="confirm-buttons">
               {dialog.infoOnly ? (
