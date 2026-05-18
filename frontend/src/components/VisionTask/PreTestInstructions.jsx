@@ -18,24 +18,14 @@ export default function PreTestInstructions({ onComplete }) {
   // Dynamic Instructions Array using <Trans> for embedded formatting and images
   const INSTRUCTIONS = [
     {
-      id: "landscape",
-      label: t("preTestChecklist.items.landscape.label"),
-      helpText: (
-        <Trans 
-          t={t} /* <--- THIS FIXES THE RENDER ISSUE */
-          i18nKey="preTestChecklist.items.landscape.helpText"
-          components={{
-            br: <br />,
-            strong: <strong />,
-            imgA: <img src={rotateIconA} alt="rotate" className="inline-help-icon" />,
-            imgB: <img src={rotateIconB} alt="rotate" className="inline-help-icon" />,
-            imgC: <img src={rotateIconC} alt="rotate" className="inline-help-icon" />
-          }}
-        />
-      )
+      id: "environment",
+      type: "action",
+      label: t("preTestChecklist.items.environment.label"),
+      helpText: t("preTestChecklist.items.environment.helpText") // Standard text, no <Trans> needed
     },
     {
       id: "brightness",
+      type: "action",
       label: t("preTestChecklist.items.brightness.label"),
       helpText: (
         <Trans 
@@ -52,6 +42,7 @@ export default function PreTestInstructions({ onComplete }) {
     },
     {
       id: "color_filters",
+      type: "action",
       label: t("preTestChecklist.items.colorFilters.label"),
       helpText: (
         <Trans 
@@ -62,7 +53,26 @@ export default function PreTestInstructions({ onComplete }) {
       )
     },
     {
+      id: "landscape",
+      type: "action",
+      label: t("preTestChecklist.items.landscape.label"),
+      helpText: (
+        <Trans 
+          t={t} /* <--- THIS FIXES THE RENDER ISSUE */
+          i18nKey="preTestChecklist.items.landscape.helpText"
+          components={{
+            br: <br />,
+            strong: <strong />,
+            imgA: <img src={rotateIconA} alt="rotate" className="inline-help-icon" />,
+            imgB: <img src={rotateIconB} alt="rotate" className="inline-help-icon" />,
+            imgC: <img src={rotateIconC} alt="rotate" className="inline-help-icon" />
+          }}
+        />
+      )
+    },
+        {
       id: "privacy_screen",
+      type: "question",
       label: t("preTestChecklist.items.privacyScreen.label"),
       helpText: (
         <Trans 
@@ -71,11 +81,6 @@ export default function PreTestInstructions({ onComplete }) {
           components={{ br: <br />, strong: <strong /> }}
         />
       )
-    },
-    {
-      id: "environment",
-      label: t("preTestChecklist.items.environment.label"),
-      helpText: t("preTestChecklist.items.environment.helpText") // Standard text, no <Trans> needed
     }
   ];
 
@@ -104,28 +109,34 @@ export default function PreTestInstructions({ onComplete }) {
               <InfoToolTip title={item.label} text={item.helpText} />
             </div>
             
-            <div className="radio-group">
-              <label className={`radio-label ${answers[item.id] === 'done' ? 'selected-done' : ''}`}>
-                <input
-                  type="radio"
-                  name={item.id}
-                  value="done"
-                  checked={answers[item.id] === "done"}
-                  onChange={() => handleSelect(item.id, "done")}
-                />
-                {t("preTestChecklist.buttons.done")}
-              </label>
-              <label className={`radio-label ${answers[item.id] === 'cannot' ? 'selected-cannot' : ''}`}>
-                <input
-                  type="radio"
-                  name={item.id}
-                  value="cannot"
-                  checked={answers[item.id] === "cannot"}
-                  onChange={() => handleSelect(item.id, "cannot")}
-                />
-                {t("preTestChecklist.buttons.cannot")}
-              </label>
-            </div>
+            {/* 2. RENDER BUTTONS BASED ON TYPE */}
+            {item.type === "question" ? (
+              <div className="radio-group">
+                <label className={`radio-label ${answers[item.id] === 'yes' ? 'selected-cannot' : ''}`}>
+                  <input type="radio" name={item.id} value="yes" checked={answers[item.id] === "yes"} onChange={() => handleSelect(item.id, "yes")} />
+                  {t("preTestChecklist.buttons.yes")}
+                </label>
+                <label className={`radio-label ${answers[item.id] === 'no' ? 'selected-done' : ''}`}>
+                  <input type="radio" name={item.id} value="no" checked={answers[item.id] === "no"} onChange={() => handleSelect(item.id, "no")} />
+                  {t("preTestChecklist.buttons.no")}
+                </label>
+                <label className={`radio-label ${answers[item.id] === 'dontKnow' ? 'selected-cannot' : ''}`}>
+                  <input type="radio" name={item.id} value="dontKnow" checked={answers[item.id] === "dontKnow"} onChange={() => handleSelect(item.id, "dontKnow")} />
+                  {t("preTestChecklist.buttons.dontKnow")}
+                </label>
+              </div>
+            ) : (
+              <div className="radio-group">
+                <label className={`radio-label ${answers[item.id] === 'done' ? 'selected-done' : ''}`}>
+                  <input type="radio" name={item.id} value="done" checked={answers[item.id] === "done"} onChange={() => handleSelect(item.id, "done")} />
+                  {t("preTestChecklist.buttons.done")}
+                </label>
+                <label className={`radio-label ${answers[item.id] === 'cannot' ? 'selected-cannot' : ''}`}>
+                  <input type="radio" name={item.id} value="cannot" checked={answers[item.id] === "cannot"} onChange={() => handleSelect(item.id, "cannot")} />
+                  {t("preTestChecklist.buttons.cannot")}
+                </label>
+              </div>
+            )}
           </div>
         ))}
       </div>

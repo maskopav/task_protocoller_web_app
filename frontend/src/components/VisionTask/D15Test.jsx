@@ -42,7 +42,7 @@ export default function D15Test({ task, onNextTask }) {
         const targetValue = version === "saturated" ? 5 : 8;
         const targetChroma = version === "saturated" ? 4 : 2;
 
-        colors = await loadAndComputeD15Colors(`${import.meta.env.VITE_APP_BASE_PATH}data/realColor.dat`, targetValue, targetChroma);
+        colors = await loadAndComputeD15Colors(`${import.meta.env.VITE_APP_BASE_PATH}assets/vision/realColor.dat`, targetValue, targetChroma);
       }
       
       setD15Colors(colors);

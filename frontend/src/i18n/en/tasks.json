@@ -257,28 +257,31 @@
       "buttons": {
         "done": "Done",
         "cannot": "Can't / Don't Know",
-        "start": "Start Test"
+        "start": "Start Test",
+        "yes": "Yes",
+        "no": "No",
+        "dontKnow": "Don't know"
       },
       "items": {
         "landscape": {
-          "label": "Rotate your phone sideways (Landscape mode).",
-          "helpText": "Turn your phone sideways so the screen is wider than it is tall.<br/><br/>If the screen doesn't rotate, swipe down to open your Control Center and ensure the <strong>Orientation Lock</strong> ( something similar to <imgA/> or <imgB/> or <imgC/> ) is turned off."
+          "label": "Turn your phone sideways (Landscape).",
+          "helpText": "Make sure your screen rotates. If it doesn't, swipe down and turn off the <strong>Orientation Lock</strong> (<imgA/> <imgB/> <imgC/>)."
         },
         "brightness": {
-          "label": "Set your screen brightness to maximum.",
-          "helpText": "Open your device's Control Center and drag the <strong>Brightness Slider</strong> <imgA/> all the way to 100%.<br/><br/>For reference, it should look something like this:<br/><br/><imgSlider/>"
+          "label": "Turn brightness all the way up.",
+          "helpText": "Open your control center and drag the brightness slider <imgA/> to 100%.<br/><br/><imgSlider/>"
         },
         "colorFilters": {
-          "label": "Turn off device color filters (Night Shift / True Tone).",
-          "helpText": "Go to your device <strong>Settings > Display</strong>.<br/><br/>Ensure features like <em>'True Tone'</em> or <em>'Night Shift'</em> (Apple), or <em>'Eye Comfort Shield'</em> / <em>'Blue Light Filter'</em> (Android) are completely disabled. These settings warm up the screen and will invalidate your test results."
+          "label": "Turn off screen color filters.",
+          "helpText": "Go to Settings > Display. Turn off <em>True Tone</em>, <em>Night Shift</em>, or <em>Eye Comfort Shield</em>. These change screen colors and will invalidate your test results."
         },
         "privacyScreen": {
-          "label": "Ensure you are not using a privacy screen protector.",
-          "helpText": "Privacy screen protectors block light from side angles and severely distort screen brightness and color accuracy.<br/><br/>If you currently have a dark privacy film attached to your screen, please select <strong>'Can't / Don't Know'</strong>."
+          "label": "Do you have a privacy screen protector on your phone?",
+          "helpText": "Privacy protectors make the screen look dark from the side. They distort screen brightness and colors, which affects this test."
         },
         "environment": {
-          "label": "Sit indoors in a well-lit room, avoiding direct sunlight.",
-          "helpText": "Direct sunlight shining on your screen causes glare that washes out colors. Please take this test inside under standard room lighting."
+          "label": "Sit indoors in normal room lighting.",
+          "helpText": "Avoid direct sunlight on your screen. Glare washes out colors and makes it hard to see accurately."
         }
       },
       "rotateBack": {
