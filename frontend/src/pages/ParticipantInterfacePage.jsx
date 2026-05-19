@@ -13,6 +13,7 @@ import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/M
 import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import MicCheck from "../components/Recorder/MicCheck";
+import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
 import { uploadRecording } from "../api/recordings";
 import { saveTaskResult } from "../api/taskResults";
@@ -431,6 +432,19 @@ export default function ParticipantInterfacePage() {
         />
       );
     }
+
+    if (currentTask.type === "cognitive") {
+      return (
+        <SDMTTask
+          key={taskIndex}
+          taskParams={currentTask.resolvedParams}
+          onComplete={handleTaskComplete} 
+        />
+      );
+    }
+
+
+
     return <p>Unknown task type: {currentTask.type}</p>;
   };
 

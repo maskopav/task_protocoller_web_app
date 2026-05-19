@@ -253,7 +253,7 @@
     },
     "preTestChecklist": {
       "title": "Vision Task Setup",
-      "subtitle": "Please complete the following steps. Tap the info icon for help, then mark your status for each step.",
+      "subtitle": "Please complete the following steps. Tap the info icon for help. Mark your status for each step.",
       "buttons": {
         "done": "Done",
         "cannot": "Can't / Don't Know",
@@ -268,16 +268,16 @@
           "helpText": "Make sure your screen rotates. If it doesn't, swipe down and turn off the <strong>Orientation Lock</strong> (<imgA/> <imgB/> <imgC/>)."
         },
         "brightness": {
-          "label": "Turn brightness all the way up.",
-          "helpText": "Open your control center and drag the brightness slider <imgA/> to 100%.<br/><br/><imgSlider/>"
+          "label": "Turn brightness all the way up to 100%.",
+          "helpText": "Open your control center (swipe down from the top of the screen) and drag the brightness slider <imgA/> to 100%. <br/><br/>It can look like this for example:<imgSlider/>"
         },
         "colorFilters": {
           "label": "Turn off screen color filters.",
-          "helpText": "Go to Settings > Display. Turn off <em>True Tone</em>, <em>Night Shift</em>, or <em>Eye Comfort Shield</em>. These change screen colors and will invalidate your test results."
+          "helpText": "Color filters adjust the screen colors. Go to Settings > Display. Turn off <em>True Tone</em>, <em>Night Shift</em>, or <em>Eye Comfort Shield</em>."
         },
         "privacyScreen": {
           "label": "Do you have a privacy screen protector on your phone?",
-          "helpText": "Privacy protectors make the screen look dark from the side. They distort screen brightness and colors, which affects this test."
+          "helpText": "Privacy protectors make the screen look dark from the side."
         },
         "environment": {
           "label": "Sit indoors in normal room lighting.",
@@ -289,6 +289,26 @@
         "message": "You may now rotate your phone back to normal (portrait mode) to continue.",
         "button": "Continue"
        }
+    },
+    "sdmt": {
+      "name": "Symbol Digit Modalities Test",
+      "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
+      "title": "Symbol Digit Modalities Test",
+      "instructions": "Look at the reference key at the top. Match the large symbol shown in the center with its corresponding number. You have {{duration}} seconds. Work as quickly and accurately as possible.",
+      "instructionsActive": "Match the symbols to the numbers!",
+      "params": {
+        "duration": {
+          "label": "Required Duration (s)"
+        },
+        "showKeypad": {
+          "label": "Show on-screen keypad",
+          "values": {
+            "always": "Always",
+            "duringTest": "During test only",
+            "never": "Never (use physical keyboard)"
+          }
+        }
+      }
     }
   }
   

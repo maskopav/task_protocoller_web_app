@@ -15,7 +15,7 @@ export interface TaskParamDef {
 }
 
 export interface TaskBase {
-  type: "voice" | "camera" | "motoric" | "questionnaire" | "vision"; 
+  type: "voice" | "camera" | "motoric" | "questionnaire" | "vision" | "cognitive"; 
   recording: RecordingMode;
   params: Record<string, TaskParamDef>;
   useVAD?: boolean; // Voice Activity Detector (Silero model, React version), defaultly as true - waits for participant to speak for start the timer, stops timer if the pause of participant is more than 4 s
@@ -122,4 +122,12 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     },
   },
   
+  sdmt: {
+    type: "cognitive",
+    recording: { mode: "basicStop" }, 
+    params: {
+      duration: { default: 90 }, // Standard SDMT test time
+      showKeypad: { default: "always", values: ["always", "duringTest", "never"] },
+    },
+  }
 };

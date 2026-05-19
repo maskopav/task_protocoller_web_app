@@ -1,0 +1,162 @@
+/* Container - Forces everything onto exactly one screen */
+.sdmt-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    max-height: 100dvh; /* dvh accounts for mobile Safari/Chrome address bars */
+    box-sizing: border-box;
+    overflow: hidden; /* Disables scrolling */
+}
+
+/* Header Wrapper */
+.sdmt-header-wrapper {
+    margin-bottom: clamp(5px, 1.5vh, 15px);
+}
+
+.sdmt-timer {
+    font-size: clamp(1rem, 4vw, 1.25rem);
+    font-weight: 600;
+    color: #e53935;
+    margin-top: 5px;
+}
+
+.sdmt-timer span {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Board Area - Flexes to take up middle space */
+.sdmt-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0; /* Allows it to shrink on very tiny screens */
+}
+
+/* Top Reference Key */
+.sdmt-reference-key {
+    display: flex;
+    width: 100%;
+    border: 2px solid #000000;
+    border-radius: 4px;
+    background: #fff;
+    max-height: 12vh; /* Constrains height on small phones */
+}
+
+.sdmt-key-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    border-right: 1px solid #9e9e9e;
+    padding: clamp(2px, 1vw, 8px);
+    min-width: 0; 
+}
+
+.sdmt-key-item:last-child {
+    border-right: none;
+}
+
+.sdmt-key-img {
+    width: 100%;
+    max-height: clamp(15px, 3.5vh, 45px); /* Scales the symbol dynamically */
+    object-fit: contain;
+    margin-bottom: 2px;
+}
+
+.sdmt-key-number {
+    font-size: clamp(1rem, 4vw, 1.5rem);
+    font-weight: bold;
+    color: #333;
+}
+
+/* Active Center Symbol */
+.sdmt-active-symbol-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: clamp(70px, 18vh, 150px); /* Adjusts dynamically to the screen height */
+    margin: clamp(10px, 3vh, 30px) 0;
+}
+
+.sdmt-active-symbol {
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.sdmt-symbol-placeholder {
+    width: 100%;
+    height: 100%;
+}
+
+/* Instructions */
+.sdmt-instructions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex: 1;
+    padding: 0 1rem;
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    color: var(--text-color, #333); /* Reusing app colors */
+}
+
+.sdmt-start-btn {
+    margin-top: 1rem;
+    padding: 0.75rem 3rem;
+    font-size: 1.25rem;
+}
+
+/* Orange Keypad (Bottom) */
+.sdmt-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Divides into 3 equal columns */
+    gap: clamp(6px, 2vw, 12px);
+    width: 100%;
+    max-width: 380px; /* Prevents buttons from getting massive on Desktop/Tablets */
+    flex: 0 0 auto;
+    padding-bottom: clamp(10px, 2vh, 20px);
+}
+
+.sdmt-keypad-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f26d21;
+    color: #ffffff;
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    font-weight: 700;
+    height: clamp(55px, 11dvh, 90px); /* Height shrinks slightly on small phones */
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    user-select: none;
+    touch-action: manipulation; /* Disables double-tap-to-zoom for faster clicking */
+}
+
+.sdmt-keypad-btn:active {
+    transform: scale(0.95) translateY(2px);
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Add the fade animation back in */
+.fade-scale-in {
+    animation: fadeScale 0.15s ease-out forwards;
+}
+
+@keyframes fadeScale {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+}
