@@ -9,6 +9,7 @@ import rotateIconB from "../../assets/lock-reset-icon.svg";
 import rotateIconC from "../../assets/screen-rotation-icon.svg"; 
 import brightnessIcon from "../../assets/brightness-icon.svg"; 
 import brightnessSlider from "../../assets/brightness-slider.png";
+import settingsIcon from "../../assets/settings-icon.svg";
 
 export default function PreTestInstructions({ onComplete }) {
   // Load the translation hook for the "tasks" namespace
@@ -34,7 +35,9 @@ export default function PreTestInstructions({ onComplete }) {
           components={{
             br: <br />,
             strong: <strong />,
+            em: <em />,
             imgA: <img src={brightnessIcon} alt="brightness" className="inline-help-icon" />,
+            imgB: <img src={settingsIcon} alt="settings" className="inline-help-icon" />,
             imgSlider: <img src={brightnessSlider} alt="slider" style={{ width: "96%", maxWidth: "400px", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.2)" }} />
           }}
         />
@@ -48,7 +51,10 @@ export default function PreTestInstructions({ onComplete }) {
         <Trans 
           t={t}
           i18nKey="preTestChecklist.items.colorFilters.helpText"
-          components={{ br: <br />, strong: <strong />, em: <em /> }}
+          components={{ 
+            br: <br />, strong: <strong />, em: <em />,
+            imgA: <img src={settingsIcon} alt="settings" className="inline-help-icon" />
+          }}
         />
       )
     },

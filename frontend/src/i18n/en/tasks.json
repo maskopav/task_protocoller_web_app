@@ -264,31 +264,32 @@
       },
       "items": {
         "landscape": {
-          "label": "Turn your phone sideways (Landscape).",
-          "helpText": "Make sure your screen rotates. If it doesn't, swipe down and turn off the <strong>Orientation Lock</strong> (<imgA/> <imgB/> <imgC/>)."
+          "label": "Rotate your phone sideways.",
+          "helpText": "If the screen doesn't rotate with your phone, you need to unlock it.<br><br>Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom on older iPhones).<br><br>Look for the rotation icon (<imgA/> <imgB/> <imgC/>) and tap it so your screen is allowed to rotate."
         },
         "brightness": {
-          "label": "Turn brightness all the way up to 100%.",
-          "helpText": "Open your control center (swipe down from the top of the screen) and drag the brightness slider <imgA/> to 100%. <br/><br/>It can look like this for example:<imgSlider/>"
+          "label": "Turn brightness all the way up.",
+          "helpText": "Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom on older iPhones).<br><br>Find the <strong>brightness slider</strong> (usually a sun icon <imgA/>) and drag it to the absolute maximum.<br><br><em>Note</em>: If your phone turns the brightness back down on its own, look for an <strong>Auto</strong> or <strong>Adaptive</strong> button nearby, or look in your phone's Settings <imgB/> > Display and turn it off.<br><br>Example: <imgSlider/>"
         },
         "colorFilters": {
           "label": "Turn off screen color filters.",
-          "helpText": "Color filters adjust the screen colors. Go to Settings > Display. Turn off <em>True Tone</em>, <em>Night Shift</em>, or <em>Eye Comfort Shield</em>."
+          "helpText": "Filters alter your screen's natural colors, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colors."
         },
         "privacyScreen": {
-          "label": "Do you have a privacy screen protector on your phone?",
-          "helpText": "Privacy protectors make the screen look dark from the side."
+          "label": "Do you have a privacy screen protector?",
+          "helpText": "It is a special glass cover that stops people next to you from reading your screen. <br><br><strong>How to check:</strong> Tilt your phone to the side. If the screen suddenly looks completely dark or black, you have a privacy protector on your phone."
         },
         "environment": {
           "label": "Sit indoors in normal room lighting.",
-          "helpText": "Avoid direct sunlight on your screen. Glare washes out colors and makes it hard to see accurately."
+          "helpText": "Avoid direct sunlight or bright windows shining onto your screen."
         }
       },
       "rotateBack": {
         "title": "Vision Test Complete",
-        "message": "You may now rotate your phone back to normal (portrait mode) to continue.",
+        "message": "You may now rotate your phone back to continue.",
         "button": "Continue"
        }
+
     },
     "sdmt": {
       "name": "Symbol Digit Modalities Test",
