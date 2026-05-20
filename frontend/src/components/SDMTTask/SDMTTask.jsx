@@ -6,6 +6,8 @@ import '../Recorder/Recorder.css';
 import './SDMTTask.css'; 
 
 const SDMTTask = ({ taskParams, onComplete }) => {
+    // Initialize the translation hook for the "tasks" namespace
+    const { t } = useTranslation("tasks");
     
     const rawDuration = Array.isArray(taskParams?.duration) ? taskParams.duration[0] : taskParams?.duration;
     const duration = Number(rawDuration) || 90;
@@ -60,14 +62,17 @@ const SDMTTask = ({ taskParams, onComplete }) => {
             
             {/* HEADER */}  
             <div className="task-header sdmt-header-wrapper">
-                <h1>Symbol Digit Modalities Test</h1>
+                <h1>{t("sdmt.title")}</h1>
                 {gameState !== 'playing' && (
                     <>
                         <div className="flexible-spacer"></div>
                         <div className="instruction-card active-instructions sdmt-instructions">
-                            <p>Look at the reference key at the top.</p>
-                            <p>Match the large symbol shown in the center with its corresponding number.</p>
-                            <p>You have <strong>{duration} seconds</strong>. Work as quickly and accurately as possible.</p>
+                            <Trans 
+                                t={t}
+                                i18nKey="sdmt.instructions"
+                                values={{ duration }}
+                                components={{ strong: <strong /> }}
+                            />
                         </div>
                     </>
                 )}
@@ -95,9 +100,10 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                     {gameState === 'stats' && (
                         <div className="sdmt-stats">
                             <div className="task-header">
-                                <h1>Task Complete!</h1>
+                                {/* Fallback translation for completion state */}
+                                <h1>{t("sdmt.taskComplete")}</h1>
                             </div>
-                            <p>Your results have been saved securely.</p>
+                            <p>{t("sdmt.resultsSaved")}</p>
                         </div>
                     )}
                 </div>
@@ -108,11 +114,13 @@ const SDMTTask = ({ taskParams, onComplete }) => {
             <div className="bottom-controls sdmt-bottom-controls">
                 {gameState === 'instructions' && (
                     <button className="sdmt-start-btn" onClick={startGame}>
-                        Start
+                        {t("sdmt.start")}
                     </button>
                 )}
                 {gameState === 'playing' && (
-                    <div className="sdmt-timer">Time Left: <span>{timeLeft}s</span></div>
+                    <div className="sdmt-timer">
+                        {t("sdmt.timeLeft")} <span>{timeLeft}s</span>
+                    </div>
                 )}
 
             </div>

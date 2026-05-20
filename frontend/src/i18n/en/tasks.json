@@ -294,9 +294,13 @@
     "sdmt": {
       "name": "Symbol Digit Modalities Test",
       "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
-      "title": "Symbol Digit Modalities Test",
-      "instructions": "Look at the reference key at the top. Match the large symbol shown in the center with its corresponding number. You have {{duration}} seconds. Work as quickly and accurately as possible.",
-      "instructionsActive": "Match the symbols to the numbers!",
+      "title": "Symbols",
+      "instructions": "Using the index finger of your <strong>dominant hand</strong>, press the buttons to match the symbol shown in the center of the screen with the corresponding number as quickly as possible.You have <strong>{{duration}} seconds</strong>.",
+      "instructionsActive": "Match the symbol to the number.",
+      "taskComplete": "Task Complete!",
+      "resultsSaved": "Your results have been saved securely.",
+      "start": "Start",
+      "timeLeft": "Time Left:",
       "params": {
         "duration": {
           "label": "Required Duration (s)"

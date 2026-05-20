@@ -127,7 +127,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     recording: { mode: "countDown", duration: 90 }, 
     params: {
       duration: { default: 90 }, // Standard SDMT test time
-      showKeypad: { default: "always", values: ["always", "duringTest", "never"] },
+      showKeypad: { default: "duringTest", values: ["always", "duringTest", "never"] },
     },
   }
 };
