@@ -1,41 +1,23 @@
-/* Container - Forces everything onto exactly one screen */
+@import "../Recorder/Recorder.css";
+
+/* Container - Adds extra heavy padding at the bottom for the timer */
 .sdmt-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    max-height: 100dvh; /* dvh accounts for mobile Safari/Chrome address bars */
     box-sizing: border-box;
-    overflow: hidden; /* Disables scrolling */
+    overflow: auto; 
+    /* Top, Right, Bottom (Extra Space!), Left */
+    padding: clamp(10px, 1vh, 12px) 1rem clamp(10px, 1.2vh, 40px) 1rem;
 }
 
-/* Header Wrapper */
+/* Header */
 .sdmt-header-wrapper {
     margin-bottom: clamp(5px, 1.5vh, 15px);
 }
 
-.sdmt-timer {
-    font-size: clamp(1rem, 4vw, 1.25rem);
-    font-weight: 600;
-    color: #e53935;
-    margin-top: 5px;
-}
-
-.sdmt-timer span {
-    font-variant-numeric: tabular-nums;
-}
-
-/* Board Area - Flexes to take up middle space */
-.sdmt-board {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    flex: 1 1 auto;
+/* Clusters Ref Key, Symbol, and Keypad so they don't drift apart */
+.sdmt-main-interface {
     width: 100%;
-    min-height: 0; /* Allows it to shrink on very tiny screens */
+    max-width: 900px; 
+    margin: 0 auto;
 }
 
 /* Top Reference Key */
@@ -45,17 +27,17 @@
     border: 2px solid #000000;
     border-radius: 4px;
     background: #fff;
-    max-height: 12vh; /* Constrains height on small phones */
+    max-height: 12vh; 
 }
 
 .sdmt-key-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     flex: 1;
     border-right: 1px solid #9e9e9e;
-    padding: clamp(2px, 1vw, 8px);
+    padding: 0;
     min-width: 0; 
 }
 
@@ -64,37 +46,59 @@
 }
 
 .sdmt-key-img {
+    flex: 1;
     width: 100%;
-    max-height: clamp(15px, 3.5vh, 45px); /* Scales the symbol dynamically */
+    /* 3. Scaled the height to visually match the font size below it */
+    max-height: clamp(27px, 4.7vh, 50px); 
+    max-width: clamp(27px, 4.7vh, 50px); 
     object-fit: contain;
-    margin-bottom: 2px;
+    padding: 5px;
+    box-sizing: border-box;
 }
 
 .sdmt-key-number {
-    font-size: clamp(1rem, 4vw, 1.5rem);
-    font-weight: bold;
-    color: #333;
-}
-
-/* Active Center Symbol */
-.sdmt-active-symbol-container {
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: clamp(70px, 18vh, 150px); /* Adjusts dynamically to the screen height */
-    margin: clamp(10px, 3vh, 30px) 0;
+    font-size: clamp(1.5rem, 4.2vw, 1.7rem);
+    font-weight: 500;
+    color: #333;
+    /* 4. This creates the exact horizontal border you requested */
+    border-top: 1px solid #9e9e9e; 
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+/* Center Area - Controls the gap between Ref Key and Keypad */
+.sdmt-center-area {
+    margin: clamp(5px, 1vh, 10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.sdmt-active-symbol-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: clamp(110px, 3vw, 150px); 
+    aspect-ratio: 1; 
 }
 
 .sdmt-active-symbol {
-    height: 100%;
-    max-width: 100%;
+    max-width: 55%; 
+    max-height: 55%; 
+    width: auto;
+    height: auto;
     object-fit: contain;
 }
 
 .sdmt-symbol-placeholder {
-    width: 100%;
-    height: 100%;
+    width: 55%;
+    height: 55%;
 }
 
 /* Instructions */
@@ -104,10 +108,9 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    flex: 1;
     padding: 0 1rem;
     font-size: clamp(0.9rem, 3.5vw, 1.1rem);
-    color: var(--text-color, #333); /* Reusing app colors */
+    color: var(--text-color, #333); 
 }
 
 .sdmt-start-btn {
@@ -119,12 +122,13 @@
 /* Orange Keypad (Bottom) */
 .sdmt-keypad {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Divides into 3 equal columns */
-    gap: clamp(6px, 2vw, 12px);
+    grid-template-columns: repeat(3, 1fr); 
+    gap: clamp(8px, 2.2vh, 11px);
     width: 100%;
-    max-width: 380px; /* Prevents buttons from getting massive on Desktop/Tablets */
+    max-width: clamp(300px, 75vw, 350px); 
+    max-height: clamp(300px, 75vw, 350px); 
+    margin: 0 auto; 
     flex: 0 0 auto;
-    padding-bottom: clamp(10px, 2vh, 20px);
 }
 
 .sdmt-keypad-btn {
@@ -135,7 +139,7 @@
     color: #ffffff;
     font-size: clamp(1.8rem, 7vw, 2.5rem);
     font-weight: 700;
-    height: clamp(55px, 11dvh, 90px); /* Height shrinks slightly on small phones */
+    height: clamp(55px, 10dvh, 75px); 
     border-radius: 12px;
     border: none;
     cursor: pointer;
@@ -143,7 +147,7 @@
     text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
     transition: transform 0.1s ease, box-shadow 0.1s ease;
     user-select: none;
-    touch-action: manipulation; /* Disables double-tap-to-zoom for faster clicking */
+    touch-action: manipulation; 
 }
 
 .sdmt-keypad-btn:active {
@@ -151,7 +155,25 @@
     box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Add the fade animation back in */
+/* Footer & Timer */
+.sdmt-footer {
+    flex: 0 0 auto;
+    height: clamp(30px, 5vh, 50px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.sdmt-timer {
+    font-size: clamp(1.4rem, 5.1vw, 2rem);
+    font-weight: 600;
+}
+
+.sdmt-timer span {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Animations */
 .fade-scale-in {
     animation: fadeScale 0.15s ease-out forwards;
 }

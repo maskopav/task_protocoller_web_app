@@ -38,4 +38,13 @@ VALUES
 ),
 ('questionnaire',
  (SELECT id FROM task_types WHERE type='questionnaire')
+),
+('d15colour',
+ (SELECT id FROM task_types WHERE type='vision')
+),
+('dynamic_monologue',
+ (SELECT id FROM task_types WHERE type='voice')
+),
+('sdmt',
+ (SELECT id FROM task_types WHERE type='cognitive')
 );

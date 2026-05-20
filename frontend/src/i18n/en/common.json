@@ -55,6 +55,7 @@
       "motor": "Motor Task",
       "camera": "Camera Task",
       "vision": "Vision Task",
+      "cognitive": "Cognitive Task",
       "hearing": "Hearing Task",
       "questionnaire": "Questionnaire",
       "task": "Task",

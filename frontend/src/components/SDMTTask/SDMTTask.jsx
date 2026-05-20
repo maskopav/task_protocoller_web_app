@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSDMTLogic } from '../../hooks/useSDMTLogic';
+import { useTranslation, Trans } from "react-i18next";
 
-// Import the Recorder styles so we can reuse its native layout classes
 import '../Recorder/Recorder.css'; 
 import './SDMTTask.css'; 
 
@@ -30,7 +30,7 @@ const SDMTTask = ({ taskParams, onComplete }) => {
         <div className="sdmt-reference-key">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                 <div key={`key-${num}`} className="sdmt-key-item">
-                    <img src={`/assets/sdmt/sdmt${num}.svg`} alt={`Symbol ${num}`} className="sdmt-key-img"/>
+                    <img src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${num}.svg`} alt={`Symbol ${num}`} className="sdmt-key-img"/>
                     <div className="sdmt-key-number">{num}</div>
                 </div>
             ))}
@@ -58,52 +58,64 @@ const SDMTTask = ({ taskParams, onComplete }) => {
     return (
         <div className="task-container sdmt-container">
             
+            {/* HEADER */}  
             <div className="task-header sdmt-header-wrapper">
                 <h1>Symbol Digit Modalities Test</h1>
-                {gameState === 'playing' && <div className="sdmt-timer">Time Left: <span>{timeLeft}s</span></div>}
+                {gameState !== 'playing' && (
+                    <>
+                        <div className="flexible-spacer"></div>
+                        <div className="instruction-card active-instructions sdmt-instructions">
+                            <p>Look at the reference key at the top.</p>
+                            <p>Match the large symbol shown in the center with its corresponding number.</p>
+                            <p>You have <strong>{duration} seconds</strong>. Work as quickly and accurately as possible.</p>
+                        </div>
+                    </>
+                )}
             </div>
 
-            {/* BOARD */}
-            {gameState !== 'stats' && (
-                <div className="sdmt-board">
-                    {renderReferenceKey()}
-                    
-                    <div className="sdmt-active-symbol-container">
-                        {gameState === 'playing' && isSymbolVisible && currentSymbol ? (
-                            <img 
-                                src={`/assets/sdmt/sdmt${currentSymbol}.svg`} 
-                                alt="Current Symbol" 
-                                className="sdmt-active-symbol fade-scale-in"
-                            />
-                        ) : (
-                            <div className="sdmt-symbol-placeholder"></div>
-                        )}
-                    </div>
-                </div>
-            )}
+            <div className="recording-area sdmt-main-interface">
+                {gameState === 'playing' && renderReferenceKey()}
 
-            {/* INSTRUCTIONS */}
-            {gameState === 'instructions' && (
-                <div className="sdmt-instructions">
-                    <p>Look at the reference key at the top.</p>
-                    <p>Match the large symbol shown in the center with its corresponding number.</p>
-                    <p>You have <strong>{duration} seconds</strong>. Work as quickly and accurately as possible.</p>
-                    <button className="btn-primary sdmt-start-btn" onClick={startGame}>START</button>
-                </div>
-            )}
+                <div className="sdmt-center-area">
 
-            {/* KEYPAD */}
-            {gameState !== 'stats' && renderKeypad()}
+                    {gameState === 'playing' && (
+                        <div className="sdmt-active-symbol-container">
+                            {isSymbolVisible && currentSymbol ? (
+                                <img 
+                                    src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${currentSymbol}.svg`} 
+                                    alt="Current Symbol" 
+                                    className="sdmt-active-symbol fade-scale-in"
+                                />
+                            ) : (
+                                <div className="sdmt-symbol-placeholder"></div>
+                            )}
+                        </div>
+                    )}
 
-            {/* STATS SCREEN */}
-            {gameState === 'stats' && (
-                <div className="sdmt-stats">
-                    <div className="task-header">
-                        <h1>Task Complete!</h1>
-                    </div>
-                    <p>Your results have been saved securely.</p>
+                    {gameState === 'stats' && (
+                        <div className="sdmt-stats">
+                            <div className="task-header">
+                                <h1>Task Complete!</h1>
+                            </div>
+                            <p>Your results have been saved securely.</p>
+                        </div>
+                    )}
                 </div>
-            )}
+                {gameState !== 'stats' && renderKeypad()}
+
+            </div>
+
+            <div className="bottom-controls sdmt-bottom-controls">
+                {gameState === 'instructions' && (
+                    <button className="sdmt-start-btn" onClick={startGame}>
+                        Start
+                    </button>
+                )}
+                {gameState === 'playing' && (
+                    <div className="sdmt-timer">Time Left: <span>{timeLeft}s</span></div>
+                )}
+
+            </div>
         </div>
     );
 };
