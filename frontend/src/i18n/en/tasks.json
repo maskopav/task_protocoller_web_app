@@ -276,7 +276,7 @@
           "helpText": "Filters alter your screen's natural colors, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colors."
         },
         "privacyScreen": {
-          "label": "Do you have a privacy screen protector?",
+          "label": "Do you have a privacy protection glass?",
           "helpText": "It is a special glass cover that stops people next to you from reading your screen. <br><br><strong>How to check:</strong> Tilt your phone to the side. If the screen suddenly looks completely dark or black, you have a privacy protector on your phone."
         },
         "environment": {

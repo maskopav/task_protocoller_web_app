@@ -58,24 +58,6 @@ export default function PreTestInstructions({ onComplete }) {
         />
       )
     },
-    {
-      id: "landscape",
-      type: "action",
-      label: t("preTestChecklist.items.landscape.label"),
-      helpText: (
-        <Trans 
-          t={t} /* <--- THIS FIXES THE RENDER ISSUE */
-          i18nKey="preTestChecklist.items.landscape.helpText"
-          components={{
-            br: <br />,
-            strong: <strong />,
-            imgA: <img src={rotateIconA} alt="rotate" className="inline-help-icon" />,
-            imgB: <img src={rotateIconB} alt="rotate" className="inline-help-icon" />,
-            imgC: <img src={rotateIconC} alt="rotate" className="inline-help-icon" />
-          }}
-        />
-      )
-    },
         {
       id: "privacy_screen",
       type: "question",
@@ -85,6 +67,24 @@ export default function PreTestInstructions({ onComplete }) {
           t={t}
           i18nKey="preTestChecklist.items.privacyScreen.helpText"
           components={{ br: <br />, strong: <strong /> }}
+        />
+      )
+    },
+    {
+      id: "landscape",
+      type: "action",
+      label: t("preTestChecklist.items.landscape.label"),
+      helpText: (
+        <Trans 
+          t={t} 
+          i18nKey="preTestChecklist.items.landscape.helpText"
+          components={{
+            br: <br />,
+            strong: <strong />,
+            imgA: <img src={rotateIconA} alt="rotate" className="inline-help-icon" />,
+            imgB: <img src={rotateIconB} alt="rotate" className="inline-help-icon" />,
+            imgC: <img src={rotateIconC} alt="rotate" className="inline-help-icon" />
+          }}
         />
       )
     }

@@ -26,16 +26,18 @@
     flex-direction: row; /* Places text and GIF side-by-side */
     text-align: left;
     align-items: center;
+    gap: 5px;
   }
 
   .d15-demo-text {
     flex: 1; /* Allows text to take up remaining space */
     font-size: clamp(0.9rem, 3vw, 1.1rem);
+    line-height: 1.2;
   }
 
   .d15-demo-gif {
     width: 45%; /* Shrinks the GIF so it doesn't overwhelm the screen */
     max-width: 250px;
-    margin: auto;
+    margin: 1px;
   }
 }
