@@ -331,12 +331,17 @@ export const Recorder = ({
     const handleStartCalibration = async () => {
         const hasPermission = await videoRecorder.getMediaPermission();
         if (hasPermission) {
-            await getMicrophonePermission();
+            await getMicrophonePermission(); // Ensure audio is also granted
             setPhase('CALIBRATE');
             videoRecorder.startFaceDetection();
         } else {
             console.error("Camera/Mic permission denied or failed.");
         }
+    };
+
+    // Finish Video Calibration (Passed to VideoViewfinder)
+    const handleFinishCalibration = () => {
+        setPhase('RECORDING');
     };
 
     // --- Prepare UI Strings (Simplified) ---
@@ -451,59 +456,49 @@ export const Recorder = ({
             <div className='task-header'>
                 {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
                     <>
-                        <h1>{isCalibrationPhase ? "📷 Camera Setup" : title}</h1>
+                        <h1>{isCalibrationPhase ? "Camera Setup" : title}</h1>
                         <div className="flexible-spacer"></div>
                     </>
                 )}
                 
-                <div
-                    key={isCalibrationPhase ? 'calibration' : (isDynamicTask ? dynamicIndex : 'static')} 
-                    className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
-                >
-                    <FormattedText text={parsedInstructions} slots={slots} />
-                    {/* Manual Fallback Button */}
-                    {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
-                        <button 
-                            className="btn-manual-switch"
-                            onClick={handleManualTopicSwitch}
-                        >
-                            Switch Topic
-                        </button>
-                    )}
-                </div>
+                {/* HIDE INSTRUCTIONS DURING CALIBRATION SO VIDEO IS BIGGER */}
+                {!isCalibrationPhase && (
+                    <div
+                        key={isDynamicTask ? dynamicIndex : 'static'} 
+                        className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
+                    >
+                        <FormattedText text={parsedInstructions} slots={slots} />
+                        {/* Manual Fallback Button */}
+                        {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
+                            <button 
+                                className="btn-manual-switch"
+                                onClick={handleManualTopicSwitch}
+                            >
+                                Switch Topic
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
             
+            {/* --- VIDEO RECORDER VIEWPORT MANAGEMENT --- */}
             {isVideoEnabled && (
-                <VideoViewfinder 
-                    phase={phase} 
-                    videoRecorder={videoRecorder} 
-                    isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
-                />
+                /* 1. Only show the viewfinder if we are in SETUP phase, CALIBRATE phase, 
+                    OR if we are in the RECORDING phase but the participant HAS NOT clicked start yet (idle state) */
+                (phase === 'SETUP' || phase === 'CALIBRATE' || 
+                (phase === 'RECORDING' && recordingStatus === RECORDING_STATES.IDLE)) ? (
+                    <VideoViewfinder 
+                        phase={phase} 
+                        videoRecorder={videoRecorder} 
+                        /* Pass isRecording true only if the task has actually started recording */
+                        isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
+                        onStartCalibration={handleStartCalibration}
+                        onFinishCalibration={handleFinishCalibration}
+                    />
+                ) : null
             )}
 
-            {/* --- PHASE 1: VIDEO SETUP CONTROLS --- */}
-            {isVideoEnabled && phase === 'SETUP' && (
-                <div className="controls-container" style={{ textAlign: 'center', marginTop: '2rem' }}>
-                    <button className="btn-primary" onClick={handleStartCalibration}>
-                        Start Camera Calibration
-                    </button>
-                </div>
-            )}
-
-            {/* --- PHASE 2: VIDEO CALIBRATION CONTROLS --- */}
-            {isVideoEnabled && phase === 'CALIBRATE' && (
-                <div className="controls-container" style={{ marginTop: '1rem', textAlign: 'center' }}>
-                    <button 
-                        className="btn-primary" 
-                        disabled={!(videoRecorder.isSteady && videoRecorder.isFaceCorrect)} 
-                        onClick={() => { setPhase('RECORDING'); }}
-                    >
-                        {(videoRecorder.isSteady && videoRecorder.isFaceCorrect) ? "Position Correct - Continue" : "Awaiting Correct Position..."}
-                    </button>
-                </div>
-            )}
-
-            {/* --- PHASE 3: RECORDING CONTROLS (Audio Timer + Start/Stop) --- */}
+            {/* RECORDING CONTROLS (Audio Timer + Start/Stop) */}
             {phase === 'RECORDING' && (
                 <>
                     {!shouldShiftTimer && renderRecordingArea()}

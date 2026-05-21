@@ -135,6 +135,26 @@
         }
       }
     },
+    "videoCalibration": {
+      "setupTitle": "Setup Instructions",
+      "step1": "<1>Place your device on a table</1> leaning against a stable object.",
+      "step2": "<1>Sit one arm's length away</1> from the screen.",
+      "step3": "<1>Rest your hands on the table</1> comfortably.",
+      "step4": "Ensure your face is well-lit.",
+      "viewInstructions": "View Setup Instructions",
+      "btnReady": "I'm Ready",
+      "btnCancel": "Cancel",
+      "btnShowInstructions": "Show Instructions & Start",
+      "btnContinueReady": "Position Correct - Continue",
+      "btnContinueWait": "Awaiting Correct Position...",
+      "warningHoldSteady": "Hold Phone Steady!",
+      "warningAdjustFace": "Adjust your face!",
+      "closer": "Closer",
+      "further": "Further",
+      "turnLeft": "Look Left",
+      "turnRight": "Look Right",
+      "perfect": "Perfect!"
+    },
     "incompatibleBrowser": {
       "title": "Browser Not Supported",
       "description": "does not support microphone access required for this task.",

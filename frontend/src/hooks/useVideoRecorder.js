@@ -19,6 +19,7 @@ export const useVideoRecorder = ({
     const faceDetector = useRef(null);
     const requestRef = useRef(null);
     const isCalibratingRef = useRef(false);
+    const hasAttemptedZoom = useRef(false);
 
     const streamRef = useRef(null); 
     const audioChunks = useRef([]);
@@ -58,9 +59,36 @@ export const useVideoRecorder = ({
         }
     };
 
+    const attemptAutoZoom = async (currentEyeDist) => {
+        if (!streamRef.current) return;
+        
+        const videoTrack = streamRef.current.getVideoTracks()[0];
+        const capabilities = videoTrack.getCapabilities();
+
+        if (capabilities.zoom) {
+            const currentSettings = videoTrack.getSettings();
+            const currentZoom = currentSettings.zoom || 1;
+            
+            // Target eye distance (0.18 is right in the middle of your 0.12 - 0.28 range)
+            const targetEyeDist = 0.18; 
+            const zoomFactor = targetEyeDist / currentEyeDist;
+            let newZoom = currentZoom * zoomFactor;
+
+            newZoom = Math.max(capabilities.zoom.min, Math.min(newZoom, capabilities.zoom.max));
+
+            try {
+                await videoTrack.applyConstraints({ advanced: [{ zoom: newZoom }] });
+                console.log("Successfully auto-zoomed camera to:", newZoom);
+            } catch (e) {
+                console.warn("Hardware zoom not supported or failed", e);
+            }
+        }
+    };
+
     const startFaceDetection = () => {
         setRecordingStatus("calibrating");
         isCalibratingRef.current = true;
+        hasAttemptedZoom.current = false;
 
         const detect = () => {
             if (!videoRef.current || !canvasRef.current || !faceDetector.current) {
@@ -122,41 +150,46 @@ export const useVideoRecorder = ({
                     const rightEye = landmarks[33];
                     const leftEye = landmarks[263];
 
+                    // 1. Inter-Ocular Distance (Distance between eyes)
+                    const eyeDist = Math.hypot(leftEye.x - rightEye.x, leftEye.y - rightEye.y);
+
+                    // 2. Head Symmetry
                     const rightDist = Math.hypot(rightEye.x - noseTip.x, rightEye.y - noseTip.y);
                     const leftDist = Math.hypot(leftEye.x - noseTip.x, leftEye.y - noseTip.y);
                     const symmetryRatio = Math.min(leftDist, rightDist) / Math.max(leftDist, rightDist);
-                    
-                    // Validations
-                    const isLookingForward = symmetryRatio > 0.75;
-                    const isCenteredX = Math.abs(centerX - 0.5) < 0.1;
-                    const isCenteredY = Math.abs(centerY - 0.5) < 0.1;
-                    const isRightSize = faceHeight > 0.4 && faceHeight < 0.65; 
 
-                    // Generate specific guidance
+                    // --- RELAXED VALIDATIONS ---
+                    const isLookingForward = symmetryRatio > 0.70; // Relaxed slightly from 0.75
+                    const isCenteredX = Math.abs(centerX - 0.5) < 0.18; // Relaxed from 0.15
+                    const isCenteredY = Math.abs(centerY - 0.5) < 0.18; // Relaxed from 0.15
+
+                    // LOOSENED ZOOM CONDITION: Widened to accept small/large faces if fully visible
+                    const isRightSize = eyeDist > 0.09 && eyeDist < 0.32; 
+
                     let newGuidance = { text: "Detecting...", arrow: null };
 
+                    // --- INTUITIVE DIRECTIVE LOGIC (Move Body instead of Device) ---
                     if (!isLookingForward) {
-                        if (leftDist > rightDist) {
-                            newGuidance = { text: "Turn head slightly left", arrow: "TURN_LEFT" };
-                        } else {
-                            newGuidance = { text: "Turn head slightly right", arrow: "TURN_RIGHT" };
-                        }
+                        newGuidance = leftDist > rightDist 
+                            ? { text: "Turn your face slightly left", arrow: "TURN_LEFT" } 
+                            : { text: "Turn your face slightly right", arrow: "TURN_RIGHT" };
                     } else if (!isCenteredX) {
-                        newGuidance = centerX < 0.4 
-                            ? { text: "Move left", arrow: "MOVE_LEFT" } 
-                            : { text: "Move right", arrow: "MOVE_RIGHT" };
+                        // If centerX < 0.5, face is too far left on screen -> user needs to move right
+                        newGuidance = centerX < 0.5 
+                            ? { text: "Move your body slightly to the right", arrow: "MOVE_RIGHT" } 
+                            : { text: "Move your body slightly to the left", arrow: "MOVE_LEFT" };
                     } else if (!isCenteredY) {
-                        newGuidance = centerY < 0.4 
-                            ? { text: "Move down", arrow: "MOVE_DOWN" } 
-                            : { text: "Move up", arrow: "MOVE_UP" };
+                        // If centerY < 0.5, face is too high on screen -> user needs to sit lower/lean down
+                        newGuidance = centerY < 0.5 
+                            ? { text: "Lean slightly down", arrow: "MOVE_DOWN" } 
+                            : { text: "Lean slightly up", arrow: "MOVE_UP" };
                     } else if (!isRightSize) {
-                        newGuidance = faceHeight < 0.4 
-                            ? { text: "Move closer", arrow: "MOVE_CLOSER" } 
-                            : { text: "Move further", arrow: "MOVE_FURTHER" };
+                        newGuidance = eyeDist < 0.09 
+                            ? { text: "Lean slightly closer to the screen", arrow: "MOVE_CLOSER" } 
+                            : { text: "Lean slightly further back", arrow: "MOVE_FURTHER" };
                     } else {
-                        newGuidance = { text: "Perfect! Hold still...", arrow: "READY" };
+                        newGuidance = { text: "Perfect! Hands on table, hold still.", arrow: "READY" };
                     }
-
                     setGuidance(newGuidance);
 
                     if (isCenteredX && isCenteredY && isRightSize && isLookingForward) {
@@ -259,4 +292,5 @@ export const useVideoRecorder = ({
         isFaceCorrect, guidance, getMediaPermission, 
         startFaceDetection, startRecording, stopRecording
     };
+
 };

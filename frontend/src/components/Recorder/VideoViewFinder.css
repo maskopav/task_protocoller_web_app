@@ -1,0 +1,183 @@
+/* --- VIDEO CONTAINER BOUNDARIES --- */
+.viewfinder-container {
+  position: relative;
+  width: min(90dvw, 380px);
+  height: min(55dvh, 550px);
+  margin: 0 auto;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  transition: all 0.4s ease-in-out;
+}
+
+/* --- DYNAMICALLY RESPONSIVE PICTURE IN PICTURE (PIP) PREVIEW --- */
+.viewfinder-container.pip-mode {
+  position: absolute;
+  
+  /* 1. Dynamic Spacing from Corners */
+  /* On mobile it sits closer to the edges (5px/10px), on laptops it scales up gently */
+  top: clamp(5px, 1.2dvh, 10px);
+  right: clamp(10px, 2dvw, 25px);
+  
+  width: clamp(70px, 12dvw, 100px);
+  height: clamp(70px, 12dvw, 100px);
+  
+  border-radius: 50%; /* Perfect circle preview while reading instructions */
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  max-height: none !important;
+  margin: 0;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out; /* Smooth transition when resizing screen */
+}
+
+/* Ensure the child canvas/mesh disappears during instruction reading mode so it doesn't clutter the face */
+.pip-mode .mesh-canvas, 
+.pip-mode .calibration-overlay {
+  display: none !important;
+}
+
+.viewfinder, .mesh-canvas {
+  position: absolute;
+  top: 0; left: 0; 
+  width: 100%; height: 100%;
+  object-fit: cover; 
+  object-position: center;
+  transform: scaleX(-1); 
+  display: block;
+}
+
+.mesh-canvas { z-index: 5; pointer-events: none; }
+
+/* --- CALIBRATION OVERLAYS --- */
+.calibration-overlay {
+  position: absolute;
+  inset: 0; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.face-oval {
+  width: min(55dvw, 200px); 
+  aspect-ratio: 3 / 4; 
+  border: 3px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+  transition: border-color 0.3s ease;
+}
+
+.face-oval.ready {
+  border-color: #4ade80;
+  border-style: solid;
+  background-color: rgba(74, 222, 128, 0.1);
+}
+
+/* --- REWORKED INFO PLACEMENT UNDER VIDEO --- */
+.viewfinder-under-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.info-text-label {
+  font-size: 0.95rem;
+  color: #64748b; /* Slate grey */
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.info-text-label:hover {
+  color: #0f172a; /* Dark text on hover */
+  text-decoration: underline;
+}
+
+/* Adjust your native info button to align clean and look intentional under the stream */
+.viewfinder-under-info button.info-tooltip-btn {
+  margin: 0 !important;
+}
+
+.calib-icon {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  background: rgba(15, 23, 42, 0.75); 
+  width: 96px;   /* Increased circle size slightly */
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  animation: gentlePulse 1.2s infinite ease-in-out;
+}
+
+/* Force the child image to fill out cleanly and center */
+.calib-icon img {
+  width: 50px;
+  height: 50px;
+  display: block;
+}
+
+/* --- CENTRALIZED TEXT BADGE (Replaces the bottom toast) --- */
+.calib-text-badge {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  background: rgba(15, 23, 42, 0.85); /* Dark frosted background */
+  color: #ffffff;
+  padding: 0.8rem 1.8rem;
+  border-radius: 40px; /* Pill shape */
+  
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap; /* Prevents text from breaking into two lines */
+  
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  
+  /* Uses the same pulse animation as the arrows */
+  animation: gentlePulse 1.2s infinite ease-in-out; 
+}
+
+/* Bright green variant when position is perfect */
+.calib-text-badge.success {
+  background: rgba(74, 222, 128, 0.95);
+  color: #064e3b;
+  border-color: #4ade80;
+  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+}
+
+
+@keyframes gentlePulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.08); }
+}
+
+/* --- BOTTOM LAYOUT BUTTONS --- */
+.video-bottom-controls {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: auto; 
+  padding-bottom: 5dvh; 
+}
