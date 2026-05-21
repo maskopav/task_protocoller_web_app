@@ -49,6 +49,19 @@ export const useSDMTLogic = (duration = 90, onComplete) => {
         changeSymbol();
     }, [isSymbolVisible, gameState, currentSymbol, changeSymbol]);
 
+    const stopGame = () => {
+        setGameState('stats');
+        setIsSymbolVisible(false);
+    };
+
+    const resetGame = () => {
+        setGameState('instructions');
+        setTimeLeft(duration);
+        setCurrentSymbol(null);
+        setIsSymbolVisible(false);
+        tapDataRef.current = [];
+    };
+
     // Timer Logic
     useEffect(() => {
         let timer;
@@ -98,6 +111,8 @@ export const useSDMTLogic = (duration = 90, onComplete) => {
         currentSymbol,
         isSymbolVisible,
         startGame,
-        handleTap
+        handleTap,
+        stopGame,
+        resetGame
     };
 };

@@ -1,24 +1,5 @@
 @import "../Recorder/Recorder.css";
-
-/* Container - Adds extra heavy padding at the bottom for the timer */
-.sdmt-container {
-    box-sizing: border-box;
-    overflow: auto; 
-    /* Top, Right, Bottom (Extra Space!), Left */
-    padding: clamp(10px, 1vh, 12px) 1rem clamp(10px, 1.2vh, 40px) 1rem;
-}
-
-/* Header */
-.sdmt-header-wrapper {
-    margin-bottom: clamp(5px, 1.5vh, 15px);
-}
-
-/* Clusters Ref Key, Symbol, and Keypad so they don't drift apart */
-.sdmt-main-interface {
-    width: 100%;
-    max-width: 900px; 
-    margin: 0 auto;
-}
+@import "../../pages/Pages.css";
 
 /* Top Reference Key */
 .sdmt-reference-key {
@@ -73,7 +54,7 @@
 
 /* Center Area - Controls the gap between Ref Key and Keypad */
 .sdmt-center-area {
-    margin: clamp(5px, 1vh, 10px);
+    margin: clamp(2px, 1dvh, 10px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -84,15 +65,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: clamp(110px, 3vw, 150px); 
+    width: clamp(70px, 12dvh, 150px); 
+    height: clamp(70px, 12dvh, 150px); 
     aspect-ratio: 1; 
 }
 
 .sdmt-active-symbol {
     max-width: 55%; 
     max-height: 55%; 
-    width: auto;
-    height: auto;
     object-fit: contain;
 }
 
@@ -102,17 +82,6 @@
 }
 
 /* Instructions */
-.sdmt-instructions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0 1rem;
-    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
-    color: var(--text-color, #333); 
-}
-
 .sdmt-start-btn {
     margin-top: 1rem;
     padding: 0.75rem 3rem;
@@ -123,10 +92,10 @@
 .sdmt-keypad {
     display: grid;
     grid-template-columns: repeat(3, 1fr); 
-    gap: clamp(8px, 2.2vh, 11px);
+    gap: clamp(4px, 1.2dvh, 8px);
     width: 100%;
-    max-width: clamp(300px, 75vw, 350px); 
-    max-height: clamp(300px, 75vw, 350px); 
+    max-width: clamp(240px, 65vw, 300px);
+    height: auto;
     margin: 0 auto; 
     flex: 0 0 auto;
 }
@@ -137,9 +106,9 @@
     align-items: center;
     background-color: #f26d21;
     color: #ffffff;
-    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    font-size: clamp(1.3rem, 5dvw, 2.2rem);
     font-weight: 700;
-    height: clamp(55px, 10dvh, 75px); 
+    height: clamp(40px, 7dvh, 60px);
     border-radius: 12px;
     border: none;
     cursor: pointer;
@@ -171,6 +140,10 @@
 
 .sdmt-timer span {
     font-variant-numeric: tabular-nums;
+}
+
+.btn-stop {
+    background-color: var(--danger);
 }
 
 /* Animations */

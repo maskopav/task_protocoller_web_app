@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSDMTLogic } from '../../hooks/useSDMTLogic';
 import { useTranslation, Trans } from "react-i18next";
-
-import '../Recorder/Recorder.css'; 
+import { NextTaskButton } from '../Recorder/NextTaskButton';
 import './SDMTTask.css'; 
 
 const SDMTTask = ({ taskParams, onComplete }) => {
     // Initialize the translation hook for the "tasks" namespace
-    const { t } = useTranslation("tasks");
+    const { t } = useTranslation("tasks", "common");
     
     const rawDuration = Array.isArray(taskParams?.duration) ? taskParams.duration[0] : taskParams?.duration;
     const duration = Number(rawDuration) || 90;
@@ -21,12 +20,24 @@ const SDMTTask = ({ taskParams, onComplete }) => {
         currentSymbol, 
         isSymbolVisible, 
         startGame, 
-        handleTap 
+        handleTap, 
+        stopGame,
+        resetGame
     } = useSDMTLogic(duration, onComplete);
 
     const shouldShowKeypad = 
         !keypadSetting.includes('never') && 
         !(keypadSetting.includes('during') && gameState !== 'playing');
+
+    const instructionConfig = useMemo(() => {
+        if (gameState === 'stats') {
+            return { key: "completion.taskCompletedInstructions", ns: "common" };
+        } else if (gameState === 'playing') {
+            return { key: "sdmt.instructionsActive", ns: "tasks" };
+        } else {
+            return { key: "sdmt.instructions", ns: "tasks" };
+        }
+    }, [gameState]);
 
     const renderReferenceKey = () => (
         <div className="sdmt-reference-key">
@@ -64,18 +75,16 @@ const SDMTTask = ({ taskParams, onComplete }) => {
             <div className="task-header sdmt-header-wrapper">
                 <h1>{t("sdmt.title")}</h1>
                 {gameState !== 'playing' && (
-                    <>
-                        <div className="flexible-spacer"></div>
-                        <div className="instruction-card active-instructions sdmt-instructions">
-                            <Trans 
-                                t={t}
-                                i18nKey="sdmt.instructions"
-                                values={{ duration }}
-                                components={{ strong: <strong /> }}
-                            />
-                        </div>
-                    </>
+                    <div className="flexible-spacer"></div>
                 )}
+                <div className={`instruction-card active-instructions sdmt-instructions ${gameState === 'playing' ? 'no-title' : ''}`}>
+                    <Trans 
+                        t={t}
+                        i18nKey={instructionConfig.key}
+                        ns={instructionConfig.ns}
+                        values={{ duration }}
+                    />
+                </div>
             </div>
 
             <div className="recording-area sdmt-main-interface">
@@ -96,16 +105,6 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                             )}
                         </div>
                     )}
-
-                    {gameState === 'stats' && (
-                        <div className="sdmt-stats">
-                            <div className="task-header">
-                                {/* Fallback translation for completion state */}
-                                <h1>{t("sdmt.taskComplete")}</h1>
-                            </div>
-                            <p>{t("sdmt.resultsSaved")}</p>
-                        </div>
-                    )}
                 </div>
                 {gameState !== 'stats' && renderKeypad()}
 
@@ -113,14 +112,27 @@ const SDMTTask = ({ taskParams, onComplete }) => {
 
             <div className="bottom-controls sdmt-bottom-controls">
                 {gameState === 'instructions' && (
-                    <button className="sdmt-start-btn" onClick={startGame}>
+                    <button className="btn-start" onClick={startGame}>
                         {t("sdmt.start")}
                     </button>
                 )}
                 {gameState === 'playing' && (
-                    <div className="sdmt-timer">
-                        {t("sdmt.timeLeft")} <span>{timeLeft}s</span>
-                    </div>
+                    <>
+                        <button className="btn-stop" onClick={stopGame}>
+                            {t("buttons.stop", { ns: "common" })}
+                        </button>
+                        <div className="sdmt-timer">
+                            <span>{timeLeft}s</span>
+                        </div>
+                    </>
+                )}
+                {gameState === 'stats' && (
+                    <>
+                    <button className="btn-reset" onClick={resetGame}>
+                        {t("buttons.repeat", { ns: "common" })}
+                    </button>
+                    <NextTaskButton onClick={onComplete} />
+                    </>
                 )}
 
             </div>
