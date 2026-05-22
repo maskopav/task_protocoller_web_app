@@ -1,12 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useContext, useRef } from 'react';
 import { useSDMTLogic } from '../../hooks/useSDMTLogic';
 import { useTranslation, Trans } from "react-i18next";
 import { NextTaskButton } from '../Recorder/NextTaskButton';
+import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
+import InfoTooltip from '../InfoTooltip/InfoTooltip';
+import SDMTDemoMessage from './SDMTDemoMessage';
 import './SDMTTask.css'; 
 
 const SDMTTask = ({ taskParams, onComplete }) => {
     // Initialize the translation hook for the "tasks" namespace
     const { t } = useTranslation("tasks", "common");
+    const { confirm } = useContext(ConfirmDialogContext);
+    const demoShownRef = useRef(false);
     
     const rawDuration = Array.isArray(taskParams?.duration) ? taskParams.duration[0] : taskParams?.duration;
     const duration = Number(rawDuration) || 90;
@@ -24,6 +29,20 @@ const SDMTTask = ({ taskParams, onComplete }) => {
         stopGame,
         resetGame
     } = useSDMTLogic(duration, onComplete);
+
+    useEffect(() => {
+        const showDemoDialog = async () => {
+            if (!demoShownRef.current && gameState === 'instructions') {
+                demoShownRef.current = true;
+                await confirm({
+                    title: t("sdmt.demoTitle"),
+                    message: <SDMTDemoMessage />, 
+                    infoOnly: true
+                });
+            }
+        };
+        showDemoDialog();
+    }, [gameState, confirm, t]);
 
     const shouldShowKeypad = 
         !keypadSetting.includes('never') && 
@@ -73,7 +92,13 @@ const SDMTTask = ({ taskParams, onComplete }) => {
             
             {/* HEADER */}  
             <div className="task-header sdmt-header-wrapper">
-                <h1>{t("sdmt.title")}</h1>
+                <h1>
+                    {t("sdmt.title")}
+                    <InfoTooltip 
+                        title={t("sdmt.demoTitle")}
+                        text={<SDMTDemoMessage />} 
+                    />
+                </h1>
                 {gameState !== 'playing' && (
                     <div className="flexible-spacer"></div>
                 )}

@@ -297,6 +297,8 @@
       "title": "Symbols",
       "instructions": "Using the index finger of your <strong>dominant hand</strong>, press the buttons to match the symbol shown in the center of the screen with the corresponding number as quickly as possible.You have <strong>{{duration}} seconds</strong>.",
       "instructionsActive": "Match the symbol to the number.",
+      "demoTitle": "How it works",
+      "demoText": "Match the symbol to the corresponding number using the keypad.",
       "taskComplete": "Task Complete!",
       "resultsSaved": "Your results have been saved securely.",
       "start": "Start",
