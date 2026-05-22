@@ -19,16 +19,22 @@ const SDMTTask = ({ taskParams, onComplete }) => {
     const rawKeypad = Array.isArray(taskParams?.showKeypad) ? taskParams.showKeypad[0] : taskParams?.showKeypad;
     const keypadSetting = String(rawKeypad ?? 'always').toLowerCase();
 
+    const rawOrdering = Array.isArray(taskParams?.symbolOrdering) ? taskParams.symbolOrdering[0] : taskParams?.symbolOrdering;
+    const symbolOrdering = rawOrdering || 'fixed_by_run';
+    const repeatIndex = taskParams?.repeatIndex || 1;
+
     const { 
         gameState, 
         timeLeft, 
         currentSymbol, 
         isSymbolVisible, 
+        referenceMap,
+        results,
         startGame, 
         handleTap, 
         stopGame,
         resetGame
-    } = useSDMTLogic(duration, onComplete);
+    } = useSDMTLogic(duration, symbolOrdering, repeatIndex);
 
     useEffect(() => {
         const showDemoDialog = async () => {
@@ -50,7 +56,7 @@ const SDMTTask = ({ taskParams, onComplete }) => {
 
     const instructionConfig = useMemo(() => {
         if (gameState === 'stats') {
-            return { key: "completion.taskCompletedInstructions", ns: "common" };
+            return { key: "sdmt.completedInstructions", ns: "tasks" };
         } else if (gameState === 'playing') {
             return { key: "sdmt.instructionsActive", ns: "tasks" };
         } else {
@@ -60,12 +66,19 @@ const SDMTTask = ({ taskParams, onComplete }) => {
 
     const renderReferenceKey = () => (
         <div className="sdmt-reference-key">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                <div key={`key-${num}`} className="sdmt-key-item">
-                    <img src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${num}.svg`} alt={`Symbol ${num}`} className="sdmt-key-img"/>
-                    <div className="sdmt-key-number">{num}</div>
-                </div>
-            ))}
+            {referenceMap.map((symbolId, index) => {
+                const digit = index + 1; // Calculate the digit (1-9) for this position
+                return (
+                    <div key={`key-${digit}`} className="sdmt-key-item">
+                        <img 
+                            src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${symbolId}.svg`} 
+                            alt={`Symbol ${symbolId}`} 
+                            className="sdmt-key-img"
+                        />
+                        <div className="sdmt-key-number">{digit}</div>
+                    </div>
+                );
+            })}
         </div>
     );
 
@@ -143,9 +156,11 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                 )}
                 {gameState === 'playing' && (
                     <>
+                        {/*}
                         <button className="btn-stop" onClick={stopGame}>
                             {t("buttons.stop", { ns: "common" })}
                         </button>
+                        {*/}
                         <div className="sdmt-timer">
                             <span>{timeLeft}s</span>
                         </div>

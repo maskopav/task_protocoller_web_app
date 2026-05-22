@@ -297,7 +297,8 @@
       "title": "Symbols",
       "instructions": "Using the index finger of your <strong>dominant hand</strong>, press the buttons to match the symbol shown in the center of the screen with the corresponding number as quickly as possible.You have <strong>{{duration}} seconds</strong>.",
       "instructionsActive": "Match the symbol to the number.",
-      "demoTitle": "How it works",
+      "completedInstructions": "Symbols task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you want to repeat the task.",
+      "demoTitle": "How to do the task",
       "demoText": "Match the symbol to the corresponding number using the keypad.",
       "taskComplete": "Task Complete!",
       "resultsSaved": "Your results have been saved securely.",
@@ -313,6 +314,14 @@
             "always": "Always",
             "duringTest": "During test only",
             "never": "Never (use physical keyboard)"
+          }
+        },
+        "symbolOrdering": {
+          "label": "Symbol Sequence",
+          "values": {
+            "random": "Completely Random",
+            "fixed_by_run": "Fixed Random (Changes per run)", 
+            "static": "Static (Same for all runs)"
           }
         }
       }

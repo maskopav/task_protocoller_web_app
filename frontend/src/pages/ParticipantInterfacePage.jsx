@@ -437,7 +437,7 @@ export default function ParticipantInterfacePage() {
       return (
         <SDMTTask
           key={taskIndex}
-          taskParams={currentTask.resolvedParams}
+          taskParams={currentTask.params}
           onComplete={handleTaskComplete} 
         />
       );

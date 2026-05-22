@@ -128,6 +128,10 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       duration: { default: 90 }, // Standard SDMT test time
       showKeypad: { default: "duringTest", values: ["always", "duringTest", "never"] },
+      symbolOrdering: { 
+        default: "fixed_by_run", 
+        values: ["random", "fixed_by_run", "static"] 
+      },
     },
   }
 };
