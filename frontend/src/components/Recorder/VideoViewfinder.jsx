@@ -8,6 +8,7 @@ import arrowUpIcon from '../../assets/arrow-up.svg';
 import arrowDownIcon from '../../assets/arrow-down.svg';
 import arrowLeftIcon from '../../assets/arrow-left.svg';
 import arrowRightIcon from '../../assets/arrow-right.svg';
+import sittingPostureImg from '../../assets/sitting-instructions-camera.png';
 
 import './VideoViewfinder.css';
 
@@ -23,30 +24,39 @@ export const VideoViewfinder = ({
     const [setupCancelled, setSetupCancelled] = useState(false);
     
     const { 
-        videoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage 
+        videoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel
     } = videoRecorder;
 
     const showWarningBorder = isRecording && (!isSteady || !isFaceCorrect);
 
     const instructionList = (
-        <ul style={{ textAlign: 'left', lineHeight: '1.6', paddingLeft: '20px', fontSize: '1.1rem' }}>
-            <li>
-                <Trans i18nKey="videoCalibration.step1">
-                    📱 <strong>Place your device on a table</strong> leaning against a stable object.
-                </Trans>
-            </li>
-            <li>
-                <Trans i18nKey="videoCalibration.step2">
-                    📏 <strong>Sit one arm's length away</strong> from the screen.
-                </Trans>
-            </li>
-            <li>
-                <Trans i18nKey="videoCalibration.step3">
-                    <strong>Rest your hands on the table</strong> comfortably.
-                </Trans>
-            </li>
-            <li>{t('videoCalibration.step4', '💡 Ensure your face is well-lit.')}</li>
-        </ul>
+        <div className="calibration-instructions-layout">
+            
+            {/* ILLUSTRATION: Make sure this shows the participant holding the phone on the table */}
+            <img 
+                src={sittingPostureImg}
+                alt="Correct sitting posture" 
+                className="posture-illustration" 
+            />
+            <div className="instruction-steps">
+                <li>
+                    <Trans i18nKey="videoCalibration.step1">
+                    </Trans>
+                </li>
+                <li>
+                    <Trans i18nKey="videoCalibration.step2">
+                    </Trans>
+                </li>
+                <li>
+                    <Trans i18nKey="videoCalibration.step3">
+                    </Trans>
+                </li>
+                <li>
+                    <Trans i18nKey="videoCalibration.step4">
+                    </Trans>
+                </li>
+            </div>
+        </div>
     );
 
     const showInstructionsDialog = async () => {
@@ -80,24 +90,31 @@ export const VideoViewfinder = ({
                         <canvas ref={canvasRef} className="mesh-canvas" />
                         
                         <div className="calibration-overlay">
-                            <div className={`face-oval ${isSteady && isFaceCorrect ? 'ready' : ''}`}>
+                            <div className={`face-oval ${isSteady && isFaceCorrect && !isLoadingModel ? 'ready' : ''}`}>
                                 
-                                {/* 1. SVGs for directional movement */}
-                                {guidance?.arrow === 'MOVE_UP' && <div className="calib-icon arrow-up"><img src={arrowDownIcon} alt="Down" /></div>}
-                                {guidance?.arrow === 'MOVE_DOWN' && <div className="calib-icon arrow-down"><img src={arrowUpIcon} alt="Up" /></div>}
-                                {guidance?.arrow === 'MOVE_LEFT' && <div className="calib-icon arrow-left"><img src={arrowRightIcon} alt="Right" /></div>}
-                                {guidance?.arrow === 'MOVE_RIGHT' && <div className="calib-icon arrow-right"><img src={arrowLeftIcon} alt="Left" /></div>}
-                                
-                                {/* 2. Pulsing Text Badges for Zoom/Rotation/Ready states */}
-                                {guidance?.arrow === 'MOVE_CLOSER' && <div className="calib-text-badge">{t('videoCalibration.closer', 'Closer')}</div>}
-                                {guidance?.arrow === 'MOVE_FURTHER' && <div className="calib-text-badge">{t('videoCalibration.further', 'Further')}</div>}
-                                {guidance?.arrow === 'TURN_LEFT' && <div className="calib-text-badge">{t('videoCalibration.turnLeft', 'Look Left')}</div>}
-                                {guidance?.arrow === 'TURN_RIGHT' && <div className="calib-text-badge">{t('videoCalibration.turnRight', 'Look Right')}</div>}
-                                {/*{guidance?.arrow === 'READY' && <div className="calib-text-badge success">{t('videoCalibration.perfect', 'Perfect')}</div>}*/}
+                            {/* SHOW LOADING STATE IF DOWNLOADING AI */}
+                            {isLoadingModel && (
+                                <div className="calib-text-badge loading-badge">
+                                    <div className="model-spinner"></div>
+                                    {t('videoCalibration.loadingAI')}
+                                </div>
+                            )}
 
+                            {/* SHOW GUIDANCE ONLY WHEN FULLY LOADED */}
+                            {!isLoadingModel && (
+                                <>
+                                    {guidance?.arrow === 'MOVE_DOWN' && <div className="calib-icon arrow-up"><img src={arrowUpIcon} alt="Up" /></div>}
+                                    {guidance?.arrow === 'MOVE_UP' && <div className="calib-icon arrow-down"><img src={arrowDownIcon} alt="Down" /></div>}
+                                    {guidance?.arrow === 'MOVE_LEFT' && <div className="calib-icon arrow-left"><img src={arrowLeftIcon} alt="Left" /></div>}
+                                    {guidance?.arrow === 'MOVE_RIGHT' && <div className="calib-icon arrow-right"><img src={arrowRightIcon} alt="Right" /></div>}
+                                    
+                                    {guidance?.arrow === 'MOVE_CLOSER' && <div className="calib-text-badge">{t('videoCalibration.closer', 'Closer')}</div>}
+                                    {guidance?.arrow === 'MOVE_FURTHER' && <div className="calib-text-badge">{t('videoCalibration.further', 'Further')}</div>}
+                                    {guidance?.arrow === 'TURN_LEFT' && <div className="calib-text-badge">{t('videoCalibration.turnLeft', 'Look Left')}</div>}
+                                    {guidance?.arrow === 'TURN_RIGHT' && <div className="calib-text-badge">{t('videoCalibration.turnRight', 'Look Right')}</div>}
+                                </>
+                            )}
                             </div>
-                            
-                            {/* The old .warning-toast has been completely removed! */}
                         </div>
                     </>
                 )}

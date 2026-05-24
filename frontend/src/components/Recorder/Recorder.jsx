@@ -329,12 +329,14 @@ export const Recorder = ({
 
     // Start Video Calibration
     const handleStartCalibration = async () => {
+        setPhase('CALIBRATE');
+
         const hasPermission = await videoRecorder.getMediaPermission();
         if (hasPermission) {
             await getMicrophonePermission(); // Ensure audio is also granted
-            setPhase('CALIBRATE');
             videoRecorder.startFaceDetection();
         } else {
+            setPhase('SETUP'); // Stay in setup if permission denied
             console.error("Camera/Mic permission denied or failed.");
         }
     };

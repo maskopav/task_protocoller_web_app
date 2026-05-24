@@ -1,4 +1,6 @@
-/* --- VIDEO CONTAINER BOUNDARIES --- */
+/* ========================================================
+   1. VIDEO CONTAINER BOUNDARIES & PIP MODE
+   ======================================================== */
 .viewfinder-container {
   position: relative;
   width: min(90dvw, 380px);
@@ -11,35 +13,6 @@
   transition: all 0.4s ease-in-out;
 }
 
-/* --- DYNAMICALLY RESPONSIVE PICTURE IN PICTURE (PIP) PREVIEW --- */
-.viewfinder-container.pip-mode {
-  position: absolute;
-  
-  /* 1. Dynamic Spacing from Corners */
-  /* On mobile it sits closer to the edges (5px/10px), on laptops it scales up gently */
-  top: clamp(5px, 1.2dvh, 10px);
-  right: clamp(10px, 2dvw, 25px);
-  
-  width: clamp(70px, 12dvw, 100px);
-  height: clamp(70px, 12dvw, 100px);
-  
-  border-radius: 50%; /* Perfect circle preview while reading instructions */
-  border: 3px solid #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 50;
-  max-height: none !important;
-  margin: 0;
-  overflow: hidden;
-  animation: fadeIn 0.3s ease-in-out;
-  transition: all 0.3s ease-in-out; /* Smooth transition when resizing screen */
-}
-
-/* Ensure the child canvas/mesh disappears during instruction reading mode so it doesn't clutter the face */
-.pip-mode .mesh-canvas, 
-.pip-mode .calibration-overlay {
-  display: none !important;
-}
-
 .viewfinder, .mesh-canvas {
   position: absolute;
   top: 0; left: 0; 
@@ -50,9 +23,50 @@
   display: block;
 }
 
-.mesh-canvas { z-index: 5; pointer-events: none; }
+.mesh-canvas { 
+  z-index: 5; 
+  pointer-events: none; 
+}
 
-/* --- CALIBRATION OVERLAYS --- */
+/* --- DYNAMICALLY RESPONSIVE PICTURE IN PICTURE (PIP) PREVIEW --- */
+.viewfinder-container.pip-mode {
+  position: absolute;
+  top: clamp(5px, 1.2dvh, 10px);
+  right: clamp(10px, 2dvw, 25px);
+  width: clamp(70px, 12dvw, 100px);
+  height: clamp(70px, 12dvw, 100px);
+  border-radius: 50%; 
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  max-height: none !important;
+  margin: 0;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hide calibration elements when in tiny circle mode */
+.pip-mode .mesh-canvas, 
+.pip-mode .calibration-overlay {
+  display: none !important;
+}
+
+/* Laptops & Larger Desktop Screens (Width > 768px) */
+@media (min-width: 769px) {
+  .viewfinder-container.pip-mode {
+    width: 110px;
+    height: 110px;
+    top: 20px;
+    right: 25px;
+    border-width: 4px; 
+  }
+}
+
+
+/* ========================================================
+   2. CALIBRATION OVERLAYS (OVAL, ARROWS, & TEXT BADGES)
+   ======================================================== */
 .calibration-overlay {
   position: absolute;
   inset: 0; 
@@ -80,42 +94,14 @@
   background-color: rgba(74, 222, 128, 0.1);
 }
 
-/* --- REWORKED INFO PLACEMENT UNDER VIDEO --- */
-.viewfinder-under-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
-  width: 100%;
-}
-
-.info-text-label {
-  font-size: 0.95rem;
-  color: #64748b; /* Slate grey */
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.info-text-label:hover {
-  color: #0f172a; /* Dark text on hover */
-  text-decoration: underline;
-}
-
-/* Adjust your native info button to align clean and look intentional under the stream */
-.viewfinder-under-info button.info-tooltip-btn {
-  margin: 0 !important;
-}
-
+/* --- SVG DIRECTIONAL ARROWS --- */
 .calib-icon {
   position: absolute;
   top: 50%; 
   left: 50%;
   transform: translate(-50%, -50%);
-  
   background: rgba(15, 23, 42, 0.75); 
-  width: 96px;   /* Increased circle size slightly */
+  width: 96px;  
   height: 96px;
   display: flex;
   align-items: center;
@@ -126,58 +112,141 @@
   animation: gentlePulse 1.2s infinite ease-in-out;
 }
 
-/* Force the child image to fill out cleanly and center */
 .calib-icon img {
   width: 50px;
   height: 50px;
   display: block;
 }
 
-/* --- CENTRALIZED TEXT BADGE (Replaces the bottom toast) --- */
+
+/* --- CENTRALIZED TEXT BADGE (Loading, Closer, Perfect, etc.) --- */
 .calib-text-badge {
   position: absolute;
   top: 50%; 
   left: 50%;
   transform: translate(-50%, -50%);
   
-  background: rgba(15, 23, 42, 0.85); /* Dark frosted background */
-  color: #ffffff;
-  padding: 0.8rem 1.8rem;
-  border-radius: 40px; /* Pill shape */
+  /* Flexbox makes sure the spinner and text sit perfectly side-by-side */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   
-  font-size: 1.25rem;
+  background: rgba(15, 23, 42, 0.85); 
+  color: #ffffff;
+  padding: 0.6rem 1.4rem; /* Slimmer, sleeker padding */
+  border-radius: 40px; 
+  
+  font-size: 1.05rem; /* Shrunk slightly so it's not overpowering */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  white-space: nowrap; /* Prevents text from breaking into two lines */
+  white-space: nowrap; 
   
   backdrop-filter: blur(4px);
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   border: 2px solid rgba(255, 255, 255, 0.15);
-  
-  /* Uses the same pulse animation as the arrows */
   animation: gentlePulse 1.2s infinite ease-in-out; 
 }
 
-/* Bright green variant when position is perfect */
-.calib-text-badge.success {
-  background: rgba(74, 222, 128, 0.95);
-  color: #064e3b;
-  border-color: #4ade80;
-  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+/* Stop pulsing when it is in the Loading AI state */
+.calib-text-badge.loading-badge {
+  animation: none; 
 }
 
+/* The Loading AI white spinning ring */
+.model-spinner {
+  width: 18px; /* Matched to the new text size */
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #ffffff; /* Pure white tip */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 @keyframes gentlePulse {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50% { transform: translate(-50%, -50%) scale(1.08); }
 }
 
-/* --- BOTTOM LAYOUT BUTTONS --- */
+
+/* ========================================================
+   3. BOTTOM LAYOUT & INSTRUCTIONS (Below Video)
+   ======================================================== */
+.viewfinder-under-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.viewfinder-under-info button.info-tooltip-btn {
+  margin: 0 !important; /* Removes default tooltip margin */
+}
+
+.info-text-label {
+  font-size: 0.95rem;
+  color: #64748b; 
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.info-text-label:hover {
+  color: #0f172a; 
+  text-decoration: underline;
+}
+
 .video-bottom-controls {
   width: 100%;
   display: flex;
   justify-content: center;
   margin-top: auto; 
   padding-bottom: 5dvh; 
+}
+
+.video-bottom-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- INSTRUCTION MODAL LAYOUT --- */
+.calibration-instructions-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-top: 10px;
+}
+
+@media (min-width: 500px) {
+  .calibration-instructions-layout {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.posture-illustration {
+  width: 140px; 
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px; 
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.instruction-steps {
+  padding: 0 0 0 20px; 
+  margin: 0;
+  text-align: left;
+  line-height: 1.5;
+  font-size: clamp(1.1rem, 3.5vw, 1.15rem);
 }

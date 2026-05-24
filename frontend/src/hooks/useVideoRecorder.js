@@ -27,7 +27,10 @@ export const useVideoRecorder = ({
     const recordingLoopRef = useRef(null);
     const audioRecorder = useRef(null);
 
+    const [isLoadingModel, setIsLoadingModel] = useState(false);
+
     const getMediaPermission = async () => {
+        setIsLoadingModel(true);
         try {
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
@@ -49,12 +52,14 @@ export const useVideoRecorder = ({
             });
             
             if (videoRef.current) videoRef.current.srcObject = streamData;
-            streamRef.current = streamData; 
+            streamRef.current = streamData;
+            setIsLoadingModel(false); 
 
             return true;
         } catch (err) {
             console.error(err);
             onError(err);
+            setIsLoadingModel(false);
             return false;
         }
     };
@@ -290,7 +295,8 @@ export const useVideoRecorder = ({
     return {
         videoRef, canvasRef, recordingStatus, isSteady, 
         isFaceCorrect, guidance, getMediaPermission, 
-        startFaceDetection, startRecording, stopRecording
+        startFaceDetection, startRecording, stopRecording,
+        isLoadingModel
     };
 
 };
