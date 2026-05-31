@@ -259,15 +259,16 @@ FROM seq;
 
 CREATE OR REPLACE VIEW v_quest_results AS
 SELECT 
-    qr.session_id,
-    qr.protocol_task_id,
+    tr.session_id,
+    tr.protocol_task_id,
+    tr.repeat_index,
     def.quest_name,
     def.q_text,
-    -- Extract the answer using the ID from our new CTE view
-    JSON_VALUE(qr.answers, CONCAT('$."', def.q_id, '"')) AS participant_answer,
-    qr.created_at
-FROM questionnaire_responses qr
-JOIN v_quest_definitions def ON qr.protocol_task_id = def.protocol_task_id;
+    -- Extract the answer using the ID from our CTE view against the new 'payload' column
+    JSON_VALUE(tr.payload, CONCAT('$."', def.q_id, '"')) AS participant_answer,
+    tr.created_at
+FROM task_results tr
+JOIN v_quest_definitions def ON tr.protocol_task_id = def.protocol_task_id;
 
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_progress_detailed AS
 WITH RECURSIVE seq AS (
