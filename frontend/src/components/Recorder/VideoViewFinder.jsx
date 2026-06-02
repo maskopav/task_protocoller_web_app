@@ -10,9 +10,9 @@ import arrowLeftIcon from '../../assets/arrow-left.svg';
 import arrowRightIcon from '../../assets/arrow-right.svg';
 import sittingPostureImg from '../../assets/sitting-instructions-camera.png';
 
-import './VideoViewfinder.css';
+import './VideoViewFinder.css';
 
-export const VideoViewfinder = ({ 
+export const VideoViewFinder = ({
     phase, 
     videoRecorder, 
     isRecording,

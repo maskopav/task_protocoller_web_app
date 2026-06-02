@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { taskBaseConfig } from "../../config/tasksBase";
 import { translateTaskName, translateTaskDescription, getAllParams, getDefaultParams } from "../../utils/translations";
-import InfoTooltip from "../InfoToolTip/InfoTooltip";
+import InfoTooltip from "../InfoToolTip/InfoToolTip";
 
 export default function TaskList({ onCreate }) {
   const { t } = useTranslation(["admin", "tasks", "common"]);

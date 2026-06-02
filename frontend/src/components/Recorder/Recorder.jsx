@@ -9,7 +9,7 @@ import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExampleButton } from './AudioExampleButton';
-import { VideoViewfinder } from './VideoViewfinder';
+import { VideoViewFinder } from './VideoViewFinder.jsx';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
@@ -341,7 +341,7 @@ export const Recorder = ({
         }
     };
 
-    // Finish Video Calibration (Passed to VideoViewfinder)
+    // Finish Video Calibration (Passed to VideoViewFinder)
     const handleFinishCalibration = () => {
         setPhase('RECORDING');
     };
@@ -489,7 +489,7 @@ export const Recorder = ({
                     OR if we are in the RECORDING phase but the participant HAS NOT clicked start yet (idle state) */
                 (phase === 'SETUP' || phase === 'CALIBRATE' || 
                 (phase === 'RECORDING' && recordingStatus === RECORDING_STATES.IDLE)) ? (
-                    <VideoViewfinder 
+                    <VideoViewFinder
                         phase={phase} 
                         videoRecorder={videoRecorder} 
                         /* Pass isRecording true only if the task has actually started recording */

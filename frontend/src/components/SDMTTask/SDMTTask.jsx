@@ -3,7 +3,7 @@ import { useSDMTLogic } from '../../hooks/useSDMTLogic';
 import { useTranslation, Trans } from "react-i18next";
 import { NextTaskButton } from '../Recorder/NextTaskButton';
 import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
-import InfoTooltip from '../InfoTooltip/InfoTooltip';
+import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import SDMTDemoMessage from './SDMTDemoMessage';
 import './SDMTTask.css'; 
 

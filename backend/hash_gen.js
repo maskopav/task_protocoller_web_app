@@ -1,7 +1,7 @@
 // backend/hash_gen.js
 import bcrypt from "bcrypt";
 
-const password = ""; // CHANGE THIS to your desired password
+const password = "1234"; // CHANGE THIS to your desired password
 const hash = await bcrypt.hash(password, 10);
 
 console.log("\n--- COPY THE HASH BELOW ---");

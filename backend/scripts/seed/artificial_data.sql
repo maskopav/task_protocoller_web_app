@@ -10,7 +10,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Role 1 is 'Master'
 -- IMPORTANT: Replace '$2b$10$GENERATED_HASH_HERE' with the output from node hash_gen.js
 INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_change_password`) VALUES
-('master@test.com', '$2b$10$GENERATED_HASH_HERE', 'System Master', 1, 0);
+('master@test.com', '$2b$10$/Teq2XvSByAetcjsvriAb.FfoITQy0FoYP72hxE/vo6PRqI76J98m', 'System Master', 1, 0);
 
 -- --------------------------
 -- 1) Projects

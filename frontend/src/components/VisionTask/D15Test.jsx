@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";  // ← added useRef
 import { useTranslation, Trans } from "react-i18next";
 import { loadAndComputeD15Colors } from "../../utils/munsellUtils";
-import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import D15DemoMessage from "./D15DemoMessage";
 import "./D15Test.css";
 
