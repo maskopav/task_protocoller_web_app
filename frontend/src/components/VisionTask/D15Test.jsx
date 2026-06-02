@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";  // ← added useRef
 import { useTranslation, Trans } from "react-i18next";
 import { loadAndComputeD15Colors } from "../../utils/munsellUtils";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
@@ -18,6 +18,8 @@ export default function D15Test({ task, onNextTask }) {
 
   const [tray, setTray] = useState([]);
   const [shuffledCaps, setShuffledCaps] = useState([]);
+
+  const trayRef = useRef(null);
 
   const version = task?.params?.version || "desaturated";
   const randomize = task?.params?.randomize ?? true;
@@ -64,6 +66,30 @@ export default function D15Test({ task, onNextTask }) {
     
     initColors();
   }, [version, randomize]);
+
+  //  Auto-scroll so the first empty tray slot is always visible
+  useEffect(() => {
+    if (!trayRef.current || isLoading) return;
+
+    const firstEmptyIndex = tray.indexOf(null);
+    if (firstEmptyIndex === -1) return; // Tray full — nothing to reveal
+
+    const container = trayRef.current;
+    const targetSlot = container.children[firstEmptyIndex];
+    if (!targetSlot) return;
+
+    const BUFFER = 12; // px of breathing room to the right of the empty slot
+    const containerRect = container.getBoundingClientRect();
+    const slotRect = targetSlot.getBoundingClientRect();
+
+    // Only scroll if the slot is hidden or too close to the right edge
+    if (slotRect.right > containerRect.right - BUFFER) {
+      container.scrollTo({
+        left: container.scrollLeft + (slotRect.right - containerRect.right) + BUFFER,
+        behavior: "smooth",
+      });
+    }
+  }, [tray, isLoading]);
 
   const handleSelect = (color) => {
     if (isSubmitted) return;
@@ -166,7 +192,7 @@ export default function D15Test({ task, onNextTask }) {
       
       <div className="d15-board">
         <div className="d15-tray-section">
-          <div className="d15-tray-container">
+          <div className="d15-tray-container" ref={trayRef}>
             {tray.map((capColor, index) => {
               return (
                 <div 
