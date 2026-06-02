@@ -238,7 +238,7 @@ export default function ParticipantInterfacePage() {
     const nextTaskObj = runtimeTasks[taskIndex + 1];
 
     // EXIT EARLY if it's just an onboarding step (no data to save to the DB yet)
-    if (currentTaskObj.type === "info" || currentTaskObj.type === "consent") {
+    if (currentTaskObj.type === "info" || currentTaskObj.type === "consent"|| currentTaskObj.type === "mic_check") {
       logInteraction(`${currentTaskObj.type}_completed`);
       setTaskIndex((i) => i + 1)
       return;

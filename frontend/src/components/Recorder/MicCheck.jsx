@@ -17,7 +17,12 @@ import { logToServer } from "../../utils/frontendLogger";
 const CONFIG = {
   TARGET_SNR: 7,
   RECORDING_DURATION: 12,
-  VAD_REDEMPTION_MS: 1500,
+  VAD_PRECISION_CONFIG: {
+    redemptionMs: 300,            // Cut off silence quickly after a word ends
+    preSpeechPadMs: 100,          // Only grab 100ms before the word starts (catches hard consonants)
+    minSpeechMs: 130,             // Catch very short spoken numbers like "two" or "four"
+    positiveSpeechThreshold: 0.35, // Slightly stricter than 0.35 to ignore heavy breathing
+  },
   MAX_WAIT_TIME_MS: 4000,
   COUNTING_FALLBACK_MS: 5000,
   MIN_COUNTING_MS: 2000,
@@ -271,7 +276,7 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
         onRecordingStateChange={handleRecordingStateChange}
         onVadSpeechStart={handleVadSpeechStart}
         onVadSpeechEnd={handleVadSpeechEnd}
-        vadConfigOverride={{ redemptionMs: CONFIG.VAD_REDEMPTION_MS }}
+        vadConfigOverride={CONFIG.VAD_PRECISION_CONFIG}
         onError={handleMicError}
       />
     );

@@ -1,8 +1,31 @@
-// hooks/useVoiceRecorder.js - Reusable hook for voice recording logic
+// hooks/useVoiceRecorder.js
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { logToServer } from '../utils/frontendLogger';
-import { MediaRecorder } from 'extendable-media-recorder';
-import { registerWavEncoder } from '../utils/audioSetup';
+import { exportWAV } from '../utils/audioUtils'; 
+
+const WORKLET_CODE = `
+class RecorderWorklet extends AudioWorkletProcessor {
+    constructor() {
+        super();
+        this.isRecording = false;
+        this.port.onmessage = (e) => {
+            if (e.data.command === 'start') this.isRecording = true;
+            if (e.data.command === 'stop') this.isRecording = false;
+        };
+    }
+    process(inputs, outputs, parameters) {
+        if (!this.isRecording) return true;
+        const input = inputs[0];
+        if (input && input.length > 0 && input[0].length > 0) {
+            // We must copy the array because the browser reuses the memory buffer
+            const channelData = new Float32Array(input[0]);
+            this.port.postMessage({ buffer: channelData }, [channelData.buffer]);
+        }
+        return true;
+    }
+}
+registerProcessor('recorder-worklet', RecorderWorklet);
+`;
 
 export const useVoiceRecorder = (options = {}) => {
     const {
@@ -25,7 +48,7 @@ export const useVoiceRecorder = (options = {}) => {
 
     // State management
     const [incompatibleBrowser, setIncompatibleBrowser] = useState(null);
-    const [recordingStatus, setRecordingStatus] = useState(IDLE);
+    const [recordingStatus, _setRecordingStatus] = useState(IDLE);
     const [permission, setPermission] = useState(false);
     const [stream, setStream] = useState(null);
     const [audioURL, setAudioURL] = useState(null);
@@ -36,18 +59,24 @@ export const useVoiceRecorder = (options = {}) => {
     const [exampleAudio, setExampleAudio] = useState(null);
     const [durationExpired, setDurationExpired] = useState(false);
 
-    // Refs
-    const mediaRecorder = useRef(null);
-    const audioChunks = useRef([]);
-    const timerInterval = useRef(null);
-    const analyser = useRef(null);
+    // REFS
+    const audioChunks = useRef([]); // Now holds Float32Arrays
     const audioContext = useRef(null);
+    const analyser = useRef(null);
     const animationFrame = useRef(null);
-    const vizStreamRef = useRef(null);  
+    const vizSourceRef = useRef(null);
 
-    useEffect(() => {
-        registerWavEncoder();
-    }, []);
+    const scriptProcessorRef = useRef(null);
+    const sourceNodeRef = useRef(null);
+    const gainNodeRef = useRef(null);
+    const statusRef = useRef(IDLE); // Keeps track of status for the audio processor loop
+    const audioURLRef = useRef(null); // Ref mirror of audioURL so the unmount cleanup always sees the latest value
+
+    // Helper to sync state and ref simultaneously
+    const setRecordingStatus = (status) => {
+        _setRecordingStatus(status);
+        statusRef.current = status;
+    };
 
     const getMicrophonePermission = async () => {
         const ua = navigator.userAgent;
@@ -85,16 +114,35 @@ export const useVoiceRecorder = (options = {}) => {
         }
 
         try {
+            // Added advanced constraints to force Android HAL to back off
             const streamData = await navigator.mediaDevices.getUserMedia({
                 video: false,
                 audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
             });
 
             const track = streamData.getAudioTracks()[0];
+            try {
+                await track.applyConstraints({
+                    autoGainControl: false,
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                });
+                logToServer("MIC | applyConstraints succeeded");
+            } catch (constraintErr) {
+                logToServer("MIC | applyConstraints failed (non-critical)", constraintErr.name);
+            }
+
+            const settings = track.getSettings();
+
+            if (settings.autoGainControl || settings.echoCancellation || settings.noiseSuppression) {
+                console.warn("⚠️ OS/Hardware ignored raw audio constraints!", settings);
+                logToServer("MIC | WARNING: Hardware forced processing despite constraints", settings);
+            }
+
             logToServer("MIC | granted", {
                 label: track?.label || 'unknown',
                 readyState: track?.readyState,
-                settings: track?.getSettings?.() ?? 'unsupported',
+                settings: settings ?? 'unsupported',
             });
 
             setPermission(true);
@@ -158,11 +206,12 @@ export const useVoiceRecorder = (options = {}) => {
 
 
     // Recording functions
-    const startRecording = () => {
+    const startRecording = async () => {
         if (!stream) return;
-        stopExample(); // stop example playback if active
-        setRecordingStatus(RECORDING);
-        setDurationExpired(false); // Reset duration expired state
+        stopExample(); 
+        
+        setDurationExpired(false); 
+        audioChunks.current = []; // Clear old buffers
 
         if (mode === "countDown") {
             setRemainingTime(duration || 10);
@@ -171,64 +220,108 @@ export const useVoiceRecorder = (options = {}) => {
             setRemainingTime(null); // Clear remaining time for non-countdown modes
         }
 
-        if (instructionsActive) {
-            setActiveInstructions(instructionsActive); // switch instructions
+        if (instructionsActive) setActiveInstructions(instructionsActive); 
+        
+        // 1. Setup Audio Context
+        if (!audioContext.current) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioContext.current = new AudioContextClass();
+            // Diagnostic: log what rate iOS actually gave us (should be 44100 on iPhone)
+            logToServer("AudioContext | native sampleRate:", audioContext.current.sampleRate);
         }
-        
-        const recorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
-        mediaRecorder.current = recorder;
-        
-        recorder.start();
-        
-        recorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-                audioChunks.current.push(event.data);
+        // Resume context for iOS Safari
+        if (audioContext.current.state === 'suspended') {
+            await audioContext.current.resume();
+        }
+
+        if (!audioContext.current.workletLoaded) {
+            const blob = new Blob([WORKLET_CODE], { type: 'application/javascript' });
+            const workletUrl = URL.createObjectURL(blob);
+            await audioContext.current.audioWorklet.addModule(workletUrl);
+            URL.revokeObjectURL(workletUrl);
+            audioContext.current.workletLoaded = true;
+        }
+
+        const source = audioContext.current.createMediaStreamSource(stream);
+        const workletNode = new AudioWorkletNode(audioContext.current, 'recorder-worklet', {
+            numberOfOutputs: 0
+        });
+
+        // Receive raw PCM from the isolated audio thread
+        workletNode.port.onmessage = (event) => {
+            if (statusRef.current === RECORDING) {
+                audioChunks.current.push(event.data.buffer);
             }
         };
 
-        // Setup audio context + analyser for visualization
-        if (!audioContext.current) {
-            audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        // Clone so MediaRecorder keeps exclusive use of the original stream (Samsung fix)
-        const vizStream = stream.clone();
-        vizStreamRef.current = vizStream;
-        const source = audioContext.current.createMediaStreamSource(vizStream);
+        // Connect Pipeline — source feeds into the sink worklet; no output path needed
+        source.connect(workletNode);
+
+        // Save refs for stopping
+        sourceNodeRef.current = source;
+        scriptProcessorRef.current = workletNode;
+
+        // 5. Setup Visualization
+        const vizSource = audioContext.current.createMediaStreamSource(stream);
+        vizSourceRef.current = vizSource;
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 256;
-        source.connect(analyser.current);
+        vizSource.connect(analyser.current);
+
+        // Tell the audio thread to officially start grabbing frames
+        workletNode.port.postMessage({ command: 'start' });
+
+        setRecordingStatus(RECORDING);
     };
 
-
     const pauseRecording = () => {
-        if (mediaRecorder.current && recordingStatus === RECORDING) {
+        if (recordingStatus === RECORDING) {
             setRecordingStatus(PAUSED);
-            mediaRecorder.current.pause();
+            // Tell the audio thread to drop frames immediately
+            if (scriptProcessorRef.current) {
+                scriptProcessorRef.current.port.postMessage({ command: 'stop' });
+            }
         }
     };
 
     const resumeRecording = () => {
-        if (mediaRecorder.current && recordingStatus === PAUSED) {
+        if (recordingStatus === PAUSED) {
             setRecordingStatus(RECORDING);
-            mediaRecorder.current.resume();
+            // Tell audio thread to resume sending frames
+            if (scriptProcessorRef.current) {
+                scriptProcessorRef.current.port.postMessage({ command: 'start' });
+            }
         }
     };
 
     const stopRecording = useCallback(() => {
         setRecordingStatus(RECORDED);
         
-        if (animationFrame.current) {
-            cancelAnimationFrame(animationFrame.current);
-        }
+        if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
         
-        if (mediaRecorder.current) {
-            mediaRecorder.current.stop();
-            mediaRecorder.current.onstop = () => {
-                const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
-                const url = URL.createObjectURL(audioBlob);
-                setAudioURL(url);
-                onRecordingComplete(audioBlob, url);
-            };
+        // Disconnect Worklet Pipeline
+        if (scriptProcessorRef.current) {
+            scriptProcessorRef.current.port.postMessage({ command: 'stop' });
+            scriptProcessorRef.current.disconnect();
+            scriptProcessorRef.current.port.onmessage = null;
+        }
+        if (sourceNodeRef.current) sourceNodeRef.current.disconnect();
+        // gainNode removed — worklet is now a sink with numberOfOutputs: 0
+        // Disconnect the visualization source node 
+        if (vizSourceRef.current) {
+            vizSourceRef.current.disconnect();
+            vizSourceRef.current = null;
+        }
+
+        // Export WAV using the NATIVE hardware sample rate
+        if (audioChunks.current.length > 0 && audioContext.current) {
+            const sampleRate = audioContext.current.sampleRate;
+            const audioBlob = exportWAV(audioChunks.current, sampleRate);
+            const url = URL.createObjectURL(audioBlob);
+            
+            audioURLRef.current = url;
+            setAudioURL(url);
+            onRecordingComplete(audioBlob, url);
         }
     }, [onRecordingComplete]); // wrapped in useCallback to safely trigger inside the timer
 
@@ -237,6 +330,7 @@ export const useVoiceRecorder = (options = {}) => {
 
         if (audioURL) {
             URL.revokeObjectURL(audioURL);
+            audioURLRef.current = null;
             setAudioURL(null);
         }
         
@@ -253,12 +347,7 @@ export const useVoiceRecorder = (options = {}) => {
         if (audioContext.current && audioContext.current.state !== "closed") {
             audioContext.current.close();
             audioContext.current = null;
-        }
-
-        if (vizStreamRef.current) {
-            vizStreamRef.current.getTracks().forEach(t => t.stop());
-            vizStreamRef.current = null;
-        }
+        }                    
     };
 
     // Monitor the recording time and force stop
@@ -290,16 +379,16 @@ export const useVoiceRecorder = (options = {}) => {
         audio.onended = () => {
             setExampleAudio(null); // cleanup
         };
-      };
+    };
       
       // Stop Example function (used by startRecording/repeatRecording)
-      const stopExample = () => {
+    const stopExample = () => {
         if (exampleAudio) {
             exampleAudio.pause();
             exampleAudio.currentTime = 0;
             setExampleAudio(null);
         }
-      };
+    };
 
     // Audio Visualization Effect 
     useEffect(() => {
@@ -309,44 +398,42 @@ export const useVoiceRecorder = (options = {}) => {
         let levels = new Array(12).fill(0); // Use a local array for current frame
 
         const updateLevels = () => {
-        if (recordingStatus === RECORDING) {
-            analyser.current.getByteFrequencyData(dataArray);
+            if (statusRef.current === RECORDING) {
+                analyser.current.getByteFrequencyData(dataArray);
 
-            const newLevels = [];
-            const step = Math.floor(dataArray.length / 12);
+                const newLevels = [];
+                const step = Math.floor(dataArray.length / 12);
 
-            for (let i = 0; i < 12; i++) {
-                const start = i * step;
-                const end = start + step;
-                let sum = 0;
+                for (let i = 0; i < 12; i++) {
+                    const start = i * step;
+                    const end = start + step;
+                    let sum = 0;
 
                 for (let j = start; j < end && j < dataArray.length; j++) {
                     sum += dataArray[j];
                 }
 
-                const average = sum / step;
+                    const average = sum / step;
                 // Normalize to 0-100 range
                 const normalized = Math.min((average / 255) * 100, 100);
                 newLevels.push(normalized);
-            }
-            levels = newLevels;
-            setAudioLevels(newLevels);
+                }
+                levels = newLevels;
+                setAudioLevels(newLevels);
 
-        } else {
+            } else {
             // Fade out when not recording (PAUSED or IDLE after recording)
-            const isFading = levels.some(level => level > 0);
+                const isFading = levels.some(level => level > 0);
 
-            if (isFading) {
+                if (isFading) {
                 levels = levels.map(level => Math.max(0, level - 5)); // Fade by 5 units per frame
-                setAudioLevels(levels);
-            } else if (recordingStatus === RECORDED) {
-                // Stop the visualization loop only when levels are zero and status is RECORDED
-                // (Keeps levels on PAUSED)
-            return;
+                    setAudioLevels(levels);
+                } else if (statusRef.current === RECORDED) {
+                    return;
+                }
             }
-        }
 
-        animationFrame.current = requestAnimationFrame(updateLevels);
+            animationFrame.current = requestAnimationFrame(updateLevels);
         };
 
         // Initial kick-off
@@ -362,8 +449,10 @@ export const useVoiceRecorder = (options = {}) => {
     // Cleanup effect
     useEffect(() => {
         return () => {
-        if (audioURL) {
-            URL.revokeObjectURL(audioURL);
+        // audioURLRef.current, not audioURL — audioURL is a stale closure value
+        // from when the effect was set up (always null with dep=[])
+        if (audioURLRef.current) {
+            URL.revokeObjectURL(audioURLRef.current);
         }
         
         if (animationFrame.current) {
@@ -378,48 +467,48 @@ export const useVoiceRecorder = (options = {}) => {
                 });
             }
             audioContext.current = null; // reset ref
-        }
+            }
 
-        if (vizStreamRef.current) {
-            vizStreamRef.current.getTracks().forEach(t => t.stop());
-            vizStreamRef.current = null;
-        }
+            if (vizSourceRef.current) {
+                vizSourceRef.current.disconnect();
+                vizSourceRef.current = null;
+            }
         };
-    }, [audioURL]);
+    }, []);
 
-return {
+    return {
     // State
-    recordingStatus,
-    permission,
-    stream,
-    audioURL,
-    recordingTime,
-    remainingTime,
-    audioLevels,
-    activeInstructions,
-    exampleAudio,
-    durationExpired,
-    incompatibleBrowser,
-    audioContext,
+        recordingStatus,
+        permission,
+        stream,
+        audioURL,
+        recordingTime,
+        remainingTime,
+        audioLevels,
+        activeInstructions,
+        exampleAudio,
+        durationExpired,
+        incompatibleBrowser,
+        audioContext,
     
     // Actions
-    getMicrophonePermission,
-    startRecording,
-    pauseRecording,
-    resumeRecording,
-    stopRecording,
-    repeatRecording,
-    playExample,
-    stopExample,
+        getMicrophonePermission,
+        startRecording,
+        pauseRecording,
+        resumeRecording,
+        stopRecording,
+        repeatRecording,
+        playExample,
+        stopExample,
     
     // Utilities
-    formatTime: (seconds) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    },
+        formatTime: (seconds) => {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        },
     
     // Constants
-    RECORDING_STATES: { IDLE, RECORDING, PAUSED, RECORDED }
+        RECORDING_STATES: { IDLE, RECORDING, PAUSED, RECORDED }
     };
 };
