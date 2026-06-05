@@ -1,7 +1,7 @@
 // src/components/CompletionScreen.jsx
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import doneCheckmarkIcon from "../../assets/generalIcons/done-checkmark-icon.svg";
+import { doneCheckmarkIcon } from "../../assets/successIcons/successAssets";
 import "./CompletionScreen.css"; 
 
 export default function CompletionScreen({ testingMode, onBack }) {
@@ -22,13 +22,12 @@ export default function CompletionScreen({ testingMode, onBack }) {
           className="completion-icon"
         />
         
-        {/* Main thank you message */}
         <h1>{t("completion.thankYouTitle")}</h1>
-        <p className="completion-message">{t("completion.thankYouMessage")}</p>
         
         {/* Safety instructions */}
         <div className="instruction-box">
-          <p>{t("completion.safeToClose")}</p>
+          <p className="completion-message">{t("completion.thankYouMessage")}</p>
+          <p className="completion-message">{t("completion.safeToClose")}</p>
         </div>
 
         {/* For Admin Testing Mode */}

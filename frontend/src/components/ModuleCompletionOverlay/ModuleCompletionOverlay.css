@@ -1,3 +1,4 @@
+/* src/components/ModuleCompletionOverlay/ModuleCompletionOverlay.css */
 .module-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -10,17 +11,33 @@
 }
 
 .praise-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    gap: 15px;
     animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.praise-card h2 {
-    font-size: 5rem;
-    color: var(--success);
+.praise-graphic-icon {
+    width: clamp(100px, 20vw, 160px);
+    height: clamp(100px, 20vw, 160px); 
+    object-fit: contain;
+    filter: invert(53%) sepia(82%) saturate(411%) hue-rotate(84deg) brightness(93%) contrast(81%);
+
+}
+
+.praise-card .praise-headline {
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: var(--success, #28a745);
+    margin: 0;
 }
 
 .praise-card h3 {
-    font-size: 2rem;
+    font-size: clamp(1.2rem, 3.5vw, 2rem);
+    color: #334155;
+    margin: 0;
 }
 
 @keyframes popIn {
