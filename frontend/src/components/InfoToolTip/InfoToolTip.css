@@ -21,8 +21,8 @@ button.info-tooltip-btn:hover {
 
 /* 2. Force the icon size to stay strictly small */
 .info-icon-svg {
-  width: clamp(18px, 1.5rem, 2rem) !important; 
-  height: clamp(18px, 1.5rem, 2rem) !important;
+  width: clamp(20px, 2.5rem, 3rem) !important; 
+  height: clamp(20px, 2.5rem, 3rem) !important;
   margin: 0 !important;
   padding: 0 !important;
   display: block !important;

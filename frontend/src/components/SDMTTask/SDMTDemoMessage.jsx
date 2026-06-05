@@ -1,6 +1,5 @@
 import React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import demoGif from "../../assets/sdmt_demo.gif"; // Make sure to add your GIF here
 import "./SDMTDemoMessage.css";
 
 export default function SDMTDemoMessage() {
@@ -16,7 +15,7 @@ export default function SDMTDemoMessage() {
         </Trans>
       </span>
       <img 
-        src={demoGif} 
+        src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt-demo.gif`} 
         alt="SDMT Demonstration" 
         className="sdmt-demo-gif"
       />

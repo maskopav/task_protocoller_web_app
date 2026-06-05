@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import InfoToolTip from "../InfoToolTip/InfoToolTip";
 import "./PreTestInstructions.css";
-
-// IMPORT YOUR ICONS HERE
-import rotateIconA from "../../assets/mobile-rotate-icon.svg"; 
-import rotateIconB from "../../assets/lock-reset-icon.svg"; 
-import rotateIconC from "../../assets/screen-rotation-icon.svg"; 
-import brightnessIcon from "../../assets/brightness-icon.svg"; 
-import brightnessSlider from "../../assets/brightness-slider.png";
-import settingsIcon from "../../assets/settings-icon.svg";
+import { 
+  rotateIconA, 
+  rotateIconB, 
+  rotateIconC, 
+  brightnessIcon, 
+  brightnessSlider, 
+  settingsIcon 
+} from "../../assets/visionIcons/visionAssets";
 
 export default function PreTestInstructions({ onComplete }) {
   // Load the translation hook for the "tasks" namespace
@@ -18,12 +18,12 @@ export default function PreTestInstructions({ onComplete }) {
 
   // Dynamic Instructions Array using <Trans> for embedded formatting and images
   const INSTRUCTIONS = [
-    {
+    /*{
       id: "environment",
       type: "action",
       label: t("preTestChecklist.items.environment.label"),
       helpText: t("preTestChecklist.items.environment.helpText") // Standard text, no <Trans> needed
-    },
+    },*/// REMOVED based on discussion with the team about keeping instructions focused on phone settings - will be in general instructions
     {
       id: "brightness",
       type: "action",
@@ -46,18 +46,18 @@ export default function PreTestInstructions({ onComplete }) {
     {
       id: "color_filters",
       type: "action",
-      label: t("preTestChecklist.items.colorFilters.label"),
+      label: t("preTestChecklist.items.colourFilters.label"),
       helpText: (
         <Trans 
           t={t}
-          i18nKey="preTestChecklist.items.colorFilters.helpText"
+          i18nKey="preTestChecklist.items.colourFilters.helpText"
           components={{ 
             br: <br />, strong: <strong />, em: <em />,
             imgA: <img src={settingsIcon} alt="settings" className="inline-help-icon" />
           }}
         />
       )
-    },
+    }/*,
         {
       id: "privacy_screen",
       type: "question",
@@ -69,7 +69,8 @@ export default function PreTestInstructions({ onComplete }) {
           components={{ br: <br />, strong: <strong /> }}
         />
       )
-    },
+    }
+    ,
     {
       id: "landscape",
       type: "action",
@@ -87,7 +88,7 @@ export default function PreTestInstructions({ onComplete }) {
           }}
         />
       )
-    }
+    }*/
   ];
 
   const handleSelect = (id, value) => {

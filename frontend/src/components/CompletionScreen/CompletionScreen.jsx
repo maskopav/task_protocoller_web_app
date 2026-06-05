@@ -1,7 +1,7 @@
 // src/components/CompletionScreen.jsx
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import doneCheckmarkIcon from "../../assets/done-checkmark-icon.svg";
+import doneCheckmarkIcon from "../../assets/generalIcons/done-checkmark-icon.svg";
 import "./CompletionScreen.css"; 
 
 export default function CompletionScreen({ testingMode, onBack }) {

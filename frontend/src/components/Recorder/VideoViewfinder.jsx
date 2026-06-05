@@ -2,13 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
 import { useTranslation, Trans } from 'react-i18next';
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
-
-// Import your custom SVGs from your assets destination
-import arrowUpIcon from '../../assets/arrow-up.svg';
-import arrowDownIcon from '../../assets/arrow-down.svg';
-import arrowLeftIcon from '../../assets/arrow-left.svg';
-import arrowRightIcon from '../../assets/arrow-right.svg';
-import sittingPostureImg from '../../assets/sitting-instructions-camera.png';
+import { arrowUpIcon, arrowDownIcon, arrowLeftIcon, arrowRightIcon } from '../../assets/arrowIcons/arrowAssets';
 
 import './VideoViewfinder.css';
 
@@ -34,7 +28,7 @@ export const VideoViewfinder = ({
             
             {/* ILLUSTRATION: Make sure this shows the participant holding the phone on the table */}
             <img 
-                src={sittingPostureImg}
+                src={`${import.meta.env.BASE_URL}assets/sittingInstructions/sitting-instructions-camera.png`}
                 alt="Correct sitting posture" 
                 className="posture-illustration" 
             />

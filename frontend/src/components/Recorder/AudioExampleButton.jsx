@@ -1,6 +1,6 @@
 // frontend/src/components/Recorder/AudioExampleButton.jsx
 import { useTranslation } from "react-i18next";
-import audioExampleIcon from "../../assets/audio-example-icon.svg";
+import audioExampleIcon from "../../assets/audioIcons/audio-example-icon.svg";
 
 export const AudioExampleButton = ({recordingStatus, audioExample, isPlaying, onToggle, variant = "example"}) => {
   const { t } = useTranslation('common');

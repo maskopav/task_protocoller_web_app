@@ -4,10 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import "./Recorder.css";
 import { uploadMicCheck } from "../../api/recordings";
-import androidBrowserImg from "../../assets/android-browser-help.png";
-import iosBrowserImg from "../../assets/ios-browser-help.png";
-import warningIcon from "../../assets/warning-icon.svg";
-import iosPopUpImg from "../../assets/popup-window.jpeg";
+import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logToServer } from "../../utils/frontendLogger";
 
@@ -344,7 +341,8 @@ function PermissionGuide({ onRetry, errorType }) {
   }[errorType || ERR.GENERIC];
 
   const showIllustration = errorType === 'BROWSER_DENIED';
-  const illustrationSrc = activeTab === 'android' ? androidBrowserImg : iosBrowserImg;
+  const illustrationRoot = `${import.meta.env.BASE_URL}assets/microphonePermission/`;
+  const illustrationSrc = activeTab === 'android' ? `${illustrationRoot}android-browser-help.png` : `${illustrationRoot}ios-browser-help.png`;
 
   const getStepKey = () => {
     if (errorType === ERR.DENIED) return 'systemAndBrowser';
@@ -424,7 +422,7 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
         <>
           <Trans i18nKey="micCheck.permissionWarning" />
           <div className="intro-visual-container">
-            <img src={iosPopUpImg} alt="Microphone access guide" className="intro-preview-img" />
+            <img src={`${import.meta.env.BASE_URL}assets/microphonePermission/popup-window.jpeg`} alt="Microphone access guide" className="intro-preview-img" />
           </div>
           <Trans i18nKey="micCheck.permissionInstruction" />
         </>

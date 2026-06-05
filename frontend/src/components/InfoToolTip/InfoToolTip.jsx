@@ -1,6 +1,6 @@
 import React from "react";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
-import infoIcon from "../../assets/info-icon.svg"; 
+import infoIcon from "../../assets/generalIcons/info-icon.svg"; 
 import "./InfoToolTip.css";
 
 export default function InfoTooltip({ title, text }) {
