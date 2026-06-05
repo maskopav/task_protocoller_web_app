@@ -64,7 +64,7 @@
       "milestone_75": "Almost done! Over 75% "
     },
     "repetition": {
-      "notice": "Please perform the task again."
+      "notice": "Please perform the task again. <br/><br/>"
     },
     "questionnaire": {
       "selectOption": "Select an option...",
@@ -91,15 +91,15 @@
     "micCheck": {
       "calibrationTitle": "Microphone Setup",
       "permissionWarning": "Next, your browser will ask for microphone access.",
-      "permissionInstruction": "Please click <strong>Allow</strong> in the popup window so we can record your voice.",
+      "permissionInstruction": "Please press <strong>Allow</strong> in the popup window so we can record your voice.",
       "btnUnderstand": "Understand & Continue",
       "noiseTitle": "Audio Test",
-      "noiseInstructions": "In this task, your microphone and your surroundings will be tested. <br><br/> First, <strong>count slowly and out loud</strong> from 1 to 5, then remain completely <strong>silent</strong>. The task will finish automatically after 12 seconds. Click START to begin.",
+      "noiseInstructions": "First, we'll test your microphone. <br><br/> Press Start to begin.",
       "noiseInstructionsCounting": "<strong>Count slowly and out loud</strong> from 1 to 5.",
-      "noiseInstructionsSilence": "Now remain completely <strong>silent</strong> until the timer finishes.",
+      "noiseInstructionsSilence": "Now stay <strong>silent</strong>.",
       "analyzing": "Checking the audio...",
 
-      "failedTitle": "Too Much Background Noise",
+      "failedTitle": "We're having trouble hearing you clearly",
       "failedMessage": "Please limit the background noise around you.",
       "failedInstructions": "For the best results, please <strong>close any windows, turn off the TV/radio, or move to a quieter room</strong>. When ready, try again.",
       "mutedTitle": "No Sound Detected",
@@ -108,9 +108,9 @@
       
       "btnTryAgain": "Try Again",
       "successTitle": "Microphone Ready",
-      "successMessage": "Your microphone works perfectly and your surroundings are quiet.",
-      "successInstructions":"To ensure the best recording, please <strong>stay in this quiet area</strong> until you have finished all the tasks.",
-      "btnProceed": "Proceed to First Task",
+      "successMessage": "Everything looks good!",
+      "successInstructions":"Please <strong>stay in this room</strong> until you have finished.",
+      "btnProceed": "Next",
       "guide": {
         "titleDenied": "Microphone Access Denied",
         "titleHardware": "Microphone Issue",

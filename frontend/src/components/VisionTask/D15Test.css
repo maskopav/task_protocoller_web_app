@@ -70,11 +70,14 @@
   flex-wrap: nowrap; 
   overflow-x: auto;  
   align-items: center;
-  justify-content: flex-start; 
+  justify-content: flex-start;
   padding: 1px 1px 7px 1px;
   background-color: transparent; 
   gap: clamp(6px, 1.2vw, 11px);
-  width: 100%;
+  width: max-content; /* Shrink to fit the caps perfectly */
+  max-width: 100%;    /* But never overflow the screen */
+  margin: 0 auto;     /* Center the container itself */
+
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin; 

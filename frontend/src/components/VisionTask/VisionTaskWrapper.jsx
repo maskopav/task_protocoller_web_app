@@ -1,36 +1,52 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useState, useContext } from "react";
 import useScrollToTop from "../../hooks/useScrollToTop";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
 import PreTestInstructions from "./PreTestInstructions";
 import D15Test from "./D15Test";
-import D15DemoMessage from "./D15DemoMessage";
+import { D15GoalMessage, D15MechanicsMessage } from "./D15DemoMessage";
 
 export default function VisionTaskWrapper({ task, onNextTask }) {
+  // Steps: "instructions" -> "trial" -> "test"
   const [step, setStep] = useState("instructions");
   const [environmentData, setEnvironmentData] = useState(null);
 
   const { confirm } = useContext(ConfirmDialogContext);
-  const { t } = useTranslation("tasks");
 
   useScrollToTop(step);
 
-  const handleInstructionsComplete = async (data) => {
-    // Save the checklist answers and move to the test
-    setEnvironmentData(data);
+  const includeTrial = task?.params?.demoTrial === "yes";
 
+  const handleInstructionsComplete = async (data) => {
+    setEnvironmentData(data); // Save setup checklist data
+
+    // 1. Show Goal Dialog
     await confirm({
-      title: t("d15colour.demoTitle", "How it works"),
-      message: <D15DemoMessage />, 
+      title: "Task Goal",
+      message: <D15GoalMessage />,
       infoOnly: true
     });
 
+    // 2. Show Mechanics Dialog
+    await confirm({
+      title: "How to Play",
+      message: <D15MechanicsMessage />,
+      infoOnly: true
+    });
+
+    // Move to Trial Phase
+    if (includeTrial) {
+      setStep("trial");
+    } else {
+      setStep("test");
+    }
+  };
+
+  const handleTrialComplete = () => {
+    // Trial finished successfully! Now transition directly to the real desaturated test.
     setStep("test");
   };
 
-  const handleTestComplete = async (testResults) => {
-    // Merge the environment checklist data with the D15 results
-    // so it all gets saved to your database together.
+  const handleTestComplete = (testResults) => {
     const finalData = {
       version: task?.params?.version || "desaturated",
       environmentSettings: environmentData,
@@ -40,25 +56,27 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
       timestamp: testResults.timestamp
     };
 
-    console.log("Final D15 Test Data to Save:", finalData);
-
-    // Trigger the dialog and halt execution until the user clicks OK
-    await confirm({
-      title: t("preTestChecklist.rotateBack.title"),
-      message: t("preTestChecklist.rotateBack.message"),
-      infoOnly: true, // Hides the "Cancel" button so they only see the confirm button
-      confirmText: t("preTestChecklist.rotateBack.button")
-    });
-    
     onNextTask(finalData);
   };
 
   return (
     <div className="vision-task-flow">
-      {step === "instructions" ? (
+      {step === "instructions" && (
         <PreTestInstructions onComplete={handleInstructionsComplete} />
-      ) : (
-        <D15Test task={task} onNextTask={handleTestComplete} />
+      )}
+
+      {step === "trial" && (
+        <D15Test 
+          task={{ params: { version: "demo", randomize: true, showNumbers: "never" } }} 
+          onNextTask={handleTrialComplete} 
+        />
+      )}
+
+      {step === "test" && (
+        <D15Test 
+          task={task} 
+          onNextTask={handleTestComplete}
+        />
       )}
     </div>
   );

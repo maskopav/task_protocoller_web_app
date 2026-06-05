@@ -12,9 +12,9 @@
   },
     "phonation": {
       "name": "Sustained phonation",
-      "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed stop mode* — the STOP button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the STOP button appears ('duration').",
+      "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",
       "title": "Prolonged phonation /{{phoneme}}/",
-      "instructions": "<strong>Draw a deep breath</strong>, and try to perform a sustained phonation of vowel /{{phoneme}}/ <strong>as constant and long as possible</strong> in one breath. {{example}} Try to sustain it for at least {{minDuration}} seconds. Press START to begin and STOP once you run out of breath.",
+      "instructions": "<strong>Draw a deep breath</strong>, and say /{{phoneme}}/ <strong>as steadily and for as long</strong> as possible in one breath. {{example}} Try to sustain it for at least {{minDuration}} seconds. Press Start to begin and Stop once you run out of breath.",
       "params": {
         "phoneme": {
           "label": "Phoneme",
@@ -42,7 +42,7 @@
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
-      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables /{{syllable}}-{{syllable}}/ as quickly and accurately as possible until the task finishes automatically after {{duration}} seconds. {{example}} Press START to begin.",
+      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables <br/>/{{syllable}}-{{syllable}}/<br/> as quickly and accurately as possible until the task finishes automatically after {{duration}} seconds. {{example}} Press Start to begin.",
       "params": {
         "syllable": {
           "label": "Syllable",
@@ -68,7 +68,7 @@
       "name": "Fairytale retelling",
       "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
       "title": "Retelling fairytale",
-      "instructions": "Please listen to a spoken fairytale story. After listening to the story, please <strong>retell the tale in your own words</strong> in 90 seconds. The goal is to speak continuously, so it doesn't matter if the retold tale is correct or complete. Press PLAY STORY button to play the story. {{playStory}}",
+      "instructions": "Press Play story to listen to a spoken fairytale. {{playStory}} After listening to the story, press Start and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
       "params": {
         "fairytale": {
           "label": "Fairytale",
@@ -95,7 +95,7 @@
       "name": "Reading text",
       "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
       "title": "Reading {{topic}}",
-      "instructions": "Read the text on the screen <strong>out loud</strong>. Press START to begin and reveal the text. You might need to <strong>scroll down</strong> to reach the end. Press STOP when you are finished.",
+      "instructions": "Press Start and read the text on the screen <strong>out loud</strong>. <br/><br/>You might need to <strong>scroll down</strong> to reach the end. <br/><br/>Press Stop when you are finished.",
       "instructionsActive": "{{text}}",
       "params": {
         "topic": {
@@ -111,7 +111,7 @@
             },
             "rainbow": {
               "label":"The Rainbow",
-              "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
+              "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colours. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the coloured band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
             }
           }
         },
@@ -138,7 +138,7 @@
           "values": {
             "dayDescription": {
               "label":"Day description",
-              "topicDescription": "Please try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the START button and begin speaking."
+              "topicDescription": "Please try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the Start button and begin speaking."
             }
           }
         },
@@ -160,7 +160,7 @@
       "name": "Monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Monologue",
-      "instructions": "Please speak about the topic below for a total of <strong>{{duration}} seconds</strong>. If you run out of things to say, an option to change the topic will appear to help you continue.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press START when you are ready.",
+      "instructions": "Please speak about the topic below for a total of <strong>{{duration}} seconds</strong>. If you run out of things to say, an option to change the topic will appear to help you continue.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press Start when you are ready.",
       "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
       "params": {
         "topics": {
@@ -216,12 +216,17 @@
       }
     },
     "d15colour": {
-      "name": "D-15 Color Test",
-      "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
-      "title": "Color Arrangement Task",
-      "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colors.",
+      "name": "D-15 Colour Test",
+      "description": "A colour vision test where the participant arranges 15 coloured caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
+      "title": "Colour Arrangement Task",
+      "instructions": "<strong>1.</strong> Look at the last colour in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the colour from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colours.",
+      "goalText": "Assemble caps to create smooth continuous sequence of colour.",
+      "disclaimerText": "Even though you have vision problems, try to do your best.",
+      "addText": "<strong>Add colour:</strong> Tap a colour in the bottom pool.",
+      "modifyText": "<strong>Modify sequence:</strong> Tap a colour in the top row to remove it.",
       "demoTitle": "How to do the task",
-      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colors.<br/><br/><strong>• Add a cap:</strong> Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
+      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colours.<br/><br/><strong>• Add a cap:</strong> Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
+      "demoInstructions": "How to add colour: Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
       "controls": {
         "reset": "Reset",
         "submit": "Submit Result"
@@ -233,6 +238,13 @@
             "saturated": "Saturated (Farnsworth)",
             "desaturated": "Desaturated (Lanthony)",
             "demo": "Demo (For visualization)"
+          }
+        },
+        "demoTrial": {
+          "label": "Include trial",
+          "values": {
+            "yes": "Yes",
+            "no": "No"
           }
         },
         "randomize": { 
@@ -257,7 +269,7 @@
       "buttons": {
         "done": "Done",
         "cannot": "Can't / Don't Know",
-        "start": "Start Test",
+        "start": "Start",
         "yes": "Yes",
         "no": "No",
         "dontKnow": "Don't know"
@@ -271,9 +283,9 @@
           "label": "Turn brightness all the way up.",
           "helpText": "Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom on older iPhones).<br><br>Find the <strong>brightness slider</strong> (usually a sun icon <imgA/>) and drag it to the absolute maximum.<br><br><em>Note</em>: If your phone turns the brightness back down on its own, look for an <strong>Auto</strong> or <strong>Adaptive</strong> button nearby, or look in your phone's Settings <imgB/> > Display and turn it off.<br><br>Example: <imgSlider/>"
         },
-        "colorFilters": {
-          "label": "Turn off screen color filters.",
-          "helpText": "Filters alter your screen's natural colors, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colors."
+        "colourFilters": {
+          "label": "Turn off screen colour filters (yellow light).",
+          "helpText": "Filters alter your screen's natural colours, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colours."
         },
         "privacyScreen": {
           "label": "Do you have a privacy protection glass?",
@@ -295,7 +307,7 @@
       "name": "Symbol Digit Modalities Test",
       "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
       "title": "Symbols",
-      "instructions": "Using the index finger of your <strong>dominant hand</strong>, press the buttons to match the symbol shown in the center of the screen with the corresponding number as quickly as possible.You have <strong>{{duration}} seconds</strong>.",
+      "instructions": "A symbol will appear in the center. Using the key, tap the matching number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong>.",
       "instructionsActive": "Match the symbol to the number.",
       "completedInstructions": "Symbols task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you want to repeat the task.",
       "demoTitle": "How to do the task",
@@ -303,6 +315,7 @@
       "taskComplete": "Task Complete!",
       "resultsSaved": "Your results have been saved securely.",
       "start": "Start",
+      "stop": "Stop",
       "timeLeft": "Time Left:",
       "params": {
         "duration": {

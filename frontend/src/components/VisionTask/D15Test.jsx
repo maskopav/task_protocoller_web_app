@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";  // ← added useRef
 import { useTranslation, Trans } from "react-i18next";
 import { loadAndComputeD15Colors } from "../../utils/munsellUtils";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
-import D15DemoMessage from "./D15DemoMessage";
+import { D15MechanicsMessage } from "./D15DemoMessage";
 import "./D15Test.css";
 
 export default function D15Test({ task, onNextTask }) {
@@ -33,12 +33,11 @@ export default function D15Test({ task, onNextTask }) {
       if (version === "demo") {
         // Simple, easily distinguishable colors for visualization
         colors = [
-          "#d53e4f", // Dark Pink/Red (Pilot cap)
-          "#fc8d59", // Orange
-          "#fee08b", // Light Yellow
-          "#e6f598", // Light Yellow-Green
-          "#99d594", // Green
-          "#3288bd"  // Blue
+          "#6f90f5", // Cornflower Blue (Circle 1)
+          "#7365e6", // Iris Purple (Circle 2)
+          "#c63e7b", // Deep Pink / Raspberry (Circle 3)
+          "#e66b2c", // Vibrant Orange (Circle 4)
+          "#efb242"  // Warm Yellow / Gold (Circle 5)
         ];
       } else {
         const targetValue = version === "saturated" ? 5 : 8;
@@ -78,7 +77,7 @@ export default function D15Test({ task, onNextTask }) {
     const targetSlot = container.children[firstEmptyIndex];
     if (!targetSlot) return;
 
-    const BUFFER = 12; // px of breathing room to the right of the empty slot
+    const BUFFER = 20; // px of breathing room to the right of the empty slot
     const containerRect = container.getBoundingClientRect();
     const slotRect = targetSlot.getBoundingClientRect();
 
@@ -179,13 +178,13 @@ export default function D15Test({ task, onNextTask }) {
         <h1>{t("d15colour.title")}
           <InfoTooltip 
             title={t("d15colour.demoTitle", "How it works")}
-            text={<D15DemoMessage />} 
+            text={<D15MechanicsMessage />} 
           />
         </h1>
         <p>
           <Trans 
             t={t}
-            i18nKey="d15colour.instructions" 
+            i18nKey="d15colour.goalText" 
           />
         </p>
       </div>
