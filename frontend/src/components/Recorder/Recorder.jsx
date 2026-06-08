@@ -15,12 +15,11 @@ import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
 import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
+import TaskLayout from '../TaskLayout/TaskLayout';
 
-const DEBUG_MODE = false; //import.meta.env.VITE_DEBUG_MODE === 'true';
+const DEBUG_MODE = false;
 
-
-// components/Recorder/Recorder.jsx - Main component
-export const Recorder = ({ 
+export const Recorder = ({
     title = "🎙️ Task Recorder",
     instructions = "Record, pause, resume, and save your audio with real-time visualization",
     instructionsActive,
@@ -36,12 +35,12 @@ export const Recorder = ({
     autoPermission = true,
     showNextButton = true,
     className = "",
-    useVAD = false, 
-    vadConfigOverride = {},        
-    suppressSilenceWarning = false, 
+    useVAD = false,
+    vadConfigOverride = {},
+    suppressSilenceWarning = false,
     disableTimerFreeze = false,
     forceTimerActive = false,
-    onVadSpeechStart = null,              
+    onVadSpeechStart = null,
     onVadSpeechEnd = null,
     taskParams = {},
     recordVideo = false,
@@ -50,157 +49,112 @@ export const Recorder = ({
     onRecordingStateChange,
     autoSubmit = false
 }) => {
-    // --- Phase State ---
-    // If video is required, start in SETUP. Otherwise, jump straight to RECORDING.
+    // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
     const [phase, setPhase] = useState(isVideoEnabled ? 'SETUP' : 'RECORDING');
 
-    // --- Dynamic Task Detection ---
+    // ── Dynamic task detection ───────────────────────────────────────────
     const rawArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
-    // Filter out empty strings, nulls, or undefined values to get the TRUE length
-    const dynamicArray = Array.isArray(rawArrayParam) 
-        ? rawArrayParam.filter(item => item !== null && item !== undefined && item !== '') 
+    const dynamicArray  = Array.isArray(rawArrayParam)
+        ? rawArrayParam.filter(item => item !== null && item !== undefined && item !== '')
         : [];
     const isDynamicTask = dynamicArray.length > 0;
-    // Log when the component mounts or the array changes
+
     useEffect(() => {
         if (isDynamicTask) {
             logToServer(`Recorder initialized with dynamic task: ${isDynamicTask}, true array length: ${dynamicArray.length}, raw array: ${JSON.stringify(rawArrayParam)}`);
         }
     }, [isDynamicTask, dynamicArray.length]);
 
-    // --- Timer State (for VAD-controlled timing) ---
+    // ── Timer state (for VAD-controlled timing) ──────────────────────────
     const [isTimerActive, setIsTimerActive] = useState(forceTimerActive || !useVAD);
 
-    // Extract minimal duration and forced maximal duration from the parameters set by the Admin
     const { minDuration, maxDuration } = taskParams;
 
-    // --- Video Recorder Hook ---
+    // ── Video recorder hook ──────────────────────────────────────────────
     const videoRecorder = useVideoRecorder({
         debugMode: DEBUG_MODE,
         onRecordingComplete: (videoData) => {
             logToServer("Video data processed!", videoData);
-            // TODO: Merge this with audio data in the next step!
         }
     });
 
-    // --- Voice Recorder Hook ---
+    // ── Voice recorder hook ──────────────────────────────────────────────
     const voiceRecorder = useVoiceRecorder({
-        onRecordingComplete,
-        onError,
-        instructions,
-        instructionsActive,
-        audioExample,
-        mode,
-        duration,
-        maxDuration,
-        isTimerActive
+        onRecordingComplete, onError, instructions, instructionsActive,
+        audioExample, mode, duration, maxDuration, isTimerActive
     });
 
     const {
-        recordingStatus,
-        permission: audioPermission,
-        stream,
-        audioURL,
-        recordingTime,
-        audioLevels,
-        activeInstructions,
-        durationExpired,
-        incompatibleBrowser,
-        getMicrophonePermission,
-        startRecording: startAudioRecording,
-        pauseRecording,
-        resumeRecording,
-        stopRecording: stopAudioRecording,
-        repeatRecording,
-        playExample,
-        stopExample,
-        RECORDING_STATES
+        recordingStatus, permission: audioPermission, stream, audioURL, recordingTime,
+        audioLevels, activeInstructions, durationExpired, incompatibleBrowser,
+        getMicrophonePermission, startRecording: startAudioRecording, pauseRecording,
+        resumeRecording, stopRecording: stopAudioRecording, repeatRecording,
+        playExample, stopExample, RECORDING_STATES
     } = voiceRecorder;
 
-    // --- Safe Bridge between Topic Logic and VAD Logic ---
+    // ── VAD bridge ───────────────────────────────────────────────────────
     const vadHelpersRef = useRef(null);
 
-    // --- Topic Logic Hook ---
     const taskTopics = useTaskTopics({
-        recordingTime: voiceRecorder.recordingTime,
-        pauseRecording: voiceRecorder.pauseRecording,
+        recordingTime:   voiceRecorder.recordingTime,
+        pauseRecording:  voiceRecorder.pauseRecording,
         resumeRecording: voiceRecorder.resumeRecording,
         onLogEvent,
-        onTopicAccepted: () => vadHelpersRef.current?.resetSpeechTrackers(),
-        onTopicDeclined: () => {
+        onTopicAccepted:   () => vadHelpersRef.current?.resetSpeechTrackers(),
+        onTopicDeclined:   () => {
             vadHelpersRef.current?.clearSilenceState();
             vadHelpersRef.current?.resetSilenceClock();
         },
         onStartNextTopic: () => vadHelpersRef.current?.resetSpeechTrackers()
     });
 
-    // Destructure for easy access in the UI
     const {
         dynamicIndex, promptTopicSwitch, setPromptTopicSwitch,
         awaitingNextTopic, topicStartMark, handleStartNextTopic,
         handleManualTopicSwitch, resetTopics
     } = taskTopics;
 
-    // --- VAD Logic Hook --- 
     const VADmodel = useVadLogic({
-        useVAD,
-        vadConfigOverride,
-        stream,                            
-        audioContext: voiceRecorder.audioContext, 
-        recordingStatus,                   
-        RECORDING_STATES,                  
-        pauseRecording,                    
-        resumeRecording,                   
-        onVadSpeechStart,
-        onVadSpeechEnd,
-        isDynamicTask,
-        dynamicArray,
-        dynamicIndex,
-        awaitingNextTopic,
-        promptTopicSwitch,
-        setPromptTopicSwitch,
+        useVAD, vadConfigOverride, stream,
+        audioContext: voiceRecorder.audioContext,
+        recordingStatus, RECORDING_STATES, pauseRecording, resumeRecording,
+        onVadSpeechStart, onVadSpeechEnd,
+        isDynamicTask, dynamicArray, dynamicIndex,
+        awaitingNextTopic, promptTopicSwitch, setPromptTopicSwitch,
         disableTimerFreeze
     });
 
-    const { 
-        isVadLoaded, vadFailed, activeUseVAD, isSpeaking, isSilentPause, 
-        canEarlyStop, hasSpoken, speechProb, speechSegments, 
+    const {
+        isVadLoaded, vadFailed, activeUseVAD, isSpeaking, isSilentPause,
+        canEarlyStop, hasSpoken, speechProb, speechSegments,
         resetSpeechTrackers, resetSilenceClock, clearSilenceState, clearSpeechSegments
     } = VADmodel;
 
-    useEffect(() => {
-        vadHelpersRef.current = VADmodel;
-    }, [VADmodel]);
+    useEffect(() => { vadHelpersRef.current = VADmodel; }, [VADmodel]);
 
-    // Update the Timer State whenever VAD state changes
     useEffect(() => {
         const timerShouldRun = forceTimerActive || !activeUseVAD || (hasSpoken && (disableTimerFreeze || !isSilentPause));
         setIsTimerActive(timerShouldRun);
     }, [forceTimerActive, activeUseVAD, hasSpoken, disableTimerFreeze, isSilentPause]);
 
+    // ── Stop / warning logic ─────────────────────────────────────────────
+    const minimalDurationMs = minDuration || 0;
+    const isMinimalReached  = voiceRecorder.recordingTime >= minimalDurationMs;
+    const isReadyToStop     = (!(mode === 'countDown') && isMinimalReached) ||
+                              canEarlyStop || mode === 'basicStop' ||
+                              (isDynamicTask && dynamicIndex >= dynamicArray.length - 1);
+    const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning;
 
-
-    // Calculate Stop Button & Warning Logic 
-    const minimalDurationMs = minDuration || 0; // Default to 0 if not set
-    const isMinimalReached = voiceRecorder.recordingTime >= minimalDurationMs;
-    const isReadyToStop = (!(mode === 'countDown') && isMinimalReached) ||
-                        canEarlyStop || 
-                        mode === 'basicStop' ||
-                        (isDynamicTask && dynamicIndex >= dynamicArray.length - 1);
-    const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning; // &&  voiceRecorder.recordingTime <= duration
-    
-    // Determine the visual "Semaphore" phase
     let visualPhase = 'orange';
     if (!isReadyToStop) {
         visualPhase = 'red';
-    } else if (durationExpired || (mode === 'basicStop' && isMinimalReached)) {  
+    } else if (durationExpired || (mode === 'basicStop' && isMinimalReached)) {
         visualPhase = 'green';
     } else if (isMinimalReached) {
         visualPhase = 'orange';
     }
-   
-    // Speech Metadata Trackers
+
     const recordingStartTimeRef = useRef(null);
 
     useEffect(() => {
@@ -209,17 +163,12 @@ export const Recorder = ({
         }
     }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING]);
 
-
-    // --- Wrappers ---
+    // ── Handlers ─────────────────────────────────────────────────────────
     const handleStart = () => {
         onLogEvent("button_start");
         recordingStartTimeRef.current = Date.now();
         resetSpeechTrackers();
-        
-        // Start audio
         startAudioRecording();
-        
-        // Start video if enabled
         if (isVideoEnabled) {
             videoRecorder.startRecording();
             setPhase('RECORDING');
@@ -229,131 +178,102 @@ export const Recorder = ({
     const handleStop = () => {
         onLogEvent("button_stop", { task_recording_duration: recordingTime });
         stopAudioRecording();
-        if (isVideoEnabled) {
-            videoRecorder.stopRecording();
-        }
+        if (isVideoEnabled) videoRecorder.stopRecording();
     };
 
     const handleRepeat = () => {
         onLogEvent("button_repeat");
         resetTopics();
-
         clearSpeechSegments();
-        resetSpeechTrackers(); // Clean VAD start
+        resetSpeechTrackers();
         repeatRecording();
-
-        // Send user back to SETUP phase if video is enabled
-        if (isVideoEnabled) {
-            setPhase('SETUP');
-        }
+        if (isVideoEnabled) setPhase('SETUP');
     };
 
-    // We pass the logger to the example button so it can log clicks itself
     const handleToggleExample = () => {
         if (voiceRecorder.exampleAudio) {
             onLogEvent("button_stop_example");
-            voiceRecorder.stopExample(); 
+            voiceRecorder.stopExample();
         } else {
-            onLogEvent("button_play_example"); playExample(); 
+            onLogEvent("button_play_example");
+            playExample();
         }
     };
 
-    // --- Manual Fallback Logic ---
-    // Show manual switch if: It's dynamic, we are recording, and user has talked for 30s 
-    // (or if VAD specifically failed)
-    const manualSwitchThresholds = 20; 
-    const currentTopicDuration = recordingTime - topicStartMark;
-    const hasMoreTopics = isDynamicTask && dynamicIndex < dynamicArray.length - 1;
-    const canShowManualSwitch = hasMoreTopics &&
-        recordingStatus === RECORDING_STATES.RECORDING && 
-        ((currentTopicDuration >= manualSwitchThresholds && vadFailed) ||
-        VADmodel.isSilentPause);
+    // ── Manual topic switch logic ─────────────────────────────────────────
+    const manualSwitchThresholds = 20;
+    const currentTopicDuration   = recordingTime - topicStartMark;
+    const hasMoreTopics          = isDynamicTask && dynamicIndex < dynamicArray.length - 1;
+    const canShowManualSwitch    = hasMoreTopics &&
+        recordingStatus === RECORDING_STATES.RECORDING &&
+        ((currentTopicDuration >= manualSwitchThresholds && vadFailed) || VADmodel.isSilentPause);
 
-
-    // Auto-request permission on mount if enabled
+    // ── Auto-permissions ──────────────────────────────────────────────────
     React.useEffect(() => {
         if (autoPermission) {
             if (isVideoEnabled) {
-                videoRecorder.getMediaPermission().then(() => {
-                    // Sync the audio hook's permission state as well
-                    getMicrophonePermission(); 
-                }); 
+                videoRecorder.getMediaPermission().then(() => getMicrophonePermission());
             } else {
-                getMicrophonePermission(); // Gets only mic
+                getMicrophonePermission();
             }
         }
     }, [autoPermission, isVideoEnabled]);
 
     const [exampleExists, setExampleExists] = React.useState(false);
-
     React.useEffect(() => {
         async function checkExample() {
-          if (!audioExample) return;
-          try {
-            const res = await fetch(audioExample, { method: "HEAD" });
-            setExampleExists(res.ok && (res.headers.get("content-type") || "").includes("audio"));
-          } catch {
-            setExampleExists(false);
-          }
+            if (!audioExample) return;
+            try {
+                const res = await fetch(audioExample, { method: "HEAD" });
+                setExampleExists(res.ok && (res.headers.get("content-type") || "").includes("audio"));
+            } catch {
+                setExampleExists(false);
+            }
         }
         checkExample();
-      }, [audioExample]);
-      
+    }, [audioExample]);
+
     const handleNextTask = () => {
         if (!onNextTask) return;
-
-        // Prepare task data to be saved
         const taskData = {
-            audioURL: audioURL,
-            recordingTime: recordingTime,
-            timestamp: new Date().toISOString(),
+            audioURL, recordingTime,
+            timestamp:          new Date().toISOString(),
             recordingStartTime: recordingStartTimeRef.current,
-            taskTitle: title,
-            taskType: 'voice',
-            speechSegments: speechSegments.current,
-            // If video was recorded, attach its specific data output here
+            taskTitle:          title,
+            taskType:           'voice',
+            speechSegments:     speechSegments.current,
             ...(isVideoEnabled && videoRecorder.videoData && { videoData: videoRecorder.videoData })
         };
         logToServer("Saving Task Data:", taskData);
-        
-        // Call the parent's provided function
         onNextTask(taskData);
     };
 
-    // Automatically submit if the recording is finished and autoSubmit is enabled
     useEffect(() => {
         if (autoSubmit && recordingStatus === RECORDING_STATES.RECORDED && audioURL) {
             handleNextTask();
         }
-    }, [recordingStatus, autoSubmit, audioURL]); 
+    }, [recordingStatus, autoSubmit, audioURL]);
 
-    // Start Video Calibration
     const handleStartCalibration = async () => {
         setPhase('CALIBRATE');
-
         const hasPermission = await videoRecorder.getMediaPermission();
         if (hasPermission) {
-            await getMicrophonePermission(); // Ensure audio is also granted
+            await getMicrophonePermission();
             videoRecorder.startFaceDetection();
         } else {
-            setPhase('SETUP'); // Stay in setup if permission denied
+            setPhase('SETUP');
             console.error("Camera/Mic permission denied or failed.");
         }
     };
 
-    // Finish Video Calibration (Passed to VideoViewfinder)
-    const handleFinishCalibration = () => {
-        setPhase('RECORDING');
-    };
+    const handleFinishCalibration = () => setPhase('RECORDING');
 
-    // --- Prepare UI Strings (Simplified) ---
+    // ── Instruction parsing ───────────────────────────────────────────────
     const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
-    
-    // --- Instruction Parsing & Interpolation ---
+
     const parsedInstructions = useMemo(() => {
         let baseInstructions = instructions;
 
-        // Determine which text to show based on the current phase
         if (isCalibrationPhase) {
             baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
         } else if (isDynamicTask && dynamicIndex > 0) {
@@ -364,193 +284,195 @@ export const Recorder = ({
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
         }
 
-        // Interpolate dynamic variables (e.g. {{topic}}) into the text
         const currentItem = isDynamicTask ? dynamicArray[dynamicIndex] : null;
         return interpolateInstructions(baseInstructions, isDynamicTask, currentItem, taskParams, dynamicArray);
-
     }, [
-        instructions, 
-        instructionsActive, 
-        completedInstructions, 
-        isCalibrationPhase, 
-        isDynamicTask, 
-        dynamicIndex, 
-        recordingStatus, 
-        awaitingNextTopic, 
-        voiceRecorder.activeInstructions, 
-        dynamicArray, 
-        taskParams, 
-        RECORDING_STATES
+        instructions, instructionsActive, completedInstructions, isCalibrationPhase,
+        isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic,
+        voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
 
+    const exampleExists_ = exampleExists;
     const slots = {
-        example: exampleExists ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="example"/></div> : null,
-        playStory: exampleExists ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="story"/></div> : null
+        example:   exampleExists_ ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="example"  /></div> : null,
+        playStory: exampleExists_ ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="story"   /></div> : null,
     };
 
+    // ── VAD visual state ──────────────────────────────────────────────────
     let vadVisualState = "idle";
-    let vadStatusText = "";
+    let vadStatusText  = "";
     if (activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING) {
         if (!hasSpoken) vadVisualState = "waiting";
         else if (showSilenceWarning) {
             vadVisualState = "warning";
-            vadStatusText = durationExpired ? "If you have nothing more to say, you can click Stop to finish." : "If possible, try to speak a little longer.";
+            vadStatusText  = durationExpired
+                ? "If you have nothing more to say, you can click Stop to finish."
+                : "If possible, try to speak a little longer.";
         } else if (isSpeaking) vadVisualState = "speaking";
     }
 
-    // 1. Detect if we are in the Reading Task (hideTitle is true) AND currently recording
+    // ── Shifted-timer logic ───────────────────────────────────────────────
+    // When hideTitle=true AND recording, the timer moves ABOVE the header so
+    // the instruction card (the reading text) fills the centre of the screen.
     const shouldShiftTimer = hideTitle && recordingStatus === RECORDING_STATES.RECORDING;
+    const isActivelyRecording = recordingStatus === RECORDING_STATES.RECORDING;
 
-    // 2. Wrap the entire recording-area into a clean reusable render function
-    const renderRecordingArea = () => (
-        <div className={`recording-area 
-            ${recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}
-            ${shouldShiftTimer ? 'is-shifted' : ''}`}
-        >
-            {recordingStatus !== RECORDING_STATES.RECORDED && recordingStatus !== RECORDING_STATES.IDLE && !promptTopicSwitch && !awaitingNextTopic && (
-                <>
-                    <RecordingTimer
-                        time={recordingTime}
-                        remainingTime={voiceRecorder.remainingTime}
-                        status={recordingStatus}
-                        audioLevels={audioLevels}
-                        showVisualizer={showVisualizer}
-                        isReadyToStop={isReadyToStop}
-                        mode={mode}
-                        showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
-                        visualPhase={visualPhase}
-                    />
+    // ── Inner timer / VAD content (no wrapper div — TaskLayout provides it) ──
+    const timerContent = (
+        recordingStatus !== RECORDING_STATES.RECORDED &&
+        recordingStatus !== RECORDING_STATES.IDLE &&
+        !promptTopicSwitch &&
+        !awaitingNextTopic
+    ) ? (
+        <>
+            <RecordingTimer
+                time={recordingTime}
+                remainingTime={voiceRecorder.remainingTime}
+                status={recordingStatus}
+                audioLevels={audioLevels}
+                showVisualizer={showVisualizer}
+                isReadyToStop={isReadyToStop}
+                mode={mode}
+                showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
+                visualPhase={visualPhase}
+            />
 
-                    {/* VAD Probability Debug Bar */}
-                    {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
-                        <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
-                            <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
-                            <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
-                                <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
-                            </div>
-                        </div>
-                    )}
-
-                    {activeUseVAD && vadStatusText && (
-                        <div className="vad-status-wrapper">
-                            <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
-                                {vadVisualState === 'waiting' && <span className="vad-icon"></span>}
-                                {vadVisualState === 'warning' && <span className="vad-icon"></span>}
-                                <span>{vadStatusText}</span>
-                            </div>
-                        </div>
-                    )}
-                </>
+            {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
+                <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
+                    <div>Speech Probability: {(speechProb * 100).toFixed(1)}%</div>
+                    <div style={{ width: '200px', height: '6px', background: '#e0e0e0', borderRadius: '3px', margin: '6px auto', overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(speechProb * 100, 100)}%`, height: '100%', background: speechProb >= 0.5 ? '#4caf50' : '#9e9e9e', transition: 'width 0.1s linear, background 0.1s' }} />
+                    </div>
+                </div>
             )}
-        </div>
+
+            {activeUseVAD && vadStatusText && (
+                <div className="vad-status-wrapper">
+                    <div className={`vad-status-pill vad-pill-${vadVisualState}`}>
+                        {vadVisualState === 'waiting' && <span className="vad-icon"></span>}
+                        {vadVisualState === 'warning' && <span className="vad-icon"></span>}
+                        <span>{vadStatusText}</span>
+                    </div>
+                </div>
+            )}
+        </>
+    ) : null;
+
+    // ── Slot content ──────────────────────────────────────────────────────
+
+    // preHeader: browser overlay + shifted timer (reading-task special case)
+    const preHeaderContent = (
+        <>
+            {incompatibleBrowser && <IncompatibleBrowser browserName={incompatibleBrowser} />}
+
+            {shouldShiftTimer && phase === 'RECORDING' && (
+                <div className="recording-area is-shifted">
+                    {timerContent}
+                </div>
+            )}
+        </>
     );
 
-    return (
-        <div className={`task-container ${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}>
-
-            {/* Incompatible browser overlay */}
-            {incompatibleBrowser && (
-                <IncompatibleBrowser browserName={incompatibleBrowser} />
+    // instructions slot: instruction card content
+    const instructionsContent = !isCalibrationPhase ? (
+        <>
+            <FormattedText text={parsedInstructions} slots={slots} />
+            {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
+                <button className="btn-manual-switch" onClick={handleManualTopicSwitch}>
+                    Switch Topic
+                </button>
             )}
+        </>
+    ) : null;
 
-            {shouldShiftTimer && phase === 'RECORDING' && renderRecordingArea()}
-
-            <div className='task-header'>
-                {!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) && (
-                    <>
-                        <h1>{isCalibrationPhase ? "Camera Setup" : title}</h1>
-                        <div className="flexible-spacer"></div>
-                    </>
-                )}
-                
-                {/* HIDE INSTRUCTIONS DURING CALIBRATION SO VIDEO IS BIGGER */}
-                {!isCalibrationPhase && (
-                    <div
-                        key={isDynamicTask ? dynamicIndex : 'static'} 
-                        className={`instruction-card active-instructions ${!(hideTitle && recordingStatus === RECORDING_STATES.RECORDING) ? 'with-title' : 'no-title'}`}
-                    >
-                        <FormattedText text={parsedInstructions} slots={slots} />
-                        {/* Manual Fallback Button */}
-                        {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
-                            <button 
-                                className="btn-manual-switch"
-                                onClick={handleManualTopicSwitch}
-                            >
-                                Switch Topic
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-            
-            {/* --- VIDEO RECORDER VIEWPORT MANAGEMENT --- */}
+    // main slot: video viewfinder (setup/calibrate) OR live timer (recording, non-shifted)
+    const mainContent = (
+        <>
+            {/* VideoViewfinder: shown during setup / calibration / idle pre-start */}
             {isVideoEnabled && (
-                /* 1. Only show the viewfinder if we are in SETUP phase, CALIBRATE phase, 
-                    OR if we are in the RECORDING phase but the participant HAS NOT clicked start yet (idle state) */
-                (phase === 'SETUP' || phase === 'CALIBRATE' || 
+                (phase === 'SETUP' || phase === 'CALIBRATE' ||
                 (phase === 'RECORDING' && recordingStatus === RECORDING_STATES.IDLE)) ? (
-                    <VideoViewfinder 
-                        phase={phase} 
-                        videoRecorder={videoRecorder} 
-                        /* Pass isRecording true only if the task has actually started recording */
-                        isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
+                    <VideoViewfinder
+                        phase={phase}
+                        videoRecorder={videoRecorder}
+                        isRecording={recordingStatus === RECORDING_STATES.RECORDING}
                         onStartCalibration={handleStartCalibration}
                         onFinishCalibration={handleFinishCalibration}
                     />
                 ) : null
             )}
 
-            {/* RECORDING CONTROLS (Audio Timer + Start/Stop) */}
-            {phase === 'RECORDING' && (
-                <>
-                    {!shouldShiftTimer && renderRecordingArea()}
-                    
-                    {DEBUG_MODE &&
-                        <StatusIndicator status={recordingStatus} />
-                    }
+            {/* Recording timer — only in RECORDING phase when not shifted above header */}
+            {phase === 'RECORDING' && !shouldShiftTimer && timerContent}
+        </>
+    );
 
-                    {activeUseVAD && !isVadLoaded && stream && (
-                        <div className="vad-loading-indicator" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
-                            Loading Speech Detector...
-                        </div>
-                    )}
-                    
+    // controls slot: VAD loading notice + record controls + playback
+    const controlsContent = phase === 'RECORDING' ? (
+        <>
+            {DEBUG_MODE && <StatusIndicator status={recordingStatus} />}
 
-                    {awaitingNextTopic ? (
-                        <div className="bottom-controls">
-                            <button className="btn-primary" onClick={handleStartNextTopic}>
-                                Start Next Topic
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="bottom-controls" style={{ visibility: promptTopicSwitch ? 'hidden' : 'visible' }}>
-                            <RecordingControls
-                                recordingStatus={recordingStatus}
-                                disableControls={mode === 'countDown'}
-                                disableStart={activeUseVAD && !isVadLoaded}
-                                permission={audioPermission}
-                                onStart={handleStart}
-                                onPause={pauseRecording}
-                                onResume={resumeRecording}
-                                onStop={handleStop}
-                                onPermission={getMicrophonePermission}
-                                disableStop={!isReadyToStop}
-                                showPause={false}
-                                RECORDING_STATES={RECORDING_STATES}
-                            />
-
-                            <PlaybackSection
-                                audioURL={audioURL}
-                                recordingStatus={recordingStatus}
-                                onRepeat={handleRepeat}
-                                onNextTask={handleNextTask}
-                                showNextButton={showNextButton}
-                                onLogEvent={onLogEvent}
-                            />
-                        </div>
-                    )}
-                </>
+            {activeUseVAD && !isVadLoaded && stream && (
+                <div className="vad-loading-indicator" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
+                    Loading Speech Detector...
+                </div>
             )}
-        </div>
+
+            {awaitingNextTopic ? (
+                <button className="btn-primary" onClick={handleStartNextTopic}>
+                    Start Next Topic
+                </button>
+            ) : (
+                // display:contents makes this wrapper transparent to the flex layout while
+                // still propagating visibility:hidden to all children when topic-switching
+                <div style={{ display: 'contents', visibility: promptTopicSwitch ? 'hidden' : 'visible' }}>
+                    <RecordingControls
+                        recordingStatus={recordingStatus}
+                        disableControls={mode === 'countDown'}
+                        disableStart={activeUseVAD && !isVadLoaded}
+                        permission={audioPermission}
+                        onStart={handleStart}
+                        onPause={pauseRecording}
+                        onResume={resumeRecording}
+                        onStop={handleStop}
+                        onPermission={getMicrophonePermission}
+                        disableStop={!isReadyToStop}
+                        showPause={false}
+                        RECORDING_STATES={RECORDING_STATES}
+                    />
+                    <PlaybackSection
+                        audioURL={audioURL}
+                        recordingStatus={recordingStatus}
+                        onRepeat={handleRepeat}
+                        onNextTask={handleNextTask}
+                        showNextButton={showNextButton}
+                        onLogEvent={onLogEvent}
+                    />
+                </div>
+            )}
+        </>
+    ) : null;
+
+    // ── Render ────────────────────────────────────────────────────────────
+    return (
+        <TaskLayout
+            className={`${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}
+
+            preHeader={preHeaderContent}
+
+            // Recorder never shows a static <h1> — the instruction card IS the title zone
+            title={null}
+
+            showSpacer={!(hideTitle && isActivelyRecording)}
+            instructions={instructionsContent}
+            instructionsKey={isDynamicTask ? dynamicIndex : 'static'}
+            instructionsClassName={!(hideTitle && isActivelyRecording) ? 'with-title' : 'no-title'}
+
+            mainClassName={recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}
+
+            controls={controlsContent}
+        >
+            {mainContent}
+        </TaskLayout>
     );
 };

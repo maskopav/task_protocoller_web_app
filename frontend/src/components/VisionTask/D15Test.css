@@ -1,58 +1,34 @@
-/* --- MAIN LAYOUT --- */
-.vision-task-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1200px; 
+/* =========================================
+   D15Test.css
+   ========================================= */
+
+/* ── Container visual overrides ──────────────────────────────────────
+   .task-container provides the flex skeleton.
+   .d15-container adds the card-like visual treatment and desktop max-width.
+   ------------------------------------------------------------------ */
+.d15-container {
+  max-width: 1200px;
   margin: 0 auto;
-  background-color: #ffffff; 
-  color: #333333; 
+  color: #333333;
+  background-color: #ffffff;
   padding: 1rem 0.1rem;
   border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06); 
-  box-sizing: border-box; 
-  overflow: hidden;
-  overflow-anchor: none;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  overflow: hidden;        /* stops cap-tray scrollbar from leaking out */
+  overflow-anchor: none;   /* prevents scroll-anchor jumping on tray updates */
 }
 
-.instructions-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  width: 100%; 
-  box-sizing: border-box;
-}
-
-.instructions-header h1 {
-  margin-top: 0;
-  margin-bottom: clamp(0.5rem, 2vw, 1rem);
-  font-size: clamp(1.4rem, 5.5vw, 2.2rem);
-  color: var(--muted);
-  flex: 0 0 auto;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.instructions-header p {
-  margin: 0;
-  font-weight: 400;
-  line-height: 1.1;
-  color: #000000;
-}
-
-/* --- THE GREY BOARD --- */
+/* ── Grey board ───────────────────────────────────────────────────── */
 .d15-board {
-  background-color: rgb(211, 211, 211); 
-  border-radius: 24px; 
+  background-color: rgb(211, 211, 211);
+  border-radius: 24px;
   width: 100%;
-  padding: 1rem 0.5rem; 
+  padding: 1rem 0.5rem;
   box-sizing: border-box;
   margin-bottom: 1rem;
 }
 
-/* --- TRAY SECTION --- */
+/* ── Tray sections ────────────────────────────────────────────────── */
 .d15-tray-section,
 .d15-options-section {
   width: 100%;
@@ -62,43 +38,43 @@
 }
 
 .d15-tray-section {
-  margin-bottom: 2rem; 
+  margin-bottom: 2rem;
 }
 
 .d15-tray-container {
   display: flex;
-  flex-wrap: nowrap; 
-  overflow-x: auto;  
+  flex-wrap: nowrap;
+  overflow-x: auto;
   align-items: center;
   justify-content: flex-start;
   padding: 1px 1px 7px 1px;
-  background-color: transparent; 
+  background-color: transparent;
   gap: clamp(6px, 1.2vw, 11px);
-  width: max-content; /* Shrink to fit the caps perfectly */
-  max-width: 100%;    /* But never overflow the screen */
-  margin: 0 auto;     /* Center the container itself */
+  width: max-content; /* shrink to fit the caps perfectly */
+  max-width: 100%;    /* but never overflow the screen    */
+  margin: 0 auto;     /* center the container itself      */
 
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin; 
+  scrollbar-width: thin;
   scrollbar-color: #a3a3a3 rgba(0, 0, 0, 0.05);
 }
 
 .d15-tray-container.options-tray {
-  flex-wrap: wrap; /* Allows caps to drop to the next line */
-  overflow-x: visible; /* Disables horizontal scrolling */
-  justify-content: center; /* Centers the pool of available caps */
-  padding-bottom: 1px; 
+  flex-wrap: wrap;
+  overflow-x: visible;
+  justify-content: center;
+  padding-bottom: 1px;
 }
 
-/* Custom Scrollbar  */
+/* Custom scrollbar */
 .d15-tray-container::-webkit-scrollbar {
-  height: 6px; /* Slightly thicker (8px instead of 6px) makes it easier to see on mobile */
-  -webkit-appearance: none; /* Forces display on iOS */
+  height: 6px;
+  -webkit-appearance: none; /* forces display on iOS */
 }
 
 .d15-tray-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05); /* A very faint grey track so it's always visible */
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
 }
 
@@ -107,44 +83,37 @@
   border-radius: 4px;
 }
 
-/* Optional: Make the thumb slightly darker when they actually touch/drag it */
 .d15-tray-container::-webkit-scrollbar-thumb:active {
-  background: #808080; 
+  background: #808080;
 }
 
-/* --- THE EMPTY SLOTS (White blanks) --- */
+/* ── Tray slots ───────────────────────────────────────────────────── */
 .d15-tray-slot {
-  width: clamp(40px, 5.3vw, 60px); 
+  width: clamp(40px, 5.3vw, 60px);
   height: clamp(60px, 7.6vw, 75px);
-  border-radius: 50px; 
-  background-color: #ffffff; 
-  border: none; 
+  border-radius: 50px;
+  background-color: #ffffff;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0; 
+  flex-shrink: 0;
   position: relative;
   cursor: pointer;
-  transition: opacity 0.2s ease; 
+  transition: opacity 0.2s ease;
 }
 
-.d15-tray-slot:not(.reference-slot):hover {
-  opacity: 0.85; 
-}
+.d15-tray-slot:not(.reference-slot):hover { opacity: 0.85; }
+.d15-tray-slot.reference-slot             { cursor: default; }
 
-.d15-tray-slot.reference-slot {
-  cursor: default;
-}
-
-/* --- THE CAPS (Flat color, no edges) --- */
+/* ── Caps ─────────────────────────────────────────────────────────── */
 .d15-cap {
   width: 100%;
   height: 100%;
-  border-radius: 50px; 
-  position: absolute; 
-  top: 0;
-  left: 0;
-  box-shadow: none; 
+  border-radius: 50px;
+  position: absolute;
+  top: 0; left: 0;
+  box-shadow: none;
   border: none;
   display: flex;
   align-items: center;
@@ -155,40 +124,38 @@
   color: #000000;
   font-weight: bold;
   opacity: 0.5;
-  pointer-events: none; /* Prevents the text from interfering with button clicks */
-  user-select: none; /* Prevents the user from accidentally highlighting the text */
+  pointer-events: none;
+  user-select: none;
 }
 
-/* --- OPTIONS SECTION (Unsorted Caps) --- */
+/* ── Options section ──────────────────────────────────────────────── */
 .d15-tray-slot.option-slot {
-  background-color: #ffffff; 
-  cursor: default; 
-}
-
-.btn-submit {
-  background-color: var(--success);
+  background-color: #ffffff;
+  cursor: default;
 }
 
 .selectable-cap {
   width: 100%;
   height: 100%;
-  border-radius: 50px; 
+  border-radius: 50px;
   border: none;
   cursor: pointer;
   position: absolute;
-  top: 0;
-  left: 0;
-  box-shadow: none; 
-  padding: 0; 
+  top: 0; left: 0;
+  box-shadow: none;
+  padding: 0;
   margin: 0;
   transition: opacity 0.2s ease;
 }
 
-.selectable-cap:hover {
-  opacity: 0.85; 
+.selectable-cap:hover { opacity: 0.85; }
+
+/* ── Submit button colour ─────────────────────────────────────────── */
+.btn-submit {
+  background-color: var(--success);
 }
 
-/* --- MOBILE & LANDSCAPE RESPONSIVENESS --- */
+/* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .d15-tray-container {
     padding: 5px 10px;
@@ -196,15 +163,15 @@
 }
 
 @media (orientation: landscape) and (max-height: 600px) {
-  .vision-task-container {
+  .d15-container {
     padding: 0.5rem;
   }
-  
-  .instructions-header {
+
+  .d15-container .task-header {
     margin-bottom: 0.5rem;
   }
 
-  .instructions-header h1 {
+  .d15-container .task-header h1 {
     font-size: clamp(1.3rem, 3.5vw, 1.5rem);
     margin-bottom: 0.2rem;
   }
@@ -218,13 +185,12 @@
     margin-bottom: 1rem;
   }
 
-  /* Prevent caps from getting too tall in landscape */
   .d15-tray-slot {
     height: clamp(40px, 15vh, 55px);
     width: clamp(30px, 10vh, 45px);
   }
 
-  .vision-controls {
+  .d15-container .bottom-controls {
     display: flex;
     gap: 1rem;
     margin-top: 0.5rem;
