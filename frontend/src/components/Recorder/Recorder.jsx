@@ -155,8 +155,6 @@ export const Recorder = ({
         visualPhase = 'orange';
     }
 
-    const recordingStartTimeRef = useRef(null);
-
     useEffect(() => {
         if (onRecordingStateChange) {
             onRecordingStateChange(recordingStatus === RECORDING_STATES.RECORDING);
@@ -166,7 +164,6 @@ export const Recorder = ({
     // ── Handlers ─────────────────────────────────────────────────────────
     const handleStart = () => {
         onLogEvent("button_start");
-        recordingStartTimeRef.current = Date.now();
         resetSpeechTrackers();
         startAudioRecording();
         if (isVideoEnabled) {
@@ -238,7 +235,7 @@ export const Recorder = ({
         const taskData = {
             audioURL, recordingTime,
             timestamp:          new Date().toISOString(),
-            recordingStartTime: recordingStartTimeRef.current,
+            recordingStartTime: voiceRecorder.firstChunkTimeRef.current,
             taskTitle:          title,
             taskType:           'voice',
             speechSegments:     speechSegments.current,

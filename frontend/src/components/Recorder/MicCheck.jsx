@@ -14,7 +14,7 @@ import { logToServer } from "../../utils/frontendLogger";
 // 1. CONFIGURATION & CONSTANTS
 // ==========================================
 const CONFIG = {
-  TARGET_SNR: 7,
+  TARGET_SNR: 12,
   RECORDING_DURATION: 12,
   VAD_PRECISION_CONFIG: {
     redemptionMs: 50,            // Cut off silence quickly after a word ends
@@ -26,7 +26,7 @@ const CONFIG = {
   MAX_WAIT_TIME_MS: 4000,
   COUNTING_FALLBACK_MS: 3000,
   MIN_COUNTING_MS: 2000,
-  POST_SPEECH_SILENCE_MS: 1500, // How long after the last word ends before we call it "done counting"
+  POST_SPEECH_SILENCE_MS: 3500, // How long after the last word ends before we call it "done counting"
   DEBUG_MODE: true,
 };
 
@@ -70,6 +70,7 @@ function useMicCheckInstructions() {
         clearTimeout(silenceWindowRef.current);
         setForceTimerActive(false);
         maxWaitTimeoutRef.current = setTimeout(() => {
+          maxWaitTimeoutRef.current = null; // Mark as fired so handleVadSpeechStart knows
           setForceTimerActive(true);
           actualStartTimeRef.current = Date.now();
           startFallbackTimer();
@@ -86,13 +87,14 @@ function useMicCheckInstructions() {
   };
 
   const handleVadSpeechStart = () => {
-    // Participant is still speaking — cancel any pending silence transition.
     clearTimeout(silenceWindowRef.current);
+    clearTimeout(fallbackTimeoutRef.current);
+    startFallbackTimer();
+
     if (maxWaitTimeoutRef.current) {
       clearTimeout(maxWaitTimeoutRef.current);
       maxWaitTimeoutRef.current = null;
       actualStartTimeRef.current = Date.now();
-      startFallbackTimer();
     }
   };
 
