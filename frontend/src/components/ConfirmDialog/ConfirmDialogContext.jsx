@@ -18,10 +18,10 @@ export function ConfirmDialogProvider({ children }) {
     return new Promise((resolve) => {
       setDialog({
         open: true,
-        title: options.title || "Are you sure?",
+        title: options.title,
         message: options.message || "",
-        confirmText: options.confirmText || "Confirm",
-        cancelText: options.cancelText || "Cancel",
+        confirmText: options.confirmText,
+        cancelText: options.cancelText,
         infoOnly: options.infoOnly || false,
         resolve,
       });

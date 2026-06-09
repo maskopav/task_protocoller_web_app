@@ -13,7 +13,7 @@ export default function InfoTooltip({ title, text }) {
     e.stopPropagation();
     confirm({
       infoOnly: true,
-      title: title || "Instructions",
+      title: title,
       message: text,
       confirmText: "Close"
     });

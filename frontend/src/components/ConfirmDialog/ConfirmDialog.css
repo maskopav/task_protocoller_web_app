@@ -35,7 +35,8 @@
   .confirm-message-content {
     margin: clamp(10px, 2.5vw, 15px) 0 clamp(15px, 3vw, 20px);
     font-size: clamp(1.15rem, 3.5vw, 1.25rem);
-    line-height: 1.1;
+    line-height: 1.4; 
+    text-align: center;
   }
   
   .confirm-buttons {

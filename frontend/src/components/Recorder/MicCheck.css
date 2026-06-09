@@ -1,0 +1,31 @@
+/* src/components/Recorder/MicCheck.css */
+
+.mic-check-main {
+  min-height: 0 !important;
+}
+
+.mic-check-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.mic-check-warning-mask {
+  -webkit-mask-image: url('../../assets/generalIcons/warning-icon.svg');
+  mask-image: url('../../assets/generalIcons/warning-icon.svg');
+}
+
+.mic-check-info-wrapper {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mic-check-message-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}

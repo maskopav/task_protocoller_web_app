@@ -2,9 +2,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
+import TaskLayout from "../TaskLayout/TaskLayout";
+import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import "./Recorder.css";
+import "./MicCheck.css";
 import { uploadMicCheck } from "../../api/recordings";
-import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logToServer } from "../../utils/frontendLogger";
 
@@ -15,15 +17,17 @@ const CONFIG = {
   TARGET_SNR: 7,
   RECORDING_DURATION: 12,
   VAD_PRECISION_CONFIG: {
-    redemptionMs: 300,            // Cut off silence quickly after a word ends
-    preSpeechPadMs: 100,          // Only grab 100ms before the word starts (catches hard consonants)
-    minSpeechMs: 130,             // Catch very short spoken numbers like "two" or "four"
-    positiveSpeechThreshold: 0.35, // Slightly stricter than 0.35 to ignore heavy breathing
+    redemptionMs: 50,            // Cut off silence quickly after a word ends
+    preSpeechPadMs: 100,          
+    minSpeechMs: 100,             // Catch very short spoken numbers like "two" or "four"
+    positiveSpeechThreshold: 0.50, // Slightly stricter than 0.35 to ignore heavy breathing
+    negativeSpeechThreshold: 0.35, 
   },
   MAX_WAIT_TIME_MS: 4000,
-  COUNTING_FALLBACK_MS: 5000,
+  COUNTING_FALLBACK_MS: 3000,
   MIN_COUNTING_MS: 2000,
-  DEBUG_MODE: false,
+  POST_SPEECH_SILENCE_MS: 1500, // How long after the last word ends before we call it "done counting"
+  DEBUG_MODE: true,
 };
 
 // Standardized error types to avoid "NotAllowedError" casing bugs
@@ -41,14 +45,16 @@ function useMicCheckInstructions() {
   const [promptPhase, setPromptPhase] = useState('pre-start');
   const [forceTimerActive, setForceTimerActive] = useState(false);
 
-  const maxWaitTimeoutRef = useRef(null);
+  const maxWaitTimeoutRef  = useRef(null);
   const fallbackTimeoutRef = useRef(null);
+  const silenceWindowRef   = useRef(null);  // "did the last word just end?" timer
   const actualStartTimeRef = useRef(null);
 
   useEffect(() => {
     return () => {
       clearTimeout(maxWaitTimeoutRef.current);
       clearTimeout(fallbackTimeoutRef.current);
+      clearTimeout(silenceWindowRef.current);
     };
   }, []);
 
@@ -61,16 +67,18 @@ function useMicCheckInstructions() {
   const handleRecordingStateChange = (isRecording) => {
     setPromptPhase((currentPhase) => {
       if (isRecording && currentPhase === 'pre-start') {
-        setForceTimerActive(false); 
+        clearTimeout(silenceWindowRef.current);
+        setForceTimerActive(false);
         maxWaitTimeoutRef.current = setTimeout(() => {
           setForceTimerActive(true);
           actualStartTimeRef.current = Date.now();
           startFallbackTimer();
         }, CONFIG.MAX_WAIT_TIME_MS);
-        return 'counting'; 
+        return 'counting';
       } else if (!isRecording) {
         clearTimeout(maxWaitTimeoutRef.current);
         clearTimeout(fallbackTimeoutRef.current);
+        clearTimeout(silenceWindowRef.current);
         return 'pre-start';
       }
       return currentPhase;
@@ -78,6 +86,8 @@ function useMicCheckInstructions() {
   };
 
   const handleVadSpeechStart = () => {
+    // Participant is still speaking — cancel any pending silence transition.
+    clearTimeout(silenceWindowRef.current);
     if (maxWaitTimeoutRef.current) {
       clearTimeout(maxWaitTimeoutRef.current);
       maxWaitTimeoutRef.current = null;
@@ -89,9 +99,16 @@ function useMicCheckInstructions() {
   const handleVadSpeechEnd = () => {
     if (!actualStartTimeRef.current) return;
     const timeElapsed = Date.now() - actualStartTimeRef.current;
-    if (timeElapsed < CONFIG.MIN_COUNTING_MS) return; 
-    clearTimeout(fallbackTimeoutRef.current);
-    setPromptPhase((phase) => phase === 'counting' ? 'silence' : phase);
+    // Don't arm the silence window until minimum time has elapsed since counting began.
+    // This guards against a cough or throat-clear triggering silence early,
+    // regardless of how many segments the VAD detected.
+    if (timeElapsed < CONFIG.MIN_COUNTING_MS) return;
+    // handleVadSpeechStart will cancel it if the participant keeps speaking.
+    clearTimeout(silenceWindowRef.current);
+    silenceWindowRef.current = setTimeout(() => {
+      clearTimeout(fallbackTimeoutRef.current);
+      setPromptPhase((phase) => phase === 'counting' ? 'silence' : phase);
+    }, CONFIG.POST_SPEECH_SILENCE_MS);
   };
 
   const getInstructionsText = () => {
@@ -202,7 +219,7 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
     
     setNoiseScore(calculatedScore);
     setDebugOutput(result.debugData);
-    setErrorType(result.error);
+    setErrorType(evaluatedError);
     setAttempts(prev => prev + 1);
 
     try {
@@ -243,13 +260,10 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
 
   if (['checking', 'analyzing'].includes(phase)) {
     return (
-      <div className="task-container">
-        <div className="task-header">
-          <div className="active-instructions pulse-animation">
-            <h2>{t(`micCheck.${phase}`)}</h2>
-          </div>
-        </div>
-      </div>
+      <TaskLayout 
+        instructionsClassName="no-title pulse-animation"
+        instructions={<h2>{t(`micCheck.${phase}`)}</h2>}
+      />
     );
   }
 
@@ -281,9 +295,9 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
 
   if (phase === 'warning') {
     return (
-      <div className="task-container">
+      <TaskLayout>
         <PermissionGuide errorType={errorType} onRetry={() => setPhase('noise')} />
-      </div>
+      </TaskLayout>
     );
   }
 
@@ -291,35 +305,47 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
   if (!uiState) return null;
 
   return (
-    <div className="task-container">
-      <div className="task-header">
-        <h1>
+    <TaskLayout 
+      title={
+        <>
           {uiState.isSuccess && <span className="check-icon-mask" />}
           {uiState.title}
-        </h1>
-        <div className="flexible-spacer"></div>
-        <div className="active-instructions instruction-card">
+        </>
+      }
+      showSpacer={true}
+      instructions={
+        <>
           {uiState.message && (
-            <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
-              {uiState.message}
-            </span>
+            <div className="mic-check-message-block">
+              <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
+                {uiState.message}
+              </span>
+              {uiState.tooltip && (
+                <div className="mic-check-info-wrapper">
+                  {uiState.tooltip}
+                </div>
+              )}
+            </div>
           )}
           {uiState.message && <><br /><br /></>}
           {uiState.instructions}
-        </div>
-      </div>
-      <div className="recording-area" style={{ minHeight: 0 }}></div>
-      <div className="bottom-controls" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        <button className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} onClick={uiState.onBtnClick}>
-          {uiState.btnText}
-        </button>
-        {phase === 'noise-failed' && attempts >= 2 && (
-            <button className="btn-secondary" onClick={onNext}>
-              {t("micCheck.btnProceed")}
-            </button>
-        )}
-      </div>
-    </div>
+        </>
+      }
+      mainClassName="mic-check-main"
+      controlsClassName="mic-check-controls"
+      controls={
+        <>
+          <button className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} onClick={uiState.onBtnClick}>
+            {uiState.btnText}
+          </button>
+          {phase === 'noise-failed' && attempts >= 2 && (
+              <button className="btn-secondary" onClick={onNext}>
+                {t("micCheck.btnProceed")}
+              </button>
+          )}
+        </>
+      }
+    />
   );
 }
 
@@ -435,38 +461,33 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
       isSuccess: false
     };
     case 'noise-failed': {
-      // Create a safe inline wrapper for the icon and text
       const WarningTitle = ({ children }) => (
         <div className="warning-title-container">
-          <div 
-            className="warning-icon-mask" 
-            style={{ 
-              WebkitMaskImage: `url(${warningIcon})`, 
-              maskImage: `url(${warningIcon})` 
-            }} 
-          />
+          <div className="warning-icon-mask mic-check-warning-mask" />
           <span>{children}</span>
         </div>
       );
-      
-      // Wrap the titles in the new component
+
       if (errorType === 'muted') return { 
         ...common, 
         title: <WarningTitle><Trans i18nKey="micCheck.mutedTitle" /></WarningTitle>, 
-        message: <Trans i18nKey="micCheck.mutedMessage" />, 
+        message: <Trans i18nKey="micCheck.mutedMessage" />,
+        tooltip: <InfoTooltip title="" text={<Trans i18nKey="micCheck.mutedInfo" />} />,
         instructions: <Trans i18nKey="micCheck.mutedInstructions" /> 
       };
       
       return { 
         ...common, 
         title: <WarningTitle><Trans i18nKey="micCheck.failedTitle" /></WarningTitle>, 
-        message: <Trans i18nKey="micCheck.failedMessage" />, 
+        message: <Trans i18nKey="micCheck.failedMessage" />,
+        tooltip: <InfoTooltip title="" text={<Trans i18nKey="micCheck.failedAdditionalInfo" />} />,
         instructions: <Trans i18nKey="micCheck.failedInstructions" /> 
       };
     }
     case 'noise-success': return {
       title: <Trans i18nKey="micCheck.successTitle" />,
       message: <Trans i18nKey="micCheck.successMessage" />,
+      tooltip: null,
       instructions: <Trans i18nKey="micCheck.successInstructions" />,
       btnText: <Trans i18nKey="micCheck.btnProceed" />,
       onBtnClick: () => {
