@@ -52,6 +52,9 @@ import './TaskLayout.css'; // shared layout tokens for all tasks
  *     <MyTaskBoard />
  *   </TaskLayout>
  */
+
+const SHOW_GLOBAL_TITLES = false;
+
 export default function TaskLayout({
   // container
   className = '',
@@ -78,13 +81,15 @@ export default function TaskLayout({
 }) {
   const cx = (...parts) => parts.filter(Boolean).join(' ');
 
+  const shouldRenderTitle = title != null && SHOW_GLOBAL_TITLES;
+
   return (
     <div className={cx('task-container', className)}>
 
       {preHeader}
 
       <div className={cx('task-header', headerClassName)}>
-        {title != null && (
+        {shouldRenderTitle && (
           <h1>
             {title}
             {tooltip}

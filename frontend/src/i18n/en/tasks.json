@@ -15,6 +15,7 @@
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",
       "title": "Prolonged phonation /{{phoneme}}/",
       "instructions": "<strong>Draw a deep breath</strong>, and say /{{phoneme}}/ <strong>as steadily and for as long</strong> as possible in one breath. {{example}} Try to sustain it for at least {{minDuration}} seconds. Press Start to begin and Stop once you run out of breath.",
+      "instructionsActive": "Sustain /{{phoneme}}/ until out of breath.",
       "params": {
         "phoneme": {
           "label": "Phoneme",
@@ -43,6 +44,7 @@
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
       "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables <br/>/{{syllable}}-{{syllable}}/<br/> as quickly and accurately as possible until the task finishes automatically after {{duration}} seconds. {{example}} Press Start to begin.",
+      "instructionsActive": "Repeat /{{syllable}}-{{syllable}}/ syllables.",
       "params": {
         "syllable": {
           "label": "Syllable",
@@ -69,6 +71,7 @@
       "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
       "title": "Retelling fairytale",
       "instructions": "Press Play story to listen to a spoken fairytale. {{playStory}} After listening to the story, press Start and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "instructionsActive": "Retell the fairytale in your own words.",
       "params": {
         "fairytale": {
           "label": "Fairytale",

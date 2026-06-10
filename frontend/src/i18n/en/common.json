@@ -24,14 +24,14 @@
       
     },
     "status": {
-      "ready": "⚪ Ready",
-      "recording": "🔴 Recording...",
-      "paused": "⏸️ Paused",
-      "recorded": "✅ Recorded"
+      "ready": "Ready",
+      "recording": "Recording...",
+      "paused": "Paused",
+      "recorded": "Recorded"
     },
     "languageSelector": {
       "title": "neuroSHARE remote assessment",
-      "languageWarning": "Please select the language you speak most fluently, preferably your native language. You will not be able to change this once the tasks begin."    
+      "languageWarning": "Please select the language you speak most fluently, preferably your native language."    
     },
     "completion": {
       "taskCompletedInstructions": "Task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",
@@ -40,11 +40,11 @@
       "safeToClose": "You may now safely close this browser window.",
       "completedModule": ": module completed!",
       "praises": [
-        "🌟 Great job!",
-        "🎯 Perfect!",
-        "👏 Well done!",
-        "✨ Excellent!",
-        "🎉 Nicely done!"
+        "Great job!",
+        "Perfect!",
+        "Well done!",
+        "Excellent!",
+        "Nicely done!"
       ]
     },
     "taskLabels": {
@@ -102,10 +102,12 @@
       "failedTitle": "We're having trouble hearing you clearly",
       "failedMessage": "Please limit the background noise around you.",
       "failedInstructions": "For the best results, please <strong>close any windows, turn off the TV/radio, or move to a quieter room</strong>. When ready, try again.",
+      "failedAdditionalInfo": "While background noise is the most likely cause, it can sometimes be due to a microphone issue. <br/><br/> Please try again. If you are still unsuccessful, you can continue anyway.",
       "mutedTitle": "No Sound Detected",
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
-      
+      "mutedAdditionalInfo": "In case of persistent issues, visit troubleshooting guide or contact support. Otherwise, you cannot proceed.",
+
       "btnTryAgain": "Try Again",
       "successTitle": "Microphone Ready",
       "successMessage": "Everything looks good!",

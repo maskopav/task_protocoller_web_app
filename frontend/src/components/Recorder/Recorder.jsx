@@ -467,9 +467,7 @@ export const Recorder = ({
             className={`${className} vad-${vadVisualState} status-${recordingStatus.toLowerCase()}`}
 
             preHeader={preHeaderContent}
-
-            // Recorder never shows a static <h1> — the instruction card IS the title zone
-            title={null}
+            title={title}
 
             showSpacer={!(hideTitle && isActivelyRecording)}
             instructions={instructionsContent}

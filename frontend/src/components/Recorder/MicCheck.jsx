@@ -15,7 +15,7 @@ import { logToServer } from "../../utils/frontendLogger";
 // 1. CONFIGURATION & CONSTANTS
 // ==========================================
 const CONFIG = {
-  TARGET_SNR: 12,
+  TARGET_SNR: 10,
   RECORDING_DURATION: 12,
   VAD_PRECISION_CONFIG: {
     redemptionMs: 50,            // Cut off silence quickly after a word ends
@@ -25,10 +25,10 @@ const CONFIG = {
     negativeSpeechThreshold: 0.35, 
   },
   MAX_WAIT_TIME_MS: 4000,
-  COUNTING_FALLBACK_MS: 3000,
+  COUNTING_FALLBACK_MS: 3500,
   MIN_COUNTING_MS: 2000,
   POST_SPEECH_SILENCE_MS: 3500, // How long after the last word ends before we call it "done counting"
-  DEBUG_MODE: true,
+  DEBUG_MODE: import.meta.env.DEV,
 };
 
 // Standardized error types to avoid "NotAllowedError" casing bugs
@@ -181,7 +181,6 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
 
   const handleMicError = (err) => {
     logToServer("MicCheck Error:", { name: err.name, message: err.message });
-    const message = (err.message || '').toLowerCase();
     let type = ERR.GENERIC;
 
     // Unify the denied errors because browsers can't reliably distinguish 
