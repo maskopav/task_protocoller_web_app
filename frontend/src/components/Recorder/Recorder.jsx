@@ -4,6 +4,7 @@ import { useVideoRecorder } from '../../hooks/useVideoRecorder';
 import { useVadLogic } from '../../hooks/useVADLogic';
 import { useTaskTopics } from '../../hooks/useTaskTopics';
 import './Recorder.css';
+import checkIcon from '../../assets/successIcons/checkmark-icon.svg';
 import { RecordingTimer } from './RecordingTimer';
 import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
@@ -373,7 +374,17 @@ export const Recorder = ({
     // instructions slot: instruction card content
     const instructionsContent = !isCalibrationPhase ? (
         <>
+            {/* Show the green check icon ONLY when the recording is fully completed */}
+            {recordingStatus === RECORDING_STATES.RECORDED && (
+                <div 
+                    className="success-icon-mask" 
+                    style={{ '--icon-url': `url("${checkIcon}")` }}
+                    aria-hidden="true" 
+                />
+            )}
+            
             <FormattedText text={parsedInstructions} slots={slots} />
+            
             {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
                 <button className="btn-manual-switch" onClick={handleManualTopicSwitch}>
                     Switch Topic

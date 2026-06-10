@@ -4,6 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
 import { uploadMicCheck } from "../../api/recordings";
@@ -465,7 +466,10 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
     case 'noise-failed': {
       const WarningTitle = ({ children }) => (
         <div className="warning-title-container">
-          <div className="warning-icon-mask mic-check-warning-mask" />
+          <div 
+            className="warning-icon-mask mic-check-warning-mask" 
+            style={{ '--icon-url': `url("${warningIcon}")` }} 
+          />
           <span>{children}</span>
         </div>
       );
