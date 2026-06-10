@@ -46,7 +46,7 @@ export default function ParticipantLanguageSelector({ languages, currentAssigned
             {t("languageSelector.title", "Please select your language")}
             </h2>
             <p className="language-selector-warning">
-            {t("languageSelector.languageWarning", "Please select the language you speak most fluently, preferably your native language. You will not be able to change this once the tasks begin.")}
+            {t("languageSelector.languageWarning", "Please select the language you speak most fluently, preferably your native language.")}
             </p>
         </div>
         
@@ -58,7 +58,7 @@ export default function ParticipantLanguageSelector({ languages, currentAssigned
               disabled={isSwapping}
               className={`language-btn ${selectedLang?.code === lang.code ? 'selected' : ''}`}
             >
-              {lang.name}
+              {lang.native_name || lang.name}
             </button>
           ))}
         </div>

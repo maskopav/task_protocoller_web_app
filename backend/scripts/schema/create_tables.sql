@@ -98,7 +98,8 @@ CREATE TABLE `task_types` (
 CREATE TABLE `languages` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `code` varchar(10) UNIQUE NOT NULL COMMENT 'e.g. en, cs, de',
-  `name` varchar(255) NOT NULL
+  `name` varchar(255) NOT NULL,
+  `native_name` varchar(255)
 );
 
 CREATE TABLE `participants` (

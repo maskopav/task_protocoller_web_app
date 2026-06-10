@@ -107,7 +107,7 @@ export async function resolveParticipantToken(req, res) {
 
     // 6. Fetch Available Languages
     const siblingRows = await executeQuery(
-      `SELECT pp.id AS project_protocol_id, p.language_id, l.code, l.name
+      `SELECT pp.id AS project_protocol_id, p.language_id, l.code, l.name, l.native_name
        FROM project_protocols pp
        JOIN protocols p ON pp.protocol_id = p.id
        JOIN languages l ON p.language_id = l.id
@@ -121,7 +121,8 @@ export async function resolveParticipantToken(req, res) {
       project_protocol_id: r.project_protocol_id,
       language_id: r.language_id,
       code: r.code,
-      name: r.name
+      name: r.name,
+      native_name: r.native_name
     }));
 
     // 7. Response = view + tasks + languages
