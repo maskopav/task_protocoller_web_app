@@ -219,7 +219,6 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
     }
     
     setNoiseScore(calculatedScore);
-    setDebugOutput(result.debugData);
     setErrorType(evaluatedError);
     setAttempts(prev => prev + 1);
 
