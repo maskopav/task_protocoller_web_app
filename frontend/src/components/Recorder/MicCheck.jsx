@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import TaskLayout from "../TaskLayout/TaskLayout";
-import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
@@ -140,7 +140,6 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
-  const [debugOutput, setDebugOutput] = useState(null); 
   const [errorType, setErrorType] = useState(null);
 
   const { 
