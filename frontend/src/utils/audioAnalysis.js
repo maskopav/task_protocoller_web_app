@@ -110,14 +110,20 @@ function convertSegmentsToIndices(segments, recordingStartTime, sampleRate) {
 }
 
 function computeSNRMetrics(channelData, speechIndices) {
-    let signalSum = 0; let signalCount = 0;
-    let noiseSum = 0; let noiseCount = 0;
+    // Flat boolean lookup in one pass — avoids calling .some() on every one of the samples
+    const isSpeechSample = new Uint8Array(channelData.length);
+    for (const { startIdx, endIdx } of speechIndices) {
+        const lo = Math.max(0, startIdx);
+        const hi = Math.min(endIdx, channelData.length - 1);
+        for (let i = lo; i <= hi; i++) isSpeechSample[i] = 1;
+    }
+
+    let signalSum = 0, signalCount = 0;
+    let noiseSum = 0,  noiseCount = 0;
 
     for (let i = 0; i < channelData.length; i++) {
-        const isSpeech = speechIndices.some(range => i >= range.startIdx && i <= range.endIdx);
         const power = channelData[i] * channelData[i];
-
-        if (isSpeech) {
+        if (isSpeechSample[i]) {
             signalSum += power;
             signalCount++;
         } else {
@@ -126,7 +132,7 @@ function computeSNRMetrics(channelData, speechIndices) {
         }
     }
 
-    if (noiseCount === 0 || noiseSum === 0) return { error: 'no-noise', snr: 100 }; 
+    if (noiseCount === 0 || noiseSum === 0) return { error: 'no-noise', snr: 100 };
 
     return {
         signalSum, signalCount,

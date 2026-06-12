@@ -1,4 +1,5 @@
 import React from 'react';
+import micIcon from "../../assets/audioIcons/mic-icon-black.svg";
 import './Recorder.css';
 
 // components/Recorder/RecordingTimer.jsx - Timer circle component
@@ -47,7 +48,7 @@ export const RecordingTimer = ({
                 <div className={`timer-circle ${status} ${readyClass}`}>
                     <div className={`timer-display ${status === 'recording' ? 'recording' : ''}`}>
                         {showMicIcon ? (
-                            <div className="mic-icon-mask" />
+                            <img src={micIcon} className="mic-icon-display" alt="Microphone Indicator" />
                         ) : (
                             remainingTime !== null ? formatTime(remainingTime) : formatTime(time)
                         )}

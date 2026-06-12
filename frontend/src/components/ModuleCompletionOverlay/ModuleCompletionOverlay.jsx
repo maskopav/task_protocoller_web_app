@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from "react-i18next";
 import './ModuleCompletionOverlay.css';
+import { 
+    successA, 
+    successB, 
+    successC, 
+    successD 
+} from "../../assets/successIcons/successAssets";
+
+const SUCCESS_ICONS = [successA, successB, successC, successD];
 
 export const ModuleCompletionOverlay = ({ category, onComplete }) => {
     const { t } = useTranslation("common");
@@ -9,11 +17,16 @@ export const ModuleCompletionOverlay = ({ category, onComplete }) => {
     const praises = t("completion.praises", { returnObjects: true });
     
     // Select a random praise from the translated list
-    const [praise] = useState(() => {
+    const [praiseText] = useState(() => {
         if (Array.isArray(praises) && praises.length > 0) {
             return praises[Math.floor(Math.random() * praises.length)];
         }
-        return "🌟"; // Fallback
+        return "Great job!"; // Fallback text string if translation is missing
+    });
+
+    // Select a random visual SVG asset icon
+    const [praiseIcon] = useState(() => {
+        return SUCCESS_ICONS[Math.floor(Math.random() * SUCCESS_ICONS.length)];
     });
 
     useEffect(() => {
@@ -32,12 +45,18 @@ export const ModuleCompletionOverlay = ({ category, onComplete }) => {
     return (
         <div className="module-overlay">
             <div className="praise-card">
-                <h2>{praise}</h2>
+                <img 
+                    src={praiseIcon} 
+                    className="praise-graphic-icon" 
+                    alt="Success Celebration Graphic" 
+                />
+                
+                <h2 className="praise-headline">{praiseText}</h2>
+                
                 <h3>
                     {isMilestone 
                         ? t(`taskLabels.${category}`) 
-                        : `${t(`taskLabels.${category}`)} ${t("completion.completedModule")}`
-                    }
+                        : `${t(`taskLabels.${category}`)} ${t("completion.finished")}`}
                 </h3>
             </div>
         </div>

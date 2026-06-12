@@ -19,6 +19,7 @@ import { uploadRecording } from "../api/recordings";
 import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
+import { useWakeLock } from "../hooks/useWakeLock";
 import "./Pages.css";
 import { logToServer } from "../utils/frontendLogger";
 
@@ -36,6 +37,8 @@ export default function ParticipantInterfacePage() {
   const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
   const [langReady, setLangReady] = useState(false);
   const [isRecordingActive, setIsRecordingActive] = useState(false);
+
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   useEffect(() => {
     if (startingTaskIndex > 0) {
@@ -178,6 +181,22 @@ export default function ParticipantInterfacePage() {
   // Protect the page from accidental reloads/closes
   usePreventNavigation(isSessionActive);
 
+  // Manage screen wake lock for the whole session
+  useEffect(() => {
+    if (isSessionActive) {
+      // Request the lock when a live session is ongoing
+      requestWakeLock();
+    } else {
+      // Release it if the session ends (e.g., they reach the CompletionScreen)
+      releaseWakeLock();
+    }
+
+    // Cleanup function: Release the lock if the component unmounts unexpectedly
+    return () => {
+      releaseWakeLock();
+    };
+  }, [isSessionActive, requestWakeLock, releaseWakeLock]);
+
   //  Central Logger Helper 
   const logInteraction = (action, extra = {}) => {
     if (!sessionId) return;
@@ -234,6 +253,8 @@ export default function ParticipantInterfacePage() {
 
   // --- Handlers
   async function handleTaskComplete(data) {
+    requestWakeLock();
+    
     const currentTaskObj = runtimeTasks[taskIndex]; // The task definition
     const nextTaskObj = runtimeTasks[taskIndex + 1];
 

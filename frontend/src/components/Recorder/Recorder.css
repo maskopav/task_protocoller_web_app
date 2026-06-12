@@ -1,94 +1,13 @@
 /* =========================================
    Recorder.css
+   Recorder-specific styles only.
+   Shared layout infrastructure lives in TaskLayout.css (loaded via TaskLayout.jsx).
    ========================================= */
-/* =========================================
-   Layout & Wrappers
-   ========================================= */
-.task-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1 1 0%;
-  width: 100%;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
 
-.task-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  flex: 0 1 auto;
-  height: auto; 
-  justify-content: center;
-  padding: clamp(5px, 1.5dvh, 10px) 0 0 0;
-}
-
-.task-header h1 {
-  margin-top: 0;
-  margin-bottom: 0;
-  font-size: clamp(1.4rem, 5.5vw, 2.2rem);
-  color: var(--muted);
-  flex: 0 0 auto;
-}
-
-.flexible-spacer {
-  width: 100%;
-  height: clamp(25px, 6dvh, 50px); 
-  transition: height 0.5s ease-in-out;
-}
-
-.status-recording .flexible-spacer,
-.status-paused .flexible-spacer {
-  height: clamp(10px, 2dvh, 10px); 
-}
-
-.instruction-card {
-  flex: 0 0 auto;
-  background-color: #ffffff;
-  color: #000000;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin: 0 clamp(10px, 2vw, 20px) clamp(10px, 3dvh, 25px);
-  border: 3px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.instruction-card p {
-  color: #000000 !important; 
-  margin: 0;
-}
-
-.recording-area {
-  position: relative;
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  flex: 1 1 0%;
-  padding-top: clamp(5px, 1.5dvh, 15px);
-  padding-bottom: clamp(12px, 2.5dvh, 15px);
-  min-height: clamp(80px, 24dvh, 180px);
-}
-
-.status-idle .recording-area {
-  flex: 0.8 1 auto; 
-  min-height: 20px;
-}
-
-.recording-area.is-recorded {
-  min-height: 0 !important;
-  padding: 0;       
-}
-
-/* --- Timer --- */
+/* ── Timer ────────────────────────────────────────────────────────── */
 .timer-wrapper {
   display: flex;
-  flex-direction: row; 
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -97,10 +16,9 @@
   transition: margin 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
 
-/* Wrap timer + intensity circle together */
 .timer-core {
   position: relative;
-  width: clamp(65px, min(30vw, 20dvh), 180px);   
+  width: clamp(65px, min(30vw, 20dvh), 180px);
   height: clamp(65px, min(30vw, 20dvh), 180px);
   display: flex;
   align-items: center;
@@ -109,42 +27,34 @@
   transition: margin 0.3s ease-in-out;
 }
 
-.recording-area.is-shifted {
-  flex: 0 0 auto;       
-  min-height: auto;     
-  padding: clamp(5px, 1.5dvh, 15px);
-}
-
-/* Shrink the margins of the timer circle itself in shifted mode */
+/* When the timer is shifted above the header, tighten its margins */
 .recording-area.is-shifted .timer-core {
   margin: clamp(2px, 0.8dvh, 10px);
 }
 
+.timer-core.recorded { margin-top: clamp(0px, 0.6dvh, 4px); }
+.timer-wrapper.recorded { margin-bottom: clamp(-25px, -2.1dvh, -20px); }
 
-/* Intensity circle always centered */
 .intensity-circle {
   position: absolute;
-  /* Match timer-core exactly */
-  width: clamp(65px, min(30vw, 20dvh), 180px);   
+  width: clamp(65px, min(30vw, 20dvh), 180px);
   height: clamp(65px, min(30vw, 20dvh), 180px);
   border-radius: 50%;
-  background: rgba(244, 67, 54, 0.35); 
-  transition: transform 0.05s ease-out, opacity 0.05s ease-out; 
+  background: rgba(244, 67, 54, 0.35);
+  transition: transform 0.05s ease-out, opacity 0.05s ease-out;
   z-index: 0;
 }
 
 .intensity-circle.ready-to-stop {
-  background: rgba(76, 175, 80, 0.35); 
+  background: rgba(76, 175, 80, 0.35);
 }
 
-/* Timer circle on top */
 .timer-circle {
   box-sizing: border-box;
-  width: clamp(65px, min(30vw, 20dvh), 180px);   
+  width: clamp(65px, min(30vw, 20dvh), 180px);
   height: clamp(65px, min(30vw, 20dvh), 180px);
   border-radius: 50%;
   background: white;
-  /* Border thickness grows from 5px on mobile to 8px on laptop */
   border: clamp(5px, 1.5vw, 8px) solid var(--dark-gray);
   display: flex;
   align-items: center;
@@ -155,16 +65,14 @@
   z-index: 1;
 }
 
-.phase-red .timer-circle { border-color: var(--danger); }
-.phase-orange .timer-circle { border-color: var(--warning); }
-.phase-green .timer-circle { border-color: var(--success); }
+.phase-red    .timer-circle  { border-color: var(--danger);  }
+.phase-orange .timer-circle  { border-color: var(--warning); }
+.phase-green  .timer-circle  { border-color: var(--success); }
 
-/* Ensure the intensity (pulsing) circle matches the phase */
-.phase-red .intensity-circle { background: var(--danger); }
+.phase-red    .intensity-circle { background: var(--danger);  }
 .phase-orange .intensity-circle { background: var(--warning); }
-.phase-green .intensity-circle { background: var(--success); }
+.phase-green  .intensity-circle { background: var(--success); }
 
-/* Handle the 'Paused' override separately if needed */
 .timer-circle.paused { border-color: var(--warning) !important; }
 
 .timer-display {
@@ -173,132 +81,76 @@
   background-color: transparent;
 }
 
-.timer-core.recorded { margin-top: clamp(0px, 0.6dvh, 4px); }
-.timer-wrapper.recorded { margin-bottom: clamp(-25px, -2.1dvh, -20px); }
-
-.mic-icon-mask {
+.mic-icon-display {
   width: clamp(60px, 12vw, 85px);
   height: clamp(60px, 12vw, 85px);
-  background-color: black;
-  -webkit-mask-image: url('../../assets/mic-icon.svg');
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-image: url('../../assets/mic-icon.svg');
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
+  object-fit: contain;
 }
 
-/* --- Extra controls & Instructions --- */
+/* ── Page flash animation (on recording start) ────────────────────── */
 .minimalist-page-flash {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none; 
-  z-index: 10; 
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 10;
   animation: pageFlashMinimalist 3s ease-out forwards;
   border-radius: inherit;
 }
 
-/* --- Warning Title Layout --- */
+@keyframes pageFlashMinimalist {
+  0%   { background-color: rgba(243, 156, 18, 0.12); box-shadow: inset 0 0 20px rgba(243, 156, 18, 0.1); }
+  20%  { background-color: rgba(243, 156, 18, 0.05); }
+  100% { background-color: transparent; box-shadow: inset 0 0 0 rgba(243, 156, 18, 0); }
+}
+
+/* ── Warning overlay ──────────────────────────────────────────────── */
 .warning-title-container {
   display: flex;
-  flex-direction: column; /* Stacks the icon ABOVE the title */
-  align-items: center;    /* Centers them horizontally */
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: clamp(6px, 1.5dvh, 12px); /* Adds space between the icon and title */
+  gap: clamp(6px, 1.5dvh, 12px);
   text-align: center;
   margin-bottom: 8px;
 }
 
-/* --- SVG Mask Magic (Colorize external SVGs) --- */
-.warning-icon-mask {
-  width: clamp(60px, 12vw, 85px);
-  height: clamp(60px, 12vw, 85px);
-  background-color: var(--danger); /* Use the danger color for the icon */
-  -webkit-mask-image: url('../../assets/warning-icon.svg');
+.success-icon-mask {
+  display: block;
+  width: clamp(50px, 10vw, 75px);
+  height: clamp(50px, 10vw, 75px);
+  background-color: var(--success, #28a745); 
+  
+  /* Read the URL passed from React */
+  -webkit-mask-image: var(--icon-url);
+  mask-image: var(--icon-url);
+  
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
-  mask-image: url('../../assets/warning-icon.svg');
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
+  
+  margin: 0 auto clamp(10px, 2vh, 20px) auto;
 }
 
-@keyframes pageFlashMinimalist {
-  0% { 
-    /* A soft, warm amber/gold glow instead of blue */
-    background-color: rgba(243, 156, 18, 0.12); 
-    box-shadow: inset 0 0 20px rgba(243, 156, 18, 0.1);
-  }
-  20% { 
-    background-color: rgba(243, 156, 18, 0.05); 
-  }
-  100% { 
-    background-color: transparent; 
-    box-shadow: inset 0 0 0 rgba(243, 156, 18, 0);
-  }
-}
-
+/* ── Extra control button shell ───────────────────────────────────── */
 .extra-control {
-  position: relative; 
+  position: relative;
   width: clamp(60px, 15vw, 80px);
   height: clamp(60px, 15vw, 80px);
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
+/* ── Audio example row (inside instruction card) ──────────────────── */
 .instruction-example-row {
   display: flex;
-  margin: clamp(0.3rem, 1.5vw, 0.5rem); 
+  margin: clamp(0.3rem, 1.5vw, 0.5rem);
   justify-content: center;
-}
-
-.active-instructions {
-  font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
-  line-height: 1.3;
-  text-align: center;
-  width: auto;
-  padding: 0.3em 0.15em;
-}
-
-.instruction-card.active-instructions.no-title {
-  box-shadow: none;
-  border: none;
-  margin: 0;
-  width: 100%;
-  /* Just a little side padding so text doesn't touch phone edges */
-  padding: clamp(5px, 0.5dvh, 10px) clamp(10px, 1vw, 20px); 
-}
-
-.instruction-card.card-highlight-flash {
-  animation: simpleGreenHighlight 4.5s ease-out forwards; 
-}
-
-@keyframes simpleGreenHighlight {
-  0% { 
-    border-color: var(--success, #4caf50); 
-    background-color: #f0fdf4; 
-    -webkit-text-stroke: 0.2px currentColor;
-  }
-  20% { 
-    /* Hold the highlight for a moment so it is clearly noticed */
-    border-color: var(--success, #4caf50);
-    background-color: #f0fdf4;
-    -webkit-text-stroke: 0.1px currentColor;
-  }
-  100% { 
-    /* Smoothly fade back to the normal white card */
-    border-color: transparent;
-    background-color: #ffffff;
-    -webkit-text-stroke: 0px transparent;
-  }
 }
 
 .active-instructions .audio-example-btn {
@@ -324,7 +176,7 @@
 
 .active-instructions .btn-label { font-weight: 600; }
 
-/* --- Status Badge --- */
+/* ── Status badge ─────────────────────────────────────────────────── */
 .status {
   margin: clamp(4px, 1dvh, 8px) 0;
   font-weight: 600;
@@ -337,24 +189,12 @@
   z-index: 1;
 }
 
-.status.recording { background: var(--danger); }
-.status.paused { background: var(--warning); }
-.status.ready { background: var(--primary); }
-.status.done { background: var(--success); }
+.status.recording { background: var(--danger);  }
+.status.paused    { background: var(--warning); }
+.status.ready     { background: var(--primary); }
+.status.done      { background: var(--success); }
 
-/* --- Bottom Controls & Playback --- */
-.bottom-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 95%;
-  align-self: center;
-  gap: clamp(0.2rem, 1.5dvh, 0.5rem); 
-  padding-bottom: env(safe-area-inset-bottom, 15px);
-  margin-bottom: clamp(8px, 2dvh, 30px);
-  flex: 0 0 auto;
-} 
-
+/* ── Controls & playback layout ───────────────────────────────────── */
 .controls,
 .playback-section {
   position: relative;
@@ -366,15 +206,14 @@
 
 .playback-section {
   font-size: clamp(1.2rem, 4vw, 1.5rem);
-  gap: clamp(0.4rem, 1.5vw, 0.8rem); /* Adapts spacing */
+  gap: clamp(0.4rem, 1.5vw, 0.8rem);
 }
 
-/* Smart Buttons */
 .button-group,
 .controls button,
 .playback-section button {
   width: 95%;
-  max-width: 400px; 
+  max-width: 400px;
 }
 
 .button-group {
@@ -386,7 +225,7 @@
 
 .button-group button {
   flex: 1;
-  min-width: 0; 
+  min-width: 0;
 }
 
 .controls button,
@@ -396,8 +235,8 @@
 }
 
 .playback-section audio {
-  width: 95%; 
-  max-width: 400px; 
+  width: 95%;
+  max-width: 400px;
   height: clamp(40px, 7dvh, 54px);
   outline: none;
   border-radius: 50px;
@@ -408,218 +247,57 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* --- VAD (Voice Activity Detection) --- */
+/* ── VAD (Voice Activity Detection) ──────────────────────────────── */
 .vad-status-wrapper {
   position: absolute;
-  bottom: clamp(0px, 1dvh, 10px); /* Tucks it neatly at the bottom */
+  bottom: clamp(0px, 1dvh, 10px);
   left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
-  pointer-events: none; /* Ensures users can't accidentally click on it */
+  pointer-events: none;
   z-index: 10;
 }
+
 .vad-status-pill {
-  /* No backgrounds, no borders, no shadows! */
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0;
-  
-  /* Small, clean text */
   font-size: clamp(0.8rem, 2.5vw, 0.9rem);
   font-weight: 500;
   text-align: center;
   max-width: 95%;
   word-wrap: break-word;
-  
   display: inline-flex;
   align-items: center;
 }
 
-/* Update the colors to just affect the text, not the background */
-.vad-pill-waiting { 
-  color: #b78103; /* Dark yellow/gold */
+.vad-pill-waiting { color: #b78103; }
+.vad-pill-warning {
+  color: #d32f2f;
+  animation: textFadeIn 0.3s ease-out, textPulse 2.5s infinite ease-in-out;
 }
 
-.vad-pill-warning { 
-  color: #d32f2f; /* Red */
-  animation: textFadeIn 0.3s ease-out, textPulse 2.5s infinite ease-in-out; 
-}
-
-/* Subtle animations for the plain text */
 @keyframes textFadeIn {
-  0% { opacity: 0; transform: translateY(5px); }
+  0%   { opacity: 0; transform: translateY(5px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes textPulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1;   }
   100% { opacity: 0.6; }
 }
 
-/* Permission Guide Layout */
-.permission-guide-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5px;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.guide-header h2 {
-  margin: 15px 0 10px;
-  color: #1a1a1a;
-  font-size: 1.4rem;
-}
-
-.error-description {
-  color: #666;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  margin-bottom: 25px;
-}
-
-/* Tab Switcher */
-.tab-switcher {
-  display: flex;
-  background: #f0f2f5;
-  border-radius: var(--radius);
-  padding: 3px;
-  margin: 0 auto 10px auto;
-  max-width: 280px;
-}
-
-.tab-btn {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--primary);
-  padding: 6px;
-  border-radius: 8px;
-  transition: all 0.2s;
-  cursor: pointer;
-  outline: none; /* Removes the default browser focus ring */
-  -webkit-tap-highlight-color: transparent;
-}
-
-.tab-switcher .tab-btn.active,
-.tab-switcher .tab-btn.active:focus,
-.tab-switcher .tab-btn.active:hover {
-  background: #ffffff !important;
-  color: var(--primary) !important;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  opacity: 1;
-}
-
-/* Instructions */
-.instruction-steps {
-  text-align: left;
-  background: #ffffff;
-  border: 2.5px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow);
-}
-
-.solution-label {
-  font-size: 1rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--primary);
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
-}
-
-.instruction-image {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  display: block;
-  /* Ensure the image doesn't get too big on desktop */
-  max-width: 320px; 
-  margin: 0 auto;
-}
-
-.steps-text-block {
-  text-align: left;
-  font-size: 1.2rem;
-  line-height: 1.6; /* Increased for better spacing between bullet lines */
-  color: #1e293b;
-  white-space: pre-line; /* Helps preserve spacing from the JSON if needed */
-  margin-top: 10px;
-}
-
-.steps-text-block strong {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-
-/* --- MicCheck Calibration Utility Classes --- */
-.pulse-animation {
-  animation: pulse 1.5s infinite;
-  text-align: center;
-  margin-top: 3rem;
-}
-
-.warning-text-highlight {
-  color: var(--danger, #dc3545);
-  font-weight: 600;
-  font-size: 1.1em;
-}
-
-.success-text-highlight {
-  color: var(--success, #28a745);
-  font-weight: 600;
-  font-size: 1.1em;
-}
-
-/* In Recorder.css */
-.intro-preview-img {
-  /* Use width to set a specific size */
-  width: 200px; 
-  
-  /* Use max-width to ensure it doesn't break small screens */
-  max-width: 100%; 
-  
-  /* Maintain aspect ratio */
-  height: auto; 
-  
-  /* Optional: Limit the height if the JPEG is very long */
-  max-height: 250px;
-  
-  /* Optional: If you use fixed width/height, this prevents stretching */
-  object-fit: contain; 
-  
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-
-/* --- Mobile Specific Overrides --- */
+/* ── Mobile overrides ─────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .timer-wrapper {
     flex-direction: column;
     padding: 1vh;
   }
-  
+
   .playback-section audio {
-    max-width: 100%; /* Ensure it spans properly below buttons on narrow screens */
+    max-width: 100%;
   }
 }
-

@@ -1,8 +1,24 @@
 // hooks/useVoiceRecorder.js
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { logToServer } from '../utils/frontendLogger';
-import { exportWAV } from '../utils/audioUtils'; 
+import { exportWAV } from '../utils/audioUtils';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Recording state machine constants.
+// MOVED outside the hook: defined inside the hook body they are recreated as
+// new string primitives on every render.  While JS compares primitives by
+// value so === still works, keeping them outside makes it unambiguous that they
+// are stable and never need to appear in useCallback / useEffect dep arrays.
+// ─────────────────────────────────────────────────────────────────────────────
+const IDLE      = 'idle';
+const RECORDING = 'recording';
+const PAUSED    = 'paused';
+const RECORDED  = 'recorded';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AudioWorklet source — inlined as a string so no extra build step or
+// public-folder asset is required.
+// ─────────────────────────────────────────────────────────────────────────────
 const WORKLET_CODE = `
 class RecorderWorklet extends AudioWorkletProcessor {
     constructor() {
@@ -10,15 +26,26 @@ class RecorderWorklet extends AudioWorkletProcessor {
         this.isRecording = false;
         this.port.onmessage = (e) => {
             if (e.data.command === 'start') this.isRecording = true;
-            if (e.data.command === 'stop') this.isRecording = false;
+            if (e.data.command === 'stop')  this.isRecording = false;
         };
     }
     process(inputs, outputs, parameters) {
         if (!this.isRecording) return true;
         const input = inputs[0];
         if (input && input.length > 0 && input[0].length > 0) {
-            // We must copy the array because the browser reuses the memory buffer
+            // Copy into a new buffer we own, then transfer ownership via postMessage.
+            // The original input[0] belongs to the audio thread and will be reused
+            // after process() returns — we must never hold a reference to it.
             const channelData = new Float32Array(input[0]);
+            // Safety clamp: the upstream GainNode operates in the internal float
+            // graph, which allows values outside [-1, 1].  Clamp before capturing
+            // so the WAV never contains out-of-range samples.  With a conservative
+            // boost this should rarely trigger, but it guards against unexpectedly
+            // loud input or pathological gain values.
+            for (let i = 0; i < channelData.length; i++) {
+                if      (channelData[i] >  1.0) channelData[i] =  1.0;
+                else if (channelData[i] < -1.0) channelData[i] = -1.0;
+            }
             this.port.postMessage({ buffer: channelData }, [channelData.buffer]);
         }
         return true;
@@ -27,52 +54,80 @@ class RecorderWorklet extends AudioWorkletProcessor {
 registerProcessor('recorder-worklet', RecorderWorklet);
 `;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// iOS gain compensation.
+//
+// WebKit initialises AVAudioSession in a way that attenuates the web-audio
+// capture path by roughly 10 dB relative to Android / desktop browsers.
+// A 3× linear boost (~9.5 dB) brings typical speech into a healthy amplitude
+// range.  At ~0.05 raw amplitude × 3 = 0.15 — plenty of headroom before the
+// worklet's ±1.0 clamp fires.
+//
+// IMPORTANT: all iOS browsers (Chrome, Firefox, Edge on iOS) are built on
+// WebKit and share the same AVAudioSession path, so UA-based detection of
+// iPad|iPhone|iPod is the correct strategy — it's not Safari-specific.
+//
+// If you need bit-exact unprocessed PCM regardless of platform, pass
+// inputGain={1.0} explicitly to the hook.
+// ─────────────────────────────────────────────────────────────────────────────
+const resolveInputGain = (override) => {
+    if (override !== undefined) return override;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+                  navigator.maxTouchPoints > 0;
+    return isIOS ? 3.0 : 1.0;
+};
+
 export const useVoiceRecorder = (options = {}) => {
     const {
         onRecordingComplete = () => {},
-        onError = () => {},
-        instructions,           // initial instructions
-        instructionsActive,     // instructions after START
-        audioExample,       // optional audio example URL
-        mode = "basicStop",  // "basicStop" | "countDown" | "delayedStop"
-        duration,         // optional duration of task in seconds
-        maxDuration,      // optional max duration after which recording will auto-stop
-        isTimerActive = true  // VAD timer control
+        onError             = () => {},
+        instructions,               // shown before recording starts
+        instructionsActive,         // shown after START
+        audioExample,               // optional example audio URL
+        mode         = 'basicStop', // 'basicStop' | 'countDown' | 'delayedStop'
+        duration,                   // task duration in seconds
+        maxDuration,                // hard cap — auto-stops recording when reached
+        isTimerActive = true,       // VAD timer gate
+        inputGain,                  // override gain; default: auto-detected
     } = options;
 
-    // Recording states
-    const IDLE = "idle";
-    const RECORDING = "recording";
-    const PAUSED = "paused";
-    const RECORDED = "recorded";
-
-    // State management
+    // ── State ──────────────────────────────────────────────────────────────────
     const [incompatibleBrowser, setIncompatibleBrowser] = useState(null);
-    const [recordingStatus, _setRecordingStatus] = useState(IDLE);
-    const [permission, setPermission] = useState(false);
-    const [stream, setStream] = useState(null);
-    const [audioURL, setAudioURL] = useState(null);
-    const [recordingTime, setRecordingTime] = useState(0);
-    const [remainingTime, setRemainingTime] = useState(null);
-    const [audioLevels, setAudioLevels] = useState(new Array(12).fill(0));
+    const [recordingStatus, _setRecordingStatus]        = useState(IDLE);
+    const [permission,  setPermission]  = useState(false);
+    const [stream,      setStream]      = useState(null);
+    const [audioURL,    setAudioURL]    = useState(null);
+    const [recordingTime,  setRecordingTime]  = useState(0);
+    const [remainingTime,  setRemainingTime]  = useState(null);
+    const [audioLevels,    setAudioLevels]    = useState(new Array(12).fill(0));
     const [activeInstructions, setActiveInstructions] = useState(instructions);
-    const [exampleAudio, setExampleAudio] = useState(null);
+    const [exampleAudio,   setExampleAudio]   = useState(null);
     const [durationExpired, setDurationExpired] = useState(false);
 
-    // REFS
-    const audioChunks = useRef([]); // Now holds Float32Arrays
-    const audioContext = useRef(null);
-    const analyser = useRef(null);
-    const animationFrame = useRef(null);
-    const vizSourceRef = useRef(null);
+    // ── Refs ───────────────────────────────────────────────────────────────────
+    const audioChunks       = useRef([]);
+    const audioContext      = useRef(null);
+    const analyser          = useRef(null);
+    const animationFrame    = useRef(null);
 
-    const scriptProcessorRef = useRef(null);
+    // renamed scriptProcessorRef → workletNodeRef.
+    // The old name referred to the deprecated ScriptProcessorNode API;
+    // this ref holds an AudioWorkletNode which is a completely different object.
+    const workletNodeRef = useRef(null);
     const sourceNodeRef = useRef(null);
-    const gainNodeRef = useRef(null);
-    const statusRef = useRef(IDLE); // Keeps track of status for the audio processor loop
-    const audioURLRef = useRef(null); // Ref mirror of audioURL so the unmount cleanup always sees the latest value
+    const inputGainRef = useRef(null);    // GainNode between source and worklet
+    const statusRef = useRef(IDLE);
+    const audioURLRef       = useRef(null);
+    const firstChunkTimeRef = useRef(null);
 
-    // Helper to sync state and ref simultaneously
+    // track the stream in a ref so the unmount cleanup can always reach
+    // the latest value.  The cleanup useEffect closes over the initial render
+    // where stream === null; without this ref it would never stop the mic track,
+    // leaving the recording-indicator light on after unmount.
+    const streamRef = useRef(null);
+    useEffect(() => { streamRef.current = stream; }, [stream]);
+
+    // Helper: keep state and ref in sync simultaneously.
     const setRecordingStatus = (status) => {
         _setRecordingStatus(status);
         statusRef.current = status;
@@ -83,14 +138,13 @@ export const useVoiceRecorder = (options = {}) => {
 
         // Detect known broken browsers
         const browserName =
-            /Lite Browser/i.test(ua)   ? 'Xiaomi Lite Browser' :
-            /MiuiBrowser/i.test(ua)    ? 'MIUI Browser' :
-            /HuaweiBrowser/i.test(ua)  ? 'Huawei Browser' :
-            /HeyTapBrowser/i.test(ua)  ? 'OPPO Browser' :
-            /VivoBrowser/i.test(ua)    ? 'Vivo Browser' : null;
+            /Lite Browser/i.test(ua)  ? 'Xiaomi Lite Browser' :
+            /MiuiBrowser/i.test(ua)   ? 'MIUI Browser'        :
+            /HuaweiBrowser/i.test(ua) ? 'Huawei Browser'      :
+            /HeyTapBrowser/i.test(ua) ? 'OPPO Browser'        :
+            /VivoBrowser/i.test(ua)   ? 'Vivo Browser'        : null;
 
-        // Collect all pre-flight info in one log
-        logToServer("MIC | permission check", {
+        logToServer('MIC | permission check', {
             browser: browserName || ua.match(/(Chrome|Firefox|Safari|Edge)\/[\d.]+/)?.[0] || 'Unknown',
             incompatible: !!browserName,
             isSecureContext: window.isSecureContext,
@@ -106,15 +160,26 @@ export const useVoiceRecorder = (options = {}) => {
         }
 
         if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-            const reason = !window.isSecureContext ? 'Not a secure context (HTTPS required)' : 'getUserMedia API not available';
-            logToServer("MIC | BLOCKED", { reason });
+            const reason = !window.isSecureContext
+                ? 'Not a secure context (HTTPS required)'
+                : 'getUserMedia API not available';
+            logToServer('MIC | BLOCKED', { reason });
             onError(new Error(reason));
             setPermission(false);
             return false;
         }
 
+        // stop any pre-existing stream tracks before requesting a new one.
+        // Without this, calling getMicrophonePermission() twice (e.g. after a
+        // recoverable error or a settings change) leaks the old MediaStream track
+        // and keeps the microphone indicator light on in the background.
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            setStream(null);
+            streamRef.current = null;
+        }
+
         try {
-            // Added advanced constraints to force Android HAL to back off
             const streamData = await navigator.mediaDevices.getUserMedia({
                 video: false,
                 audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
@@ -122,28 +187,36 @@ export const useVoiceRecorder = (options = {}) => {
 
             const track = streamData.getAudioTracks()[0];
             try {
+                // Re-apply constraints: some Android Chrome builds only honour
+                // them here, not in the initial getUserMedia call.
                 await track.applyConstraints({
-                    autoGainControl: false,
+                    autoGainControl:  false,
                     echoCancellation: false,
                     noiseSuppression: false,
                 });
-                logToServer("MIC | applyConstraints succeeded");
+                logToServer('MIC | applyConstraints succeeded');
             } catch (constraintErr) {
-                logToServer("MIC | applyConstraints failed (non-critical)", constraintErr.name);
+                logToServer('MIC | applyConstraints failed (non-critical)', constraintErr.name);
             }
 
             const settings = track.getSettings();
-
             if (settings.autoGainControl || settings.echoCancellation || settings.noiseSuppression) {
-                console.warn("⚠️ OS/Hardware ignored raw audio constraints!", settings);
-                logToServer("MIC | WARNING: Hardware forced processing despite constraints", settings);
+                console.warn('⚠️ OS/Hardware ignored raw audio constraints!', settings);
+                logToServer('MIC | WARNING: Hardware forced processing despite constraints', settings);
             }
 
-            logToServer("MIC | granted", {
+            logToServer('MIC | granted', {
                 label: track?.label || 'unknown',
                 readyState: track?.readyState,
                 settings: settings ?? 'unsupported',
             });
+
+            // Create the AudioContext here so the VAD can share it.
+            if (!audioContext.current) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioContext.current = new AudioContextClass();
+                logToServer('AudioContext | created at permission time, sampleRate:', audioContext.current.sampleRate);
+            }
 
             setPermission(true);
             setStream(streamData);
@@ -158,7 +231,7 @@ export const useVoiceRecorder = (options = {}) => {
                 AbortError:            'Request aborted',
                 SecurityError:         'Blocked by browser security policy',
             };
-            logToServer("MIC | denied", {
+            logToServer('MIC | denied', {
                 error: err.name,
                 diagnosis: diagnosisMap[err.name] || 'Unknown error',
             });
@@ -172,70 +245,85 @@ export const useVoiceRecorder = (options = {}) => {
     useEffect(() => {
         let interval = null;
 
-        // Only tick if we are officially recording AND the VAD says they have spoken
         if (recordingStatus === RECORDING && isTimerActive) {
             interval = setInterval(() => {
-                if (mode === "countDown") {
+                if (mode === 'countDown') {
+                    // pure state update only — do NOT call stopRecording() here.
+                    // React state updater functions must be pure (no side-effects);
+                    // React StrictMode intentionally calls them twice in development,
+                    // which would fire stopRecording() twice and double-call
+                    // onRecordingComplete.  A dedicated effect below watches for
+                    // remainingTime === 0 and performs the stop there.
                     setRemainingTime(prev => {
                         if (prev == null) return null;
-                        if (prev <= 1) {
-                            stopRecording(); // stop automatically when countdown hits 0
-                            return 0;
-                        }
+                        if (prev <= 1)    return 0;
                         return prev - 1;
                     });
-                } else if (mode === "delayedStop") {
+                } else if (mode === 'delayedStop') {
                     setRecordingTime(prev => {
                         const newTime = prev + 1;
-                        if (duration && newTime >= duration) {
-                            setDurationExpired(true);
-                        }
+                        if (duration && newTime >= duration) setDurationExpired(true);
                         return newTime;
                     });
-                } else if (mode === "basicStop") {
+                } else {
                     setRecordingTime(prev => prev + 1);
                 }
             }, 1000);
         }
 
-        // Cleanup interval automatically when paused, stopped, or waiting for speech
-        return () => {
-            if (interval) clearInterval(interval);
-        };
+        return () => { if (interval) clearInterval(interval); };
     }, [recordingStatus, isTimerActive, mode, duration]);
 
+    // countDown stop — side-effect lives here, never inside a setState updater.
+    // remainingTime reaches exactly 0 only via the timer above, so this fires once
+    // at the natural end of the countdown.  The idempotency guard in stopRecording
+    // makes this safe even if the maxDuration effect fires in the same cycle.
+    useEffect(() => {
+        if (mode === 'countDown' && remainingTime === 0 && recordingStatus === RECORDING) {
+            stopRecording();
+        }
+    // stopRecording is excluded from deps intentionally: it reads everything
+    // through refs so it is always current even when the callback identity
+    // has not changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [remainingTime]);
 
-    // Recording functions
+    // ── Recording ──────────────────────────────────────────────────────────────
     const startRecording = async () => {
-        if (!stream) return;
-        stopExample(); 
-        
-        setDurationExpired(false); 
-        audioChunks.current = []; // Clear old buffers
+        // FIX: guard against a double-start.  Without this, calling startRecording
+        // twice would create a second audio graph on top of the first, leaving both
+        // worklets writing to audioChunks simultaneously and corrupting the PCM.
+        if (!stream || statusRef.current === RECORDING) return;
 
-        if (mode === "countDown") {
+        stopExample();
+        setDurationExpired(false);
+        audioChunks.current = [];
+
+        if (mode === 'countDown') {
             setRemainingTime(duration || 10);
         } else {
             setRecordingTime(0);
-            setRemainingTime(null); // Clear remaining time for non-countdown modes
+            setRemainingTime(null);
         }
 
-        if (instructionsActive) setActiveInstructions(instructionsActive); 
-        
-        // 1. Setup Audio Context
+        if (instructionsActive) setActiveInstructions(instructionsActive);
+
+        // AudioContext is normally created in getMicrophonePermission so the VAD
+        // can share it.  This branch fires only after repeatRecording() closes it.
         if (!audioContext.current) {
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
             audioContext.current = new AudioContextClass();
-            // Diagnostic: log what rate iOS actually gave us (should be 44100 on iPhone)
-            logToServer("AudioContext | native sampleRate:", audioContext.current.sampleRate);
+            logToServer('AudioContext | late creation (post-repeat), sampleRate:', audioContext.current.sampleRate);
         }
-        // Resume context for iOS Safari
+        // iOS Safari: AudioContext must be resumed inside a user-gesture handler.
         if (audioContext.current.state === 'suspended') {
             await audioContext.current.resume();
         }
 
+        // The workletLoaded flag lives on the AudioContext instance so it resets
+        // automatically whenever repeatRecording() creates a fresh context.
         if (!audioContext.current.workletLoaded) {
-            const blob = new Blob([WORKLET_CODE], { type: 'application/javascript' });
+            const blob      = new Blob([WORKLET_CODE], { type: 'application/javascript' });
             const workletUrl = URL.createObjectURL(blob);
             await audioContext.current.audioWorklet.addModule(workletUrl);
             URL.revokeObjectURL(workletUrl);
@@ -243,74 +331,94 @@ export const useVoiceRecorder = (options = {}) => {
         }
 
         const source = audioContext.current.createMediaStreamSource(stream);
+
+        // Input gain — compensates for the iOS WebKit audio-path attenuation.
+        // Inserted before the worklet so the boosted samples are what ends up
+        // in audioChunks and ultimately in the WAV file.
+        // The analyser is also connected here so the visualisation bars reflect
+        // the actual recorded level, not the raw (quiet) iOS signal.
+        const gainValue    = resolveInputGain(inputGain);
+        const inputGainNode = audioContext.current.createGain();
+        inputGainNode.gain.value = gainValue;
+        logToServer('AudioContext | inputGain applied:', gainValue);
+
         const workletNode = new AudioWorkletNode(audioContext.current, 'recorder-worklet', {
-            numberOfOutputs: 0
+            numberOfOutputs: 0,
         });
 
-        // Receive raw PCM from the isolated audio thread
+        // Receive raw PCM from the isolated audio thread.
+        // The first arriving chunk marks the true start of the WAV —
+        // this timestamp replaces any Date.now() captured before async setup.
         workletNode.port.onmessage = (event) => {
             if (statusRef.current === RECORDING) {
+                if (audioChunks.current.length === 0) {
+                    firstChunkTimeRef.current = Date.now();
+                }
                 audioChunks.current.push(event.data.buffer);
             }
         };
 
-        // Connect Pipeline — source feeds into the sink worklet; no output path needed
-        source.connect(workletNode);
+        // Pipeline:  source → inputGainNode → workletNode (sink, no outputs)
+        //                                   ↘ analyser   (viz sees boosted signal)
+        source.connect(inputGainNode);
+        inputGainNode.connect(workletNode);
 
-        // Save refs for stopping
-        sourceNodeRef.current = source;
-        scriptProcessorRef.current = workletNode;
-
-        // 5. Setup Visualization
-        const vizSource = audioContext.current.createMediaStreamSource(stream);
-        vizSourceRef.current = vizSource;
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 256;
-        vizSource.connect(analyser.current);
+        inputGainNode.connect(analyser.current);
 
-        // Tell the audio thread to officially start grabbing frames
+        sourceNodeRef.current  = source;
+        workletNodeRef.current = workletNode;
+        inputGainRef.current   = inputGainNode;
+
         workletNode.port.postMessage({ command: 'start' });
 
         setRecordingStatus(RECORDING);
     };
 
     const pauseRecording = () => {
-        if (recordingStatus === RECORDING) {
+        if (statusRef.current === RECORDING) {
             setRecordingStatus(PAUSED);
-            // Tell the audio thread to drop frames immediately
-            if (scriptProcessorRef.current) {
-                scriptProcessorRef.current.port.postMessage({ command: 'stop' });
+            if (workletNodeRef.current) {
+                workletNodeRef.current.port.postMessage({ command: 'stop' });
             }
         }
     };
 
     const resumeRecording = () => {
-        if (recordingStatus === PAUSED) {
+        if (statusRef.current === PAUSED) {
             setRecordingStatus(RECORDING);
-            // Tell audio thread to resume sending frames
-            if (scriptProcessorRef.current) {
-                scriptProcessorRef.current.port.postMessage({ command: 'start' });
+            if (workletNodeRef.current) {
+                workletNodeRef.current.port.postMessage({ command: 'start' });
             }
         }
     };
 
     const stopRecording = useCallback(() => {
+        // idempotency guard — both the countDown effect and the maxDuration
+        // effect below can call stopRecording in the same render cycle.
+        // The ref check is synchronous: the first call sets statusRef to RECORDED,
+        // so any re-entrant call returns immediately before onRecordingComplete fires.
+        if (statusRef.current !== RECORDING && statusRef.current !== PAUSED) return;
+
         setRecordingStatus(RECORDED);
-        
+
         if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
-        
-        // Disconnect Worklet Pipeline
-        if (scriptProcessorRef.current) {
-            scriptProcessorRef.current.port.postMessage({ command: 'stop' });
-            scriptProcessorRef.current.disconnect();
-            scriptProcessorRef.current.port.onmessage = null;
+
+        if (workletNodeRef.current) {
+            workletNodeRef.current.port.postMessage({ command: 'stop' });
+            workletNodeRef.current.disconnect();
+            workletNodeRef.current.port.onmessage = null;
         }
-        if (sourceNodeRef.current) sourceNodeRef.current.disconnect();
-        // gainNode removed — worklet is now a sink with numberOfOutputs: 0
-        // Disconnect the visualization source node 
-        if (vizSourceRef.current) {
-            vizSourceRef.current.disconnect();
-            vizSourceRef.current = null;
+        if (sourceNodeRef.current) {
+            sourceNodeRef.current.disconnect();
+        }
+
+        // Disconnecting inputGainNode severs both downstream connections:
+        // the worklet and the analyser node.
+        if (inputGainRef.current) {
+            inputGainRef.current.disconnect();
+            inputGainRef.current = null;
         }
 
         // Export WAV using the NATIVE hardware sample rate
@@ -333,21 +441,33 @@ export const useVoiceRecorder = (options = {}) => {
             audioURLRef.current = null;
             setAudioURL(null);
         }
-        
+
         audioChunks.current = [];
+        firstChunkTimeRef.current = null;
+
+        // clear stale node refs so nothing accidentally reaches them between
+        // repeatRecording() and the next startRecording() call.
+        workletNodeRef.current = null;
+        sourceNodeRef.current  = null;
+        analyser.current       = null;
+
         setRecordingTime(0);
         setRecordingStatus(IDLE);
         setAudioLevels(new Array(12).fill(0));
         setDurationExpired(false); // Reset duration expired state
-        
+
         if (animationFrame.current) {
             cancelAnimationFrame(animationFrame.current);
         }
 
-        if (audioContext.current && audioContext.current.state !== "closed") {
+        // Close the AudioContext so the next startRecording() creates a fresh
+        // context and re-loads the worklet into it.  The stream (MediaStream from
+        // getUserMedia) is intentionally kept alive so the mic permission and the
+        // track remain valid for the next recording without asking the user again.
+        if (audioContext.current && audioContext.current.state !== 'closed') {
             audioContext.current.close();
             audioContext.current = null;
-        }                    
+        }
     };
 
     // Monitor the recording time and force stop
@@ -364,23 +484,18 @@ export const useVoiceRecorder = (options = {}) => {
       
         // Stop previous example if playing
         if (exampleAudio) {
-          exampleAudio.pause();
-          exampleAudio.currentTime = 0;
+            exampleAudio.pause();
+            exampleAudio.currentTime = 0;
         }
-      
         const audio = new Audio(audioExample);
         setExampleAudio(audio);
-    
         audio.play().catch(err => {
-          console.error("Error playing example audio:", err);
-          setExampleAudio(null);
+            console.error('Error playing example audio:', err);
+            setExampleAudio(null);
         });
-
-        audio.onended = () => {
-            setExampleAudio(null); // cleanup
-        };
+        audio.onended = () => setExampleAudio(null);
     };
-      
+
       // Stop Example function (used by startRecording/repeatRecording)
     const stopExample = () => {
         if (exampleAudio) {
@@ -408,76 +523,62 @@ export const useVoiceRecorder = (options = {}) => {
                     const start = i * step;
                     const end = start + step;
                     let sum = 0;
-
-                for (let j = start; j < end && j < dataArray.length; j++) {
-                    sum += dataArray[j];
-                }
-
-                    const average = sum / step;
-                // Normalize to 0-100 range
-                const normalized = Math.min((average / 255) * 100, 100);
-                newLevels.push(normalized);
+                    for (let j = start; j < end && j < dataArray.length; j++) {
+                        sum += dataArray[j];
+                    }
+                    const normalized = Math.min((sum / step / 255) * 100, 100);
+                    newLevels.push(normalized);
                 }
                 levels = newLevels;
                 setAudioLevels(newLevels);
 
             } else {
-            // Fade out when not recording (PAUSED or IDLE after recording)
+                // Fade out when not recording.
                 const isFading = levels.some(level => level > 0);
-
                 if (isFading) {
-                levels = levels.map(level => Math.max(0, level - 5)); // Fade by 5 units per frame
+                    levels = levels.map(level => Math.max(0, level - 5));
                     setAudioLevels(levels);
                 } else if (statusRef.current === RECORDED) {
-                    return;
+                    return; // Stop the rAF loop once fully faded.
                 }
             }
-
             animationFrame.current = requestAnimationFrame(updateLevels);
         };
 
-        // Initial kick-off
         updateLevels();
 
         return () => {
-        if (animationFrame.current) {
-            cancelAnimationFrame(animationFrame.current);
-        }
+            if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
         };
-    }, [recordingStatus, RECORDING, RECORDED]);
+    }, [recordingStatus]); // RECORDING / RECORDED are module-level constants; removed from deps.
 
     // Cleanup effect
     useEffect(() => {
         return () => {
-        // audioURLRef.current, not audioURL — audioURL is a stale closure value
-        // from when the effect was set up (always null with dep=[])
-        if (audioURLRef.current) {
-            URL.revokeObjectURL(audioURLRef.current);
-        }
-        
-        if (animationFrame.current) {
-            cancelAnimationFrame(animationFrame.current);
-        }
+            // Use refs, not state, to avoid stale closure values captured at
+            // mount time (stream, audioURL are both null on first render).
+            if (audioURLRef.current) URL.revokeObjectURL(audioURLRef.current);
+            if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
 
-        if (audioContext.current) {
-            // Only close if it's not already closed
-            if (audioContext.current.state !== "closed") {
+            if (inputGainRef.current) {
+                inputGainRef.current.disconnect();
+                inputGainRef.current = null;
+            }
+
+            if (audioContext.current && audioContext.current.state !== 'closed') {
                 audioContext.current.close().catch(err => {
-                console.warn("AudioContext close failed:", err);
+                    console.warn('AudioContext close failed:', err);
                 });
-            }
-            audioContext.current = null; // reset ref
-            }
-
-            if (vizSourceRef.current) {
-                vizSourceRef.current.disconnect();
-                vizSourceRef.current = null;
+                audioContext.current = null;
             }
         };
     }, []);
 
     return {
-    // State
+        // State
         recordingStatus,
         permission,
         stream,
@@ -490,8 +591,9 @@ export const useVoiceRecorder = (options = {}) => {
         durationExpired,
         incompatibleBrowser,
         audioContext,
-    
-    // Actions
+        firstChunkTimeRef,
+
+        // Actions
         getMicrophonePermission,
         startRecording,
         pauseRecording,
@@ -500,15 +602,15 @@ export const useVoiceRecorder = (options = {}) => {
         repeatRecording,
         playExample,
         stopExample,
-    
-    // Utilities
+
+        // Utilities
         formatTime: (seconds) => {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         },
-    
-    // Constants
-        RECORDING_STATES: { IDLE, RECORDING, PAUSED, RECORDED }
+
+        // Constants
+        RECORDING_STATES: { IDLE, RECORDING, PAUSED, RECORDED },
     };
 };

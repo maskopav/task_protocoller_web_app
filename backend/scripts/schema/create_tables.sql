@@ -1,3 +1,9 @@
+CREATE TABLE `roles` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255) UNIQUE NOT NULL COMMENT 'master, admin',
+  `description` text
+);
+
 CREATE TABLE `users` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `email` varchar(255) UNIQUE NOT NULL,
@@ -10,13 +16,7 @@ CREATE TABLE `users` (
   `must_change_password` boolean NOT NULL DEFAULT true,
   `reset_password_token` varchar(255) DEFAULT NULL,
   `reset_password_expires` TIMESTAMP DEFAULT NULL
-);
-
-CREATE TABLE `roles` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `name` varchar(255) UNIQUE NOT NULL COMMENT 'master, admin',
-  `description` text
-);
+); 
 
 CREATE TABLE `user_projects` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
@@ -63,6 +63,14 @@ CREATE TABLE `project_protocols` (
   `access_token` char(64) UNIQUE DEFAULT NULL
 );
 
+CREATE TABLE `protocol_tasks` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `protocol_id` integer NOT NULL,
+  `task_id` integer NOT NULL,
+  `task_order` integer NOT NULL,
+  `params` JSON COMMENT 'Admin-defined overrides for duration, topic, phoneme, etc. vs each param as new column??'
+);
+
 CREATE TABLE `protocol_contents` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `protocol_id` integer NOT NULL,
@@ -72,14 +80,6 @@ CREATE TABLE `protocol_contents` (
   FOREIGN KEY (`protocol_id`) REFERENCES `protocols` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`) ON DELETE CASCADE,
   UNIQUE KEY `unique_task_content` (`protocol_id`, `protocol_task_id`, `content_type`)
-);
-
-CREATE TABLE `protocol_tasks` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `protocol_id` integer NOT NULL,
-  `task_id` integer NOT NULL,
-  `task_order` integer NOT NULL,
-  `params` JSON COMMENT 'Admin-defined overrides for duration, topic, phoneme, etc. vs each param as new column??'
 );
 
 CREATE TABLE `tasks` (
@@ -98,7 +98,8 @@ CREATE TABLE `task_types` (
 CREATE TABLE `languages` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `code` varchar(10) UNIQUE NOT NULL COMMENT 'e.g. en, cs, de',
-  `name` varchar(255) NOT NULL
+  `name` varchar(255) NOT NULL,
+  `native_name` varchar(255)
 );
 
 CREATE TABLE `participants` (
@@ -137,7 +138,7 @@ CREATE TABLE `sessions` (
   `completed` boolean DEFAULT false,
   `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
   `current_task_index` integer NOT NULL DEFAULT 1,
-  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE `session_environments` (

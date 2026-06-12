@@ -1,14 +1,16 @@
-@import "../Recorder/Recorder.css";
+/* =========================================
+   SDMTTask.css
+   ========================================= */
 @import "../../pages/Pages.css";
 
-/* Top Reference Key */
+/* ── Reference key (top symbol→digit grid) ───────────────────────── */
 .sdmt-reference-key {
     display: flex;
     width: 100%;
     border: 2px solid #000000;
     border-radius: 4px;
     background: #fff;
-    max-height: 12vh; 
+    max-height: 12vh;
 }
 
 .sdmt-key-item {
@@ -19,7 +21,7 @@
     flex: 1;
     border-right: 1px solid #9e9e9e;
     padding: 0;
-    min-width: 0; 
+    min-width: 0;
 }
 
 .sdmt-key-item:last-child {
@@ -29,9 +31,8 @@
 .sdmt-key-img {
     flex: 1;
     width: 100%;
-    /* 3. Scaled the height to visually match the font size below it */
-    max-height: clamp(27px, 4.7vh, 50px); 
-    max-width: clamp(27px, 4.7vh, 50px); 
+    max-height: clamp(27px, 4.7vh, 50px);
+    max-width: clamp(27px, 4.7vh, 50px);
     object-fit: contain;
     padding: 5px;
     box-sizing: border-box;
@@ -46,13 +47,12 @@
     font-size: clamp(1.5rem, 4.2vw, 1.7rem);
     font-weight: 500;
     color: #333;
-    /* 4. This creates the exact horizontal border you requested */
-    border-top: 1px solid #9e9e9e; 
+    border-top: 1px solid #9e9e9e;
     box-sizing: border-box;
     padding: 4px;
 }
 
-/* Center Area - Controls the gap between Ref Key and Keypad */
+/* ── Centre area (gap between ref key and keypad) ─────────────────── */
 .sdmt-center-area {
     margin: clamp(2px, 1dvh, 10px);
     display: flex;
@@ -65,14 +65,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: clamp(70px, 12dvh, 150px); 
-    height: clamp(70px, 12dvh, 150px); 
-    aspect-ratio: 1; 
+    width: clamp(70px, 12dvh, 150px);
+    height: clamp(70px, 12dvh, 150px);
+    aspect-ratio: 1;
 }
 
 .sdmt-active-symbol {
-    max-width: 55%; 
-    max-height: 55%; 
+    max-width: 55%;
+    max-height: 55%;
     object-fit: contain;
 }
 
@@ -81,22 +81,15 @@
     height: 55%;
 }
 
-/* Instructions */
-.sdmt-start-btn {
-    margin-top: 1rem;
-    padding: 0.75rem 3rem;
-    font-size: 1.25rem;
-}
-
-/* Orange Keypad (Bottom) */
+/* ── Keypad ───────────────────────────────────────────────────────── */
 .sdmt-keypad {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); 
+    grid-template-columns: repeat(3, 1fr);
     gap: clamp(4px, 1.2dvh, 8px);
     width: 100%;
     max-width: clamp(240px, 65vw, 300px);
     height: auto;
-    margin: 0 auto; 
+    margin: 0 auto;
     flex: 0 0 auto;
 }
 
@@ -113,10 +106,10 @@
     border: none;
     cursor: pointer;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
     transition: transform 0.1s ease, box-shadow 0.1s ease;
     user-select: none;
-    touch-action: manipulation; 
+    touch-action: manipulation;
 }
 
 .sdmt-keypad-btn:active {
@@ -124,15 +117,7 @@
     box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Footer & Timer */
-.sdmt-footer {
-    flex: 0 0 auto;
-    height: clamp(30px, 5vh, 50px);
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-}
-
+/* ── Timer ────────────────────────────────────────────────────────── */
 .sdmt-timer {
     font-size: clamp(1.4rem, 5.1vw, 2rem);
     font-weight: 600;
@@ -142,16 +127,17 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* ── Misc ─────────────────────────────────────────────────────────── */
 .btn-stop {
     background-color: var(--danger);
 }
 
-/* Animations */
+/* ── Animations ───────────────────────────────────────────────────── */
 .fade-scale-in {
     animation: fadeScale 0.15s ease-out forwards;
 }
 
 @keyframes fadeScale {
-    0% { opacity: 0; transform: scale(0.8); }
-    100% { opacity: 1; transform: scale(1); }
+    0%   { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1);   }
 }

@@ -150,6 +150,9 @@ export const useVadLogic = ({
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
                 const vadStream = stream.clone();
 
+                // convert milliseconds to frames (1 frame = ~30ms)
+                const msToFrames = (ms) => Math.ceil(ms / 30);
+
                 const newVadInstance = await window.vad.MicVAD.new({
                     stream: vadStream,
                     audioContext: audioContext?.current,
@@ -186,9 +189,9 @@ export const useVadLogic = ({
                     
                     positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold,
                     negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
-                    redemptionMs: activeVadConfig.redemptionMs,
-                    preSpeechPadMs: activeVadConfig.preSpeechPadMs,
-                    minSpeechMs: activeVadConfig.minSpeechMs,
+                    redemptionFrames: msToFrames(activeVadConfig.redemptionMs),
+                    preSpeechPadFrames: msToFrames(activeVadConfig.preSpeechPadMs),
+                    minSpeechFrames: msToFrames(activeVadConfig.minSpeechMs),
 
                     onFrameProcessed: (probs) => {
                         setSpeechProb(probs.isSpeech);
@@ -207,7 +210,7 @@ export const useVadLogic = ({
                         lastSpeechTimeRef.current = Date.now();
 
                         if (statusRef.current === RECORDING_STATES.RECORDING) {
-                            currentSpeechStart.current = Date.now();
+                            currentSpeechStart.current = Date.now() - activeVadConfig.preSpeechPadMs;
                         }
 
                         if (onVadSpeechStart) onVadSpeechStart();
@@ -225,14 +228,15 @@ export const useVadLogic = ({
                         lastSpeechTimeRef.current = Date.now();
 
                         if (statusRef.current === RECORDING_STATES.RECORDING && currentSpeechStart.current) {
+                            const trueEndTime = Date.now() - activeVadConfig.redemptionMs;
+                            
                             speechSegments.current.push({
                                 startTime: currentSpeechStart.current,
-                                endTime: Date.now(),
-                                durationMs: Date.now() - currentSpeechStart.current,
+                                endTime: trueEndTime,
+                                durationMs: trueEndTime - currentSpeechStart.current,
                             });
                             currentSpeechStart.current = null;
                         }
-
                         if (onVadSpeechEnd) onVadSpeechEnd();
                     },
                 });
