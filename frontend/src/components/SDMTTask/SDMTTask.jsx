@@ -44,6 +44,7 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                     title:    t("sdmt.demoTitle"),
                     message:  <SDMTDemoMessage />,
                     infoOnly: true,
+                    confirmText: t("buttons.gotIt", { ns: "common" })
                 });
             }
         };

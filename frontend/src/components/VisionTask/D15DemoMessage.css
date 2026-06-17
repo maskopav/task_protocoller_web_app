@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px; 
+  gap: 8px;
   width: 100%;
 }
 
@@ -23,7 +23,7 @@
 .d15-demo-colours-image {
   max-width: 100%;
   height: auto;
-  max-height: 100px; 
+  max-height: 100px;
   object-fit: contain;
   margin-bottom: clamp(1.5rem, 2.5vh, 2.5rem);
 }
@@ -34,49 +34,95 @@
   margin-top: -4px;
 }
 
-/* --- MECHANICS DIALOG (VERTICALLY STACKED) --- */
-.mechanics-layout {
-  flex-direction: column; /* Restored to vertical stacking */
-  align-items: center;
-  gap: 12px; /* Tight gap between the Add and Modify sections */
+/* --- MECHANICS STEP TABS (SEGMENTED CONTROL) --- */
+.mechanics-tabs {
+  display: flex;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+  box-sizing: border-box;
 }
 
+.mechanics-tab {
+  flex: 1;
+  padding: 6px 0px;
+  text-align: center;
+  font-size: clamp(0.93rem, 3.8dvw, 1.4rem);
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mechanics-tab:hover:not(.mechanics-tab--active) {
+  background: rgba(255, 255, 255, 0.4);
+  color: #475569;
+}
+
+.mechanics-tab:active:not(.mechanics-tab--active) {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.mechanics-tab--active {
+  background: var(--primary, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.35);
+  cursor: default;
+}
+
+/* --- MECHANICS SECTION (label + single GIF) --- */
 .mechanics-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px; /* Minimal space between the "Add:" title and the GIF */
+  gap: 8px;
   width: 100%;
 }
 
 /* --- GIF SIZING FOR NO-SCROLL --- */
+/* More height available now that only one GIF is shown per dialog. */
 .d15-demo-gif {
   width: auto;
-  max-width: 90%; 
-  max-height: 130px; /* Constraining height prevents vertical scrolling on phones */
+  max-width: 90%;
+  max-height: 180px;
   border-radius: 8px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-  object-fit: contain; /* Ensures the GIF scales down cleanly without distortion */
+  object-fit: contain;
+}
+
+/* --- TRIAL COMPLETE FEEDBACK --- */
+.success-icon-mask {
+  display: block;
+  width: clamp(50px, 10vw, 75px);
+  height: clamp(50px, 10vw, 75px);
+  background-color: var(--success, #28a745);
+  -webkit-mask-image: var(--icon-url);
+  mask-image: var(--icon-url);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  margin: 0 auto clamp(10px, 2vh, 20px) auto;
 }
 
 /* --- LANDSCAPE OPTIMIZATION --- */
 @media (orientation: landscape) and (max-height: 600px) {
-  /* Only if they turn the phone sideways do we put them side-by-side */
-  .mechanics-layout {
-    flex-direction: row; 
-    justify-content: space-evenly;
-    gap: 15px;
-  }
-  
-  .mechanics-section {
-    width: 48%;
-  }
-
   .d15-demo-gif {
-    max-height: 110px; /* Even shorter to fit narrow landscape viewports */
+    max-height: 120px;
   }
 
   .d15-demo-container {
     gap: 5px;
+  }
+
+  .mechanics-tabs {
+    width: 80%;   /* Don't stretch wall-to-wall on wide landscape viewports */
   }
 }

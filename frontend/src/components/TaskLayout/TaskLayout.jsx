@@ -89,12 +89,16 @@ export default function TaskLayout({
       {preHeader}
 
       <div className={cx('task-header', headerClassName)}>
-        {shouldRenderTitle && (
+        {shouldRenderTitle ? (
           <h1>
             {title}
             {tooltip}
           </h1>
-        )}
+        ) : tooltip ? (
+          <h1 className="task-header-tooltip-only">
+            {tooltip}
+          </h1>
+        ) : null}
 
         {showSpacer && <div className="flexible-spacer" />}
 

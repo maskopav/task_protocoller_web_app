@@ -47,9 +47,9 @@
   overflow-x: auto;
   align-items: center;
   justify-content: flex-start;
-  padding: 1px 1px 7px 1px;
+  padding: 1px 0px 7px 0px;
   background-color: transparent;
-  gap: clamp(6px, 1.2vw, 11px);
+  gap: clamp(6px, 1.1vw, 11px);
   width: max-content; /* shrink to fit the caps perfectly */
   max-width: 100%;    /* but never overflow the screen    */
   margin: 0 auto;     /* center the container itself      */

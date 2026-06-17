@@ -225,14 +225,21 @@
       "instructions": "<strong>1.</strong> Look at the last colour in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the colour from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colours.",
       "goalText": "Assemble caps to create smooth continuous sequence of colour.",
       "disclaimerText": "Even though you have vision problems, try to do your best.",
-      "addText": "<strong>Add colour:</strong> Tap a colour in the bottom pool.",
-      "modifyText": "<strong>Modify sequence:</strong> Tap a colour in the top row to remove it.",
-      "demoTitle": "How to do the task",
+      "addText": "Tap a colour in the bottom pool.",
+      "addGifAlt": "Adding colour",
+      "modifyText": "Tap a colour in the top row to remove it.",
+      "modifyGifAlt": "Modifying sequence",
+      "goalTitle": "Task goal",
+      "mechanicsTitle": "Instructions",
       "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colours.<br/><br/><strong>• Add a cap:</strong> Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
       "demoInstructions": "How to add colour: Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
+      "trialCompleteTitle": "Well done!",
+      "trialCompleteText": "Trial completed. Now the test will be more challenging.",
       "controls": {
         "reset": "Reset",
-        "submit": "Submit Result"
+        "submit": "Submit Result",
+        "addTabLabel": "Add colour",
+        "modifyTabLabel": "Modify sequence"
       },
       "params": {
         "version": {

@@ -5,31 +5,30 @@
 
 /* ── Reference key (top symbol→digit grid) ───────────────────────── */
 .sdmt-reference-key {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr); 
     width: 100%;
     border: 2px solid #000000;
     border-radius: 4px;
-    background: #fff;
+    background: #9e9e9e; /* This acts as the border color for the gaps */
+    gap: 1px;            /* This creates perfectly uniform 1px grid lines */
     max-height: 12vh;
+    box-sizing: border-box;
+    overflow: hidden;    /* Keeps the sharp corner radius intact */
 }
 
 .sdmt-key-item {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    /* Split the cell into two equal rows: one for image, one for number */
+    grid-template-rows: 1fr 1fr; 
     align-items: center;
-    justify-content: space-between;
-    flex: 1;
-    border-right: 1px solid #9e9e9e;
-    padding: 0;
+    justify-items: center;
+    background: #fff;    /* Fills the cell back to white */
     min-width: 0;
-}
-
-.sdmt-key-item:last-child {
-    border-right: none;
+    box-sizing: border-box;
 }
 
 .sdmt-key-img {
-    flex: 1;
     width: 100%;
     max-height: clamp(27px, 4.7vh, 50px);
     max-width: clamp(27px, 4.7vh, 50px);
@@ -39,17 +38,17 @@
 }
 
 .sdmt-key-number {
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
+    height: 100%;
     font-size: clamp(1.5rem, 4.2vw, 1.7rem);
     font-weight: 500;
     color: #333;
-    border-top: 1px solid #9e9e9e;
     box-sizing: border-box;
     padding: 4px;
+    border-top: 1px solid #9e9e9e; 
 }
 
 /* ── Centre area (gap between ref key and keypad) ─────────────────── */
