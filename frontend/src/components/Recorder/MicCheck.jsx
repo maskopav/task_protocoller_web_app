@@ -15,7 +15,7 @@ import { logToServer } from "../../utils/frontendLogger";
 // 1. CONFIGURATION & CONSTANTS
 // ==========================================
 const CONFIG = {
-  TARGET_SNR: 10,
+  TARGET_SNR: 9,
   RECORDING_DURATION: 12,
   VAD_PRECISION_CONFIG: {
     redemptionMs: 50,            // Cut off silence quickly after a word ends

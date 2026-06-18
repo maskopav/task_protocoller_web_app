@@ -39,6 +39,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
       title: t("d15colour.mechanicsTitle", { ns: "tasks" }),
       message: (
         <D15MechanicsMessage
+          key="mechanics-add"
           activeTab="add"
           onTabChange={(tab) => seenTabs.add(tab)}
         />

@@ -301,3 +301,27 @@
     max-width: 100%;
   }
 }
+
+/* ── Shifted-timer size overrides (reading task) ──────────────────── */
+.recording-area.is-shifted .timer-core,
+.recording-area.is-shifted .intensity-circle,
+.recording-area.is-shifted .timer-circle {
+  width:  clamp(44px, min(16vw, 9dvh), 80px);
+  height: clamp(44px, min(16vw, 9dvh), 80px);
+}
+
+/* Scale down the mic icon proportionally */
+.recording-area.is-shifted .mic-icon-display {
+  width:  clamp(26px, 8vw, 46px);
+  height: clamp(26px, 8vw, 46px);
+}
+
+/* Timer digit font — needs to fit the smaller disc */
+.recording-area.is-shifted .timer-display {
+  font-size: clamp(0.95rem, min(5dvw, 6dvh), 1.4rem);
+}
+
+/* Remove the extra wrapper padding added by the mobile @media rule */
+.recording-area.is-shifted .timer-wrapper {
+  padding: 0;
+}

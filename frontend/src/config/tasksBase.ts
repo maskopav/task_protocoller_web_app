@@ -77,7 +77,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     type: "voice",
     recording: { mode: "basicStop" },
     params: {
-      topic: { default: "seedling" },
+      topic: { default: "northWind" },
       repeat: { default: 1 },
       minDuration: { default: 0 },
       maxDuration: { default: 150 },
