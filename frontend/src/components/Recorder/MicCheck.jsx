@@ -7,7 +7,6 @@ import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
-import { uploadMicCheck } from "../../api/recordings";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logToServer } from "../../utils/frontendLogger";
 
@@ -135,12 +134,13 @@ function useMicCheckInstructions() {
 // ==========================================
 // 3. MAIN COMPONENT
 // ==========================================
-export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
+export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [errorType, setErrorType] = useState(null);
+  const [finalMicData, setFinalMicData] = useState(null);
 
   const { 
     currentInstructions, forceTimerActive, handleRecordingStateChange, 
@@ -222,20 +222,22 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
     setErrorType(evaluatedError);
     setAttempts(prev => prev + 1);
 
-    try {
-      if (sessionId && token && audioBlob) {
-        await uploadMicCheck(audioBlob, {
-          sessionId,
-          token,
-          snrScore: calculatedScore,
-          duration: CONFIG.RECORDING_DURATION,
-          speechSegments: taskData.speechSegments
-        });
-      } else {
-        console.warn("Skipping mic check upload: sessionId or token missing.");
-      }
-    } catch (uploadError) {
-      logToServer("MicCheck Data Upload Failed", uploadError);
+    // Bundle the data for this specific recording
+    const attemptData = {
+      audioBlob: audioBlob, 
+      snrScore: calculatedScore,
+      duration: CONFIG.RECORDING_DURATION,
+      speechSegments: taskData.speechSegments,
+      timestamp: Date.now()
+    };
+
+    // Split logic: Is it a failure or a success?
+    if (evaluatedError) {
+      // FAILED: Save it immediately using the new prop
+      if (onSaveAttempt) onSaveAttempt(attemptData);
+    } else {
+      // SUCCESS: Save it to state so we can pass it when they click 'Proceed'
+      setFinalMicData(attemptData);
     }
 
     if (safeAudioUrl) {
@@ -301,7 +303,7 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
     );
   }
 
-  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => setPhase('noise'), t, onLogEvent);
+  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => setPhase('noise'), t, onLogEvent, finalMicData);
   if (!uiState) return null;
 
   return (
@@ -339,7 +341,13 @@ export default function MicCheck({ onNext, sessionId, token, onLogEvent }) {
             {uiState.btnText}
           </button>
           {phase === 'noise-failed' && attempts >= 2 && (
-              <button className="btn-secondary" onClick={onNext}>
+              <button 
+                className="btn-secondary" 
+                onClick={() => {
+                  if (onLogEvent) onLogEvent("button_skip_mic_check");
+                  onNext({ skipped: true, attempts: attempts }); 
+                }}
+              >
                 {t("micCheck.btnProceed")}
               </button>
           )}
@@ -430,7 +438,7 @@ function PermissionGuide({ onRetry, errorType }) {
 // ==========================================
 // 5. UTILITIES
 // ==========================================
-function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onLogEvent) {
+function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onLogEvent, finalMicData) {
   const common = { 
     onBtnClick: () => {
       if (onLogEvent) onLogEvent("button_repeat", { previous_error: errorType });
@@ -495,7 +503,7 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
       btnText: <Trans i18nKey="micCheck.btnProceed" />,
       onBtnClick: () => {
         if (onLogEvent) onLogEvent("button_proceed");
-        onNext();
+        onNext(finalMicData); 
       },
       isSuccess: true
     };
