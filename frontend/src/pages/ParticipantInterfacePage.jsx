@@ -15,13 +15,23 @@ import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroCompon
 import MicCheck from "../components/Recorder/MicCheck";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
-import { uploadRecording } from "../api/recordings";
+import { uploadRecording, uploadMicCheck } from "../api/recordings";
 import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
 import { useWakeLock } from "../hooks/useWakeLock";
 import "./Pages.css";
 import { logToServer } from "../utils/frontendLogger";
+import {
+  saveRecordingLocally,
+  getPendingRecordingsForSession,   // (or getPendingRecordings — same export)
+  markRecordingStatus,
+  deleteLocalRecording,
+} from '../utils/offlineStorage';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+
+const activeUploads = new Set();
+
 
 export default function ParticipantInterfacePage() {
   const { i18n, t } = useTranslation(["tasks", "common", "admin"]);
@@ -39,6 +49,7 @@ export default function ParticipantInterfacePage() {
   const [isRecordingActive, setIsRecordingActive] = useState(false);
 
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
+  const networkStatus = useNetworkStatus();
 
   useEffect(() => {
     if (startingTaskIndex > 0) {
@@ -197,6 +208,69 @@ export default function ParticipantInterfacePage() {
     };
   }, [isSessionActive, requestWakeLock, releaseWakeLock]);
 
+  // When the network comes back mid-session, retry every recording that is still
+  // sitting in IDB as 'pending'.
+  useEffect(() => {
+    if (networkStatus === 'offline' || !sessionId) return;
+
+    async function flushOnReconnect() {
+      try {
+        const pending = await getPendingRecordingsForSession(sessionId);
+        if (pending.length === 0) return;
+
+        logToServer(`[Reconnect Flush] Retrying ${pending.length} pending recording(s)`);
+
+        for (const record of pending) {
+          if (!navigator.onLine) break;
+          
+          if (activeUploads.has(record.id)) continue;
+          activeUploads.add(record.id);
+
+          try {
+            // 1. ROUTE THE API CALL (using record.metadata, NOT meta)
+            if (record.metadata.isSystemTask) {
+              // System tasks skip data upload
+            } else if (record.metadata.isMicCheck && record.metadata.isBlob) {
+              await uploadMicCheck(record.blob, record.metadata);
+            } else if (record.metadata.isBlob) {
+              await uploadRecording(record.blob, record.metadata);
+            } else {
+              await saveTaskResult({
+                sessionId: record.metadata.sessionId,
+                protocolTaskId: record.metadata.protocolTaskId,
+                repeat_index: record.metadata.repeatIndex || 1,
+                payload: record.metadata.payload                               
+              });
+            }
+
+            // 2. Safely remove from IndexedDB
+            await markRecordingStatus(record.id, 'uploaded');
+            await deleteLocalRecording(record.id);
+            
+            // 3. TRACK PROGRESS CAREFULLY (using record.metadata, NOT meta)
+            await trackProgress(sessionId, {
+              action: meta.progressAction,
+              protocolTaskId: meta.protocolTaskId,
+              ...(meta.isAttemptOnly  && { snrScore: meta.snrScore }),
+              ...(!meta.isAttemptOnly && !meta.isMicCheck && { taskIndex: meta.taskOrder }),
+            });
+            
+            logToServer(`[Reconnect Flush] task ${record.metadata.taskIndex} uploaded ✓`);
+          } catch (err) {
+            logToServer(`[Reconnect Flush] task ${record.metadata?.taskIndex} still failing: ${err.message}`);
+          } finally {
+            activeUploads.delete(record.id);
+          }
+        }
+      } catch (err) {
+        logToServer(`[Reconnect Flush] Error reading IDB: ${err.message}`);
+      }
+    }
+
+    flushOnReconnect();
+  }, [networkStatus, sessionId]);
+
+
   //  Central Logger Helper 
   const logInteraction = (action, extra = {}) => {
     if (!sessionId) return;
@@ -227,111 +301,122 @@ export default function ParticipantInterfacePage() {
   }, [taskIndex, runtimeTasks]);
 
   // --- Handle missing state (Refresh fallback) ---
+  // --- Stale State / Refresh Detection ---
+  // We use useState with an initializer function so this check runs EXACTLY ONCE on mount.
+  // This prevents infinite loops when the component re-renders during normal use.
+  const [isStaleRefresh] = useState(() => {
+    const currentLoad = location.state?.loadTimestamp;
+    const lastLoad = sessionStorage.getItem("lastLoadTimestamp");
+    return currentLoad && currentLoad.toString() === lastLoad;
+  });
+
+  const needsRedirect = !protocolData || isStaleRefresh;
+
   useEffect(() => {
-    if (!protocolData) {
+    if (needsRedirect) {
       const savedToken = localStorage.getItem("neuroSHARE_tokenId");
       
-      // --- DEBUG LOGGING ---
-      console.log(`[DEBUG - Page] State lost! Checking storage for token...`);
-      logToServer(`[DEBUG - Page] Found token in storage:`, savedToken);
-      // ---------------------
+      console.log(`[DEBUG - Page] State lost or stale refresh detected! Routing to Loader...`);
+      logToServer(`[DEBUG - Page] State lost or stale refresh detected! Routing to Loader...`);
 
       if (savedToken) {
-        logToServer("State lost due to refresh. Reloading via token to resume...");
-        navigate("/participant/" + savedToken, { replace: true });
+        // Force the app back to the Loader to fetch the single source of truth
+        navigate("/participant/" + savedToken, { replace: true, state: {} });
       } else {
-        console.warn(`[DEBUG - Page] No token found in storage! Sending to /not-found`);
-        logToServer(`[DEBUG - Page] No token found in storage! Sending to /not-found`);
         navigate('/not-found', { replace: true });
       }
+    } else if (location.state?.loadTimestamp) {
+      // Fresh load from the Loader — lock in the stamp!
+      sessionStorage.setItem("lastLoadTimestamp", location.state.loadTimestamp.toString());
     }
-  }, [protocolData, navigate]);
+  }, [needsRedirect, location.state?.loadTimestamp, navigate]);
 
-  // --- early return only after all hooks are declared
-  if (!protocolData) return <p>No protocol selected.</p>;
-  if (!langReady) return <p>Loading translations...</p>;
+  // --- Early returns ---
+  // Return a clean loading container so the user doesn't see broken UI while redirecting
+  if (needsRedirect || !protocolData) {
+    return <div className="app-container"><p>{t("loading", "Loading…")}</p></div>;
+  }
+  if (!langReady) {
+    return <div className="app-container"><p>{t("loading", "Loading translations…")}</p></div>;
+  }
 
-  // --- Handlers
-  async function handleTaskComplete(data) {
-    requestWakeLock();
-    
-    const currentTaskObj = runtimeTasks[taskIndex]; // The task definition
-    const nextTaskObj = runtimeTasks[taskIndex + 1];
-
-    // EXIT EARLY if it's just an onboarding step (no data to save to the DB yet)
-    if (currentTaskObj.type === "info" || currentTaskObj.type === "consent"|| currentTaskObj.type === "mic_check") {
-      logInteraction(`${currentTaskObj.type}_completed`);
-      setTaskIndex((i) => i + 1)
-      return;
-    }
-
+async function handleTaskComplete(data, isAttempt = false) {
+    const currentTaskObj = runtimeTasks[taskIndex];
+    const isSystemTask = ['info', 'consent'].includes(currentTaskObj.type);
+    const isMicCheck = currentTaskObj.type === 'mic_check';
+   
     if (testingMode || editingMode || !sessionId) {
-      console.log(" Testing mode: skipping database save.");
-      proceedToNext(); 
+      if (!isAttempt) proceedToNext();
       return;
     }
-      
+   
     try {
-      // 1. Identify the current task to get metadata
-      // The `data` object from Recorder comes with audioURL (blob url)
-      // We need to fetch the actual Blob from that URL to send it
       let blob = null;
-      if (data.audioURL) {
+      if (data?.audioBlob) {
+        blob = data.audioBlob;
+      } else if (data?.audioURL) {
         const response = await fetch(data.audioURL);
         blob = await response.blob();
       }
-
-      // Extract metadata
-      const paramValue = currentTaskObj.params?.[0] || "";
+   
+      const paramValue  = currentTaskObj.params?.[0] || '';
       const repeatIndex = currentTaskObj._repeatIndex || 1;
+      
+      const recordingId = `${sessionId}_task${taskIndex}${isAttempt ? `_attempt_${Date.now()}` : ''}`;
+   
+      const uploadMeta = {
+        token: accessToken,
+        sessionId,
+        taskIndex,
+        protocolTaskId: currentTaskObj.protocolTaskId ?? null,
+        taskCategory: currentTaskObj.category,
+        taskOrder: taskIndex + 1,
+        duration: data?.recordingTime || data?.duration || 0,
+        taskParam: paramValue,
+        repeatIndex,
+        timeStamp: data?.timestamp || Date.now(),
+        snrScore: data?.snrScore || null,
+        speechSegments: data?.speechSegments || null,
+        payload: (!blob && !isSystemTask && !isMicCheck) || (isMicCheck && !blob) ? data : null, 
+        progressAction: isAttempt    ? 'mic_check_attempt_saved'
+              : isSystemTask ? `${currentTaskObj.type}_completed`
+              : isMicCheck   ? 'mic_check_completed'
+              : 'task_saved',
+        isBlob: !!blob,
+        isSystemTask: isSystemTask,
+        isMicCheck: isMicCheck,
+        isAttemptOnly: isAttempt
+      };
 
-      // 2. Upload
-      if (blob && accessToken) {
-        await uploadRecording(blob, {
-          token: accessToken,
-          sessionId: sessionId,
-          protocolTaskId: currentTaskObj.protocolTaskId,
-          taskCategory: currentTaskObj.category,
-          taskOrder: taskIndex + 1, // Assumes taskIndex matches DB order
-          duration: data.recordingTime || 0,
-          taskParam: paramValue,
-          repeatIndex: repeatIndex,
-          timeStamp: data.timestamp
-        });
-      } else if (data) {
-        try {
-          await saveTaskResult({
-            sessionId: sessionId,
-            protocolTaskId: currentTaskObj.protocolTaskId,                
-            repeat_index: repeatIndex || 1,
-            payload: data                               
-          });
-        } catch (error) {
-          console.error("Failed to save JSON task result:", error);
-        }
+      if (isSystemTask) {
+        logInteraction(`${currentTaskObj.type}_completed`);
+        if (!isAttempt) proceedToNext();
+        return;
       }
-
-      // Log the "Save" action
-      logInteraction("task_saved");
-      proceedToNext();
-
+   
+      await saveRecordingLocally(recordingId, blob, uploadMeta);
+   
+      if (navigator.onLine) {
+        uploadInBackground(recordingId, blob, uploadMeta, sessionId, taskIndex);
+      }
+   
+      if (!isAttempt) {
+        proceedToNext();
+      }
+   
     } catch (err) {
-      console.error("Failed to save result:", err);
-      logToServer(`Failed to save result for task ${currentTaskObj.protocolTaskId} at index ${taskIndex + 1}: ${err.message}`);
-      // Optional: Show error to user or retry
+      console.error('handleTaskComplete error:', err);
+      logToServer(`Task save error at index ${taskIndex}: ${err.message}`);
+      if (!isAttempt) proceedToNext();
     }
 
-
-    // Helper function to handle progression and praise screen
     function proceedToNext() {
       if (taskIndex + 1 >= runtimeTasks.length) {
         trackProgress(sessionId, null, true);
-        setTaskIndex((i) => i + 1); // Move to completion screen
+        setTaskIndex((i) => i + 1); 
         return;
       }
-    
       const { showOverlay, category } = checkCompletionOverlay(runtimeTasks, taskIndex, randomStrategy);
-    
       if (showOverlay) {
         setCompletedCategory(category);
         setShowPraise(true);
@@ -396,7 +481,15 @@ export default function ParticipantInterfacePage() {
 
     // Render the Mic Check component
     if (rawTask.type === "mic_check") {
-      return <MicCheck onNext={() => handleTaskComplete({ type: 'mic_check' })} sessionId={sessionId} token={accessToken} onLogEvent={logInteraction}/>;
+      return (
+        <MicCheck 
+          onNext={(data) => handleTaskComplete(data, false)} 
+          onSaveAttempt={(data) => handleTaskComplete(data, true)} 
+          sessionId={sessionId} 
+          token={accessToken} 
+          onLogEvent={logInteraction}
+        />
+      );
     }
 
     const currentTask = resolveTask(rawTask, t);
@@ -555,4 +648,45 @@ export default function ParticipantInterfacePage() {
       </div>
     </div>
   );
+}
+
+// Handles the upload, the two-step IDB deletion, and the server progress update.
+// Defined outside the component so it is stable and never recreated on render.
+//
+async function uploadInBackground(recordingId, blob, meta, sessionId, taskIndex) {
+  if (activeUploads.has(recordingId)) return;
+  activeUploads.add(recordingId);
+
+  try {
+    if (meta.isSystemTask) {
+      // Do nothing API-wise
+    } else if (meta.isMicCheck && meta.isBlob) {
+      await uploadMicCheck(blob, meta);
+    } else if (meta.isBlob) {
+      await uploadRecording(blob, meta);
+    } else {
+      await saveTaskResult({
+        sessionId: meta.sessionId,
+        protocolTaskId: meta.protocolTaskId,
+        repeat_index: meta.repeatIndex || 1,
+        payload: meta.payload                               
+      });
+    }
+ 
+    await markRecordingStatus(recordingId, 'uploaded');
+    await deleteLocalRecording(recordingId);
+ 
+    await trackProgress(sessionId, {
+      action: meta.progressAction,
+      protocolTaskId: meta.protocolTaskId,
+      ...(meta.isAttemptOnly  && { snrScore: meta.snrScore }),
+      ...(!meta.isAttemptOnly && !meta.isMicCheck && { taskIndex: meta.taskOrder }),
+    });
+    logToServer(`[BG Upload] task ${taskIndex} uploaded and removed from IDB ✓`);
+ 
+  } catch (err) {
+    logToServer(`[BG Upload] task ${taskIndex} failed (kept in IDB for retry): ${err.message}`);
+  } finally {
+    activeUploads.delete(recordingId);
+  }
 }
