@@ -57,12 +57,13 @@ export default function ParticipantInterfacePage() {
     }
   }, [startingTaskIndex]);
 
-  // Show a brief "Welcome back" banner if resumed
-  const [showResumedToast, setShowResumedToast] = useState(isResumed);
-
   // Add state for the completionoverlay
   const [showPraise, setShowPraise] = useState(false);
   const [completedCategory, setCompletedCategory] = useState(null);
+
+  // Tracks recordings sitting in IDB that have not yet reached the server.
+  // Drives the "still uploading" banner on the CompletionScreen.
+  const [pendingUploadCount, setPendingUploadCount] = useState(null);
 
   // Add a Ref to track the last logged task 
   // We initialize it to -1 so that index 0 is always logged the first time.
@@ -76,8 +77,6 @@ export default function ParticipantInterfacePage() {
   // Extract language info to know if we should show the button
   const availableLanguages = protocolData?.available_languages || [];
   const hasMultipleLanguages = availableLanguages.length > 1;
-  // For saving recordings in the future.....
-  const participant = location.state?.participant;
   const accessToken = location.state?.token;
   const sessionId = location.state?.sessionId;
 
@@ -249,10 +248,10 @@ export default function ParticipantInterfacePage() {
             
             // 3. TRACK PROGRESS CAREFULLY (using record.metadata, NOT meta)
             await trackProgress(sessionId, {
-              action: meta.progressAction,
-              protocolTaskId: meta.protocolTaskId,
-              ...(meta.isAttemptOnly  && { snrScore: meta.snrScore }),
-              ...(!meta.isAttemptOnly && !meta.isMicCheck && { taskIndex: meta.taskOrder }),
+              action: record.metadata.progressAction,
+              protocolTaskId: record.metadata.protocolTaskId,
+              ...(record.metadata.isAttemptOnly  && { snrScore: record.metadata.snrScore }),
+              ...(!record.metadata.isAttemptOnly && !record.metadata.isMicCheck && { taskIndex: record.metadata.taskOrder }),
             });
             
             logToServer(`[Reconnect Flush] task ${record.metadata.taskIndex} uploaded ✓`);
@@ -269,6 +268,31 @@ export default function ParticipantInterfacePage() {
 
     flushOnReconnect();
   }, [networkStatus, sessionId]);
+
+  // Poll IDB while the CompletionScreen is visible so the participant sees live
+  // upload status and we know when it is safe to clear the localStorage token.
+  const isOnCompletionScreen = taskIndex >= runtimeTasks.length && runtimeTasks.length > 0;
+  useEffect(() => {
+    if (!isOnCompletionScreen || !sessionId) return;
+
+    async function checkPending() {
+      try {
+        const pending = await getPendingRecordingsForSession(sessionId);
+        setPendingUploadCount(pending.length);
+
+        if (pending.length === 0) {
+          // All data is on the server — safe to drop the token now.
+          localStorage.removeItem("neuroSHARE_tokenId");
+        }
+      } catch {
+        // Silently ignore IDB read errors here; data is not lost.
+      }
+    }
+
+    checkPending();                              // Check immediately on mount/change
+    const interval = setInterval(checkPending, 3_000); // Then every 3 s
+    return () => clearInterval(interval);
+  }, [isOnCompletionScreen, sessionId, networkStatus]); // Re-run when network returns
 
 
   //  Central Logger Helper 
@@ -333,14 +357,14 @@ export default function ParticipantInterfacePage() {
 
   // --- Early returns ---
   // Return a clean loading container so the user doesn't see broken UI while redirecting
-  if (needsRedirect || !protocolData) {
+  if (needsRedirect) {
     return <div className="app-container"><p>{t("loading", "Loading…")}</p></div>;
   }
   if (!langReady) {
     return <div className="app-container"><p>{t("loading", "Loading translations…")}</p></div>;
   }
 
-async function handleTaskComplete(data, isAttempt = false) {
+  async function handleTaskComplete(data, isAttempt = false) {
     const currentTaskObj = runtimeTasks[taskIndex];
     const isSystemTask = ['info', 'consent'].includes(currentTaskObj.type);
     const isMicCheck = currentTaskObj.type === 'mic_check';
@@ -458,13 +482,15 @@ async function handleTaskComplete(data, isAttempt = false) {
   }
 
   const renderCurrentTask = () => {
-    const rawTask = runtimeTasks[taskIndex];
-      if (!rawTask) {
-        localStorage.removeItem("neuroSHARE_tokenId"); // Clear token from localStorage once we're in the interface
-       return (
-        <CompletionScreen 
+    if (!rawTask) {
+      // Token removal is handled by the polling effect once IDB is confirmed empty —
+      // do NOT remove it here, or a refresh mid-upload breaks the self-heal path.
+      return (
+        <CompletionScreen
           testingMode={testingMode}
           onBack={handleBack}
+          pendingUploadCount={pendingUploadCount}
+          networkStatus={networkStatus}
         />
       );
     }
@@ -491,8 +517,6 @@ async function handleTaskComplete(data, isAttempt = false) {
         />
       );
     }
-
-    const currentTask = resolveTask(rawTask, t);
 
     // Render Voice Task
     if (currentTask.type === "voice" || currentTask.type === 'camera')

@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import { doneCheckmarkIcon } from "../../assets/successIcons/successAssets";
 import "./CompletionScreen.css"; 
 
-export default function CompletionScreen({ testingMode, onBack }) {
+export default function CompletionScreen({ testingMode, onBack, pendingUploadCount, networkStatus }) {
+  const isOffline   = networkStatus === 'offline';
+  const hasPending  = pendingUploadCount > 0;
+
   const { t } = useTranslation(["common", "admin"]);
 
   useEffect(() => {
@@ -26,8 +29,21 @@ export default function CompletionScreen({ testingMode, onBack }) {
         
         {/* Safety instructions */}
         <div className="instruction-box">
-          <p className="completion-message">{t("completion.thankYouMessage")}</p>
-          <p className="completion-message">{t("completion.safeToClose")}</p>
+          {pendingUploadCount === null ? null /* first-render check in progress */ : (
+            <div className={`upload-status-banner upload-status-banner--${hasPending ? "pending" : "done"}`}>
+              {hasPending && isOffline ? (
+                <>
+                  <p><strong>{t("completion.offlineNoConnection")}</strong></p>
+                  <p>{t("completion.offlineDataSafe")}</p>
+                  <p>{t("completion.offlineReturnHint")}</p>
+                </>
+              ) : hasPending ? (
+                <p>{t("completion.uploading")}</p>
+              ) : (
+                <p>{t("completion.safeToClose")}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* For Admin Testing Mode */}

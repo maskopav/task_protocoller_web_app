@@ -31,14 +31,18 @@
       "recorded": "Recorded"
     },
     "languageSelector": {
-      "title": "neuroSHARE remote assessment",
+      "title": "neuroSHARE",
       "languageWarning": "Please select the language you speak most fluently, preferably your native language."    
     },
     "completion": {
       "taskCompletedInstructions": "Task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",
-      "thankYouTitle": "Testing Complete!",
-      "thankYouMessage": "Thank you for your participation. Your data has been successfully recorded and saved.",
-      "safeToClose": "You may now safely close this browser window.",
+      "thankYouTitle": "Thank You!",
+      "thankYouMessage": "Thank you for taking part in this study.",
+      "safeToClose": "All responses have been submitted. You may now close this window.",
+      "uploading": "Uploading your responses — please keep this page open.",
+      "offlineNoConnection": "No internet connection detected.",
+      "offlineDataSafe": "Your responses are saved on this device. Keep this page open and they will upload automatically when your connection returns.",
+      "offlineReturnHint": "If you need to leave, open this link again in the same browser — your data will be submitted automatically.",
       "completedModule": ": module completed!",
       "finished": "completed!",
       "praises": [
