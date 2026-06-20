@@ -142,7 +142,10 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                     <button className="btn-reset" onClick={resetGame}>
                         {t("buttons.repeat", { ns: "common" })}
                     </button>
-                    <NextTaskButton onClick={onComplete} />
+                    <NextTaskButton onClick={() => onComplete({
+                        result: results,
+                        timestamp: new Date().toISOString()
+                    })} />
                 </>
             )}
         </>
