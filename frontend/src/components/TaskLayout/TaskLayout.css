@@ -6,7 +6,7 @@
   align-items: center;
   flex: 1 1 0%;
   width: 100%;
-  min-height: 0; 
+  min-height: 0;           
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -40,7 +40,7 @@
   transition: flex-basis 0.5s ease-in-out;
 }
 
-/* Shrink the spacer while actively recording (less breathing room needed) */
+/* Shrink the spacer while actively recording */
 .status-recording .flexible-spacer,
 .status-paused .flexible-spacer {
   flex-basis: clamp(4px, 1dvh, 8px);
@@ -48,12 +48,12 @@
 
 /* ── Instruction card ─────────────────────────────────────────────── */
 .instruction-card {
-  flex: 0 1 auto;          
+  flex: 0 1 auto;           /* can compress under pressure (was implicitly 0 0 auto) */
   background-color: #ffffff;
   color: #000000;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  margin: 0 clamp(10px, 2vw, 20px) clamp(6px, 2dvh, 18px); 
+  margin: 0 clamp(10px, 2vw, 20px) clamp(6px, 2dvh, 18px);
   border: 3px solid transparent;
   transition: all 0.3s ease;
 }
@@ -111,7 +111,7 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: 0;            
+  min-height: 0;           
   padding-top: clamp(5px, 1.5dvh, 15px);
   padding-bottom: clamp(8px, 2dvh, 15px);
   min-height: clamp(50px, 18dvh, 140px);
@@ -146,4 +146,22 @@
   flex: 0 0 auto;
   padding-bottom: max(env(safe-area-inset-bottom, 0px), clamp(10px, 2.5dvh, 24px));
   margin-bottom: 0;
+}
+
+.task-header:has(.instruction-card.no-title) {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+
+.instruction-card.no-title {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.task-header:has(.instruction-card.no-title) ~ .recording-area {
+  flex: 0 0 auto;
+  min-height: 0 !important;
+  padding: 0;
 }

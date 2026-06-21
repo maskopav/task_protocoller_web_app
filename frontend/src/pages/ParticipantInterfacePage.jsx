@@ -29,6 +29,8 @@ import {
   deleteLocalRecording,
 } from '../utils/offlineStorage';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { getInstructionAudioPath } from '../utils/getInstructionAudioPath';
+import { TaskAudioProvider } from '../context/TaskAudioContext';
 
 const activeUploads = new Set();
 
@@ -122,6 +124,7 @@ export default function ParticipantInterfacePage() {
       sessionStorage.removeItem("justSwitchedLanguage"); 
     }
   }, []); 
+
 
   // Generate runtime tasks + inject Questionnaire if present from the selected protocol
   const runtimeTasks = useMemo(() => {
@@ -355,8 +358,33 @@ export default function ParticipantInterfacePage() {
     }
   }, [needsRedirect, location.state?.loadTimestamp, navigate]);
 
+  // Define your tasks and audio hook FIRST
+  const rawTask = runtimeTasks[taskIndex];
+  
+  let currentTask = null;
+  let isReadingTask = false;
+
+  if (rawTask && !['info', 'consent', 'mic_check'].includes(rawTask.type)) {
+     currentTask = resolveTask(rawTask, t);
+     isReadingTask = currentTask?.category === 'reading'; 
+  }
+
+  const audioSrc = useMemo(() => {
+    if (!currentTask) return null;
+
+    const taskName = currentTask.category; 
+    const repeatIndex = currentTask.repeatIndex || 1; 
+    const taskParams = currentTask.params || {};
+
+    return getInstructionAudioPath(
+      taskName,
+      taskParams, 
+      repeatIndex,
+      i18n.language
+    );
+  }, [currentTask, i18n.language]);
+
   // --- Early returns ---
-  // Return a clean loading container so the user doesn't see broken UI while redirecting
   if (needsRedirect) {
     return <div className="app-container"><p>{t("loading", "Loading…")}</p></div>;
   }
@@ -470,17 +498,6 @@ export default function ParticipantInterfacePage() {
 
   const handleSkip = () => setTaskIndex((i) => Math.min(i + 1, runtimeTasks.length));
 
-  const rawTask = runtimeTasks[taskIndex];
-  
-  // Try to resolve the current task if it exists and isn't a special screen (info/consent/mic_check)
-  let currentTask = null;
-  let isReadingTask = false;
-
-  if (rawTask && !['info', 'consent', 'mic_check'].includes(rawTask.type)) {
-     currentTask = resolveTask(rawTask, t);
-     isReadingTask = currentTask?.category === 'reading'; 
-  }
-
   const renderCurrentTask = () => {
     if (!rawTask) {
       // Token removal is handled by the polling effect once IDB is confirmed empty —
@@ -581,8 +598,6 @@ export default function ParticipantInterfacePage() {
       );
     }
 
-
-
     return <p>Unknown task type: {currentTask.type}</p>;
   };
 
@@ -665,9 +680,11 @@ export default function ParticipantInterfacePage() {
             <div className="task-header-right"></div>
 
           </div>
-          
-          {/* Task Content */}
-          {renderCurrentTask()}
+
+          <TaskAudioProvider src={audioSrc}>
+            {/* Task Content */}
+            {renderCurrentTask()}
+          </TaskAudioProvider>
         </div>
       </div>
     </div>
