@@ -369,8 +369,10 @@ export default function ParticipantInterfacePage() {
      isReadingTask = currentTask?.category === 'reading'; 
   }
 
+  const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
+
   const audioSrc = useMemo(() => {
-    if (!currentTask) return null;
+    if (!currentTask || !useAudioInstructions) return null;
 
     const taskName = currentTask.category; 
     const repeatIndex = currentTask.repeatIndex || 1; 
@@ -382,7 +384,7 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [currentTask, i18n.language]);
+  }, [currentTask, i18n.language, useAudioInstructions]);
 
   // --- Early returns ---
   if (needsRedirect) {

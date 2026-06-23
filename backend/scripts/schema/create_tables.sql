@@ -53,7 +53,8 @@ CREATE TABLE `protocols` (
   `created_by` integer,
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_by` integer,
-  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }'
+  `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
+  `use_audio_instructions` BOOLEAN NOT NULL DEFAULT true
 );
 
 CREATE TABLE `project_protocols` (

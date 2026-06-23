@@ -78,6 +78,11 @@ export default function ProtocolForm({
     }));
   };
 
+  const handleAudioInstructionsChange = (e) => {
+    const checked = e.target.checked;
+    setProtocolData((prev) => ({ ...prev, use_audio_instructions: checked }));
+  };
+
   // Helper to check if Quill content is truly empty
   const isQuillEmpty = (content) => {
     if (!content) return true;
@@ -135,6 +140,17 @@ export default function ProtocolForm({
               editingMode={editingMode}
             />
 
+            <div className="protocol-field checkbox-field" style={{ marginTop: '10px' }}>
+              <label className="checkbox-option">
+                <input 
+                  type="checkbox" 
+                  checked={protocolData?.use_audio_instructions ?? true} 
+                  onChange={handleAudioInstructionsChange}
+                  disabled={reorderMode}
+                />
+                <span>{t("protocolEditor.useAudioInstructions", "Audio Instructions")}</span>
+              </label>
+            </div>
 
             <div className="protocol-pages-row">
               {/* Info Page Logic */}
