@@ -235,6 +235,10 @@
       "demoInstructions": "How to add colour: Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
       "trialCompleteTitle": "Well done!",
       "trialCompleteText": "Trial completed. Now the test will be more challenging.",
+      "timeoutTitle": "Ready to move on?",
+      "timeoutText": "It's okay to stop here. Would you like to submit your current sequence?",
+      "timeoutSubmit": "Submit",
+      "timeoutContinue": "Keep going",
       "controls": {
         "reset": "Reset",
         "submit": "Submit Result",
@@ -270,6 +274,9 @@
             "after": "After completion",
             "always": "Always (Debug/Demo)"
           }
+        },
+        "maxDuration": {
+          "label": "Max Duration (s)"
         }
       }
     },

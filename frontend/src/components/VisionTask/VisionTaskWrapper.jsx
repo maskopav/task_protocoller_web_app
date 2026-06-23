@@ -85,6 +85,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
     const finalData = {
       version: task?.params?.version || "desaturated",
       environmentSettings: environmentData,
+      completionStatus:    testResults.completionStatus || "completed", 
       metrics: testResults.metrics,
       events: testResults.events,
       resultIndices: testResults.result,

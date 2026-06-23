@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { loadAndComputeD15Colors } from "../../utils/munsellUtils";
 import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import D15DemoMessage from "./D15DemoMessage";
 import { D15MechanicsMessage } from "./D15DemoMessage";
 import TaskLayout from "../TaskLayout/TaskLayout";
+import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
 import "./D15Test.css";
 
 export default function D15Test({ task, onNextTask }) {
   const { t } = useTranslation("tasks");
+  const { confirm } = useContext(ConfirmDialogContext);
 
   const [d15Colors, setD15Colors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,10 +21,19 @@ export default function D15Test({ task, onNextTask }) {
   const [shuffledCaps, setShuffledCaps] = useState([]);
 
   const trayRef = useRef(null);
+  const timeoutRef   = useRef(null);
+
+  // Mirrors of tray/events for use inside the async timeout (avoids stale closure)
+  const latestTrayRef   = useRef(tray);
+  const latestEventsRef = useRef(events);
 
   const version    = task?.params?.version   || "desaturated";
   const randomize  = task?.params?.randomize ?? true;
   const showNumbers = task?.params?.showNumbers || "never";
+  const maxDuration  = task?.params?.maxDuration ?? null; 
+
+  useEffect(() => { latestTrayRef.current   = tray;   }, [tray]);
+  useEffect(() => { latestEventsRef.current = events; }, [events]);
 
   // ── Fetch and compute colours on mount ──────────────────────────────
   useEffect(() => {
@@ -89,6 +100,42 @@ export default function D15Test({ task, onNextTask }) {
     }
   }, [tray, isLoading]);
 
+  // ── maxDuration timeout ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!maxDuration || !startTime) return;
+
+    timeoutRef.current = setTimeout(async () => {
+      const shouldSkip = await confirm({
+        title:       t("d15colour.timeoutTitle"),
+        message:     t("d15colour.timeoutText"),
+        confirmText: t("d15colour.timeoutSubmit"),
+        cancelText:  t("d15colour.timeoutContinue"),
+        infoOnly: false,
+      });
+
+      if (shouldSkip) {
+        const currentTray   = latestTrayRef.current;
+        const currentEvents = latestEventsRef.current;
+        const endTime       = Date.now();
+        onNextTask({
+          result: currentTray.map(c => d15Colors.indexOf(c)),
+          events: currentEvents,
+          completionStatus: "timed_out",
+          metrics: {
+            totalDurationMs: endTime - startTime,
+            totalMoves:  currentEvents.filter(e => e.action === "place").length,
+            totalUndos:  currentEvents.filter(e => e.action === "undo").length,
+            totalResets: currentEvents.filter(e => e.action === "reset").length,
+          },
+          timestamp: new Date(endTime).toISOString(),
+        });
+      }
+      // "Keep going" → promise resolves false, we do nothing
+    }, maxDuration * 1000);
+
+    return () => clearTimeout(timeoutRef.current);
+  }, [startTime, maxDuration]); // intentionally omit tray/events — using refs instead
+
   // ── Interaction handlers ─────────────────────────────────────────────
   const handleSelect = (color) => {
     if (isSubmitted || tray.includes(color)) return;
@@ -137,11 +184,13 @@ export default function D15Test({ task, onNextTask }) {
       setIsSubmitted(true);
       return;
     }
+    clearTimeout(timeoutRef.current);  
 
     const endTime = Date.now();
     onNextTask({
       result:  tray.map(c => d15Colors.indexOf(c)),
       events,
+      completionStatus: "completed", 
       metrics: {
         totalDurationMs: endTime - startTime,
         totalMoves:  events.filter(e => e.action === "place").length,
