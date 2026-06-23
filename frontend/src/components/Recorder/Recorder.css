@@ -325,3 +325,7 @@
 .recording-area.is-shifted .timer-wrapper {
   padding: 0;
 }
+
+.recording-area.is-shifted {
+  overflow: hidden;
+}

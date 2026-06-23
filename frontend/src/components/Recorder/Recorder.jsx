@@ -52,7 +52,12 @@ export const Recorder = ({
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
-    const [phase, setPhase] = useState(isVideoEnabled ? 'SETUP' : 'RECORDING');
+    // Always start at RECORDING so task instructions + Start button are shown first.
+    // For video tasks, calibration is triggered by the Start button, not on mount.
+    const [phase, setPhase] = useState('RECORDING');
+    // Tracks whether the user has completed calibration at least once this session.
+    // Prevents the PiP viewfinder from appearing before calibration has happened.
+    const [videoCalibrated, setVideoCalibrated] = useState(false);
 
     // ── Dynamic task detection ───────────────────────────────────────────
     const rawArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
@@ -166,10 +171,12 @@ export const Recorder = ({
     const handleStart = () => {
         onLogEvent("button_start");
         resetSpeechTrackers();
-        startAudioRecording();
         if (isVideoEnabled) {
-            videoRecorder.startRecording();
-            setPhase('RECORDING');
+            // Defer actual recording until calibration completes.
+            // VideoViewFinder auto-triggers the setup instructions dialog on SETUP mount.
+            setPhase('SETUP');
+        } else {
+            startAudioRecording();
         }
     };
 
@@ -185,7 +192,25 @@ export const Recorder = ({
         clearSpeechSegments();
         resetSpeechTrackers();
         repeatRecording();
-        if (isVideoEnabled) setPhase('SETUP');
+        if (isVideoEnabled) {
+            // Silently check whether the camera position is still valid.
+            // Face detection keeps running after stopRecording(), so these values are live.
+            const stillCalibrated =
+                videoRecorder.isSteady &&
+                videoRecorder.isFaceCorrect &&
+                !videoRecorder.isLoadingModel;
+
+            if (stillCalibrated) {
+                // Nothing has moved — skip calibration and restart directly.
+                // videoCalibrated stays true so the PiP viewfinder remains visible.
+                startAudioRecording();
+                videoRecorder.startRecording();
+            } else {
+                // Position/face lost — send the user back through setup.
+                setVideoCalibrated(false);
+                setPhase('RECORDING');   // shows task instructions + Start button
+            }
+        }
     };
 
     const handleToggleExample = () => {
@@ -265,8 +290,12 @@ export const Recorder = ({
     };
 
     // Finish Video Calibration (Passed to VideoViewFinder)
+    // This is the real "start" for video tasks — both recorders kick off here.
     const handleFinishCalibration = () => {
+        setVideoCalibrated(true);
         setPhase('RECORDING');
+        startAudioRecording();
+        videoRecorder.startRecording();
     };
 
     // ── Instruction parsing ───────────────────────────────────────────────
@@ -399,14 +428,16 @@ export const Recorder = ({
     // main slot: video viewfinder (setup/calibrate) OR live timer (recording, non-shifted)
     const mainContent = (
         <>
-            {/* VideoViewfinder: shown during setup / calibration / idle pre-start */}
+            {/* VideoViewfinder:
+                  SETUP / CALIBRATE  → full-screen calibration UI
+                  RECORDING + videoCalibrated → PiP overlay during the task
+                  RECORDING + !videoCalibrated → hidden (task instructions + Start button shown instead) */}
             {isVideoEnabled && (
                 (phase === 'SETUP' || phase === 'CALIBRATE' ||
-                (phase === 'RECORDING' && recordingStatus === RECORDING_STATES.IDLE)) ? (
+                (phase === 'RECORDING' && videoCalibrated)) ? (
                     <VideoViewFinder
                         phase={phase} 
                         videoRecorder={videoRecorder} 
-                        /* Pass isRecording true only if the task has actually started recording */
                         isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
                         onStartCalibration={handleStartCalibration}
                         onFinishCalibration={handleFinishCalibration}

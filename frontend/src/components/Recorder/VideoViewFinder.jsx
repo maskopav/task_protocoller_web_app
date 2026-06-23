@@ -55,10 +55,10 @@ export const VideoViewFinder = ({
 
     const showInstructionsDialog = async () => {
         return await confirm({
-            title: t('videoCalibration.setupTitle', 'Setup Instructions'),
+            title: t('videoCalibration.setupTitle'),
             message: instructionList,
-            confirmText: t('videoCalibration.btnReady', "I'm Ready"),
-            cancelText: t('videoCalibration.btnCancel', "Cancel")
+            confirmText: t('videoCalibration.btnReady'),
+            cancelText: t('videoCalibration.btnCancel')
         });
     };
 
