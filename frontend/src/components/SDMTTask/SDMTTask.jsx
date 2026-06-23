@@ -12,6 +12,7 @@ const SDMTTask = ({ taskParams, onComplete }) => {
     const { t } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
     const demoShownRef = useRef(false);
+    const audioCtxRef = useRef(null);
 
     const rawDuration  = Array.isArray(taskParams?.duration)       ? taskParams.duration[0]       : taskParams?.duration;
     const rawKeypad    = Array.isArray(taskParams?.showKeypad)      ? taskParams.showKeypad[0]     : taskParams?.showKeypad;
@@ -51,6 +52,31 @@ const SDMTTask = ({ taskParams, onComplete }) => {
         showDemoDialog();
     }, [gameState, confirm, t]);
 
+    const playTapSound = () => {
+        try {
+            if (!audioCtxRef.current) {
+                audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const ctx = audioCtxRef.current;
+            if (ctx.state === 'suspended') ctx.resume();
+
+            const osc  = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(700, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(280, ctx.currentTime + 0.07);
+
+            gain.gain.setValueAtTime(0.22, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.09);
+        } catch (_) { /* silently ignore if AudioContext unavailable */ }
+    };
+
     // ── Derived values ────────────────────────────────────────────────
     const shouldShowKeypad =
         !keypadSetting.includes('never') &&
@@ -89,7 +115,7 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                     <button
                         key={`btn-${num}`}
                         className="sdmt-keypad-btn"
-                        onClick={() => handleTap(num)}
+                        onClick={() => { playTapSound(); handleTap(num); }}
                     >
                         {num}
                     </button>
