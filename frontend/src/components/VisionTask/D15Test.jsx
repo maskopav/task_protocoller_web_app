@@ -31,11 +31,11 @@ export default function D15Test({ task, onNextTask }) {
 
       if (version === "demo") {
         colors = [
-          "#6f90f5",
-          "#7365e6",
-          "#c63e7b",
-          "#e66b2c",
-          "#efb242",
+          "#dba68e",
+          "#b08775",
+          "#84685B",
+          "#594942",
+          "#2d2a28",
         ];
       } else {
         const targetValue  = version === "saturated" ? 5 : 8;
@@ -73,13 +73,17 @@ export default function D15Test({ task, onNextTask }) {
     const targetSlot = container.children[firstEmptyIndex];
     if (!targetSlot) return;
 
-    const BUFFER = 20;
+    const PEEK          = 65;  // px of the first empty slot peeking past the right edge
     const containerRect = container.getBoundingClientRect();
     const slotRect      = targetSlot.getBoundingClientRect();
 
-    if (slotRect.right > containerRect.right - BUFFER) {
+    // Target: slot's LEFT edge sits PEEK px before the container's right edge
+    // → fills the view with placed caps; only a sliver of the next empty slot peeks in
+    const delta = slotRect.left - (containerRect.right - PEEK);
+
+    if (Math.abs(delta) > 4) {            // ignore sub-pixel jitter
       container.scrollTo({
-        left: container.scrollLeft + (slotRect.right - containerRect.right) + BUFFER,
+        left: Math.max(0, container.scrollLeft + delta),  // clamp: can't scroll before start
         behavior: "smooth",
       });
     }
@@ -205,11 +209,11 @@ export default function D15Test({ task, onNextTask }) {
 
   const controlsContent = (
     <>
-      {!isSubmitted && (
+      {/* {!isSubmitted && (
         <button className="btn-secondary" onClick={handleReset}>
           {t("d15colour.controls.reset")}
         </button>
-      )}
+      )} */}
       <button
         className="btn-submit"
         onClick={handleDone}
