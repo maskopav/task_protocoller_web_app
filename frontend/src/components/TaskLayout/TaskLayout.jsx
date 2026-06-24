@@ -54,6 +54,7 @@ export default function TaskLayout({
 
   // header
   title                 = null,
+  renderTitle         = false,
   tooltip               = null,
   headerClassName       = '',
   showSpacer            = false,
@@ -80,7 +81,7 @@ export default function TaskLayout({
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const shouldRenderTitle = title != null && SHOW_GLOBAL_TITLES;
+  const shouldRenderTitle = (title != null && SHOW_GLOBAL_TITLES) || renderTitle;
 
   // Auto-play logic
   useEffect(() => {
@@ -104,7 +105,6 @@ export default function TaskLayout({
           // Normal behavior during fast task switching; ignore quietly.
           console.debug("Audio playback was cleanly interrupted.");
         } else if (error.name === 'NotSupportedError') {
-          console.warn(`Audio file missing or invalid format at: ${autoAudioSrc}`);
           setIsPlaying(false);
         } else {
           console.warn('Autoplay blocked by browser. User must click play.', error);
@@ -174,7 +174,6 @@ export default function TaskLayout({
                   onPause={() => setIsPlaying(false)}
                   onEnded={() => setIsPlaying(false)}
                   onError={(e) => {
-                    console.warn("Audio failed to load:", autoAudioSrc);
                     setIsPlaying(false);
                   }}
                 />

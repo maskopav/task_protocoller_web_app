@@ -1,35 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill-new/dist/quill.snow.css';
+import TaskLayout from '../TaskLayout/TaskLayout'; 
+
+// Helper function to extract <h1> and return the remaining HTML
+const extractTitleAndBody = (rawContent) => {
+  if (!rawContent) return { title: null, body: '' };
+  
+  const safeContent = rawContent.replace(/&nbsp;/g, ' ');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(safeContent, 'text/html');
+  
+  const h1 = doc.querySelector('h1');
+  const title = h1 ? h1.textContent : null; // Extract just the text for the TaskLayout prop
+  
+  if (h1) {
+    h1.remove(); // Strip the <h1> out of the rich text body
+  }
+  
+  return {
+    title,
+    body: doc.body.innerHTML
+  };
+};
 
 export function InfoPage({ content, onNext }) {
-  // Replace non-breaking spaces with standard spaces
-  const safeContent = content ? content.replace(/&nbsp;/g, ' ') : '';
+  const { t } = useTranslation("common");
+  const { title, body } = useMemo(() => extractTitleAndBody(content), [content]);
+
+  const instructionsContent = (
+    <div 
+      className="participant-rich-text" 
+      dangerouslySetInnerHTML={{ __html: body }} 
+    />
+  );
+
+  const controlsContent = (
+    <button className="btn-primary" onClick={onNext}>
+      {t("buttons.continue")}
+    </button>
+  );
+
   return (
-    <div className="onboarding-step">
-      <div 
-        className="participant-rich-text" 
-        dangerouslySetInnerHTML={{ __html: safeContent }} 
-      />
-      <button className="btn-primary" onClick={onNext}>Continue</button>
-    </div>
+    <TaskLayout
+      title={title}
+      renderTitle={true}
+      instructions={instructionsContent}
+      instructionsClassName="no-title align-left"
+      controls={controlsContent}
+    />
   );
 }
 
 export function ConsentPage({ content, onNext }) {
   const { t } = useTranslation("common");
   const [agreed, setAgreed] = useState(false);
+  const { title, body } = useMemo(() => extractTitleAndBody(content), [content]);
 
-  // Replace non-breaking spaces with standard spaces
-  const safeContent = content ? content.replace(/&nbsp;/g, ' ') : '';
+  const instructionsContent = (
+    <div 
+      className="participant-rich-text" 
+      dangerouslySetInnerHTML={{ __html: body }} 
+    />
+  );
 
-  return (
-    <div className="onboarding-step">
-      <div 
-        className="participant-rich-text" 
-        dangerouslySetInnerHTML={{ __html: safeContent }} 
-      />
-      
+  const controlsContent = (
+    <>
       <div className="consent-checkbox">
         <input 
           type="checkbox" 
@@ -38,7 +74,7 @@ export function ConsentPage({ content, onNext }) {
           onChange={(e) => setAgreed(e.target.checked)} 
         />
         <label htmlFor="consent-check">
-          {t("onboarding.consentCheckbox", "I have read and agree to the terms.")}
+          {t("onboarding.consentCheckbox")}
         </label>
       </div>
       <button 
@@ -46,8 +82,17 @@ export function ConsentPage({ content, onNext }) {
         disabled={!agreed} 
         onClick={onNext}
       >
-        {t("buttons.startProtocol", "I Agree & Start")}
+        {t("buttons.startProtocol")}
       </button>
-    </div>
+    </>
+  );
+
+  return (
+    <TaskLayout
+      title={title}
+      instructions={instructionsContent}
+      instructionsClassName="no-title align-left"
+      controls={controlsContent}
+    />
   );
 }

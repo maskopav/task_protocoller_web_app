@@ -27,7 +27,7 @@
 .task-header h1 {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: clamp(1.4rem, 5.5vw, 2.2rem);
+  font-size: clamp(1.5rem, 5.5vw, 2.2rem);
   color: var(--muted);
   flex: 0 0 auto;
 }
@@ -106,7 +106,7 @@
 .recording-area {
   position: relative;
   display: flex;
-  flex: 1 1 0%;
+  flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
@@ -149,15 +149,19 @@
 }
 
 .task-header:has(.instruction-card.no-title) {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   justify-content: flex-start;
 }
 
 .instruction-card.no-title {
-  flex: 1 1 0%;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 0 0 auto;           
+  min-height: auto;         
+  overflow-y: visible;      
   -webkit-overflow-scrolling: touch;
+}
+
+.instruction-card.align-left {
+  text-align: left;
 }
 
 .task-header:has(.instruction-card.no-title) ~ .recording-area {
@@ -165,3 +169,4 @@
   min-height: 0 !important;
   padding: 0;
 }
+
