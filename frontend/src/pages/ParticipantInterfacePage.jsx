@@ -31,6 +31,7 @@ import {
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { getInstructionAudioPath } from '../utils/getInstructionAudioPath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
+import InstructionAudioPlayer from '../components/InstructionAudioPlayer/InstructionAudioPlayer';
 
 const activeUploads = new Set();
 
@@ -679,7 +680,13 @@ export default function ParticipantInterfacePage() {
                 </div>
               )}
             </div>
-            <div className="task-header-right"></div>
+            <div className="task-header-right">
+              <InstructionAudioPlayer
+                src={audioSrc}
+                taskIndex={taskIndex}
+                isRecordingActive={isRecordingActive}
+              />
+            </div>
 
           </div>
 

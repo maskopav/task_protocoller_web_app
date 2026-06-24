@@ -1,0 +1,61 @@
+/* ─── InstructionAudioPlayer ──────────────────────────────────────────────── */
+
+.audio-instructions-btn {
+  /* Strip all native button styling */
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: 0;
+  cursor: pointer;
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  /* Interaction */
+  border-radius: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.audio-instructions-btn:hover {
+  opacity: 0.7;
+}
+
+.audio-instructions-btn:active {
+  opacity: 0.5;
+}
+
+.audio-instructions-btn:focus-visible {
+  outline: 2px solid #555;
+  outline-offset: 2px;
+}
+
+/* img icons don't inherit CSS color, so we use a filter to tint them dark grey.
+   brightness(0) converts any source colour to pure black,
+   then opacity(0.65) brings it to a dark grey. */
+.audio-instructions-icon {
+  display: block;
+  flex-shrink: 0;
+  font-weight: 600;
+
+  /* Scale with viewport height:
+     ~14px on small phones (≤600px tall) → ~18px on tablets → 22px cap on large screens.
+     Adjust the middle value (2vh) to taste. */
+  width:  clamp(25px, 2.5vh, 35px);
+  height: clamp(25px, 2.5vh, 35px);
+
+  filter: brightness(0) opacity(0.65);
+  transition: filter 0.15s ease;
+}
+
+.audio-instructions-btn:hover .audio-instructions-icon {
+  filter: brightness(0) opacity(0.9);
+}
+
+/* Hide the native audio element — playback is controlled via the JS ref */
+.audio-instructions-audio {
+  display: none;
+}

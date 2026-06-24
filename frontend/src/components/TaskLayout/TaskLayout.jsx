@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useTaskAudio } from '../../context/TaskAudioContext';
+import React from 'react';
 import './TaskLayout.css';
 
 /**
@@ -15,8 +14,6 @@ import './TaskLayout.css';
  * │  CONTROLS · .bottom-controls  (controls)     │
  * └──────────────────────────────────────────────┘
  *
- * Audio is sourced from TaskAudioContext — set it at the page level via
- * <TaskAudioProvider src="...">. No audio prop is needed on TaskLayout itself.
  *
  * ── Props ──────────────────────────────────────────────────────────────
  *
@@ -75,63 +72,7 @@ export default function TaskLayout({
 }) {
   const cx = (...parts) => parts.filter(Boolean).join(' ');
 
-  // Read audio src from context — provided by TaskAudioProvider at the page level
-  const autoAudioSrc = useTaskAudio();
-
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
   const shouldRenderTitle = (title != null && SHOW_GLOBAL_TITLES) || renderTitle;
-
-  // Auto-play logic
-  useEffect(() => {
-    if (!autoAudioSrc || !audioRef.current || instructions == null) return;
-
-    let isCancelled = false; // Flag to prevent race conditions
-    const audio = audioRef.current;
-
-    // React already updates the src in the DOM, so forcing .load() here 
-    // is what causes the AbortError during fast re-renders. 
-    audio.currentTime = 0;
-
-    // .play() returns a Promise. We must handle it!
-    const playPromise = audio.play();
-
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        if (isCancelled) return; // Ignore errors if we moved to the next task
-
-        if (error.name === 'AbortError') {
-          // Normal behavior during fast task switching; ignore quietly.
-          console.debug("Audio playback was cleanly interrupted.");
-        } else if (error.name === 'NotSupportedError') {
-          setIsPlaying(false);
-        } else {
-          console.warn('Autoplay blocked by browser. User must click play.', error);
-          setIsPlaying(false);
-        }
-      });
-    }
-
-    // CLEANUP: If the user clicks "Next Task" while audio is playing,
-    // this cancels the promise and pauses the old audio.
-    return () => {
-      isCancelled = true;
-      audio.pause();
-    };
-  }, [autoAudioSrc, instructionsKey, instructions]);
-
-  // Manual play/pause toggle
-  const toggleAudio = () => {
-    if (!audioRef.current) return;
-    
-    // Safely attempt to play/pause manually
-    if (audioRef.current.paused) {
-      audioRef.current.play().catch(e => console.warn("Cannot play audio:", e));
-    } else {
-      audioRef.current.pause();
-    }
-  };
 
   return (
     <div className={cx('task-container', className)}>
@@ -157,29 +98,6 @@ export default function TaskLayout({
             key={instructionsKey}
             className={cx('instruction-card active-instructions', instructionsClassName)}
           >
-            {/* Audio player — only rendered when a src is provided via context */}
-            {autoAudioSrc && (
-              <div className="audio-instruction-wrapper">
-                <button
-                  className="audio-toggle-btn"
-                  onClick={toggleAudio}
-                  aria-label={isPlaying ? 'Pause instructions' : 'Play instructions'}
-                >
-                  {isPlaying ? '⏸' : '🔊'}
-                </button>
-                <audio
-                  ref={audioRef}
-                  src={autoAudioSrc}
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                  onEnded={() => setIsPlaying(false)}
-                  onError={(e) => {
-                    setIsPlaying(false);
-                  }}
-                />
-              </div>
-            )}
-
             <div className="instruction-text">
               {instructions}
             </div>
