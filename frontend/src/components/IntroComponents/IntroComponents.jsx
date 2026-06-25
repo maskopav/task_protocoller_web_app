@@ -90,6 +90,7 @@ export function ConsentPage({ content, onNext }) {
   return (
     <TaskLayout
       title={title}
+      renderTitle={true}
       instructions={instructionsContent}
       instructionsClassName="no-title align-left"
       controls={controlsContent}

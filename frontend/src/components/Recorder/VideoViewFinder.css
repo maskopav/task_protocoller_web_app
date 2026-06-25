@@ -235,9 +235,9 @@
 }
 
 .posture-illustration {
-  width: 140px; 
-  max-width: 100%;
-  height: auto;
+  width: auto; 
+  height: 30dvh;
+  max-height: 150px;
   border-radius: 12px; 
   object-fit: cover;
   flex-shrink: 0;

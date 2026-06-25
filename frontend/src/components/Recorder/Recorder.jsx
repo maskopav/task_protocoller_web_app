@@ -193,23 +193,10 @@ export const Recorder = ({
         resetSpeechTrackers();
         repeatRecording();
         if (isVideoEnabled) {
-            // Silently check whether the camera position is still valid.
-            // Face detection keeps running after stopRecording(), so these values are live.
-            const stillCalibrated =
-                videoRecorder.isSteady &&
-                videoRecorder.isFaceCorrect &&
-                !videoRecorder.isLoadingModel;
-
-            if (stillCalibrated) {
-                // Nothing has moved — skip calibration and restart directly.
-                // videoCalibrated stays true so the PiP viewfinder remains visible.
-                startAudioRecording();
-                videoRecorder.startRecording();
-            } else {
-                // Position/face lost — send the user back through setup.
-                setVideoCalibrated(false);
-                setPhase('RECORDING');   // shows task instructions + Start button
-            }
+            // Always re-calibrate on repeat: stopRecording() kills face detection so any
+            // live check would return stale values
+            setVideoCalibrated(false);
+            handleStartCalibration();
         }
     };
 

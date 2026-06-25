@@ -14,7 +14,7 @@ const VAD_CONFIG = {
     redemptionMs: 1500,            // number of milliseconds of speech-negative frames to wait before ending a speech segment, default: 1400
     preSpeechPadMs: 800,           // number of milliseconds of audio to prepend to a speech segment. default: 800
     minSpeechMs: 500,              // minimum duration in milliseconds for a speech segment, default: 400
-    vadFallbackMs: 8000,           // time (ms) before fallback if no speech is detected at start
+    vadFallbackMs: 5000,           // time (ms) before fallback if no speech is detected at start
 };
 
 const getBrowserInfo = () => {

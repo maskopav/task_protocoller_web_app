@@ -20,7 +20,7 @@ export function getInstructionAudioPath(
 
   // 1. Handle Repetitions (Generic "Perform the task again" audio)
   if (repeatIndex > 1) {
-    return `${basePath}audio/instructions/${language}/repeat.mp3`;
+    return `${basePath}audio/instructions/${language}/repeat.wav`;
   }
 
   // 2. Determine base filename (e.g., "sdmt")
