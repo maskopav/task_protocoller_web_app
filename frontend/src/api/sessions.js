@@ -66,3 +66,22 @@ export async function saveQuestionnaireAnswers(payload) {
   if (!res.ok) throw new Error("Failed to save questionnaire");
   return res.json();
 }
+
+
+export async function updateSessionIdentifiers(sessionId, identifiers, token) {
+  const res = await fetch(`${API_BASE}/sessions/${sessionId}/identifiers`, {
+    method: "PUT",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: JSON.stringify({ identifiers }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to save identifiers");
+  }
+
+  return res.json();
+}

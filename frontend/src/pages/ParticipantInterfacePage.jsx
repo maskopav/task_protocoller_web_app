@@ -12,6 +12,7 @@ import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
+import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
@@ -138,7 +139,7 @@ export default function ParticipantInterfacePage() {
       return selectedProtocol.global_contents?.find(c => c.type === type)?.html;
     };
 
-    // 1. Add Info Page (check root field OR new array)
+    // Add Info Page (check root field OR new array)
     const infoHtml = selectedProtocol.info_text || findGlobalContent('info');
     if (infoHtml) {
       introSteps.push({
@@ -149,7 +150,7 @@ export default function ParticipantInterfacePage() {
       });
     }
 
-    // 2. Add Consent Page (check root field OR new array)
+    // Add Consent Page (check root field OR new array)
     const consentHtml = selectedProtocol.consent_text || findGlobalContent('consent');
     if (consentHtml) {
       introSteps.push({
@@ -160,7 +161,16 @@ export default function ParticipantInterfacePage() {
       });
     }
 
-    // 3. Prepare Tasks
+    // Add Identifiers
+    if (selectedProtocol.required_identifiers && selectedProtocol.required_identifiers.length > 0) {
+      introSteps.push({
+        type: "identifiers",
+        category: "identifiers",
+        isSystemTask: true 
+      });
+    }
+
+    // Prepare Tasks
     const configured = selectedProtocol.tasks ?? [];
 
     // We explicitly attach protocolTaskId here so it persists through resolution
@@ -365,7 +375,7 @@ export default function ParticipantInterfacePage() {
   let currentTask = null;
   let isReadingTask = false;
 
-  if (rawTask && !['info', 'consent', 'mic_check'].includes(rawTask.type)) {
+  if (rawTask && !['info', 'consent', 'mic_check', 'identifiers'].includes(rawTask.type)) {
      currentTask = resolveTask(rawTask, t);
      isReadingTask = currentTask?.category === 'reading'; 
   }
@@ -397,7 +407,7 @@ export default function ParticipantInterfacePage() {
 
   async function handleTaskComplete(data, isAttempt = false) {
     const currentTaskObj = runtimeTasks[taskIndex];
-    const isSystemTask = ['info', 'consent'].includes(currentTaskObj.type);
+    const isSystemTask = ['info', 'consent', 'identifiers'].includes(currentTaskObj.type);
     const isMicCheck = currentTaskObj.type === 'mic_check';
    
     if (testingMode || editingMode || !sessionId) {
@@ -523,6 +533,18 @@ export default function ParticipantInterfacePage() {
     // Render Consent Page
     if (rawTask.type === "consent") {
       return <ConsentPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'consent' })} />;
+    }
+
+    // Render Identifiers Page
+    if (rawTask.type === "identifiers") {
+      return (
+        <Identifiers 
+          requiredIdentifiers={selectedProtocol.required_identifiers} 
+          onNext={() => handleTaskComplete({ type: 'identifiers' })} 
+          sessionId={sessionId}
+          token={accessToken}
+        />
+      );
     }
 
     // Render the Mic Check component

@@ -366,6 +366,7 @@ function mapProtocol(raw, mappings) {
     language: language?.code || "en",
     tasks: mappedTasks,
     randomization: raw.randomization,
+    required_identifiers: raw.required_identifiers,
     info_text: raw.info_text,
     consent_text: raw.consent_text
   };

@@ -7,7 +7,7 @@ export const getTaskProgressDisplay = (runtimeTasks, taskIndex, randomStrategy, 
     const currentTask = runtimeTasks[taskIndex];
     
     // Don't show progress for intro or consent pages
-    if (!currentTask || currentTask.type === "info" || currentTask.type === "consent") {
+    if (!currentTask || currentTask.type === "info" || currentTask.type === "consent" || currentTask.type === "identifiers") {
         return null;
     }
 

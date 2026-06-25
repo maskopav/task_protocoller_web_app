@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
 import { getProtocolById } from "../api/protocols";
+import Identifiers from "../components/Identifiers/Identifiers";
 
 export function useProtocolActions() {
   const { setSelectedProtocol } = useContext(ProtocolContext);
@@ -113,6 +114,7 @@ function mapProtocolWithNames(raw, mappings) {
     randomization: raw.randomization || {}, 
     info_text: raw.info_text || "",
     consent_text: raw.consent_text || "",
+    required_identifiers: raw.required_identifiers,
     tasks: mappedTasks,
   };
 }

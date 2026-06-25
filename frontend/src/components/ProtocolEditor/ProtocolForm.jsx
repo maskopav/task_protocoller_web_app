@@ -27,6 +27,8 @@ export default function ProtocolForm({
   onDeleteInfo,
   onEditConsent,
   onDeleteConsent,
+  onEditIdentifiers,
+  onDeleteIdentifiers,
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
   const [showRandomSettings, setShowRandomSettings] = useState(false);
@@ -179,6 +181,21 @@ export default function ProtocolForm({
                   <div className="page-actions">
                     <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditConsent}>✎</span>
                     <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteConsent}>✖</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Identifiers Logic */}
+              {(!protocolData?.required_identifiers || protocolData.required_identifiers.length === 0) ? (
+                <button className="btn-add-page-minimal" onClick={onEditIdentifiers} disabled={reorderMode}>
+                  + {t("protocolEditor.addIdentifiersPage", "Add Identifiers")}
+                </button>
+              ) : (
+                <div className="page-item-minimal">
+                  <span className="page-label">{t("protocolEditor.identifiersAdded", "Identifiers Added")} ✅</span>
+                  <div className="page-actions">
+                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditIdentifiers}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteIdentifiers}>✖</span>
                   </div>
                 </div>
               )}

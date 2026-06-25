@@ -17,6 +17,7 @@ import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext"; // Import co
 import { validate } from "../../utils/validation";
 import AdminModal from "./Modal";
 import { randomizeTasks } from "../../utils/randomizer";
+import { IDENTIFIER_FIELDS } from '../Identifiers/IdentifierFields';
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -76,6 +77,7 @@ export function ProtocolEditor({
   // Intro components modals
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showIdentifiersModal, setShowIdentifiersModal] = useState(false);
 
   // --- State: UI & Validation ---
   const [reorderMode, setReorderMode] = useState(false);
@@ -330,6 +332,18 @@ export function ProtocolEditor({
     }
   }
 
+  async function handleDeleteIdentifiers() {
+  const isConfirmed = await confirm({
+    title: t("protocolEditor.confirmDeleteIdentifiersTitle", "Remove Identifiers Page?"),
+    message: t("protocolEditor.confirmDeleteIdentifiersMsg", "Are you sure you want to remove the identifiers page?"),
+    confirmText: t("common:delete"),
+    cancelText: t("common:cancel")
+  });
+  if (isConfirmed) {
+    setProtocolData(prev => ({ ...prev, required_identifiers: [] }));
+  }
+}
+
   return (
     <div className="admin-container">
       <h2>{t("protocolEditor.title")}</h2>
@@ -359,6 +373,8 @@ export function ProtocolEditor({
           onDeleteInfo={handleDeleteInfo}
           onEditConsent={() => setShowConsentModal(true)}
           onDeleteConsent={handleDeleteConsent}
+          onEditIdentifiers={() => setShowIdentifiersModal(true)} 
+          onDeleteIdentifiers={handleDeleteIdentifiers}
         />
       </div>
 
@@ -403,6 +419,42 @@ export function ProtocolEditor({
               />
             </div>
           </div>
+        </div>
+      </AdminModal>
+
+      {/* --- Identifiers Selection Modal --- */}
+      <AdminModal
+        open={showIdentifiersModal}
+        title={t("protocolEditor.editIdentifiersTitle", "Select Required Identifiers")}
+        onClose={() => setShowIdentifiersModal(false)}
+        onSave={() => setShowIdentifiersModal(false)}
+        showFooter={true}
+      >
+        <div className="identifiers-settings">
+          <p>{t("protocolEditor.identifiersDesc", "Select which participant details are required before starting the protocol:")}</p>
+          
+          {IDENTIFIER_FIELDS.map(option => (
+            <label key={option.id} className="checkbox-option" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+              <input
+                type="checkbox"
+                checked={(protocolData?.required_identifiers || []).includes(option.id)}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  setProtocolData(prev => {
+                    const current = prev.required_identifiers || [];
+                    return {
+                      ...prev,
+                      required_identifiers: isChecked
+                        ? [...current, option.id]
+                        : current.filter(id => id !== option.id)
+                    };
+                  });
+                }}
+                style={{ marginRight: '10px' }}
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
         </div>
       </AdminModal>
 

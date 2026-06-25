@@ -54,7 +54,8 @@ CREATE TABLE `protocols` (
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_by` integer,
   `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
-  `use_audio_instructions` BOOLEAN NOT NULL DEFAULT true
+  `use_audio_guide` BOOLEAN NOT NULL DEFAULT true,
+  `required_identifiers` JSON DEFAULT NULL COMMENT 'Stores an array of required identifier strings'
 );
 
 CREATE TABLE `project_protocols` (

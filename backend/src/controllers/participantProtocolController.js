@@ -49,18 +49,31 @@ export async function resolveParticipantToken(req, res) {
 
     // 3. Fetch Randomization Settings directly from protocols table
     const [protocolConfig] = await executeQuery(
-      `SELECT randomization FROM protocols WHERE id = ?`,
+      `SELECT * FROM protocols WHERE id = ?`,
       [view.protocol_id]
     );
     let randomizationSettings = {};
-    if (protocolConfig && protocolConfig.randomization) {
-      try {
-        const raw = protocolConfig.randomization;
-        // If it's a string, parse it. If it's already an object (mysql2 driver feature), keep it.
-        randomizationSettings = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      } catch (e) {
-        console.error("Error parsing randomization JSON:", e);
-        randomizationSettings = {};
+    let requiredIdentifiers = []; 
+
+    if (protocolConfig) {
+      // Parse Randomization
+      if (protocolConfig.randomization) {
+        try {
+          const raw = protocolConfig.randomization;
+          randomizationSettings = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch (e) {
+          console.error("Error parsing randomization JSON:", e);
+        }
+      }
+
+      // Parse Required Identifiers
+      if (protocolConfig.required_identifiers) {
+        try {
+          const rawIden = protocolConfig.required_identifiers;
+          requiredIdentifiers = typeof rawIden === 'string' ? JSON.parse(rawIden) : rawIden;
+        } catch (e) {
+          console.error("Error parsing required_identifiers JSON:", e);
+        }
       }
     }
 
@@ -147,6 +160,7 @@ export async function resolveParticipantToken(req, res) {
         version: view.protocol_version,
         language_id: view.language_id,
         randomization: randomizationSettings,
+        required_identifiers: requiredIdentifiers,
         info_text: globalContentByRef.info_text || "",
         consent_text: globalContentByRef.consent_text || "",
         global_contents: contentMap['global'] || [],

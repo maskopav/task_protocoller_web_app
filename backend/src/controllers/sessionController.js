@@ -151,3 +151,85 @@ export const updateProgress = async (req, res) => {
   }
 };
 
+
+// PUT /api/sessions/:id/identifiers
+export const updateSessionIdentifiers = async (req, res) => {
+  const { id } = req.params;
+  const { identifiers } = req.body;
+
+  if (!identifiers || Object.keys(identifiers).length === 0) {
+    return res.status(400).json({ error: "No identifiers provided." });
+  }
+
+  try {
+    // 1. Find the participant ID associated with this session
+    const participantQuery = `
+      SELECT pp.participant_id
+      FROM sessions s
+      JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+      WHERE s.id = ?
+    `;
+    const sessionRows = await executeQuery(participantQuery, [id]);
+
+    if (!sessionRows || sessionRows.length === 0) {
+      return res.status(404).json({ error: "Session not found." });
+    }
+
+    const participantId = sessionRows[0].participant_id;
+
+    // 2. Build a dynamic update query for the 'participants' table
+    const updates = [];
+    const values = [];
+
+    // Handle Name (Merge first and last name if both are present)
+    let fullNameParts = [];
+    if (identifiers.first_name) fullNameParts.push(identifiers.first_name);
+    if (identifiers.last_name) fullNameParts.push(identifiers.last_name);
+    
+    if (fullNameParts.length > 0) {
+      updates.push("full_name = ?");
+      values.push(fullNameParts.join(' '));
+    }
+
+    // Handle Birth Year (Save it as YYYY-01-01 since the DB column is a DATE type)
+    if (identifiers.birth_year) {
+      updates.push("birth_date = ?");
+      values.push(`${identifiers.birth_year}-01-01`);
+    }
+
+    // Handle Sex
+    if (identifiers.sex) {
+      updates.push("sex = ?");
+      values.push(identifiers.sex);
+    }
+
+    // Handle External ID / Patient Number
+    if (identifiers.external_id) {
+      updates.push("external_id = ?");
+      values.push(identifiers.external_id);
+    }
+
+    // 3. Execute the update if there are fields to update
+    if (updates.length > 0) {
+      updates.push("updated_at = UTC_TIMESTAMP()");
+      
+      const updateQuery = `UPDATE participants SET ${updates.join(', ')} WHERE id = ?`;
+      values.push(participantId);
+
+      await executeQuery(updateQuery, values);
+      logToFile(`✅ Identifiers updated for participant ${participantId} via session ${id}`);
+    }
+
+    res.json({ success: true, message: "Identifiers saved successfully." });
+
+  } catch (err) {
+    logToFile(`❌ Error updating identifiers for session ${id}: ${err.message}`);
+    
+    // Handle Unique Constraint error if they enter an external_id that already belongs to someone else
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: "This External ID is already in use by another participant." });
+    }
+
+    res.status(500).json({ error: "Failed to save participant identifiers." });
+  }
+};

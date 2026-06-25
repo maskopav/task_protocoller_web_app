@@ -1,5 +1,6 @@
 // src/hooks/useProtocolManager.js
 import { saveProtocolToBackend } from "../api/protocols";
+import Identifiers from "../components/Identifiers/Identifiers";
 import { useMappings } from "../context/MappingContext";
 
 export function useProtocolManager() {
@@ -35,7 +36,8 @@ export function useProtocolManager() {
       project_id: Number(projectId),  
       editingMode,
       info_text: selectedProtocol.info_text,
-      consent_text: selectedProtocol.consent_text
+      consent_text: selectedProtocol.consent_text,
+      required_identifiers: selectedProtocol.required_identifiers
     };
     console.log("Saving protocol:", protocolData);
     const result = await saveProtocolToBackend(protocolData);
