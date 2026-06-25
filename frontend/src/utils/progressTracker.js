@@ -1,35 +1,43 @@
 // src/utils/progressTracker.js
 
+// 1. Centralize the excluded task types
+const NON_PROGRESS_TASKS = ["info", "consent", "identifiers", "mic_check"];
+
+/**
+ * Helper to determine if a task should be counted toward progress or trigger overlays.
+ */
+const isRealTask = (task) => {
+    return task && !NON_PROGRESS_TASKS.includes(task.type);
+};
+
 /**
  * Calculates what to display in the task progress bar based on the strategy.
  */
 export const getTaskProgressDisplay = (runtimeTasks, taskIndex, randomStrategy, t) => {
     const currentTask = runtimeTasks[taskIndex];
     
-    // Don't show progress for intro or consent pages
-    if (!currentTask || currentTask.type === "info" || currentTask.type === "consent" || currentTask.type === "identifiers") {
+    // 2. Use the helper for early returns
+    if (!isRealTask(currentTask)) {
         return null;
     }
+
+    const pastAndCurrentTasks = runtimeTasks.slice(0, taskIndex + 1);
 
     if (randomStrategy === "module") {
         // MODULE STRATEGY: Show progress by specific task type (e.g., "Voice Task 2/5")
         const currentType = currentTask.type;
         const totalOfType = runtimeTasks.filter((task) => task.type === currentType).length;
-        const currentOfType = runtimeTasks
-            .slice(0, taskIndex + 1)
-            .filter((task) => task.type === currentType).length;
+        const currentOfType = pastAndCurrentTasks.filter((task) => task.type === currentType).length;
         
         const label = t(`taskLabels.${currentType}`, { ns: "common" });
         return { label, current: currentOfType, total: totalOfType };
     } else {
         // FIXED or GLOBAL STRATEGY: Show overall progress (e.g., "Task 3/10")
-        const realTasks = runtimeTasks.filter(task => task.type !== "info" && task.type !== "consent");
-        const totalRealTasks = realTasks.length;
-        const currentRealTaskCount = runtimeTasks
-            .slice(0, taskIndex + 1)
-            .filter(task => task.type !== "info" && task.type !== "consent").length;
+        // 3. Use the helper as the callback for the filter method
+        const totalRealTasks = runtimeTasks.filter(isRealTask).length;
+        const currentRealTaskCount = pastAndCurrentTasks.filter(isRealTask).length;
         
-        const label = t("taskLabels.task", { ns: "common" }); // Fallback to "Task" if translation missing
+        const label = t("taskLabels.task", { ns: "common" });
         return { label, current: currentRealTaskCount, total: totalRealTasks };
     }
 };
@@ -41,8 +49,8 @@ export const checkCompletionOverlay = (runtimeTasks, currentTaskIndex, randomStr
     const currentTask = runtimeTasks[currentTaskIndex];
     const nextTask = runtimeTasks[currentTaskIndex + 1];
 
-    // If it's the very last task or an info/consent page, don't show the interim overlay
-    if (!nextTask || currentTask.type === "info" || currentTask.type === "consent" || currentTask.type === "mic_check") {
+    // If it's the very last task or a non-progress page, don't show the interim overlay
+    if (!nextTask || !isRealTask(currentTask)) {
         return { showOverlay: false, category: null };
     }
 
@@ -53,17 +61,14 @@ export const checkCompletionOverlay = (runtimeTasks, currentTaskIndex, randomStr
         }
     } else {
         // FIXED or GLOBAL STRATEGY: Trigger on milestones
-        const realTasks = runtimeTasks.filter(task => task.type !== "info" && task.type !== "consent");
-        const totalRealTasks = realTasks.length;
+        const totalRealTasks = runtimeTasks.filter(isRealTask).length;
         const currentRealTaskCount = runtimeTasks
             .slice(0, currentTaskIndex + 1)
-            .filter(task => task.type !== "info" && task.type !== "consent").length;
+            .filter(isRealTask).length;
 
-        // Define which milestones we want to track
         let activeMilestones = [];
 
-        // If there are less than 16 total tasks, 25% is fewer than 4 tasks.
-        // In this case, we only show the 50% milestone so we don't spam the user.
+        // Define which milestones we want to track based on total tasks
         if (totalRealTasks < 16) {
             activeMilestones.push({ count: Math.ceil(totalRealTasks * 0.50), label: "milestone_50" });
         } else {
@@ -72,14 +77,14 @@ export const checkCompletionOverlay = (runtimeTasks, currentTaskIndex, randomStr
             activeMilestones.push({ count: Math.ceil(totalRealTasks * 0.75), label: "milestone_75" });
         }
 
-        // Filter out any edge cases (like count = 0 or count >= total)
-        activeMilestones = activeMilestones.filter(m => m.count > 0 && m.count < totalRealTasks); 
-
-        // Check if the current real task count hits one of our milestones exactly
-        const hitMilestone = activeMilestones.find(m => m.count === currentRealTaskCount);
+        // Find if the current real task count hits a valid milestone exactly
+        const hitMilestone = activeMilestones.find(m => 
+            m.count > 0 && 
+            m.count < totalRealTasks && 
+            m.count === currentRealTaskCount
+        );
 
         if (hitMilestone) {
-            // Return the exact label (e.g., "milestone_25") to the overlay
             return { showOverlay: true, category: hitMilestone.label };
         }
     }
