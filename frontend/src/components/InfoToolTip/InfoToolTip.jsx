@@ -1,9 +1,12 @@
+// src/components/InfoTooltip/InfoTooltip.jsx
 import React from "react";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
+import { useTranslation } from "react-i18next";
 import infoIcon from "../../assets/generalIcons/info-icon.svg"; 
 import "./InfoToolTip.css";
 
-export default function InfoTooltip({ title, text }) {
+export default function InfoTooltip({ title, text, icon }) {
+  const { t } = useTranslation(["common"]);
   const confirm = useConfirm();
 
   if (!text) return null;
@@ -15,9 +18,12 @@ export default function InfoTooltip({ title, text }) {
       infoOnly: true,
       title: title,
       message: text,
-      confirmText: "Close"
+      confirmText: t("buttons.cancel")
     });
   };
+
+  // Default to infoIcon if no custom icon is provided
+  const displayIcon = icon || infoIcon;
 
   return (
     <button 
@@ -26,7 +32,7 @@ export default function InfoTooltip({ title, text }) {
       aria-label="More information"
       type="button"
     >
-      <img src={infoIcon} alt="Info" className="info-icon-svg" />
+      <img src={displayIcon} alt="Info" className="info-icon-svg" />
     </button>
   );
 }

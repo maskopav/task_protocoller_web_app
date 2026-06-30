@@ -9,6 +9,17 @@
     justify-content: center;
     align-items: center;
     z-index: 9999;
+    transition: background 0.4s ease;
+}
+
+/* Offline + data still waiting to be sent: same layout, warning color */
+.completion-screen--offline {
+    background: rgba(255, 219, 168, 0.95);
+}
+
+/* Upload in progress (or still checking): calm "in progress" blue */
+.completion-screen--uploading {
+    background: rgba(197, 226, 252, 0.95);
 }
 
 .completion-card {
@@ -25,10 +36,32 @@
     margin-bottom: clamp(1rem, 3vw, 1.5rem);
 }
 
+/* "Please wait" spinner used while a check is running or an upload is in flight */
+.completion-icon--spinning {
+    animation: spin 2s linear infinite;
+}
+
+.completion-icon-badge .completion-icon {
+    width: 55%;
+    height: 55%;
+    margin-bottom: 0;
+}
+
 .completion-card h1 {
     font-size: clamp(2rem, 5vw, 2.5rem);
-    color: #2d5a27; /* Darker green for readability */
     margin-bottom: 1rem;
+}
+
+.completion-title--offline {
+    color: var(--danger);
+}
+
+.completion-title--uploading {
+    color: var(--primary);
+}
+
+.completion-title--done {
+    color: var(--success) !important;
 }
 
 .completion-message {
@@ -54,8 +87,12 @@
 }
 
 
-
 @keyframes popIn {
     0% { transform: scale(0.5); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
