@@ -2,10 +2,6 @@
    Questionnaire.css
    ========================================= */
 
-.questionnaire-layout {
-  overflow-y: hidden;
-}
-
 .questionnaire-main {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;

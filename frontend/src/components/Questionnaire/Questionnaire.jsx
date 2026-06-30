@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import "./Questionnaire.css";
@@ -8,11 +8,13 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
   const [answers, setAnswers] = useState({});
   const [isValid, setIsValid] = useState(false);
 
+  const listRef = useRef(null);
+  const lastScrolledIndex = useRef(0);
+
   // --- 1. Handle Input Changes ---
   const handleChange = (questionId, value, type) => {
     setAnswers((prev) => {
       if (type === "multiple") {
-        const current = prev[questionId] || [];
         if (current.includes(value)) {
           return { ...prev, [questionId]: current.filter((v) => v !== value) };
         } else {
@@ -26,19 +28,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
     }
   };
 
-  // --- 2. Validation ---
-  useEffect(() => {
-    if (!data?.questions) return;
-    const allAnswered = data.questions.every((q) => {
-      const val = answers[q.id];
-      if (q.type === "multiple") return Array.isArray(val) && val.length > 0;
-      if (q.type === "open")     return typeof val === "string" && val.trim().length > 0;
-      return val !== undefined && val !== "" && val !== null;
-    });
-    setIsValid(allAnswered);
-  }, [answers, data]);
-
-  // --- 3. Per-question answered check (for visual feedback) ---
+  // --- 2. Per-question answered check (Moved up for use in useEffects) ---
   const isAnswered = (q) => {
     const val = answers[q.id];
     if (q.type === "multiple") return Array.isArray(val) && val.length > 0;
@@ -46,7 +36,39 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
     return val !== undefined && val !== "" && val !== null;
   };
 
-  // --- 4. Submission ---
+  // --- 3. Validation ---
+  useEffect(() => {
+    if (!data?.questions) return;
+    const allAnswered = data.questions.every((q) => isAnswered(q));
+    setIsValid(allAnswered);
+  }, [answers, data]);
+
+  // --- 4. Auto-scroll to keep previous and current question visible ---
+  useEffect(() => {
+    if (!data?.questions || !listRef.current) return;
+
+    // Find the first question that hasn't been answered yet
+    const firstUnansweredIndex = data.questions.findIndex((q) => !isAnswered(q));
+
+    // If all are answered, no need to scroll
+    if (firstUnansweredIndex === -1) return;
+
+    // ONLY scroll if the user has advanced to a new unanswered question
+    if (firstUnansweredIndex > lastScrolledIndex.current) {
+      // Target the previous question to keep both answered and next in view
+      const targetIndex = firstUnansweredIndex > 0 ? firstUnansweredIndex - 1 : 0;
+      const targetCard = listRef.current.children[targetIndex];
+      
+      if (targetCard) {
+        targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        
+        // Update the ref so we don't scroll again until they reach the NEXT question
+        lastScrolledIndex.current = firstUnansweredIndex;
+      }
+    }
+  }, [answers, data]);
+
+  // --- 5. Submission ---
   const handleSubmit = () => {
     if (!isValid) return;
     onNextTask({
@@ -85,7 +107,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
           <p className="questionnaire-instructions">{data.instructions}</p>
         )}
 
-        <div className="questions-list">
+        <div className="questions-list" ref={listRef}>
           {data.questions.map((q) => (
             <div
               key={q.id}
