@@ -68,6 +68,8 @@ export default function ParticipantInterfacePage() {
   // Tracks recordings sitting in IDB that have not yet reached the server.
   // Drives the "still uploading" banner on the CompletionScreen.
   const [pendingUploadCount, setPendingUploadCount] = useState(null);
+  const completionAckedRef = useRef(false);
+  const completionInFlightRef = useRef(false);
 
   // Add a Ref to track the last logged task 
   // We initialize it to -1 so that index 0 is always logged the first time.
@@ -295,6 +297,18 @@ export default function ParticipantInterfacePage() {
         setPendingUploadCount(pending.length);
 
         if (pending.length === 0) {
+          if (!completionAckedRef.current && !completionInFlightRef.current) {
+            completionInFlightRef.current = true;
+            try {
+              await trackProgress(sessionId, null, true);
+              completionAckedRef.current = true;
+            } catch (err) {
+              logToServer(`[Completion] Failed to mark session complete, will retry: ${err.message}`);
+            } finally {
+              completionInFlightRef.current = false;
+            }
+          }
+
           // All data is on the server — safe to drop the token now.
           localStorage.removeItem("neuroSHARE_tokenId");
         }
@@ -443,6 +457,7 @@ export default function ParticipantInterfacePage() {
         snrScore: data?.snrScore || null,
         speechSegments: data?.speechSegments || null,
         payload: (!blob && !isSystemTask && !isMicCheck) || (isMicCheck && !blob) ? data : null, 
+        attemptNumber: data?.attemptNumber,
         progressAction: isAttempt    ? 'mic_check_attempt_saved'
               : isSystemTask ? `${currentTaskObj.type}_completed`
               : isMicCheck   ? 'mic_check_completed'
@@ -462,7 +477,7 @@ export default function ParticipantInterfacePage() {
       await saveRecordingLocally(recordingId, blob, uploadMeta);
    
       if (navigator.onLine) {
-        uploadInBackground(recordingId, blob, uploadMeta, sessionId, taskIndex);
+        await uploadInBackground(recordingId, blob, uploadMeta, sessionId, taskIndex);
       }
    
       if (!isAttempt) {
@@ -477,7 +492,6 @@ export default function ParticipantInterfacePage() {
 
     function proceedToNext() {
       if (taskIndex + 1 >= runtimeTasks.length) {
-        trackProgress(sessionId, null, true);
         setTaskIndex((i) => i + 1); 
         return;
       }

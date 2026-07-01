@@ -1,6 +1,7 @@
 // src/controllers/recordingController.js
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import pool from "../db/connection.js";
 import { logToFile } from '../utils/logger.js';
 import { dateInYyyyMmDdHhMmSs } from "../utils/dateFormatter.js";
@@ -32,7 +33,8 @@ export const uploadRecording = async (req, res) => {
     const safeRep = repeatIndex || "1";
     // Use the date helper (defaults to now if empty)
     const timestamp = dateInYyyyMmDdHhMmSs();
-    const baseFilename = `S${sessionId}_O${taskOrder}_C${safeCat}_R${safeRep}_D${timestamp}`;
+    const uniqueSuffix = crypto.randomBytes(4).toString("hex");
+    const baseFilename = `S${sessionId}_O${taskOrder}_C${safeCat}_R${safeRep}_D${timestamp}_${uniqueSuffix}`;
     
     // Process it, and get back either the .wav or .webm filename depending on success
     const finalFilename = await processAndSaveAudio(file.buffer, baseFilename);
@@ -66,7 +68,7 @@ export const uploadRecording = async (req, res) => {
 
 export const uploadMicCheck = async (req, res) => {
   const file = req.file;
-  const { sessionId, token, snrScore, duration, speechSegments } = req.body;
+  const { sessionId, token, snrScore, duration, speechSegments, attemptNumber } = req.body;
 
   if (!file || !token || !sessionId) {
     return res.status(400).json({ error: "Missing file, token, or session ID" });
@@ -77,25 +79,40 @@ export const uploadMicCheck = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    // Generate a unique filename for the mic check
+    // Generate a unique filename for the mic check.
+    // The attempt number is included for human-readability when browsing
+    // files on disk, but it is NOT what guarantees uniqueness — the client's
+    // attempt counter can reset (page refresh, resumed session) or race
+    // (parallel retries), so it can't be trusted as a collision guard on its
+    // own. The random suffix is the actual safety net: it can't collide
+    // regardless of what the client sends or gets wrong.
     const timestamp = dateInYyyyMmDdHhMmSs();
-    const baseFilename = `S${sessionId}_MICCHECK_D${timestamp}`;
-  
+    const uniqueSuffix = crypto.randomBytes(4).toString("hex");
+    const safeAttempt = parseInt(attemptNumber) || 1;
+    const baseFilename = `S${sessionId}_MICCHECK_A${safeAttempt}_D${timestamp}_${uniqueSuffix}`;
+
     const finalFilename = await processAndSaveAudio(file.buffer, baseFilename);
+    
+    const parsedSnr = parseFloat(snrScore);
+    const safeSnr = Number.isFinite(parsedSnr) ? parsedSnr : null;
+
+    const parsedDuration = parseInt(duration);
+    const safeDuration = Number.isFinite(parsedDuration) ? parsedDuration : null;
 
     // Insert into the new session_mic_checks table
     await connection.query(
       `INSERT INTO session_mic_checks 
-      (session_id, recording_url, snr_score, duration_seconds, speech_segments) 
-      VALUES (?, ?, ?, ?, ?)`,
+      (session_id, recording_url, snr_score, duration_seconds, speech_segments, attempt_number) 
+      VALUES (?, ?, ?, ?, ?, ?)`,
       [
         sessionId, 
         finalFilename, 
-        parseFloat(snrScore) || null, 
-        parseInt(duration) || null, 
-        speechSegments ? speechSegments : null // Express receives this as a stringified JSON
+        safeSnr, 
+        safeDuration, 
+        speechSegments ? speechSegments : null, // Express receives this as a stringified JSON
+        safeAttempt
       ]
-    );
+    );  
 
     await connection.commit();
     logToFile(`✅ Saved mic check recording: ${finalFilename}`);

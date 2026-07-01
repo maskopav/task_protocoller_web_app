@@ -144,12 +144,17 @@ export default function ParticipantInterfaceLoader() {
       // ── IDB FLUSH ON RESUME ──────────────────────────────────────────────
       // Check what is safely stored in IndexedDB and advance the starting index.
       // We do this whether they are online or offline!
-      if (isResumed && sessionId) {
+      if (sessionId) {
+        const previousIndex = startingTaskIndex;
+        
         startingTaskIndex = await calculateOfflineProgress(
           sessionId,
           startingTaskIndex,
           logToServer
         );
+        if (startingTaskIndex > previousIndex) {
+          isResumed = true;
+        }
       }
       // ────────────────────────────────────────────────────────────────────
 
@@ -314,7 +319,7 @@ function LoadingScreen({ phase, networkStatus, t }) {
 // Uploads are handled gracefully by ParticipantInterfacePage in the background.
 async function calculateOfflineProgress(sessionId, startingTaskIndex, logFn) {
   try {
-    const pending = await getPendingRecordingsForSession(sessionId);
+    let pending = await getPendingRecordingsForSession(sessionId);
     if (pending.length === 0) return startingTaskIndex;
 
     logFn(`[IDB Resume] Found ${pending.length} pending recording(s) locally.`);
@@ -324,14 +329,11 @@ async function calculateOfflineProgress(sessionId, startingTaskIndex, logFn) {
     for (const record of pending) {
       const taskIdx = record.metadata?.taskIndex;
 
-      // If there is a gap, stop skipping. (e.g. server says we are at task 2, 
-      // but IDB only has a record for task 4 — something is wrong, play it safe).
       if (taskIdx === undefined || taskIdx !== adjustedStart) {
         logFn(`[IDB Resume] Gap detected — expected task ${adjustedStart}, found task ${taskIdx}. Stopping skip.`);
         break;
       }
 
-      // Task exists locally! The user already did it. We skip it.
       adjustedStart++;
       logFn(`[IDB Resume] Skipping task ${taskIdx} (already completed offline). New start: ${adjustedStart}`);
     }

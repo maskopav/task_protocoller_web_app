@@ -15,6 +15,9 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
   const handleChange = (questionId, value, type) => {
     setAnswers((prev) => {
       if (type === "multiple") {
+        // Extract the current array for this specific question, defaulting to empty
+        const current = prev[questionId] || []; 
+        
         if (current.includes(value)) {
           return { ...prev, [questionId]: current.filter((v) => v !== value) };
         } else {

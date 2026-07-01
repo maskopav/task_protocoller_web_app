@@ -170,6 +170,7 @@ CREATE TABLE `session_mic_checks` (
   `snr_score` float DEFAULT NULL,
   `duration_seconds` integer DEFAULT NULL,
   `speech_segments` JSON DEFAULT NULL COMMENT 'Stores arrays of [start_ms, end_ms]',
+  `attempt_number` integer DEFAULT 1,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE
 );

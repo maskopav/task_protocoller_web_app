@@ -254,7 +254,6 @@ export const Recorder = ({
             speechSegments:     speechSegments.current,
             ...(isVideoEnabled && videoRecorder.videoData && { videoData: videoRecorder.videoData })
         };
-        logToServer("Saving Task Data:", taskData);
         onNextTask(taskData);
     };
 

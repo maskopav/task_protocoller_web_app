@@ -228,7 +228,8 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       snrScore: calculatedScore,
       duration: CONFIG.RECORDING_DURATION,
       speechSegments: taskData.speechSegments,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      attemptNumber: attempts + 1
     };
 
     // Split logic: Is it a failure or a success?
@@ -340,7 +341,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
           <button className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} onClick={uiState.onBtnClick}>
             {uiState.btnText}
           </button>
-          {phase === 'noise-failed' && attempts >= 2 && (
+          {phase === 'noise-failed' && errorType !== 'muted' && attempts >= 2 && (
               <button 
                 className="btn-secondary" 
                 onClick={() => {
@@ -483,7 +484,7 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
         ...common, 
         title: <WarningTitle><Trans i18nKey="micCheck.mutedTitle" /></WarningTitle>, 
         message: <Trans i18nKey="micCheck.mutedMessage" />,
-        tooltip: <InfoTooltip title="" text={<Trans i18nKey="micCheck.mutedInfo" />} />,
+        tooltip: <InfoTooltip title="" text={<Trans i18nKey="micCheck.mutedAdditionalInfo" />} />,
         instructions: <Trans i18nKey="micCheck.mutedInstructions" /> 
       };
       
