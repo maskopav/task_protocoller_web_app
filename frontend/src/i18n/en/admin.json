@@ -296,12 +296,14 @@
       "Open answer": "Open answer",
       "Single choice": "Single choice (radio)",
       "Multiple choice": "Multiple choice (checkbox)",
+      "Emoji rating": "Emoji rating",
       "Dropdown": "Dropdown",
       "answerOptions": "Answer Options",
       "Option": "Option",
       "addOption": "Add option",
       "addQuestion": "Add question",
-      "removeQuestion": "Remove question"
+      "removeQuestion": "Remove question",
+      "ratingPreview": "Rating preview"
     },
     "tooltips": {
       "edit": "Edit this task",

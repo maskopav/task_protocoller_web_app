@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
+import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import "./Questionnaire.css";
 
 export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
@@ -182,6 +183,41 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
                       <option key={i} value={opt}>{opt}</option>
                     ))}
                   </select>
+                )}
+
+                {/* EMOJI RATING SCALE */}
+                {q.type === "rating" && (
+                  <div
+                    className="emoji-scale-group"
+                    role="radiogroup"
+                    aria-label={q.text}
+                  >
+                    {(q.scale || DEFAULT_EMOJI_SCALE).map((item) => {
+                      const selected = answers[q.id] === item.value;
+                      return (
+                        <button
+                          type="button"
+                          key={item.value}
+                          className={`emoji-scale-option${selected ? " is-selected" : ""}`}
+                          style={{
+                            "--emoji-color": item.color,
+                            "--emoji-bg": item.bg,
+                          }}
+                          role="radio"
+                          aria-checked={selected}
+                          aria-label={t(item.labelKey, item.label)}
+                          onClick={() => handleChange(q.id, item.value, "rating")}
+                        >
+                          <span className="emoji-scale-face" aria-hidden="true">
+                            <EmojiFace color={item.color} mouthPath={item.mouthPath} />
+                          </span>
+                          <span className="emoji-scale-label">
+                            {t(item.labelKey, item.label)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>

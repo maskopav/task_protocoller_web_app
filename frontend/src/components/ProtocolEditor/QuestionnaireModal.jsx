@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "./Modal";
+import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import "./QuestionnaireModal.css"; 
 
 export default function QuestionnaireModal({ open, onClose, onSave, initialData }) {
-  // ... (state and handlers remain the same) ...
   const { t } = useTranslation(["admin", "common"]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -154,19 +154,22 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                     onChange={(e) => {
                       const newType = e.target.value;
                       updateQuestion(q.id, "type", newType);
-                      if (newType === "open") updateQuestion(q.id, "options", []);
+                      if (newType === "open" || newType === "rating") {
+                        updateQuestion(q.id, "options", []);
+                      }
                     }}
                   >
                     <option value="open">{t("protocolEditor.questionnaire.Open answer")}</option>
                     <option value="single">{t("protocolEditor.questionnaire.Single choice")}</option>
                     <option value="multiple">{t("protocolEditor.questionnaire.Multiple choice")}</option>
                     <option value="dropdown">{t("protocolEditor.questionnaire.Dropdown")}</option>
+                    <option value="rating">{t("protocolEditor.questionnaire.Emoji rating")}</option>
                   </select>
                 </div>
               </div>
 
               {/* Options Section (Moved out of flex row to stack below) */}
-              {q.type !== "open" && (
+              {q.type !== "open" && q.type !== "rating" && (
                 <div className="qm-options-section">
                    {/* ... (Options Logic Remains the Same) ... */}
                    <label className="qm-options-label">
@@ -195,6 +198,27 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                     <button className="qm-btn-add-option" onClick={() => addOption(q.id)}>
                       + {t("protocolEditor.questionnaire.addOption")}
                     </button>
+                </div>
+              )}
+
+              {/* Rating questions use a fixed 5-point emoji scale — nothing to configure,
+                  just a preview so whoever builds the questionnaire knows what patients see */}
+              {q.type === "rating" && (
+                <div className="qm-options-section qm-rating-preview">
+                  <label className="qm-options-label">
+                    {t("protocolEditor.questionnaire.ratingPreview")}
+                  </label>
+                  <div className="qm-rating-preview-faces">
+                    {DEFAULT_EMOJI_SCALE.map((item) => (
+                      <span
+                        key={item.value}
+                        className="qm-rating-preview-face"
+                        title={t(item.labelKey, item.label)}
+                      >
+                        <EmojiFace color={item.color} mouthPath={item.mouthPath} />
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

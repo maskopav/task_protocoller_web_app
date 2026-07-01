@@ -209,6 +209,91 @@
   text-align: left; /* explicit — short options like Yes/No look visually centred without this */
 }
 
+/* ── Emoji Rating Scale ───────────────────────────────────────────── */
+.emoji-scale-group {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(0.25rem, 1.5vw, 0.6rem);
+  width: 100%;
+}
+
+.emoji-scale-option {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  min-height: 88px; /* comfortably above the 56px tap-target minimum used elsewhere */
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(0.5rem, 1.5dvh, 0.75rem) 0.15rem;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.emoji-scale-option:hover {
+  background: #f7f8fa;
+}
+
+.emoji-scale-option:active {
+  transform: scale(0.95);
+}
+
+.emoji-scale-option.is-selected {
+  border-color: var(--emoji-color, var(--primary));
+  background: var(--emoji-bg, #eef2ff);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.emoji-scale-face {
+  width: clamp(2.6rem, 10vw, 3.4rem);
+  height: clamp(2.6rem, 10vw, 3.4rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.emoji-scale-face svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.emoji-scale-option.is-selected .emoji-scale-face {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.emoji-scale-label {
+  font-size: clamp(0.68rem, 2.2vw, 0.85rem);
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.emoji-scale-option.is-selected .emoji-scale-label {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* On narrow phones, only show the label under the selected face so five
+   words don't fight for space under five small circles */
+@media (max-width: 420px) {
+  .emoji-scale-label {
+    display: none;
+  }
+  .emoji-scale-option.is-selected .emoji-scale-label {
+    display: block;
+  }
+}
+
 /* ── Submit Area ──────────────────────────────────────────────────── */
 .submit-control-wrapper {
   display: flex;

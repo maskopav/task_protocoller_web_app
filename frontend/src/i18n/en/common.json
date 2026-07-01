@@ -43,7 +43,7 @@
       "safeToClose": "Thank you for taking part in this study! <br/><br/> You may now close this window.",
       "uploading": "Uploading your responses — please keep this page open.",
       "offlineModalInfo": "Connect to internet",
-      "offlineDataSafe": "Your responses are saved on this device. Keep this page open and they will upload automatically when your connection returns.",
+      "offlineDataSafe": "Your responses are saved on this device. <br/>DO NOT REFRESH the page. Keep this page open and they will upload automatically when your connection returns.",
       "offlineReturnHint": "Please leave this tab open until your internet reconnects. <br/><br/>If you must close this page now, simply click your survey link again later when you have internet.",
       "offlineBrief": "Your data will upload automatically once you're back online.",
       "completedModule": ": module completed!",
@@ -78,7 +78,14 @@
     "questionnaire": {
       "selectOption": "Select an option...",
       "typeAnswer": "Type your answer here...",
-      "required": "* required"
+      "required": "* required",
+      "rating": {
+        "veryBad": "Very bad",
+        "bad": "Bad",
+        "okay": "Okay",
+        "good": "Good",
+        "veryGood": "Very good"
+      }
     },
     "notFound": {
       "title": "404 – Page not found",
@@ -115,7 +122,7 @@
       "mutedTitle": "No Sound Detected",
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
-      "mutedAdditionalInfo": "In case of persistent issues, visit troubleshooting guide or contact support. Otherwise, you cannot proceed.",
+      "mutedAdditionalInfo": "In case of persistent issues, visit troubleshooting guide or contact support. <br/><br/> You cannot proceed further.",
 
       "btnTryAgain": "Try Again",
       "successTitle": "Microphone Ready",

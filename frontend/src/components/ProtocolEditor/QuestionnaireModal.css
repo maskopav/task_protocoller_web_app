@@ -193,6 +193,17 @@
     color: var(--danger);
   }
   
+  .qm-rating-preview-faces {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .qm-rating-preview-face {
+    width: 28px;
+    height: 28px;
+    display: block;
+  }
+
   /* Buttons */
   .qm-btn-add-option {
     background-color: transparent;
