@@ -105,19 +105,13 @@
   display: none;
 }
 
-.radio-label.selected-done {
-  background-color: #dcfce7;
-  border-color: #22c55e;
-  color: #166534;
+.radio-label.selected {
+  background-color:#d2e5ff;
+  border-color:var(--primary);
+  color: var(--primary);
   font-weight: bold;
 }
 
-.radio-label.selected-cannot {
-  background-color: #fee2e2;
-  border-color: #ef4444;
-  color: #991b1b;
-  font-weight: bold;
-}
 
 .start-button {
   width: 100%;

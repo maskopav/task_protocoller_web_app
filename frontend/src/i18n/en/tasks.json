@@ -223,13 +223,17 @@
       "description": "A colour vision test where the participant arranges 15 coloured caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
       "title": "Colour Arrangement Task",
       "instructions": "<strong>1.</strong> Look at the last colour in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the colour from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colours.",
-      "goalText": "Assemble caps to create smooth continuous sequence of colour.",
-      "disclaimerText": "Even though you have vision problems, try to do your best.",
-      "addText": "Tap a colour in the bottom pool.",
+      
+      "addTitle": "Step 1: Adding a colour",
+      "addText": "• Tap a colour in the <strong>bottom pool</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
       "addGifAlt": "Adding colour",
-      "modifyText": "Tap a colour in the top row to remove it.",
+      "goalText": "<strong>Your goal:</strong> create smooth, gradual sequence in the top row.",
+
+      "modifyTitle": "Step 2: Modifying colours",
+      "modifyText": "• Tap a colour in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different colour instead.",
       "modifyGifAlt": "Modifying sequence",
-      "goalTitle": "Task goal",
+      "disclaimerText": "If you have trouble telling colours apart, that's OK — just choose what looks closest to you.",
+
       "mechanicsTitle": "Instructions",
       "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colours.<br/><br/><strong>• Add a cap:</strong> Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
       "demoInstructions": "How to add colour: Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",

@@ -3,34 +3,64 @@ import { useTranslation, Trans } from "react-i18next";
 import checkIcon from "../../assets/successIcons/checkmark-icon.svg";
 import "./D15DemoMessage.css";
 
-// DIALOG 1: GOAL
-export function D15GoalMessage() {
+// ── DIALOG 1: ADD COLOUR ──────────────────────────────────────────────
+// How to place a cap + the goal (ordered sequence), shown together.
+export function D15AddColourMessage() {
   const { t } = useTranslation("tasks");
 
   return (
     <div className="d15-demo-container">
-      <span className="d15-demo-text">
-        <Trans t={t} i18nKey="d15colour.goalText"></Trans>
-      </span>
-
-      <div className="d15-demo-image-wrapper">
+      <div className="mechanics-section">
+        <span className="d15-demo-text">
+          <Trans t={t} i18nKey="d15colour.addText" />
+        </span>
         <img
-          src={`${import.meta.env.VITE_APP_BASE_PATH}assets/vision/demo-colours-sequence.png`}
-          alt="D15 demo colours sequence"
-          className="d15-demo-colours-image"
+          src={`${import.meta.env.VITE_APP_BASE_PATH}assets/vision/demo-add-colour.gif`}
+          alt={t("d15colour.addGifAlt")}
+          className="d15-demo-gif"
         />
       </div>
 
+      <div className="d15-demo-divider" />
+
+      <div className="d15-demo-goal-section">
+        <span className="d15-demo-text">
+          <Trans t={t} i18nKey="d15colour.goalText" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── DIALOG 2: MODIFY COLOUR ───────────────────────────────────────────
+// How to swap a placed cap + the colour-vision-problems note.
+export function D15ModifyColourMessage() {
+  const { t } = useTranslation("tasks");
+
+  return (
+    <div className="d15-demo-container">
+      <div className="mechanics-section">
+        <span className="d15-demo-text">
+          <Trans t={t} i18nKey="d15colour.modifyText" />
+        </span>
+        <img
+          src={`${import.meta.env.VITE_APP_BASE_PATH}assets/vision/demo-modify-colour.gif`}
+          alt={t("d15colour.modifyGifAlt")}
+          className="d15-demo-gif"
+        />
+      </div>
+
+      <div className="d15-demo-divider" />
+
       <span className="d15-demo-text colour-vision-disclaimer">
-        <Trans t={t} i18nKey="d15colour.disclaimerText"></Trans>
+        <Trans t={t} i18nKey="d15colour.disclaimerText" />
       </span>
     </div>
   );
 }
 
-// DIALOG 2: MECHANICS
-// activeTab: which tab to pre-select (counts as already seen)
-// onTabChange: called when the user actively switches to a tab
+// ── TABBED VERSION ────────────────────────────────────────
+// Kept as-is for the in-task info tooltip — "dialog as before".
 export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange }) {
   const { t } = useTranslation("tasks");
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -48,8 +78,6 @@ export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange
 
   return (
     <div className="d15-demo-container">
-
-      {/* Segmented step-indicator — visual only */}
       <div className="mechanics-tabs" role="tablist">
         {tabs.map((tab) => (
           <button
@@ -64,7 +92,6 @@ export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange
         ))}
       </div>
 
-      {/* Single GIF for the active step */}
       <div className="mechanics-section">
         <span className="d15-demo-text">
           {activeTab === "add"
@@ -81,30 +108,27 @@ export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange
           className="d15-demo-gif"
         />
       </div>
-
     </div>
   );
 }
 
-// DIALOG 4: TRIAL COMPLETE FEEDBACK
-// Shown after the demo trial, before the real desaturated test begins.
+// ── DIALOG: TRIAL COMPLETE FEEDBACK (unchanged) ───────────────────────
 export function D15TrialCompleteMessage() {
   const { t } = useTranslation("tasks");
 
-    return (
-      <div className="d15-demo-container">
-        <div
-          className="success-icon-mask"
-          style={{ '--icon-url': `url("${checkIcon}")` }}
-          aria-hidden="true"
-        />
-
-        <span className="d15-demo-text">
-          {t("d15colour.trialCompleteText")}
-        </span>
-      </div>
-    );
-  }
+  return (
+    <div className="d15-demo-container">
+      <div
+        className="success-icon-mask"
+        style={{ '--icon-url': `url("${checkIcon}")` }}
+        aria-hidden="true"
+      />
+      <span className="d15-demo-text">
+        {t("d15colour.trialCompleteText")}
+      </span>
+    </div>
+  );
+}
 
 export default function D15DemoMessage() {
   return <D15MechanicsMessage />;

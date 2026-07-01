@@ -134,11 +134,11 @@ export default function PreTestInstructions({ onComplete }) {
               </div>
             ) : (
               <div className="radio-group">
-                <label className={`radio-label ${answers[item.id] === 'done' ? 'selected-done' : ''}`}>
+                <label className={`radio-label ${answers[item.id] === 'done' ? 'selected' : ''}`}>
                   <input type="radio" name={item.id} value="done" checked={answers[item.id] === "done"} onChange={() => handleSelect(item.id, "done")} />
                   {t("preTestChecklist.buttons.done")}
                 </label>
-                <label className={`radio-label ${answers[item.id] === 'cannot' ? 'selected-cannot' : ''}`}>
+                <label className={`radio-label ${answers[item.id] === 'cannot' ? 'selected' : ''}`}>
                   <input type="radio" name={item.id} value="cannot" checked={answers[item.id] === "cannot"} onChange={() => handleSelect(item.id, "cannot")} />
                   {t("preTestChecklist.buttons.cannot")}
                 </label>
