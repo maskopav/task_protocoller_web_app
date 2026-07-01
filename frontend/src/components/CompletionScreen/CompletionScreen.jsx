@@ -98,7 +98,6 @@ export default function CompletionScreen({ testingMode, onBack, pendingUploadCou
               {status === "offline" && (
                   <InfoTooltip 
                     title={t("completion.offlineModalInfo")} 
-                    text={<Trans t={t} i18nKey={"completion.offlineReturnHint"}/>} 
                     icon={helpIcon}
                   />
                 )}
@@ -110,7 +109,7 @@ export default function CompletionScreen({ testingMode, onBack, pendingUploadCou
         {testingMode && (
           <div className="admin-actions">
             <button className="btn-primary-back" onClick={onBack}>
-              {t("buttons.backToEditor", { ns: "admin"})}
+              {t("protocolEditor.buttons.backToEditor", { ns: "admin"})}
             </button>
           </div>
         )}

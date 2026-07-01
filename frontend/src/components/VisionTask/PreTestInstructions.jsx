@@ -1,29 +1,19 @@
 import React, { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import InfoToolTip from "../InfoToolTip/InfoToolTip";
+import TaskLayout from "../TaskLayout/TaskLayout";
 import "./PreTestInstructions.css";
 import { 
-  rotateIconA, 
-  rotateIconB, 
-  rotateIconC, 
   brightnessIcon, 
   brightnessSlider, 
   settingsIcon 
 } from "../../assets/visionIcons/visionAssets";
 
 export default function PreTestInstructions({ onComplete }) {
-  // Load the translation hook for the "tasks" namespace
   const { t } = useTranslation(["tasks"]); 
   const [answers, setAnswers] = useState({});
 
-  // Dynamic Instructions Array using <Trans> for embedded formatting and images
   const INSTRUCTIONS = [
-    /*{
-      id: "environment",
-      type: "action",
-      label: t("preTestChecklist.items.environment.label"),
-      helpText: t("preTestChecklist.items.environment.helpText") // Standard text, no <Trans> needed
-    },*/// REMOVED based on discussion with the team about keeping instructions focused on phone settings - will be in general instructions
     {
       id: "brightness",
       type: "action",
@@ -57,38 +47,7 @@ export default function PreTestInstructions({ onComplete }) {
           }}
         />
       )
-    }/*,
-        {
-      id: "privacy_screen",
-      type: "question",
-      label: t("preTestChecklist.items.privacyScreen.label"),
-      helpText: (
-        <Trans 
-          t={t}
-          i18nKey="preTestChecklist.items.privacyScreen.helpText"
-          components={{ br: <br />, strong: <strong /> }}
-        />
-      )
     }
-    ,
-    {
-      id: "landscape",
-      type: "action",
-      label: t("preTestChecklist.items.landscape.label"),
-      helpText: (
-        <Trans 
-          t={t} 
-          i18nKey="preTestChecklist.items.landscape.helpText"
-          components={{
-            br: <br />,
-            strong: <strong />,
-            imgA: <img src={rotateIconA} alt="rotate" className="inline-help-icon" />,
-            imgB: <img src={rotateIconB} alt="rotate" className="inline-help-icon" />,
-            imgC: <img src={rotateIconC} alt="rotate" className="inline-help-icon" />
-          }}
-        />
-      )
-    }*/
   ];
 
   const handleSelect = (id, value) => {
@@ -101,13 +60,25 @@ export default function PreTestInstructions({ onComplete }) {
     onComplete(answers);
   };
 
-  return (
-    <div className="instructions-container">
-      <h2>{t("preTestChecklist.title")}</h2>
-      <h3 className="instructions-subtext">
-        {t("preTestChecklist.subtitle")}
-      </h3>
+  // Extract the Start button to pass into the TaskLayout 'controls' prop
+  const controlsContent = (
+    <button 
+      className="btn-primary start-button" 
+      disabled={!allAnswered}
+      onClick={handleStart}
+    >
+      {t("preTestChecklist.buttons.start")}
+    </button>
+  );
 
+  return (
+    <TaskLayout
+      className="pretest-container"
+      title={t("preTestChecklist.title")}
+      renderTitle={true}
+      instructions={t("preTestChecklist.subtitle")}
+      controls={controlsContent}
+    >
       <div className="checklist-wrapper">
         {INSTRUCTIONS.map((item) => (
           <div key={item.id} className="checklist-item">
@@ -116,7 +87,6 @@ export default function PreTestInstructions({ onComplete }) {
               <InfoToolTip title={item.label} text={item.helpText} />
             </div>
             
-            {/* 2. RENDER BUTTONS BASED ON TYPE */}
             {item.type === "question" ? (
               <div className="radio-group">
                 <label className={`radio-label ${answers[item.id] === 'yes' ? 'selected-cannot' : ''}`}>
@@ -147,14 +117,6 @@ export default function PreTestInstructions({ onComplete }) {
           </div>
         ))}
       </div>
-
-      <button 
-        className="btn-primary start-button" 
-        disabled={!allAnswered}
-        onClick={handleStart}
-      >
-        {t("preTestChecklist.buttons.start")}
-      </button>
-    </div>
+    </TaskLayout>
   );
 }
