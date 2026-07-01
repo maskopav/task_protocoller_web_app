@@ -5,6 +5,9 @@ import crypto from "crypto";
 import pool from "../db/connection.js";
 import { logToFile } from '../utils/logger.js';
 import { dateInYyyyMmDdHhMmSs } from "../utils/dateFormatter.js";
+import zlib from "zlib";
+import { promisify } from "util";
+const gunzip = promisify(zlib.gunzip);
 
 // Configuration for file storage
 const UPLOAD_DIR = process.env.DATA_PATH; 
@@ -15,11 +18,14 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 }
 
 export const uploadRecording = async (req, res) => {
-  const file = req.file;
-  // 1. Get IDs directly from body
+  // 1. Get files from req.files (Multer's object for multiple fields)
+  // We keep a fallback to req.file just in case you use this controller elsewhere with .single()
+  const audioFile = req.files?.audio ? req.files.audio[0] : req.file;
+  const coordsFile = req.files?.coordinates ? req.files.coordinates[0] : null;
+
   const { sessionId, protocolTaskId, token, taskCategory, repeatIndex, taskOrder, duration } = req.body;
 
-  if (!file || !token) {
+  if (!audioFile || !token) {
     return res.status(400).json({ error: "Missing file or token" });
   }
 
@@ -28,19 +34,29 @@ export const uploadRecording = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    // 2. Generate Filename (Purely cosmetic now, logic simplified)
+    // 2. Generate Filename
     const safeCat = (taskCategory || "task").replace(/[^a-z0-9]/gi, "");
     const safeRep = repeatIndex || "1";
-    // Use the date helper (defaults to now if empty)
     const timestamp = dateInYyyyMmDdHhMmSs();
-    const uniqueSuffix = crypto.randomBytes(4).toString("hex");
-    const baseFilename = `S${sessionId}_O${taskOrder}_C${safeCat}_R${safeRep}_D${timestamp}_${uniqueSuffix}`;
+    const baseFilename = `S${sessionId}_O${taskOrder}_C${safeCat}_R${safeRep}_D${timestamp}`;
     
-    // Process it, and get back either the .wav or .webm filename depending on success
-    const finalFilename = await processAndSaveAudio(file.buffer, baseFilename);
+    // Save Audio using your existing helper
+    const finalFilename = await processAndSaveAudio(audioFile.buffer, baseFilename);
 
+    // Save Coordinates directly to the disk if they exist!
+    if (coordsFile) {
+      const isGzipped = req.body.coordinatesEncoding === "gzip";
+      const jsonBuffer = isGzipped
+        ? await gunzip(coordsFile.buffer)
+        : coordsFile.buffer;
+
+      const jsonPath = path.join(UPLOAD_DIR, `${baseFilename}.json`);
+      await fs.promises.writeFile(jsonPath, jsonBuffer);
+      logToFile(`✅ Saved coordinates: ${baseFilename}.json`);
+    }
 
     // 3. Insert directly using the IDs we received
+    // Notice we do NOT insert the coordinates into the DB. The DB stays clean!
     await connection.query(
       `INSERT INTO recordings 
       (session_id, protocol_task_id, recording_url, duration_seconds, repeat_index) 

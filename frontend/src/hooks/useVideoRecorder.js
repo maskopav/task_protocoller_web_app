@@ -2,17 +2,18 @@ import { useState, useRef, useCallback } from 'react';
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 const DEV_MODE = true; // Set to false when deploying
-const FRAME_RATE_MS = 20; // Processing of the video frame takes time -> plus around 40ms 
+const FRAME_RATE_MS = 33; 
 
 export const useVideoRecorder = ({ 
     onRecordingComplete = () => {}, 
     onError = () => {}, 
     debugMode = false 
-}) => {
+}) => {onRecordingComplete
     const [recordingStatus, setRecordingStatus] = useState("idle");
     const [isSteady, setIsSteady] = useState(false);
     const [isFaceCorrect, setIsFaceCorrect] = useState(false);
     const [guidance, setGuidance] = useState({ text: "Positioning...", arrow: null });
+    const [videoData, setVideoData] = useState(null); 
     
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
@@ -224,6 +225,8 @@ export const useVideoRecorder = ({
         
         isCalibratingRef.current = false; // Stop drawing green dots
 
+        setVideoData(null);
+
         // Clear the canvas so the frozen dots disappear
         if (requestRef.current) {
             cancelAnimationFrame(requestRef.current);
@@ -253,10 +256,14 @@ export const useVideoRecorder = ({
         
         audioRecorder.current.onstop = () => {
             const audioBlob = new Blob(audioChunks.current, { type: mimeType });
+            const finalCoordinates = coordinateTimeline.current;
+            
+            //  Save the coordinates to state
+            setVideoData(finalCoordinates);
             
             onRecordingComplete({
                 audioBlob: audioBlob,
-                coordinates: coordinateTimeline.current
+                coordinates: finalCoordinates
             });
         };
         
@@ -296,7 +303,7 @@ export const useVideoRecorder = ({
         videoRef, canvasRef, recordingStatus, isSteady, 
         isFaceCorrect, guidance, getMediaPermission, 
         startFaceDetection, startRecording, stopRecording,
-        isLoadingModel
+        isLoadingModel, videoData
     };
 
 };

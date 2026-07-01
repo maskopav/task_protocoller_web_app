@@ -5,11 +5,16 @@ import { uploadRecording, uploadMicCheck } from "../controllers/recordingControl
 
 const router = express.Router();
 
-// Store in memory initially, controller handles saving to disk
 const upload = multer({ storage: multer.memoryStorage() });
 
-// POST /api/recordings/upload
-router.post("/upload", upload.single("audio"), uploadRecording);
+router.post(
+  '/upload',
+  upload.fields([
+    { name: 'audio', maxCount: 1 },
+    { name: 'coordinates', maxCount: 1 }
+  ]),
+  uploadRecording 
+);
 router.post("/mic-check", upload.single("audio"), uploadMicCheck);
 
 export default router;

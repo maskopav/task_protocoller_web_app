@@ -249,6 +249,9 @@ export default function ParticipantInterfacePage() {
               await uploadMicCheck(record.blob, record.metadata);
             } else if (record.metadata.isBlob) {
               await uploadRecording(record.blob, record.metadata);
+            } else if (record.metadata.isMicCheck) {
+              // Mic-check "skipped" event with no audio — nothing to persist to task_results.
+              // Progress (skipped, attempts) is captured via trackProgress below instead.
             } else {
               await saveTaskResult({
                 sessionId: record.metadata.sessionId,
@@ -442,6 +445,10 @@ export default function ParticipantInterfacePage() {
       const repeatIndex = currentTaskObj._repeatIndex || 1;
       
       const recordingId = `${sessionId}_task${taskIndex}${isAttempt ? `_attempt_${Date.now()}` : ''}`;
+      // Extract videoData from the incoming data object if it exists
+      const videoData = data.videoData || null;
+
+      console.log()
    
       const uploadMeta = {
         token: accessToken,
@@ -456,6 +463,7 @@ export default function ParticipantInterfacePage() {
         timeStamp: data?.timestamp || Date.now(),
         snrScore: data?.snrScore || null,
         speechSegments: data?.speechSegments || null,
+        videoData: videoData,
         payload: (!blob && !isSystemTask && !isMicCheck) || (isMicCheck && !blob) ? data : null, 
         attemptNumber: data?.attemptNumber,
         progressAction: isAttempt    ? 'mic_check_attempt_saved'
@@ -750,12 +758,15 @@ async function uploadInBackground(recordingId, blob, meta, sessionId, taskIndex)
       await uploadMicCheck(blob, meta);
     } else if (meta.isBlob) {
       await uploadRecording(blob, meta);
+    } else if (meta.isMicCheck) {
+      // Mic-check "skipped" event with no audio — nothing to persist to task_results.
+      // Progress (skipped, attempts) is captured via trackProgress below instead.
     } else {
       await saveTaskResult({
         sessionId: meta.sessionId,
         protocolTaskId: meta.protocolTaskId,
         repeat_index: meta.repeatIndex || 1,
-        payload: meta.payload                               
+        payload: meta.payload
       });
     }
  
