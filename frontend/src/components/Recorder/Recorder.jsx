@@ -81,7 +81,7 @@ export const Recorder = ({
     const videoRecorder = useVideoRecorder({
         debugMode: DEBUG_MODE,
         onRecordingComplete: (videoData) => {
-            logToServer("Video data processed!", videoData);
+            logToServer("Video data processed!", { size: videoData?.size, duration: videoData?.duration, type: videoData?.type })
         }
     });
 
@@ -93,7 +93,7 @@ export const Recorder = ({
 
     const {
         recordingStatus, permission: audioPermission, stream, audioURL, recordingTime,
-        audioLevels, activeInstructions, durationExpired, incompatibleBrowser,
+        audioLevelsRef, activeInstructions, durationExpired, incompatibleBrowser,
         getMicrophonePermission, startRecording: startAudioRecording, pauseRecording,
         resumeRecording, stopRecording: stopAudioRecording, repeatRecording,
         playExample, stopExample, RECORDING_STATES
@@ -292,10 +292,10 @@ export const Recorder = ({
 
         if (isCalibrationPhase) {
             baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
-        } else if (isDynamicTask && dynamicIndex > 0) {
-            baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
         } else if (recordingStatus === RECORDING_STATES.RECORDED) {
             baseInstructions = completedInstructions;
+        } else if (isDynamicTask && dynamicIndex > 0) {
+            baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
         } else if (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE && !awaitingNextTopic) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
         }
@@ -345,7 +345,7 @@ export const Recorder = ({
                 time={recordingTime}
                 remainingTime={voiceRecorder.remainingTime}
                 status={recordingStatus}
-                audioLevels={audioLevels}
+                audioLevelsRef={audioLevelsRef}
                 showVisualizer={showVisualizer}
                 isReadyToStop={isReadyToStop}
                 mode={mode}
@@ -493,7 +493,7 @@ export const Recorder = ({
             showSpacer={!(hideTitle && isActivelyRecording)}
             instructions={instructionsContent}
             instructionsKey={isDynamicTask ? dynamicIndex : 'static'}
-            instructionsClassName={!(hideTitle && isActivelyRecording) ? 'with-title' : 'no-title'}
+            instructionsClassName={`${!(hideTitle && isActivelyRecording) ? 'with-title' : 'no-title'} ${shouldShiftTimer ? 'is-shifted-instructions' : ''}`}
 
             mainClassName={recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}
 

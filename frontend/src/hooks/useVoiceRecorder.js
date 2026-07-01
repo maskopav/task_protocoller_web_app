@@ -99,7 +99,6 @@ export const useVoiceRecorder = (options = {}) => {
     const [audioURL,    setAudioURL]    = useState(null);
     const [recordingTime,  setRecordingTime]  = useState(0);
     const [remainingTime,  setRemainingTime]  = useState(null);
-    const [audioLevels,    setAudioLevels]    = useState(new Array(12).fill(0));
     const [activeInstructions, setActiveInstructions] = useState(instructions);
     const [exampleAudio,   setExampleAudio]   = useState(null);
     const [durationExpired, setDurationExpired] = useState(false);
@@ -109,6 +108,8 @@ export const useVoiceRecorder = (options = {}) => {
     const audioContext      = useRef(null);
     const analyser          = useRef(null);
     const animationFrame    = useRef(null);
+    const audioLevelsRef = useRef([]);
+    const subscribersRef = useRef(new Set());
 
     // renamed scriptProcessorRef → workletNodeRef.
     // The old name referred to the deprecated ScriptProcessorNode API;
@@ -288,9 +289,22 @@ export const useVoiceRecorder = (options = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [remainingTime]);
 
+    const subscribeToAudioLevels = useCallback((callback) => {
+        subscribersRef.current.add(callback);
+        return () => subscribersRef.current.delete(callback);
+    }, []);
+
+    const pushAudioLevel = useCallback((level) => {
+        const arr = audioLevelsRef.current;
+        arr.push(level);
+        if (arr.length > MAX_SAMPLES) arr.shift(); // keep bounded, no new array alloc if using a ring buffer instead
+        // Notify subscribers without setState — no re-render triggered here
+        subscribersRef.current.forEach((cb) => cb(audioLevelsRef.current));
+    }, []);
+
     // ── Recording ──────────────────────────────────────────────────────────────
     const startRecording = async () => {
-        // FIX: guard against a double-start.  Without this, calling startRecording
+        // guard against a double-start.  Without this, calling startRecording
         // twice would create a second audio graph on top of the first, leaving both
         // worklets writing to audioChunks simultaneously and corrupting the PCM.
         if (!stream || statusRef.current === RECORDING) return;
@@ -453,7 +467,8 @@ export const useVoiceRecorder = (options = {}) => {
 
         setRecordingTime(0);
         setRecordingStatus(IDLE);
-        setAudioLevels(new Array(12).fill(0));
+        audioLevelsRef.current = new Array(12).fill(0);
+        subscribersRef.current.forEach((cb) => cb(audioLevelsRef.current));
         setDurationExpired(false); // Reset duration expired state
 
         if (animationFrame.current) {
@@ -530,14 +545,16 @@ export const useVoiceRecorder = (options = {}) => {
                     newLevels.push(normalized);
                 }
                 levels = newLevels;
-                setAudioLevels(newLevels);
+                audioLevelsRef.current = newLevels;
+                subscribersRef.current.forEach((cb) => cb(newLevels));
 
             } else {
                 // Fade out when not recording.
                 const isFading = levels.some(level => level > 0);
                 if (isFading) {
                     levels = levels.map(level => Math.max(0, level - 5));
-                    setAudioLevels(levels);
+                    audioLevelsRef.current = levels;
+                    subscribersRef.current.forEach((cb) => cb(levels));
                 } else if (statusRef.current === RECORDED) {
                     return; // Stop the rAF loop once fully faded.
                 }
@@ -585,7 +602,8 @@ export const useVoiceRecorder = (options = {}) => {
         audioURL,
         recordingTime,
         remainingTime,
-        audioLevels,
+        audioLevelsRef,
+        subscribeToAudioLevels,
         activeInstructions,
         exampleAudio,
         durationExpired,
