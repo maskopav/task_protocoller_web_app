@@ -31,11 +31,37 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate all required fields
     for (const id of requiredIdentifiers) {
-      if (!formData[id]?.trim()) {
-        setError(t('identifiers.fillAllFields', 'Please fill in all required fields to continue.'));
+      const value = formData[id];
+      const field = fieldMap[id];
+
+      // 1. Check if the field is empty
+      if (!value?.trim()) {
+        setError(t('identifiers.fillAllFields'));
         return;
       }
+
+      // Validate 'year' type fields against their defined range
+      if (field?.type === 'year') {
+        const numValue = parseInt(value, 10);
+        const { min, max } = field.yearRange;
+        
+        if (isNaN(numValue) || numValue < min || numValue > max) {
+          // Provide a helpful error message indicating the allowed range
+          setError(
+            t('identifiers.invalidYear', { min, max })
+          );
+          return;
+        }
+      }
+    }
+
+    // Skip API call if there is no sessionId (e.g., editing/testing mode)
+    if (!sessionId) {
+      onNext();
+      return;
     }
 
     setIsSubmitting(true);
@@ -44,7 +70,7 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
       onNext();
     } catch (err) {
       console.error('Error saving identifiers:', err);
-      setError(t('identifiers.saveError', 'There was an error saving your information. Please try again.'));
+      setError(t('identifiers.saveError'));
       setIsSubmitting(false);
     }
   };
@@ -64,7 +90,7 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
             required
           >
             <option value="" disabled>
-              {t('common.selectOption', '-- Select an option --')}
+              {t('common.selectOption')}
             </option>
             {options.map(opt => (
               <option key={opt.value} value={opt.value}>
@@ -86,9 +112,9 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
               list={listId}
               value={formData[id] || ''}
               onChange={e => handleChange(id, e.target.value)}
-              placeholder={t('identifiers.yearPlaceholder', 'e.g. 1965')}
+              placeholder={t('identifiers.yearPlaceholder')}
               pattern="[0-9]{4}"
-              title={t('identifiers.yearTitle', `Enter a 4-digit year (${min}–${max})`)}
+              title={t('identifiers.yearTitle')}
               required
             />
             <datalist id={listId}>
@@ -120,7 +146,7 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
       instructions={
         <>
           <div>
-            {t('identifiers.description', 'Please provide the following information.')}
+            {t('identifiers.description')}
           </div>
 
           <form id="identifiers-form" onSubmit={handleSubmit} className="identifiers-form">
@@ -148,7 +174,7 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
           className="btn-primary identifiers-btn"
           disabled={isSubmitting}
         >
-          {isSubmitting ? t('buttons.saving', 'Saving...') : t('buttons.continue', 'Continue')}
+          {isSubmitting ? t('buttons.saving') : t('buttons.continue')}
         </button>
       }
     />

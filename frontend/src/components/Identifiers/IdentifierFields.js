@@ -16,33 +16,28 @@ export const IDENTIFIER_FIELDS = [
   {
     id: 'first_name',
     tKey: 'identifiers.firstName',
-    label: 'First Name',
     type: 'text',
   },
   {
     id: 'last_name',
     tKey: 'identifiers.lastName',
-    label: 'Last Name',
     type: 'text',
   },
   {
     id: 'birth_year',
     tKey: 'identifiers.birthYear',
-    label: 'Year of Birth',
     type: 'year',
     // Adjust min/max to match your study population.
-    yearRange: { min: 1920, max: CURRENT_YEAR - 10 },
+    yearRange: { min: CURRENT_YEAR - 120 , max: CURRENT_YEAR - 17 },
   },
   {
     id: 'external_id',
     tKey: 'identifiers.externalId',
-    label: 'External ID',
     type: 'text',
   },
   {
     id: 'sex',
     tKey: 'identifiers.sex',
-    label: 'Sex',
     type: 'select',
     options: [
       { value: 'male',   tKey: 'common.male',   label: 'Male'   },
