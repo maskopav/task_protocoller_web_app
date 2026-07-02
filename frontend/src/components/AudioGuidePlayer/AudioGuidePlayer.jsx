@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
-import './InstructionAudioPlayer.css';
+import './AudioGuidePlayer.css';
 import pauseIcon from '../../assets/audioIcons/pause-icon.svg';
 import speakerIcon from '../../assets/audioIcons/audio-example-icon.svg';
 
 /**
- * InstructionAudioPlayer
+ * AudioGuidePlayer
  *
  * Renders a bare icon button that plays / pauses the task instruction audio.
  * All audio state is self-contained — the parent only needs to supply:
@@ -17,14 +17,14 @@ import speakerIcon from '../../assets/audioIcons/audio-example-icon.svg';
  * Usage in ParticipantInterfacePage:
  *
  *   <div className="task-header-right">
- *     <InstructionAudioPlayer
+ *     <AudioGuidePlayer
  *       src={audioSrc}
  *       taskIndex={taskIndex}
  *       isRecordingActive={isRecordingActive}
  *     />
  *   </div>
  */
-export default function InstructionAudioPlayer({ src, taskIndex, isRecordingActive }) {
+export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioAvailable, setAudioAvailable] = useState(true);

@@ -30,9 +30,9 @@ import {
   deleteLocalRecording,
 } from '../utils/offlineStorage';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { getInstructionAudioPath } from '../utils/getInstructionAudioPath';
+import { getAudioGuidePath } from '../utils/getAudioGuidePath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
-import InstructionAudioPlayer from '../components/InstructionAudioPlayer/InstructionAudioPlayer';
+import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
 const activeUploads = new Set();
 
@@ -406,7 +406,7 @@ export default function ParticipantInterfacePage() {
     const repeatIndex = currentTask.repeatIndex || 1; 
     const taskParams = currentTask.params || {};
 
-    return getInstructionAudioPath(
+    return getAudioGuidePath(
       taskName,
       taskParams, 
       repeatIndex,
@@ -725,7 +725,7 @@ export default function ParticipantInterfacePage() {
               )}
             </div>
             <div className="task-header-right">
-              <InstructionAudioPlayer
+              <AudioGuidePlayer
                 src={audioSrc}
                 taskIndex={taskIndex}
                 isRecordingActive={isRecordingActive}

@@ -15,6 +15,14 @@ const RECORDING = 'recording';
 const PAUSED    = 'paused';
 const RECORDED  = 'recorded';
 
+// How many level "buckets" the visualizer gets per frame, and how often we
+// bother computing them. Uncapped (i.e. tied to display refresh rate) means
+// 90-120 FFT reads + array allocations per second on many Android phones —
+// no meter needs to update that often, and it's the main source of jank on
+// weaker devices. 25fps is plenty smooth for a level meter.
+const LEVEL_BUCKETS = 12;
+const LEVEL_FRAME_INTERVAL_MS = 1000 / 25;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AudioWorklet source — inlined as a string so no extra build step or
 // public-folder asset is required.
@@ -294,14 +302,6 @@ export const useVoiceRecorder = (options = {}) => {
         return () => subscribersRef.current.delete(callback);
     }, []);
 
-    const pushAudioLevel = useCallback((level) => {
-        const arr = audioLevelsRef.current;
-        arr.push(level);
-        if (arr.length > MAX_SAMPLES) arr.shift(); // keep bounded, no new array alloc if using a ring buffer instead
-        // Notify subscribers without setState — no re-render triggered here
-        subscribersRef.current.forEach((cb) => cb(audioLevelsRef.current));
-    }, []);
-
     // ── Recording ──────────────────────────────────────────────────────────────
     const startRecording = async () => {
         // guard against a double-start.  Without this, calling startRecording
@@ -467,7 +467,7 @@ export const useVoiceRecorder = (options = {}) => {
 
         setRecordingTime(0);
         setRecordingStatus(IDLE);
-        audioLevelsRef.current = new Array(12).fill(0);
+        audioLevelsRef.current = new Array(LEVEL_BUCKETS).fill(0);
         subscribersRef.current.forEach((cb) => cb(audioLevelsRef.current));
         setDurationExpired(false); // Reset duration expired state
 
@@ -520,49 +520,58 @@ export const useVoiceRecorder = (options = {}) => {
         }
     };
 
-    // Audio Visualization Effect 
+    // Audio Visualization Effect
+    //
+    // Runs at a capped ~25fps (LEVEL_FRAME_INTERVAL_MS) instead of tracking the
+    // display's native refresh rate.
     useEffect(() => {
         if (!analyser.current) return;
 
         const dataArray = new Uint8Array(analyser.current.frequencyBinCount);
-        let levels = new Array(12).fill(0); // Use a local array for current frame
+        const levels = audioLevelsRef.current.length === LEVEL_BUCKETS
+            ? audioLevelsRef.current
+            : new Array(LEVEL_BUCKETS).fill(0);
+        audioLevelsRef.current = levels;
 
-        const updateLevels = () => {
+        const step = Math.floor(dataArray.length / LEVEL_BUCKETS);
+        let lastFrameTime = 0;
+
+        const updateLevels = (now) => {
+            animationFrame.current = requestAnimationFrame(updateLevels);
+
+            if (now - lastFrameTime < LEVEL_FRAME_INTERVAL_MS) return;
+            lastFrameTime = now;
+
             if (statusRef.current === RECORDING) {
                 analyser.current.getByteFrequencyData(dataArray);
 
-                const newLevels = [];
-                const step = Math.floor(dataArray.length / 12);
-
-                for (let i = 0; i < 12; i++) {
+                for (let i = 0; i < LEVEL_BUCKETS; i++) {
                     const start = i * step;
                     const end = start + step;
                     let sum = 0;
                     for (let j = start; j < end && j < dataArray.length; j++) {
                         sum += dataArray[j];
                     }
-                    const normalized = Math.min((sum / step / 255) * 100, 100);
-                    newLevels.push(normalized);
+                    levels[i] = Math.min((sum / step / 255) * 100, 100);
                 }
-                levels = newLevels;
-                audioLevelsRef.current = newLevels;
-                subscribersRef.current.forEach((cb) => cb(newLevels));
+                subscribersRef.current.forEach((cb) => cb(levels));
 
             } else {
                 // Fade out when not recording.
                 const isFading = levels.some(level => level > 0);
                 if (isFading) {
-                    levels = levels.map(level => Math.max(0, level - 5));
-                    audioLevelsRef.current = levels;
+                    for (let i = 0; i < levels.length; i++) {
+                        levels[i] = Math.max(0, levels[i] - 5);
+                    }
                     subscribersRef.current.forEach((cb) => cb(levels));
                 } else if (statusRef.current === RECORDED) {
-                    return; // Stop the rAF loop once fully faded.
+                    if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
+                    // Stop the rAF loop once fully faded.
                 }
             }
-            animationFrame.current = requestAnimationFrame(updateLevels);
         };
 
-        updateLevels();
+        animationFrame.current = requestAnimationFrame(updateLevels);
 
         return () => {
             if (animationFrame.current) cancelAnimationFrame(animationFrame.current);

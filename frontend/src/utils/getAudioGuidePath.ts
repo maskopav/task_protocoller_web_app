@@ -1,4 +1,4 @@
-// src/utils/getInstructionAudioPath.ts
+// src/utils/getAudioGuidePath.ts
 
 interface EnvImportMeta extends ImportMeta {
   env: {
@@ -7,7 +7,7 @@ interface EnvImportMeta extends ImportMeta {
   };
 }
 
-export function getInstructionAudioPath(
+export function getAudioGuidePath(
   taskName: string,
   params: Record<string, any> = {},
   repeatIndex: number = 1,
@@ -20,7 +20,7 @@ export function getInstructionAudioPath(
 
   // 1. Handle Repetitions (Generic "Perform the task again" audio)
   if (repeatIndex > 1) {
-    return `${basePath}audio/instructions/${language}/repeat.wav`;
+    return `${basePath}audio/guide/${language}/repeat.wav`;
   }
 
   // 2. Determine base filename (e.g., "sdmt")
@@ -41,5 +41,5 @@ export function getInstructionAudioPath(
     }
   }
 
-  return `${basePath}audio/instructions/${language}/${fileName}.wav`;
+  return `${basePath}audio/guide/${language}/${fileName}.wav`;
 }
