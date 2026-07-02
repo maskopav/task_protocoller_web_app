@@ -7,39 +7,49 @@ interface EnvImportMeta extends ImportMeta {
   };
 }
 
+type AudioGuideParams = Record<string, unknown>;
+
+function getBasePath(): string {
+  const envMeta = (import.meta as EnvImportMeta).env;
+  return envMeta.VITE_APP_BASE_PATH || envMeta.BASE_URL || '/';
+}
+
+export function buildAudioGuidePath(
+  language: string,
+  fileName: string
+): string {
+  const basePath = getBasePath();
+  return `${basePath}audio/guide/${language}/${fileName}.wav`;
+}
+
 export function getAudioGuidePath(
   taskName: string,
-  params: Record<string, any> = {},
+  params: AudioGuideParams = {},
   repeatIndex: number = 1,
   language: string = 'en'
 ): string | null {
   if (!taskName) return null;
 
-  const envMeta = (import.meta as EnvImportMeta).env;
-  const basePath = envMeta.VITE_APP_BASE_PATH || envMeta.BASE_URL || '/';
-
-  // 1. Handle Repetitions (Generic "Perform the task again" audio)
+  // 1. Handle repetitions (generic "repeat" audio)
   if (repeatIndex > 1) {
-    return `${basePath}audio/guide/${language}/repeat.wav`;
+    return buildAudioGuidePath(language, 'repeat');
   }
 
-  // 2. Determine base filename (e.g., "sdmt")
+  // 2. Base filename from task
   let fileName = taskName;
 
-  // 3. Add parameter suffix if needed (e.g., "phonation_a", "syllableRepeating_pataka")
+  // 3. Parameter-dependent filenames
   const keys = Object.keys(params);
   if (keys.length > 0) {
-    // Define which tasks should use parameterized audio instructions
     const paramDependentTasks = ['phonation', 'syllableRepeating', 'retelling', 'reading'];
-    
     if (paramDependentTasks.includes(taskName)) {
-      const mainParam = keys[0]; // Gets 'phoneme', 'syllable', etc.
-      const value = params[mainParam as keyof typeof params];
-      if (value) {
-        fileName = `${taskName}_${String(value)}`; 
+      const mainParamKey = keys[0];
+      const value = params[mainParamKey as keyof typeof params];
+      if (value != null) {
+        fileName = `${taskName}_${String(value)}`;
       }
     }
   }
 
-  return `${basePath}audio/guide/${language}/${fileName}.wav`;
+  return buildAudioGuidePath(language, fileName);
 }

@@ -1,7 +1,13 @@
 /* ─── InstructionAudioPlayer ──────────────────────────────────────────────── */
 
+:root {
+  /* One color token for both speaker + waves */
+  --audio-color: #707070;        
+  --audio-accent: #3764df;      
+}
+
+/* Button reset and layout */
 .audio-instructions-btn {
-  /* Strip all native button styling */
   appearance: none;
   background: none;
   border: none;
@@ -9,23 +15,21 @@
   margin: 0;
   cursor: pointer;
 
-  /* Layout */
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 0;
 
-  /* Interaction */
-  border-radius: 4px;
-  transition: opacity 0.15s ease;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .audio-instructions-btn:hover {
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .audio-instructions-btn:active {
-  opacity: 0.5;
+  opacity: 0.65;
 }
 
 .audio-instructions-btn:focus-visible {
@@ -33,29 +37,94 @@
   outline-offset: 2px;
 }
 
-/* img icons don't inherit CSS color, so we use a filter to tint them dark grey.
-   brightness(0) converts any source colour to pure black,
-   then opacity(0.65) brings it to a dark grey. */
-.audio-instructions-icon {
-  display: block;
-  flex-shrink: 0;
-  font-weight: 600;
-
-  /* Scale with viewport height:
-     ~14px on small phones (≤600px tall) → ~18px on tablets → 22px cap on large screens.
-     Adjust the middle value (2vh) to taste. */
-  width:  clamp(25px, 2.5vh, 35px);
-  height: clamp(25px, 2.5vh, 35px);
-
-  filter: brightness(0) opacity(0.65);
-  transition: filter 0.15s ease;
+/* When playing, subtle background */
+.audio-instructions-btn.is-playing {
+  background-color: rgba(55, 100, 223, 0.06);
 }
 
-.audio-instructions-btn:hover .audio-instructions-icon {
-  filter: brightness(0) opacity(0.9);
-}
-
-/* Hide the native audio element — playback is controlled via the JS ref */
+/* Hide native audio element */
 .audio-instructions-audio {
   display: none;
+}
+
+/* ── Visual: speaker + waves ─────────────────────────────────────────────── */
+
+.audio-instructions-visual {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0px, 0.2vh, 1px);
+}
+
+/* Speaker icon – scales with clamp and uses same color token */
+.audio-instructions-speaker {
+  display: block;
+  width:  clamp(25px, 2.5vh, 35px);
+  height: clamp(25px, 2.5vh, 35px);
+  color: #707070;
+}
+
+/* Waves container – width scales with icon size */
+.audio-waves {
+  position: relative;
+  width: clamp(18px, 2.2vh, 22px);    
+  height: clamp(12px, 1.6vh, 16px);  
+}
+
+/* Each wave = small vertical bar, scaled with clamp */
+.audio-wave {
+  position: absolute;
+  bottom: 0;
+  width: clamp(3px, 0.38vh, 4px);  /* slightly thicker bars */
+  border-radius: 999px;
+  background: var(--audio-color);
+
+  opacity: 0;
+  transform-origin: bottom center;
+}
+
+/* Bars very close together */
+.audio-wave--1 {
+  left: clamp(1px, 0.25vh, 2px);
+}
+
+.audio-wave--2 {
+  left: clamp(6px, 0.9vh, 8px);
+}
+
+.audio-wave--3 {
+  left: clamp(11px, 1.6vh, 14px);
+}
+
+/* Only animate when playing */
+.audio-waves--active .audio-wave {
+  animation: audio-wave-grow 1.5s ease-out infinite;
+}
+
+/* Staggered delays = “traveling” look */
+.audio-waves--active .audio-wave--1 {
+  animation-delay: 0s;
+}
+
+.audio-waves--active .audio-wave--2 {
+  animation-delay: 0.12s;
+}
+
+.audio-waves--active .audio-wave--3 {
+  animation-delay: 0.24s;
+}
+
+/* Grow up and fade out smoothly, height also scales with clamp */
+@keyframes audio-wave-grow {
+  0% {
+    height: clamp(2px, 0.3vh, 3px);
+    opacity: 0;
+  }
+  35% {
+    height: clamp(11px, 1.6vh, 13px);  
+    opacity: 1;
+  }
+  100% {
+    height: clamp(2px, 0.3vh, 3px);
+    opacity: 0;
+  }
 }

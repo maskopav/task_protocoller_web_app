@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './AudioGuidePlayer.css';
-import pauseIcon from '../../assets/audioIcons/pause-icon.svg';
-import speakerIcon from '../../assets/audioIcons/audio-example-icon.svg';
+import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
 
 /**
  * AudioGuidePlayer
@@ -27,82 +26,99 @@ import speakerIcon from '../../assets/audioIcons/audio-example-icon.svg';
 export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioAvailable, setAudioAvailable] = useState(true);
 
-  // Reset availability whenever the source changes (new task)
-  useEffect(() => {
-    setAudioAvailable(true);
-  }, [src]);
-
-  // Auto-play when a new task with audio is shown
-  useEffect(() => {
-    if (!src || !audioRef.current) return;
-
-    let isCancelled = false;
-    const audio = audioRef.current;
-    audio.currentTime = 0;
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        if (isCancelled) return;
-        if (err.name !== 'AbortError') {
-          console.warn('Autoplay blocked by browser:', err);
-          setIsPlaying(false);
-        }
-      });
-    }
-
-    return () => {
-      isCancelled = true;
-      audio.pause();
-    };
-  }, [src, taskIndex]);
-
-  // Stop the moment recording begins
+  // Stop playing if recording becomes active
   useEffect(() => {
     if (isRecordingActive && audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
   }, [isRecordingActive]);
 
-  const toggle = () => {
-    if (!audioRef.current) return;
-    if (audioRef.current.paused) {
-      audioRef.current.play().catch(e => console.warn('Cannot play audio:', e));
+  // Autoplay on task change if src exists
+  useEffect(() => {
+    if (!src || !audioRef.current || isRecordingActive) return;
+
+    const audio = audioRef.current;
+    audio.currentTime = 0;
+
+    const playOnLoad = () => {
+      audio
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
+    };
+
+    if (audio.readyState >= 2) {
+      playOnLoad();
     } else {
+      audio.addEventListener('canplaythrough', playOnLoad, { once: true });
+    }
+
+    return () => {
+      audio.pause();
+      setIsPlaying(false);
+    };
+  }, [src, taskIndex, isRecordingActive]);
+
+  const handleTogglePlay = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
       audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
   };
 
-  // Hidden when there is no audio, the file failed to load, or recording is underway
-  if (!src || !audioAvailable || isRecordingActive) return null;
+  const handleEnded = () => {
+    setIsPlaying(false);
+  };
+
+  if (!src || isRecordingActive) {
+    return null;
+  }
 
   return (
     <>
       <button
-        className="audio-instructions-btn"
-        onClick={toggle}
-        aria-label={isPlaying ? 'Pause instructions' : 'Play instructions'}
-        title={isPlaying ? 'Pause instructions' : 'Play instructions'}
+        type="button"
+        className={`audio-instructions-btn ${
+          isPlaying ? 'is-playing' : 'is-paused'
+        }`}
+        onClick={handleTogglePlay}
+        aria-label={isPlaying ? 'Pause audio guide' : 'Play audio guide'}
       >
-        <img
-          src={isPlaying ? pauseIcon : speakerIcon}
-          alt=""
-          className="audio-instructions-icon"
-        />
+        <div className="audio-instructions-visual">
+          <img
+            src={speakerIcon}
+            alt=""
+            aria-hidden="true"
+            className="audio-instructions-speaker"
+          />
+          <div
+            className={`audio-waves ${
+              isPlaying ? 'audio-waves--active' : ''
+            }`}
+          >
+            <span className="audio-wave audio-wave--1" />
+            <span className="audio-wave audio-wave--2" />
+            <span className="audio-wave audio-wave--3" />
+          </div>
+        </div>
       </button>
 
       <audio
-        className="audio-instructions-audio"
         ref={audioRef}
         src={src}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onError={() => { setIsPlaying(false); setAudioAvailable(false); }}
+        className="audio-instructions-audio"
+        onEnded={handleEnded}
       />
     </>
   );
 }
-
