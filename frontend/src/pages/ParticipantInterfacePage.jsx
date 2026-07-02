@@ -30,7 +30,7 @@ import {
   deleteLocalRecording,
 } from '../utils/offlineStorage';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { getAudioGuidePath } from '../utils/getAudioGuidePath';
+import { getAudioGuidePath, getCompletionAudioPath } from '../utils/getAudioGuidePath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
@@ -51,6 +51,9 @@ export default function ParticipantInterfacePage() {
   const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
   const [langReady, setLangReady] = useState(false);
   const [isRecordingActive, setIsRecordingActive] = useState(false);
+
+  const [audioPhase, setAudioPhase] = useState('instructions'); // 'instructions' | 'completed'
+  const [playTrigger, setPlayTrigger] = useState(0);
 
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
   const networkStatus = useNetworkStatus();
@@ -400,10 +403,10 @@ export default function ParticipantInterfacePage() {
   const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
 
   const audioSrc = useMemo(() => {
-    if (!currentTask || !useAudioInstructions) return null;
+    if (!currentTask || !useAudioInstructions || currentTask.category === "d15colour") return null;
 
     const taskName = currentTask.category; 
-    const repeatIndex = currentTask.repeatIndex || 1; 
+    const repeatIndex = currentTask._repeatIndex 
     const taskParams = currentTask.params || {};
 
     return getAudioGuidePath(
@@ -413,6 +416,28 @@ export default function ParticipantInterfacePage() {
       i18n.language
     );
   }, [currentTask, i18n.language, useAudioInstructions]);
+
+  // New task opened -> switch to instructions and force a play
+  useEffect(() => {
+    setAudioPhase('instructions');
+    setPlayTrigger(t => t + 1);
+  }, [taskIndex]);
+
+  const completedAudioSrc = useMemo(
+    () => getCompletionAudioPath(i18n.language),
+    [i18n.language]
+  );
+
+  const handleRecorderAudioEvent = (eventType) => {
+    if (eventType === 'completed') {
+      setAudioPhase('completed');
+      setPlayTrigger(t => t + 1);   // force play of the "completed" clip
+    } else if (eventType === 'retry') {
+      setAudioPhase('instructions'); // src reverts, but playTrigger stays the same → no autoplay
+    }
+  };
+
+  const effectiveAudioSrc = audioPhase === 'completed' ? completedAudioSrc : audioSrc;
 
   // --- Early returns ---
   if (needsRedirect) {
@@ -602,6 +627,7 @@ export default function ParticipantInterfacePage() {
           hideTitle={isReadingTask}
           onRecordingStateChange={setIsRecordingActive}
           showMicIcon={isReadingTask ? true : undefined}
+          onAudioEvent={handleRecorderAudioEvent}
         />
       );
     // Render Questionnaire
@@ -726,8 +752,8 @@ export default function ParticipantInterfacePage() {
             </div>
             <div className="task-header-right">
               <AudioGuidePlayer
-                src={audioSrc}
-                taskIndex={taskIndex}
+                src={effectiveAudioSrc}
+                playTrigger={playTrigger}
                 isRecordingActive={isRecordingActive}
               />
             </div>

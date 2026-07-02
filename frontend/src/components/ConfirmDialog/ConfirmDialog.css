@@ -20,9 +20,23 @@
     animation: fadeInDialog 0.2s ease-out;
     overflow-y: auto;
   }
-  
+
+  .confirm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    /* Shift the bottom margin from the h2 to the header container */
+    margin-bottom: clamp(10px, 2.5vw, 15px); 
+  }
+
+  .confirm-header-right {
+    display: flex;
+    align-items: center;
+  }
+
   .confirm-dialog h2 {
-    margin-top: 0;
+    margin: 0; 
     font-size: clamp(1.3rem, 4.5vw, 1.6rem);
   }
   

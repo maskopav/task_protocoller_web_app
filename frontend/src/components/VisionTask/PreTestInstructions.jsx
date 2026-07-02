@@ -9,7 +9,7 @@ import {
   settingsIcon 
 } from "../../assets/visionIcons/visionAssets";
 
-export default function PreTestInstructions({ onComplete }) {
+export default function PreTestInstructions({ onComplete, audioPlayer }) {
   const { t } = useTranslation(["tasks"]); 
   const [answers, setAnswers] = useState({});
 
@@ -76,6 +76,13 @@ export default function PreTestInstructions({ onComplete }) {
       className="pretest-container"
       title={t("preTestChecklist.title")}
       renderTitle={true}
+      tooltip={
+        audioPlayer ? (
+          <div className="pretest-header-tools">
+            {audioPlayer}
+          </div>
+        ) : null
+      }
       instructions={t("preTestChecklist.subtitle")}
       controls={controlsContent}
     >

@@ -4,13 +4,18 @@ import useScrollToTop from "../../hooks/useScrollToTop";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
 import PreTestInstructions from "./PreTestInstructions";
 import D15Test from "./D15Test";
+import AudioGuidePlayer from "../AudioGuidePlayer/AudioGuidePlayer";
+import { getAudioGuidePath, buildAudioGuidePath } from "../../utils/getAudioGuidePath";
 import { D15AddColourMessage, D15ModifyColourMessage, D15TrialCompleteMessage } from "./D15DemoMessage";
 
 export default function VisionTaskWrapper({ task, onNextTask }) {
   // Steps: "instructions" -> "trial" -> "test"
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const [step, setStep] = useState("instructions");
   const [environmentData, setEnvironmentData] = useState(null);
+  // Bumped every time we (re-)enter the trial/test step so the general
+  // task audio guide re-plays, mirroring how it behaves for other tasks.
+  const [taskAudioTrigger, setTaskAudioTrigger] = useState(0);
 
   const { confirm } = useContext(ConfirmDialogContext);
 
@@ -24,6 +29,13 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
     // 1. Add colour (mechanics + goal)
     await confirm({
       title: t("d15colour.addTitle", { ns: "tasks" }),
+      headerRight: (
+        <AudioGuidePlayer
+          src={buildAudioGuidePath(i18n.language, "d15colour_add")}
+          playTrigger="d15-add"
+          isRecordingActive={false}
+        />
+      ),
       message: <D15AddColourMessage />,
       infoOnly: true,
       confirmText: t("buttons.gotIt", { ns: "common" })
@@ -32,6 +44,13 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
     // 2. Modify colour (mechanics + colour-vision note)
     await confirm({
       title: t("d15colour.modifyTitle", { ns: "tasks" }),
+      headerRight: (
+        <AudioGuidePlayer
+          src={buildAudioGuidePath(i18n.language, "d15colour_modify")}
+          playTrigger="d15-modify"
+          isRecordingActive={false}
+        />
+      ),
       message: <D15ModifyColourMessage />,
       infoOnly: true,
       confirmText: t("buttons.gotIt", { ns: "common" })
@@ -43,16 +62,27 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
     } else {
       setStep("test");
     }
+    // Both dialogs are dismissed — play the general task audio now.
+    setTaskAudioTrigger((n) => n + 1);
   };
 
   const handleTrialComplete = async () => {
     await confirm({
       title: t("d15colour.trialCompleteTitle", { ns: "tasks" }),
+      headerRight: (
+        <AudioGuidePlayer
+          src={buildAudioGuidePath(i18n.language, "d15colour_trial_completed")}
+          playTrigger="d15-modify"
+          isRecordingActive={false}
+        />
+      ),
       message: <D15TrialCompleteMessage />,
       infoOnly: true,
       confirmText: t("buttons.gotIt", { ns: "common" })
     });
     setStep("test");
+    // Re-play the general task audio for the real test phase.
+    setTaskAudioTrigger((n) => n + 1);
   };
 
   const handleTestComplete = (testResults) => {
@@ -72,13 +102,29 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
   return (
     <div className="vision-task-flow">
       {step === "instructions" && (
-        <PreTestInstructions onComplete={handleInstructionsComplete} />
+        <PreTestInstructions 
+          onComplete={handleInstructionsComplete} 
+          audioPlayer={
+            <AudioGuidePlayer
+              src={buildAudioGuidePath(i18n.language, "d15colour_instructions")} 
+              playTrigger={`instructions-${taskAudioTrigger}`}
+              isRecordingActive={false}
+            />
+          }
+        />
       )}
 
       {step === "trial" && (
         <D15Test
           task={{ params: { version: "demo", randomize: true, showNumbers: "never" } }}
           onNextTask={handleTrialComplete}
+          audioPlayer={
+            <AudioGuidePlayer
+              src={buildAudioGuidePath(i18n.language, "d15colour_trial")} 
+              playTrigger={`trial-${taskAudioTrigger}`}
+              isRecordingActive={false}
+            />
+          }
         />
       )}
 
@@ -86,6 +132,13 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
         <D15Test
           task={task}
           onNextTask={handleTestComplete}
+          audioPlayer={
+            <AudioGuidePlayer
+              src={getAudioGuidePath(task?.name || "d15colour", task?.params, 1, i18n.language)}
+              playTrigger={`test-${taskAudioTrigger}`}
+              isRecordingActive={false}
+            />
+          }
         />
       )}
     </div>

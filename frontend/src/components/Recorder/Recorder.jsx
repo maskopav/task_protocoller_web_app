@@ -48,6 +48,7 @@ export const Recorder = ({
     hideTitle = false,
     showMicIcon,
     onRecordingStateChange,
+    onAudioEvent = () => {},
     autoSubmit = false
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
@@ -167,6 +168,16 @@ export const Recorder = ({
         }
     }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING]);
 
+    const prevStatusRef = useRef(recordingStatus);
+    useEffect(() => {
+        if (prevStatusRef.current !== recordingStatus) {
+        if (recordingStatus === RECORDING_STATES.RECORDED) {
+            onAudioEvent('completed');
+        }
+        prevStatusRef.current = recordingStatus;
+        }
+    }, [recordingStatus, RECORDING_STATES.RECORDED, onAudioEvent]);
+
     // ── Handlers ─────────────────────────────────────────────────────────
     const handleStart = () => {
         onLogEvent("button_start");
@@ -188,6 +199,7 @@ export const Recorder = ({
 
     const handleRepeat = () => {
         onLogEvent("button_repeat");
+        onAudioEvent('retry'); 
         resetTopics();
         clearSpeechSegments();
         resetSpeechTrackers();

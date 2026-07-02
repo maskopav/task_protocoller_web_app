@@ -23,9 +23,40 @@ import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
  *     />
  *   </div>
  */
-export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) {
+export default function AudioGuidePlayer({ src, playTrigger, isRecordingActive }) {
   const audioRef = useRef(null);
+  const buttonRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  console.log(src)
+
+  // Global rule: any click outside this button while the guide is playing
+  // should stop it. Clicks on the button itself are left alone since
+  // handleTogglePlay already covers play/pause for that case.
+  useEffect(() => {
+    if (!isPlaying) return undefined;
+
+    const stopOnOutsideClick = (event) => {
+      if (buttonRef.current && buttonRef.current.contains(event.target)) {
+        return;
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+    };
+
+    // Capture phase so this still fires even if a button's own handler
+    // calls stopPropagation().
+    document.addEventListener('click', stopOnOutsideClick, true);
+    return () => document.removeEventListener('click', stopOnOutsideClick, true);
+  }, [isPlaying]);
+
+  // Reset error state whenever a new src is provided
+  useEffect(() => {
+    setHasError(false);
+  }, [src, playTrigger]);
 
   // Stop playing if recording becomes active
   useEffect(() => {
@@ -36,7 +67,7 @@ export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) 
     }
   }, [isRecordingActive]);
 
-  // Autoplay on task change if src exists
+  // Only replays when playTrigger changes
   useEffect(() => {
     if (!src || !audioRef.current || isRecordingActive) return;
 
@@ -44,11 +75,11 @@ export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) 
     audio.currentTime = 0;
 
     const playOnLoad = () => {
-      audio
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    };
+      audio.play().then(() => setIsPlaying(true)).catch(() => {
+        setIsPlaying(false);
+        setHasError(true);
+      });
+    } 
 
     if (audio.readyState >= 2) {
       playOnLoad();
@@ -59,8 +90,14 @@ export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) 
     return () => {
       audio.pause();
       setIsPlaying(false);
+      audio.removeEventListener('canplaythrough', playOnLoad);
     };
-  }, [src, taskIndex, isRecordingActive]);
+  }, [playTrigger, isRecordingActive]);
+
+  const handleAudioError = () => {
+    setHasError(true);
+    setIsPlaying(false);
+  };
 
   const handleTogglePlay = () => {
     if (!audioRef.current) return;
@@ -80,13 +117,14 @@ export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) 
     setIsPlaying(false);
   };
 
-  if (!src || isRecordingActive) {
+  if (!src || isRecordingActive || hasError) {
     return null;
   }
 
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         className={`audio-instructions-btn ${
           isPlaying ? 'is-playing' : 'is-paused'
@@ -118,6 +156,7 @@ export default function AudioGuidePlayer({ src, taskIndex, isRecordingActive }) 
         src={src}
         className="audio-instructions-audio"
         onEnded={handleEnded}
+        onError={handleAudioError}
       />
     </>
   );

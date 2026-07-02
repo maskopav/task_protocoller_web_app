@@ -8,7 +8,7 @@ import TaskLayout from "../TaskLayout/TaskLayout";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
 import "./D15Test.css";
 
-export default function D15Test({ task, onNextTask }) {
+export default function D15Test({ task, onNextTask, audioPlayer }) {
   const { t } = useTranslation("tasks");
   const { confirm } = useContext(ConfirmDialogContext);
 
@@ -281,10 +281,13 @@ export default function D15Test({ task, onNextTask }) {
       className="d15-container"
       title={t("d15colour.title")}
       tooltip={
-        <InfoTooltip
-          title={t("d15colour.demoTitle", "How it works")}
-          text={<D15MechanicsMessage />}
-        />
+        <div className="d15-header-tools">
+          {audioPlayer}
+          <InfoTooltip
+            title={t("d15colour.demoTitle", "How it works")}
+            text={<D15MechanicsMessage />}
+          />
+        </div>
       }
       instructions={<Trans t={t} i18nKey="d15colour.goalText" />}
       controls={controlsContent}

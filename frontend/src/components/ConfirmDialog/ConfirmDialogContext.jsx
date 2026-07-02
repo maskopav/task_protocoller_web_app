@@ -7,6 +7,7 @@ export function ConfirmDialogProvider({ children }) {
   const [dialog, setDialog] = useState({
     open: false,
     title: "",
+    headerRight: null, 
     message: "",
     confirmText: "Confirm",
     cancelText: "Cancel",
@@ -19,6 +20,7 @@ export function ConfirmDialogProvider({ children }) {
       setDialog({
         open: true,
         title: options.title,
+        headerRight: options.headerRight || null,
         message: options.message || "",
         confirmText: options.confirmText,
         cancelText: options.cancelText,
@@ -45,7 +47,15 @@ export function ConfirmDialogProvider({ children }) {
       {dialog.open && (
         <div className="confirm-backdrop">
           <div className="confirm-dialog">
-            <h2>{dialog.title}</h2>
+            <div className="confirm-header">
+              <h2>{dialog.title}</h2>
+              {dialog.headerRight && (
+                <div className="confirm-header-right">
+                  {dialog.headerRight}
+                </div>
+              )}
+            </div>
+
             <div className="confirm-message-content">
               {dialog.message}
             </div>

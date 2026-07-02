@@ -22,6 +22,11 @@ export function buildAudioGuidePath(
   return `${basePath}audio/guide/${language}/${fileName}.wav`;
 }
 
+// getAudioGuidePath.ts
+export function getCompletionAudioPath(language: string = 'en'): string {
+  return buildAudioGuidePath(language, 'completed');
+}
+
 export function getAudioGuidePath(
   taskName: string,
   params: AudioGuideParams = {},

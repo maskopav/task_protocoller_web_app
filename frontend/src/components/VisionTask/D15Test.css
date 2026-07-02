@@ -18,6 +18,14 @@
   overflow-anchor: none;   /* prevents scroll-anchor jumping on tray updates */
 }
 
+.d15-header-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
 /* ── Grey board ───────────────────────────────────────────────────── */
 .d15-board {
   background-color: rgb(211, 211, 211);
