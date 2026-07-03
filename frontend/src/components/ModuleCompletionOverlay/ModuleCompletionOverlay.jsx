@@ -31,7 +31,7 @@ export const ModuleCompletionOverlay = ({ category, onComplete }) => {
 
     useEffect(() => {
         // Play a success sound
-        const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_fanfare.mp3`);
+        const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_sound.m4a`);
         audio.play().catch(e => console.log("Audio play blocked", e));
 
         // Auto-close after 2.5 seconds

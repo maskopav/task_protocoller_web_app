@@ -28,7 +28,7 @@ export const VideoViewFinder = ({
             
             {/* ILLUSTRATION: Make sure this shows the participant holding the phone on the table */}
             <img 
-                src={`${import.meta.env.BASE_URL}assets/sittingInstructions/sitting-instructions-camera.png`}
+                src={`${import.meta.env.BASE_URL}assets/sittingInstructions/sitting-instructions-camera.svg`}
                 alt="Correct sitting posture" 
                 className="posture-illustration" 
             />

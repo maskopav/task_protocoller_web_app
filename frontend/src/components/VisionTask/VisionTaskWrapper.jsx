@@ -118,13 +118,6 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
         <D15Test
           task={{ params: { version: "demo", randomize: true, showNumbers: "never" } }}
           onNextTask={handleTrialComplete}
-          audioPlayer={
-            <AudioGuidePlayer
-              src={buildAudioGuidePath(i18n.language, "d15colour_trial")} 
-              playTrigger={`trial-${taskAudioTrigger}`}
-              isRecordingActive={false}
-            />
-          }
         />
       )}
 
@@ -132,13 +125,6 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
         <D15Test
           task={task}
           onNextTask={handleTestComplete}
-          audioPlayer={
-            <AudioGuidePlayer
-              src={getAudioGuidePath(task?.name || "d15colour", task?.params, 1, i18n.language)}
-              playTrigger={`test-${taskAudioTrigger}`}
-              isRecordingActive={false}
-            />
-          }
         />
       )}
     </div>
