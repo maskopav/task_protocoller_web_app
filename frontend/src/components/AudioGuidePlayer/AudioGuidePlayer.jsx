@@ -83,8 +83,10 @@ export default function AudioGuidePlayer({
 
     const playOnLoad = () => {
       audio.play().then(() => setIsPlaying(true)).catch(() => {
+        // Playback was blocked (e.g. autoplay policy) - the file itself is
+        // fine (we got here via canplaythrough/readyState), so don't hide
+        // the button. The user can just tap it to play manually.
         setIsPlaying(false);
-        setHasError(true);
       });
     } 
 
@@ -113,12 +115,13 @@ export default function AudioGuidePlayer({
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
+      return;
     }
+
+    audioRef.current
+      .play()
+      .then(() => setIsPlaying(true))
+      .catch(() => setIsPlaying(false));
   };
 
   const handleEnded = () => {

@@ -64,7 +64,7 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     type: "voice",
     recording: { mode: "delayedStop", duration: 90 },
     params: {
-      fairytale: { default: "snowWhite" },
+      fairytale: { default: "pussInBoots" },
       repeat: { default: 1 },
       duration: { default: 90 },
       minDuration: { default: 30 },

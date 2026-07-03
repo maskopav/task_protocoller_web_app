@@ -74,6 +74,7 @@ export default function ParticipantInterfacePage() {
   // on to per-topic clips and the general one should no longer show/play.
   const [guideStage, setGuideStage] = useState('general');
   const [topicPlayTrigger, setTopicPlayTrigger] = useState(0);
+  const playedMicCheckStages = useRef(new Set());
 
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
   const networkStatus = useNetworkStatus();
@@ -435,15 +436,19 @@ export default function ParticipantInterfacePage() {
   const audioSrc = useMemo(() => {
     if (!rawTask || !useAudioInstructions) return null;
 
-    // Mic check has two distinct guide clips depending on which sub-stage
-    // MicCheck is actually in: the permission-explanation intro screen
-    // ('mic_permission') vs. the real noise/counting calibration recording
-    // ('audio_setup'). rawTask.category alone can't tell them apart since
-    // it's the same task the whole time - we rely on the sub-stage MicCheck
-    // reports via onPhaseChange instead.
-    const taskName = rawTask.type === 'mic_check'
-      ? (micCheckGuideStage === 'permission' ? 'mic_permission' : 'audio_setup')
-      : rawTask.category;
+    let taskName = rawTask.category;
+
+    if (rawTask.type === 'mic_check' && micCheckGuideStage) {
+      const micCheckAudioMap = {
+        'permission': 'mic_permission',
+        'calibration': 'audio_setup',
+        'success': 'mic_success',
+        'failed': 'mic_failed',      // General background noise
+        'muted': 'mic_muted',        
+        'warning': 'mic_warning'
+      };
+      taskName = micCheckAudioMap[micCheckGuideStage] || 'audio_setup';
+    }
     const repeatIndex = currentTask?._repeatIndex || 1; 
     const taskParams = currentTask?.params || {};
 
@@ -457,6 +462,7 @@ export default function ParticipantInterfacePage() {
 
   // New task opened -> switch to instructions and force a play
   useEffect(() => {
+    playedMicCheckStages.current.clear();
     setAudioPhase('instructions');
     setGuideStage('general');
     if (rawTask?.type === 'mic_check') {
@@ -475,7 +481,14 @@ export default function ParticipantInterfacePage() {
   useEffect(() => {
     if (micCheckGuideStage) {
       setAudioPhase('instructions');
-      setPendingAudio(true);
+      // If we haven't played this specific stage yet, trigger autoplay
+      if (!playedMicCheckStages.current.has(micCheckGuideStage)) {
+        setPendingAudio(true);
+        playedMicCheckStages.current.add(micCheckGuideStage);
+      } else {
+        // If it's a retry/repeat, don't trigger play. The icon will just be visible.
+        setPendingAudio(false); 
+      }
     }
   }, [micCheckGuideStage]);
 
@@ -531,7 +544,11 @@ export default function ParticipantInterfacePage() {
   // Called when the general instructions clip finishes (or fails to load) —
   // hands off to the per-topic clip for whichever topic is active.
   const handleGeneralGuideEnded = () => {
-    if (guideStage === 'general') {
+    // Only hand off to the per-topic clip if there's actually a topic to play.
+    // Otherwise stay in 'general' so headerGeneralAudioSrc keeps its value and
+    // the button remains mounted/clickable for a replay, instead of both
+    // players disappearing (general src cleared, topic src still null).
+    if (guideStage === 'general' && topicState.topic != null) {
       setGuideStage('topic');
       setTopicPlayTrigger(t => t + 1);
     }
@@ -756,9 +773,18 @@ export default function ParticipantInterfacePage() {
           sessionId={sessionId} 
           token={accessToken} 
           onLogEvent={logInteraction}
-          onPhaseChange={(phase) => {
-            if (phase === 'intro') setMicCheckGuideStage('permission');
-            else if (phase === 'noise') setMicCheckGuideStage('calibration');
+          onPhaseChange={(phase, errorType) => { // <-- Receive errorType
+            const phaseMap = {
+              'intro': 'permission',
+              'noise': 'calibration',
+              'noise-success': 'success',
+              'noise-failed': errorType === 'muted' ? 'muted' : 'failed', 
+              'warning': 'warning'
+            };
+            const mappedStage = phaseMap[phase];
+            if (mappedStage && mappedStage !== micCheckGuideStage) {
+              setMicCheckGuideStage(mappedStage);
+            }
           }}
           isUploading={isUploading}
           onPermissionPending={setIsAwaitingPermission}

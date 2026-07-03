@@ -134,7 +134,7 @@ function useMicCheckInstructions() {
 // ==========================================
 // 3. MAIN COMPONENT
 // ==========================================
-export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent, onPhaseChange, onPermissionPending }) {
+export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent, onPhaseChange, onPermissionPending, onRecordingStateChange }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
@@ -152,9 +152,9 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   // the actual calibration/counting recording. Other phases (checking,
   // warning, analyzing, results) don't need a guide change.
   useEffect(() => {
-    onPhaseChange?.(phase);
+    onPhaseChange?.(phase, errorType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  }, [phase, errorType]);
 
   useEffect(() => {
     async function checkMicPermission() {
@@ -186,6 +186,14 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     }
     checkMicPermission();
   }, []);
+
+  // Notify both the custom hook AND the parent
+  const handleLocalRecordingStateChange = (isRecording) => {
+    handleRecordingStateChange(isRecording);           // Updates internal instructions (silence/counting)
+    if (onRecordingStateChange) {
+      onRecordingStateChange(isRecording);             // Tells parent to hide the audio guide button
+    }
+  };
 
   const handleMicError = (err) => {
     logToServer("MicCheck Error:", { name: err.name, message: err.message });
@@ -296,7 +304,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
         suppressSilenceWarning={true} 
         disableTimerFreeze={true}
         forceTimerActive={forceTimerActive}
-        onRecordingStateChange={handleRecordingStateChange}
+        onRecordingStateChange={handleLocalRecordingStateChange}
         onVadSpeechStart={handleVadSpeechStart}
         onVadSpeechEnd={handleVadSpeechEnd}
         vadConfigOverride={CONFIG.VAD_PRECISION_CONFIG}
