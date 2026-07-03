@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useContext, useRef } from 'react';
+import React, { useMemo, useEffect, useLayoutEffect, useContext, useRef } from 'react';
 import { useSDMTLogic } from '../../hooks/useSDMTLogic';
 import { useTranslation, Trans } from "react-i18next";
 import { NextTaskButton } from '../Recorder/NextTaskButton';
@@ -39,7 +39,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading }) => {
     } = useSDMTLogic(duration, symbolOrdering, repeatIndex);
 
     // ── Show demo dialog once on mount ────────────────────────────────
-    useEffect(() => {
+    useLayoutEffect(() => {
         const showDemoDialog = async () => {
             if (!demoShownRef.current && gameState === 'instructions') {
                 demoShownRef.current = true;

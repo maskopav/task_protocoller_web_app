@@ -27,6 +27,24 @@ export function getCompletionAudioPath(language: string = 'en'): string {
   return buildAudioGuidePath(language, 'completed');
 }
 
+/**
+ * Path for a single topic's guide clip within a "dynamic" task (dynamic_monologue,
+ * everyday, etc. — any task whose params include an array of topics the user
+ * cycles through). Always resolves to `${taskName}_${topicValue}`, independent of
+ * whatever other params the task has, so it doesn't share the fragile
+ * "first param key wins" logic that getAudioGuidePath() uses for its general clip.
+ *
+ * Expects a file per topic value, e.g. audio/guide/en/dynamic_monologue_family.m4a
+ */
+export function getTopicAudioPath(
+  taskName: string,
+  topicValue: unknown,
+  language: string = 'en'
+): string | null {
+  if (!taskName || topicValue == null || topicValue === '') return null;
+  return buildAudioGuidePath(language, `${taskName}_${String(topicValue)}`);
+}
+
 export function getAudioGuidePath(
   taskName: string,
   params: AudioGuideParams = {},
@@ -46,7 +64,7 @@ export function getAudioGuidePath(
   // 3. Parameter-dependent filenames
   const keys = Object.keys(params);
   if (keys.length > 0) {
-    const paramDependentTasks = ['phonation', 'syllableRepeating', 'retelling', 'dynamic_monologue'];
+    const paramDependentTasks = ['phonation', 'syllableRepeating', 'retelling'];
     if (paramDependentTasks.includes(taskName)) {
       const mainParamKey = keys[0];
       const value = params[mainParamKey as keyof typeof params];

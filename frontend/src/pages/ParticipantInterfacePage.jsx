@@ -31,7 +31,7 @@ import {
   deleteLocalRecording,
 } from '../utils/offlineStorage';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { getAudioGuidePath, getCompletionAudioPath } from '../utils/getAudioGuidePath';
+import { getAudioGuidePath, getCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
@@ -66,6 +66,14 @@ export default function ParticipantInterfacePage() {
   // once it's actually running the noise/counting recording. Reported by
   // MicCheck itself via onPhaseChange, since only it knows its sub-phase.
   const [micCheckGuideStage, setMicCheckGuideStage] = useState(null);
+
+  // For dynamic tasks (dynamic_monologue, everyday, etc.): which topic is
+  // currently active, reported up by Recorder via onTopicChange.
+  const [topicState, setTopicState] = useState({ index: 0, topic: null });
+  // 'general' = the task-level instructions clip plays; 'topic' = we've moved
+  // on to per-topic clips and the general one should no longer show/play.
+  const [guideStage, setGuideStage] = useState('general');
+  const [topicPlayTrigger, setTopicPlayTrigger] = useState(0);
 
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
   const networkStatus = useNetworkStatus();
@@ -450,6 +458,7 @@ export default function ParticipantInterfacePage() {
   // New task opened -> switch to instructions and force a play
   useEffect(() => {
     setAudioPhase('instructions');
+    setGuideStage('general');
     if (rawTask?.type === 'mic_check') {
       // MicCheck determines its own sub-stage (permission vs. calibration)
       // asynchronously. Clear it here and let the effect below trigger the
@@ -490,6 +499,63 @@ export default function ParticipantInterfacePage() {
     [i18n.language]
   );
 
+  // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
+  const handleTopicChange = (index, topic) => {
+    setTopicState({ index, topic });
+  };
+
+  // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
+  const topicAudioSrc = useMemo(() => {
+    if (!rawTask || !useAudioInstructions || topicState.topic == null) return null;
+
+    let topicIdentifier = topicState.topic;
+
+    // If the topic is a resolved object, we need the original string ID (e.g., 'everyday')
+    if (typeof topicState.topic === 'object') {
+      // First try to see if the resolved object kept the id
+      if (topicState.topic.id) {
+        topicIdentifier = topicState.topic.id;
+      } 
+      // Fallback: look up the original string array from currentTask.params using the current index
+      else if (currentTask?.params) {
+        const originalArray = Object.values(currentTask.params).find(val => Array.isArray(val));
+        if (originalArray && originalArray[topicState.index]) {
+          topicIdentifier = originalArray[topicState.index];
+        }
+      }
+    }
+
+    return getTopicAudioPath(rawTask.category, topicIdentifier, i18n.language);
+  }, [rawTask, useAudioInstructions, topicState.topic, topicState.index, currentTask, i18n.language]);
+
+  // Called when the general instructions clip finishes (or fails to load) —
+  // hands off to the per-topic clip for whichever topic is active.
+  const handleGeneralGuideEnded = () => {
+    if (guideStage === 'general') {
+      setGuideStage('topic');
+      setTopicPlayTrigger(t => t + 1);
+    }
+  };
+
+  // If there's no general clip to play at all for this task (feature off, or
+  // no file for this task/param combo), skip straight to the topic clip
+  // instead of waiting forever for an 'ended' event that will never fire.
+  useEffect(() => {
+    if (guideStage === 'general' && !audioSrc && topicState.topic != null) {
+      setGuideStage('topic');
+      setTopicPlayTrigger(t => t + 1);
+    }
+  }, [guideStage, audioSrc, topicState.topic]);
+
+  // Once we've handed off to per-topic clips, re-trigger playback every time
+  // the topic actually changes (e.g. the participant switches topics mid-task).
+  useEffect(() => {
+    if (guideStage === 'topic') {
+      setTopicPlayTrigger(t => t + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topicState.index]);
+
   const handleRecorderAudioEvent = (eventType) => {
     if (eventType === 'completed') {
       setAudioPhase('completed');
@@ -499,7 +565,16 @@ export default function ParticipantInterfacePage() {
     }
   };
 
-  const effectiveAudioSrc = audioPhase === 'completed' ? completedAudioSrc : audioSrc;
+  // Only one of these is non-null at a time: the general clip while guideStage
+  // is 'general', the matching topic clip once we've handed off to 'topic',
+  // and the "completed" clip always wins once the recording is done.
+  const headerGeneralAudioSrc = audioPhase === 'completed'
+    ? completedAudioSrc
+    : (guideStage === 'general' ? audioSrc : null);
+
+  const headerTopicAudioSrc = audioPhase === 'completed'
+    ? null
+    : (guideStage === 'topic' ? topicAudioSrc : null);
 
   // --- Early returns ---
   if (needsRedirect) {
@@ -714,6 +789,7 @@ export default function ParticipantInterfacePage() {
           onAudioEvent={handleRecorderAudioEvent}
           isUploading={isUploading}
           onPermissionPending={setIsAwaitingPermission}
+          onTopicChange={handleTopicChange}
         />
       );
     // Render Questionnaire
@@ -841,9 +917,15 @@ export default function ParticipantInterfacePage() {
             </div>
             <div className="task-header-right">
               <AudioGuidePlayer
-                src={effectiveAudioSrc}
+                src={headerGeneralAudioSrc}
                 playTrigger={playTrigger}
-                isRecordingActive={isRecordingActive || isAwaitingPermission}
+                isRecordingActive={isRecordingActive || isAwaitingPermission || isDialogOpen}
+                onEnded={handleGeneralGuideEnded}
+              />
+              <AudioGuidePlayer
+                src={headerTopicAudioSrc}
+                playTrigger={topicPlayTrigger}
+                isRecordingActive={isRecordingActive || isAwaitingPermission || isDialogOpen}
               />
             </div>
 

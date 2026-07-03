@@ -13,13 +13,19 @@ import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
  * isRecordingActive bool           While true, audio is paused and button hidden.
  * loop             bool            (Optional) If true, audio repeats continuously. Default: false.
  * autoPlay         bool            (Optional) If true, audio plays automatically on load/trigger. Default: true.
+ * onEnded          func            (Optional) Called once when the clip finishes naturally (not on
+ *                                  pause/stop) or fails to load. Lets the parent chain a follow-up
+ *                                  clip (e.g. play per-topic instructions right after this one ends).
+ *                                  Never called for looping audio, since the browser doesn't fire
+ *                                  'ended' in that case.
  */
 export default function AudioGuidePlayer({ 
   src, 
   playTrigger, 
   isRecordingActive, 
   loop = false, 
-  autoPlay = true 
+  autoPlay = true,
+  onEnded
 }) {
   const audioRef = useRef(null);
   const buttonRef = useRef(null);
@@ -98,6 +104,7 @@ export default function AudioGuidePlayer({
   const handleAudioError = () => {
     setHasError(true);
     setIsPlaying(false);
+    if (onEnded) onEnded();
   };
 
   const handleTogglePlay = () => {
@@ -118,6 +125,7 @@ export default function AudioGuidePlayer({
     // If it's looping, the browser won't trigger onEnded, 
     // but we keep this here for non-looping audio
     setIsPlaying(false);
+    if (onEnded) onEnded();
   };
 
   if (!src || isRecordingActive || hasError) {

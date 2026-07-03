@@ -50,7 +50,8 @@ export const Recorder = ({
     onRecordingStateChange,
     onAudioEvent = () => {},
     autoSubmit = false,
-    onPermissionPending = () => {}
+    onPermissionPending = () => {},
+    onTopicChange = () => {}
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
@@ -124,6 +125,19 @@ export const Recorder = ({
         awaitingNextTopic, topicStartMark, handleStartNextTopic,
         handleManualTopicSwitch, resetTopics
     } = taskTopics;
+
+    // Let the parent know which topic is active (index + value) so it can play
+    // a matching per-topic audio guide. Always fires (even with null for
+    // non-dynamic tasks) so the parent's topic state is never stale/ambiguous -
+    // it must be the single source of truth here, not something the parent
+    // also resets on its own, or the two updates race each other.
+    useEffect(() => {
+        onTopicChange(
+            isDynamicTask ? dynamicIndex : null,
+            isDynamicTask ? (dynamicArray[dynamicIndex] ?? null) : null
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDynamicTask, dynamicIndex]);
 
     const VADmodel = useVadLogic({
         useVAD, vadConfigOverride, stream,
