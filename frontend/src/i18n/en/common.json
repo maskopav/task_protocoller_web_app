@@ -11,7 +11,7 @@
       "playStory": "Play story",
       "stopStory": "Stop story",
       "disabledWhileRecording": "Disabled while recording",
-      "permission": "Get Microphone Permission",
+      "permission": "Get microphone permission",
       "cancel": "Cancel",
       "save": "Save",
       "done": "Done",
@@ -23,7 +23,8 @@
       "confirm": "Confirm",
       "gotIt": "Got it",
       "continue": "Continue",
-      "backToEditor": "Back to editor"
+      "backToEditor": "Back to editor",
+      "startCalibration": "To camera calibration"
     },
     "status": {
       "ready": "Ready",
@@ -129,9 +130,9 @@
       "analyzing": "Checking the audio...",
 
       "failedTitle": "We're having trouble hearing you clearly",
-      "failedMessage": "Please limit the background noise around you.",
+      "failedMessage": "Please limit the sounds in the background around you.",
       "failedInstructions": "For the best results, please <strong>close any windows, turn off the TV/radio, or move to a quieter room</strong>. When ready, try again.",
-      "failedAdditionalInfo": "While background noise is the most likely cause, it can sometimes be due to a microphone issue. <br/><br/> Please try again. If you are still unsuccessful, you can continue anyway.",
+      "failedAdditionalInfo": "While sounds in the background is the most likely cause, it can sometimes be due to a microphone issue. <br/><br/> Please try again. If you are still unsuccessful, you can continue anyway.",
       "mutedTitle": "No Sound Detected",
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
@@ -166,6 +167,10 @@
         }
       }
     },
+    "volumeCheck": {
+      "title": "Audio Volume Setup",
+      "instructions": "Please use the audio player below to test your audio volume. <br/><br/><strong>Adjust your device's volume</strong> until you can hear the message clearly."
+    },
     "videoCalibration": {
       "setupTitle": "Camera Setup",
       "step1": "<strong>Rest your arm on the table</strong> holding your phone as shown in the picture.",
@@ -176,8 +181,8 @@
       "btnReady": "I'm Ready",
       "btnCancel": "Cancel",
       "btnShowInstructions": "Show Instructions & Start",
-      "btnContinueReady": "Position Correct - Continue",
-      "btnContinueWait": "Awaiting Correct Position...",
+      "btnContinueReady": "Position correct -> Continue",
+      "btnContinueWait": "Awaiting correct position...",
       "warningHoldSteady": "Hold Phone Steady!",
       "warningAdjustFace": "Adjust your face!",
       "closer": "Closer",

@@ -33,22 +33,8 @@ export const VideoViewFinder = ({
                 className="posture-illustration" 
             />
             <div className="instruction-steps">
-                <li>
-                    <Trans i18nKey="videoCalibration.step1">
-                    </Trans>
-                </li>
-                <li>
-                    <Trans i18nKey="videoCalibration.step2">
-                    </Trans>
-                </li>
-                <li>
-                    <Trans i18nKey="videoCalibration.step3">
-                    </Trans>
-                </li>
-                <li>
-                    <Trans i18nKey="videoCalibration.step4">
-                    </Trans>
-                </li>
+                <Trans i18nKey="videoCalibration.step1">
+                </Trans>
             </div>
         </div>
     );

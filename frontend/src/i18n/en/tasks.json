@@ -70,8 +70,8 @@
       "name": "Fairytale retelling",
       "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
       "title": "Retelling fairytale",
-      "instructions": "Press Play story to listen to a spoken fairytale. {{playStory}} After listening to the story, press Start and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
-      "instructionsActive": "Retell the fairytale in your own words.",
+      "instructions": "Press Play story to listen to a spoken fairytale. {{playStory}} After listening to the story, press Start to calibrate your camera. Then <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "instructionsActive": "Retell the fairytale, you heard previously.",
       "params": {
         "fairytale": {
           "label": "Fairytale",

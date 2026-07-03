@@ -15,7 +15,8 @@ export const RecordingControls = ({
     disableStart = false,
     showPause = true, // Pause button is shown by default
     RECORDING_STATES,
-    className = "control-buttons"
+    className = "control-buttons",
+    isVideoEnabled = false
 }) => {
     const { t } = useTranslation();
     const { IDLE, RECORDING, PAUSED } = RECORDING_STATES;
@@ -41,7 +42,9 @@ export const RecordingControls = ({
                     className={`btn-start ${disableStart ? 'disabled' : ''}`}
                     disabled={disableStart} 
                 >
-                {t("buttons.start")}
+                {isVideoEnabled 
+                    ? t("buttons.startCalibration") 
+                    : t("buttons.start")}
                 </button>
             )}
 

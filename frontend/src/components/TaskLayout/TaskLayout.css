@@ -87,11 +87,8 @@
 .instruction-card.is-shifted-instructions.active-instructions {
   text-align: justify;
   text-align-last: left;   /* prevents the last line from being stretched */
-  text-justify: inter-word;
-  hyphens: auto;
-  overflow-wrap: break-word;
   width: auto;             /* revert — do NOT force 100% */
-  padding: 0.3em 0.15em;   /* keep original padding, don't shrink it */
+  padding: 0.3rem 0.7rem;   /* keep original padding, don't shrink it */
 }
 
 @keyframes simpleGreenHighlight {

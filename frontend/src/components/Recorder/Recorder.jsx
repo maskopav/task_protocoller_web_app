@@ -503,6 +503,7 @@ export const Recorder = ({
                         disableStop={!isReadyToStop}
                         showPause={false}
                         RECORDING_STATES={RECORDING_STATES}
+                        isVideoEnabled={isVideoEnabled}
                     />
                     <PlaybackSection
                         audioURL={audioURL}
