@@ -242,18 +242,21 @@ export const Recorder = ({
     // clear the signal once the promise settles, regardless of outcome.
     React.useEffect(() => {
         if (autoPermission) {
+            // Pre-fetch MICROPHONE permission on mount for all tasks, video included.
+            // This is silent if the browser already granted mic access (no native
+            // prompt — it just resolves), which is what lets RecordingControls show
+            // the "Start" button immediately instead of an extra "Grant microphone"
+            // step for a permission the user already gave.
+            //
+            // CAMERA permission is intentionally NOT requested here for video tasks —
+            // it's requested later, in handleStartCalibration, only after the user has
+            // read the setup instructions and clicked "Ready".
             onPermissionPending(true);
-            if (isVideoEnabled) {
-                videoRecorder.getMediaPermission()
-                    .then(() => getMicrophonePermission())
-                    .finally(() => onPermissionPending(false));
-            } else {
-                getMicrophonePermission()
-                    .finally(() => onPermissionPending(false));
-            }
+            getMicrophonePermission()
+                .finally(() => onPermissionPending(false));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoPermission, isVideoEnabled]);
+    }, [autoPermission]);
 
     const [exampleExists, setExampleExists] = React.useState(false);
     React.useEffect(() => {
