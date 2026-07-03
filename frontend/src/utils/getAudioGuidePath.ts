@@ -19,7 +19,7 @@ export function buildAudioGuidePath(
   fileName: string
 ): string {
   const basePath = getBasePath();
-  return `${basePath}audio/guide/${language}/${fileName}.wav`;
+  return `${basePath}audio/guide/${language}/${fileName}.m4a`;
 }
 
 // getAudioGuidePath.ts
@@ -37,7 +37,7 @@ export function getAudioGuidePath(
 
   // 1. Handle repetitions (generic "repeat" audio)
   if (repeatIndex > 1) {
-    return buildAudioGuidePath(language, 'repeat');
+    return buildAudioGuidePath(language, 'perform_task_again');
   }
 
   // 2. Base filename from task
@@ -46,7 +46,7 @@ export function getAudioGuidePath(
   // 3. Parameter-dependent filenames
   const keys = Object.keys(params);
   if (keys.length > 0) {
-    const paramDependentTasks = ['phonation', 'syllableRepeating', 'retelling', 'reading'];
+    const paramDependentTasks = ['phonation', 'syllableRepeating', 'retelling', 'dynamic_monologue'];
     if (paramDependentTasks.includes(taskName)) {
       const mainParamKey = keys[0];
       const value = params[mainParamKey as keyof typeof params];

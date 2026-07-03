@@ -4,7 +4,7 @@ import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import "./Questionnaire.css";
 
-export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
+export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
   const { t } = useTranslation(["common"]);
   const [answers, setAnswers] = useState({});
   const [isValid, setIsValid] = useState(false);
@@ -74,7 +74,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
 
   // --- 5. Submission ---
   const handleSubmit = () => {
-    if (!isValid) return;
+    if (!isValid || isUploading) return;
     onNextTask({
       taskType: "questionnaire",
       timestamp: new Date().toISOString(),
@@ -99,9 +99,9 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer }) {
           <button
             className="btn-submit-questionnaire"
             onClick={handleSubmit}
-            disabled={!isValid}
+            disabled={!isValid || isUploading}
           >
-            {t("buttons.next")}
+            {isUploading ? <span className="spinner" /> : t("buttons.next")}
           </button>
         </div>
       }

@@ -134,7 +134,7 @@ function useMicCheckInstructions() {
 // ==========================================
 // 3. MAIN COMPONENT
 // ==========================================
-export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent }) {
+export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent, onPhaseChange }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
@@ -146,6 +146,15 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     currentInstructions, forceTimerActive, handleRecordingStateChange, 
     handleVadSpeechStart, handleVadSpeechEnd 
   } = useMicCheckInstructions();
+
+  // Let the parent know which sub-stage we're in, so it can swap the audio
+  // guide clip: 'intro' still needs the permission explanation, 'noise' is
+  // the actual calibration/counting recording. Other phases (checking,
+  // warning, analyzing, results) don't need a guide change.
+  useEffect(() => {
+    onPhaseChange?.(phase);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   useEffect(() => {
     async function checkMicPermission() {

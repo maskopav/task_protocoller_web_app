@@ -41,7 +41,7 @@ export function ConfirmDialogProvider({ children }) {
   };
 
   return (
-    <ConfirmDialogContext.Provider value={{ confirm }}>
+    <ConfirmDialogContext.Provider value={{ confirm, isDialogOpen: dialog.open }}>
       {children}
 
       {dialog.open && (

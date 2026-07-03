@@ -3,13 +3,15 @@ import { useSDMTLogic } from '../../hooks/useSDMTLogic';
 import { useTranslation, Trans } from "react-i18next";
 import { NextTaskButton } from '../Recorder/NextTaskButton';
 import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
+import AudioGuidePlayer from "../AudioGuidePlayer/AudioGuidePlayer";
+import { buildAudioGuidePath } from "../../utils/getAudioGuidePath";
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import SDMTDemoMessage from './SDMTDemoMessage';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import './SDMTTask.css';
 
-const SDMTTask = ({ taskParams, onComplete }) => {
-    const { t } = useTranslation("tasks", "common");
+const SDMTTask = ({ taskParams, onComplete, isUploading }) => {
+    const { t, i18n } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
     const demoShownRef = useRef(false);
     const audioCtxRef = useRef(null);
@@ -43,6 +45,13 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                 demoShownRef.current = true;
                 await confirm({
                     title:    t("sdmt.demoTitle"),
+                    headerRight: (
+                        <AudioGuidePlayer
+                            src={buildAudioGuidePath(i18n.language, "sdmt_instructions")}
+                            playTrigger="sdmt-demo"
+                            isRecordingActive={false}
+                        />
+                    ),
                     message:  <SDMTDemoMessage />,
                     infoOnly: true,
                     confirmText: t("buttons.gotIt", { ns: "common" })
@@ -168,10 +177,14 @@ const SDMTTask = ({ taskParams, onComplete }) => {
                     <button className="btn-reset" onClick={resetGame}>
                         {t("buttons.repeat", { ns: "common" })}
                     </button>
-                    <NextTaskButton onClick={() => onComplete({
+                    <NextTaskButton 
+                        onClick={() => onComplete({
                         result: results,
                         timestamp: new Date().toISOString()
-                    })} />
+                        })} 
+                        isLoading={isUploading}
+                        disabled={isUploading}
+                    />
                 </>
             )}
         </>

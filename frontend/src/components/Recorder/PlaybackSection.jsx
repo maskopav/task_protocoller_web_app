@@ -9,7 +9,8 @@ export const PlaybackSection = ({
     onRepeat,
     onNextTask,
     showNextButton = true,
-    onLogEvent = () => {} // For logging playback interactions
+    isUploading = false,
+    onLogEvent = () => {}
 }) => {
     const { t } = useTranslation();
     const playbackStartTimeRef = useRef(null);
@@ -52,23 +53,21 @@ export const PlaybackSection = ({
 
     return (
         <div className="playback-section">
-        <audio src={audioURL} controls onPlay={handlePlay} onPause={handlePause} onEnded={handleEnded} />
-        
-        <div className="button-group">
-            <button onClick={onRepeat} className="btn-repeat">
-            {t("buttons.repeat")}
-            </button>
+            <audio src={audioURL} controls onPlay={handlePlay} onPause={handlePause} onEnded={handleEnded} />
 
-            {showNextButton && (
-            <NextTaskButton 
-                onClick={onNextTask} 
-                disabled={!isRecorded} 
-            />
-            )}
-        </div>
+            <div className="button-group">
+                <button onClick={onRepeat} className="btn-repeat" disabled={isUploading}>
+                    {t("buttons.repeat")}
+                </button>
+
+                {showNextButton && (
+                    <NextTaskButton 
+                        onClick={onNextTask} 
+                        disabled={!isRecorded}
+                        isLoading={isUploading}
+                    />
+                )}
+            </div>
         </div>
     );
 };
-  
-
-  

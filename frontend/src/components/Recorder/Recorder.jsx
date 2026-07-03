@@ -59,6 +59,8 @@ export const Recorder = ({
     // Tracks whether the user has completed calibration at least once this session.
     // Prevents the PiP viewfinder from appearing before calibration has happened.
     const [videoCalibrated, setVideoCalibrated] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const isUploadingRef = useRef(false);
 
     // ── Dynamic task detection ───────────────────────────────────────────
     const rawArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
@@ -255,8 +257,10 @@ export const Recorder = ({
         checkExample();
     }, [audioExample]);
 
-    const handleNextTask = () => {
-        if (!onNextTask) return;
+    const handleNextTask = async () => {
+        if (!onNextTask || isUploadingRef.current) return;
+        isUploadingRef.current = true;
+        setIsUploading(true);
         const taskData = {
             audioURL, recordingTime,
             timestamp:          new Date().toISOString(),
@@ -266,7 +270,14 @@ export const Recorder = ({
             speechSegments:     speechSegments.current,
             ...(isVideoEnabled && videoRecorder.videoData && { videoData: videoRecorder.videoData })
         };
-        onNextTask(taskData);
+        try {
+            await onNextTask(taskData); // must return a Promise (handleTaskComplete already does)
+        } catch (err) {
+            // if you want the button to become clickable again after a failure, reset here
+            isUploadingRef.current = false;
+            setIsUploading(false);
+            throw err;
+        }
     };
 
     useEffect(() => {
@@ -487,6 +498,7 @@ export const Recorder = ({
                         onRepeat={handleRepeat}
                         onNextTask={handleNextTask}
                         showNextButton={showNextButton}
+                        isUploading={isUploading}
                         onLogEvent={onLogEvent}
                     />
                 </div>
