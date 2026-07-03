@@ -14,12 +14,13 @@ import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
+import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
 import { uploadRecording, uploadMicCheck } from "../api/recordings";
 import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
-import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
+import { ConfirmDialogContext } from "../components/ConfirmDialog/ConfirmDialogContext";
 import { useWakeLock } from "../hooks/useWakeLock";
 import "./Pages.css";
 import { logToServer } from "../utils/frontendLogger";
@@ -41,7 +42,7 @@ export default function ParticipantInterfacePage() {
   const { i18n, t } = useTranslation(["tasks", "common", "admin"]);
   const navigate = useNavigate();
   const location = useLocation();
-  const confirm = useConfirm();
+  const { confirm, isDialogOpen } = useContext(ConfirmDialogContext);
   const originalTasks = location.state?.originalTasks;
   const previewRandomized = location.state?.previewRandomized;
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
@@ -51,9 +52,20 @@ export default function ParticipantInterfacePage() {
   const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
   const [langReady, setLangReady] = useState(false);
   const [isRecordingActive, setIsRecordingActive] = useState(false);
+  // True while a getUserMedia() call is in flight (native permission dialog
+  // may be up). Combined with isRecordingActive below so the header audio
+  // guide pauses/hides for this window too — no way to detect the dialog
+  // itself, so we suppress audio for the whole request instead.
+  const [isAwaitingPermission, setIsAwaitingPermission] = useState(false);
 
   const [audioPhase, setAudioPhase] = useState('instructions'); // 'instructions' | 'completed'
   const [playTrigger, setPlayTrigger] = useState(0);
+  const [pendingAudio, setPendingAudio] = useState(false);
+  // Which guide clip the mic_check task currently needs: 'permission' while
+  // MicCheck is on its permission-explanation intro screen, 'calibration'
+  // once it's actually running the noise/counting recording. Reported by
+  // MicCheck itself via onPhaseChange, since only it knows its sub-phase.
+  const [micCheckGuideStage, setMicCheckGuideStage] = useState(null);
 
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
   const networkStatus = useNetworkStatus();
@@ -73,6 +85,9 @@ export default function ParticipantInterfacePage() {
   const [pendingUploadCount, setPendingUploadCount] = useState(null);
   const completionAckedRef = useRef(false);
   const completionInFlightRef = useRef(false);
+
+  const [isUploading, setIsUploading] = useState(false);
+  const isUploadingRef = useRef(false);
 
   // Add a Ref to track the last logged task 
   // We initialize it to -1 so that index 0 is always logged the first time.
@@ -138,6 +153,13 @@ export default function ParticipantInterfacePage() {
     if (!selectedProtocol) return [];
 
     const introSteps = [];
+
+    // Add Volume Check — first thing shown, right after the language switcher
+    introSteps.push({
+      type: "volume_check",
+      category: "volume_check",
+      isSystemTask: true
+    });
 
     // Helper to find content by type in the global_contents array
     const findGlobalContent = (type) => {
@@ -395,7 +417,7 @@ export default function ParticipantInterfacePage() {
   let currentTask = null;
   let isReadingTask = false;
 
-  if (rawTask && !['info', 'consent', 'mic_check', 'identifiers'].includes(rawTask.type)) {
+  if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check'].includes(rawTask.type)) {
      currentTask = resolveTask(rawTask, t);
      isReadingTask = currentTask?.category === 'reading'; 
   }
@@ -403,11 +425,19 @@ export default function ParticipantInterfacePage() {
   const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
 
   const audioSrc = useMemo(() => {
-    if (!currentTask || !useAudioInstructions || currentTask.category === "d15colour") return null;
+    if (!rawTask || !useAudioInstructions) return null;
 
-    const taskName = currentTask.category; 
-    const repeatIndex = currentTask._repeatIndex 
-    const taskParams = currentTask.params || {};
+    // Mic check has two distinct guide clips depending on which sub-stage
+    // MicCheck is actually in: the permission-explanation intro screen
+    // ('mic_permission') vs. the real noise/counting calibration recording
+    // ('audio_setup'). rawTask.category alone can't tell them apart since
+    // it's the same task the whole time - we rely on the sub-stage MicCheck
+    // reports via onPhaseChange instead.
+    const taskName = rawTask.type === 'mic_check'
+      ? (micCheckGuideStage === 'permission' ? 'mic_permission' : 'audio_setup')
+      : rawTask.category;
+    const repeatIndex = currentTask?._repeatIndex || 1; 
+    const taskParams = currentTask?.params || {};
 
     return getAudioGuidePath(
       taskName,
@@ -415,13 +445,45 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [currentTask, i18n.language, useAudioInstructions]);
+  }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage]);
 
   // New task opened -> switch to instructions and force a play
   useEffect(() => {
     setAudioPhase('instructions');
-    setPlayTrigger(t => t + 1);
+    if (rawTask?.type === 'mic_check') {
+      // MicCheck determines its own sub-stage (permission vs. calibration)
+      // asynchronously. Clear it here and let the effect below trigger the
+      // actual play once MicCheck reports which stage it's in - otherwise
+      // we'd risk playing the wrong clip for a moment before that's known.
+      setMicCheckGuideStage(null);
+    } else {
+      setPendingAudio(true);
+    }
   }, [taskIndex]);
+
+  // Fires the right guide clip each time MicCheck moves between its
+  // permission-gate and calibration-recording sub-stages.
+  useEffect(() => {
+    if (micCheckGuideStage) {
+      setAudioPhase('instructions');
+      setPendingAudio(true);
+    }
+  }, [micCheckGuideStage]);
+
+  // Watch the audio queue and the dialog state
+  useEffect(() => {
+    if (pendingAudio) {
+      // Short delay gives child components (like SDMT) time to mount and open their dialogs
+      const timer = setTimeout(() => {
+        if (!isDialogOpen) {
+          setPlayTrigger(t => t + 1);
+          setPendingAudio(false); // Audio triggered, clear the queue
+        }
+      }, 50);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [pendingAudio, isDialogOpen]);
 
   const completedAudioSrc = useMemo(
     () => getCompletionAudioPath(i18n.language),
@@ -448,16 +510,21 @@ export default function ParticipantInterfacePage() {
   }
 
   async function handleTaskComplete(data, isAttempt = false) {
-    const currentTaskObj = runtimeTasks[taskIndex];
-    const isSystemTask = ['info', 'consent', 'identifiers'].includes(currentTaskObj.type);
-    const isMicCheck = currentTaskObj.type === 'mic_check';
-   
-    if (testingMode || editingMode || !sessionId) {
-      if (!isAttempt) proceedToNext();
-      return;
+    if (!isAttempt) {
+      if (isUploadingRef.current) return;
+      isUploadingRef.current = true;
+      setIsUploading(true);
     }
-   
     try {
+      const currentTaskObj = runtimeTasks[taskIndex];
+      const isSystemTask = ['info', 'consent', 'identifiers', 'volume_check'].includes(currentTaskObj.type);
+      const isMicCheck = currentTaskObj.type === 'mic_check';
+    
+      if (testingMode || editingMode || !sessionId) {
+        if (!isAttempt) proceedToNext();
+        return;
+      }
+   
       let blob = null;
       if (data?.audioBlob) {
         blob = data.audioBlob;
@@ -473,7 +540,6 @@ export default function ParticipantInterfacePage() {
       // Extract videoData from the incoming data object if it exists
       const videoData = data.videoData || null;
 
-      console.log()
    
       const uploadMeta = {
         token: accessToken,
@@ -521,6 +587,11 @@ export default function ParticipantInterfacePage() {
       console.error('handleTaskComplete error:', err);
       logToServer(`Task save error at index ${taskIndex}: ${err.message}`);
       if (!isAttempt) proceedToNext();
+    } finally {
+      if (!isAttempt) {
+        isUploadingRef.current = false;
+        setIsUploading(false);
+      }
     }
 
     function proceedToNext() {
@@ -572,6 +643,13 @@ export default function ParticipantInterfacePage() {
       );
     }
     
+    // Render Volume Check
+    if (rawTask.type === "volume_check") {
+      return (
+        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} />
+      );
+    }
+
     // Render Info Page
     if (rawTask.type === "info") {
       return <InfoPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'info' })} />;
@@ -603,6 +681,12 @@ export default function ParticipantInterfacePage() {
           sessionId={sessionId} 
           token={accessToken} 
           onLogEvent={logInteraction}
+          onPhaseChange={(phase) => {
+            if (phase === 'intro') setMicCheckGuideStage('permission');
+            else if (phase === 'noise') setMicCheckGuideStage('calibration');
+          }}
+          isUploading={isUploading}
+          onPermissionPending={setIsAwaitingPermission}
         />
       );
     }
@@ -628,6 +712,8 @@ export default function ParticipantInterfacePage() {
           onRecordingStateChange={setIsRecordingActive}
           showMicIcon={isReadingTask ? true : undefined}
           onAudioEvent={handleRecorderAudioEvent}
+          isUploading={isUploading}
+          onPermissionPending={setIsAwaitingPermission}
         />
       );
     // Render Questionnaire
@@ -646,6 +732,7 @@ export default function ParticipantInterfacePage() {
           onNextTask={handleTaskComplete}
           // Pass logging helper to track answer clicks
           onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
+          isUploading={isUploading}
         />
       );
     }
@@ -657,6 +744,7 @@ export default function ParticipantInterfacePage() {
           key={taskIndex}
           task={currentTask}
           onNextTask={handleTaskComplete}
+          isUploading={isUploading}
         />
       );
     }
@@ -667,6 +755,7 @@ export default function ParticipantInterfacePage() {
           key={taskIndex}
           taskParams={currentTask.params}
           onComplete={handleTaskComplete} 
+          isUploading={isUploading}
         />
       );
     }
@@ -754,7 +843,7 @@ export default function ParticipantInterfacePage() {
               <AudioGuidePlayer
                 src={effectiveAudioSrc}
                 playTrigger={playTrigger}
-                isRecordingActive={isRecordingActive}
+                isRecordingActive={isRecordingActive || isAwaitingPermission}
               />
             </div>
 

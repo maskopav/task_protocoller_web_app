@@ -1,0 +1,71 @@
+/* VolumeCheck.css */
+
+.volume-check-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.volume-check-main-interface {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    padding: 2rem;
+}
+
+/* 1. Removed the white box background, border-radius, and shadow */
+.volume-check-center-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* 2. Scoped Overrides for AudioGuidePlayer */
+/* This targets the player ONLY when it is inside .volume-check-center-area */
+
+.volume-check-center-area .audio-instructions-btn {
+    padding: 16px; /* Increases the clickable area and the blue background circle when playing */
+}
+
+.volume-check-center-area .audio-instructions-speaker {
+    /* Scaled up roughly 2.5x */
+    width: clamp(60px, 6vh, 80px);
+    height: clamp(60px, 6vh, 80px);
+}
+
+.volume-check-center-area .audio-waves {
+    width: clamp(45px, 4.5vh, 60px);
+    height: clamp(30px, 3vh, 40px);
+}
+
+.volume-check-center-area .audio-wave {
+    width: clamp(7px, 0.7vh, 10px); /* Thicker wave bars */
+}
+
+/* Adjusted spacing so the thicker waves don't overlap */
+.volume-check-center-area .audio-wave--1 {
+    left: clamp(2px, 0.2vh, 4px);
+}
+
+.volume-check-center-area .audio-wave--2 {
+    left: clamp(15px, 1.5vh, 20px);
+}
+
+.volume-check-center-area .audio-wave--3 {
+    left: clamp(28px, 2.8vh, 36px);
+}
+
+.volume-check-bottom-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    gap: 1rem;
+    width: 100%;
+}

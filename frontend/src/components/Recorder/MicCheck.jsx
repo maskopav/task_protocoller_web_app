@@ -134,7 +134,7 @@ function useMicCheckInstructions() {
 // ==========================================
 // 3. MAIN COMPONENT
 // ==========================================
-export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent, onPhaseChange }) {
+export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent, onPhaseChange, onPermissionPending }) {
   const { t } = useTranslation(["common"]);
   const [phase, setPhase] = useState('checking'); 
   const [noiseScore, setNoiseScore] = useState(0);
@@ -301,6 +301,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
         onVadSpeechEnd={handleVadSpeechEnd}
         vadConfigOverride={CONFIG.VAD_PRECISION_CONFIG}
         onError={handleMicError}
+        onPermissionPending={onPermissionPending}
       />
     );
   }

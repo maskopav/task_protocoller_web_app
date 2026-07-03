@@ -49,7 +49,8 @@ export const Recorder = ({
     showMicIcon,
     onRecordingStateChange,
     onAudioEvent = () => {},
-    autoSubmit = false
+    autoSubmit = false,
+    onPermissionPending = () => {}
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
@@ -233,14 +234,25 @@ export const Recorder = ({
         ((currentTopicDuration >= manualSwitchThresholds && vadFailed) || VADmodel.isSilentPause);
 
     // ── Auto-permissions ──────────────────────────────────────────────────
+    // The native permission dialog appears synchronously the moment
+    // getUserMedia() is called and stays up until the user responds — there's
+    // no way to detect it directly. So instead of trying to detect it, we
+    // signal "about to request" beforehand (letting the parent pause/hide the
+    // audio guide the same way it already does for isRecordingActive) and
+    // clear the signal once the promise settles, regardless of outcome.
     React.useEffect(() => {
         if (autoPermission) {
+            onPermissionPending(true);
             if (isVideoEnabled) {
-                videoRecorder.getMediaPermission().then(() => getMicrophonePermission());
+                videoRecorder.getMediaPermission()
+                    .then(() => getMicrophonePermission())
+                    .finally(() => onPermissionPending(false));
             } else {
-                getMicrophonePermission();
+                getMicrophonePermission()
+                    .finally(() => onPermissionPending(false));
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoPermission, isVideoEnabled]);
 
     const [exampleExists, setExampleExists] = React.useState(false);

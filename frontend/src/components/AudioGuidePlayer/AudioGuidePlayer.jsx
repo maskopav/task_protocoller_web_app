@@ -8,28 +8,23 @@ import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
  * Renders a bare icon button that plays / pauses the task instruction audio.
  * All audio state is self-contained — the parent only needs to supply:
  *
- *   src              string | null   Audio file URL. Pass null to hide entirely.
- *   taskIndex        number          Current task index. Changing it re-triggers
- *                                   autoplay even when src stays the same.
- *   isRecordingActive bool           While true, audio is paused and button hidden.
- *
- * Usage in ParticipantInterfacePage:
- *
- *   <div className="task-header-right">
- *     <AudioGuidePlayer
- *       src={audioSrc}
- *       taskIndex={taskIndex}
- *       isRecordingActive={isRecordingActive}
- *     />
- *   </div>
+ * src              string | null   Audio file URL. Pass null to hide entirely.
+ * playTrigger      any             Changing this re-triggers autoplay.
+ * isRecordingActive bool           While true, audio is paused and button hidden.
+ * loop             bool            (Optional) If true, audio repeats continuously. Default: false.
+ * autoPlay         bool            (Optional) If true, audio plays automatically on load/trigger. Default: true.
  */
-export default function AudioGuidePlayer({ src, playTrigger, isRecordingActive }) {
+export default function AudioGuidePlayer({ 
+  src, 
+  playTrigger, 
+  isRecordingActive, 
+  loop = false, 
+  autoPlay = true 
+}) {
   const audioRef = useRef(null);
   const buttonRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
-
-  console.log(src)
 
   // Global rule: any click outside this button while the guide is playing
   // should stop it. Clicks on the button itself are left alone since
@@ -67,12 +62,18 @@ export default function AudioGuidePlayer({ src, playTrigger, isRecordingActive }
     }
   }, [isRecordingActive]);
 
-  // Only replays when playTrigger changes
+  // Only replays when playTrigger changes AND autoPlay is true
   useEffect(() => {
     if (!src || !audioRef.current || isRecordingActive) return;
 
     const audio = audioRef.current;
     audio.currentTime = 0;
+
+    // If autoPlay is false, we just reset the time and stop here
+    if (!autoPlay) {
+      setIsPlaying(false);
+      return;
+    }
 
     const playOnLoad = () => {
       audio.play().then(() => setIsPlaying(true)).catch(() => {
@@ -92,7 +93,7 @@ export default function AudioGuidePlayer({ src, playTrigger, isRecordingActive }
       setIsPlaying(false);
       audio.removeEventListener('canplaythrough', playOnLoad);
     };
-  }, [playTrigger, isRecordingActive]);
+  }, [playTrigger, isRecordingActive, autoPlay, src]);
 
   const handleAudioError = () => {
     setHasError(true);
@@ -114,6 +115,8 @@ export default function AudioGuidePlayer({ src, playTrigger, isRecordingActive }
   };
 
   const handleEnded = () => {
+    // If it's looping, the browser won't trigger onEnded, 
+    // but we keep this here for non-looping audio
     setIsPlaying(false);
   };
 
@@ -154,6 +157,7 @@ export default function AudioGuidePlayer({ src, playTrigger, isRecordingActive }
       <audio
         ref={audioRef}
         src={src}
+        loop={loop}          
         className="audio-instructions-audio"
         onEnded={handleEnded}
         onError={handleAudioError}
