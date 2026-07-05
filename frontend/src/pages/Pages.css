@@ -235,6 +235,10 @@ button {
   color: #fff;
   transition: var(--transition);
   box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
 }
 
 button:hover:not(:disabled) {
@@ -259,6 +263,35 @@ button:disabled {
 }
 .button-group button {
   flex: 1;
+}
+
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 0.15em solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* If a button has a dark-on-light style (e.g. secondary/outline buttons),
+   override the spinner colors so it stays visible */
+.btn-secondary .spinner,
+.btn-repeat .spinner {
+  border-color: rgba(0, 0, 0, 0.25);
+  border-top-color: currentColor;
+}
+
+/* Keep button width stable so it doesn't jump/reflow when text changes
+   from "Next" to a spinner + "Sending" */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.85; /* enough to read as "busy", not "unavailable" */
 }
 
 .btn-start { background: var(--success); }

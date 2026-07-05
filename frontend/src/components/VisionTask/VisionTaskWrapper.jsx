@@ -10,7 +10,7 @@ import { D15AddColourMessage, D15ModifyColourMessage, D15TrialCompleteMessage } 
 
 export default function VisionTaskWrapper({ task, onNextTask }) {
   // Steps: "instructions" -> "trial" -> "test"
-  const { t, i18n } = useTranslation("common");
+  const { t, i18n } = useTranslation(["tasks","common"]);
   const [step, setStep] = useState("instructions");
   const [environmentData, setEnvironmentData] = useState(null);
   // Bumped every time we (re-)enter the trial/test step so the general
@@ -28,7 +28,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
 
     // 1. Add colour (mechanics + goal)
     await confirm({
-      title: t("d15colour.addTitle", { ns: "tasks" }),
+      title: t("d15colour.goalText", { ns: "tasks" }),
       headerRight: (
         <AudioGuidePlayer
           src={buildAudioGuidePath(i18n.language, "d15colour_add")}
@@ -43,7 +43,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
 
     // 2. Modify colour (mechanics + colour-vision note)
     await confirm({
-      title: t("d15colour.modifyTitle", { ns: "tasks" }),
+      title: " ",
       headerRight: (
         <AudioGuidePlayer
           src={buildAudioGuidePath(i18n.language, "d15colour_modify")}

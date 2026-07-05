@@ -10,6 +10,13 @@ export function D15AddColourMessage() {
 
   return (
     <div className="d15-demo-container">
+
+      <div className="d15-demo-divider" />
+      
+      <span className="d15-demo-text">
+          <Trans t={t} i18nKey="d15colour.addTitle" />
+      </span>
+      
       <div className="mechanics-section">
         <span className="d15-demo-text">
           <Trans t={t} i18nKey="d15colour.addText" />
@@ -19,14 +26,6 @@ export function D15AddColourMessage() {
           alt={t("d15colour.addGifAlt")}
           className="d15-demo-gif"
         />
-      </div>
-
-      <div className="d15-demo-divider" />
-
-      <div className="d15-demo-goal-section">
-        <span className="d15-demo-text">
-          <Trans t={t} i18nKey="d15colour.goalText" />
-        </span>
       </div>
     </div>
   );
@@ -39,6 +38,11 @@ export function D15ModifyColourMessage() {
 
   return (
     <div className="d15-demo-container">
+            
+      <span className="d15-demo-text">
+          <Trans t={t} i18nKey="d15colour.modifyTitle" />
+      </span>
+
       <div className="mechanics-section">
         <span className="d15-demo-text">
           <Trans t={t} i18nKey="d15colour.modifyText" />

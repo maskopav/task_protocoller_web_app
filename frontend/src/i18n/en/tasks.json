@@ -225,12 +225,12 @@
       "title": "Colour Arrangement Task",
       "instructions": "<strong>1.</strong> Look at the last colour in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the colour from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colours.",
       
-      "addTitle": "Step 1: Adding a colour",
+      "addTitle": "<strong>Adding a colour</strong>",
       "addText": "• Tap a colour in the <strong>bottom pool</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
       "addGifAlt": "Adding colour",
-      "goalText": "<strong>Your goal:</strong> create smooth, gradual sequence in the top row.",
+      "goalText": "Create smooth, gradual sequence in the top row.",
 
-      "modifyTitle": "Step 2: Modifying colours",
+      "modifyTitle": "<strong>Modifying colours</strong>",
       "modifyText": "• Tap a colour in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different colour instead.",
       "modifyGifAlt": "Modifying sequence",
       "disclaimerText": "If you have trouble telling colours apart, that's OK — just choose what looks closest to you.",
