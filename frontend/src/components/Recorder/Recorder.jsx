@@ -16,6 +16,7 @@ import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
 import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
+import { StoryProgressBar } from './StoryProgressBar';
 import TaskLayout from '../TaskLayout/TaskLayout';
 
 const DEBUG_MODE = false;
@@ -204,6 +205,7 @@ export const Recorder = ({
     const handleStart = () => {
         onLogEvent("button_start");
         resetSpeechTrackers();
+        stopExample();
         if (isVideoEnabled) {
             // Defer actual recording until calibration completes.
             // VideoViewFinder auto-triggers the setup instructions dialog on SETUP mount.
@@ -235,7 +237,7 @@ export const Recorder = ({
     };
 
     const handleToggleExample = () => {
-        if (voiceRecorder.exampleAudio) {
+        if (voiceRecorder.isExamplePlaying) {
             onLogEvent("button_stop_example");
             voiceRecorder.stopExample();
         } else {
@@ -291,14 +293,20 @@ export const Recorder = ({
         checkExample();
     }, [audioExample]);
 
-// ── Auto-play the story once the parent's audio guide finishes ──────────
+    // Only relevant for video (camera-calibration) tasks with a story clip: block
+    // the Start-Calibration button until the participant has actually heard
+    // enough of the story, so they can't skip straight to camera setup by accident.
+    const storyListenGateActive = isVideoEnabled && exampleExists;
+    const blockStartForStory = storyListenGateActive && !voiceRecorder.hasListenedThreshold;
+
+    // ── Auto-play the story once the parent's audio guide finishes ──────────
     const prevAutoPlayStoryTriggerRef = useRef(autoPlayStoryTrigger);
     
     useEffect(() => {
         if (autoPlayStoryTrigger === prevAutoPlayStoryTriggerRef.current) return;
         prevAutoPlayStoryTriggerRef.current = autoPlayStoryTrigger;
         let timeoutId; // Variable to hold the timer reference
-        if (exampleExists && recordingStatus === RECORDING_STATES.IDLE && !voiceRecorder.exampleAudio) {
+        if (exampleExists && recordingStatus === RECORDING_STATES.IDLE && !voiceRecorder.isExamplePlaying) {
             timeoutId = setTimeout(() => {
                 onLogEvent("auto_play_story");
                 playExample();
@@ -387,8 +395,13 @@ export const Recorder = ({
 
     const exampleExists_ = exampleExists;
     const slots = {
-        example:   exampleExists_ ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="example"  /></div> : null,
-        playStory: exampleExists_ ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={!!voiceRecorder.exampleAudio} onToggle={handleToggleExample} variant="story"   /></div> : null,
+        example:   exampleExists_ ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={voiceRecorder.isExamplePlaying} onToggle={handleToggleExample} variant="example"  /></div> : null,
+        playStory: exampleExists_ ? (
+            <div className="instruction-example-row instruction-example-row--story">
+                <AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={voiceRecorder.isExamplePlaying} onToggle={handleToggleExample} variant="story" />
+                <StoryProgressBar audio={voiceRecorder.exampleAudio} />
+            </div>
+        ) : null,
     };
 
     // ── VAD visual state ──────────────────────────────────────────────────
@@ -535,7 +548,7 @@ export const Recorder = ({
                     <RecordingControls
                         recordingStatus={recordingStatus}
                         disableControls={mode === 'countDown'}
-                        disableStart={activeUseVAD && !isVadLoaded}
+                        disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory}
                         permission={audioPermission}
                         onStart={handleStart}
                         onPause={pauseRecording}

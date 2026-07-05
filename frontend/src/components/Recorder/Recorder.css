@@ -153,6 +153,31 @@
   justify-content: center;
 }
 
+/* Stack the story button above its progress bar instead of the default row */
+.instruction-example-row.instruction-example-row--story {
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 1dvh, 8px);
+}
+
+/* ── Story listen-progress bar ────────────────────────────────────── */
+.story-progress-track {
+  width: 100%;
+  max-width: 320px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.story-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--success);
+  border-radius: inherit;
+  transition: width 0.1s linear;
+}
+
 .active-instructions .audio-example-btn {
   display: inline-flex;
   align-items: center;

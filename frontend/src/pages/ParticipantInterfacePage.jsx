@@ -463,11 +463,6 @@ export default function ParticipantInterfacePage() {
     );
   }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage]);
 
-  useEffect(() => {
-  if (isRetellingTask) {
-    console.log('[retelling audio debug]', { rawTaskCategory: rawTask?.category, currentTaskCategory: currentTask?.category, audioSrc });
-  }
-}, [isRetellingTask, audioSrc]);
   // New task opened -> switch to instructions and force a play
   useEffect(() => {
     playedMicCheckStages.current.clear();
