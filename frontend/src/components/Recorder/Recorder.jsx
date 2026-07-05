@@ -53,18 +53,26 @@ export const Recorder = ({
     autoSubmit = false,
     onPermissionPending = () => {},
     onTopicChange = () => {},
+    onPhaseChange,
     autoPlayStoryTrigger = 0
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
     // Always start at RECORDING so task instructions + Start button are shown first.
     // For video tasks, calibration is triggered by the Start button, not on mount.
-    const [phase, setPhase] = useState('RECORDING');
+    const [phase, setPhase] = useState(isVideoEnabled ? 'PERMISSION' : 'RECORDING');
     // Tracks whether the user has completed calibration at least once this session.
     // Prevents the PiP viewfinder from appearing before calibration has happened.
     const [videoCalibrated, setVideoCalibrated] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
+
+    // Broadcast phase changes up to ParticipantInterfacePage
+    useEffect(() => {
+        if (onPhaseChange) {
+            onPhaseChange(phase);
+        }
+    }, [phase, onPhaseChange]);
 
     // ── Dynamic task detection ───────────────────────────────────────────
     const rawArrayParam = Object.values(taskParams).find(val => Array.isArray(val));
@@ -229,10 +237,9 @@ export const Recorder = ({
         resetSpeechTrackers();
         repeatRecording();
         if (isVideoEnabled) {
-            // Always re-calibrate on repeat: stopRecording() kills face detection so any
-            // live check would return stale values
+            // Reset calibration flag and ensure we are in the instructions phase
             setVideoCalibrated(false);
-            handleStartCalibration();
+            setPhase('RECORDING'); 
         }
     };
 
@@ -270,8 +277,9 @@ export const Recorder = ({
             // step for a permission the user already gave.
             //
             // CAMERA permission is intentionally NOT requested here for video tasks —
-            // it's requested later, in handleStartCalibration, only after the user has
-            // read the setup instructions and clicked "Ready".
+            // it's requested later, in handleRequestCameraPermission, once the user
+            // has acknowledged VideoViewFinder's camera permission intro card. That
+            // happens BEFORE the setup instructions dialog is shown.
             onPermissionPending(true);
             getMicrophonePermission()
                 .finally(() => onPermissionPending(false));
@@ -303,9 +311,18 @@ export const Recorder = ({
     const prevAutoPlayStoryTriggerRef = useRef(autoPlayStoryTrigger);
     
     useEffect(() => {
+        // If we have already handled this specific trigger, do nothing.
         if (autoPlayStoryTrigger === prevAutoPlayStoryTriggerRef.current) return;
+        // Block the auto-play if video is enabled but we aren't at the 
+        // task instructions yet (e.g., still on the PERMISSION or CALIBRATE screens).
+        if (isVideoEnabled && phase !== 'RECORDING') {
+            return; // Exit early WITHOUT updating the ref. This effect will automatically 
+                    // try again as soon as `phase` changes to 'RECORDING'.
+        }
+        // We are in the correct phase. Mark this trigger as handled.
         prevAutoPlayStoryTriggerRef.current = autoPlayStoryTrigger;
-        let timeoutId; // Variable to hold the timer reference
+
+        let timeoutId;
         if (exampleExists && recordingStatus === RECORDING_STATES.IDLE && !voiceRecorder.isExamplePlaying) {
             timeoutId = setTimeout(() => {
                 onLogEvent("auto_play_story");
@@ -317,7 +334,7 @@ export const Recorder = ({
                 clearTimeout(timeoutId);
             }
         };
-    }, [autoPlayStoryTrigger, exampleExists, recordingStatus]);
+    }, [autoPlayStoryTrigger, exampleExists, recordingStatus, phase, isVideoEnabled]); 
 
     const handleNextTask = async () => {
         if (!onNextTask || isUploadingRef.current) return;
@@ -348,16 +365,27 @@ export const Recorder = ({
         }
     }, [recordingStatus, autoSubmit, audioURL]);
 
-    const handleStartCalibration = async () => {
-        setPhase('CALIBRATE');
+    // Fires the actual getUserMedia() call — this is what triggers the native
+    // browser camera permission popup. Called by VideoViewFinder right after
+    // the user acknowledges the MediaPermissionContent intro card (or
+    // automatically if permission was already granted before), i.e. BEFORE
+    // the task instructions dialog is shown.
+    const handleRequestCameraPermission = async () => {
         const hasPermission = await videoRecorder.getMediaPermission();
-        if (hasPermission) {
-            await getMicrophonePermission();
-            videoRecorder.startFaceDetection();
-        } else {
-            setPhase('SETUP');
+        if (!hasPermission) {
             console.error("Camera/Mic permission denied or failed.");
         }
+        return hasPermission;
+    };
+
+    // Starts calibration proper (mic permission + face detection). Assumes
+    // camera permission has already been granted via
+    // handleRequestCameraPermission — called after the user confirms the
+    // task instructions dialog ("Ready").
+    const handleStartCalibration = async () => {
+        setPhase('CALIBRATE');
+        await getMicrophonePermission();
+        videoRecorder.startFaceDetection();
     };
 
     // Finish Video Calibration (Passed to VideoViewFinder)
@@ -371,6 +399,7 @@ export const Recorder = ({
 
     // ── Instruction parsing ───────────────────────────────────────────────
     const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
+    const isPermissionPhase = isVideoEnabled && phase === 'PERMISSION';
 
     const parsedInstructions = useMemo(() => {
         let baseInstructions = instructions;
@@ -480,7 +509,7 @@ export const Recorder = ({
     );
 
     // instructions slot: instruction card content
-    const instructionsContent = !isCalibrationPhase ? (
+    const instructionsContent = (!isCalibrationPhase && !isPermissionPhase) ? (
         <>
             {/* Show the green check icon ONLY when the recording is fully completed */}
             {recordingStatus === RECORDING_STATES.RECORDED && (
@@ -509,16 +538,16 @@ export const Recorder = ({
                   RECORDING + videoCalibrated → PiP overlay during the task
                   RECORDING + !videoCalibrated → hidden (task instructions + Start button shown instead) */}
             {isVideoEnabled && (
-                (phase === 'SETUP' || phase === 'CALIBRATE' ||
-                (phase === 'RECORDING' && videoCalibrated)) ? (
-                    <VideoViewFinder
-                        phase={phase} 
-                        videoRecorder={videoRecorder} 
-                        isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
-                        onStartCalibration={handleStartCalibration}
-                        onFinishCalibration={handleFinishCalibration}
-                    />
-                ) : null
+                <VideoViewFinder
+                    phase={phase} 
+                    videoCalibrated={videoCalibrated}
+                    videoRecorder={videoRecorder} 
+                    isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
+                    onRequestCameraPermission={handleRequestCameraPermission}
+                    onPermissionGranted={() => setPhase('RECORDING')} // Moves to Task Instructions
+                    onStartCalibration={handleStartCalibration}
+                    onFinishCalibration={handleFinishCalibration}
+                />
             )}
 
             {/* Recording timer — only in RECORDING phase when not shifted above header */}

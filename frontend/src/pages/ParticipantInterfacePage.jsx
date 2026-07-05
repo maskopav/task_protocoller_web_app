@@ -103,6 +103,9 @@ export default function ParticipantInterfacePage() {
   // We initialize it to -1 so that index 0 is always logged the first time.
   const lastLoggedIndex = useRef(-1);
 
+  const [recorderPhase, setRecorderPhase] = useState(null);
+  const playedRecorderPhases = useRef(new Set());
+
   const testingMode = location.state?.testingMode ?? false;
   const editingMode = location.state?.editingMode ?? false;
   const protocolData = location.state?.protocol || selectedProtocol;  
@@ -439,6 +442,8 @@ export default function ParticipantInterfacePage() {
   const audioSrc = useMemo(() => {
     if (!rawTask || !useAudioInstructions) return null;
 
+    console.log(rawTask);
+
     let taskName = rawTask.category;
 
     if (rawTask.type === 'mic_check' && micCheckGuideStage) {
@@ -451,6 +456,8 @@ export default function ParticipantInterfacePage() {
         'warning': 'mic_warning'
       };
       taskName = micCheckAudioMap[micCheckGuideStage] || 'audio_setup';
+    } else if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
+      taskName = 'camera_permission'; 
     }
     const repeatIndex = currentTask?._repeatIndex || 1; 
     const taskParams = currentTask?.params || {};
@@ -461,23 +468,48 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage]);
+  }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage, recorderPhase]);
 
   // New task opened -> switch to instructions and force a play
   useEffect(() => {
     playedMicCheckStages.current.clear();
+    playedRecorderPhases.current.clear();
     setAudioPhase('instructions');
     setGuideStage('general');
     if (rawTask?.type === 'mic_check') {
-      // MicCheck determines its own sub-stage (permission vs. calibration)
-      // asynchronously. Clear it here and let the effect below trigger the
-      // actual play once MicCheck reports which stage it's in - otherwise
-      // we'd risk playing the wrong clip for a moment before that's known.
       setMicCheckGuideStage(null);
+    } else if (currentTask?.type === 'camera') {
+      setRecorderPhase(null); 
     } else {
       setPendingAudio(true);
     }
   }, [taskIndex]);
+
+  useEffect(() => {
+    if (currentTask?.type === 'camera' && recorderPhase) {
+      // Group all non-permission phases (SETUP, CALIBRATE, RECORDING) into 'instructions'
+      const audioStage = recorderPhase === 'PERMISSION' ? 'permission' : 'instructions';
+      
+      if (!playedRecorderPhases.current.has(audioStage)) {
+        if (audioStage === 'permission') {
+          // Add a slight delay. If permission is already granted, it will skip this phase instantly
+          // and we avoid flashing the permission audio.
+          const timer = setTimeout(() => {
+            setAudioPhase('instructions');
+            setGuideStage('general');
+            setPendingAudio(true);
+            playedRecorderPhases.current.add(audioStage);
+          }, 300);
+          return () => clearTimeout(timer);
+        } else {
+          setAudioPhase('instructions');
+          setGuideStage('general');
+          setPendingAudio(true);
+          playedRecorderPhases.current.add(audioStage);
+        }
+      }
+    }
+  }, [recorderPhase, currentTask]);
 
   // Fires the right guide clip each time MicCheck moves between its
   // permission-gate and calibration-recording sub-stages.
@@ -547,10 +579,12 @@ export default function ParticipantInterfacePage() {
   // Called when the general instructions clip finishes (or fails to load) —
   // hands off to the per-topic clip for whichever topic is active.
   const handleGeneralGuideEnded = () => {
+    // Do not trigger the next steps (like the story) if it was just the permission audio that ended!
+    if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
+      return; 
+    }
+
     // Only hand off to the per-topic clip if there's actually a topic to play.
-    // Otherwise stay in 'general' so headerGeneralAudioSrc keeps its value and
-    // the button remains mounted/clickable for a replay, instead of both
-    // players disappearing (general src cleared, topic src still null).
     if (guideStage === 'general' && topicState.topic != null) {
       setGuideStage('topic');
       setTopicPlayTrigger(t => t + 1);
@@ -565,11 +599,16 @@ export default function ParticipantInterfacePage() {
   // no file for this task/param combo), skip straight to the topic clip
   // instead of waiting forever for an 'ended' event that will never fire.
   useEffect(() => {
-    if (guideStage === 'general' && !audioSrc && topicState.topic != null) {
-      setGuideStage('topic');
-      setTopicPlayTrigger(t => t + 1);
+    // Prevent this fallback from triggering the story while we are still on the permission screen
+    if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
+        return;
     }
-  }, [guideStage, audioSrc, topicState.topic]);
+
+    if (isRetellingTask && useAudioInstructions && guideStage === 'general' &&
+        !audioSrc && topicState.topic == null) {
+      setStoryPlayTrigger(t => t + 1);
+    }
+  }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic, currentTask, recorderPhase]); 
 
   // Once we've handed off to per-topic clips, re-trigger playback every time
   // the topic actually changes (e.g. the participant switches topics mid-task).
@@ -831,6 +870,7 @@ export default function ParticipantInterfacePage() {
           isUploading={isUploading}
           onPermissionPending={setIsAwaitingPermission}
           onTopicChange={handleTopicChange}
+          onPhaseChange={setRecorderPhase}
           autoPlayStoryTrigger={storyPlayTrigger}
         />
       );

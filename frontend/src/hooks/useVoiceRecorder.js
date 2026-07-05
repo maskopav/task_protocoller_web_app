@@ -556,7 +556,6 @@ export const useVoiceRecorder = (options = {}) => {
         }
         setExampleAudio(null);
         setIsExamplePlaying(false);
-        setHasListenedThreshold(false);
     };
         // Audio Visualization Effect
     //

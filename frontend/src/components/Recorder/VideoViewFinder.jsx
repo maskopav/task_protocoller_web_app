@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
 import { useTranslation, Trans } from 'react-i18next';
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
@@ -17,8 +17,11 @@ const CAM_PERM = {
 
 export const VideoViewFinder = ({
     phase, 
+    videoCalibrated,
     videoRecorder, 
     isRecording,
+    onRequestCameraPermission,
+    onPermissionGranted,
     onStartCalibration,
     onFinishCalibration,
     permissionDenied = false
@@ -28,9 +31,15 @@ export const VideoViewFinder = ({
     const [setupCancelled, setSetupCancelled] = useState(false);
     const [camPermState, setCamPermState] = useState(CAM_PERM.CHECKING);
     const [permissionAcknowledged, setPermissionAcknowledged] = useState(false);
+    // True once the actual getUserMedia() call has resolved successfully.
+    // This — not just "intro acknowledged" — is what gates the task
+    // instructions dialog, so the native camera popup always lands between
+    // the intro card and the instructions.
+    const [cameraGranted, setCameraGranted] = useState(false);
+    const requestInFlight = useRef(false);
     
     const { 
-        videoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel
+        attachVideoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel
     } = videoRecorder;
 
     const showWarningBorder = isRecording && (!isSteady || !isFaceCorrect);
@@ -78,8 +87,35 @@ export const VideoViewFinder = ({
     useEffect(() => {
         if (permissionDenied) {
             setCamPermState(CAM_PERM.DENIED);
+            setCameraGranted(false);
         }
     }, [permissionDenied]);
+
+    // Fires the real getUserMedia() call (the native permission popup, if the
+    // browser hasn't already decided). Guarded against double-firing.
+    const requestCameraStream = async () => {
+        if (requestInFlight.current) return;
+        requestInFlight.current = true;
+        const granted = await onRequestCameraPermission();
+        requestInFlight.current = false;
+        if (granted) {
+            setCameraGranted(true);
+            setCamPermState(CAM_PERM.GRANTED);
+        }
+        // If not granted, the parent's onError path flips `permissionDenied`,
+        // which the effect above turns into CAM_PERM.DENIED.
+    };
+
+    // If the browser already granted camera access before this component
+    // mounted, there's no intro card to show — but we still need to request
+    // the actual stream so the flow lands on "instructions -> calibration"
+    // afterwards, same as the PROMPT path below.
+    useEffect(() => {
+        if (camPermState === CAM_PERM.GRANTED && !cameraGranted) {
+            requestCameraStream();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [camPermState]);
 
     const instructionList = (
         <div className="calibration-instructions-layout">
@@ -106,16 +142,12 @@ export const VideoViewFinder = ({
         });
     };
 
-    // The task instructions dialog should only auto-open once we're past
-    // the camera permission gate: not while we're still checking, not
-    // while the user hasn't acknowledged the upcoming browser prompt yet,
-    // and not at all if permission has been explicitly denied.
-    const pastPermissionGate =
-        camPermState === CAM_PERM.GRANTED ||
-        (camPermState === CAM_PERM.PROMPT && permissionAcknowledged);
-
+    // The task instructions dialog should only auto-open once the camera
+    // stream has actually been granted — not merely acknowledged. This is
+    // what guarantees the native camera popup always appears BEFORE the
+    // instructions, for both the "never asked" and "already granted" paths.
     useEffect(() => {
-        if (phase === 'SETUP' && !setupCancelled && pastPermissionGate) {
+        if (phase === 'SETUP' && !setupCancelled && cameraGranted) {
             const autoStart = async () => {
                 const isReady = await showInstructionsDialog();
                 if (isReady) onStartCalibration(); 
@@ -124,7 +156,13 @@ export const VideoViewFinder = ({
             autoStart();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [phase, setupCancelled, pastPermissionGate]); 
+    }, [phase, setupCancelled, cameraGranted]); 
+
+    useEffect(() => {
+        if (cameraGranted && phase === 'PERMISSION') {
+            if (onPermissionGranted) onPermissionGranted();
+        }
+    }, [cameraGranted, phase, onPermissionGranted]);
 
     // ── CAMERA PERMISSION DENIED ──────────────────────────────────
     // Shown instead of ANY phase content (SETUP, CALIBRATE, RECORDING...)
@@ -145,11 +183,13 @@ export const VideoViewFinder = ({
                     <button
                         className="btn-primary"
                         onClick={() => {
-                            // Optimistically go back to "checking" and let the parent
-                            // re-attempt getUserMedia — this re-triggers the native
-                            // prompt if the browser still allows asking again.
+                            // Optimistically go back to "checking" and re-attempt
+                            // getUserMedia — this re-triggers the native prompt if
+                            // the browser still allows asking again. On success this
+                            // will flow into the instructions dialog, same as the
+                            // first-run path.
                             setCamPermState(CAM_PERM.CHECKING);
-                            onStartCalibration();
+                            requestCameraStream();
                         }}
                     >
                         {t('videoCalibration.guide.btnRetry')}
@@ -180,7 +220,10 @@ export const VideoViewFinder = ({
                 <div className="video-bottom-controls">
                     <button
                         className="btn-primary"
-                        onClick={() => setPermissionAcknowledged(true)}
+                        onClick={() => {
+                            setPermissionAcknowledged(true);
+                            requestCameraStream();
+                        }}
                     >
                         {t('videoCalibration.btnUnderstand')}
                     </button>
@@ -190,16 +233,20 @@ export const VideoViewFinder = ({
     }
 
     // ── CAMERA PERMISSION STILL RESOLVING ─────────────────────────
-    // Very brief (permissions.query resolves almost immediately), but
-    // we still shouldn't flash any task content while we wait.
-    if (camPermState === CAM_PERM.CHECKING) {
+    if (camPermState === CAM_PERM.CHECKING || !cameraGranted) {
+        return null;
+    }
+
+    // Hide the actual viewfinder UI during the permission phase, 
+    // or during the task instructions phase before calibration starts.
+    if (phase === 'PERMISSION' || (phase === 'RECORDING' && !videoCalibrated)) {
         return null;
     }
 
     return (
         <>
             <div className={`viewfinder-container ${phase === 'RECORDING' ? 'pip-mode' : ''} ${showWarningBorder ? 'warning-border' : ''}`}>
-                <video ref={videoRef} autoPlay playsInline muted className="viewfinder" />
+                <video ref={attachVideoRef} autoPlay playsInline muted className="viewfinder" />
                 
                 {phase === 'CALIBRATE' && (
                     <>

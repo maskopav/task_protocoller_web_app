@@ -1,7 +1,7 @@
 // src/utils/progressTracker.js
 
 // 1. Centralize the excluded task types
-const NON_PROGRESS_TASKS = ["info", "consent", "identifiers", "mic_check"];
+const NON_PROGRESS_TASKS = ["info", "consent", "identifiers", "mic_check", "volume_check"];
 
 /**
  * Helper to determine if a task should be counted toward progress or trigger overlays.

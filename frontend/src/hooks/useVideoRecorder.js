@@ -30,6 +30,19 @@ export const useVideoRecorder = ({
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
 
+    // Callback ref for the <video> element. We use a callback (rather than a
+    // plain ref) because the element can mount either BEFORE or AFTER the
+    // camera stream is actually obtained (getUserMedia can resolve well
+    // before, or well after, the <video> tag exists in the DOM depending on
+    // the permission-gating UI around it). Whichever happens second is what
+    // triggers the attachment here, so the stream is never silently dropped.
+    const attachVideoRef = useCallback((node) => {
+        videoRef.current = node;
+        if (node && streamRef.current) {
+            node.srcObject = streamRef.current;
+        }
+    }, []);
+
     const getMediaPermission = async () => {
         setIsLoadingModel(true);
         try {
@@ -300,7 +313,7 @@ export const useVideoRecorder = ({
     };
 
     return {
-        videoRef, canvasRef, recordingStatus, isSteady, 
+        videoRef, attachVideoRef, canvasRef, recordingStatus, isSteady, 
         isFaceCorrect, guidance, getMediaPermission, 
         startFaceDetection, startRecording, stopRecording,
         isLoadingModel, videoData

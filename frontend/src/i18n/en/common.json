@@ -62,6 +62,7 @@
       "info": "Information",
       "consent": "Consent",
       "mic_check": "Audio Test",
+      "volume_check": "Volume Test",
       "voice": "Speech section",
       "motor": "Motor section",
       "camera": "Camera section",
