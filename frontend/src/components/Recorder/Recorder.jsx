@@ -51,7 +51,8 @@ export const Recorder = ({
     onAudioEvent = () => {},
     autoSubmit = false,
     onPermissionPending = () => {},
-    onTopicChange = () => {}
+    onTopicChange = () => {},
+    autoPlayStoryTrigger = 0
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
@@ -181,9 +182,13 @@ export const Recorder = ({
 
     useEffect(() => {
         if (onRecordingStateChange) {
-            onRecordingStateChange(recordingStatus === RECORDING_STATES.RECORDING);
+            // Treat the whole video setup/calibration flow (setup instructions dialog,
+            // camera permission prompt, live face calibration) as "active" too, not just
+            // actual RECORDING.
+            const isCalibratingVideo = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
+            onRecordingStateChange(recordingStatus === RECORDING_STATES.RECORDING || isCalibratingVideo);
         }
-    }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING]);
+    }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING, isVideoEnabled, phase]);
 
     const prevStatusRef = useRef(recordingStatus);
     useEffect(() => {
@@ -285,6 +290,26 @@ export const Recorder = ({
         }
         checkExample();
     }, [audioExample]);
+
+// ── Auto-play the story once the parent's audio guide finishes ──────────
+    const prevAutoPlayStoryTriggerRef = useRef(autoPlayStoryTrigger);
+    
+    useEffect(() => {
+        if (autoPlayStoryTrigger === prevAutoPlayStoryTriggerRef.current) return;
+        prevAutoPlayStoryTriggerRef.current = autoPlayStoryTrigger;
+        let timeoutId; // Variable to hold the timer reference
+        if (exampleExists && recordingStatus === RECORDING_STATES.IDLE && !voiceRecorder.exampleAudio) {
+            timeoutId = setTimeout(() => {
+                onLogEvent("auto_play_story");
+                playExample();
+            }, 1500); 
+        }
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [autoPlayStoryTrigger, exampleExists, recordingStatus]);
 
     const handleNextTask = async () => {
         if (!onNextTask || isUploadingRef.current) return;

@@ -74,6 +74,7 @@ export default function ParticipantInterfacePage() {
   // on to per-topic clips and the general one should no longer show/play.
   const [guideStage, setGuideStage] = useState('general');
   const [topicPlayTrigger, setTopicPlayTrigger] = useState(0);
+  const [storyPlayTrigger, setStoryPlayTrigger] = useState(0);
   const playedMicCheckStages = useRef(new Set());
 
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
@@ -425,10 +426,12 @@ export default function ParticipantInterfacePage() {
   
   let currentTask = null;
   let isReadingTask = false;
+  let isRetellingTask = false;
 
   if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check'].includes(rawTask.type)) {
      currentTask = resolveTask(rawTask, t);
-     isReadingTask = currentTask?.category === 'reading'; 
+     isReadingTask = currentTask?.category === 'reading';
+     isRetellingTask = currentTask?.category === 'retelling';
   }
 
   const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
@@ -460,6 +463,11 @@ export default function ParticipantInterfacePage() {
     );
   }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage]);
 
+  useEffect(() => {
+  if (isRetellingTask) {
+    console.log('[retelling audio debug]', { rawTaskCategory: rawTask?.category, currentTaskCategory: currentTask?.category, audioSrc });
+  }
+}, [isRetellingTask, audioSrc]);
   // New task opened -> switch to instructions and force a play
   useEffect(() => {
     playedMicCheckStages.current.clear();
@@ -551,6 +559,10 @@ export default function ParticipantInterfacePage() {
     if (guideStage === 'general' && topicState.topic != null) {
       setGuideStage('topic');
       setTopicPlayTrigger(t => t + 1);
+      return;
+    }
+    if (isRetellingTask && useAudioInstructions) {
+      setStoryPlayTrigger(t => t + 1);
     }
   };
 
@@ -572,6 +584,13 @@ export default function ParticipantInterfacePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicState.index]);
+
+  useEffect(() => {
+    if (isRetellingTask && useAudioInstructions && guideStage === 'general' &&
+        !audioSrc && topicState.topic == null) {
+      setStoryPlayTrigger(t => t + 1);
+    }
+  }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic]);
 
   const handleRecorderAudioEvent = (eventType) => {
     if (eventType === 'completed') {
@@ -788,6 +807,7 @@ export default function ParticipantInterfacePage() {
           }}
           isUploading={isUploading}
           onPermissionPending={setIsAwaitingPermission}
+          onRecordingStateChange={setIsRecordingActive}
         />
       );
     }
@@ -816,6 +836,7 @@ export default function ParticipantInterfacePage() {
           isUploading={isUploading}
           onPermissionPending={setIsAwaitingPermission}
           onTopicChange={handleTopicChange}
+          autoPlayStoryTrigger={storyPlayTrigger}
         />
       );
     // Render Questionnaire

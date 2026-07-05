@@ -119,6 +119,11 @@
       "message": "Your progress has been saved. To ensure the best results, please make sure you are in the <strong>same quiet environment</strong> as before and try to complete the remaining tasks at once.",
       "continue": "Continue"
     },
+    "permissions": {
+      "tabAndroid": "Android",
+      "tabIos": "iPhone",
+      "howToFix": "Solution"
+    },
     "micCheck": {
       "calibrationTitle": "Microphone Setup",
       "permissionWarning": "Next, your browser will ask for microphone access.",
@@ -129,7 +134,6 @@
       "noiseInstructionsCounting": "<strong>Count slowly and out loud</strong> from 1 to 5.",
       "noiseInstructionsSilence": "Now stay <strong>silent</strong>.",
       "analyzing": "Checking the audio...",
-
       "failedTitle": "We're having trouble hearing you clearly",
       "failedMessage": "Please limit the sounds in the background around you.",
       "failedInstructions": "For the best results, please <strong>close any windows, turn off the TV/radio, or move to a quieter room</strong>. When ready, try again.",
@@ -138,11 +142,10 @@
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
       "mutedAdditionalInfo": "In case of persistent issues, visit troubleshooting guide or contact support. <br/><br/> You cannot proceed further.",
-
       "btnTryAgain": "Try Again",
       "successTitle": "Microphone Ready",
       "successMessage": "Everything looks good!",
-      "successInstructions":"Please <strong>stay in this room</strong> until you have finished.",
+      "successInstructions": "Please <strong>stay in this room</strong> until you have finished.",
       "btnProceed": "Next",
       "guide": {
         "titleDenied": "Microphone Access Denied",
@@ -153,13 +156,10 @@
         "descMissing": "We cannot detect a microphone. Please check your connection or try another device.",
         "descGeneric": "Microphone access is required to proceed with this task.",
         "btnRetry": "Try Again",
-        "tabAndroid": "Android",
-        "tabIos": "iPhone",
-        "howToFix": "Solution",
         "steps": {
           "android": {
-            "systemAndBrowser":"1. Open iPhone <strong>Settings</strong>, search for your browser (e.g., Safari), and set Microphone to <strong>Allow</strong> or toggle <strong>ON</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
-            "hardware": "• Close any active calls (Phone, FaceTime) or other recording apps.<br/>• Check your Bluetooth settings and disconnect any wireless headphones that might be using the microphone.<br/>"
+            "systemAndBrowser": "1. Open Android <strong>Settings</strong>, search for your browser (e.g., Chrome), and set Microphone to <strong>Allow</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
+            "hardware": "• Close any active calls (Phone, WhatsApp) or other recording apps.<br/>• Check your Bluetooth settings and disconnect any wireless headphones that might be using the microphone.<br/>"
           },
           "ios": {
             "systemAndBrowser": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Microphone switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the microphone.",
@@ -191,7 +191,20 @@
       "further": "Further",
       "turnLeft": "Look Left",
       "turnRight": "Look Right",
-      "perfect": "Perfect!"
+      "perfect": "Perfect!",
+
+      "permissionWarning": "Next, your browser will ask for camera access.",
+      "permissionInstruction": "Please press <strong>Allow</strong> in the popup window so we can see you.",
+      "btnUnderstand": "Understand & Continue",
+      "guide": {
+        "titleDenied": "Camera Access Denied",
+        "descDenied": "Your device or browser is blocking the camera. Both must allow access to continue.",
+        "btnRetry": "Try Again",
+        "steps": {
+          "android": "1. Open Android <strong>Settings</strong>, search for your browser (e.g., Chrome), and set Camera to <strong>Allow</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
+          "ios": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Camera switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the camera."
+        }
+      }
     },
     "incompatibleBrowser": {
       "title": "Browser Not Supported",

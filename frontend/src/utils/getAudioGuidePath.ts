@@ -64,7 +64,7 @@ export function getAudioGuidePath(
   // 3. Parameter-dependent filenames
   const keys = Object.keys(params);
   if (keys.length > 0) {
-    const paramDependentTasks = ['phonation', 'syllableRepeating', 'retelling'];
+    const paramDependentTasks = ['phonation', 'syllableRepeating'];
     if (paramDependentTasks.includes(taskName)) {
       const mainParamKey = keys[0];
       const value = params[mainParamKey as keyof typeof params];
