@@ -9,14 +9,13 @@ import { RecordingTimer } from './RecordingTimer';
 import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
-import { AudioExampleButton } from './AudioExampleButton';
+import { AudioExamplePlayer } from './AudioExamplePlayer';
 import { VideoViewFinder } from './VideoViewFinder.jsx';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logToServer } from '../../utils/frontendLogger';
 import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
-import { StoryProgressBar } from './StoryProgressBar';
 import TaskLayout from '../TaskLayout/TaskLayout';
 
 const DEBUG_MODE = false;
@@ -111,7 +110,7 @@ export const Recorder = ({
         audioLevelsRef, activeInstructions, durationExpired, incompatibleBrowser,
         getMicrophonePermission, startRecording: startAudioRecording, pauseRecording,
         resumeRecording, stopRecording: stopAudioRecording, repeatRecording,
-        playExample, stopExample, RECORDING_STATES
+        RECORDING_STATES
     } = voiceRecorder;
 
     // ── VAD bridge ───────────────────────────────────────────────────────
@@ -213,7 +212,6 @@ export const Recorder = ({
     const handleStart = () => {
         onLogEvent("button_start");
         resetSpeechTrackers();
-        stopExample();
         if (isVideoEnabled) {
             // Defer actual recording until calibration completes.
             // VideoViewFinder auto-triggers the setup instructions dialog on SETUP mount.
@@ -235,21 +233,13 @@ export const Recorder = ({
         resetTopics();
         clearSpeechSegments();
         resetSpeechTrackers();
+        setExampleResetTrigger(t => t + 1); // Story/example starts over on a fresh attempt
+        setHasListenedThreshold(false);     // Re-arm the calibration gate
         repeatRecording();
         if (isVideoEnabled) {
             // Reset calibration flag and ensure we are in the instructions phase
             setVideoCalibrated(false);
             setPhase('RECORDING'); 
-        }
-    };
-
-    const handleToggleExample = () => {
-        if (voiceRecorder.isExamplePlaying) {
-            onLogEvent("button_stop_example");
-            voiceRecorder.stopExample();
-        } else {
-            onLogEvent("button_play_example");
-            playExample();
         }
     };
 
@@ -301,11 +291,17 @@ export const Recorder = ({
         checkExample();
     }, [audioExample]);
 
+    // ── Story/example playback state (owned here, driven into AudioExamplePlayer via props) ──
+    const [exampleResetTrigger, setExampleResetTrigger] = useState(0);
+    const [hasListenedThreshold, setHasListenedThreshold] = useState(false);
+    const [isStoryPlaying, setIsStoryPlaying] = useState(false);
+    const [storyAutoPlayTrigger, setStoryAutoPlayTrigger] = useState(0);
+
     // Only relevant for video (camera-calibration) tasks with a story clip: block
     // the Start-Calibration button until the participant has actually heard
     // enough of the story, so they can't skip straight to camera setup by accident.
     const storyListenGateActive = isVideoEnabled && exampleExists;
-    const blockStartForStory = storyListenGateActive && !voiceRecorder.hasListenedThreshold;
+    const blockStartForStory = storyListenGateActive && !hasListenedThreshold;
 
     // ── Auto-play the story once the parent's audio guide finishes ──────────
     const prevAutoPlayStoryTriggerRef = useRef(autoPlayStoryTrigger);
@@ -323,10 +319,10 @@ export const Recorder = ({
         prevAutoPlayStoryTriggerRef.current = autoPlayStoryTrigger;
 
         let timeoutId;
-        if (exampleExists && recordingStatus === RECORDING_STATES.IDLE && !voiceRecorder.isExamplePlaying) {
+        if (exampleExists && recordingStatus === RECORDING_STATES.IDLE && !isStoryPlaying) {
             timeoutId = setTimeout(() => {
                 onLogEvent("auto_play_story");
-                playExample();
+                setStoryAutoPlayTrigger(t => t + 1);
             }, 1500); 
         }
         return () => {
@@ -334,7 +330,7 @@ export const Recorder = ({
                 clearTimeout(timeoutId);
             }
         };
-    }, [autoPlayStoryTrigger, exampleExists, recordingStatus, phase, isVideoEnabled]); 
+    }, [autoPlayStoryTrigger, exampleExists, recordingStatus, phase, isVideoEnabled, isStoryPlaying]); 
 
     const handleNextTask = async () => {
         if (!onNextTask || isUploadingRef.current) return;
@@ -422,14 +418,26 @@ export const Recorder = ({
         voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
 
-    const exampleExists_ = exampleExists;
     const slots = {
-        example:   exampleExists_ ? <div className="instruction-example-row"><AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={voiceRecorder.isExamplePlaying} onToggle={handleToggleExample} variant="example"  /></div> : null,
-        playStory: exampleExists_ ? (
-            <div className="instruction-example-row instruction-example-row--story">
-                <AudioExampleButton recordingStatus={recordingStatus} audioExample={audioExample} isPlaying={voiceRecorder.isExamplePlaying} onToggle={handleToggleExample} variant="story" />
-                <StoryProgressBar audio={voiceRecorder.exampleAudio} />
-            </div>
+        example: exampleExists ? (
+            <AudioExamplePlayer
+                src={audioExample}
+                variant="example"
+                recordingStatus={recordingStatus}
+                onLogEvent={onLogEvent}
+            />
+        ) : null,
+        playStory: exampleExists ? (
+            <AudioExamplePlayer
+                src={audioExample}
+                variant="story"
+                recordingStatus={recordingStatus}
+                playTrigger={storyAutoPlayTrigger}
+                resetTrigger={exampleResetTrigger}
+                onThresholdReached={() => setHasListenedThreshold(true)}
+                onPlayingChange={setIsStoryPlaying}
+                onLogEvent={onLogEvent}
+            />
         ) : null,
     };
 

@@ -108,9 +108,6 @@ export const useVoiceRecorder = (options = {}) => {
     const [recordingTime,  setRecordingTime]  = useState(0);
     const [remainingTime,  setRemainingTime]  = useState(null);
     const [activeInstructions, setActiveInstructions] = useState(instructions);
-    const [exampleAudio,   setExampleAudio]   = useState(null);
-    const [isExamplePlaying, setIsExamplePlaying] = useState(false);
-    const [hasListenedThreshold, setHasListenedThreshold] = useState(false);
     const [durationExpired, setDurationExpired] = useState(false);
 
     // ── Refs ───────────────────────────────────────────────────────────────────
@@ -311,8 +308,6 @@ export const useVoiceRecorder = (options = {}) => {
         // worklets writing to audioChunks simultaneously and corrupting the PCM.
         if (!stream || statusRef.current === RECORDING) return;
 
-        stopExample();
-        resetExample();
         setDurationExpired(false);
         audioChunks.current = [];
 
@@ -451,8 +446,6 @@ export const useVoiceRecorder = (options = {}) => {
     }, [onRecordingComplete]); // wrapped in useCallback to safely trigger inside the timer
 
     const repeatRecording = () => {
-        resetExample(); // stop example playback if active
-
         if (audioURL) {
             URL.revokeObjectURL(audioURL);
             audioURLRef.current = null;
@@ -495,69 +488,7 @@ export const useVoiceRecorder = (options = {}) => {
         }
     }, [recordingTime, maxDuration, recordingStatus, stopRecording]);
 
-
-    // Play or resume the story/example clip. Creates a fresh Audio() only the
-    // first time it's started (or after it has fully finished, since onended
-    // clears exampleAudio) — otherwise resumes the same, paused Audio object in
-    // place, so stopping and replaying doesn't lose the participant's position.
-    const playExample = () => {
-        if (!audioExample) return;
-
-        if (exampleAudio) {
-            exampleAudio.play().catch(err => {
-                console.error('Error resuming example audio:', err);
-            });
-            setIsExamplePlaying(true);
-            return;
-        }
-
-        const audio = new Audio(audioExample);
-
-        const handleTimeUpdate = () => {
-            if (audio.duration && audio.currentTime >= audio.duration / 3) {
-                setHasListenedThreshold(true);
-                audio.removeEventListener('timeupdate', handleTimeUpdate);
-            }
-        };
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-
-        audio.onended = () => {
-            setExampleAudio(null);
-            setIsExamplePlaying(false);
-        };
-
-        setExampleAudio(audio);
-        setIsExamplePlaying(true);
-        audio.play().catch(err => {
-            console.error('Error playing example audio:', err);
-            setExampleAudio(null);
-            setIsExamplePlaying(false);
-        });
-    };
-
-    // Pause in place — keeps currentTime and the Audio object itself intact so
-    // playExample() can resume from here, instead of restarting from zero.
-    // This is what the user-facing Stop button uses.
-    const stopExample = () => {
-        if (exampleAudio) {
-            exampleAudio.pause();
-            setIsExamplePlaying(false);
-        }
-    };
-
-    // Fully resets story/example playback: rewinds to zero, drops the Audio
-    // object, and re-arms the "listened enough" gate. Used internally when
-    // actual recording starts or a repeat happens — those are fresh attempts,
-    // not a pause, so the story should start over rather than resume.
-    const resetExample = () => {
-        if (exampleAudio) {
-            exampleAudio.pause();
-            exampleAudio.currentTime = 0;
-        }
-        setExampleAudio(null);
-        setIsExamplePlaying(false);
-    };
-        // Audio Visualization Effect
+    // Audio Visualization Effect
     //
     // Runs at a capped ~25fps (LEVEL_FRAME_INTERVAL_MS) instead of tracking the
     // display's native refresh rate.
@@ -651,9 +582,6 @@ export const useVoiceRecorder = (options = {}) => {
         audioLevelsRef,
         subscribeToAudioLevels,
         activeInstructions,
-        exampleAudio,
-        isExamplePlaying,
-        hasListenedThreshold,
         durationExpired,
         incompatibleBrowser,
         audioContext,
@@ -666,8 +594,6 @@ export const useVoiceRecorder = (options = {}) => {
         resumeRecording,
         stopRecording,
         repeatRecording,
-        playExample,
-        stopExample,
 
         // Utilities
         formatTime: (seconds) => {
