@@ -21,6 +21,11 @@
     overflow-y: auto;
   }
 
+  .confirm-dialog h2 {
+    margin: 0; 
+    text-align: left;
+  }
+
   .confirm-header {
     display: flex;
     justify-content: space-between;

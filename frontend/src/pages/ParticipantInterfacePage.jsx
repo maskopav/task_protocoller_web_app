@@ -442,8 +442,6 @@ export default function ParticipantInterfacePage() {
   const audioSrc = useMemo(() => {
     if (!rawTask || !useAudioInstructions) return null;
 
-    console.log(rawTask);
-
     let taskName = rawTask.category;
 
     if (rawTask.type === 'mic_check' && micCheckGuideStage) {
