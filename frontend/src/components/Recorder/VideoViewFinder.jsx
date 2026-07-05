@@ -3,25 +3,83 @@ import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
 import { useTranslation, Trans } from 'react-i18next';
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import { arrowUpIcon, arrowDownIcon, arrowLeftIcon, arrowRightIcon } from '../../assets/arrowIcons/arrowAssets';
+import { MediaPermissionContent } from '../Recorder/MediaPermissionContent';
 
 import './VideoViewFinder.css';
+
+// Mirrors the phases used by MicCheck's permission pre-check
+const CAM_PERM = {
+    CHECKING: 'checking',
+    PROMPT: 'prompt',
+    GRANTED: 'granted',
+    DENIED: 'denied',
+};
 
 export const VideoViewFinder = ({
     phase, 
     videoRecorder, 
     isRecording,
     onStartCalibration,
-    onFinishCalibration
+    onFinishCalibration,
+    permissionDenied = false
 }) => {
     const { confirm } = useContext(ConfirmDialogContext);
     const { t } = useTranslation();
     const [setupCancelled, setSetupCancelled] = useState(false);
+    const [camPermState, setCamPermState] = useState(CAM_PERM.CHECKING);
+    const [permissionAcknowledged, setPermissionAcknowledged] = useState(false);
     
     const { 
         videoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel
     } = videoRecorder;
 
     const showWarningBorder = isRecording && (!isSteady || !isFaceCorrect);
+
+    // ── CAMERA PERMISSION PRE-CHECK ───────────────────────────────
+    // Runs once on mount so we know, before showing any task/setup
+    // instructions, whether we need to warn the user about the
+    // upcoming camera prompt or guide them through a denied state.
+    useEffect(() => {
+        let permissionStatus;
+
+        const toState = (state) => (
+            state === 'granted' ? CAM_PERM.GRANTED :
+            state === 'denied'  ? CAM_PERM.DENIED  :
+            CAM_PERM.PROMPT
+        );
+
+        async function checkCameraPermission() {
+            if (!navigator.permissions?.query) {
+                // Browsers without the Permissions API (e.g. Safari) simply
+                // fall back to treating it as "not yet asked".
+                setCamPermState(CAM_PERM.PROMPT);
+                return;
+            }
+            try {
+                permissionStatus = await navigator.permissions.query({ name: 'camera' });
+                setCamPermState(toState(permissionStatus.state));
+                permissionStatus.onchange = () => {
+                    setCamPermState(toState(permissionStatus.state));
+                };
+            } catch (error) {
+                setCamPermState(CAM_PERM.PROMPT);
+            }
+        }
+
+        checkCameraPermission();
+        return () => {
+            if (permissionStatus) permissionStatus.onchange = null;
+        };
+    }, []);
+
+    // A getUserMedia() failure (explicit block, or a dismissed prompt that
+    // the Permissions API doesn't reflect) is reported by the parent via this
+    // prop. Treat it exactly like the Permissions API reporting 'denied'.
+    useEffect(() => {
+        if (permissionDenied) {
+            setCamPermState(CAM_PERM.DENIED);
+        }
+    }, [permissionDenied]);
 
     const instructionList = (
         <div className="calibration-instructions-layout">
@@ -48,8 +106,16 @@ export const VideoViewFinder = ({
         });
     };
 
+    // The task instructions dialog should only auto-open once we're past
+    // the camera permission gate: not while we're still checking, not
+    // while the user hasn't acknowledged the upcoming browser prompt yet,
+    // and not at all if permission has been explicitly denied.
+    const pastPermissionGate =
+        camPermState === CAM_PERM.GRANTED ||
+        (camPermState === CAM_PERM.PROMPT && permissionAcknowledged);
+
     useEffect(() => {
-        if (phase === 'SETUP' && !setupCancelled) {
+        if (phase === 'SETUP' && !setupCancelled && pastPermissionGate) {
             const autoStart = async () => {
                 const isReady = await showInstructionsDialog();
                 if (isReady) onStartCalibration(); 
@@ -58,7 +124,77 @@ export const VideoViewFinder = ({
             autoStart();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [phase, setupCancelled]); 
+    }, [phase, setupCancelled, pastPermissionGate]); 
+
+    // ── CAMERA PERMISSION DENIED ──────────────────────────────────
+    // Shown instead of ANY phase content (SETUP, CALIBRATE, RECORDING...)
+    // until permission is granted. The onchange listener above will
+    // flip camPermState if the user fixes it in browser settings.
+    if (camPermState === CAM_PERM.DENIED) {
+        return (
+            <div className="permission-standalone-card">
+                <MediaPermissionContent
+                    type="camera"
+                    variant="denied"
+                    deniedText={<Trans i18nKey="videoCalibration.guide.descDenied" />}
+                    customSteps={(osTab) => (
+                        <Trans i18nKey={`videoCalibration.guide.steps.${osTab}`} />
+                    )}
+                />
+                <div className="video-bottom-controls">
+                    <button
+                        className="btn-primary"
+                        onClick={() => {
+                            // Optimistically go back to "checking" and let the parent
+                            // re-attempt getUserMedia — this re-triggers the native
+                            // prompt if the browser still allows asking again.
+                            setCamPermState(CAM_PERM.CHECKING);
+                            onStartCalibration();
+                        }}
+                    >
+                        {t('videoCalibration.guide.btnRetry')}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // ── CAMERA PERMISSION INTRO ───────────────────────────────────
+    // Shown before ANY phase content so the user knows a browser
+    // permission popup is coming, exactly as MicCheck does for the
+    // microphone — regardless of what `phase` the parent has set.
+    if (camPermState === CAM_PERM.PROMPT && !permissionAcknowledged) {
+        return (
+            <div className="permission-standalone-card">
+                <MediaPermissionContent
+                    type="camera"
+                    variant="intro"
+                    introText={
+                        <>
+                            <Trans i18nKey="videoCalibration.permissionWarning" />
+                            <br /><br />
+                            <Trans i18nKey="videoCalibration.permissionInstruction" />
+                        </>
+                    }
+                />
+                <div className="video-bottom-controls">
+                    <button
+                        className="btn-primary"
+                        onClick={() => setPermissionAcknowledged(true)}
+                    >
+                        {t('videoCalibration.btnUnderstand')}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // ── CAMERA PERMISSION STILL RESOLVING ─────────────────────────
+    // Very brief (permissions.query resolves almost immediately), but
+    // we still shouldn't flash any task content while we wait.
+    if (camPermState === CAM_PERM.CHECKING) {
+        return null;
+    }
 
     return (
         <>

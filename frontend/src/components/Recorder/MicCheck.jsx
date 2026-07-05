@@ -4,6 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import InfoTooltip from "../InfoToolTip/InfoToolTip";
+import { MediaPermissionContent } from "./MediaPermissionContent";
 import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
@@ -17,20 +18,19 @@ const CONFIG = {
   TARGET_SNR: 9,
   RECORDING_DURATION: 12,
   VAD_PRECISION_CONFIG: {
-    redemptionMs: 50,            // Cut off silence quickly after a word ends
+    redemptionMs: 50,            
     preSpeechPadMs: 100,          
-    minSpeechMs: 100,             // Catch very short spoken numbers like "two" or "four"
-    positiveSpeechThreshold: 0.50, // Slightly stricter than 0.35 to ignore heavy breathing
+    minSpeechMs: 100,             
+    positiveSpeechThreshold: 0.50, 
     negativeSpeechThreshold: 0.35, 
   },
   MAX_WAIT_TIME_MS: 4000,
   COUNTING_FALLBACK_MS: 3500,
   MIN_COUNTING_MS: 2000,
-  POST_SPEECH_SILENCE_MS: 3500, // How long after the last word ends before we call it "done counting"
+  POST_SPEECH_SILENCE_MS: 3500, 
   DEBUG_MODE: import.meta.env.DEV,
 };
 
-// Standardized error types to avoid "NotAllowedError" casing bugs
 const ERR = {
   DENIED: 'PERMISSION_DENIED',
   MISSING: 'HARDWARE_MISSING',
@@ -47,7 +47,7 @@ function useMicCheckInstructions() {
 
   const maxWaitTimeoutRef  = useRef(null);
   const fallbackTimeoutRef = useRef(null);
-  const silenceWindowRef   = useRef(null);  // "did the last word just end?" timer
+  const silenceWindowRef   = useRef(null);  
   const actualStartTimeRef = useRef(null);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ function useMicCheckInstructions() {
         clearTimeout(silenceWindowRef.current);
         setForceTimerActive(false);
         maxWaitTimeoutRef.current = setTimeout(() => {
-          maxWaitTimeoutRef.current = null; // Mark as fired so handleVadSpeechStart knows
+          maxWaitTimeoutRef.current = null; 
           setForceTimerActive(true);
           actualStartTimeRef.current = Date.now();
           startFallbackTimer();
@@ -101,11 +101,8 @@ function useMicCheckInstructions() {
   const handleVadSpeechEnd = () => {
     if (!actualStartTimeRef.current) return;
     const timeElapsed = Date.now() - actualStartTimeRef.current;
-    // Don't arm the silence window until minimum time has elapsed since counting began.
-    // This guards against a cough or throat-clear triggering silence early,
-    // regardless of how many segments the VAD detected.
     if (timeElapsed < CONFIG.MIN_COUNTING_MS) return;
-    // handleVadSpeechStart will cancel it if the participant keeps speaking.
+    
     clearTimeout(silenceWindowRef.current);
     silenceWindowRef.current = setTimeout(() => {
       clearTimeout(fallbackTimeoutRef.current);
@@ -147,10 +144,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     handleVadSpeechStart, handleVadSpeechEnd 
   } = useMicCheckInstructions();
 
-  // Let the parent know which sub-stage we're in, so it can swap the audio
-  // guide clip: 'intro' still needs the permission explanation, 'noise' is
-  // the actual calibration/counting recording. Other phases (checking,
-  // warning, analyzing, results) don't need a guide change.
   useEffect(() => {
     onPhaseChange?.(phase, errorType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,11 +180,10 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     checkMicPermission();
   }, []);
 
-  // Notify both the custom hook AND the parent
   const handleLocalRecordingStateChange = (isRecording) => {
-    handleRecordingStateChange(isRecording);           // Updates internal instructions (silence/counting)
+    handleRecordingStateChange(isRecording);           
     if (onRecordingStateChange) {
-      onRecordingStateChange(isRecording);             // Tells parent to hide the audio guide button
+      onRecordingStateChange(isRecording);             
     }
   };
 
@@ -199,8 +191,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     logToServer("MicCheck Error:", { name: err.name, message: err.message });
     let type = ERR.GENERIC;
 
-    // Unify the denied errors because browsers can't reliably distinguish 
-    // OS-level blocks from Browser-level blocks
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
       type = ERR.DENIED;
     } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -214,13 +204,11 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   };
 
   const handleNoiseCheckComplete = async (taskData) => {
-    // Fetch the blob IMMEDIATELY before changing any state.
     let audioBlob;
     let safeAudioUrl;
     try {
       const response = await fetch(taskData.audioURL);
       audioBlob = await response.blob();
-      // Create a fresh URL that WE control, so it doesn't get destroyed by the Recorder unmounting
       safeAudioUrl = URL.createObjectURL(audioBlob); 
     } catch (err) {
       logToServer("Failed to fetch audio blob for MicCheck", err);
@@ -239,7 +227,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     setErrorType(evaluatedError);
     setAttempts(prev => prev + 1);
 
-    // Bundle the data for this specific recording
     const attemptData = {
       audioBlob: audioBlob, 
       snrScore: calculatedScore,
@@ -249,12 +236,9 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       attemptNumber: attempts + 1
     };
 
-    // Split logic: Is it a failure or a success?
     if (evaluatedError) {
-      // FAILED: Save it immediately using the new prop
       if (onSaveAttempt) onSaveAttempt(attemptData);
     } else {
-      // SUCCESS: Save it to state so we can pass it when they click 'Proceed'
       setFinalMicData(attemptData);
     }
 
@@ -278,6 +262,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     });
   };
 
+  // ── RENDER PHASES ──────────────────────────────────────────────────
   if (['checking', 'analyzing'].includes(phase)) {
     return (
       <TaskLayout 
@@ -314,16 +299,48 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     );
   }
 
+  // Handle hardware & permission warnings cleanly using TaskLayout children
   if (phase === 'warning') {
+    const config = {
+      [ERR.DENIED]:  { title: 'titleDenied', desc: 'descDenied' },
+      [ERR.MISSING]: { title: 'titleHardware', desc: 'descMissing' },
+      [ERR.BUSY]:    { title: 'titleHardware', desc: 'descBusy' },
+      [ERR.GENERIC]: { title: 'titleGeneric', desc: 'descGeneric' },
+    }[errorType || ERR.GENERIC];
+
     return (
-      <TaskLayout>
-        <PermissionGuide errorType={errorType} onRetry={() => setPhase('noise')} />
+      <TaskLayout
+        title={t(`micCheck.guide.${config.title}`)}
+        controls={
+          <button className="btn-primary" style={{ width: '100%', maxWidth: '300px' }} onClick={() => setPhase('noise')}>
+            {t("micCheck.guide.btnRetry")}
+          </button>
+        }
+      >
+        {/* Rendered as a child element, safely outside the giant instruction typography */}
+        <div className="permission-standalone-card">
+          <MediaPermissionContent 
+            type="microphone" 
+            variant="denied" 
+            deniedText={t(`micCheck.guide.${config.desc}`)}
+            showImage={errorType === ERR.DENIED} 
+            customSteps={(osTab) => (
+              <Trans 
+                i18nKey={`common:micCheck.guide.steps.${osTab}.${errorType === ERR.DENIED ? 'systemAndBrowser' : 'hardware'}`} 
+                t={t} 
+              />
+            )}
+          />
+        </div>
       </TaskLayout>
     );
   }
 
   const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => setPhase('noise'), t, onLogEvent, finalMicData);
   if (!uiState) return null;
+
+  // We only pass the instructions prop to TaskLayout if there is actual text to display
+  const hasInstructions = Boolean(uiState.message || uiState.instructions);
 
   return (
     <TaskLayout 
@@ -335,22 +352,24 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       }
       showSpacer={true}
       instructions={
-        <>
-          {uiState.message && (
-            <div className="mic-check-message-block">
-              <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
-                {uiState.message}
-              </span>
-              {uiState.tooltip && (
-                <div className="mic-check-info-wrapper">
-                  {uiState.tooltip}
-                </div>
-              )}
-            </div>
-          )}
-          {uiState.message && <><br /><br /></>}
-          {uiState.instructions}
-        </>
+        hasInstructions ? (
+          <>
+            {uiState.message && (
+              <div className="mic-check-message-block">
+                <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
+                  {uiState.message}
+                </span>
+                {uiState.tooltip && (
+                  <div className="mic-check-info-wrapper">
+                    {uiState.tooltip}
+                  </div>
+                )}
+              </div>
+            )}
+            {uiState.message && <><br /><br /></>}
+            {uiState.instructions}
+          </>
+        ) : null
       }
       mainClassName="mic-check-main"
       controlsClassName="mic-check-controls"
@@ -372,90 +391,15 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
           )}
         </>
       }
-    />
+    >
+      {/* If the state requires a complex component (like the Intro phase), it renders here */}
+      {uiState.mainComponent}
+    </TaskLayout>
   );
 }
 
 // ==========================================
-// 4. SUB-COMPONENTS
-// ==========================================
-function PermissionGuide({ onRetry, errorType }) {
-  const { t } = useTranslation(["common"]);
-  const [activeTab, setActiveTab] = useState(() => 
-    /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'android'
-  );
-
-  // Map errors to specific translation keys and icons
-  const config = {
-    [ERR.DENIED]:  { title: 'titleDenied', desc: 'descDenied', icon: 'icon-lock' },
-    [ERR.MISSING]: { title: 'titleHardware', desc: 'descMissing', icon: 'icon-hardware' },
-    [ERR.BUSY]:    { title: 'titleHardware', desc: 'descBusy',    icon: 'icon-hardware' },
-    [ERR.GENERIC]: { title: 'titleGeneric', desc: 'descGeneric', icon: 'icon-lock' },
-  }[errorType || ERR.GENERIC];
-
-  const showIllustration = errorType === 'BROWSER_DENIED';
-  const illustrationRoot = `${import.meta.env.BASE_URL}assets/microphonePermission/`;
-  const illustrationSrc = activeTab === 'android' ? `${illustrationRoot}android-browser-help.png` : `${illustrationRoot}ios-browser-help.png`;
-
-  const getStepKey = () => {
-    if (errorType === ERR.DENIED) return 'systemAndBrowser';
-    return 'hardware'; // Fallback for missing/busy
-  };
-
-  const baseKey = `common:micCheck.guide.steps.${activeTab}.${getStepKey()}`;
-
-  return (
-    <div className="permission-guide-container">
-      <div className="guide-card">
-        <div className="guide-header">
-          <h2>{t(`micCheck.guide.${config.title}`)}</h2>
-          <p className="error-description">{t(`micCheck.guide.${config.desc}`)}</p>
-        </div>
-
-        <div className="tab-switcher">
-          <button 
-            className={`tab-btn ${activeTab === 'android' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('android')}
-          >
-            {t("micCheck.guide.tabAndroid")}
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'ios' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('ios')}
-          >
-            {t("micCheck.guide.tabIos")}
-          </button>
-        </div>
-
-        <div className="instruction-steps">
-          <div className="solution-label">{t("micCheck.guide.howToFix")}</div>
-          {showIllustration && (
-            <div className="illustration-container">
-              <img 
-                src={illustrationSrc} 
-                alt="Help illustration" 
-                className="instruction-image" 
-              />
-            </div>
-          )}
-          <div className="steps-text-block">
-            <Trans 
-              i18nKey={baseKey} 
-              t={t}
-            />
-          </div>
-        </div>
-
-        <button className="btn-primary full-width" onClick={onRetry}>
-          {t("micCheck.guide.btnRetry")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// 5. UTILITIES
+// 4. UTILITIES
 // ==========================================
 function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onLogEvent, finalMicData) {
   const common = { 
@@ -471,20 +415,27 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
     case 'intro': return {
       title: <Trans i18nKey="micCheck.calibrationTitle" />,
       message: null,
-      instructions: (
-        <>
-          <Trans i18nKey="micCheck.permissionWarning" />
-          <div className="intro-visual-container">
-            <img src={`${import.meta.env.BASE_URL}assets/microphonePermission/popup-window.jpeg`} alt="Microphone access guide" className="intro-preview-img" />
-          </div>
-          <Trans i18nKey="micCheck.permissionInstruction" />
-        </>
+      instructions: null, // Null ensures the instruction-card styling isn't applied
+      mainComponent: (
+        <div className="permission-standalone-card">
+          <MediaPermissionContent 
+            type="microphone" 
+            variant="intro" 
+            introText={
+              <>
+                <Trans i18nKey="micCheck.permissionWarning" />
+                <br /><br />
+                <Trans i18nKey="micCheck.permissionInstruction" />
+              </>
+            }
+          />
+        </div>
       ),
-      btnText: <Trans i18nKey="micCheck.btnUnderstand" />, // The user clicks "I understand"
+      btnText: <Trans i18nKey="micCheck.btnUnderstand" />,
       onBtnClick: () => {
         if (onLogEvent) onLogEvent("button_start");
         onRetry();
-      }, // onRetry triggers () => setPhase('noise'), which moves them to the next step!
+      }, 
       isSuccess: false
     };
     case 'noise-failed': {

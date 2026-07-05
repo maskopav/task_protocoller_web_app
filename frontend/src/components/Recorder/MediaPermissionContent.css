@@ -1,0 +1,113 @@
+/* src/components/MediaPermissionContent/MediaPermissionContent.css */
+.permission-guide-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  animation: fadeIn 0.3s ease-out;
+  width: 100%;
+}
+
+.permission-guide-container.flex-col {
+  flex-direction: column;
+}
+
+.guide-description {
+  width: 100%;
+}
+
+.intro-preview-img {
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  max-height: 250px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabs Matching Screenshot */
+.tab-switcher {
+  display: flex;
+  background: #f1f5f9; /* Light gray background */
+  border-radius: 10px;
+  padding: 4px;
+  margin: 0 auto 16px auto;
+  width: 100%;
+  max-width: 320px;
+}
+
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  padding: 10px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  outline: none;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-btn.active {
+  background: #ffffff !important;
+  color: #3b82f6 !important; /* Vivid blue */
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Soft white card effect */
+}
+
+/* Steps Box Matching Screenshot */
+.instruction-steps {
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.solution-label {
+  display: block;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #3b82f6; /* Vivid blue */
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.instruction-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto 12px auto;
+}
+
+.steps-text-block {
+  text-align: left;
+  line-height: 1.5;
+  color: #1e293b;
+  white-space: pre-line;
+}
+
+.steps-text-block strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.permission-standalone-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  padding: 16px 0;
+  width: 95%;
+  max-width: 360px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-out;
+}
