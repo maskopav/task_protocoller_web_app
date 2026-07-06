@@ -44,12 +44,19 @@ export const useVideoRecorder = ({
     }, []);
 
     const getMediaPermission = async () => {
-        setIsLoadingModel(true);
         try {
+            const streamData = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+
+            if (videoRef.current) videoRef.current.srcObject = streamData;
+            streamRef.current = streamData;
+
+            setIsLoadingModel(true);
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
             );
-            
             faceDetector.current = await FaceLandmarker.createFromOptions(vision, {
                 baseOptions: {
                     modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
@@ -59,15 +66,7 @@ export const useVideoRecorder = ({
                 runningMode: "VIDEO",
                 numFaces: 1
             });
-
-            const streamData = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
-            });
-            
-            if (videoRef.current) videoRef.current.srcObject = streamData;
-            streamRef.current = streamData;
-            setIsLoadingModel(false); 
+            setIsLoadingModel(false);
 
             return true;
         } catch (err) {
