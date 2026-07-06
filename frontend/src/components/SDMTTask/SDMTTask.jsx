@@ -10,7 +10,7 @@ import SDMTDemoMessage from './SDMTDemoMessage';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import './SDMTTask.css';
 
-const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange }) => {
+const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onAudioEvent }) => {
     const { t, i18n } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
     const demoShownRef = useRef(false);
@@ -43,7 +43,16 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange }) =
             // Tells the parent: true when playing, false when in instructions/stats
             onTaskActiveChange(gameState === 'playing');
         }
-    }, [gameState, onTaskActiveChange]);
+        
+        // Notify the parent page to change the audio track phase
+        if (onAudioEvent) {
+            if (gameState === 'stats') {
+                onAudioEvent('completed');
+            } else if (gameState === 'instructions') {
+                onAudioEvent('retry');
+            }
+        }
+    }, [gameState, onTaskActiveChange, onAudioEvent]);
 
     // ── Show demo dialog once on mount ────────────────────────────────
     useLayoutEffect(() => {

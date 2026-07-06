@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { forwardRef, useRef, useState, useEffect, useImperativeHandle } from 'react';
 import './AudioGuidePlayer.css';
 import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
 
@@ -19,18 +19,29 @@ import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
  *                                  Never called for looping audio, since the browser doesn't fire
  *                                  'ended' in that case.
  */
-export default function AudioGuidePlayer({ 
-  src, 
-  playTrigger, 
-  isRecordingActive, 
-  loop = false, 
+const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
+  src,
+  playTrigger,
+  isRecordingActive,
+  loop = false,
   autoPlay = true,
   onEnded
-}) {
+}, ref) {
   const audioRef = useRef(null);
   const buttonRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    stop: () => {
+      if (audioRef.current) {
+        audioRef.current.muted = true;
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setIsPlaying(false);
+    }
+  }), []);
 
   // Global rule: any click outside this button while the guide is playing
   // should stop it. Clicks on the button itself are left alone since
@@ -43,6 +54,7 @@ export default function AudioGuidePlayer({
         return;
       }
       if (audioRef.current) {
+        audioRef.current.muted = true;
         audioRef.current.pause();
       }
       setIsPlaying(false);
@@ -62,6 +74,7 @@ export default function AudioGuidePlayer({
   // Stop playing if recording becomes active
   useEffect(() => {
     if (isRecordingActive && audioRef.current) {
+      audioRef.current.muted = true;
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
@@ -74,6 +87,7 @@ export default function AudioGuidePlayer({
 
     const audio = audioRef.current;
     audio.currentTime = 0;
+    audio.muted = false;
 
     // If autoPlay is false, we just reset the time and stop here
     if (!autoPlay) {
@@ -97,6 +111,7 @@ export default function AudioGuidePlayer({
     }
 
     return () => {
+      audio.muted = true;
       audio.pause();
       setIsPlaying(false);
       audio.removeEventListener('canplaythrough', playOnLoad);
@@ -113,11 +128,13 @@ export default function AudioGuidePlayer({
     if (!audioRef.current) return;
 
     if (isPlaying) {
+      audioRef.current.muted = true;
       audioRef.current.pause();
       setIsPlaying(false);
       return;
     }
 
+    audioRef.current.muted = false;
     audioRef.current
       .play()
       .then(() => setIsPlaying(true))
@@ -175,4 +192,6 @@ export default function AudioGuidePlayer({
       />
     </>
   );
-}
+});
+
+export default AudioGuidePlayer;

@@ -1,5 +1,5 @@
 // frontend/src/components/Recorder/AudioExamplePlayer.jsx
-import React, { useRef, useState, useEffect } from 'react';
+import React, { forwardRef, useRef, useState, useEffect, useImperativeHandle } from 'react';
 import { AudioExampleButton } from './AudioExampleButton';
 import { StoryProgressBar } from './StoryProgressBar';
 
@@ -24,7 +24,7 @@ import { StoryProgressBar } from './StoryProgressBar';
  *                                  auto-play if the participant already started it manually).
  * onLogEvent       func
  */
-export const AudioExamplePlayer = ({
+export const AudioExamplePlayer = forwardRef(function AudioExamplePlayer({
     src,
     variant = 'example',
     recordingStatus,
@@ -33,11 +33,27 @@ export const AudioExamplePlayer = ({
     onThresholdReached = () => {},
     onPlayingChange = () => {},
     onLogEvent = () => {},
-}) => {
+}, ref) {
     const audioRef = useRef(null);
     const wrapperRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const thresholdFiredRef = useRef(false);
+
+    // Mirrors AudioGuidePlayer's imperative stop() — lets Recorder silence
+    // this clip synchronously, in the same click handler as Start, instead
+    // of waiting on the outside-click listener or a reactive prop.
+    useImperativeHandle(ref, () => ({
+        stop: () => {
+            if (audioRef.current) {
+                // muted acts at the output-mixer stage, silencing whatever's
+                // already queued in the hardware output buffer immediately —
+                // pause() alone only stops feeding new audio into that queue.
+                audioRef.current.muted = true;
+                audioRef.current.pause();
+            }
+            setIsPlaying(false);
+        }
+    }), [variant]);
 
     useEffect(() => {
         onPlayingChange(isPlaying);
@@ -54,7 +70,10 @@ export const AudioExamplePlayer = ({
             if (wrapperRef.current && wrapperRef.current.contains(event.target)) {
                 return;
             }
-            if (audioRef.current) audioRef.current.pause();
+            if (audioRef.current) {
+                audioRef.current.muted = true;
+                audioRef.current.pause();
+            }
             setIsPlaying(false);
         };
 
@@ -68,6 +87,7 @@ export const AudioExamplePlayer = ({
         if (playTrigger === prevPlayTriggerRef.current) return;
         prevPlayTriggerRef.current = playTrigger;
         if (audioRef.current) {
+            audioRef.current.muted = false;
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
                 .catch(() => setIsPlaying(false));
@@ -82,6 +102,7 @@ export const AudioExamplePlayer = ({
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
+            audioRef.current.muted = false;
         }
         setIsPlaying(false);
         thresholdFiredRef.current = false;
@@ -91,7 +112,10 @@ export const AudioExamplePlayer = ({
     // for detached media elements.
     useEffect(() => {
         return () => {
-            if (audioRef.current) audioRef.current.pause();
+            if (audioRef.current) {
+                audioRef.current.muted = true;
+                audioRef.current.pause();
+            }
         };
     }, []);
 
@@ -101,10 +125,12 @@ export const AudioExamplePlayer = ({
 
         if (isPlaying) {
             onLogEvent(variant === 'story' ? 'button_stop_story' : 'button_stop_example');
+            audio.muted = true;
             audio.pause();
             setIsPlaying(false);
         } else {
             onLogEvent(variant === 'story' ? 'button_play_story' : 'button_play_example');
+            audio.muted = false;
             audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
         }
     };
@@ -146,4 +172,4 @@ export const AudioExamplePlayer = ({
             />
         </div>
     );
-};
+});

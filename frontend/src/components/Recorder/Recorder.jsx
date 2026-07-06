@@ -53,7 +53,8 @@ export const Recorder = ({
     onPermissionPending = () => {},
     onTopicChange = () => {},
     onPhaseChange,
-    autoPlayStoryTrigger = 0
+    autoPlayStoryTrigger = 0,
+    onBeforeRecordingStart = () => {}
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
@@ -65,6 +66,22 @@ export const Recorder = ({
     const [videoCalibrated, setVideoCalibrated] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
+    const RECORDING_START_DELAY_MS = 1700;
+    const [isPreparingToRecord, setIsPreparingToRecord] = useState(false);
+    const recordingStartTimeoutRef = useRef(null);
+    // Imperative handles to the story/example clips (owned locally here,
+    // unlike the header guides which live in the parent) so they too can be
+    // silenced synchronously the instant Start is clicked.
+    const examplePlayerRef = useRef(null);
+    const storyPlayerRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (recordingStartTimeoutRef.current) {
+                clearTimeout(recordingStartTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Broadcast phase changes up to ParticipantInterfacePage
     useEffect(() => {
@@ -210,6 +227,9 @@ export const Recorder = ({
 
     // ── Handlers ─────────────────────────────────────────────────────────
     const handleStart = () => {
+        onBeforeRecordingStart();
+        examplePlayerRef.current?.stop();
+        storyPlayerRef.current?.stop();
         onLogEvent("button_start");
         resetSpeechTrackers();
         if (isVideoEnabled) {
@@ -217,7 +237,11 @@ export const Recorder = ({
             // VideoViewFinder auto-triggers the setup instructions dialog on SETUP mount.
             setPhase('SETUP');
         } else {
-            startAudioRecording();
+            setIsPreparingToRecord(true);
+            recordingStartTimeoutRef.current = setTimeout(() => {
+                setIsPreparingToRecord(false);
+                startAudioRecording();
+            }, RECORDING_START_DELAY_MS);
         }
     };
 
@@ -387,10 +411,17 @@ export const Recorder = ({
     // Finish Video Calibration (Passed to VideoViewFinder)
     // This is the real "start" for video tasks — both recorders kick off here.
     const handleFinishCalibration = () => {
+        onBeforeRecordingStart();
+        examplePlayerRef.current?.stop();
+        storyPlayerRef.current?.stop();
         setVideoCalibrated(true);
         setPhase('RECORDING');
-        startAudioRecording();
-        videoRecorder.startRecording();
+        setIsPreparingToRecord(true);
+        recordingStartTimeoutRef.current = setTimeout(() => {
+            setIsPreparingToRecord(false);
+            startAudioRecording();
+            videoRecorder.startRecording();
+        }, RECORDING_START_DELAY_MS);
     };
 
     // ── Instruction parsing ───────────────────────────────────────────────
@@ -421,6 +452,7 @@ export const Recorder = ({
     const slots = {
         example: exampleExists ? (
             <AudioExamplePlayer
+                ref={examplePlayerRef}
                 src={audioExample}
                 variant="example"
                 recordingStatus={recordingStatus}
@@ -429,6 +461,7 @@ export const Recorder = ({
         ) : null,
         playStory: exampleExists ? (
             <AudioExamplePlayer
+                ref={storyPlayerRef}
                 src={audioExample}
                 variant="story"
                 recordingStatus={recordingStatus}
@@ -585,7 +618,7 @@ export const Recorder = ({
                     <RecordingControls
                         recordingStatus={recordingStatus}
                         disableControls={mode === 'countDown'}
-                        disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory}
+                        disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory || isPreparingToRecord}
                         permission={audioPermission}
                         onStart={handleStart}
                         onPause={pauseRecording}

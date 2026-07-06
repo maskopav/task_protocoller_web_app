@@ -1,5 +1,5 @@
 // src/pages/ParticipantInterfacePage.jsx
-import React, { useState, useContext, useMemo, useEffect, useRef } from "react";
+import React, { useState, useContext, useMemo, useEffect, useRef, useCallback } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePreventNavigation } from "../hooks/usePreventNavigation";
@@ -57,6 +57,12 @@ export default function ParticipantInterfacePage() {
   // guide pauses/hides for this window too — no way to detect the dialog
   // itself, so we suppress audio for the whole request instead.
   const [isAwaitingPermission, setIsAwaitingPermission] = useState(false);
+  const generalGuideRef = useRef(null);
+  const topicGuideRef = useRef(null);
+  const stopAudioGuides = useCallback(() => {
+    generalGuideRef.current?.stop();
+    topicGuideRef.current?.stop();
+  }, []);
 
   const [audioPhase, setAudioPhase] = useState('instructions'); // 'instructions' | 'completed'
   const [playTrigger, setPlayTrigger] = useState(0);
@@ -548,6 +554,10 @@ export default function ParticipantInterfacePage() {
   // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
   const handleTopicChange = (index, topic) => {
     setTopicState({ index, topic });
+    
+    if (index > 0) {
+       setGuideStage('topic');
+    }
   };
 
   // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
@@ -630,6 +640,7 @@ export default function ParticipantInterfacePage() {
       setPlayTrigger(t => t + 1);   // force play of the "completed" clip
     } else if (eventType === 'retry') {
       setAudioPhase('instructions'); // src reverts, but playTrigger stays the same → no autoplay
+      setGuideStage('general');     
     }
   };
 
@@ -870,6 +881,7 @@ export default function ParticipantInterfacePage() {
           onTopicChange={handleTopicChange}
           onPhaseChange={setRecorderPhase}
           autoPlayStoryTrigger={storyPlayTrigger}
+          onBeforeRecordingStart={stopAudioGuides}
         />
       );
     // Render Questionnaire
@@ -913,6 +925,7 @@ export default function ParticipantInterfacePage() {
           onComplete={handleTaskComplete} 
           isUploading={isUploading}
           onTaskActiveChange={setIsRecordingActive}
+          onAudioEvent={handleRecorderAudioEvent} 
         />
       );
     }
@@ -998,12 +1011,14 @@ export default function ParticipantInterfacePage() {
             </div>
             <div className="task-header-right">
               <AudioGuidePlayer
+                ref={generalGuideRef}
                 src={headerGeneralAudioSrc}
                 playTrigger={playTrigger}
                 isRecordingActive={isRecordingActive || isAwaitingPermission || isDialogOpen}
                 onEnded={handleGeneralGuideEnded}
               />
               <AudioGuidePlayer
+                ref={topicGuideRef}
                 src={headerTopicAudioSrc}
                 playTrigger={topicPlayTrigger}
                 isRecordingActive={isRecordingActive || isAwaitingPermission || isDialogOpen}

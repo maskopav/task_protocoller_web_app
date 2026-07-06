@@ -266,6 +266,10 @@ button:disabled {
 }
 
 .spinner {
+  display: inline-block;  /* Allows the span to respect width/height */
+  vertical-align: middle; /* Centers it vertically with the text */
+  margin-right: 0.5em;    /* Adds space between the spinner and the text */
+  
   width: 1em;
   height: 1em;
   border: 0.15em solid rgba(255, 255, 255, 0.4);
@@ -279,12 +283,11 @@ button:disabled {
   to { transform: rotate(360deg); }
 }
 
-/* If a button has a dark-on-light style (e.g. secondary/outline buttons),
-   override the spinner colors so it stays visible */
+/* Ensure your light buttons use darker spinner colors */
 .btn-secondary .spinner,
 .btn-repeat .spinner {
   border-color: rgba(0, 0, 0, 0.25);
-  border-top-color: currentColor;
+  border-top-color: currentColor; /* Matches the black text color */
 }
 
 /* Keep button width stable so it doesn't jump/reflow when text changes
