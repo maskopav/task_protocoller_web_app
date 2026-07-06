@@ -552,13 +552,13 @@ export default function ParticipantInterfacePage() {
   );
 
   // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
-  const handleTopicChange = (index, topic) => {
+  const handleTopicChange = useCallback((index, topic) => {
     setTopicState({ index, topic });
     
     if (index > 0) {
        setGuideStage('topic');
     }
-  };
+  }, []);
 
   // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
   const topicAudioSrc = useMemo(() => {
@@ -634,7 +634,7 @@ export default function ParticipantInterfacePage() {
     }
   }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic]);
 
-  const handleRecorderAudioEvent = (eventType) => {
+  const handleRecorderAudioEvent = useCallback((eventType) => {
     if (eventType === 'completed') {
       setAudioPhase('completed');
       setPlayTrigger(t => t + 1);   // force play of the "completed" clip
@@ -642,7 +642,7 @@ export default function ParticipantInterfacePage() {
       setAudioPhase('instructions'); // src reverts, but playTrigger stays the same → no autoplay
       setGuideStage('general');     
     }
-  };
+  }, []); // <-- Empty dependency array ensures the reference never changes
 
   // Only one of these is non-null at a time: the general clip while guideStage
   // is 'general', the matching topic clip once we've handed off to 'topic',
