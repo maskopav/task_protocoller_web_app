@@ -35,6 +35,7 @@ export const VideoViewFinder = ({
     // This — not just "intro acknowledged" — is what gates the task
     // instructions dialog, so the native camera popup always lands between
     // the intro card and the instructions.
+    const [isRequestingPermission, setIsRequestingPermission] = useState(false);
     const [cameraGranted, setCameraGranted] = useState(false);
     const requestInFlight = useRef(false);
     
@@ -96,8 +97,10 @@ export const VideoViewFinder = ({
     const requestCameraStream = async () => {
         if (requestInFlight.current) return;
         requestInFlight.current = true;
+        setIsRequestingPermission(true);
         const granted = await onRequestCameraPermission();
         requestInFlight.current = false;
+        setIsRequestingPermission(false);
         if (granted) {
             setCameraGranted(true);
             setCamPermState(CAM_PERM.GRANTED);
@@ -218,6 +221,14 @@ export const VideoViewFinder = ({
 
     // ── CAMERA PERMISSION STILL RESOLVING ─────────────────────────
     if (camPermState === CAM_PERM.CHECKING || !cameraGranted) {
+        if (isRequestingPermission) {
+            return (
+                <div className="camera-permission-waiting">
+                    <div className="model-spinner"></div>
+                    <p>{t('videoCalibration.waitingForPermission')}</p>
+                </div>
+            );
+        }
         return null;
     }
 

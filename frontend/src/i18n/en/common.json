@@ -196,6 +196,7 @@
 
       "permissionWarning": "Next, your browser will ask for camera access.",
       "permissionInstruction": "Please press <strong>Allow</strong> in the popup window so we can see you.",
+      "waitingForPermission": "Waiting for camera permission...",
       "btnUnderstand": "Understand & Continue",
       "guide": {
         "titleDenied": "Camera Access Denied",
