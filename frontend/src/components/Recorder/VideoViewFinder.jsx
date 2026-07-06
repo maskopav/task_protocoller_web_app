@@ -3,7 +3,7 @@ import { ConfirmDialogContext } from '../ConfirmDialog/ConfirmDialogContext';
 import { useTranslation, Trans } from 'react-i18next';
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import { arrowUpIcon, arrowDownIcon, arrowLeftIcon, arrowRightIcon } from '../../assets/arrowIcons/arrowAssets';
-import { MediaPermissionContent } from '../Recorder/MediaPermissionContent';
+import MediaPermissionContent from '../Recorder/MediaPermissionContent';
 
 import './VideoViewFinder.css';
 
@@ -170,32 +170,24 @@ export const VideoViewFinder = ({
     // flip camPermState if the user fixes it in browser settings.
     if (camPermState === CAM_PERM.DENIED) {
         return (
-            <div className="permission-standalone-card">
-                <MediaPermissionContent
-                    type="camera"
-                    variant="denied"
-                    deniedText={<Trans i18nKey="videoCalibration.guide.descDenied" />}
-                    customSteps={(osTab) => (
-                        <Trans i18nKey={`videoCalibration.guide.steps.${osTab}`} />
-                    )}
-                />
-                <div className="video-bottom-controls">
-                    <button
-                        className="btn-primary"
-                        onClick={() => {
-                            // Optimistically go back to "checking" and re-attempt
-                            // getUserMedia — this re-triggers the native prompt if
-                            // the browser still allows asking again. On success this
-                            // will flow into the instructions dialog, same as the
-                            // first-run path.
-                            setCamPermState(CAM_PERM.CHECKING);
-                            requestCameraStream();
-                        }}
-                    >
-                        {t('videoCalibration.guide.btnRetry')}
-                    </button>
-                </div>
-            </div>
+            <MediaPermissionContent
+                type="camera"
+                variant="denied"
+                deniedText={<Trans i18nKey="videoCalibration.guide.descDenied" />}
+                customSteps={(osTab) => (
+                    <Trans i18nKey={`videoCalibration.guide.steps.${osTab}`} />
+                )}
+                btnText={t('videoCalibration.guide.btnRetry')}
+                onBtnClick={() => {
+                    // Optimistically go back to "checking" and re-attempt
+                    // getUserMedia — this re-triggers the native prompt if
+                    // the browser still allows asking again. On success this
+                    // will flow into the instructions dialog, same as the
+                    // first-run path.
+                    setCamPermState(CAM_PERM.CHECKING);
+                    requestCameraStream();
+                }}
+            />
         );
     }
 
@@ -205,30 +197,22 @@ export const VideoViewFinder = ({
     // microphone — regardless of what `phase` the parent has set.
     if (camPermState === CAM_PERM.PROMPT && !permissionAcknowledged) {
         return (
-            <div className="permission-standalone-card">
-                <MediaPermissionContent
-                    type="camera"
-                    variant="intro"
-                    introText={
-                        <>
-                            <Trans i18nKey="videoCalibration.permissionWarning" />
-                            <br /><br />
-                            <Trans i18nKey="videoCalibration.permissionInstruction" />
-                        </>
-                    }
-                />
-                <div className="video-bottom-controls">
-                    <button
-                        className="btn-primary"
-                        onClick={() => {
-                            setPermissionAcknowledged(true);
-                            requestCameraStream();
-                        }}
-                    >
-                        {t('videoCalibration.btnUnderstand')}
-                    </button>
-                </div>
-            </div>
+            <MediaPermissionContent
+                type="camera"
+                variant="intro"
+                introText={
+                    <>
+                        <Trans i18nKey="videoCalibration.permissionWarning" />
+                        <br /><br />
+                        <Trans i18nKey="videoCalibration.permissionInstruction" />
+                    </>
+                }
+                btnText={t('videoCalibration.btnUnderstand')}
+                onBtnClick={() => {
+                    setPermissionAcknowledged(true);
+                    requestCameraStream();
+                }}
+            />
         );
     }
 

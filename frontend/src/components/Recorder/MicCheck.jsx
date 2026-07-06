@@ -4,7 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import InfoTooltip from "../InfoToolTip/InfoToolTip";
-import { MediaPermissionContent } from "./MediaPermissionContent";
+import MediaPermissionContent from "./MediaPermissionContent";
 import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
@@ -299,7 +299,31 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     );
   }
 
-  // Handle hardware & permission warnings cleanly using TaskLayout children
+  // Permission intro & hardware/permission warnings both render as a
+  // MediaPermissionContent screen — it owns the TaskLayout wiring
+  // internally now, so these phases just hand it text + callbacks.
+  if (phase === 'intro') {
+    return (
+      <MediaPermissionContent
+        type="microphone"
+        variant="intro"
+        title={<Trans i18nKey="micCheck.calibrationTitle" />}
+        introText={
+          <>
+            <Trans i18nKey="micCheck.permissionWarning" />
+            <br /><br />
+            <Trans i18nKey="micCheck.permissionInstruction" />
+          </>
+        }
+        btnText={<Trans i18nKey="micCheck.btnUnderstand" />}
+        onBtnClick={() => {
+          if (onLogEvent) onLogEvent("button_start");
+          setPhase('noise');
+        }}
+      />
+    );
+  }
+
   if (phase === 'warning') {
     const config = {
       [ERR.DENIED]:  { title: 'titleDenied', desc: 'descDenied' },
@@ -309,30 +333,21 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     }[errorType || ERR.GENERIC];
 
     return (
-      <TaskLayout
+      <MediaPermissionContent
+        type="microphone"
+        variant="denied"
         title={t(`micCheck.guide.${config.title}`)}
-        controls={
-          <button className="btn-primary" style={{ width: '100%', maxWidth: '300px' }} onClick={() => setPhase('noise')}>
-            {t("micCheck.guide.btnRetry")}
-          </button>
-        }
-      >
-        {/* Rendered as a child element, safely outside the giant instruction typography */}
-        <div className="permission-standalone-card">
-          <MediaPermissionContent 
-            type="microphone" 
-            variant="denied" 
-            deniedText={t(`micCheck.guide.${config.desc}`)}
-            showImage={errorType === ERR.DENIED} 
-            customSteps={(osTab) => (
-              <Trans 
-                i18nKey={`common:micCheck.guide.steps.${osTab}.${errorType === ERR.DENIED ? 'systemAndBrowser' : 'hardware'}`} 
-                t={t} 
-              />
-            )}
+        deniedText={t(`micCheck.guide.${config.desc}`)}
+        showImage={errorType === ERR.DENIED}
+        customSteps={(osTab) => (
+          <Trans
+            i18nKey={`common:micCheck.guide.steps.${osTab}.${errorType === ERR.DENIED ? 'systemAndBrowser' : 'hardware'}`}
+            t={t}
           />
-        </div>
-      </TaskLayout>
+        )}
+        btnText={t("micCheck.guide.btnRetry")}
+        onBtnClick={() => setPhase('noise')}
+      />
     );
   }
 
@@ -412,32 +427,6 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
   };
   
   switch (phase) {
-    case 'intro': return {
-      title: <Trans i18nKey="micCheck.calibrationTitle" />,
-      message: null,
-      instructions: null, // Null ensures the instruction-card styling isn't applied
-      mainComponent: (
-        <div className="permission-standalone-card">
-          <MediaPermissionContent 
-            type="microphone" 
-            variant="intro" 
-            introText={
-              <>
-                <Trans i18nKey="micCheck.permissionWarning" />
-                <br /><br />
-                <Trans i18nKey="micCheck.permissionInstruction" />
-              </>
-            }
-          />
-        </div>
-      ),
-      btnText: <Trans i18nKey="micCheck.btnUnderstand" />,
-      onBtnClick: () => {
-        if (onLogEvent) onLogEvent("button_start");
-        onRetry();
-      }, 
-      isSuccess: false
-    };
     case 'noise-failed': {
       const WarningTitle = ({ children }) => (
         <div className="warning-title-container">
