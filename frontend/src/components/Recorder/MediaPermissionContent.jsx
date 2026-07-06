@@ -4,15 +4,6 @@ import { useTranslation } from 'react-i18next';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import './MediaPermissionContent.css';
 
-/**
- * MediaPermissionContent — a full-screen permission guide built on TaskLayout,
- * following the same pattern as SDMTTask: instructions live in TaskLayout's
- * own instruction-card (header), and everything else — the OS tab switcher,
- * the screenshot, the step text — is styled directly on the main area via
- * `mainClassName`, no extra wrapper div needed. The action button sits in
- * TaskLayout's bottom controls via `controlsClassName`. One component works
- * for both the microphone and camera permission flows — just switch `type`.
- */
 export default function MediaPermissionContent({
   // identity
   type = 'microphone',        // 'microphone' | 'camera'

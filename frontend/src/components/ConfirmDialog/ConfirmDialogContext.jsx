@@ -48,7 +48,7 @@ export function ConfirmDialogProvider({ children }) {
         <div className="confirm-backdrop">
           <div className="confirm-dialog">
             <div className="confirm-header">
-              {dialog.title && dialog.title.trim() !== "" && (
+              {(typeof dialog.title === 'string' ? dialog.title.trim() !== "" : !!dialog.title) && (
                 <h2>{dialog.title}</h2>
               )}
               {dialog.headerRight && (

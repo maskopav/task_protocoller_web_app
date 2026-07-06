@@ -10,7 +10,7 @@ import SDMTDemoMessage from './SDMTDemoMessage';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import './SDMTTask.css';
 
-const SDMTTask = ({ taskParams, onComplete, isUploading }) => {
+const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange }) => {
     const { t, i18n } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
     const demoShownRef = useRef(false);
@@ -37,6 +37,13 @@ const SDMTTask = ({ taskParams, onComplete, isUploading }) => {
         stopGame,
         resetGame,
     } = useSDMTLogic(duration, symbolOrdering, repeatIndex);
+
+    useEffect(() => {
+        if (onTaskActiveChange) {
+            // Tells the parent: true when playing, false when in instructions/stats
+            onTaskActiveChange(gameState === 'playing');
+        }
+    }, [gameState, onTaskActiveChange]);
 
     // ── Show demo dialog once on mount ────────────────────────────────
     useLayoutEffect(() => {
@@ -174,7 +181,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading }) => {
 
             {gameState === 'stats' && (
                 <>
-                    <button className="btn-reset" onClick={resetGame}>
+                    <button className="btn-repeat" onClick={resetGame}>
                         {t("buttons.repeat", { ns: "common" })}
                     </button>
                     <NextTaskButton 

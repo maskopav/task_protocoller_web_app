@@ -912,6 +912,7 @@ export default function ParticipantInterfacePage() {
           taskParams={currentTask.params}
           onComplete={handleTaskComplete} 
           isUploading={isUploading}
+          onTaskActiveChange={setIsRecordingActive}
         />
       );
     }
