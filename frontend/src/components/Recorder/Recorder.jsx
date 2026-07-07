@@ -438,7 +438,7 @@ export const Recorder = ({
     const parsedInstructions = useMemo(() => {
         let baseInstructions = instructions;
         
-        const isActiveOrPreparing = recordingStatus !== RECORDING_STATES.IDLE || isPreparingToRecord;
+        const isActiveOrPreparing = recordingStatus !== RECORDING_STATES.IDLE;
 
         if (isCalibrationPhase) {
             baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
@@ -503,22 +503,15 @@ export const Recorder = ({
     // ── Shifted-timer logic ───────────────────────────────────────────────
     // When hideTitle=true AND recording, the timer moves ABOVE the header so
     // the instruction card (the reading text) fills the centre of the screen.
-    const isActivelyRecording = recordingStatus === RECORDING_STATES.RECORDING || isPreparingToRecord;
+    const isActivelyRecording = recordingStatus === RECORDING_STATES.RECORDING;
     const shouldShiftTimer = hideTitle && isActivelyRecording;
 
-    // Present recording as already active during the intentional pre-recording
-    // delay (RECORDING_START_DELAY_MS) so RecordingTimer's visual state and its
-    // rAF-driven level visualizer start immediately, instead of waiting on the
-    // real recorder. audioLevelsRef is empty until the mic actually opens, so
-    // the intensity circle just idles at its minimum until real levels arrive.
-    const displayRecordingStatus = (isPreparingToRecord && recordingStatus === RECORDING_STATES.IDLE)
-        ? RECORDING_STATES.RECORDING
-        : recordingStatus;
+
+    const displayRecordingStatus = recordingStatus;
 
     const timerContent = (
         recordingStatus !== RECORDING_STATES.RECORDED &&
-        (recordingStatus !== RECORDING_STATES.IDLE || isPreparingToRecord) &&
-        !promptTopicSwitch &&
+        recordingStatus !== RECORDING_STATES.IDLE &&   
         !awaitingNextTopic
     ) ? (
         <>
