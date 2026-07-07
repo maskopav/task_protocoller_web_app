@@ -66,7 +66,7 @@ export const Recorder = ({
     const [videoCalibrated, setVideoCalibrated] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
-    const RECORDING_START_DELAY_MS = 1700;
+    const RECORDING_START_DELAY_MS = 1500;
     const [isPreparingToRecord, setIsPreparingToRecord] = useState(false);
     const recordingStartTimeoutRef = useRef(null);
     // Imperative handles to the story/example clips (owned locally here,
@@ -207,13 +207,12 @@ export const Recorder = ({
 
     useEffect(() => {
         if (onRecordingStateChange) {
-            // Treat the whole video setup/calibration flow (setup instructions dialog,
-            // camera permission prompt, live face calibration) as "active" too, not just
-            // actual RECORDING.
             const isCalibratingVideo = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
-            onRecordingStateChange(recordingStatus === RECORDING_STATES.RECORDING || isCalibratingVideo);
+            onRecordingStateChange(
+                recordingStatus === RECORDING_STATES.RECORDING || isCalibratingVideo || isPreparingToRecord
+            );
         }
-    }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING, isVideoEnabled, phase]);
+    }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING, isVideoEnabled, phase, isPreparingToRecord]);
 
     const prevStatusRef = useRef(recordingStatus);
     useEffect(() => {
@@ -239,8 +238,8 @@ export const Recorder = ({
         } else {
             setIsPreparingToRecord(true);
             recordingStartTimeoutRef.current = setTimeout(() => {
-                setIsPreparingToRecord(false);
                 startAudioRecording();
+                setIsPreparingToRecord(false);
             }, RECORDING_START_DELAY_MS);
         }
     };
@@ -385,6 +384,13 @@ export const Recorder = ({
         }
     }, [recordingStatus, autoSubmit, audioURL]);
 
+    // Clear the "preparing" mask ONLY when the async recorder confirms it has actually started
+    useEffect(() => {
+        if (recordingStatus === RECORDING_STATES.RECORDING || recordingStatus === RECORDING_STATES.RECORDED) {
+            setIsPreparingToRecord(false);
+        }
+    }, [recordingStatus, RECORDING_STATES]);
+
     // Fires the actual getUserMedia() call — this is what triggers the native
     // browser camera permission popup. Called by VideoViewFinder right after
     // the user acknowledges the MediaPermissionContent intro card (or
@@ -418,9 +424,9 @@ export const Recorder = ({
         setPhase('RECORDING');
         setIsPreparingToRecord(true);
         recordingStartTimeoutRef.current = setTimeout(() => {
-            setIsPreparingToRecord(false);
             startAudioRecording();
             videoRecorder.startRecording();
+            setIsPreparingToRecord(false);
         }, RECORDING_START_DELAY_MS);
     };
 
@@ -430,6 +436,8 @@ export const Recorder = ({
 
     const parsedInstructions = useMemo(() => {
         let baseInstructions = instructions;
+        
+        const isActiveOrPreparing = recordingStatus !== RECORDING_STATES.IDLE || isPreparingToRecord;
 
         if (isCalibrationPhase) {
             baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
@@ -437,7 +445,7 @@ export const Recorder = ({
             baseInstructions = completedInstructions;
         } else if (isDynamicTask && dynamicIndex > 0) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
-        } else if (instructionsActive && recordingStatus !== RECORDING_STATES.IDLE && !awaitingNextTopic) {
+        } else if (instructionsActive && isActiveOrPreparing && !awaitingNextTopic) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
         }
 
@@ -446,7 +454,7 @@ export const Recorder = ({
     }, [
         instructions, instructionsActive, completedInstructions, isCalibrationPhase,
         isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic,
-        voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
+        voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES, isPreparingToRecord
     ]);
 
     const slots = {
@@ -490,13 +498,21 @@ export const Recorder = ({
     // ── Shifted-timer logic ───────────────────────────────────────────────
     // When hideTitle=true AND recording, the timer moves ABOVE the header so
     // the instruction card (the reading text) fills the centre of the screen.
-    const shouldShiftTimer = hideTitle && recordingStatus === RECORDING_STATES.RECORDING;
-    const isActivelyRecording = recordingStatus === RECORDING_STATES.RECORDING;
+    const isActivelyRecording = recordingStatus === RECORDING_STATES.RECORDING || isPreparingToRecord;
+    const shouldShiftTimer = hideTitle && isActivelyRecording;
 
-    // ── Inner timer / VAD content (no wrapper div — TaskLayout provides it) ──
+    // Present recording as already active during the intentional pre-recording
+    // delay (RECORDING_START_DELAY_MS) so RecordingTimer's visual state and its
+    // rAF-driven level visualizer start immediately, instead of waiting on the
+    // real recorder. audioLevelsRef is empty until the mic actually opens, so
+    // the intensity circle just idles at its minimum until real levels arrive.
+    const displayRecordingStatus = (isPreparingToRecord && recordingStatus === RECORDING_STATES.IDLE)
+        ? RECORDING_STATES.RECORDING
+        : recordingStatus;
+
     const timerContent = (
         recordingStatus !== RECORDING_STATES.RECORDED &&
-        recordingStatus !== RECORDING_STATES.IDLE &&
+        (recordingStatus !== RECORDING_STATES.IDLE || isPreparingToRecord) &&
         !promptTopicSwitch &&
         !awaitingNextTopic
     ) ? (
@@ -504,7 +520,7 @@ export const Recorder = ({
             <RecordingTimer
                 time={recordingTime}
                 remainingTime={voiceRecorder.remainingTime}
-                status={recordingStatus}
+                status={displayRecordingStatus}
                 audioLevelsRef={audioLevelsRef}
                 showVisualizer={showVisualizer}
                 isReadyToStop={isReadyToStop}
@@ -629,6 +645,7 @@ export const Recorder = ({
                         showPause={false}
                         RECORDING_STATES={RECORDING_STATES}
                         isVideoEnabled={isVideoEnabled}
+                        isPreparingToRecord={isPreparingToRecord}
                     />
                     <PlaybackSection
                         audioURL={audioURL}

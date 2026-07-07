@@ -107,7 +107,7 @@ export const useVoiceRecorder = (options = {}) => {
     const [audioURL,    setAudioURL]    = useState(null);
     const [recordingTime,  setRecordingTime]  = useState(0);
     const [remainingTime,  setRemainingTime]  = useState(null);
-    const [activeInstructions, setActiveInstructions] = useState(instructions);
+    const [activeInstructions, setActiveInstructions] = useState(null);
     const [durationExpired, setDurationExpired] = useState(false);
 
     // ── Refs ───────────────────────────────────────────────────────────────────
