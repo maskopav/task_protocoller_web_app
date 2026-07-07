@@ -886,6 +886,7 @@ export default function ParticipantInterfacePage() {
           onPhaseChange={setRecorderPhase}
           autoPlayStoryTrigger={storyPlayTrigger}
           onBeforeRecordingStart={stopAudioGuides}
+          onExamplePlay={stopAudioGuides}
         />
       );
     // Render Questionnaire

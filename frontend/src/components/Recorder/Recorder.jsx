@@ -54,7 +54,8 @@ export const Recorder = ({
     onTopicChange = () => {},
     onPhaseChange,
     autoPlayStoryTrigger = 0,
-    onBeforeRecordingStart = () => {}
+    onBeforeRecordingStart = () => {},
+    onExamplePlay = () => {}
 }) => {
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
@@ -464,6 +465,7 @@ export const Recorder = ({
                 src={audioExample}
                 variant="example"
                 recordingStatus={recordingStatus}
+                onPlayingChange={(playing) => { if (playing) onExamplePlay(); }}
                 onLogEvent={onLogEvent}
             />
         ) : null,
@@ -476,7 +478,10 @@ export const Recorder = ({
                 playTrigger={storyAutoPlayTrigger}
                 resetTrigger={exampleResetTrigger}
                 onThresholdReached={() => setHasListenedThreshold(true)}
-                onPlayingChange={setIsStoryPlaying}
+                onPlayingChange={(playing) => {
+                    setIsStoryPlaying(playing);
+                    if (playing) onExamplePlay();
+                }}
                 onLogEvent={onLogEvent}
             />
         ) : null,

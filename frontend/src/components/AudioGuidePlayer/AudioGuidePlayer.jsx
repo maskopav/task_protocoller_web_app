@@ -43,28 +43,6 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
     }
   }), []);
 
-  // Global rule: any click outside this button while the guide is playing
-  // should stop it. Clicks on the button itself are left alone since
-  // handleTogglePlay already covers play/pause for that case.
-  useEffect(() => {
-    if (!isPlaying) return undefined;
-
-    const stopOnOutsideClick = (event) => {
-      if (buttonRef.current && buttonRef.current.contains(event.target)) {
-        return;
-      }
-      if (audioRef.current) {
-        audioRef.current.muted = true;
-        audioRef.current.pause();
-      }
-      setIsPlaying(false);
-    };
-
-    // Capture phase so this still fires even if a button's own handler
-    // calls stopPropagation().
-    document.addEventListener('click', stopOnOutsideClick, true);
-    return () => document.removeEventListener('click', stopOnOutsideClick, true);
-  }, [isPlaying]);
 
   // Reset error state whenever a new src is provided
   useEffect(() => {
