@@ -225,6 +225,13 @@ export const Recorder = ({
         }
     }, [recordingStatus, RECORDING_STATES.RECORDED, onAudioEvent]);
 
+
+    useEffect(() => {
+        if (isPreparingToRecord && recordingStatus === RECORDING_STATES.RECORDING) {
+            setPhase('RECORDING');
+            setIsPreparingToRecord(false);
+        }
+    }, [recordingStatus, isPreparingToRecord, RECORDING_STATES.RECORDING]);
     // ── Handlers ─────────────────────────────────────────────────────────
     const handleStart = () => {
         onBeforeRecordingStart();
@@ -240,7 +247,6 @@ export const Recorder = ({
             setIsPreparingToRecord(true);
             recordingStartTimeoutRef.current = setTimeout(() => {
                 startAudioRecording();
-                setIsPreparingToRecord(false);
             }, RECORDING_START_DELAY_MS);
         }
     };
@@ -258,7 +264,6 @@ export const Recorder = ({
         clearSpeechSegments();
         resetSpeechTrackers();
         setExampleResetTrigger(t => t + 1); // Story/example starts over on a fresh attempt
-        setHasListenedThreshold(false);     // Re-arm the calibration gate
         repeatRecording();
         if (isVideoEnabled) {
             // Reset calibration flag and ensure we are in the instructions phase
@@ -409,30 +414,39 @@ export const Recorder = ({
     // camera permission has already been granted via
     // handleRequestCameraPermission — called after the user confirms the
     // task instructions dialog ("Ready").
+    const startCalibrationInFlightRef = useRef(false);
+
     const handleStartCalibration = async () => {
+        if (startCalibrationInFlightRef.current) return;
+        startCalibrationInFlightRef.current = true;
         setPhase('CALIBRATE');
         await getMicrophonePermission();
         videoRecorder.startFaceDetection();
+        startCalibrationInFlightRef.current = false;
     };
+
+    const finishCalibrationInFlightRef = useRef(false);
 
     // Finish Video Calibration (Passed to VideoViewFinder)
     // This is the real "start" for video tasks — both recorders kick off here.
     const handleFinishCalibration = () => {
+        if (finishCalibrationInFlightRef.current) return;
+        finishCalibrationInFlightRef.current = true;
+
         onBeforeRecordingStart();
         examplePlayerRef.current?.stop();
         storyPlayerRef.current?.stop();
         setVideoCalibrated(true);
-        setPhase('RECORDING');
         setIsPreparingToRecord(true);
         recordingStartTimeoutRef.current = setTimeout(() => {
             startAudioRecording();
             videoRecorder.startRecording();
-            setIsPreparingToRecord(false);
+            finishCalibrationInFlightRef.current = false;
         }, RECORDING_START_DELAY_MS);
     };
 
     // ── Instruction parsing ───────────────────────────────────────────────
-    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
+    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE' || (isPreparingToRecord && !videoCalibrated === false));
     const isPermissionPhase = isVideoEnabled && phase === 'PERMISSION';
 
     const parsedInstructions = useMemo(() => {
