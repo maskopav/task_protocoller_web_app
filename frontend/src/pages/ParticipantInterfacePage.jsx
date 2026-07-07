@@ -433,15 +433,19 @@ export default function ParticipantInterfacePage() {
   // Define your tasks and audio hook FIRST
   const rawTask = runtimeTasks[taskIndex];
   
-  let currentTask = null;
-  let isReadingTask = false;
-  let isRetellingTask = false;
+  const { currentTask, isReadingTask, isRetellingTask } = useMemo(() => {
+    let task = null;
+    let isReading = false;
+    let isRetelling = false;
 
-  if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check'].includes(rawTask.type)) {
-     currentTask = resolveTask(rawTask, t);
-     isReadingTask = currentTask?.category === 'reading';
-     isRetellingTask = currentTask?.category === 'retelling';
-  }
+    if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check'].includes(rawTask.type)) {
+       task = resolveTask(rawTask, t);
+       isReading = task?.category === 'reading';
+       isRetelling = task?.category === 'retelling';
+    }
+    
+    return { currentTask: task, isReadingTask: isReading, isRetellingTask: isRetelling };
+  }, [rawTask, t]);
 
   const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
 
@@ -586,7 +590,7 @@ export default function ParticipantInterfacePage() {
 
   // Called when the general instructions clip finishes (or fails to load) —
   // hands off to the per-topic clip for whichever topic is active.
-  const handleGeneralGuideEnded = () => {
+  const handleGeneralGuideEnded = useCallback(() => {
     // Do not trigger the next steps (like the story) if it was just the permission audio that ended!
     if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
       return; 
@@ -601,7 +605,7 @@ export default function ParticipantInterfacePage() {
     if (isRetellingTask && useAudioInstructions) {
       setStoryPlayTrigger(t => t + 1);
     }
-  };
+  }, [currentTask, recorderPhase, guideStage, topicState, isRetellingTask, useAudioInstructions]);
 
   // If there's no general clip to play at all for this task (feature off, or
   // no file for this task/param combo), skip straight to the topic clip

@@ -50,12 +50,6 @@
   box-sizing: border-box;
 }
 
-.identifiers-btn {
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  min-width: 120px;
-}
-
 /* Subtle valid-range hint shown below the year input */
 .identifiers-year-hint {
   display: block;
