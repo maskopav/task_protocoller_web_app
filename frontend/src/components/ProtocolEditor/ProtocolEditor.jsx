@@ -452,7 +452,7 @@ export function ProtocolEditor({
                 }}
                 style={{ marginRight: '10px' }}
               />
-              <span>{option.label}</span>
+              <span>{t(option.tKey, { ns: "common"})}</span>
             </label>
           ))}
         </div>
