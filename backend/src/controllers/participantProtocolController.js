@@ -47,7 +47,7 @@ export async function resolveParticipantToken(req, res) {
       });
     }
 
-    // 3. Fetch Randomization Settings directly from protocols table
+    // 3. Fetch Settings directly from protocols table
     const [protocolConfig] = await executeQuery(
       `SELECT * FROM protocols WHERE id = ?`,
       [view.protocol_id]
@@ -161,6 +161,7 @@ export async function resolveParticipantToken(req, res) {
         language_id: view.language_id,
         randomization: randomizationSettings,
         required_identifiers: requiredIdentifiers,
+        use_audio_guide: protocolConfig?.use_audio_guide ?? 1,
         info_text: globalContentByRef.info_text || "",
         consent_text: globalContentByRef.consent_text || "",
         global_contents: contentMap['global'] || [],

@@ -8,7 +8,7 @@ import AudioGuidePlayer from "../AudioGuidePlayer/AudioGuidePlayer";
 import { getAudioGuidePath, buildAudioGuidePath } from "../../utils/getAudioGuidePath";
 import { D15AddColourMessage, D15ModifyColourMessage, D15TrialCompleteMessage } from "./D15DemoMessage";
 
-export default function VisionTaskWrapper({ task, onNextTask }) {
+export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled = true }) {
   // Steps: "instructions" -> "trial" -> "test"
   const { t, i18n } = useTranslation(["tasks","common"]);
   const [step, setStep] = useState("instructions");
@@ -46,7 +46,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
       headerRight: (
         <AudioGuidePlayer
           ref={addGuideRef}
-          src={buildAudioGuidePath(i18n.language, "d15colour_add")}
+          src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_add") : null}
           playTrigger="d15-add"
           isRecordingActive={false}
         />
@@ -63,7 +63,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
       headerRight: (
         <AudioGuidePlayer
           ref={modifyGuideRef}
-          src={buildAudioGuidePath(i18n.language, "d15colour_modify")}
+          src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_modify") : null}
           playTrigger="d15-modify"
           isRecordingActive={false}
         />
@@ -90,7 +90,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
       headerRight: (
         <AudioGuidePlayer
           ref={trialGuideRef}
-          src={buildAudioGuidePath(i18n.language, "d15colour_trial_completed")}
+          src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_trial_completed") : null}
           playTrigger="d15-modify"
           isRecordingActive={false}
         />
@@ -127,7 +127,7 @@ export default function VisionTaskWrapper({ task, onNextTask }) {
           audioPlayer={
             <AudioGuidePlayer
               ref={instructionsGuideRef}
-              src={buildAudioGuidePath(i18n.language, "d15colour_instructions")} 
+              src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_instructions") : null}
               playTrigger={`instructions-${taskAudioTrigger}`}
               isRecordingActive={false}
             />

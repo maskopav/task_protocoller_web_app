@@ -82,7 +82,7 @@ export default function ProtocolForm({
 
   const handleAudioInstructionsChange = (e) => {
     const checked = e.target.checked;
-    setProtocolData((prev) => ({ ...prev, use_audio_instructions: checked }));
+    setProtocolData((prev) => ({ ...prev, use_audio_guide: checked }));
   };
 
   // Helper to check if Quill content is truly empty
@@ -146,7 +146,7 @@ export default function ProtocolForm({
               <label className="checkbox-option">
                 <input 
                   type="checkbox" 
-                  checked={protocolData?.use_audio_instructions ?? true} 
+                  checked={!!(protocolData?.use_audio_guide ?? true)}
                   onChange={handleAudioInstructionsChange}
                   disabled={reorderMode}
                 />

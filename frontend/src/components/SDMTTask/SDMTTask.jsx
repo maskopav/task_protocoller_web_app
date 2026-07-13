@@ -10,7 +10,7 @@ import SDMTDemoMessage from './SDMTDemoMessage';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import './SDMTTask.css';
 
-const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onAudioEvent }) => {
+const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onAudioEvent, audioGuideEnabled = true }) => {
     const { t, i18n } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
     const demoShownRef = useRef(false);
@@ -63,7 +63,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                     title:    t("sdmt.demoTitle"),
                     headerRight: (
                         <AudioGuidePlayer
-                            src={buildAudioGuidePath(i18n.language, "sdmt_instructions")}
+                            src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "sdmt_instructions") : null}
                             playTrigger="sdmt-demo"
                             isRecordingActive={false}
                         />

@@ -9,7 +9,8 @@ export const saveProtocol = async (req, res) => {
   const { 
     protocol_group_id, name, language_id, description, version, 
     created_by, updated_by, tasks, project_id, editingMode, 
-    randomization, required_identifiers, info_text, consent_text
+    randomization, required_identifiers, info_text, consent_text,
+    use_audio_guide
   } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
@@ -116,9 +117,9 @@ export const saveProtocol = async (req, res) => {
 
         // Insert the new protocol record
         const [result] = await conn.query(
-          `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, created_by, updated_by, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || [])]
+          `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, created_by, updated_by, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? true) ? 1 : 0]
         );
         const newProtocolId = result.insertId;
         

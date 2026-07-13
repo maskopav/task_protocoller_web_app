@@ -447,10 +447,12 @@ export default function ParticipantInterfacePage() {
     return { currentTask: task, isReadingTask: isReading, isRetellingTask: isRetelling };
   }, [rawTask, t]);
 
-  const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
+  // --- Retrieve audio guide state (on/off) ---
+  // MariaDB returns BOOLEAN as 0/1 — `?? true` only covers the missing case, !! normalizes the rest
+  const useAudioGuide = !!(protocolData?.use_audio_guide ?? true);
 
   const audioSrc = useMemo(() => {
-    if (!rawTask || !useAudioInstructions) return null;
+    if (!rawTask || !useAudioGuide) return null;
 
     let taskName = rawTask.category;
 
@@ -476,9 +478,9 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage, recorderPhase]);
+  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase]);
 
-  // New task opened -> switch to instructions and force a play
+  // New task opened -> if audio guide on, switch to instructions and force a play
   useEffect(() => {
     playedMicCheckStages.current.clear();
     playedRecorderPhases.current.clear();
@@ -551,8 +553,8 @@ export default function ParticipantInterfacePage() {
   }, [pendingAudio, isDialogOpen]);
 
   const completedAudioSrc = useMemo(
-    () => getCompletionAudioPath(i18n.language),
-    [i18n.language]
+    () => useAudioGuide ? getCompletionAudioPath(i18n.language) : null,
+    [i18n.language, useAudioGuide]
   );
 
   // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
@@ -566,7 +568,7 @@ export default function ParticipantInterfacePage() {
 
   // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
   const topicAudioSrc = useMemo(() => {
-    if (!rawTask || !useAudioInstructions || topicState.topic == null) return null;
+    if (!rawTask || !useAudioGuide || topicState.topic == null) return null;
 
     let topicIdentifier = topicState.topic;
 
@@ -586,7 +588,7 @@ export default function ParticipantInterfacePage() {
     }
 
     return getTopicAudioPath(rawTask.category, topicIdentifier, i18n.language);
-  }, [rawTask, useAudioInstructions, topicState.topic, topicState.index, currentTask, i18n.language]);
+  }, [rawTask, useAudioGuide, topicState.topic, topicState.index, currentTask, i18n.language]);
 
   // Called when the general instructions clip finishes (or fails to load) —
   // hands off to the per-topic clip for whichever topic is active.
@@ -602,10 +604,10 @@ export default function ParticipantInterfacePage() {
       setTopicPlayTrigger(t => t + 1);
       return;
     }
-    if (isRetellingTask && useAudioInstructions) {
+    if (isRetellingTask && useAudioGuide) {
       setStoryPlayTrigger(t => t + 1);
     }
-  }, [currentTask, recorderPhase, guideStage, topicState, isRetellingTask, useAudioInstructions]);
+  }, [currentTask, recorderPhase, guideStage, topicState, isRetellingTask, useAudioGuide]);
 
   // If there's no general clip to play at all for this task (feature off, or
   // no file for this task/param combo), skip straight to the topic clip
@@ -616,11 +618,11 @@ export default function ParticipantInterfacePage() {
         return;
     }
 
-    if (isRetellingTask && useAudioInstructions && guideStage === 'general' &&
+    if (isRetellingTask && useAudioGuide && guideStage === 'general' &&
         !audioSrc && topicState.topic == null) {
       setStoryPlayTrigger(t => t + 1);
     }
-  }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic, currentTask, recorderPhase]); 
+  }, [isRetellingTask, useAudioGuide, guideStage, audioSrc, topicState.topic, currentTask, recorderPhase]);
 
   // Once we've handed off to per-topic clips, re-trigger playback every time
   // the topic actually changes (e.g. the participant switches topics mid-task).
@@ -632,11 +634,11 @@ export default function ParticipantInterfacePage() {
   }, [topicState.index]);
 
   useEffect(() => {
-    if (isRetellingTask && useAudioInstructions && guideStage === 'general' &&
+    if (isRetellingTask && useAudioGuide && guideStage === 'general' &&
         !audioSrc && topicState.topic == null) {
       setStoryPlayTrigger(t => t + 1);
     }
-  }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic]);
+  }, [isRetellingTask, useAudioGuide, guideStage, audioSrc, topicState.topic]);
 
   const handleRecorderAudioEvent = useCallback((eventType) => {
     if (eventType === 'completed') {
@@ -804,7 +806,7 @@ export default function ParticipantInterfacePage() {
     // Render Volume Check
     if (rawTask.type === "volume_check") {
       return (
-        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} />
+        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} audioGuideEnabled={useAudioGuide} />
       );
     }
 
@@ -913,11 +915,12 @@ export default function ParticipantInterfacePage() {
     // Render vision task
     if (currentTask.type === "vision") {
       return (
-        <VisionTaskWrapper 
+        <VisionTaskWrapper
           key={taskIndex}
           task={currentTask}
           onNextTask={handleTaskComplete}
           isUploading={isUploading}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     }
@@ -927,10 +930,11 @@ export default function ParticipantInterfacePage() {
         <SDMTTask
           key={taskIndex}
           taskParams={currentTask.params}
-          onComplete={handleTaskComplete} 
+          onComplete={handleTaskComplete}
           isUploading={isUploading}
           onTaskActiveChange={setIsRecordingActive}
-          onAudioEvent={handleRecorderAudioEvent} 
+          onAudioEvent={handleRecorderAudioEvent}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     }

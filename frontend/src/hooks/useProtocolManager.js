@@ -27,7 +27,7 @@ export function useProtocolManager() {
       version: version,
       created_by: 1,
       randomization: selectedProtocol.randomization,
-      use_audio_instructions: selectedProtocol.use_audio_instructions,
+      use_audio_guide: selectedProtocol.use_audio_guide,
       tasks: tasks.map((task, index) => ({
         task_id: mappings.tasks.find(t => t.category === task.category)?.id,
         task_order: index + 1,
