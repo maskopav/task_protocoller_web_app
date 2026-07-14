@@ -10,6 +10,63 @@
       "questions": { "label": "Otázky" }
     }
   },
+  "rbdsq": {
+    "name": "RBD-SQ",
+    "description": "[cs] REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Dotazník: {{title}}",
+    "instructions": "Prosím zodpovězte na následující otázky.",
+    "params": {
+      "title": { "label": "Název" },
+      "description": { "label": "Popis" },
+      "questions": { "label": "Otázky" }
+    },
+    "defaultContent": {
+      "title": "RBD-SQ",
+      "description": "",
+      "questions": [
+        { "id": 1782905076296, "text": "[cs] I sometimes have very vivid dreams.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905161794, "text": "[cs] My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905166057, "text": "[cs] The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905170074, "text": "[cs] I know that my arms or legs move when I sleep.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905174710, "text": "[cs] It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905182339, "text": "[cs] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905259308, "text": "[cs] I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076583590, "text": "[cs] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076590512, "text": "[cs] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076636726, "text": "[cs] It happens that my movements awake me.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076672712, "text": "[cs] After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076688838, "text": "[cs] My sleep is frequently disturbed.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076704506, "text": "[cs] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["[cs] Yes", "[cs] No"] }
+      ]
+    }
+  },
+  "hhies": {
+    "name": "HHIE-S",
+    "description": "[cs] Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Dotazník: {{title}}",
+    "instructions": "Prosím zodpovězte na následující otázky.",
+    "params": {
+      "title": { "label": "Název" },
+      "description": { "label": "Popis" },
+      "questions": { "label": "Otázky" }
+    },
+    "defaultContent": {
+      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "description": "",
+      "questions": [
+        { "id": 1783259602375, "text": "[cs] Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259610834, "text": "[cs] Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259617267, "text": "[cs] Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259622208, "text": "[cs] Do you feel handicapped by a hearing problem?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259626876, "text": "[cs] Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259632940, "text": "[cs] Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259643040, "text": "[cs] Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259656707, "text": "[cs] Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259672641, "text": "[cs] Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
+        { "id": 1783259681028, "text": "[cs] Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] }
+      ]
+    }
+  },
   "phonation": {
     "name": "Prodloužená fonace",
     "description": "Účastník udržuje jeden samohláskový zvuk (např. /a/, /e/, /i/, /o/, /u/) po stanovenou dobu za účelem analýzy stability a kontroly hlasu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastavené doby. Administrátor by měl nastavit samohlásku ('phoneme'), počet opakování ('repeat') a časový interval, po kterém se zobrazí tlačítko STOP ('duration').",

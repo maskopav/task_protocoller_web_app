@@ -50,7 +50,7 @@ export function ProtocolEditor({
   editingMode
   }
 ) {
-  const { t } = useTranslation(["admin", "common"]);
+  const { t, i18n } = useTranslation(["admin", "common"]);
   const navigate = useNavigate();
   const { projectId } = useParams();
   const { mappings, loading, error } = useMappings();
@@ -137,10 +137,30 @@ export function ProtocolEditor({
   if (loading) return <p>{t("common:loading")}</p>;
   if (error) return <p>{t("common:error")}: {error.message}</p>;
 
-  // Start creating a standard task (opens TaskModal)
+  // Start creating a standard task (opens TaskModal; standard questionnaires
+  // open QuestionnaireModal pre-filled with their per-language default content)
   function handleCreateTask(category) {
     const base = taskBaseConfig[category];
     if (!base) return;
+
+    setEditingIndex(null); // New task
+      // In case of questionnaire, the opened modal is different
+    if (base.type === "questionnaire") {
+      // Content comes from i18n in the PROTOCOL's language (not the admin UI language)
+      const lang = protocolData?.language || "en";
+      // getResource does not apply i18next's fallbackLng — fall back to en manually
+      const content = i18n.getResource(lang, "tasks", `${category}.defaultContent`)
+        || i18n.getResource("en", "tasks", `${category}.defaultContent`)
+        || {};
+      setEditingData({
+        category,
+        title: content.title || "",
+        description: content.description || "",
+        questions: content.questions || [],
+      });
+      setShowQuestionnaireModal(true);
+      return;
+    }
 
     const newTaskDefaults = {
       type: base.type,
@@ -149,7 +169,6 @@ export function ProtocolEditor({
       ...getDefaultParams(category),
     };
 
-    setEditingIndex(null); // New task
     setEditingData(newTaskDefaults);
     setShowTaskModal(true);
   }
@@ -167,7 +186,8 @@ export function ProtocolEditor({
     setEditingIndex(index);
     setEditingData(taskToEdit); // Load existing data
 
-    if (taskToEdit.category === "questionnaire") {
+    // Keyed off type so standard questionnaires (rbdsq, hhies, ...) route here too
+    if (taskToEdit.type === "questionnaire") {
       setShowQuestionnaireModal(true);
     } else {
       setShowTaskModal(true);
@@ -207,7 +227,9 @@ export function ProtocolEditor({
   const handleSaveQuestionnaire = (data) => {
     // Ensure data is flat and has correct type
     const questionnaireTask = {
-      category: "questionnaire",
+      // Standard questionnaires keep their own category (rbdsq, hhies, ...) so the
+      // DB task_id resolves to their row; manual ones stay "questionnaire"
+      category: editingData?.category || "questionnaire",
       type: "questionnaire",
       ...data, // Spread { title, description, questions } flatly
     };

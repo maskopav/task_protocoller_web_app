@@ -135,5 +135,29 @@ export const taskBaseConfig: Record<string, TaskBase> = {
         values: ["random", "fixed_by_run", "static"] 
       },
     },
+  },
+
+  // Standard questionnaires: fixed question sets offered as templates in the
+  // Available-tasks pool. Defaults stay empty — the real per-language content
+  // lives in i18n tasks.json under `<category>.defaultContent` and is injected
+  // when the admin adds the task (ProtocolEditor.handleCreateTask).
+  rbdsq: {
+    type: "questionnaire",
+    recording: { mode: "basicStop" },
+    params: {
+      title: { default: "" },
+      description: { default: "" },
+      questions: { default: [] }
+    },
+  },
+
+  hhies: {
+    type: "questionnaire",
+    recording: { mode: "basicStop" },
+    params: {
+      title: { default: "" },
+      description: { default: "" },
+      questions: { default: [] }
+    },
   }
 };

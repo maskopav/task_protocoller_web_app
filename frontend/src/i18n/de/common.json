@@ -27,7 +27,8 @@
     "taskLabels": {
       "voice": "Vocal Task",
       "motor": "Motor Task",
-      "camera": "Camera Task"
+      "camera": "Camera Task",
+      "questionnaire": "Fragebogen"
     },
     "questionnaire": {
       "selectOption": "Wählen Sie eine Option...",

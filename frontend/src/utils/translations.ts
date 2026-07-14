@@ -167,7 +167,7 @@ export function getResolvedParams(category: string, actualParams: Record<string,
     } else {
       // Only override with label if the original value is a string
       // and label is explicitly provided (e.g. "fairytale": { label: "Fairytale" })
-      if (typeof actualValue === "string" && paramTranslation.label && category !== "questionnaire") {
+      if (typeof actualValue === "string" && paramTranslation.label && taskBaseConfig[category]?.type !== "questionnaire") {
         result[paramKey] = paramTranslation.label;
       } else {
         // Otherwise, preserve the numeric / literal value

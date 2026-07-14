@@ -10,6 +10,63 @@
       "questions": { "label": "Questions" }
     }
   },
+    "rbdsq": {
+    "name": "RBD-SQ",
+    "description": "REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Questionnaire: {{title}}",
+    "instructions": "Please answer the following questions.",
+    "params": {
+      "title": { "label": "Title" },
+      "description": { "label": "Description" },
+      "questions": { "label": "Questions" }
+    },
+    "defaultContent": {
+      "title": "RBD-SQ",
+      "description": "",
+      "questions": [
+        { "id": 1782905076296, "text": "I sometimes have very vivid dreams.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1782905161794, "text": "My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1782905166057, "text": "The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1782905170074, "text": "I know that my arms or legs move when I sleep.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1782905174710, "text": "It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1782905182339, "text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1782905259308, "text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1783076583590, "text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1783076590512, "text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1783076636726, "text": "It happens that my movements awake me.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1783076672712, "text": "After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1783076688838, "text": "My sleep is frequently disturbed.", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1783076704506, "text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["Yes", "No"] }
+      ]
+    }
+  },
+    "hhies": {
+    "name": "HHIE-S",
+    "description": "Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Questionnaire: {{title}}",
+    "instructions": "Please answer the following questions.",
+    "params": {
+      "title": { "label": "Title" },
+      "description": { "label": "Description" },
+      "questions": { "label": "Questions" }
+    },
+    "defaultContent": {
+      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "description": "",
+      "questions": [
+        { "id": 1783259602375, "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259610834, "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259617267, "text": "Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259622208, "text": "Do you feel handicapped by a hearing problem?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259626876, "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259632940, "text": "Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259643040, "text": "Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259656707, "text": "Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259672641, "text": "Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259681028, "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["Yes", "Sometimes", "No"] }
+      ]
+    }
+  },
     "phonation": {
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",

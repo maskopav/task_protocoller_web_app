@@ -10,7 +10,7 @@ export default function TaskList({ onCreate }) {
 
   // Calculate groups first (so we can use keys for state)
   const tasksByType = Object.entries(taskBaseConfig)
-  .filter(([_, task]) => task.type !== "questionnaire") //For questionnaire there is a special button
+  .filter(([category]) => category !== "questionnaire") // The generic manual questionnaire has a special button; standard (predefined) questionnaires stay in the pool
   .reduce((acc, [category, task]) => {
     const type = task.type || "other";
     if (!acc[type]) acc[type] = [];
