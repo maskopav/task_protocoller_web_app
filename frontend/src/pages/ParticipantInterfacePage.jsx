@@ -454,7 +454,10 @@ export default function ParticipantInterfacePage() {
   const audioSrc = useMemo(() => {
     if (!rawTask || !useAudioGuide) return null;
 
-    let taskName = rawTask.category;
+    // All questionnaire categories (generic + standard ones like rbdsq/hhies)
+    // share the same audio guide clip, since their content
+    // is dynamic and can't be pre-recorded per task.
+    let taskName = rawTask.type === 'questionnaire' ? 'questionnaire' : rawTask.category;
 
     if (rawTask.type === 'mic_check' && micCheckGuideStage) {
       const micCheckAudioMap = {
