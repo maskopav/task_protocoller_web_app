@@ -799,6 +799,7 @@ export default function ParticipantInterfacePage() {
           onBack={handleBack}
           pendingUploadCount={pendingUploadCount}
           networkStatus={networkStatus}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     }

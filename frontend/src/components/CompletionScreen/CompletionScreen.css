@@ -30,6 +30,21 @@
     animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* Keep the audio guide button shrink-wrapped and right-aligned, matching the
+   task header on other screens (the button itself is display:flex, so without
+   this it stretches to the full card width). */
+.completion-audio-guide {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Override the global `button { width: 100% }` (Pages.css) so the icon button
+   shrinks to its content and the flex-end alignment above takes effect. */
+.completion-audio-guide .audio-instructions-btn {
+    width: auto;
+}
+
 .completion-icon {
     width: clamp(50px, 20vw, 120px);
     height: clamp(50px, 20vw, 120px);
