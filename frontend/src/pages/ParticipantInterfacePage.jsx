@@ -447,6 +447,12 @@ export default function ParticipantInterfacePage() {
     return { currentTask: task, isReadingTask: isReading, isRetellingTask: isRetelling };
   }, [rawTask, t]);
 
+  // A task uses the camera-permission/calibration flow if it's a camera task OR a
+  // voice task with recordVideo on (retelling with video, etc.). recordVideo is
+  // stored as the string "true"/"false", matching Recorder.jsx's own check.
+  const isVideoTask = currentTask?.type === 'camera'
+    || currentTask?.resolvedParams?.recordVideo === 'true';
+
   // --- Retrieve audio guide state (on/off) ---
   // MariaDB returns BOOLEAN as 0/1 — `?? true` only covers the missing case, !! normalizes the rest
   const useAudioGuide = !!(protocolData?.use_audio_guide ?? true);
@@ -491,15 +497,15 @@ export default function ParticipantInterfacePage() {
     setGuideStage('general');
     if (rawTask?.type === 'mic_check') {
       setMicCheckGuideStage(null);
-    } else if (currentTask?.type === 'camera') {
-      setRecorderPhase(null); 
+    } else if (isVideoTask) {
+      setRecorderPhase(null);
     } else {
       setPendingAudio(true);
     }
   }, [taskIndex]);
 
   useEffect(() => {
-    if (currentTask?.type === 'camera' && recorderPhase) {
+    if (isVideoTask && recorderPhase) {
       // Group all non-permission phases (SETUP, CALIBRATE, RECORDING) into 'instructions'
       const audioStage = recorderPhase === 'PERMISSION' ? 'permission' : 'instructions';
       
