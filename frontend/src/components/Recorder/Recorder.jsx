@@ -54,6 +54,7 @@ export const Recorder = ({
     onTopicChange = () => {},
     onPhaseChange,
     onCameraPermissionDenied = () => {},
+    onDeclineVideo = null,
     autoPlayStoryTrigger = 0,
     onBeforeRecordingStart = () => {},
     onExamplePlay = () => {}
@@ -616,6 +617,7 @@ export const Recorder = ({
                     onRequestCameraPermission={handleRequestCameraPermission}
                     onPermissionGranted={() => setPhase('RECORDING')} // Moves to Task Instructions
                     onPermissionDenied={onCameraPermissionDenied}
+                    onDeclineVideo={onDeclineVideo}
                     onStartCalibration={handleStartCalibration}
                     onFinishCalibration={handleFinishCalibration}
                 />

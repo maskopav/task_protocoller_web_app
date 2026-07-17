@@ -138,6 +138,7 @@ CREATE TABLE `sessions` (
   `session_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `progress` JSON COMMENT 'Stores completed task IDs and timestamps',
   `completed` boolean DEFAULT false,
+  `camera_declined` boolean DEFAULT false COMMENT 'Participant declined camera access mid-session',
   `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
   `current_task_index` integer NOT NULL DEFAULT 1,
   `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP

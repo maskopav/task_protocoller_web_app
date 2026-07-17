@@ -23,6 +23,7 @@ export const VideoViewFinder = ({
     onRequestCameraPermission,
     onPermissionGranted,
     onPermissionDenied,
+    onDeclineVideo,
     onStartCalibration,
     onFinishCalibration,
     permissionDenied = false
@@ -197,6 +198,22 @@ export const VideoViewFinder = ({
                     setCamPermState(CAM_PERM.CHECKING);
                     requestCameraStream();
                 }}
+                secondaryControls={onDeclineVideo && (
+                    <button
+                        className="btn-decline-camera"
+                        onClick={async () => {
+                            const confirmed = await confirm({
+                                title: t('videoCalibration.guide.declineTitle'),
+                                message: t('videoCalibration.guide.declineMessage'),
+                                confirmText: t('videoCalibration.guide.declineConfirm'),
+                                cancelText: t('videoCalibration.guide.declineCancel'),
+                            });
+                            if (confirmed) onDeclineVideo();
+                        }}
+                    >
+                        {t('videoCalibration.guide.btnDecline')}
+                    </button>
+                )}
             />
         );
     }

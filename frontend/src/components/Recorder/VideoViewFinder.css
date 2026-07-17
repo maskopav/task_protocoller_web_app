@@ -200,7 +200,27 @@
 }
 
 .info-text-label:hover {
-  color: #0f172a; 
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+/* Small gray "continue without camera" link-button on the denied screen.
+   Every reset here defeats the global full-width primary `button` styling. */
+.btn-decline-camera {
+  width: auto;
+  padding: 4px 8px;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  background: none;
+  color: #64748b;
+  box-shadow: none;
+}
+
+.btn-decline-camera:hover:not(:disabled) {
+  filter: none;
+  transform: none;
+  color: #0f172a;
   text-decoration: underline;
 }
 

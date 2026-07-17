@@ -203,6 +203,11 @@
         "titleDenied": "Camera Access Denied",
         "descDenied": "Your device or browser is blocking the camera. Both must allow access to continue.",
         "btnRetry": "Try Again",
+        "btnDecline": "I do not want to grant access",
+        "declineTitle": "Please reconsider",
+        "declineMessage": "No video is recorded - just a set of anonymized facial coordinates. By granting no access to the camera, the results will be less sensitive.",
+        "declineConfirm": "Continue without camera access",
+        "declineCancel": "Go back",
         "steps": {
           "android": "1. Open Android <strong>Settings</strong>, search for your browser (e.g., Chrome), and set Camera to <strong>Allow</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
           "ios": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Camera switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the camera."

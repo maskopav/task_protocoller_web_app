@@ -31,7 +31,7 @@ import {
   deleteLocalRecording,
 } from '../utils/offlineStorage';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { getAudioGuidePath, getCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
+import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
@@ -114,6 +114,11 @@ export default function ParticipantInterfacePage() {
   // Recorder). Selects the camera_permission_denied guide clip, mirroring how
   // MicCheck's 'permission_denied' stage does for the microphone.
   const [cameraDenied, setCameraDenied] = useState(false);
+  // In case the user confirmed "continue without camera": all remaining
+  // recordVideo tasks run audio-only and camera-type tasks are skipped.
+  // In-memory only, intentionally NOT persisted: on refresh/resume the
+  // participant sees the permission screen again.
+  const [videoDeclined, setVideoDeclined] = useState(false);
   const playedRecorderPhases = useRef(new Set());
 
   const testingMode = location.state?.testingMode ?? false;
@@ -454,8 +459,8 @@ export default function ParticipantInterfacePage() {
   // A task uses the camera-permission/calibration flow if it's a camera task OR a
   // voice task with recordVideo on (retelling with video, etc.). recordVideo is
   // stored as the string "true"/"false", matching Recorder.jsx's own check.
-  const isVideoTask = currentTask?.type === 'camera'
-    || currentTask?.resolvedParams?.recordVideo === 'true';
+  const isVideoTask = !videoDeclined && (currentTask?.type === 'camera'
+    || currentTask?.resolvedParams?.recordVideo === 'true');
 
   // --- Retrieve audio guide state (on/off) ---
   // MariaDB returns BOOLEAN as 0/1 — `?? true` only covers the missing case, !! normalizes the rest
@@ -480,7 +485,7 @@ export default function ParticipantInterfacePage() {
         'warning': 'mic_warning'
       };
       taskName = micCheckAudioMap[micCheckGuideStage] || 'audio_setup';
-    } else if (currentTask?.params?.recordVideo === 'true') {
+    } else if (!videoDeclined && currentTask?.params?.recordVideo === 'true') {
       if (cameraDenied) {
         taskName = 'camera_permission_denied';
       } else if (recorderPhase === 'PERMISSION') {
@@ -496,7 +501,7 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase, cameraDenied]);
+  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase, cameraDenied, videoDeclined]);
 
   // New task opened -> if audio guide on, switch to instructions and force a play
   useEffect(() => {
@@ -581,10 +586,36 @@ export default function ParticipantInterfacePage() {
     }
   }, [pendingAudio, isDialogOpen]);
 
-  const completedAudioSrc = useMemo(
-    () => useAudioGuide ? getCompletionAudioPath(i18n.language) : null,
+  // Once camera access is declined, camera-only tasks cannot run — record them
+  // as skipped and advance. handleTaskComplete is hoisted; its isUploadingRef
+  // guard prevents double-fires, and proceedToNext handles end-of-protocol.
+  useEffect(() => {
+    if (videoDeclined && currentTask?.type === 'camera') {
+      logInteraction('camera_task_auto_skipped');
+      handleTaskComplete({ skipped: true, reason: 'camera_access_declined' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoDeclined, taskIndex, currentTask?.type]);
+
+  // Per-task completion clip (header player). Null when the audio guide is off —
+  // the success ding is played instead, see handleRecorderAudioEvent.
+  const taskCompletedAudioSrc = useMemo(
+    () => useAudioGuide ? getTaskCompletionAudioPath(i18n.language) : null,
     [i18n.language, useAudioGuide]
   );
+
+  // Participant confirmed "continue without camera" on the permission-denied
+  // screen. Plain function (not useCallback) so logInteraction is never stale.
+  const handleDeclineVideo = () => {
+    // Event lands in sessions.progress; the backend additionally flips
+    // sessions.camera_declined when it sees this action.
+    logInteraction('camera_access_declined');
+    setVideoDeclined(true);
+    setCameraDenied(false);          // stop the camera_permission_denied guide clip
+    setAudioPhase('instructions');   // queue the task's normal instruction clip,
+    setGuideStage('general');        // mirroring the cameraDenied effect above
+    setPendingAudio(true);
+  };
 
   // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
   const handleTopicChange = useCallback((index, topic) => {
@@ -671,19 +702,25 @@ export default function ParticipantInterfacePage() {
 
   const handleRecorderAudioEvent = useCallback((eventType) => {
     if (eventType === 'completed') {
-      setAudioPhase('completed');
-      setPlayTrigger(t => t + 1);   // force play of the "completed" clip
+      if (useAudioGuide) {
+        setAudioPhase('completed');
+        setPlayTrigger(t => t + 1);   // force play of the task_completed clip
+      } else {
+        // No spoken guide → play the same success ding as the completion screens
+        const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_sound.m4a`);
+        audio.play().catch(e => console.log("Audio play blocked", e));
+      }
     } else if (eventType === 'retry') {
       setAudioPhase('instructions'); // src reverts, but playTrigger stays the same → no autoplay
-      setGuideStage('general');     
+      setGuideStage('general');
     }
-  }, []); // <-- Empty dependency array ensures the reference never changes
+  }, [useAudioGuide]);
 
   // Only one of these is non-null at a time: the general clip while guideStage
   // is 'general', the matching topic clip once we've handed off to 'topic',
   // and the "completed" clip always wins once the recording is done.
   const headerGeneralAudioSrc = audioPhase === 'completed'
-    ? completedAudioSrc
+    ? taskCompletedAudioSrc
     : (guideStage === 'general' ? audioSrc : null);
 
   const headerTopicAudioSrc = audioPhase === 'completed'
@@ -895,11 +932,17 @@ export default function ParticipantInterfacePage() {
       );
     }
 
+    // Camera declined → this task is about to be auto-skipped by the effect
+    // above; don't mount the Recorder at all (no mic prompt, no phase events).
+    if (videoDeclined && currentTask.type === 'camera') {
+      return <p>{t("loading", "Loading…")}</p>;
+    }
+
     // Render Voice Task
     if (currentTask.type === "voice" || currentTask.type === 'camera')
       return (
         <Recorder
-          key={taskIndex}
+          key={`${taskIndex}-${videoDeclined}`}
           title={currentTask.title}
           instructions={currentTask.instructions}
           instructionsActive={currentTask.instructionsActive}
@@ -908,7 +951,7 @@ export default function ParticipantInterfacePage() {
           mode={currentTask.recording.mode}
           duration={currentTask.recording.duration}
           taskParams={currentTask.resolvedParams}
-          recordVideo={currentTask.resolvedParams?.recordVideo || false}
+          recordVideo={videoDeclined ? 'false' : (currentTask.resolvedParams?.recordVideo || false)}
           onNextTask={handleTaskComplete}
           onLogEvent={logInteraction}
           useVAD={currentTask.useVAD}
@@ -921,6 +964,7 @@ export default function ParticipantInterfacePage() {
           onTopicChange={handleTopicChange}
           onPhaseChange={setRecorderPhase}
           onCameraPermissionDenied={setCameraDenied}
+          onDeclineVideo={handleDeclineVideo}
           autoPlayStoryTrigger={storyPlayTrigger}
           onBeforeRecordingStart={stopAudioGuides}
           onExamplePlay={stopAudioGuides}

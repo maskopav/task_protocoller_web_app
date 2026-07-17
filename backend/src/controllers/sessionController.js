@@ -117,7 +117,13 @@ export const updateProgress = async (req, res) => {
         if (event.action === 'task_saved' && event.taskIndex !== undefined) {
           taskIndexQuery = ", current_task_index = ?";
           // We set it to the NEXT task index so when they resume, they start fresh on the next one
-          queryParams.push(event.taskIndex + 1); 
+          queryParams.push(event.taskIndex + 1);
+        }
+
+        // Participant declined camera access — persist as a first-class flag
+        // alongside the progress event itself
+        if (event.action === 'camera_access_declined') {
+          taskIndexQuery += ", camera_declined = 1";
         }
 
         queryParams.push(sessionId);

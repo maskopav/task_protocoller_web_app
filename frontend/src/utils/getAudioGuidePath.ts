@@ -23,8 +23,14 @@ export function buildAudioGuidePath(
 }
 
 // getAudioGuidePath.ts
+// Protocol-end screen ("all tasks finished").
 export function getCompletionAudioPath(language: string = 'en'): string {
   return buildAudioGuidePath(language, 'completed');
+}
+
+// Per-task "Task completed successfully!" screen (distinct from protocol end).
+export function getTaskCompletionAudioPath(language: string = 'en'): string {
+  return buildAudioGuidePath(language, 'task_completed');
 }
 
 /**
