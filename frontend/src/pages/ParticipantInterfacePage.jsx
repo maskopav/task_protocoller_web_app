@@ -110,6 +110,10 @@ export default function ParticipantInterfacePage() {
   const lastLoggedIndex = useRef(-1);
 
   const [recorderPhase, setRecorderPhase] = useState(null);
+  // True while the camera-permission-denied screen is showing (reported by the
+  // Recorder). Selects the camera_permission_denied guide clip, mirroring how
+  // MicCheck's 'permission_denied' stage does for the microphone.
+  const [cameraDenied, setCameraDenied] = useState(false);
   const playedRecorderPhases = useRef(new Set());
 
   const testingMode = location.state?.testingMode ?? false;
@@ -468,15 +472,20 @@ export default function ParticipantInterfacePage() {
     if (rawTask.type === 'mic_check' && micCheckGuideStage) {
       const micCheckAudioMap = {
         'permission': 'mic_permission',
+        'permission_denied': 'mic_permission_denied',
         'calibration': 'audio_setup',
         'success': 'mic_success',
         'failed': 'mic_failed',      // General background noise
-        'muted': 'mic_muted',        
+        'muted': 'mic_muted',
         'warning': 'mic_warning'
       };
       taskName = micCheckAudioMap[micCheckGuideStage] || 'audio_setup';
-    } else if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
-      taskName = 'camera_permission'; 
+    } else if (currentTask?.params?.recordVideo === 'true') {
+      if (cameraDenied) {
+        taskName = 'camera_permission_denied';
+      } else if (recorderPhase === 'PERMISSION') {
+        taskName = 'camera_permission';
+      }
     }
     const repeatIndex = currentTask?._repeatIndex || 1; 
     const taskParams = currentTask?.params || {};
@@ -487,7 +496,7 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase]);
+  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase, cameraDenied]);
 
   // New task opened -> if audio guide on, switch to instructions and force a play
   useEffect(() => {
@@ -499,6 +508,7 @@ export default function ParticipantInterfacePage() {
       setMicCheckGuideStage(null);
     } else if (isVideoTask) {
       setRecorderPhase(null);
+      setCameraDenied(false);
     } else {
       setPendingAudio(true);
     }
@@ -529,6 +539,16 @@ export default function ParticipantInterfacePage() {
       }
     }
   }, [recorderPhase, currentTask]);
+
+  // Play the camera permission-denied guide the moment that screen appears
+  // (recorderPhase doesn't change on denial, so the effect above won't fire).
+  useEffect(() => {
+    if (isVideoTask && cameraDenied) {
+      setAudioPhase('instructions');
+      setGuideStage('general');
+      setPendingAudio(true);
+    }
+  }, [isVideoTask, cameraDenied]);
 
   // Fires the right guide clip each time MicCheck moves between its
   // permission-gate and calibration-recording sub-stages.
@@ -859,7 +879,11 @@ export default function ParticipantInterfacePage() {
               'noise-failed': errorType === 'muted' ? 'muted' : 'failed', 
               'warning': 'warning'
             };
-            const mappedStage = phaseMap[phase];
+            // The warning screen doubles as the permission-denied screen; give
+            // the latter its own guide clip (mic_permission_denied).
+            const mappedStage = phase === 'warning' && errorType === 'PERMISSION_DENIED'
+              ? 'permission_denied'
+              : phaseMap[phase];
             if (mappedStage && mappedStage !== micCheckGuideStage) {
               setMicCheckGuideStage(mappedStage);
             }
@@ -896,6 +920,7 @@ export default function ParticipantInterfacePage() {
           onPermissionPending={setIsAwaitingPermission}
           onTopicChange={handleTopicChange}
           onPhaseChange={setRecorderPhase}
+          onCameraPermissionDenied={setCameraDenied}
           autoPlayStoryTrigger={storyPlayTrigger}
           onBeforeRecordingStart={stopAudioGuides}
           onExamplePlay={stopAudioGuides}

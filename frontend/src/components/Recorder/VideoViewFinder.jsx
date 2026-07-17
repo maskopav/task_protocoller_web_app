@@ -22,6 +22,7 @@ export const VideoViewFinder = ({
     isRecording,
     onRequestCameraPermission,
     onPermissionGranted,
+    onPermissionDenied,
     onStartCalibration,
     onFinishCalibration,
     permissionDenied = false
@@ -166,6 +167,12 @@ export const VideoViewFinder = ({
             if (onPermissionGranted) onPermissionGranted();
         }
     }, [cameraGranted, phase, onPermissionGranted]);
+
+    // Report whether the denied screen is currently showing, so the parent can
+    // pick the camera_permission_denied guide clip. Auto-clears on retry/grant.
+    useEffect(() => {
+        onPermissionDenied?.(camPermState === CAM_PERM.DENIED);
+    }, [camPermState, onPermissionDenied]);
 
     // ── CAMERA PERMISSION DENIED ──────────────────────────────────
     // Shown instead of ANY phase content (SETUP, CALIBRATE, RECORDING...)
