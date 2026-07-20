@@ -54,16 +54,16 @@
       "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "[cs] Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259610834, "text": "[cs] Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259617267, "text": "[cs] Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259622208, "text": "[cs] Do you feel handicapped by a hearing problem?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259626876, "text": "[cs] Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259632940, "text": "[cs] Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259643040, "text": "[cs] Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259656707, "text": "[cs] Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259672641, "text": "[cs] Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] },
-        { "id": 1783259681028, "text": "[cs] Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["[cs] Yes", "[cs] Sometimes", "[cs] No"] }
+        { "id": 1783259602375, "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259610834, "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259617267, "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259622208, "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259626876, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259632940, "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259643040, "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259656707, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259672641, "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259681028, "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?", "type": "single", "options": ["Ano", "Občas", "Ne"] }
       ]
     }
   },

@@ -56,13 +56,13 @@
       "questions": [
         { "id": 1783259602375, "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
         { "id": 1783259610834, "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259617267, "text": "Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259617267, "text": "Do you have difficulty hearing or understanding your colleagues, clients, or customers?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
         { "id": 1783259622208, "text": "Do you feel handicapped by a hearing problem?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
         { "id": 1783259626876, "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259632940, "text": "Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259632940, "text": "Does a hearing problem cause you difficulty in a cinema or in a theatre?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
         { "id": 1783259643040, "text": "Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
         { "id": 1783259656707, "text": "Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259672641, "text": "Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
+        { "id": 1783259672641, "text": "Does a hearing problem cause you to use the telephone less often than you would like?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
         { "id": 1783259681028, "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["Yes", "Sometimes", "No"] }
       ]
     }
