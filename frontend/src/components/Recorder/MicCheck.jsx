@@ -5,6 +5,7 @@ import { Recorder } from "./Recorder";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import MediaPermissionContent from "./MediaPermissionContent";
+import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
@@ -17,6 +18,7 @@ import { logToServer } from "../../utils/frontendLogger";
 const CONFIG = {
   TARGET_SNR: 9,
   RECORDING_DURATION: 12,
+  MAX_SCREEN_REPEATS: 3, // # of times a failed screen shows before final behavior kicks in
   VAD_PRECISION_CONFIG: {
     redemptionMs: 50,            
     preSpeechPadMs: 100,          
@@ -133,7 +135,8 @@ function useMicCheckInstructions() {
 // ==========================================
 export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLogEvent, onPhaseChange, onPermissionPending, onRecordingStateChange }) {
   const { t } = useTranslation(["common"]);
-  const [phase, setPhase] = useState('checking'); 
+  const confirm = useConfirm();
+  const [phase, setPhase] = useState('checking');
   const [noiseScore, setNoiseScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [errorType, setErrorType] = useState(null);
@@ -148,6 +151,26 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     onPhaseChange?.(phase, errorType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, errorType]);
+
+  // Final-attempt behavior: once a failed screen has appeared MAX_SCREEN_REPEATS
+  // times, muted → show an apology modal and stay put; noisy → auto-advance.
+  // Guarded with a ref so it fires only once per outcome.
+  useEffect(() => {
+    if (phase !== 'noise-failed' || attempts < CONFIG.MAX_SCREEN_REPEATS) return;
+
+    if (errorType === 'muted') {
+      confirm({
+        infoOnly: true,
+        title: "",
+        message: <Trans i18nKey="micCheck.mutedModalMessage" />,
+        confirmText: t("buttons.ok"),
+      });
+    } else {
+      if (onLogEvent) onLogEvent("mic_check_auto_advanced", { attempts });
+      onNext({ skipped: true, attempts, reason: "noisy_background" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, errorType, attempts]);
 
   useEffect(() => {
     async function checkMicPermission() {
@@ -393,17 +416,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
           <button className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} onClick={uiState.onBtnClick}>
             {uiState.btnText}
           </button>
-          {phase === 'noise-failed' && errorType !== 'muted' && attempts >= 2 && (
-              <button 
-                className="btn-secondary" 
-                onClick={() => {
-                  if (onLogEvent) onLogEvent("button_skip_mic_check");
-                  onNext({ skipped: true, attempts: attempts }); 
-                }}
-              >
-                {t("micCheck.btnProceed")}
-              </button>
-          )}
         </>
       }
     >
