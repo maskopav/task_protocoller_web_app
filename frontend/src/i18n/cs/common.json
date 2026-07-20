@@ -14,6 +14,9 @@
       "back": "Zpět",
       "confirm": "Potvrdit"
     },
+    "micCheck": {
+      "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."
+    },
     "status": {
       "ready": "⚪ Připraveno",
       "recording": "🔴 Nahrávání...",

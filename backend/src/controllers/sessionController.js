@@ -126,6 +126,16 @@ export const updateProgress = async (req, res) => {
           taskIndexQuery += ", camera_declined = 1";
         }
 
+        // Mic-check outcome — persist the latest result as a first-class flag to the 'sessions' table.
+        // Fires on every check, so the last one written reflects the final screen.
+        if (event.action === 'mic_check_result') {
+          const flag = event.error_type === 'muted' ? 'mic_muted'
+                     : event.passed ? 'passed'
+                     : 'noisy_background';
+          taskIndexQuery += ", mic_check_result = ?";
+          queryParams.push(flag);
+        }
+
         queryParams.push(sessionId);
         // Update last_activity_at will as well
         await connection.query(
