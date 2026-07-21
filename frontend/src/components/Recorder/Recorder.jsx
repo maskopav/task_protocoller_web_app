@@ -53,6 +53,7 @@ export const Recorder = ({
     onRecordingStateChange,
     onAudioEvent = () => {},
     autoSubmit = false,
+    autoStart = false,
     onPermissionPending = () => {},
     onTopicChange = () => {},
     onPhaseChange,
@@ -258,6 +259,18 @@ export const Recorder = ({
             }, RECORDING_START_DELAY_MS);
         }
     };
+
+    // Auto-press START once per mount (e.g. MicCheck "Try again" retries),
+    // waiting for the autoPermission prefetch to grant the mic first.
+    const autoStartedRef = useRef(false);
+    useEffect(() => {
+        if (autoStart && !autoStartedRef.current &&
+            audioPermission && recordingStatus === RECORDING_STATES.IDLE) {
+            autoStartedRef.current = true;
+            handleStart();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoStart, audioPermission, recordingStatus]);
 
     // GENERAL_INFO screen → camera calibration.
     const handleGoToCalibration = () => {

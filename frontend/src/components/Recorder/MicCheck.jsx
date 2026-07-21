@@ -141,6 +141,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   const [attempts, setAttempts] = useState(0);
   const [errorType, setErrorType] = useState(null);
   const [finalMicData, setFinalMicData] = useState(null);
+  const [isRetry, setIsRetry] = useState(false);
 
   const { 
     currentInstructions, forceTimerActive, handleRecordingStateChange, 
@@ -307,6 +308,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
         useVAD={true}
         showNextButton={false}
         autoSubmit={true}
+        autoStart={isRetry}
         onNextTask={handleNoiseCheckComplete} 
         showMicIcon={true}
         suppressSilenceWarning={true} 
@@ -374,7 +376,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     );
   }
 
-  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => setPhase('noise'), t, onLogEvent, finalMicData);
+  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => { setIsRetry(true); setPhase('noise'); }, t, onLogEvent, finalMicData);
   if (!uiState) return null;
 
   // We only pass the instructions prop to TaskLayout if there is actual text to display
