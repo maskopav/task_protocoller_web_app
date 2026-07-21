@@ -61,6 +61,7 @@
     "description": "Die Teilnehmerin oder der Teilnehmer hält einen einzelnen Vokallaut (z. B. /a/, /e/, /i/, /o/, /u/) für eine festgelegte Zeit, um die Stimmstabilität und -kontrolle zu analysieren. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der eingestellten Dauer. Die Administratorin oder der Administrator sollte den Vokal ('phoneme'), die Anzahl der Wiederholungen ('repeat') und das Zeitintervall, nach dem die STOP-Taste erscheint ('duration'), festlegen.",
     "title": "Verlängerte Phonation /{{phoneme}}/",
     "instructions": "Drücken Sie START und halten Sie /{{phoneme}}/ mindestens {{duration}} Sekunden lang, bis Sie STOP drücken können.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
       "phoneme": {
         "label": "Vokal",
@@ -82,6 +83,7 @@
     "description": "Die Teilnehmerin oder der Teilnehmer wiederholt vorgegebene Silben (z. B. 'pa-ta-ka', 'ta', 'ka') so schnell und deutlich wie möglich, um Artikulationsgeschwindigkeit und Präzision zu bewerten. Die Aufnahme erfolgt im *Countdown-Modus* – sie stoppt automatisch nach Ablauf der angegebenen Dauer. Die Administratorin oder der Administrator sollte die Silbenfolge ('syllable'), die Gesamtdauer ('duration') und die Anzahl der Wiederholungen ('repeat') festlegen.",
     "title": "{{syllable}}-Wiederholung",
     "instructions": "Drücken Sie START und wiederholen Sie /{{syllable}}/ so schnell und präzise wie möglich, bis der Timer automatisch stoppt.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
       "syllable": {
         "label": "Silbe",
@@ -101,6 +103,9 @@
     "description": "Die Teilnehmerin oder der Teilnehmer erzählt ein bekanntes Märchen aus dem Gedächtnis (z. B. Schneewittchen, Hänsel und Gretel), um zusammenhängende Spontansprache, Flüssigkeit und Wortschatzreichtum zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie wird manuell beendet, wenn die Erzählung abgeschlossen ist. Die Administratorin oder der Administrator sollte das Märchen ('fairytale') und die Anzahl der Wiederholungen ('repeat') auswählen.",
     "title": "Nacherzählung: {{fairytale}}",
     "instructions": "Drücken Sie START und erzählen Sie das Märchen {{fairytale}} nach. Drücken Sie STOP, wenn Sie fertig sind.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe hören Sie eine gesprochene Geschichte und erzählen sie anschließend in Ihren eigenen Worten nach. <br/><br/>Während Sie sprechen, messen wir Ihre Gesichtsbewegungen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
+    "instructionsPostCalibration": "Drücken Sie Geschichte abspielen, um sich eine gesprochene Geschichte anzuhören. {{playStory}} Drücken Sie nach dem Anhören START und <strong>erzählen Sie die Geschichte in Ihren eigenen Worten</strong> in {{duration}} Sekunden nach. <br/><br/>Sprechen Sie fortlaufend — es spielt keine Rolle, ob die nacherzählte Geschichte korrekt oder vollständig ist.",
+    "instructionsActive": "Bitte erzählen Sie die Geschichte in {{duration}} Sekunden in Ihren eigenen Worten nach.",
     "params": {
       "fairytale": {
         "label": "Märchen",
@@ -118,6 +123,7 @@
     "description": "Die Teilnehmerin oder der Teilnehmer liest einen kurzen Text laut von der Anzeige, um Leseflüssigkeit, Artikulation und Prosodie zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie startet mit START und endet, wenn die Teilnehmerin oder der Teilnehmer oder die Administratorin bzw. der Administrator STOP drückt. Das Thema des Textes ('topic') und die Anzahl der Wiederholungen ('repeat') sollten festgelegt werden.",
     "title": "Lesen: {{topic}}",
     "instructions": "Drücken Sie START und lesen Sie den Text in einem angenehmen Tempo. Drücken Sie STOP am Ende.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "instructionsActive": "{{text}}",
     "params": {
       "topic": {
@@ -146,6 +152,7 @@
     "description": "Die Teilnehmerin oder der Teilnehmer spricht frei über ein bestimmtes Thema (z. B. Hobbys, Familie oder ein beliebiges anderes Thema), um Sprachflüssigkeit und Kohärenz zu beurteilen. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der festgelegten Zeit. Die Administratorin oder der Administrator sollte das Thema ('topic'), die Anzahl der Wiederholungen ('repeat') und die Dauer bis zur Anzeige der STOP-Taste ('duration') festlegen.",
     "title": "Monolog über: {{topic}}",
     "instructions": "Drücken Sie START und sprechen Sie über {{topicDescription}}, bis Sie nach {{duration}} Sekunden STOP drücken können.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
       "topic": {
         "label": "Thema des Monologs",

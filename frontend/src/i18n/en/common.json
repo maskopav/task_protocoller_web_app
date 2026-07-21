@@ -196,7 +196,7 @@
       "turnRight": "Look Right",
       "perfect": "Perfect!",
 
-      "permissionWarning": "In this task we will measure your facial movements while speaking. <br/><br/> To do that, browser will ask for camera access.",
+      "permissionWarning": "In this task we will measure your facial movements while speaking. <br/><br/> No video is recorded, just anonymized coordinates data. <br/><br/> To do that, browser will ask for camera access.",
       "permissionInstruction": "Please press <strong>Allow</strong> in the popup window.",
       "waitingForPermission": "Waiting for camera permission...",
       "btnUnderstand": "Understand & Continue",

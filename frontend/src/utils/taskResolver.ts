@@ -7,6 +7,8 @@ import {
     translateTaskTitle,
     translateTaskInstructions,
     translateTaskInstructionsActive,
+    translateTaskInstructionsPreCalibration,
+    translateTaskInstructionsPostCalibration,
     getResolvedParams
   } from "./translations.js";
   
@@ -58,6 +60,10 @@ export function resolveTasks(tasks: TaskInstance[]) {
       instructions: baseInstructions,
       instructionsActive:
         translateTaskInstructionsActive(task.category, resolvedParams),
+      instructionsPreCalibration:
+        translateTaskInstructionsPreCalibration(task.category, resolvedParams),
+      instructionsPostCalibration:
+        translateTaskInstructionsPostCalibration(task.category, resolvedParams),
       illustration,
     };
   }

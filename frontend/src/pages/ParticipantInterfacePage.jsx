@@ -490,6 +490,12 @@ export default function ParticipantInterfacePage() {
         taskName = 'camera_permission_denied';
       } else if (recorderPhase === 'PERMISSION') {
         taskName = 'camera_permission';
+      } else if (['GENERAL_INFO', 'SETUP', 'CALIBRATE'].includes(recorderPhase)) {
+        // Pre-calibration info screen (clip keeps playing through calibration)
+        taskName = `${taskName}_precalibration`;
+      } else if (recorderPhase === 'RECORDING') {
+        // Post-calibration instructions screen + the task itself
+        taskName = `${taskName}_postcalibration`;
       }
     }
     const repeatIndex = currentTask?._repeatIndex || 1; 
@@ -521,9 +527,15 @@ export default function ParticipantInterfacePage() {
 
   useEffect(() => {
     if (isVideoTask && recorderPhase) {
-      // Group all non-permission phases (SETUP, CALIBRATE, RECORDING) into 'instructions'
-      const audioStage = recorderPhase === 'PERMISSION' ? 'permission' : 'instructions';
-      
+      // Three guide clips: 'permission' (camera prompt), 'general_info' (the
+      // pre-calibration screen — SETUP/CALIBRATE are grouped with it so the
+      // clip isn't retriggered during calibration), and 'instructions' (the
+      // post-calibration screen, phase RECORDING).
+      const audioStage =
+        recorderPhase === 'PERMISSION' ? 'permission' :
+        recorderPhase === 'RECORDING' ? 'instructions' :
+        'general_info';
+
       if (!playedRecorderPhases.current.has(audioStage)) {
         if (audioStage === 'permission') {
           // Add a slight delay. If permission is already granted, it will skip this phase instantly
@@ -653,9 +665,10 @@ export default function ParticipantInterfacePage() {
   // Called when the general instructions clip finishes (or fails to load) —
   // hands off to the per-topic clip for whichever topic is active.
   const handleGeneralGuideEnded = useCallback(() => {
-    // Do not trigger the next steps (like the story) if it was just the permission audio that ended!
-    if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
-      return; 
+    // For video tasks the story only chains after the POST-calibration
+    // instructions clip
+    if (currentTask?.params?.recordVideo === 'true' && recorderPhase !== 'RECORDING') {
+      return;
     }
 
     // Only hand off to the per-topic clip if there's actually a topic to play.
@@ -673,8 +686,9 @@ export default function ParticipantInterfacePage() {
   // no file for this task/param combo), skip straight to the topic clip
   // instead of waiting forever for an 'ended' event that will never fire.
   useEffect(() => {
-    // Prevent this fallback from triggering the story while we are still on the permission screen
-    if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
+    // Prevent this fallback from triggering the story before the
+    // post-calibration instructions screen of a video task
+    if (currentTask?.params?.recordVideo === 'true' && recorderPhase !== 'RECORDING') {
         return;
     }
 
@@ -692,13 +706,6 @@ export default function ParticipantInterfacePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicState.index]);
-
-  useEffect(() => {
-    if (isRetellingTask && useAudioGuide && guideStage === 'general' &&
-        !audioSrc && topicState.topic == null) {
-      setStoryPlayTrigger(t => t + 1);
-    }
-  }, [isRetellingTask, useAudioGuide, guideStage, audioSrc, topicState.topic]);
 
   const handleRecorderAudioEvent = useCallback((eventType) => {
     if (eventType === 'completed') {
@@ -945,6 +952,8 @@ export default function ParticipantInterfacePage() {
           key={`${taskIndex}-${videoDeclined}`}
           title={currentTask.title}
           instructions={currentTask.instructions}
+          instructionsPreCalibration={currentTask.instructionsPreCalibration}
+          instructionsPostCalibration={currentTask.instructionsPostCalibration}
           instructionsActive={currentTask.instructionsActive}
           completedInstructions={t("completion.taskCompletedInstructions", { ns: "common" })}
           audioExample={currentTask.illustration}

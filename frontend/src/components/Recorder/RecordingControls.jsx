@@ -17,6 +17,7 @@ export const RecordingControls = ({
     RECORDING_STATES,
     className = "control-buttons",
     isVideoEnabled = false,
+    videoCalibrated = false,
     isPreparingToRecord = false
 }) => {
     const { t } = useTranslation();
@@ -49,8 +50,9 @@ export const RecordingControls = ({
                     {t("buttons.preparing")}
                     </>
                 ) : (
-                    isVideoEnabled 
-                        ? t("buttons.startCalibration") 
+                    // Video task not yet calibrated (retry path) → back to calibration first
+                    isVideoEnabled && !videoCalibrated
+                        ? t("buttons.startCalibration")
                         : t("buttons.start")
                 )}
                 </button>

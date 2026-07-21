@@ -72,6 +72,7 @@
     "description": "Účastník udržuje jeden samohláskový zvuk (např. /a/, /e/, /i/, /o/, /u/) po stanovenou dobu za účelem analýzy stability a kontroly hlasu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastavené doby. Administrátor by měl nastavit samohlásku ('phoneme'), počet opakování ('repeat') a časový interval, po kterém se zobrazí tlačítko STOP ('duration').",
     "title": "Prodloužená fonace /{{phoneme}}/",
     "instructions": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /{{phoneme}}/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň {{duration}} sekund. Jakmile se vám dojde dech, stiskněte STOP.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
       "phoneme": {
         "label": "Samohláska",
@@ -93,6 +94,7 @@
     "description": "Účastník opakuje zadané slabiky (např. 'pa-ta-ka', 'ta', 'ka') co nejrychleji a nejzřetelněji, aby se posoudila rychlost a přesnost artikulace. Záznam probíhá v režimu *odpočtu* — po uplynutí stanoveného času se automaticky zastaví. Administrátor by měl nastavit sled slabik ('syllable'), celkovou dobu záznamu ('duration') a počet opakování ('repeat'), pokud se úloha opakuje.",
     "title": "Opakování {{syllable}}",
     "instructions": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /{{syllable}}/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
       "syllable": {
         "label": "Slabika",
@@ -112,6 +114,9 @@
     "description": "Účastník převypráví známou pohádku zpaměti (např. Sněhurka, Jeníček a Mařenka), aby se zhodnotila plynulost, propojenost řeči a bohatost slovní zásoby. Záznam probíhá v režimu *manuálního zastavení* — administrátor nebo účastník ho zastaví po dokončení. Administrátor by měl zvolit pohádku ('fairytale') a počet opakování ('repeat').",
     "title": "Vyprávění: {{fairytale}}",
     "instructions": "Stiskněte START a převyprávějte pohádku: {{fairytale}}. Po dokončení stiskněte STOP.",
+    "instructionsPreCalibration": "V následující úloze si poslechnete namluvený příběh a poté ho převyprávíte vlastními slovy. <br/><br/>Během vašeho vyprávění budeme měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
+    "instructionsPostCalibration": "Stisknutím tlačítka Přehrát pohádku si poslechněte namluvený příběh. {{playStory}} Po poslechu příběhu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Mluvte souvisle — nezáleží na tom, zda je převyprávěný příběh správný nebo úplný.",
+    "instructionsActive": "Nyní prosím převyprávějte příběh vlastními slovy během {{duration}} sekund.",
     "params": {
       "fairytale": {
         "label": "Pohádka",
@@ -129,6 +134,7 @@
     "description": "Účastník čte krátký text zobrazený na obrazovce nahlas, aby se posoudila plynulost, artikulace a prozodie řeči. Záznam probíhá v režimu *manuálního zastavení* — spustí se po stisknutí START a ukončí po stisknutí STOP účastníkem nebo administrátorem. Administrátor by měl zvolit téma textu ('topic') a počet opakování ('repeat').",
     "title": "Čtení: {{topic}}",
     "instructions": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "instructionsActive": "{{text}}",
     "params": {
       "topic": {
@@ -157,6 +163,7 @@
     "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
     "title": "Monolog na téma: {{topic}}",
     "instructions": "Pokuste se co nejdetailněji popsat {{topicDescription}}. Až budete připraven/a zmačkněte tlačítko START a začněte vyprávět dokud nebude možné stisknout STOP po {{duration}} sekundách.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
       "topic": {
         "label": "Téma monologu",

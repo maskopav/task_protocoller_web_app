@@ -256,9 +256,10 @@ export const VideoViewFinder = ({
         return null;
     }
 
-    // Hide the actual viewfinder UI during the permission phase, 
-    // or during the task instructions phase before calibration starts.
-    if (phase === 'PERMISSION' || (phase === 'RECORDING' && !videoCalibrated)) {
+    // Hide the actual viewfinder UI during the permission phase, the
+    // pre-calibration info screen, or the task instructions phase before
+    // calibration has happened (retry path).
+    if (phase === 'PERMISSION' || phase === 'GENERAL_INFO' || (phase === 'RECORDING' && !videoCalibrated)) {
         return null;
     }
 

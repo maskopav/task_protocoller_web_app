@@ -3,6 +3,9 @@ import React, { forwardRef, useRef, useState, useEffect, useImperativeHandle } f
 import { AudioExampleButton } from './AudioExampleButton';
 import { StoryProgressBar } from './StoryProgressBar';
 
+// How big fraction of the retelling story needs to play before the START button becomes available
+const STORY_LISTEN_THRESHOLD_FRACTION = 2 / 3
+
 /**
  * AudioExamplePlayer
  *
@@ -138,7 +141,7 @@ export const AudioExamplePlayer = forwardRef(function AudioExamplePlayer({
     const handleTimeUpdate = () => {
         const audio = audioRef.current;
         if (variant !== 'story' || thresholdFiredRef.current || !audio?.duration) return;
-        if (audio.currentTime >= audio.duration / 3) {
+        if (audio.currentTime >= audio.duration * STORY_LISTEN_THRESHOLD_FRACTION) {
             thresholdFiredRef.current = true;
             onThresholdReached();
         }
