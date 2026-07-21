@@ -31,6 +31,17 @@ export function translateTaskInstructionsActive(category: string, params: Record
   return i18next.t(`${category}.instructionsActive`, { ...i18nOptions,...params, defaultValue: "" });
 }
 
+// Pre-calibration info screen of video (recordVideo) tasks.
+export function translateTaskInstructionsPreCalibration(category: string, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructionsPreCalibration`, { ...i18nOptions,...params, defaultValue: "" });
+}
+
+// Post-calibration instructions screen of video (recordVideo) tasks.
+// Falls back to the plain instructions when a task has no dedicated copy.
+export function translateTaskInstructionsPostCalibration(category: string, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructionsPostCalibration`, { ...i18nOptions,...params, defaultValue: "" });
+}
+
 export function translateParamName(category: string, param: string): string {
   const key = `${category}.params.${param}.label`;
   const taskLabel = i18next.t(key, { ...i18nOptions,defaultValue: "" });
