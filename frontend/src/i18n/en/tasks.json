@@ -131,7 +131,7 @@
       "title": "Retelling fairytale",
       "instructions": "Press Play story to listen to a spoken fairytale. {{playStory}} After listening to the story, press button to calibrate your camera. Then <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
       "instructionsPreCalibration": "In the next task, you will listen to a spoken story and then retell it in your own words. <br/><br/>While you are speaking, we will measure your facial movements. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsPostCalibration": "Please hold your phone in the calibrated position. <br/><br/>Press Play story to listen to a spoken story. {{playStory}} After listening to the story, press START and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "instructionsPostCalibration": "Please hold your phone in the calibrated position. <br/><br/>Press Play story to listen to a spoken story. {{playStory}} After listening to the story, press START and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, it doesn't matter if the retold tale is correct or complete.",
       "instructionsActive": "Please retell the story in your own words in {{duration}} seconds.",
       "params": {
         "fairytale": {

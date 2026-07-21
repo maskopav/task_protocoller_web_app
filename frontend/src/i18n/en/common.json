@@ -177,7 +177,7 @@
     },
     "videoCalibration": {
       "setupTitle": "Camera Setup",
-      "step1": "<strong>Rest your arm on the table</strong> holding your phone as shown in the picture.",
+      "step1": "<strong>Rest your arm on the table</strong> holding your phone as shown in the picture. <br/><br/> Goal - position your face so the circle <strong>turns green</strong>.",
       "step2": "<strong>Hold the phone steady</strong> during the task.",
       "step3": "<strong>Keep your face well-lit</strong> and visible.",
       "step4": "<strong>Be alone</strong> in the camera view.",
