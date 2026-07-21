@@ -162,8 +162,10 @@
     "name": "Monolog na téma",
     "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
     "title": "Monolog na téma: {{topic}}",
-    "instructions": "Pokuste se co nejdetailněji popsat {{topicDescription}}. Až budete připraven/a zmačkněte tlačítko START a začněte vyprávět dokud nebude možné stisknout STOP po {{duration}} sekundách.",
+    "instructions": "Ukážeme vám téma a požádáme vás, abyste o něm volně hovořil/a po dobu <strong>{{duration}} sekund</strong>.",
+    "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraven/a, stiskněte Start.",
     "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
+    "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
     "params": {
       "topic": {
         "label": "Téma monologu",

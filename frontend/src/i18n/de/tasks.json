@@ -151,8 +151,10 @@
     "name": "Monolog zu einem Thema",
     "description": "Die Teilnehmerin oder der Teilnehmer spricht frei über ein bestimmtes Thema (z. B. Hobbys, Familie oder ein beliebiges anderes Thema), um Sprachflüssigkeit und Kohärenz zu beurteilen. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der festgelegten Zeit. Die Administratorin oder der Administrator sollte das Thema ('topic'), die Anzahl der Wiederholungen ('repeat') und die Dauer bis zur Anzeige der STOP-Taste ('duration') festlegen.",
     "title": "Monolog über: {{topic}}",
-    "instructions": "Drücken Sie START und sprechen Sie über {{topicDescription}}, bis Sie nach {{duration}} Sekunden STOP drücken können.",
+    "instructions": "Wir zeigen Ihnen ein Thema und bitten Sie, <strong>{{duration}} Sekunden</strong> lang frei darüber zu sprechen.",
+    "instructionsTopic": "<strong>Thema:</strong><br/>{{topicDescription}} <br/><br/>Drücken Sie Start, wenn Sie bereit sind.",
     "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
+    "instructionsActive": "<strong>Thema:</strong><br/>{{topicDescription}}",
     "params": {
       "topic": {
         "label": "Thema des Monologs",

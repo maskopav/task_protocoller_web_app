@@ -177,7 +177,7 @@
             },
             "rainbow": {
               "label":"The Rainbow",
-              "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colours. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the coloured band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
+              "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
             }
           }
         },
@@ -197,8 +197,10 @@
       "name": "Monologue on topic",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Monologue",
-      "instructions": "{{topicDescription}}",
+      "instructions": "We will show you a topic and ask you to talk about it continously for <strong>{{duration}} seconds</strong>.",
+      "instructionsTopic": "<strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press Start when you are ready.",
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
+      "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
       "params": {
         "topic": {
           "label":"Monologue topic",
@@ -227,7 +229,8 @@
       "name": "Monologue",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
       "title": "Monologue",
-      "instructions": "Please speak about the topic below for a total of <strong>{{duration}} seconds</strong>. If you run out of things to say, an option to change the topic will appear to help you continue.<br/><br/><strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press Start when you are ready.",
+      "instructions": "We will show you a topic and ask you to talk about it continuously for <strong>{{duration}} seconds</strong>. <br/><br/> If you run out of things to say, you will have the option to switch to a new topic to help you keep talking.",
+      "instructionsTopic": "<strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press Start when you are ready.",
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
       "params": {
@@ -236,7 +239,7 @@
           "values": {
             "everyday": {
               "label": "Daily Routine",
-              "topicDescription": "What does a typical day look like for you from the moment you wake up? You might include what your morning routine is like and what you usually do later in the day."
+              "topicDescription": "What does a typical day look like for you from the moment you wake up? Try to include some details, such as morning routine, breakfast, and what you usually do later in the day."
             },
             "entertainment": {
               "label": "Movies, Books, and Media",
@@ -284,24 +287,26 @@
       }
     },
     "d15colour": {
-      "name": "D-15 Colour Test",
-      "description": "A colour vision test where the participant arranges 15 coloured caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
-      "title": "Colour Arrangement Task",
-      "instructions": "<strong>1.</strong> Look at the last colour in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the colour from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colours.",
+      "name": "D-15 Color Test",
+      "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
+      "title": "Color Arrangement Task",
+      "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colors.",
       
-      "addTitle": "<strong>Adding a colour</strong>",
-      "addText": "• Tap a colour in the <strong>bottom pool</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
-      "addGifAlt": "Adding colour",
-      "goalText": "Create smooth, gradual sequence of colors in the top row.",
+      "addTitle": "<strong>Arrange the colors into a smooth, gradual sequence in the top row.</strong>",
+      "addText": "• Tap a color in the <strong>bottom row of colors</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
+      "addGifAlt": "Adding color",
+      "goalText": "Color vision task",
 
-      "modifyTitle": "<strong>Modifying colours</strong>",
-      "modifyText": "• Tap a colour in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different colour instead.",
+      "modifyTitle": "<strong>Modifying colors</strong>",
+      "modifyText": "• Tap a color in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different color instead.",
       "modifyGifAlt": "Modifying sequence",
-      "disclaimerText": "If you have trouble telling colours apart, that's OK — just choose what looks closest to you.",
+      "disclaimerText": "",
+
+      "mainInstructionsText": "Arrange the colors into a smooth, gradual sequence in the top row. <br/><br/> If you have trouble telling colours apart, that's OK - just choose what looks closest to you.",
 
       "mechanicsTitle": "Instructions",
-      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colours.<br/><br/><strong>• Add a cap:</strong> Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
-      "demoInstructions": "How to add colour: Tap a colour in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
+      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colors.<br/><br/><strong>• Add a cap:</strong> Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
+      "demoInstructions": "How to add color: Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
       "trialCompleteTitle": "Well done!",
       "trialCompleteText": "Trial completed. Now the test will be more challenging.",
       "timeoutTitle": "Ready to move on?",
@@ -310,8 +315,8 @@
       "timeoutContinue": "Keep going",
       "controls": {
         "reset": "Reset",
-        "submit": "Submit Result",
-        "addTabLabel": "Add colour",
+        "submit": "Continue",
+        "addTabLabel": "Add color",
         "modifyTabLabel": "Modify sequence"
       },
       "params": {
@@ -351,11 +356,13 @@
     },
     "preTestChecklist": {
       "title": "Vision Task Setup",
-      "subtitle": "Please complete the following steps. Tap the info icon for help. Mark your status for each step.",
+      "subtitle": "Now, we will test your color vision. Please try to setup your screen:",
+      "subtitleBelow": "If you do not know how to do it, please proceed further anyway. <br><br> You can tap info icon for help.",
+      "selectFirstHint": "Please select the status buttons above first.",
       "buttons": {
         "done": "Done",
         "cannot": "Can't / Don't Know",
-        "start": "To instructions",
+        "start": "Next",
         "yes": "Yes",
         "no": "No",
         "dontKnow": "Don't know"
@@ -363,15 +370,15 @@
       "items": {
         "landscape": {
           "label": "Rotate your phone sideways.",
-          "helpText": "If the screen doesn't rotate with your phone, you need to unlock it.<br><br>Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom on older iPhones).<br><br>Look for the rotation icon (<imgA/> <imgB/> <imgC/>) and tap it so your screen is allowed to rotate."
+          "helpText": "If the screen doesn't rotate with your phone, you need to unlock it.<br><br>Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom).<br><br>Look for the rotation icon (<imgA/> <imgB/> <imgC/>) and tap it so your screen is allowed to rotate."
         },
         "brightness": {
-          "label": "Turn brightness all the way up.",
-          "helpText": "Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom on older iPhones).<br><br>Find the <strong>brightness slider</strong> (usually a sun icon <imgA/>) and drag it to the absolute maximum.<br><br><em>Note</em>: If your phone turns the brightness back down on its own, look for an <strong>Auto</strong> or <strong>Adaptive</strong> button nearby, or look in your phone's Settings <imgB/> > Display and turn it off.<br><br>Example: <imgSlider/>"
+          "label": "Turn brightness to the maximum.",
+          "helpText": "Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom).<br><br>Find the <strong>brightness slider</strong> (usually a sun icon <imgA/>) and drag it to the absolute maximum.<br><br><em>Note</em>: If your phone turns the brightness back down on its own, look for an <strong>Auto</strong> or <strong>Adaptive</strong> button nearby, or look in your phone's Settings <imgB/> > Display and turn it off.<br><br>Example: <imgSlider/>"
         },
         "colourFilters": {
-          "label": "Turn off screen colour filters (yellow light).",
-          "helpText": "Filters alter your screen's natural colours, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colours."
+          "label": "Turn off screen color filters (yellow light, night shift, etc.).",
+          "helpText": "Filters alter your screen's natural colors, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colors."
         },
         "privacyScreen": {
           "label": "Do you have a privacy protection glass?",
@@ -393,11 +400,11 @@
       "name": "Symbol Digit Modalities Test",
       "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
       "title": "Symbols",
-      "instructions": "A symbol will appear in the center. Using the key, tap the matching number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong>.",
+      "instructions": "Tap the corresponding keypad number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong> for the task.",
       "instructionsActive": "Match the symbol to the number.",
       "completedInstructions": "Symbols task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you want to repeat the task.",
-      "demoTitle": "How to do the task",
-      "demoText": "Match the symbol to the corresponding number using the keypad.",
+      "demoTitle": "Symbol matching task",
+      "demoText": "Match the appeared symbol to the corresponding number using the keypad.",
       "taskComplete": "Task Complete!",
       "resultsSaved": "Your results have been saved securely.",
       "start": "Start",

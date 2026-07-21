@@ -6,7 +6,9 @@
 /* ── Reference key (top symbol→digit grid) ───────────────────────── */
 .sdmt-reference-key {
     display: grid;
-    grid-template-columns: repeat(9, 1fr); 
+    /* gap under the instructions */
+    margin-top: clamp(30px, 0.75dvh, 7.5px);
+    grid-template-columns: repeat(9, 1fr);
     width: 100%;
     border: 2px solid #000000;
     border-radius: 4px;
@@ -86,9 +88,10 @@
     grid-template-columns: repeat(3, 1fr);
     gap: clamp(10px, 2dvh, 18px);                    
     width: 100%;
-    max-width: clamp(260px, 75vw, 350px);            
+    max-width: clamp(260px, 75vw, 350px);
     height: auto;
-    margin: 0 auto;
+    /* gap above the timer */
+    margin: 0 auto clamp(30px, 1dvh, 7.5px);
     flex: 0 0 auto;
 }
 
@@ -119,7 +122,7 @@
 
 /* ── Timer ────────────────────────────────────────────────────────── */
 .sdmt-timer {
-    font-size: clamp(1.4rem, 5.1vw, 2rem);
+    font-size: clamp(1.4rem, 2.0rem, 2.5rem);
     font-weight: 600;
 }
 

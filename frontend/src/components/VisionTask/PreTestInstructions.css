@@ -23,6 +23,10 @@
   padding: clamp(10px, 2vw, 20px);
 }
 
+.checklist-footer-note {
+  margin-bottom: 1.5rem;
+}
+
 .checklist-item {
   display: flex;
   flex-direction: column;
@@ -103,11 +107,32 @@
   font-weight: bold;
 }
 
-.start-button:disabled {
+.start-button.is-disabled {
   background-color: #cbd5e1;
   cursor: not-allowed;
 }
 
-.start-button:not(:disabled):hover {
+.start-button:not(.is-disabled):hover {
   filter: brightness(0.9);
+}
+
+/* Hint above the Next button — mirrors the Recorder's .vad-pill-warning */
+.checklist-hint {
+  color: #d32f2f;
+  font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 0.6rem;
+  animation: checklistHintIn 0.3s ease-out, checklistHintPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes checklistHintIn {
+  0%   { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes checklistHintPulse {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.6; }
 }

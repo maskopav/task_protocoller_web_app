@@ -23,10 +23,11 @@
       "logout": "Log out",
       "edit": "Edit",
       "confirm": "Confirm",
-      "gotIt": "Got it",
+      "gotIt": "OK",
       "continue": "Continue",
       "backToEditor": "Back to editor",
-      "startCalibration": "To camera calibration"
+      "startCalibration": "To camera calibration",
+      "seeTopic": "Show Topic"
     },
     "status": {
       "ready": "Ready",

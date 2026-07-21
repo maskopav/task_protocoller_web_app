@@ -469,6 +469,11 @@ export default function ParticipantInterfacePage() {
   const audioSrc = useMemo(() => {
     if (!rawTask || !useAudioGuide) return null;
 
+    // Vision tasks (VisionTaskWrapper) own their audio guides internally across
+    // the setup / trial / test sub-steps. Keep the page-level general guide
+    // silent so it doesn't play on top of the wrapper's own clips.
+    if (rawTask.type === 'vision') return null;
+
     // All questionnaire categories (generic + standard ones like rbdsq/hhies)
     // share the same audio guide clip, since their content
     // is dynamic and can't be pre-recorded per task.
@@ -632,11 +637,23 @@ export default function ParticipantInterfacePage() {
   // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
   const handleTopicChange = useCallback((index, topic) => {
     setTopicState({ index, topic });
-    
+
     if (index > 0) {
        setGuideStage('topic');
     }
   }, []);
+
+  // Split instruction pack (monologue tasks): the participant pressed
+  // "See the topic" — hand the audio guide off to the per-topic clip.
+  const handleTopicReveal = useCallback(() => {
+    stopAudioGuides(); // cut the screen-1 clip mid-word if still playing
+    if (topicState.topic == null && rawTask?.params?.topic) {
+      // monologue: single topic, Recorder never reports one — use the raw id string
+      setTopicState({ index: 0, topic: rawTask.params.topic });
+    }
+    setGuideStage('topic');
+    setTopicPlayTrigger(t => t + 1);
+  }, [rawTask, topicState.topic, stopAudioGuides]);
 
   // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
   const topicAudioSrc = useMemo(() => {
@@ -672,7 +689,9 @@ export default function ParticipantInterfacePage() {
     }
 
     // Only hand off to the per-topic clip if there's actually a topic to play.
-    if (guideStage === 'general' && topicState.topic != null) {
+    // Split-pack tasks (instructionsTopic) are excluded: their topic clip must
+    // wait for the "See the topic" button (handleTopicReveal), never auto-play.
+    if (guideStage === 'general' && topicState.topic != null && !currentTask?.instructionsTopic) {
       setGuideStage('topic');
       setTopicPlayTrigger(t => t + 1);
       return;
@@ -955,6 +974,8 @@ export default function ParticipantInterfacePage() {
           instructionsPreCalibration={currentTask.instructionsPreCalibration}
           instructionsPostCalibration={currentTask.instructionsPostCalibration}
           instructionsActive={currentTask.instructionsActive}
+          instructionsTopic={currentTask.instructionsTopic}
+          onTopicReveal={handleTopicReveal}
           completedInstructions={t("completion.taskCompletedInstructions", { ns: "common" })}
           audioExample={currentTask.illustration}
           mode={currentTask.recording.mode}

@@ -31,6 +31,12 @@ export function translateTaskInstructionsActive(category: string, params: Record
   return i18next.t(`${category}.instructionsActive`, { ...i18nOptions,...params, defaultValue: "" });
 }
 
+// Second screen of the split instruction pack (monologue tasks): reveals the
+// topic after the static intro screen. Empty for tasks without the key.
+export function translateTaskInstructionsTopic(category: string, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructionsTopic`, { ...i18nOptions,...params, defaultValue: "" });
+}
+
 // Pre-calibration info screen of video (recordVideo) tasks.
 export function translateTaskInstructionsPreCalibration(category: string, params: Record<string, any> = {}): string {
   return i18next.t(`${category}.instructionsPreCalibration`, { ...i18nOptions,...params, defaultValue: "" });

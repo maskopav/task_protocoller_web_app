@@ -18,7 +18,9 @@ export const RecordingControls = ({
     className = "control-buttons",
     isVideoEnabled = false,
     videoCalibrated = false,
-    isPreparingToRecord = false
+    isPreparingToRecord = false,
+    showRevealTopic = false,
+    onRevealTopic
 }) => {
     const { t } = useTranslation();
     const { IDLE, RECORDING, PAUSED } = RECORDING_STATES;
@@ -38,11 +40,16 @@ export const RecordingControls = ({
         {/* Recording Controls */}
         {permission && (
             <>
-            {recordingStatus === IDLE && (
-                <button 
-                    onClick={onStart} 
+            {recordingStatus === IDLE && (showRevealTopic ? (
+                // Split instruction pack: reveal the topic before Start appears
+                <button onClick={onRevealTopic} className="btn-start">
+                    {t("buttons.seeTopic")}
+                </button>
+            ) : (
+                <button
+                    onClick={onStart}
                     className={`btn-start ${disableStart ? 'disabled' : ''}`}
-                    disabled={disableStart} 
+                    disabled={disableStart}
                 >
                 {isPreparingToRecord ? (
                     <>
@@ -56,7 +63,7 @@ export const RecordingControls = ({
                         : t("buttons.start")
                 )}
                 </button>
-            )}
+            ))}
 
             {recordingStatus === RECORDING && !disableControls && (
                 <div className="button-group">

@@ -12,7 +12,8 @@
       "done": "Hotovo",
       "skip": "Přeskočit",
       "back": "Zpět",
-      "confirm": "Potvrdit"
+      "confirm": "Potvrdit",
+      "seeTopic": "Zobrazit téma"
     },
     "micCheck": {
       "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."

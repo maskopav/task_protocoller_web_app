@@ -7,6 +7,7 @@ import {
     translateTaskTitle,
     translateTaskInstructions,
     translateTaskInstructionsActive,
+    translateTaskInstructionsTopic,
     translateTaskInstructionsPreCalibration,
     translateTaskInstructionsPostCalibration,
     getResolvedParams
@@ -60,6 +61,8 @@ export function resolveTasks(tasks: TaskInstance[]) {
       instructions: baseInstructions,
       instructionsActive:
         translateTaskInstructionsActive(task.category, resolvedParams),
+      instructionsTopic:
+        translateTaskInstructionsTopic(task.category, resolvedParams),
       instructionsPreCalibration:
         translateTaskInstructionsPreCalibration(task.category, resolvedParams),
       instructionsPostCalibration:
