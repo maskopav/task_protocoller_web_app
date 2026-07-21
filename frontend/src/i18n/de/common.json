@@ -15,6 +15,9 @@
     "micCheck": {
       "mutedModalMessage": "Es tut uns leid, aber wir konnten Ihr Mikrofon nicht korrekt einrichten. Aus diesem Grund werden Sie die meisten Aufgaben in dieser Studie nicht abschließen können. Wir entschuldigen uns aufrichtig für die Unannehmlichkeiten und danken Ihnen für Ihre Zeit und Ihre Bereitschaft zur Teilnahme."
     },
+    "micCheck": {
+      "mutedModalMessage": "Es tut uns leid, aber wir konnten Ihr Mikrofon nicht korrekt einrichten. Aus diesem Grund werden Sie die meisten Aufgaben in dieser Studie nicht abschließen können. Wir entschuldigen uns aufrichtig für die Unannehmlichkeiten und danken Ihnen für Ihre Zeit und Ihre Bereitschaft zur Teilnahme."
+    },
     "status": {
       "ready": "⚪ Ready",
       "recording": "🔴 Recording...",
