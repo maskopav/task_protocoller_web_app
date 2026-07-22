@@ -121,10 +121,11 @@ function useMicCheckInstructions() {
     }
   };
 
-  return { 
-    currentInstructions: getInstructionsText(), 
+  return {
+    currentInstructions: getInstructionsText(),
     forceTimerActive,
-    handleRecordingStateChange, 
+    isSilencePhase: promptPhase === 'silence',
+    handleRecordingStateChange,
     handleVadSpeechStart,
     handleVadSpeechEnd
   };
@@ -143,9 +144,9 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   const [finalMicData, setFinalMicData] = useState(null);
   const [isRetry, setIsRetry] = useState(false);
 
-  const { 
-    currentInstructions, forceTimerActive, handleRecordingStateChange, 
-    handleVadSpeechStart, handleVadSpeechEnd 
+  const {
+    currentInstructions, forceTimerActive, isSilencePhase, handleRecordingStateChange,
+    handleVadSpeechStart, handleVadSpeechEnd
   } = useMicCheckInstructions();
 
   useEffect(() => {
@@ -311,9 +312,10 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
         autoStart={isRetry}
         onNextTask={handleNoiseCheckComplete} 
         showMicIcon={true}
-        suppressSilenceWarning={true} 
+        suppressSilenceWarning={true}
         disableTimerFreeze={true}
         forceTimerActive={forceTimerActive}
+        showRemainingBar={isSilencePhase}
         onRecordingStateChange={handleLocalRecordingStateChange}
         onVadSpeechStart={handleVadSpeechStart}
         onVadSpeechEnd={handleVadSpeechEnd}

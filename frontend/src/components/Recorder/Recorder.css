@@ -178,6 +178,9 @@
   transition: width 0.1s linear;
 }
 
+/* Spacing when the same bar is used below the recording circle (during a task) */
+.remaining-time-track { margin: clamp(10px, 3dvh, 40px) auto 0; }
+
 .active-instructions .audio-example-btn {
   display: inline-flex;
   align-items: center;

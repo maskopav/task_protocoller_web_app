@@ -7,6 +7,7 @@ import { useTaskTopics } from '../../hooks/useTaskTopics';
 import './Recorder.css';
 import checkIcon from '../../assets/successIcons/checkmark-icon.svg';
 import { RecordingTimer } from './RecordingTimer';
+import { RemainingTimeBar } from './RemainingTimeBar';
 import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
@@ -63,7 +64,8 @@ export const Recorder = ({
     onDeclineVideo = null,
     autoPlayStoryTrigger = 0,
     onBeforeRecordingStart = () => {},
-    onExamplePlay = () => {}
+    onExamplePlay = () => {},
+    showRemainingBar = false
 }) => {
     const { t } = useTranslation();
     // ── Phase state ──────────────────────────────────────────────────────
@@ -581,6 +583,10 @@ export const Recorder = ({
                 showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
                 visualPhase={visualPhase}
             />
+
+            {showRemainingBar && recordingStatus === RECORDING_STATES.RECORDING && (
+                <RemainingTimeBar durationMs={(voiceRecorder.remainingTime ?? 0) * 1000} />
+            )}
 
             {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
                 <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>

@@ -129,9 +129,9 @@
     },
     "micCheck": {
       "calibrationTitle": "Microphone Setup",
-      "permissionWarning": "Next, your browser will ask for microphone access.",
-      "permissionInstruction": "Please press <strong>Allow</strong> in the popup window so we can record your voice.",
-      "btnUnderstand": "Understand & Continue",
+      "permissionWarning": "In the next tasks, we will record your voice. Your browser will ask for microphone access.",
+      "permissionInstruction": "Press the <strong>Allow Microphone Access</strong> button below. <br><br/> In the popup window, choose <strong>Allow</strong> so we can record your voice.",
+      "btnUnderstand": "Allow Microphone Access",
       "noiseTitle": "Audio Test",
       "noiseInstructions": "First, we'll test your microphone. <br><br/> Press Start to begin.",
       "noiseInstructionsCounting": "<strong>Count slowly and out loud</strong> from 1 to 5.",
@@ -175,6 +175,10 @@
     "volumeCheck": {
       "title": "Audio Volume Setup",
       "instructions": "Please use the audio player below to test your audio volume. <br/><br/><strong>Adjust your device's volume</strong> until you can hear the message clearly."
+    },
+    "audioGuideIntro": {
+      "title": "Audio Guide",
+      "instructions": "<strong>Audio Guide</strong> <br/><br/> Through the assessment, the tasks will be accompanied by an audio guide, such as the one you should hear right now. <br><br/> You can pause the guide by pressing the icon in the top right corner of the screen. <br><br/> If you want to replay the guide, just press the icon again."
     },
     "videoCalibration": {
       "setupTitle": "Camera Setup",

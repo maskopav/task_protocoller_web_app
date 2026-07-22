@@ -28,6 +28,7 @@ export default function MediaPermissionContent({
   showImage = true,
   customSteps,                 // (osTab) => node — used for variant="denied" only
   baseAssetPath = import.meta.env.BASE_URL,
+  imageSrc = null,             // overrides the default intro preview image
 
   // bottom controls
   btnText,
@@ -119,7 +120,7 @@ export default function MediaPermissionContent({
     >
       {!isDenied && !imgError && (
         <img
-          src={`${baseAssetPath}assets/${assetFolder}/popup-window.jpeg`}
+          src={imageSrc || `${baseAssetPath}assets/${assetFolder}/mic_access.png`}
           alt={`${type} permission prompt`}
           className="intro-preview-img"
           onError={() => setImgError(true)}

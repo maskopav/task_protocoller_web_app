@@ -15,6 +15,7 @@ import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroCompon
 import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
 import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
+import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
 import { uploadRecording, uploadMicCheck } from "../api/recordings";
@@ -188,6 +189,16 @@ export default function ParticipantInterfacePage() {
       category: "volume_check",
       isSystemTask: true
     });
+
+    // Add Audio Guide Intro — only when the protocol uses the audio guide.
+    // Same 0/1-from-MariaDB handling as useAudioGuide below.
+    if (selectedProtocol.use_audio_guide ?? true) {
+      introSteps.push({
+        type: "audio_guide_intro",
+        category: "audio_guide_intro",
+        isSystemTask: true
+      });
+    }
 
     // Helper to find content by type in the global_contents array
     const findGlobalContent = (type) => {
@@ -447,7 +458,7 @@ export default function ParticipantInterfacePage() {
     let isReading = false;
     let isRetelling = false;
 
-    if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check'].includes(rawTask.type)) {
+    if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(rawTask.type)) {
        task = resolveTask(rawTask, t);
        isReading = task?.category === 'reading';
        isRetelling = task?.category === 'retelling';
@@ -769,7 +780,7 @@ export default function ParticipantInterfacePage() {
     }
     try {
       const currentTaskObj = runtimeTasks[taskIndex];
-      const isSystemTask = ['info', 'consent', 'identifiers', 'volume_check'].includes(currentTaskObj.type);
+      const isSystemTask = ['info', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(currentTaskObj.type);
       const isMicCheck = currentTaskObj.type === 'mic_check';
     
       if (testingMode || editingMode || !sessionId) {
@@ -900,6 +911,13 @@ export default function ParticipantInterfacePage() {
     if (rawTask.type === "volume_check") {
       return (
         <VolumeCheck onComplete={(data) => handleTaskComplete(data)} audioGuideEnabled={useAudioGuide} />
+      );
+    }
+
+    // Render Audio Guide Intro
+    if (rawTask.type === "audio_guide_intro") {
+      return (
+        <AudioGuideIntro onComplete={(data) => handleTaskComplete(data)} />
       );
     }
 
