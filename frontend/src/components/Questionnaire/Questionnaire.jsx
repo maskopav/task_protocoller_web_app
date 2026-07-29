@@ -54,8 +54,18 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
     // Find the first question that hasn't been answered yet
     const firstUnansweredIndex = data.questions.findIndex((q) => !isAnswered(q));
 
-    // If all are answered, no need to scroll
-    if (firstUnansweredIndex === -1) return;
+    // If all are answered, scroll to the end so the submit button is visible
+    if (firstUnansweredIndex === -1) {
+      if (lastScrolledIndex.current < data.questions.length) {
+        const lastCard = listRef.current.lastElementChild;
+        if (lastCard) {
+          // Aligning the last card to the top pulls the layout up, revealing controls below it
+          lastCard.scrollIntoView({ behavior: "smooth", block: "start" });
+          lastScrolledIndex.current = data.questions.length;
+        }
+      }
+      return;
+    }
 
     // ONLY scroll if the user has advanced to a new unanswered question
     if (firstUnansweredIndex > lastScrolledIndex.current) {
