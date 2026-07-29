@@ -10,7 +10,8 @@ export const PlaybackSection = ({
     onNextTask,
     showNextButton = true,
     isUploading = false,
-    onLogEvent = () => {}
+    onLogEvent = () => {},
+    onPlaybackStart = () => {}
 }) => {
     const { t } = useTranslation();
     const playbackStartTimeRef = useRef(null);
@@ -31,6 +32,7 @@ export const PlaybackSection = ({
     const isRecorded = recordingStatus === 'recorded';
 
     const handlePlay = (e) => {
+        onPlaybackStart(); // stop any audio guide still playing so it doesn't overlap
         playbackStartTimeRef.current = Date.now();
         onLogEvent("playback_started", { startTimeInAudio: e.target.currentTime });
     };

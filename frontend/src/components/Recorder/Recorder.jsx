@@ -63,7 +63,8 @@ export const Recorder = ({
     onDeclineVideo = null,
     autoPlayStoryTrigger = 0,
     onBeforeRecordingStart = () => {},
-    onExamplePlay = () => {}
+    onExamplePlay = () => {},
+    onPlaybackStart = () => {}
 }) => {
     const { t } = useTranslation();
     // ── Phase state ──────────────────────────────────────────────────────
@@ -719,6 +720,7 @@ export const Recorder = ({
                         showNextButton={showNextButton}
                         isUploading={isUploading}
                         onLogEvent={onLogEvent}
+                        onPlaybackStart={onPlaybackStart}
                     />
                 </div>
             )}
