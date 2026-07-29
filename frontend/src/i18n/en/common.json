@@ -23,10 +23,11 @@
       "logout": "Log out",
       "edit": "Edit",
       "confirm": "Confirm",
-      "gotIt": "Got it",
+      "gotIt": "OK",
       "continue": "Continue",
       "backToEditor": "Back to editor",
-      "startCalibration": "To camera calibration"
+      "startCalibration": "To camera calibration",
+      "seeTopic": "Show Topic"
     },
     "status": {
       "ready": "Ready",
@@ -70,7 +71,7 @@
       "vision": "Vision section",
       "cognitive": "Thinking skills section",
       "hearing": "Hearing section",
-      "questionnaire": "Questionnaire",
+      "questionnaire": "Questionnaire section",
       "task": "Task",
       "milestone_25": "Over 25% ",
       "milestone_50": "Halfway there! Over 50% ",
@@ -128,9 +129,9 @@
     },
     "micCheck": {
       "calibrationTitle": "Microphone Setup",
-      "permissionWarning": "Next, your browser will ask for microphone access.",
-      "permissionInstruction": "Please press <strong>Allow</strong> in the popup window so we can record your voice.",
-      "btnUnderstand": "Understand & Continue",
+      "permissionWarning": "In the next tasks, we will record your voice. Your browser will ask for microphone access.",
+      "permissionInstruction": "Press the <strong>Allow Microphone Access</strong> button below. <br><br/> In the popup window, choose <strong>Allow</strong> so we can record your voice.",
+      "btnUnderstand": "Allow Microphone Access",
       "noiseTitle": "Audio Test",
       "noiseInstructions": "First, we'll test your microphone. <br><br/> Press Start to begin.",
       "noiseInstructionsCounting": "<strong>Count slowly and out loud</strong> from 1 to 5.",
@@ -144,7 +145,8 @@
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
       "mutedAdditionalInfo": "In case of persistent issues, visit troubleshooting guide or contact support. <br/><br/> You cannot proceed further.",
-      "btnTryAgain": "Try Again",
+      "mutedModalMessage": "We're sorry, but we were unable to set up your microphone correctly. As a result, you will not be able to complete most of the tasks in this study. We sincerely apologize for the inconvenience and thank you for your time and willingness to participate.",
+      "btnTryAgain": "Check Microphone Again",
       "successTitle": "Microphone Ready",
       "successMessage": "Everything looks good!",
       "successInstructions": "Please <strong>stay in this room</strong> until you have finished.",
@@ -174,9 +176,13 @@
       "title": "Audio Volume Setup",
       "instructions": "Please use the audio player below to test your audio volume. <br/><br/><strong>Adjust your device's volume</strong> until you can hear the message clearly."
     },
+    "audioGuideIntro": {
+      "title": "Audio Guide",
+      "instructions": "<strong>Audio Guide</strong> <br/><br/> Through the assessment, the tasks will be accompanied by an audio guide, such as the one you should hear right now. <br><br/> You can pause the guide by pressing the icon in the top right corner of the screen. <br><br/> If you want to replay the guide, just press the icon again."
+    },
     "videoCalibration": {
       "setupTitle": "Camera Setup",
-      "step1": "<strong>Rest your arm on the table</strong> holding your phone as shown in the picture.",
+      "step1": "<strong>Rest your arm on the table</strong> holding your phone as shown in the picture. <br/><br/> Goal - position your face so the circle <strong>turns green</strong>.",
       "step2": "<strong>Hold the phone steady</strong> during the task.",
       "step3": "<strong>Keep your face well-lit</strong> and visible.",
       "step4": "<strong>Be alone</strong> in the camera view.",
@@ -195,7 +201,7 @@
       "turnRight": "Look Right",
       "perfect": "Perfect!",
 
-      "permissionWarning": "In this task we will record your voice and facial movements. <br/><br/> To do that, browser will ask for camera access.",
+      "permissionWarning": "In this task we will measure your facial movements while speaking. <br/><br/> No video is recorded, just anonymized coordinates data. <br/><br/> To do that, browser will ask for camera access.",
       "permissionInstruction": "Please press <strong>Allow</strong> in the popup window.",
       "waitingForPermission": "Waiting for camera permission...",
       "btnUnderstand": "Understand & Continue",
@@ -203,6 +209,11 @@
         "titleDenied": "Camera Access Denied",
         "descDenied": "Your device or browser is blocking the camera. Both must allow access to continue.",
         "btnRetry": "Try Again",
+        "btnDecline": "I do not want to grant access",
+        "declineTitle": "Please reconsider",
+        "declineMessage": "No video is recorded - just a set of anonymized facial coordinates. By granting no access to the camera, the results will be less sensitive.",
+        "declineConfirm": "Continue without camera access",
+        "declineCancel": "Go back",
         "steps": {
           "android": "1. Open Android <strong>Settings</strong>, search for your browser (e.g., Chrome), and set Camera to <strong>Allow</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
           "ios": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Camera switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the camera."

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
 import { useVadLogic } from '../../hooks/useVADLogic';
@@ -6,6 +7,7 @@ import { useTaskTopics } from '../../hooks/useTaskTopics';
 import './Recorder.css';
 import checkIcon from '../../assets/successIcons/checkmark-icon.svg';
 import { RecordingTimer } from './RecordingTimer';
+import { RemainingTimeBar } from './RemainingTimeBar';
 import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
@@ -23,7 +25,11 @@ const DEBUG_MODE = false;
 export const Recorder = ({
     title = "🎙️ Task Recorder",
     instructions = "Record, pause, resume, and save your audio with real-time visualization",
+    instructionsPreCalibration,
+    instructionsPostCalibration,
     instructionsActive,
+    instructionsTopic = '',
+    onTopicReveal = () => {},
     completedInstructions = "The task was completed successfully. You can proceed to the next task, try again if you are not satisfied, or listen to your recording below.",
     audioExample,
     mode,
@@ -50,21 +56,30 @@ export const Recorder = ({
     onRecordingStateChange,
     onAudioEvent = () => {},
     autoSubmit = false,
+    autoStart = false,
     onPermissionPending = () => {},
     onTopicChange = () => {},
     onPhaseChange,
+    onCameraPermissionDenied = () => {},
+    onDeclineVideo = null,
     autoPlayStoryTrigger = 0,
     onBeforeRecordingStart = () => {},
-    onExamplePlay = () => {}
+    onExamplePlay = () => {},
+    showRemainingBar = false
 }) => {
+    const { t } = useTranslation();
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
-    // Always start at RECORDING so task instructions + Start button are shown first.
-    // For video tasks, calibration is triggered by the Start button, not on mount.
+    // Video tasks: PERMISSION → GENERAL_INFO (pre-calibration text) → SETUP →
+    // CALIBRATE → RECORDING (instructions + story + PiP preview + Start button).
+    // Audio-only tasks start directly at RECORDING.
     const [phase, setPhase] = useState(isVideoEnabled ? 'PERMISSION' : 'RECORDING');
     // Tracks whether the user has completed calibration at least once this session.
     // Prevents the PiP viewfinder from appearing before calibration has happened.
     const [videoCalibrated, setVideoCalibrated] = useState(false);
+    // Split instruction pack (monologue tasks): the topic stays hidden behind a
+    // "See the topic" button until the participant reveals it.
+    const [topicRevealed, setTopicRevealed] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
     const RECORDING_START_DELAY_MS = 1500;
@@ -239,16 +254,43 @@ export const Recorder = ({
         storyPlayerRef.current?.stop();
         onLogEvent("button_start");
         resetSpeechTrackers();
-        if (isVideoEnabled) {
-            // Defer actual recording until calibration completes.
+        if (isVideoEnabled && !videoCalibrated) {
+            // Retry path: calibration was reset, run it again before recording.
             // VideoViewFinder auto-triggers the setup instructions dialog on SETUP mount.
             setPhase('SETUP');
         } else {
             setIsPreparingToRecord(true);
             recordingStartTimeoutRef.current = setTimeout(() => {
                 startAudioRecording();
+                if (isVideoEnabled) videoRecorder.startRecording();
             }, RECORDING_START_DELAY_MS);
         }
+    };
+
+    // Auto-press START once per mount (e.g. MicCheck "Try again" retries),
+    // waiting for the autoPermission prefetch to grant the mic first.
+    const autoStartedRef = useRef(false);
+    useEffect(() => {
+        if (autoStart && !autoStartedRef.current &&
+            audioPermission && recordingStatus === RECORDING_STATES.IDLE) {
+            autoStartedRef.current = true;
+            handleStart();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoStart, audioPermission, recordingStatus]);
+
+    // Split pack screen 1 → screen 2: reveal the topic and let the parent
+    // switch the audio guide to the per-topic clip.
+    const handleRevealTopic = () => {
+        onLogEvent("button_see_topic");
+        setTopicRevealed(true);
+        onTopicReveal();
+    };
+
+    // GENERAL_INFO screen → camera calibration.
+    const handleGoToCalibration = () => {
+        onLogEvent("button_to_calibration");
+        setPhase('SETUP');
     };
 
     const handleStop = () => {
@@ -264,11 +306,13 @@ export const Recorder = ({
         clearSpeechSegments();
         resetSpeechTrackers();
         setExampleResetTrigger(t => t + 1); // Story/example starts over on a fresh attempt
+        setTopicRevealed(false); // Retry replays the whole split instruction pack
         repeatRecording();
         if (isVideoEnabled) {
-            // Reset calibration flag and ensure we are in the instructions phase
+            // Reset calibration and restart the whole flow from the
+            // pre-calibration info screen.
             setVideoCalibrated(false);
-            setPhase('RECORDING'); 
+            setPhase('GENERAL_INFO');
         }
     };
 
@@ -425,51 +469,50 @@ export const Recorder = ({
         startCalibrationInFlightRef.current = false;
     };
 
-    const finishCalibrationInFlightRef = useRef(false);
-
     // Finish Video Calibration (Passed to VideoViewFinder)
-    // This is the real "start" for video tasks — both recorders kick off here.
+    // Lands on the task instructions screen (phase RECORDING, idle) with the
+    // PiP camera preview — recording itself starts via the Start button there.
     const handleFinishCalibration = () => {
-        if (finishCalibrationInFlightRef.current) return;
-        finishCalibrationInFlightRef.current = true;
-
-        onBeforeRecordingStart();
-        examplePlayerRef.current?.stop();
-        storyPlayerRef.current?.stop();
         setVideoCalibrated(true);
-        setIsPreparingToRecord(true);
-        recordingStartTimeoutRef.current = setTimeout(() => {
-            startAudioRecording();
-            videoRecorder.startRecording();
-            finishCalibrationInFlightRef.current = false;
-        }, RECORDING_START_DELAY_MS);
+        setPhase('RECORDING');
     };
 
     // ── Instruction parsing ───────────────────────────────────────────────
-    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE' || (isPreparingToRecord && !videoCalibrated === false));
+    const isCalibrationPhase = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
     const isPermissionPhase = isVideoEnabled && phase === 'PERMISSION';
 
     const parsedInstructions = useMemo(() => {
         let baseInstructions = instructions;
-        
+
         const isActiveOrPreparing = recordingStatus !== RECORDING_STATES.IDLE;
 
         if (isCalibrationPhase) {
             baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
+        } else if (phase === 'GENERAL_INFO') {
+            baseInstructions = instructionsPreCalibration || instructions;
         } else if (recordingStatus === RECORDING_STATES.RECORDED) {
             baseInstructions = completedInstructions;
+        } else if (instructionsTopic && topicRevealed && phase === 'RECORDING' &&
+                   recordingStatus === RECORDING_STATES.IDLE) {
+            // Split pack screen 2 — the topic. Screen 1 (not yet revealed)
+            // falls through to the plain `instructions` below.
+            baseInstructions = instructionsTopic;
         } else if (isDynamicTask && dynamicIndex > 0) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
         } else if (instructionsActive && isActiveOrPreparing && !awaitingNextTopic) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
+        } else if (isVideoEnabled && instructionsPostCalibration) {
+            baseInstructions = instructionsPostCalibration;
         }
 
         const currentItem = isDynamicTask ? dynamicArray[dynamicIndex] : null;
         return interpolateInstructions(baseInstructions, isDynamicTask, currentItem, taskParams, dynamicArray);
     }, [
-        instructions, instructionsActive, completedInstructions, isCalibrationPhase,
+        instructions, instructionsPreCalibration, instructionsPostCalibration, instructionsActive,
+        instructionsTopic, topicRevealed,
+        completedInstructions, isCalibrationPhase, isVideoEnabled, phase,
         isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic,
-        voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES, isPreparingToRecord
+        voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
 
     const slots = {
@@ -540,6 +583,10 @@ export const Recorder = ({
                 showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
                 visualPhase={visualPhase}
             />
+
+            {showRemainingBar && recordingStatus === RECORDING_STATES.RECORDING && (
+                <RemainingTimeBar durationMs={(voiceRecorder.remainingTime ?? 0) * 1000} />
+            )}
 
             {activeUseVAD && recordingStatus === RECORDING_STATES.RECORDING && DEBUG_MODE && (
                 <div style={{ marginTop: '15px', fontSize: '0.85rem', color: '#666', textAlign: 'center', fontFamily: 'monospace' }}>
@@ -613,7 +660,9 @@ export const Recorder = ({
                     videoRecorder={videoRecorder} 
                     isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
                     onRequestCameraPermission={handleRequestCameraPermission}
-                    onPermissionGranted={() => setPhase('RECORDING')} // Moves to Task Instructions
+                    onPermissionGranted={() => setPhase('GENERAL_INFO')} // Moves to the pre-calibration info screen
+                    onPermissionDenied={onCameraPermissionDenied}
+                    onDeclineVideo={onDeclineVideo}
                     onStartCalibration={handleStartCalibration}
                     onFinishCalibration={handleFinishCalibration}
                 />
@@ -625,7 +674,13 @@ export const Recorder = ({
     );
 
     // controls slot: VAD loading notice + record controls + playback
-    const controlsContent = phase === 'RECORDING' ? (
+    const controlsContent = phase === 'GENERAL_INFO' ? (
+        <div className="controls control-buttons">
+            <button className="btn-start" onClick={handleGoToCalibration}>
+                {t("buttons.startCalibration")}
+            </button>
+        </div>
+    ) : phase === 'RECORDING' ? (
         <>
             {DEBUG_MODE && <StatusIndicator status={recordingStatus} />}
 
@@ -645,6 +700,8 @@ export const Recorder = ({
                 <div style={{ display: 'contents', visibility: promptTopicSwitch ? 'hidden' : 'visible' }}>
                     <RecordingControls
                         recordingStatus={recordingStatus}
+                        showRevealTopic={!!instructionsTopic && !topicRevealed && !(isVideoEnabled && !videoCalibrated)}
+                        onRevealTopic={handleRevealTopic}
                         disableControls={mode === 'countDown'}
                         disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory || isPreparingToRecord}
                         permission={audioPermission}
@@ -657,6 +714,7 @@ export const Recorder = ({
                         showPause={false}
                         RECORDING_STATES={RECORDING_STATES}
                         isVideoEnabled={isVideoEnabled}
+                        videoCalibrated={videoCalibrated}
                         isPreparingToRecord={isPreparingToRecord}
                     />
                     <PlaybackSection
@@ -683,7 +741,7 @@ export const Recorder = ({
 
             showSpacer={!(hideTitle && isActivelyRecording)}
             instructions={instructionsContent}
-            instructionsKey={isDynamicTask ? dynamicIndex : 'static'}
+            instructionsKey={`${isDynamicTask ? dynamicIndex : 'static'}-${topicRevealed}`}
             instructionsClassName={`${!(hideTitle && isActivelyRecording) ? 'with-title' : 'no-title'} ${shouldShiftTimer ? 'is-shifted-instructions' : ''}`}
 
             mainClassName={recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}

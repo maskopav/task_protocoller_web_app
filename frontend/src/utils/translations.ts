@@ -31,6 +31,23 @@ export function translateTaskInstructionsActive(category: string, params: Record
   return i18next.t(`${category}.instructionsActive`, { ...i18nOptions,...params, defaultValue: "" });
 }
 
+// Second screen of the split instruction pack (monologue tasks): reveals the
+// topic after the static intro screen. Empty for tasks without the key.
+export function translateTaskInstructionsTopic(category: string, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructionsTopic`, { ...i18nOptions,...params, defaultValue: "" });
+}
+
+// Pre-calibration info screen of video (recordVideo) tasks.
+export function translateTaskInstructionsPreCalibration(category: string, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructionsPreCalibration`, { ...i18nOptions,...params, defaultValue: "" });
+}
+
+// Post-calibration instructions screen of video (recordVideo) tasks.
+// Falls back to the plain instructions when a task has no dedicated copy.
+export function translateTaskInstructionsPostCalibration(category: string, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructionsPostCalibration`, { ...i18nOptions,...params, defaultValue: "" });
+}
+
 export function translateParamName(category: string, param: string): string {
   const key = `${category}.params.${param}.label`;
   const taskLabel = i18next.t(key, { ...i18nOptions,defaultValue: "" });
@@ -167,7 +184,7 @@ export function getResolvedParams(category: string, actualParams: Record<string,
     } else {
       // Only override with label if the original value is a string
       // and label is explicitly provided (e.g. "fairytale": { label: "Fairytale" })
-      if (typeof actualValue === "string" && paramTranslation.label && category !== "questionnaire") {
+      if (typeof actualValue === "string" && paramTranslation.label && taskBaseConfig[category]?.type !== "questionnaire") {
         result[paramKey] = paramTranslation.label;
       } else {
         // Otherwise, preserve the numeric / literal value

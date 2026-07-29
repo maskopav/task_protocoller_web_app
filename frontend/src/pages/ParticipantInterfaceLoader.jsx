@@ -369,6 +369,7 @@ function mapProtocol(raw, mappings) {
     tasks: mappedTasks,
     randomization: raw.randomization,
     required_identifiers: raw.required_identifiers,
+    use_audio_guide: raw.use_audio_guide,
     info_text: raw.info_text,
     consent_text: raw.consent_text
   };

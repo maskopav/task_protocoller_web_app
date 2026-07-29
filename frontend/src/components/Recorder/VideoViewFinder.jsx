@@ -22,6 +22,8 @@ export const VideoViewFinder = ({
     isRecording,
     onRequestCameraPermission,
     onPermissionGranted,
+    onPermissionDenied,
+    onDeclineVideo,
     onStartCalibration,
     onFinishCalibration,
     permissionDenied = false
@@ -167,6 +169,12 @@ export const VideoViewFinder = ({
         }
     }, [cameraGranted, phase, onPermissionGranted]);
 
+    // Report whether the denied screen is currently showing, so the parent can
+    // pick the camera_permission_denied guide clip. Auto-clears on retry/grant.
+    useEffect(() => {
+        onPermissionDenied?.(camPermState === CAM_PERM.DENIED);
+    }, [camPermState, onPermissionDenied]);
+
     // ── CAMERA PERMISSION DENIED ──────────────────────────────────
     // Shown instead of ANY phase content (SETUP, CALIBRATE, RECORDING...)
     // until permission is granted. The onchange listener above will
@@ -190,6 +198,22 @@ export const VideoViewFinder = ({
                     setCamPermState(CAM_PERM.CHECKING);
                     requestCameraStream();
                 }}
+                secondaryControls={onDeclineVideo && (
+                    <button
+                        className="btn-decline-camera"
+                        onClick={async () => {
+                            const confirmed = await confirm({
+                                title: t('videoCalibration.guide.declineTitle'),
+                                message: t('videoCalibration.guide.declineMessage'),
+                                confirmText: t('videoCalibration.guide.declineConfirm'),
+                                cancelText: t('videoCalibration.guide.declineCancel'),
+                            });
+                            if (confirmed) onDeclineVideo();
+                        }}
+                    >
+                        {t('videoCalibration.guide.btnDecline')}
+                    </button>
+                )}
             />
         );
     }
@@ -232,9 +256,10 @@ export const VideoViewFinder = ({
         return null;
     }
 
-    // Hide the actual viewfinder UI during the permission phase, 
-    // or during the task instructions phase before calibration starts.
-    if (phase === 'PERMISSION' || (phase === 'RECORDING' && !videoCalibrated)) {
+    // Hide the actual viewfinder UI during the permission phase, the
+    // pre-calibration info screen, or the task instructions phase before
+    // calibration has happened (retry path).
+    if (phase === 'PERMISSION' || phase === 'GENERAL_INFO' || (phase === 'RECORDING' && !videoCalibrated)) {
         return null;
     }
 

@@ -289,7 +289,7 @@ export default function D15Test({ task, onNextTask, audioPlayer }) {
           />
         </div>
       }
-      instructions={<Trans t={t} i18nKey="d15colour.goalText" />}
+      instructions={<Trans t={t} i18nKey="d15colour.mainInstructionsText" components={{ br: <br /> }} />}
       controls={controlsContent}
     >
       {boardContent}

@@ -10,11 +10,69 @@
       "questions": { "label": "Otázky" }
     }
   },
+  "rbdsq": {
+    "name": "RBD-SQ",
+    "description": "[cs] REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Dotazník: {{title}}",
+    "instructions": "Prosím zodpovězte na následující otázky.",
+    "params": {
+      "title": { "label": "Název" },
+      "description": { "label": "Popis" },
+      "questions": { "label": "Otázky" }
+    },
+    "defaultContent": {
+      "title": "RBD-SQ",
+      "description": "",
+      "questions": [
+        { "id": 1782905076296, "text": "[cs] I sometimes have very vivid dreams.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905161794, "text": "[cs] My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905166057, "text": "[cs] The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905170074, "text": "[cs] I know that my arms or legs move when I sleep.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905174710, "text": "[cs] It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905182339, "text": "[cs] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1782905259308, "text": "[cs] I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076583590, "text": "[cs] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076590512, "text": "[cs] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076636726, "text": "[cs] It happens that my movements awake me.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076672712, "text": "[cs] After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076688838, "text": "[cs] My sleep is frequently disturbed.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
+        { "id": 1783076704506, "text": "[cs] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["[cs] Yes", "[cs] No"] }
+      ]
+    }
+  },
+  "hhies": {
+    "name": "HHIE-S",
+    "description": "[cs] Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Dotazník: {{title}}",
+    "instructions": "Prosím zodpovězte na následující otázky.",
+    "params": {
+      "title": { "label": "Název" },
+      "description": { "label": "Popis" },
+      "questions": { "label": "Otázky" }
+    },
+    "defaultContent": {
+      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "description": "",
+      "questions": [
+        { "id": 1783259602375, "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259610834, "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259617267, "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259622208, "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259626876, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259632940, "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259643040, "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259656707, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259672641, "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
+        { "id": 1783259681028, "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?", "type": "single", "options": ["Ano", "Občas", "Ne"] }
+      ]
+    }
+  },
   "phonation": {
     "name": "Prodloužená fonace",
     "description": "Účastník udržuje jeden samohláskový zvuk (např. /a/, /e/, /i/, /o/, /u/) po stanovenou dobu za účelem analýzy stability a kontroly hlasu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastavené doby. Administrátor by měl nastavit samohlásku ('phoneme'), počet opakování ('repeat') a časový interval, po kterém se zobrazí tlačítko STOP ('duration').",
     "title": "Prodloužená fonace /{{phoneme}}/",
     "instructions": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /{{phoneme}}/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň {{duration}} sekund. Jakmile se vám dojde dech, stiskněte STOP.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
       "phoneme": {
         "label": "Samohláska",
@@ -36,6 +94,7 @@
     "description": "Účastník opakuje zadané slabiky (např. 'pa-ta-ka', 'ta', 'ka') co nejrychleji a nejzřetelněji, aby se posoudila rychlost a přesnost artikulace. Záznam probíhá v režimu *odpočtu* — po uplynutí stanoveného času se automaticky zastaví. Administrátor by měl nastavit sled slabik ('syllable'), celkovou dobu záznamu ('duration') a počet opakování ('repeat'), pokud se úloha opakuje.",
     "title": "Opakování {{syllable}}",
     "instructions": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /{{syllable}}/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
       "syllable": {
         "label": "Slabika",
@@ -55,6 +114,9 @@
     "description": "Účastník převypráví známou pohádku zpaměti (např. Sněhurka, Jeníček a Mařenka), aby se zhodnotila plynulost, propojenost řeči a bohatost slovní zásoby. Záznam probíhá v režimu *manuálního zastavení* — administrátor nebo účastník ho zastaví po dokončení. Administrátor by měl zvolit pohádku ('fairytale') a počet opakování ('repeat').",
     "title": "Vyprávění: {{fairytale}}",
     "instructions": "Stiskněte START a převyprávějte pohádku: {{fairytale}}. Po dokončení stiskněte STOP.",
+    "instructionsPreCalibration": "V následující úloze si poslechnete namluvený příběh a poté ho převyprávíte vlastními slovy. <br/><br/>Během vašeho vyprávění budeme měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
+    "instructionsPostCalibration": "Stisknutím tlačítka Přehrát pohádku si poslechněte namluvený příběh. {{playStory}} Po poslechu příběhu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Mluvte souvisle — nezáleží na tom, zda je převyprávěný příběh správný nebo úplný.",
+    "instructionsActive": "Nyní prosím převyprávějte příběh vlastními slovy během {{duration}} sekund.",
     "params": {
       "fairytale": {
         "label": "Pohádka",
@@ -72,6 +134,7 @@
     "description": "Účastník čte krátký text zobrazený na obrazovce nahlas, aby se posoudila plynulost, artikulace a prozodie řeči. Záznam probíhá v režimu *manuálního zastavení* — spustí se po stisknutí START a ukončí po stisknutí STOP účastníkem nebo administrátorem. Administrátor by měl zvolit téma textu ('topic') a počet opakování ('repeat').",
     "title": "Čtení: {{topic}}",
     "instructions": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "instructionsActive": "{{text}}",
     "params": {
       "topic": {
@@ -99,7 +162,10 @@
     "name": "Monolog na téma",
     "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
     "title": "Monolog na téma: {{topic}}",
-    "instructions": "Pokuste se co nejdetailněji popsat {{topicDescription}}. Až budete připraven/a zmačkněte tlačítko START a začněte vyprávět dokud nebude možné stisknout STOP po {{duration}} sekundách.",
+    "instructions": "Ukážeme vám téma a požádáme vás, abyste o něm volně hovořil/a po dobu <strong>{{duration}} sekund</strong>.",
+    "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraven/a, stiskněte Start.",
+    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
+    "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
     "params": {
       "topic": {
         "label": "Téma monologu",

@@ -1,9 +1,67 @@
 {
+  "rbdsq": {
+    "name": "RBD-SQ",
+    "description": "[de] REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Fragebogen: {{title}}",
+    "instructions": "Bitte beantworten Sie die folgenden Fragen.",
+    "params": {
+      "title": { "label": "Titel" },
+      "description": { "label": "Beschreibung" },
+      "questions": { "label": "Fragen" }
+    },
+    "defaultContent": {
+      "title": "RBD-SQ",
+      "description": "",
+      "questions": [
+        { "id": 1782905076296, "text": "[de] I sometimes have very vivid dreams.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1782905161794, "text": "[de] My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1782905166057, "text": "[de] The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1782905170074, "text": "[de] I know that my arms or legs move when I sleep.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1782905174710, "text": "[de] It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1782905182339, "text": "[de] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1782905259308, "text": "[de] I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1783076583590, "text": "[de] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1783076590512, "text": "[de] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1783076636726, "text": "[de] It happens that my movements awake me.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1783076672712, "text": "[de] After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1783076688838, "text": "[de] My sleep is frequently disturbed.", "type": "single", "options": ["[de] Yes", "[de] No"] },
+        { "id": 1783076704506, "text": "[de] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["[de] Yes", "[de] No"] }
+      ]
+    }
+  },
+  "hhies": {
+    "name": "HHIE-S",
+    "description": "[de] Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Fragebogen: {{title}}",
+    "instructions": "Bitte beantworten Sie die folgenden Fragen.",
+    "params": {
+      "title": { "label": "Titel" },
+      "description": { "label": "Beschreibung" },
+      "questions": { "label": "Fragen" }
+    },
+    "defaultContent": {
+      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "description": "",
+      "questions": [
+        { "id": 1783259602375, "text": "[de] Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259610834, "text": "[de] Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259617267, "text": "[de] Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259622208, "text": "[de] Do you feel handicapped by a hearing problem?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259626876, "text": "[de] Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259632940, "text": "[de] Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259643040, "text": "[de] Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259656707, "text": "[de] Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259672641, "text": "[de] Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
+        { "id": 1783259681028, "text": "[de] Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] }
+      ]
+    }
+  },
   "phonation": {
     "name": "Lang anhaltende Phonation",
     "description": "Die Teilnehmerin oder der Teilnehmer hält einen einzelnen Vokallaut (z. B. /a/, /e/, /i/, /o/, /u/) für eine festgelegte Zeit, um die Stimmstabilität und -kontrolle zu analysieren. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der eingestellten Dauer. Die Administratorin oder der Administrator sollte den Vokal ('phoneme'), die Anzahl der Wiederholungen ('repeat') und das Zeitintervall, nach dem die STOP-Taste erscheint ('duration'), festlegen.",
     "title": "Verlängerte Phonation /{{phoneme}}/",
     "instructions": "Drücken Sie START und halten Sie /{{phoneme}}/ mindestens {{duration}} Sekunden lang, bis Sie STOP drücken können.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
       "phoneme": {
         "label": "Vokal",
@@ -25,6 +83,7 @@
     "description": "Die Teilnehmerin oder der Teilnehmer wiederholt vorgegebene Silben (z. B. 'pa-ta-ka', 'ta', 'ka') so schnell und deutlich wie möglich, um Artikulationsgeschwindigkeit und Präzision zu bewerten. Die Aufnahme erfolgt im *Countdown-Modus* – sie stoppt automatisch nach Ablauf der angegebenen Dauer. Die Administratorin oder der Administrator sollte die Silbenfolge ('syllable'), die Gesamtdauer ('duration') und die Anzahl der Wiederholungen ('repeat') festlegen.",
     "title": "{{syllable}}-Wiederholung",
     "instructions": "Drücken Sie START und wiederholen Sie /{{syllable}}/ so schnell und präzise wie möglich, bis der Timer automatisch stoppt.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
       "syllable": {
         "label": "Silbe",
@@ -44,6 +103,9 @@
     "description": "Die Teilnehmerin oder der Teilnehmer erzählt ein bekanntes Märchen aus dem Gedächtnis (z. B. Schneewittchen, Hänsel und Gretel), um zusammenhängende Spontansprache, Flüssigkeit und Wortschatzreichtum zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie wird manuell beendet, wenn die Erzählung abgeschlossen ist. Die Administratorin oder der Administrator sollte das Märchen ('fairytale') und die Anzahl der Wiederholungen ('repeat') auswählen.",
     "title": "Nacherzählung: {{fairytale}}",
     "instructions": "Drücken Sie START und erzählen Sie das Märchen {{fairytale}} nach. Drücken Sie STOP, wenn Sie fertig sind.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe hören Sie eine gesprochene Geschichte und erzählen sie anschließend in Ihren eigenen Worten nach. <br/><br/>Während Sie sprechen, messen wir Ihre Gesichtsbewegungen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
+    "instructionsPostCalibration": "Drücken Sie Geschichte abspielen, um sich eine gesprochene Geschichte anzuhören. {{playStory}} Drücken Sie nach dem Anhören START und <strong>erzählen Sie die Geschichte in Ihren eigenen Worten</strong> in {{duration}} Sekunden nach. <br/><br/>Sprechen Sie fortlaufend — es spielt keine Rolle, ob die nacherzählte Geschichte korrekt oder vollständig ist.",
+    "instructionsActive": "Bitte erzählen Sie die Geschichte in {{duration}} Sekunden in Ihren eigenen Worten nach.",
     "params": {
       "fairytale": {
         "label": "Märchen",
@@ -61,6 +123,7 @@
     "description": "Die Teilnehmerin oder der Teilnehmer liest einen kurzen Text laut von der Anzeige, um Leseflüssigkeit, Artikulation und Prosodie zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie startet mit START und endet, wenn die Teilnehmerin oder der Teilnehmer oder die Administratorin bzw. der Administrator STOP drückt. Das Thema des Textes ('topic') und die Anzahl der Wiederholungen ('repeat') sollten festgelegt werden.",
     "title": "Lesen: {{topic}}",
     "instructions": "Drücken Sie START und lesen Sie den Text in einem angenehmen Tempo. Drücken Sie STOP am Ende.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "instructionsActive": "{{text}}",
     "params": {
       "topic": {
@@ -88,7 +151,10 @@
     "name": "Monolog zu einem Thema",
     "description": "Die Teilnehmerin oder der Teilnehmer spricht frei über ein bestimmtes Thema (z. B. Hobbys, Familie oder ein beliebiges anderes Thema), um Sprachflüssigkeit und Kohärenz zu beurteilen. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der festgelegten Zeit. Die Administratorin oder der Administrator sollte das Thema ('topic'), die Anzahl der Wiederholungen ('repeat') und die Dauer bis zur Anzeige der STOP-Taste ('duration') festlegen.",
     "title": "Monolog über: {{topic}}",
-    "instructions": "Drücken Sie START und sprechen Sie über {{topicDescription}}, bis Sie nach {{duration}} Sekunden STOP drücken können.",
+    "instructions": "Wir zeigen Ihnen ein Thema und bitten Sie, <strong>{{duration}} Sekunden</strong> lang frei darüber zu sprechen.",
+    "instructionsTopic": "<strong>Thema:</strong><br/>{{topicDescription}} <br/><br/>Drücken Sie Start, wenn Sie bereit sind.",
+    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
+    "instructionsActive": "<strong>Thema:</strong><br/>{{topicDescription}}",
     "params": {
       "topic": {
         "label": "Thema des Monologs",

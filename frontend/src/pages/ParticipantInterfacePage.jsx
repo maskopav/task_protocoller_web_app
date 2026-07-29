@@ -15,6 +15,7 @@ import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroCompon
 import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
 import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
+import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
 import { uploadRecording, uploadMicCheck } from "../api/recordings";
@@ -31,7 +32,7 @@ import {
   deleteLocalRecording,
 } from '../utils/offlineStorage';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { getAudioGuidePath, getCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
+import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
@@ -110,6 +111,15 @@ export default function ParticipantInterfacePage() {
   const lastLoggedIndex = useRef(-1);
 
   const [recorderPhase, setRecorderPhase] = useState(null);
+  // True while the camera-permission-denied screen is showing (reported by the
+  // Recorder). Selects the camera_permission_denied guide clip, mirroring how
+  // MicCheck's 'permission_denied' stage does for the microphone.
+  const [cameraDenied, setCameraDenied] = useState(false);
+  // In case the user confirmed "continue without camera": all remaining
+  // recordVideo tasks run audio-only and camera-type tasks are skipped.
+  // In-memory only, intentionally NOT persisted: on refresh/resume the
+  // participant sees the permission screen again.
+  const [videoDeclined, setVideoDeclined] = useState(false);
   const playedRecorderPhases = useRef(new Set());
 
   const testingMode = location.state?.testingMode ?? false;
@@ -179,6 +189,16 @@ export default function ParticipantInterfacePage() {
       category: "volume_check",
       isSystemTask: true
     });
+
+    // Add Audio Guide Intro — only when the protocol uses the audio guide.
+    // Same 0/1-from-MariaDB handling as useAudioGuide below.
+    if (selectedProtocol.use_audio_guide ?? true) {
+      introSteps.push({
+        type: "audio_guide_intro",
+        category: "audio_guide_intro",
+        isSystemTask: true
+      });
+    }
 
     // Helper to find content by type in the global_contents array
     const findGlobalContent = (type) => {
@@ -438,7 +458,7 @@ export default function ParticipantInterfacePage() {
     let isReading = false;
     let isRetelling = false;
 
-    if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check'].includes(rawTask.type)) {
+    if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(rawTask.type)) {
        task = resolveTask(rawTask, t);
        isReading = task?.category === 'reading';
        isRetelling = task?.category === 'retelling';
@@ -447,25 +467,52 @@ export default function ParticipantInterfacePage() {
     return { currentTask: task, isReadingTask: isReading, isRetellingTask: isRetelling };
   }, [rawTask, t]);
 
-  const useAudioInstructions = protocolData?.use_audio_instructions ?? true;
+  // A task uses the camera-permission/calibration flow if it's a camera task OR a
+  // voice task with recordVideo on (retelling with video, etc.). recordVideo is
+  // stored as the string "true"/"false", matching Recorder.jsx's own check.
+  const isVideoTask = !videoDeclined && (currentTask?.type === 'camera'
+    || currentTask?.resolvedParams?.recordVideo === 'true');
+
+  // --- Retrieve audio guide state (on/off) ---
+  // MariaDB returns BOOLEAN as 0/1 — `?? true` only covers the missing case, !! normalizes the rest
+  const useAudioGuide = !!(protocolData?.use_audio_guide ?? true);
 
   const audioSrc = useMemo(() => {
-    if (!rawTask || !useAudioInstructions) return null;
+    if (!rawTask || !useAudioGuide) return null;
 
-    let taskName = rawTask.category;
+    // Vision tasks (VisionTaskWrapper) own their audio guides internally across
+    // the setup / trial / test sub-steps. Keep the page-level general guide
+    // silent so it doesn't play on top of the wrapper's own clips.
+    if (rawTask.type === 'vision') return null;
+
+    // All questionnaire categories (generic + standard ones like rbdsq/hhies)
+    // share the same audio guide clip, since their content
+    // is dynamic and can't be pre-recorded per task.
+    let taskName = rawTask.type === 'questionnaire' ? 'questionnaire' : rawTask.category;
 
     if (rawTask.type === 'mic_check' && micCheckGuideStage) {
       const micCheckAudioMap = {
         'permission': 'mic_permission',
+        'permission_denied': 'mic_permission_denied',
         'calibration': 'audio_setup',
         'success': 'mic_success',
         'failed': 'mic_failed',      // General background noise
-        'muted': 'mic_muted',        
+        'muted': 'mic_muted',
         'warning': 'mic_warning'
       };
       taskName = micCheckAudioMap[micCheckGuideStage] || 'audio_setup';
-    } else if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
-      taskName = 'camera_permission'; 
+    } else if (!videoDeclined && currentTask?.params?.recordVideo === 'true') {
+      if (cameraDenied) {
+        taskName = 'camera_permission_denied';
+      } else if (recorderPhase === 'PERMISSION') {
+        taskName = 'camera_permission';
+      } else if (['GENERAL_INFO', 'SETUP', 'CALIBRATE'].includes(recorderPhase)) {
+        // Pre-calibration info screen (clip keeps playing through calibration)
+        taskName = `${taskName}_precalibration`;
+      } else if (recorderPhase === 'RECORDING') {
+        // Post-calibration instructions screen + the task itself
+        taskName = `${taskName}_postcalibration`;
+      }
     }
     const repeatIndex = currentTask?._repeatIndex || 1; 
     const taskParams = currentTask?.params || {};
@@ -476,9 +523,9 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [rawTask, currentTask, i18n.language, useAudioInstructions, micCheckGuideStage, recorderPhase]);
+  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase, cameraDenied, videoDeclined]);
 
-  // New task opened -> switch to instructions and force a play
+  // New task opened -> if audio guide on, switch to instructions and force a play
   useEffect(() => {
     playedMicCheckStages.current.clear();
     playedRecorderPhases.current.clear();
@@ -486,18 +533,25 @@ export default function ParticipantInterfacePage() {
     setGuideStage('general');
     if (rawTask?.type === 'mic_check') {
       setMicCheckGuideStage(null);
-    } else if (currentTask?.type === 'camera') {
-      setRecorderPhase(null); 
+    } else if (isVideoTask) {
+      setRecorderPhase(null);
+      setCameraDenied(false);
     } else {
       setPendingAudio(true);
     }
   }, [taskIndex]);
 
   useEffect(() => {
-    if (currentTask?.type === 'camera' && recorderPhase) {
-      // Group all non-permission phases (SETUP, CALIBRATE, RECORDING) into 'instructions'
-      const audioStage = recorderPhase === 'PERMISSION' ? 'permission' : 'instructions';
-      
+    if (isVideoTask && recorderPhase) {
+      // Three guide clips: 'permission' (camera prompt), 'general_info' (the
+      // pre-calibration screen — SETUP/CALIBRATE are grouped with it so the
+      // clip isn't retriggered during calibration), and 'instructions' (the
+      // post-calibration screen, phase RECORDING).
+      const audioStage =
+        recorderPhase === 'PERMISSION' ? 'permission' :
+        recorderPhase === 'RECORDING' ? 'instructions' :
+        'general_info';
+
       if (!playedRecorderPhases.current.has(audioStage)) {
         if (audioStage === 'permission') {
           // Add a slight delay. If permission is already granted, it will skip this phase instantly
@@ -518,6 +572,16 @@ export default function ParticipantInterfacePage() {
       }
     }
   }, [recorderPhase, currentTask]);
+
+  // Play the camera permission-denied guide the moment that screen appears
+  // (recorderPhase doesn't change on denial, so the effect above won't fire).
+  useEffect(() => {
+    if (isVideoTask && cameraDenied) {
+      setAudioPhase('instructions');
+      setGuideStage('general');
+      setPendingAudio(true);
+    }
+  }, [isVideoTask, cameraDenied]);
 
   // Fires the right guide clip each time MicCheck moves between its
   // permission-gate and calibration-recording sub-stages.
@@ -550,23 +614,61 @@ export default function ParticipantInterfacePage() {
     }
   }, [pendingAudio, isDialogOpen]);
 
-  const completedAudioSrc = useMemo(
-    () => getCompletionAudioPath(i18n.language),
-    [i18n.language]
+  // Once camera access is declined, camera-only tasks cannot run — record them
+  // as skipped and advance. handleTaskComplete is hoisted; its isUploadingRef
+  // guard prevents double-fires, and proceedToNext handles end-of-protocol.
+  useEffect(() => {
+    if (videoDeclined && currentTask?.type === 'camera') {
+      logInteraction('camera_task_auto_skipped');
+      handleTaskComplete({ skipped: true, reason: 'camera_access_declined' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoDeclined, taskIndex, currentTask?.type]);
+
+  // Per-task completion clip (header player). Null when the audio guide is off —
+  // the success ding is played instead, see handleRecorderAudioEvent.
+  const taskCompletedAudioSrc = useMemo(
+    () => useAudioGuide ? getTaskCompletionAudioPath(i18n.language) : null,
+    [i18n.language, useAudioGuide]
   );
+
+  // Participant confirmed "continue without camera" on the permission-denied
+  // screen. Plain function (not useCallback) so logInteraction is never stale.
+  const handleDeclineVideo = () => {
+    // Event lands in sessions.progress; the backend additionally flips
+    // sessions.camera_declined when it sees this action.
+    logInteraction('camera_access_declined');
+    setVideoDeclined(true);
+    setCameraDenied(false);          // stop the camera_permission_denied guide clip
+    setAudioPhase('instructions');   // queue the task's normal instruction clip,
+    setGuideStage('general');        // mirroring the cameraDenied effect above
+    setPendingAudio(true);
+  };
 
   // Reported by Recorder via onTopicChange whenever the active dynamic-task topic changes.
   const handleTopicChange = useCallback((index, topic) => {
     setTopicState({ index, topic });
-    
+
     if (index > 0) {
        setGuideStage('topic');
     }
   }, []);
 
+  // Split instruction pack (monologue tasks): the participant pressed
+  // "See the topic" — hand the audio guide off to the per-topic clip.
+  const handleTopicReveal = useCallback(() => {
+    stopAudioGuides(); // cut the screen-1 clip mid-word if still playing
+    if (topicState.topic == null && rawTask?.params?.topic) {
+      // monologue: single topic, Recorder never reports one — use the raw id string
+      setTopicState({ index: 0, topic: rawTask.params.topic });
+    }
+    setGuideStage('topic');
+    setTopicPlayTrigger(t => t + 1);
+  }, [rawTask, topicState.topic, stopAudioGuides]);
+
   // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
   const topicAudioSrc = useMemo(() => {
-    if (!rawTask || !useAudioInstructions || topicState.topic == null) return null;
+    if (!rawTask || !useAudioGuide || topicState.topic == null) return null;
 
     let topicIdentifier = topicState.topic;
 
@@ -586,41 +688,45 @@ export default function ParticipantInterfacePage() {
     }
 
     return getTopicAudioPath(rawTask.category, topicIdentifier, i18n.language);
-  }, [rawTask, useAudioInstructions, topicState.topic, topicState.index, currentTask, i18n.language]);
+  }, [rawTask, useAudioGuide, topicState.topic, topicState.index, currentTask, i18n.language]);
 
   // Called when the general instructions clip finishes (or fails to load) —
   // hands off to the per-topic clip for whichever topic is active.
   const handleGeneralGuideEnded = useCallback(() => {
-    // Do not trigger the next steps (like the story) if it was just the permission audio that ended!
-    if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
-      return; 
+    // For video tasks the story only chains after the POST-calibration
+    // instructions clip
+    if (currentTask?.params?.recordVideo === 'true' && recorderPhase !== 'RECORDING') {
+      return;
     }
 
     // Only hand off to the per-topic clip if there's actually a topic to play.
-    if (guideStage === 'general' && topicState.topic != null) {
+    // Split-pack tasks (instructionsTopic) are excluded: their topic clip must
+    // wait for the "See the topic" button (handleTopicReveal), never auto-play.
+    if (guideStage === 'general' && topicState.topic != null && !currentTask?.instructionsTopic) {
       setGuideStage('topic');
       setTopicPlayTrigger(t => t + 1);
       return;
     }
-    if (isRetellingTask && useAudioInstructions) {
+    if (isRetellingTask && useAudioGuide) {
       setStoryPlayTrigger(t => t + 1);
     }
-  }, [currentTask, recorderPhase, guideStage, topicState, isRetellingTask, useAudioInstructions]);
+  }, [currentTask, recorderPhase, guideStage, topicState, isRetellingTask, useAudioGuide]);
 
   // If there's no general clip to play at all for this task (feature off, or
   // no file for this task/param combo), skip straight to the topic clip
   // instead of waiting forever for an 'ended' event that will never fire.
   useEffect(() => {
-    // Prevent this fallback from triggering the story while we are still on the permission screen
-    if (currentTask?.params?.recordVideo === 'true' && recorderPhase === 'PERMISSION') {
+    // Prevent this fallback from triggering the story before the
+    // post-calibration instructions screen of a video task
+    if (currentTask?.params?.recordVideo === 'true' && recorderPhase !== 'RECORDING') {
         return;
     }
 
-    if (isRetellingTask && useAudioInstructions && guideStage === 'general' &&
+    if (isRetellingTask && useAudioGuide && guideStage === 'general' &&
         !audioSrc && topicState.topic == null) {
       setStoryPlayTrigger(t => t + 1);
     }
-  }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic, currentTask, recorderPhase]); 
+  }, [isRetellingTask, useAudioGuide, guideStage, audioSrc, topicState.topic, currentTask, recorderPhase]);
 
   // Once we've handed off to per-topic clips, re-trigger playback every time
   // the topic actually changes (e.g. the participant switches topics mid-task).
@@ -631,28 +737,27 @@ export default function ParticipantInterfacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicState.index]);
 
-  useEffect(() => {
-    if (isRetellingTask && useAudioInstructions && guideStage === 'general' &&
-        !audioSrc && topicState.topic == null) {
-      setStoryPlayTrigger(t => t + 1);
-    }
-  }, [isRetellingTask, useAudioInstructions, guideStage, audioSrc, topicState.topic]);
-
   const handleRecorderAudioEvent = useCallback((eventType) => {
     if (eventType === 'completed') {
-      setAudioPhase('completed');
-      setPlayTrigger(t => t + 1);   // force play of the "completed" clip
+      if (useAudioGuide) {
+        setAudioPhase('completed');
+        setPlayTrigger(t => t + 1);   // force play of the task_completed clip
+      } else {
+        // No spoken guide → play the same success ding as the completion screens
+        const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_sound.m4a`);
+        audio.play().catch(e => console.log("Audio play blocked", e));
+      }
     } else if (eventType === 'retry') {
       setAudioPhase('instructions'); // src reverts, but playTrigger stays the same → no autoplay
-      setGuideStage('general');     
+      setGuideStage('general');
     }
-  }, []); // <-- Empty dependency array ensures the reference never changes
+  }, [useAudioGuide]);
 
   // Only one of these is non-null at a time: the general clip while guideStage
   // is 'general', the matching topic clip once we've handed off to 'topic',
   // and the "completed" clip always wins once the recording is done.
   const headerGeneralAudioSrc = audioPhase === 'completed'
-    ? completedAudioSrc
+    ? taskCompletedAudioSrc
     : (guideStage === 'general' ? audioSrc : null);
 
   const headerTopicAudioSrc = audioPhase === 'completed'
@@ -675,7 +780,7 @@ export default function ParticipantInterfacePage() {
     }
     try {
       const currentTaskObj = runtimeTasks[taskIndex];
-      const isSystemTask = ['info', 'consent', 'identifiers', 'volume_check'].includes(currentTaskObj.type);
+      const isSystemTask = ['info', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(currentTaskObj.type);
       const isMicCheck = currentTaskObj.type === 'mic_check';
     
       if (testingMode || editingMode || !sessionId) {
@@ -797,6 +902,7 @@ export default function ParticipantInterfacePage() {
           onBack={handleBack}
           pendingUploadCount={pendingUploadCount}
           networkStatus={networkStatus}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     }
@@ -804,7 +910,14 @@ export default function ParticipantInterfacePage() {
     // Render Volume Check
     if (rawTask.type === "volume_check") {
       return (
-        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} />
+        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} audioGuideEnabled={useAudioGuide} />
+      );
+    }
+
+    // Render Audio Guide Intro
+    if (rawTask.type === "audio_guide_intro") {
+      return (
+        <AudioGuideIntro onComplete={(data) => handleTaskComplete(data)} />
       );
     }
 
@@ -847,7 +960,11 @@ export default function ParticipantInterfacePage() {
               'noise-failed': errorType === 'muted' ? 'muted' : 'failed', 
               'warning': 'warning'
             };
-            const mappedStage = phaseMap[phase];
+            // The warning screen doubles as the permission-denied screen; give
+            // the latter its own guide clip (mic_permission_denied).
+            const mappedStage = phase === 'warning' && errorType === 'PERMISSION_DENIED'
+              ? 'permission_denied'
+              : phaseMap[phase];
             if (mappedStage && mappedStage !== micCheckGuideStage) {
               setMicCheckGuideStage(mappedStage);
             }
@@ -859,20 +976,30 @@ export default function ParticipantInterfacePage() {
       );
     }
 
+    // Camera declined → this task is about to be auto-skipped by the effect
+    // above; don't mount the Recorder at all (no mic prompt, no phase events).
+    if (videoDeclined && currentTask.type === 'camera') {
+      return <p>{t("loading", "Loading…")}</p>;
+    }
+
     // Render Voice Task
     if (currentTask.type === "voice" || currentTask.type === 'camera')
       return (
         <Recorder
-          key={taskIndex}
+          key={`${taskIndex}-${videoDeclined}`}
           title={currentTask.title}
           instructions={currentTask.instructions}
+          instructionsPreCalibration={currentTask.instructionsPreCalibration}
+          instructionsPostCalibration={currentTask.instructionsPostCalibration}
           instructionsActive={currentTask.instructionsActive}
+          instructionsTopic={currentTask.instructionsTopic}
+          onTopicReveal={handleTopicReveal}
           completedInstructions={t("completion.taskCompletedInstructions", { ns: "common" })}
           audioExample={currentTask.illustration}
           mode={currentTask.recording.mode}
           duration={currentTask.recording.duration}
           taskParams={currentTask.resolvedParams}
-          recordVideo={currentTask.resolvedParams?.recordVideo || false}
+          recordVideo={videoDeclined ? 'false' : (currentTask.resolvedParams?.recordVideo || false)}
           onNextTask={handleTaskComplete}
           onLogEvent={logInteraction}
           useVAD={currentTask.useVAD}
@@ -884,6 +1011,8 @@ export default function ParticipantInterfacePage() {
           onPermissionPending={setIsAwaitingPermission}
           onTopicChange={handleTopicChange}
           onPhaseChange={setRecorderPhase}
+          onCameraPermissionDenied={setCameraDenied}
+          onDeclineVideo={handleDeclineVideo}
           autoPlayStoryTrigger={storyPlayTrigger}
           onBeforeRecordingStart={stopAudioGuides}
           onExamplePlay={stopAudioGuides}
@@ -913,11 +1042,12 @@ export default function ParticipantInterfacePage() {
     // Render vision task
     if (currentTask.type === "vision") {
       return (
-        <VisionTaskWrapper 
+        <VisionTaskWrapper
           key={taskIndex}
           task={currentTask}
           onNextTask={handleTaskComplete}
           isUploading={isUploading}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     }
@@ -927,10 +1057,11 @@ export default function ParticipantInterfacePage() {
         <SDMTTask
           key={taskIndex}
           taskParams={currentTask.params}
-          onComplete={handleTaskComplete} 
+          onComplete={handleTaskComplete}
           isUploading={isUploading}
           onTaskActiveChange={setIsRecordingActive}
-          onAudioEvent={handleRecorderAudioEvent} 
+          onAudioEvent={handleRecorderAudioEvent}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     }

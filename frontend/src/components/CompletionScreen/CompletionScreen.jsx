@@ -6,8 +6,10 @@ import {
   noInternetIcon,
   uploadingIcon,
 } from "../../assets/successIcons/successAssets";
-import helpIcon from "../../assets/generalIcons/help-icon.svg"; 
+import helpIcon from "../../assets/generalIcons/help-icon.svg";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import AudioGuidePlayer from "../AudioGuidePlayer/AudioGuidePlayer";
+import { getCompletionAudioPath } from "../../utils/getAudioGuidePath";
 import "./CompletionScreen.css";
 
 // Single source of truth for "what state is the completion screen in".
@@ -58,18 +60,20 @@ const STATUS = {
   },
 };
 
-export default function CompletionScreen({ testingMode, onBack, pendingUploadCount, networkStatus }) {
-  const { t } = useTranslation(["common", "admin"]);
+export default function CompletionScreen({ testingMode, onBack, pendingUploadCount, networkStatus, audioGuideEnabled }) {
+  const { t, i18n } = useTranslation(["common", "admin"]);
   const status = getCompletionStatus(pendingUploadCount, networkStatus, testingMode);
-  
+
   // Destructure the new messageKey from STATUS
   const { icon, spin, screenClass, titleKey, titleClass, messageKey } = STATUS[status];
 
   useEffect(() => {
-    // Play the same success sound as in ModuleCompletionOverlay
-    const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_fanfare.mp3`);
+    // When the audio guide is on, the spoken guide clip (below) plays instead.
+    if (audioGuideEnabled) return;
+    // Otherwise fall back to the same success sound as in ModuleCompletionOverlay.
+    const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_sound.m4a`);
     audio.play().catch(e => console.log("Audio play blocked", e));
-  }, []);
+  }, [audioGuideEnabled]);
 
   const iconAlt = status === "offline" ? "No internet connection" : status === "done" ? "Completion checkmark" : "Uploading";
   const iconEl = (
@@ -83,6 +87,15 @@ export default function CompletionScreen({ testingMode, onBack, pendingUploadCou
   return (
     <div className={`completion-screen ${screenClass}`}>
       <div className="completion-card">
+        {audioGuideEnabled && (
+          <div className="completion-audio-guide">
+            <AudioGuidePlayer
+              src={getCompletionAudioPath(i18n.language)}
+              playTrigger={1}
+              isRecordingActive={false}
+            />
+          </div>
+        )}
         {iconEl}
         <h1 className={titleClass}>
           <Trans t={t} i18nKey={titleKey} />

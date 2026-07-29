@@ -10,8 +10,9 @@ import {
 } from "../../assets/visionIcons/visionAssets";
 
 export default function PreTestInstructions({ onComplete, audioPlayer }) {
-  const { t } = useTranslation(["tasks"]); 
+  const { t } = useTranslation(["tasks"]);
   const [answers, setAnswers] = useState({});
+  const [showHint, setShowHint] = useState(false);
 
   const INSTRUCTIONS = [
     {
@@ -57,18 +58,31 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
   const allAnswered = INSTRUCTIONS.every((item) => answers[item.id]);
 
   const handleStart = () => {
+    if (!allAnswered) {
+      setShowHint(true);
+      return;
+    }
     onComplete(answers);
   };
 
-  // Extract the Start button to pass into the TaskLayout 'controls' prop
+  // Extract the Start button to pass into the TaskLayout 'controls' prop.
+  // The button stays clickable (not natively disabled) so a press while
+  // incomplete can surface the hint; it's only styled to look disabled.
   const controlsContent = (
-    <button 
-      className="btn-primary start-button" 
-      disabled={!allAnswered}
-      onClick={handleStart}
-    >
-      {t("preTestChecklist.buttons.start")}
-    </button>
+    <>
+      {showHint && !allAnswered && (
+        <div className="checklist-hint">
+          {t("preTestChecklist.selectFirstHint")}
+        </div>
+      )}
+      <button
+        className={`btn-primary start-button${allAnswered ? "" : " is-disabled"}`}
+        aria-disabled={!allAnswered}
+        onClick={handleStart}
+      >
+        {t("preTestChecklist.buttons.start")}
+      </button>
+    </>
   );
 
   return (
@@ -123,6 +137,11 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
             )}
           </div>
         ))}
+      </div>
+      <div className="instruction-card active-instructions checklist-footer-note">
+        <div className="instruction-text">
+          <Trans t={t} i18nKey="preTestChecklist.subtitleBelow" components={{ br: <br /> }} />
+        </div>
       </div>
     </TaskLayout>
   );

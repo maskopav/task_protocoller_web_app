@@ -15,7 +15,7 @@ export default function SDMTDemoMessage() {
         </Trans>
       </span>
       <img 
-        src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt-demo.gif`} 
+        src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt-demo.png`}
         alt="SDMT Demonstration" 
         className="sdmt-demo-gif"
       />

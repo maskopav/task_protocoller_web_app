@@ -39,6 +39,12 @@ VALUES
 ('questionnaire',
  (SELECT id FROM task_types WHERE type='questionnaire')
 ),
+('rbdsq',
+ (SELECT id FROM task_types WHERE type='questionnaire')
+),
+('hhies',
+ (SELECT id FROM task_types WHERE type='questionnaire')
+),
 ('d15colour',
  (SELECT id FROM task_types WHERE type='vision')
 ),

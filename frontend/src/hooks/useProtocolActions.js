@@ -115,6 +115,7 @@ function mapProtocolWithNames(raw, mappings) {
     info_text: raw.info_text || "",
     consent_text: raw.consent_text || "",
     required_identifiers: raw.required_identifiers,
+    use_audio_guide: raw.use_audio_guide,
     tasks: mappedTasks,
   };
 }
