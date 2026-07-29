@@ -103,7 +103,8 @@
       "yearTitle": "Enter a 4-digit year",
       "fillAllFields": "Please fill in all required fields to continue.",
       "saveError": "There was an error saving your information. Please try again.",
-      "invalidYear": "Please enter a valid year between {{min}} and {{max}}."
+      "invalidYear": "Please enter a valid year between {{min}} and {{max}}.",
+      "selectOption": "Select an option..."
     },
     "notFound": {
       "title": "404 – Page not found",

@@ -90,7 +90,7 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
             required
           >
             <option value="" disabled>
-              {t('common.selectOption')}
+              {t('identifiers.selectOption')}
             </option>
             {options.map(opt => (
               <option key={opt.value} value={opt.value}>
