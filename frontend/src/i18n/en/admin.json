@@ -303,7 +303,8 @@
       "addOption": "Add option",
       "addQuestion": "Add question",
       "removeQuestion": "Remove question",
-      "ratingPreview": "Rating preview"
+      "ratingPreview": "Rating preview",
+      "optional": "Optional"
     },
     "tooltips": {
       "edit": "Edit this task",

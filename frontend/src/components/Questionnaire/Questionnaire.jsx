@@ -5,7 +5,7 @@ import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import "./Questionnaire.css";
 
 export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
-  const { t } = useTranslation(["common"]);
+  const { t } = useTranslation(["common", "tasks"]);
   const [answers, setAnswers] = useState({});
   const [isValid, setIsValid] = useState(false);
 
@@ -43,8 +43,9 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
   // --- 3. Validation ---
   useEffect(() => {
     if (!data?.questions) return;
-    const allAnswered = data.questions.every((q) => isAnswered(q));
-    setIsValid(allAnswered);
+    // A question is satisfied if it is optional OR answered
+    const allSatisfied = data.questions.every((q) => q.optional || isAnswered(q));
+    setIsValid(allSatisfied);
   }, [answers, data]);
 
   // --- 4. Auto-scroll to keep previous and current question visible ---
@@ -103,7 +104,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
         <div className="submit-control-wrapper">
           {!isValid && (
             <span className="submit-helper-text">
-              {t("questionnaire.pleaseAnswerAll", "Please answer all questions to continue.")}
+              {t("questionnaire.pleaseAnswerAll", { ns: "tasks" })}
             </span>
           )}
           <button
@@ -128,7 +129,14 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
               className={`question-card${isAnswered(q) ? " is-answered" : ""}`}
             >
               <div className="question-header">
-                <h4 className="question-text">{q.text}</h4>
+                <h4 className="question-text">
+                  {q.text}
+                  {q.optional && (
+                    <span className="question-optional-tag">
+                      {t("questionnaire.optionalLabel", { ns: "tasks" })}
+                    </span>
+                  )}
+                </h4>
               </div>
 
               <div className="answer-area">
@@ -221,9 +229,11 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                           <span className="emoji-scale-face" aria-hidden="true">
                             <EmojiFace color={item.color} mouthPath={item.mouthPath} />
                           </span>
+                          {/*
                           <span className="emoji-scale-label">
                             {t(item.labelKey, item.label)}
                           </span>
+                          */}
                         </button>
                       );
                     })}

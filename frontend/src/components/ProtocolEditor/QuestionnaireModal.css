@@ -237,6 +237,29 @@
     filter: brightness(1.1);
   }
 
+  /* Optional Checkbox Group */
+  .qm-checkbox-group {
+    flex: 0 0 auto !important; /* Prevent it from stretching */
+    justify-content: center;
+    margin-top: 0.6rem; /* Align visually with input fields */
+  }
+
+  .qm-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--text);
+    text-transform: none;
+    font-size: 0.95rem;
+  }
+
+  .qm-checkbox-group input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+  }
+
 /* Mobile adjustment: Stack them back to column */
 @media (max-width: 700px) {
     .qm-card-body {

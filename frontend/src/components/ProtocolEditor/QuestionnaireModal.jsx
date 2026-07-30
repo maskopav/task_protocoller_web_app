@@ -32,6 +32,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
         text: "",
         type: "open",
         options: [],
+        optional: false,
       },
     ]);
   };
@@ -166,6 +167,18 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                     <option value="rating">{t("protocolEditor.questionnaire.Emoji rating")}</option>
                   </select>
                 </div>
+
+                <div className="qm-input-group qm-checkbox-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={q.optional || false}
+                      onChange={(e) => updateQuestion(q.id, "optional", e.target.checked)}
+                    />
+                    {t("protocolEditor.questionnaire.optional")}
+                  </label>
+                </div>
+
               </div>
 
               {/* Options Section (Moved out of flex row to stack below) */}

@@ -61,7 +61,6 @@
   border-left-color: var(--success);
 }
 
-
 .question-header {
   display: flex;
   align-items: flex-start;
@@ -78,6 +77,15 @@
   line-height: 1.4;
   align-self: flex-start;
   text-align: left; 
+}
+
+/* Optional Question Tag */
+.question-optional-tag {
+  font-size: 0.75em;
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 0.5rem;
+  vertical-align: baseline;
 }
 
 .answer-area {

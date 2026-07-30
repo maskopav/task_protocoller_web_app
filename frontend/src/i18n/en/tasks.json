@@ -4,6 +4,8 @@
     "description": "A customizable form with questions.",
     "title": "Questionnaire: {{title}}",
     "instructions": "Please answer the following questions.",
+    "pleaseAnswerAll": "Please answer all required questions to continue.",
+    "optionalLabel": "(optional)",
     "params": {
       "title": { "label": "Title" },
       "description": { "label": "Description" },
