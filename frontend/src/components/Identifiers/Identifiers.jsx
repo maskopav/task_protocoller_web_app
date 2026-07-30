@@ -6,7 +6,7 @@ import { updateSessionIdentifiers } from '../../api/sessions';
 import './Identifiers.css';
 
 /**
- * Build a flat descending list of years for a <datalist>.
+ * Build a flat descending list of years for a <datalist> or <select>.
  * Descending so typing a partial year (e.g. "195") shows the 1950s first.
  */
 function buildYearList(min, max) {
@@ -102,27 +102,22 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
 
       case 'year': {
         const { min, max } = yearRange;
-        const listId = `${id}-datalist`;
         return (
-          <>
-            <input
-              id={id}
-              type="text"
-              inputMode="numeric"
-              list={listId}
-              value={formData[id] || ''}
-              onChange={e => handleChange(id, e.target.value)}
-              placeholder={t('identifiers.yearPlaceholder')}
-              pattern="[0-9]{4}"
-              title={t('identifiers.yearTitle')}
-              required
-            />
-            <datalist id={listId}>
-              {buildYearList(min, max).map(y => (
-                <option key={y} value={String(y)} />
-              ))}
-            </datalist>
-          </>
+          <select
+            id={id}
+            value={formData[id] || ''}
+            onChange={e => handleChange(id, e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              {t('identifiers.yearPlaceholder')}
+            </option>
+            {buildYearList(min, max).map(y => (
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
+            ))}
+          </select>
         );
       }
 

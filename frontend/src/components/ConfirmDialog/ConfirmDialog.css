@@ -1,14 +1,14 @@
 .confirm-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(255, 255, 255, 0.85); 
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     padding: clamp(5px, 1vw, 15px);
-  }
-  
+}
+
   .confirm-dialog {
     background: #fff;
     padding: clamp(20px, 4vw, 25px);
