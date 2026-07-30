@@ -1,7 +1,7 @@
 // frontend/src/components/Recorder/AudioExamplePlayer.jsx
 import React, { forwardRef, useRef, useState, useEffect, useImperativeHandle } from 'react';
 import { AudioExampleButton } from './AudioExampleButton';
-import { StoryProgressBar } from './StoryProgressBar';
+import { ProgressBar } from '../ProgressBar/ProgressBar';
 
 // How big fraction of the retelling story needs to play before the START button becomes available
 const STORY_LISTEN_THRESHOLD_FRACTION = 2 / 3
@@ -164,7 +164,7 @@ export const AudioExamplePlayer = forwardRef(function AudioExamplePlayer({
                 variant={variant}
             />
             {variant === 'story' && (
-                <StoryProgressBar audio={audioRef.current} />
+                <ProgressBar audio={audioRef.current} variant="default" />
             )}
             <audio
                 ref={audioRef}

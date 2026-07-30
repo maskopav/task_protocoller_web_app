@@ -7,6 +7,7 @@ import { useTaskTopics } from '../../hooks/useTaskTopics';
 import './Recorder.css';
 import checkIcon from '../../assets/successIcons/checkmark-icon.svg';
 import { RecordingTimer } from './RecordingTimer';
+import { ProgressBar } from '../ProgressBar/ProgressBar';
 import { StatusIndicator } from './StatusIndicator';
 import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
@@ -605,11 +606,28 @@ export const Recorder = ({
     ) : null;
 
     // ── Slot content ──────────────────────────────────────────────────────
+    // ── Slot content ──────────────────────────────────────────────────────
+    const targetDuration = maxDuration || duration;
+    
+    // Convert the remaining time into standard elapsed seconds for the progress bar
+    const elapsedSeconds = targetDuration ? targetDuration - (voiceRecorder.remainingTime ?? targetDuration) : 0;
 
-    // preHeader: browser overlay + shifted timer (reading-task special case)
+    // preHeader: browser overlay + countDown progress bar + shifted timer
     const preHeaderContent = (
         <>
             {incompatibleBrowser && <IncompatibleBrowser browserName={incompatibleBrowser} />}
+
+            {/* Automatically display at the top when mode is countDown and recording is active */}
+            {mode === 'countDown' && (recordingStatus === RECORDING_STATES.RECORDING || recordingStatus === RECORDING_STATES.PAUSED) && (
+                <div className="countdown-progress-wrapper">
+                    <ProgressBar 
+                        duration={targetDuration} 
+                        currentTime={elapsedSeconds} 
+                        isRunning={recordingStatus === RECORDING_STATES.RECORDING && isTimerActive}  
+                        variant="grey" 
+                    />
+                </div>
+            )}
 
             {shouldShiftTimer && phase === 'RECORDING' && (
                 <div className="recording-area is-shifted">
@@ -618,7 +636,6 @@ export const Recorder = ({
             )}
         </>
     );
-
     // instructions slot: instruction card content
     const instructionsContent = (!isCalibrationPhase && !isPermissionPhase) ? (
         <>

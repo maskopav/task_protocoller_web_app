@@ -160,22 +160,11 @@
   gap: clamp(4px, 1dvh, 8px);
 }
 
-/* ── Story listen-progress bar ────────────────────────────────────── */
-.story-progress-track {
+/* ── Countdown Progress Wrapper ───────────────────────────────────── */
+.countdown-progress-wrapper {
   width: 100%;
-  max-width: 320px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--muted);
-  overflow: hidden;
-}
-
-.story-progress-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--success);
-  border-radius: inherit;
-  transition: width 0.1s linear;
+  padding: 15px 20px 0;
+  box-sizing: border-box;
 }
 
 .active-instructions .audio-example-btn {
