@@ -59,15 +59,21 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
     }
   }, [isRecordingActive]);
 
+  const prevTriggerRef = useRef(playTrigger);
+
   // Only replays when playTrigger changes AND autoPlay is true
   useEffect(() => {
     if (!src || !audioRef.current || isRecordingActive) return;
+
+    // Ignore the render if only the `src` changed. 
+    // We only want to execute playback when `playTrigger` actually increments.
+    if (playTrigger === prevTriggerRef.current) return;
+    prevTriggerRef.current = playTrigger;
 
     const audio = audioRef.current;
     audio.currentTime = 0;
     audio.muted = false;
 
-    // If autoPlay is false, we just reset the time and stop here
     if (!autoPlay) {
       setIsPlaying(false);
       return;
@@ -75,9 +81,6 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
 
     const playOnLoad = () => {
       audio.play().then(() => setIsPlaying(true)).catch(() => {
-        // Playback was blocked (e.g. autoplay policy) - the file itself is
-        // fine (we got here via canplaythrough/readyState), so don't hide
-        // the button. The user can just tap it to play manually.
         setIsPlaying(false);
       });
     } 
