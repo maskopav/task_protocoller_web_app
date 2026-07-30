@@ -71,7 +71,16 @@ export const VideoViewFinder = ({
                 permissionStatus = await navigator.permissions.query({ name: 'camera' });
                 setCamPermState(toState(permissionStatus.state));
                 permissionStatus.onchange = () => {
-                    setCamPermState(toState(permissionStatus.state));
+                    const newState = toState(permissionStatus.state);
+                    setCamPermState(newState);
+                    
+                    //If permission is reset externally in the browser,
+                    // reset acknowledgment so the intro card reappears. This gives
+                    // the user a button to click, ensuring a valid user gesture 
+                    // to re-trigger the native prompt.
+                    if (newState === CAM_PERM.PROMPT) {
+                        setPermissionAcknowledged(false);
+                    }
                 };
             } catch (error) {
                 setCamPermState(CAM_PERM.PROMPT);
@@ -103,12 +112,16 @@ export const VideoViewFinder = ({
         const granted = await onRequestCameraPermission();
         requestInFlight.current = false;
         setIsRequestingPermission(false);
+        
         if (granted) {
             setCameraGranted(true);
             setCamPermState(CAM_PERM.GRANTED);
+        } else {
+            // Explicitly handle the denied/failed state here 
+            // since the parent no longer passes down `permissionDenied`.
+            setCameraGranted(false);
+            setCamPermState(CAM_PERM.DENIED);
         }
-        // If not granted, the parent's onError path flips `permissionDenied`,
-        // which the effect above turns into CAM_PERM.DENIED.
     };
 
     // If the browser already granted camera access before this component
