@@ -47,7 +47,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
         <AudioGuidePlayer
           ref={addGuideRef}
           src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_add") : null}
-          playTrigger="d15-add"
+          playTrigger={`d15-add-${Date.now()}`}
           isRecordingActive={false}
         />
       ),
@@ -64,7 +64,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
         <AudioGuidePlayer
           ref={modifyGuideRef}
           src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_modify") : null}
-          playTrigger="d15-modify"
+          playTrigger={`d15-modify-${Date.now()}`}
           isRecordingActive={false}
         />
       ),
@@ -91,7 +91,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
         <AudioGuidePlayer
           ref={trialGuideRef}
           src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour_trial_completed") : null}
-          playTrigger="d15-modify"
+          playTrigger={`d15-trial-${Date.now()}`}
           isRecordingActive={false}
         />
       ),

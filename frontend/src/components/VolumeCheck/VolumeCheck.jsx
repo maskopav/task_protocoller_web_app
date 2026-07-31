@@ -15,7 +15,7 @@ const VolumeCheck = ({ onComplete, audioGuideEnabled = true }) => {
         <div className="volume-check-center-area">
             <AudioGuidePlayer
                 src={buildAudioGuidePath(i18n.language, "volume_check_audio")}
-                playTrigger="volume-check"
+                playTrigger={`volume-check-${Date.now()}`}
                 isRecordingActive={false}
                 autoPlay={audioGuideEnabled}
                 loop={true}

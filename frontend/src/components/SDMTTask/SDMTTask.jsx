@@ -64,7 +64,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                     headerRight: (
                         <AudioGuidePlayer
                             src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "sdmt_instructions") : null}
-                            playTrigger="sdmt-demo"
+                            playTrigger={`sdmt-demo-${Date.now()}`}
                             isRecordingActive={false}
                         />
                     ),

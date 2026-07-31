@@ -10,9 +10,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-    padding: 2rem;
+    justify-content: center;          
+    padding: clamp(0.5rem, 3dvh, 2rem) 1rem; 
 }
 
 /* 1. Removed the white box background, border-radius, and shadow */
@@ -23,7 +22,7 @@
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: clamp(0.5rem, 2dvh, 2rem);
 }
 
 /* 2. Scoped Overrides for AudioGuidePlayer */
@@ -65,7 +64,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1.5rem;
+    padding: clamp(0.5rem, 1.5dvh, 1.5rem);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), clamp(0.5rem, 1.5dvh, 1.5rem));
     gap: 1rem;
     width: 100%;
 }
