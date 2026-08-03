@@ -172,7 +172,7 @@ export const useVoiceRecorder = (options = {}) => {
         statusRef.current = status;
     };
 
-    const getMicrophonePermission = async () => {
+    const getMicrophonePermission = async (releaseImmediately = false) => {
         const ua = navigator.userAgent;
 
         // Detect known broken browsers
@@ -209,9 +209,6 @@ export const useVoiceRecorder = (options = {}) => {
         }
 
         // stop any pre-existing stream tracks before requesting a new one.
-        // Without this, calling getMicrophonePermission() twice (e.g. after a
-        // recoverable error or a settings change) leaks the old MediaStream track
-        // and keeps the microphone indicator light on in the background.
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
             setStream(null);
@@ -258,7 +255,14 @@ export const useVoiceRecorder = (options = {}) => {
             }
 
             setPermission(true);
-            setStream(streamData);
+            // If true, kill the track instantly so iOS restores system volume.
+            if (releaseImmediately) {
+                streamData.getTracks().forEach(track => track.stop());
+                setStream(null);
+            } else {
+                setStream(streamData);
+            }
+            
             return true;
 
         } catch (err) {
@@ -373,7 +377,23 @@ export const useVoiceRecorder = (options = {}) => {
         // guard against a double-start.  Without this, calling startRecording
         // twice would create a second audio graph on top of the first, leaving both
         // worklets writing to audioChunks simultaneously and corrupting the PCM.
-        if (!stream || statusRef.current === RECORDING) return;
+        if (statusRef.current === RECORDING) return;
+
+        // Fetch a fresh stream if we released it earlier
+        let activeStream = streamRef.current;
+        if (!activeStream || activeStream.getAudioTracks()[0].readyState === 'ended') {
+            try {
+                activeStream = await navigator.mediaDevices.getUserMedia({
+                    video: false,
+                    audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
+                });
+                setStream(activeStream);
+            } catch (err) {
+                logToServer('MIC | failed to re-acquire on start', err.message);
+                onError(err);
+                return;
+            }
+        }
 
         setDurationExpired(false);
         chunkCountRef.current = 0;
@@ -418,7 +438,8 @@ export const useVoiceRecorder = (options = {}) => {
             audioContext.current.workletLoaded = true;
         }
 
-        const source = audioContext.current.createMediaStreamSource(stream);
+        const source = audioContext.current.createMediaStreamSource(activeStream);
+        sourceNodeRef.current = source;
 
         // Input gain — compensates for the iOS WebKit audio-path attenuation.
         // Inserted before the worklet so the boosted samples are what ends up
@@ -486,6 +507,11 @@ export const useVoiceRecorder = (options = {}) => {
         if (statusRef.current !== RECORDING && statusRef.current !== PAUSED) return;
 
         setRecordingStatus(RECORDED);
+
+        // KILL THE TRACK: Restores iOS system volume for playback and retries
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+        }
 
         if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
 

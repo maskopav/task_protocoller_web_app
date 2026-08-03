@@ -46,7 +46,7 @@ export const useVideoRecorder = ({
     const getMediaPermission = async () => {
         try {
             const streamData = await navigator.mediaDevices.getUserMedia({
-                audio: true,
+                audio: false,
                 video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
             });
 
@@ -236,7 +236,6 @@ export const useVideoRecorder = ({
         if (!streamRef.current) return;
         
         isCalibratingRef.current = false; // Stop drawing green dots
-
         setVideoData(null);
 
         // Clear the canvas so the frozen dots disappear
@@ -250,36 +249,7 @@ export const useVideoRecorder = ({
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        audioChunks.current = [];
         coordinateTimeline.current = []; 
-        
-        // Isolate audio track for privacy
-        const audioTrack = streamRef.current.getAudioTracks()[0];
-        const audioStream = new MediaStream([audioTrack]);
-        
-        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
-                         ? 'audio/webm;codecs=opus' : 'audio/mp4';
-                         
-        audioRecorder.current = new MediaRecorder(audioStream, { mimeType });
-        
-        audioRecorder.current.ondataavailable = (e) => {
-            if (e.data.size > 0) audioChunks.current.push(e.data);
-        };
-        
-        audioRecorder.current.onstop = () => {
-            const audioBlob = new Blob(audioChunks.current, { type: mimeType });
-            const finalCoordinates = coordinateTimeline.current;
-            
-            //  Save the coordinates to state
-            setVideoData(finalCoordinates);
-            
-            onRecordingComplete({
-                audioBlob: audioBlob,
-                coordinates: finalCoordinates
-            });
-        };
-        
-        audioRecorder.current.start();
         setRecordingStatus("recording");
 
         const captureCoordinates = () => {
@@ -301,14 +271,16 @@ export const useVideoRecorder = ({
     };
 
     const stopRecording = () => {
-        if (audioRecorder.current && audioRecorder.current.state !== "inactive") {
-            audioRecorder.current.stop();
-        }
         if (recordingLoopRef.current) {
             clearTimeout(recordingLoopRef.current);
         }
         setRecordingStatus("recorded");
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
+
+        // Save and emit the coordinates
+        const finalCoordinates = coordinateTimeline.current;
+        setVideoData(finalCoordinates);
+        onRecordingComplete({ coordinates: finalCoordinates });
     };
 
     return {

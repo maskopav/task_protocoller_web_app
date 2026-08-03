@@ -153,7 +153,6 @@ export const VideoViewFinder = ({
 
     const showInstructionsDialog = async () => {
         return await confirm({
-            title: t('videoCalibration.setupTitle'),
             message: instructionList,
             confirmText: t('videoCalibration.btnReady'),
             cancelText: t('videoCalibration.btnCancel')
@@ -328,7 +327,7 @@ export const VideoViewFinder = ({
 
             {phase === 'CALIBRATE' && (
                 <div className="viewfinder-under-info">
-                    <InfoTooltip title={t('videoCalibration.setupTitle')} text={instructionList} />
+                    <InfoTooltip text={instructionList} />
                     <span className="info-text-label" onClick={showInstructionsDialog}>
                         {t('videoCalibration.viewInstructions', 'View Setup Instructions')}
                     </span>

@@ -84,7 +84,7 @@ export const Recorder = ({
     const [topicRevealed, setTopicRevealed] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
-    const RECORDING_START_DELAY_MS = 1500;
+    const RECORDING_START_DELAY_MS = 800;
     const [isPreparingToRecord, setIsPreparingToRecord] = useState(false);
     const recordingStartTimeoutRef = useRef(null);
 
@@ -357,7 +357,7 @@ export const Recorder = ({
             // has acknowledged VideoViewFinder's camera permission intro card. That
             // happens BEFORE the setup instructions dialog is shown.
             onPermissionPending(true);
-            getMicrophonePermission()
+            getMicrophonePermission(true)
                 .finally(() => onPermissionPending(false));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -477,7 +477,8 @@ export const Recorder = ({
         if (startCalibrationInFlightRef.current) return;
         startCalibrationInFlightRef.current = true;
         setPhase('CALIBRATE');
-        await getMicrophonePermission();
+        // Pass `true` to instantly release the track after caching permission
+        await getMicrophonePermission(true); 
         videoRecorder.startFaceDetection();
         startCalibrationInFlightRef.current = false;
     };
@@ -728,7 +729,7 @@ export const Recorder = ({
                         showRevealTopic={!!instructionsTopic && !topicRevealed && !(isVideoEnabled && !videoCalibrated)}
                         onRevealTopic={handleRevealTopic}
                         disableControls={mode === 'countDown'}
-                        disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory || isPreparingToRecord || disableStart}
+                        disableStart={(activeUseVAD && !isVadLoaded && !!stream) || blockStartForStory || isPreparingToRecord || disableStart}
                         permission={audioPermission}
                         onStart={handleStart}
                         onPause={pauseRecording}
