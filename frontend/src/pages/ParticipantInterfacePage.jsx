@@ -36,6 +36,7 @@ import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
 const activeUploads = new Set();
+const TRANSITION_LOCK_MS = 350
 
 
 export default function ParticipantInterfacePage() {
@@ -49,6 +50,7 @@ export default function ParticipantInterfacePage() {
   const startingTaskIndex = parseInt(location.state?.startingTaskIndex || 0, 10);
   const isResumed = location.state?.isResumed || false;
 
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
   const [langReady, setLangReady] = useState(false);
   const [isRecordingActive, setIsRecordingActive] = useState(false);
@@ -762,8 +764,14 @@ export default function ParticipantInterfacePage() {
   }
 
   async function handleTaskComplete(data, isAttempt = false) {
+    if (isTransitioning) return; // ignore rapid double submits
+    setIsTransitioning(true);
+
     if (!isAttempt) {
-      if (isUploadingRef.current) return;
+      if (isUploadingRef.current) {
+        setIsTransitioning(false); 
+        return;
+      }
       isUploadingRef.current = true;
       setIsUploading(true);
     }
@@ -834,7 +842,7 @@ export default function ParticipantInterfacePage() {
       if (!isAttempt) {
         proceedToNext();
       }
-   
+
     } catch (err) {
       console.error('handleTaskComplete error:', err);
       logToServer(`Task save error at index ${taskIndex}: ${err.message}`);
@@ -844,6 +852,8 @@ export default function ParticipantInterfacePage() {
         isUploadingRef.current = false;
         setIsUploading(false);
       }
+      // ALWAYS release the transition lock, no matter which path was taken
+      setTimeout(() => setIsTransitioning(false), TRANSITION_LOCK_MS);
     }
 
     function proceedToNext() {
@@ -999,6 +1009,7 @@ export default function ParticipantInterfacePage() {
           onBeforeRecordingStart={stopAudioGuides}
           onExamplePlay={stopAudioGuides}
           onPlaybackStart={stopAudioGuides}
+          disableStart={isTransitioning}
         />
       );
     // Render Questionnaire
@@ -1135,12 +1146,14 @@ export default function ParticipantInterfacePage() {
                 playTrigger={playTrigger}
                 isRecordingActive={isRecordingActive || isAwaitingPermission || isDialogOpen}
                 onEnded={handleGeneralGuideEnded}
+                playOnMount={false}
               />
               <AudioGuidePlayer
                 ref={topicGuideRef}
                 src={headerTopicAudioSrc}
                 playTrigger={topicPlayTrigger}
                 isRecordingActive={isRecordingActive || isAwaitingPermission || isDialogOpen}
+                playOnMount={false}
               />
             </div>
 

@@ -4,7 +4,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import { arrowUpIcon, arrowDownIcon, arrowLeftIcon, arrowRightIcon } from '../../assets/arrowIcons/arrowAssets';
 import MediaPermissionContent from '../Recorder/MediaPermissionContent';
-
+import { SafeButton } from '../Shared/SafeButton';
 import './VideoViewFinder.css';
 
 // Mirrors the phases used by MicCheck's permission pre-check
@@ -337,23 +337,23 @@ export const VideoViewFinder = ({
 
             {phase === 'SETUP' && setupCancelled && (
                 <div className="video-bottom-controls">
-                    <button className="btn-primary" onClick={() => setSetupCancelled(false)}>
+                    <SafeButton className="btn-primary" onClick={() => setSetupCancelled(false)}>
                         {t('videoCalibration.btnShowInstructions')}
-                    </button>
+                    </SafeButton>
                 </div>
             )}
 
             {phase === 'CALIBRATE' && (
                 <div className="video-bottom-controls">
-                    <button 
-                        className="btn-primary" 
-                        disabled={!(isSteady && isFaceCorrect)} 
+                    <SafeButton
+                        className="btn-primary"
+                        disabled={!(isSteady && isFaceCorrect)}
                         onClick={onFinishCalibration}
                     >
                         {(isSteady && isFaceCorrect) 
                             ? t('videoCalibration.btnContinueReady') 
                             : t('videoCalibration.btnContinueWait')}
-                    </button>
+                    </SafeButton>
                 </div>
             )}
         </>

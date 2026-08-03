@@ -6,9 +6,10 @@ import D15DemoMessage from "./D15DemoMessage";
 import { D15MechanicsMessage } from "./D15DemoMessage";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
+import { SafeButton } from '../Shared/SafeButton';
 import "./D15Test.css";
 
-export default function D15Test({ task, onNextTask, audioPlayer }) {
+export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, audioGuideEnabled = true }) {
   const { t } = useTranslation("tasks");
   const { confirm } = useContext(ConfirmDialogContext);
 
@@ -180,6 +181,10 @@ export default function D15Test({ task, onNextTask, audioPlayer }) {
   };
 
   const handleDone = () => {
+    if (onStopAudio) {
+      onStopAudio(); 
+    }
+
     if (showNumbers === "after" && !isSubmitted) {
       setIsSubmitted(true);
       return;
@@ -236,7 +241,7 @@ export default function D15Test({ task, onNextTask, audioPlayer }) {
             return (
               <div key={`option-slot-${index}`} className="d15-tray-slot option-slot">
                 {!isPlaced && (
-                  <button
+                  <SafeButton
                     className="d15-cap selectable-cap"
                     style={{ backgroundColor: color }}
                     onClick={() => handleSelect(color)}
@@ -246,7 +251,7 @@ export default function D15Test({ task, onNextTask, audioPlayer }) {
                     {displayNumbers && (
                       <span className="d15-cap-label">{getCapLabel(color)}</span>
                     )}
-                  </button>
+                  </SafeButton>
                 )}
               </div>
             );
@@ -259,11 +264,11 @@ export default function D15Test({ task, onNextTask, audioPlayer }) {
   const controlsContent = (
     <>
       {/* {!isSubmitted && (
-        <button className="btn-secondary" onClick={handleReset}>
+        <SafeButton className="btn-secondary" onClick={handleReset}>
           {t("d15colour.controls.reset")}
-        </button>
+        </SafeButton>
       )} */}
-      <button
+      <SafeButton
         className="btn-submit"
         onClick={handleDone}
         disabled={!isTrayFull}
@@ -271,7 +276,7 @@ export default function D15Test({ task, onNextTask, audioPlayer }) {
         {isSubmitted
           ? t("d15colour.controls.continue", "Continue")
           : t("d15colour.controls.submit")}
-      </button>
+      </SafeButton>
     </>
   );
 

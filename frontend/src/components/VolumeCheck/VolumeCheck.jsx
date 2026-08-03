@@ -3,6 +3,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import AudioGuidePlayer from '../AudioGuidePlayer/AudioGuidePlayer';
 import { buildAudioGuidePath } from '../../utils/getAudioGuidePath';
+import { SafeButton } from '../Shared/SafeButton';
 import './VolumeCheck.css';
 
 const VolumeCheck = ({ onComplete, audioGuideEnabled = true }) => {
@@ -24,14 +25,14 @@ const VolumeCheck = ({ onComplete, audioGuideEnabled = true }) => {
     );
 
     const controlsContent = (
-        <button 
+        <SafeButton
             className="btn-start"
             onClick={() => onComplete({
                 timestamp: new Date().toISOString()
             })}
         >
             {t("buttons.continue", { ns: "common" })}
-        </button>
+        </SafeButton>
     );
 
     // ── Render ────────────────────────────────────────────────────────

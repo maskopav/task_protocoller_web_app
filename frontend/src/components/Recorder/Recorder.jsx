@@ -19,6 +19,7 @@ import { logToServer } from '../../utils/frontendLogger';
 import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
 import TaskLayout from '../TaskLayout/TaskLayout';
+import { SafeButton } from '../Shared/SafeButton';
 
 const DEBUG_MODE = false;
 
@@ -65,7 +66,8 @@ export const Recorder = ({
     autoPlayStoryTrigger = 0,
     onBeforeRecordingStart = () => {},
     onExamplePlay = () => {},
-    onPlaybackStart = () => {}
+    onPlaybackStart = () => {},
+    disableStart = false
 }) => {
     const { t } = useTranslation();
     // ── Phase state ──────────────────────────────────────────────────────
@@ -85,6 +87,10 @@ export const Recorder = ({
     const RECORDING_START_DELAY_MS = 1500;
     const [isPreparingToRecord, setIsPreparingToRecord] = useState(false);
     const recordingStartTimeoutRef = useRef(null);
+
+    const STOP_COOLDOWN_MS = 500;
+    const [justStopped, setJustStopped] = useState(false);
+    const stopCooldownRef = useRef(null);
     // Imperative handles to the story/example clips (owned locally here,
     // unlike the header guides which live in the parent) so they too can be
     // silenced synchronously the instant Start is clicked.
@@ -95,6 +101,9 @@ export const Recorder = ({
         return () => {
             if (recordingStartTimeoutRef.current) {
                 clearTimeout(recordingStartTimeoutRef.current);
+            }
+            if (stopCooldownRef.current) {
+                clearTimeout(stopCooldownRef.current);
             }
         };
     }, []);
@@ -297,6 +306,10 @@ export const Recorder = ({
         onLogEvent("button_stop", { task_recording_duration: recordingTime });
         stopAudioRecording();
         if (isVideoEnabled) videoRecorder.stopRecording();
+
+        setJustStopped(true);
+        if (stopCooldownRef.current) clearTimeout(stopCooldownRef.current);
+        stopCooldownRef.current = setTimeout(() => setJustStopped(false), STOP_COOLDOWN_MS);
     };
 
     const handleRepeat = () => {
@@ -651,9 +664,9 @@ export const Recorder = ({
             <FormattedText text={parsedInstructions} slots={slots} />
 
             {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
-                <button className="btn-manual-switch" onClick={handleManualTopicSwitch}>
+                <SafeButton className="btn-manual-switch" onClick={handleManualTopicSwitch}>
                     Switch Topic
-                </button>
+                </SafeButton>
             )}
         </>
     ) : null;
@@ -688,9 +701,9 @@ export const Recorder = ({
     // controls slot: VAD loading notice + record controls + playback
     const controlsContent = phase === 'GENERAL_INFO' ? (
         <div className="controls control-buttons">
-            <button className="btn-start" onClick={handleGoToCalibration}>
+            <SafeButton className="btn-start" onClick={handleGoToCalibration}>
                 {t("buttons.startCalibration")}
-            </button>
+            </SafeButton>
         </div>
     ) : phase === 'RECORDING' ? (
         <>
@@ -703,9 +716,9 @@ export const Recorder = ({
             )}
 
             {awaitingNextTopic ? (
-                <button className="btn-primary" onClick={handleStartNextTopic}>
+                <SafeButton className="btn-primary" onClick={handleStartNextTopic}>
                     Start Next Topic
-                </button>
+                </SafeButton>
             ) : (
                 // display:contents makes this wrapper transparent to the flex layout while
                 // still propagating visibility:hidden to all children when topic-switching
@@ -715,7 +728,7 @@ export const Recorder = ({
                         showRevealTopic={!!instructionsTopic && !topicRevealed && !(isVideoEnabled && !videoCalibrated)}
                         onRevealTopic={handleRevealTopic}
                         disableControls={mode === 'countDown'}
-                        disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory || isPreparingToRecord}
+                        disableStart={(activeUseVAD && !isVadLoaded) || blockStartForStory || isPreparingToRecord || disableStart}
                         permission={audioPermission}
                         onStart={handleStart}
                         onPause={pauseRecording}
@@ -735,7 +748,7 @@ export const Recorder = ({
                         onRepeat={handleRepeat}
                         onNextTask={handleNextTask}
                         showNextButton={showNextButton}
-                        isUploading={isUploading}
+                        isUploading={isUploading || justStopped}
                         onLogEvent={onLogEvent}
                         onPlaybackStart={onPlaybackStart}
                     />

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from "react-i18next";
+import { SafeButton } from '../Shared/SafeButton';
 
 // components/Recorder/RecordingControls.jsx - Control buttons component
 export const RecordingControls = ({
@@ -29,12 +30,12 @@ export const RecordingControls = ({
     <div className={`controls ${className}`}>
         {/* Permission Button */}
         {!permission && (
-            <button 
+            <SafeButton 
             onClick={onPermission}
             className="btn-permission"
             >
             {t("buttons.permission")}
-            </button>
+            </SafeButton>
         )}
 
         {/* Recording Controls */}
@@ -42,11 +43,11 @@ export const RecordingControls = ({
             <>
             {recordingStatus === IDLE && (showRevealTopic ? (
                 // Split instruction pack: reveal the topic before Start appears
-                <button onClick={onRevealTopic} className="btn-start">
+                <SafeButton onClick={onRevealTopic} className="btn-start">
                     {t("buttons.seeTopic")}
-                </button>
+                </SafeButton>
             ) : (
-                <button
+                <SafeButton 
                     onClick={onStart}
                     className={`btn-start ${disableStart ? 'disabled' : ''}`}
                     disabled={disableStart}
@@ -62,32 +63,32 @@ export const RecordingControls = ({
                         ? t("buttons.startCalibration")
                         : t("buttons.start")
                 )}
-                </button>
+                </SafeButton>
             ))}
 
             {recordingStatus === RECORDING && !disableControls && (
                 <div className="button-group">
                 {showPause && (
-                <button onClick={onPause} className="btn-pause">
+                <SafeButton onClick={onPause} className="btn-pause">
                 {t("buttons.pause")}
-                </button>
+                </SafeButton>
                 )}
 
-                <button onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
+                <SafeButton onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
                 {t("buttons.stop")}
-                </button>
+                </SafeButton>
                 </div>
             )}
 
             {recordingStatus === PAUSED && !disableControls && (
                 <div className="button-group">
-                <button onClick={onResume} className="btn-resume">
+                <SafeButton onClick={onResume} className="btn-resume">
                 {t("buttons.resume")}
-                </button>
+                </SafeButton>
 
-                <button onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
+                <SafeButton onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
                 {t("buttons.stop")}
-                </button>
+                </SafeButton>
                 </div>
             )}
             </>

@@ -1,6 +1,7 @@
 // components/Recorder/IncompatibleBrowser.jsx
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SafeButton } from '../Shared/SafeButton';
 import './IncompatibleBrowser.css';
 
 import chromeIcon from '../../assets/browsers/chrome.png';
@@ -54,9 +55,9 @@ export const IncompatibleBrowser = ({ browserName }) => {
                 <div className="ib-url-box">
                     <span className="ib-url-text">{url}</span>
                 </div>
-                <button className={`ib-copy-btn ${copied ? 'ib-copy-btn--copied' : ''}`} onClick={copyLink}>
+                <SafeButton className={`ib-copy-btn ${copied ? 'ib-copy-btn--copied' : ''}`} onClick={copyLink}>
                     {copied ? t('incompatibleBrowser.copied') : t('incompatibleBrowser.copyBtn')}
-                </button>
+                </SafeButton>
             </div>
         </div>
     );

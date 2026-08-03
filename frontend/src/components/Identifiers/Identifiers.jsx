@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { IDENTIFIER_FIELDS } from './IdentifierFields';
 import { updateSessionIdentifiers } from '../../api/sessions';
+import { SafeButton } from '../Shared/SafeButton';
 import './Identifiers.css';
 
 /**
@@ -163,14 +164,14 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
         </>
       }
       controls={
-        <button
+        <SafeButton
           type="submit"
           form="identifiers-form"
           className="btn-primary identifiers-btn"
           disabled={isSubmitting}
         >
           {isSubmitting ? t('buttons.saving') : t('buttons.continue')}
-        </button>
+        </SafeButton>
       }
     />
   );

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import TaskLayout from '../TaskLayout/TaskLayout';
+import { SafeButton } from '../Shared/SafeButton';
 import './MediaPermissionContent.css';
 
 export default function MediaPermissionContent({
@@ -66,18 +67,18 @@ export default function MediaPermissionContent({
           {isDenied && (
             <>
               <div className="tab-switcher">
-                <button
+                <SafeButton
                   className={`tab-btn ${osTab === 'android' ? 'active' : ''}`}
                   onClick={() => setOsTab('android')}
                 >
                   {t('permissions.tabAndroid')}
-                </button>
-                <button
+                </SafeButton>
+                <SafeButton
                   className={`tab-btn ${osTab === 'ios' ? 'active' : ''}`}
                   onClick={() => setOsTab('ios')}
                 >
                   {t('permissions.tabIos')}
-                </button>
+                </SafeButton>
               </div>
 
               <div className="guide-instruction-steps">
@@ -107,12 +108,12 @@ export default function MediaPermissionContent({
       controlsClassName={controlsClassName}
       controls={
         <>
-          <button
+          <SafeButton
             className="btn-primary"
             onClick={onBtnClick}
           >
             {btnText}
-          </button>
+          </SafeButton>
           {secondaryControls}
         </>
       }

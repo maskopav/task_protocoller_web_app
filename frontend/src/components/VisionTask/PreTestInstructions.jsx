@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import InfoToolTip from "../InfoToolTip/InfoToolTip";
 import TaskLayout from "../TaskLayout/TaskLayout";
+import { SafeButton } from '../Shared/SafeButton';
 import "./PreTestInstructions.css";
 import { 
   brightnessIcon, 
@@ -75,13 +76,13 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
           {t("preTestChecklist.selectFirstHint")}
         </div>
       )}
-      <button
+      <SafeButton
         className={`btn-primary start-button${allAnswered ? "" : " is-disabled"}`}
         aria-disabled={!allAnswered}
         onClick={handleStart}
       >
         {t("preTestChecklist.buttons.start")}
-      </button>
+      </SafeButton>
     </>
   );
 

@@ -1,4 +1,5 @@
 import React, { forwardRef, useRef, useState, useEffect, useImperativeHandle } from 'react';
+import { SafeButton } from '../Shared/SafeButton';
 import './AudioGuidePlayer.css';
 import speakerIcon from '../../assets/audioIcons/audio-guide-icon.svg';
 
@@ -25,7 +26,8 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
   isRecordingActive,
   loop = false,
   autoPlay = true,
-  onEnded
+  onEnded,
+  playOnMount = true,
 }, ref) {
   const audioRef = useRef(null);
   const buttonRef = useRef(null);
@@ -65,13 +67,14 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
   useEffect(() => {
     if (!src || !audioRef.current || isRecordingActive) return;
 
-    // Ignore the render if only the `src` changed. 
-    // We only want to execute playback when `playTrigger` actually increments.
-    if (playTrigger === prevTriggerRef.current) return;
+    const audio = audioRef.current;
+    const triggerChanged = playTrigger !== prevTriggerRef.current;
     prevTriggerRef.current = playTrigger;
 
-    const audio = audioRef.current;
-    audio.currentTime = 0;
+    // Ignore the render if only the `src` changed. 
+    // We only want to execute playback when `playTrigger` actually increments, OR on mount if enabled.
+    if (!triggerChanged && !playOnMount) return;
+
     audio.muted = false;
 
     if (!autoPlay) {
@@ -97,7 +100,7 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
       setIsPlaying(false);
       audio.removeEventListener('canplaythrough', playOnLoad);
     };
-  }, [playTrigger, isRecordingActive, autoPlay, src]);
+  }, [playTrigger, isRecordingActive, autoPlay, src, playOnMount]);
 
   const handleAudioError = () => {
     setHasError(true);
@@ -135,7 +138,7 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
 
   return (
     <>
-      <button
+      <SafeButton
         ref={buttonRef}
         type="button"
         className={`audio-instructions-btn ${
@@ -161,7 +164,7 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
             <span className="audio-wave audio-wave--3" />
           </div>
         </div>
-      </button>
+      </SafeButton>
 
       <audio
         ref={audioRef}

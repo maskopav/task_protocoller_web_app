@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill-new/dist/quill.snow.css';
 import TaskLayout from '../TaskLayout/TaskLayout'; 
+import { SafeButton } from '../Shared/SafeButton';
 
 // Helper function to extract <h1> and return the remaining HTML
 const extractTitleAndBody = (rawContent) => {
@@ -36,9 +37,9 @@ export function InfoPage({ content, onNext }) {
   );
 
   const controlsContent = (
-    <button className="btn-primary" onClick={onNext}>
+    <SafeButton className="btn-primary" onClick={onNext}>
       {t("buttons.continue")}
-    </button>
+    </SafeButton>
   );
 
   return (
@@ -77,13 +78,13 @@ export function ConsentPage({ content, onNext }) {
           {t("onboarding.consentCheckbox")}
         </label>
       </div>
-      <button 
+      <SafeButton 
         className="btn-primary" 
         disabled={!agreed} 
         onClick={onNext}
       >
         {t("buttons.startProtocol")}
-      </button>
+      </SafeButton>
     </>
   );
 

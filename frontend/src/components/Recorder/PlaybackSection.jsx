@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { NextTaskButton } from "./NextTaskButton";
+import { SafeButton } from '../Shared/SafeButton';
 
 // components/Recorder/PlaybackSection.jsx - Audio playback component
 export const PlaybackSection = ({ 
@@ -58,9 +59,9 @@ export const PlaybackSection = ({
             <audio src={audioURL} controls onPlay={handlePlay} onPause={handlePause} onEnded={handleEnded} />
 
             <div className="button-group">
-                <button onClick={onRepeat} className="btn-repeat" disabled={isUploading}>
+                <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading}>
                     {t("buttons.repeat")}
-                </button>
+                </SafeButton>
 
                 {showNextButton && (
                     <NextTaskButton 

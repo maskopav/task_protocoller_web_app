@@ -11,6 +11,7 @@ import "./Recorder.css";
 import "./MicCheck.css";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logToServer } from "../../utils/frontendLogger";
+import { SafeButton } from '../Shared/SafeButton';
 
 // ==========================================
 // 1. CONFIGURATION & CONSTANTS
@@ -18,7 +19,7 @@ import { logToServer } from "../../utils/frontendLogger";
 const CONFIG = {
   TARGET_SNR: 9,
   RECORDING_DURATION: 12,
-  MAX_SCREEN_REPEATS: 3, // # of times a failed screen shows before final behavior kicks in
+  MAX_SCREEN_REPEATS: 2, // # of times a failed screen shows before final behavior kicks in
   VAD_PRECISION_CONFIG: {
     redemptionMs: 50,            
     preSpeechPadMs: 100,          
@@ -142,6 +143,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   const [errorType, setErrorType] = useState(null);
   const [finalMicData, setFinalMicData] = useState(null);
   const [isRetry, setIsRetry] = useState(false);
+  const attemptsRef = useRef(0);
 
   const { 
     currentInstructions, forceTimerActive, handleRecordingStateChange, 
@@ -152,26 +154,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     onPhaseChange?.(phase, errorType);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, errorType]);
-
-  // Final-attempt behavior: once a failed screen has appeared MAX_SCREEN_REPEATS
-  // times, muted → show an apology modal and stay put; noisy → auto-advance.
-  // Guarded with a ref so it fires only once per outcome.
-  useEffect(() => {
-    if (phase !== 'noise-failed' || attempts < CONFIG.MAX_SCREEN_REPEATS) return;
-
-    if (errorType === 'muted') {
-      confirm({
-        infoOnly: true,
-        title: "",
-        message: <Trans i18nKey="micCheck.mutedModalMessage" />,
-        confirmText: t("buttons.ok"),
-      });
-    } else {
-      if (onLogEvent) onLogEvent("mic_check_auto_advanced", { attempts });
-      onNext({ skipped: true, attempts, reason: "noisy_background" });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, errorType, attempts]);
 
   useEffect(() => {
     async function checkMicPermission() {
@@ -249,7 +231,9 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     
     setNoiseScore(calculatedScore);
     setErrorType(evaluatedError);
-    setAttempts(prev => prev + 1);
+    const newAttempts = attempts + 1;
+    attemptsRef.current = newAttempts;
+    setAttempts(newAttempts);
 
     const attemptData = {
       audioBlob: audioBlob, 
@@ -257,7 +241,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       duration: CONFIG.RECORDING_DURATION,
       speechSegments: taskData.speechSegments,
       timestamp: Date.now(),
-      attemptNumber: attempts + 1
+      attemptNumber: newAttempts
     };
 
     if (evaluatedError) {
@@ -279,6 +263,21 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
        });
     }
     setPhase(nextPhase);
+
+    // Auto-advance after MAX_SCREEN_REPEATS failed noise attempts
+    if (nextPhase === 'noise-failed' && newAttempts >= CONFIG.MAX_SCREEN_REPEATS) {
+      if (evaluatedError === 'muted') {
+        confirm({
+          infoOnly: true,
+          title: "",
+          message: <Trans i18nKey="micCheck.mutedModalMessage" />,
+          confirmText: t("buttons.ok"),
+        });
+      } else {
+        if (onLogEvent) onLogEvent("mic_check_auto_advanced", { attempts: newAttempts });
+        onNext({ skipped: true, attempts: newAttempts, reason: "noisy_background" });
+      }
+    }
 
     logToServer(`MicCheck completed. Phase result: ${nextPhase}. SNR: ${calculatedScore} dB`, {
       errorType: evaluatedError,
@@ -415,9 +414,9 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       controlsClassName="mic-check-controls"
       controls={
         <>
-          <button className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} onClick={uiState.onBtnClick}>
+          <SafeButton className={`btn-primary ${phase === 'noise-failed' ? 'btn-repeat' : ''}`} onClick={uiState.onBtnClick}>
             {uiState.btnText}
-          </button>
+          </SafeButton>
         </>
       }
     >

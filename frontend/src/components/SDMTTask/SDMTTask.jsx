@@ -8,6 +8,7 @@ import { buildAudioGuidePath } from "../../utils/getAudioGuidePath";
 import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import SDMTDemoMessage from './SDMTDemoMessage';
 import TaskLayout from '../TaskLayout/TaskLayout';
+import { SafeButton } from '../Shared/SafeButton';
 import './SDMTTask.css';
 
 const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onAudioEvent, audioGuideEnabled = true }) => {
@@ -177,9 +178,9 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
     const controlsContent = (
         <>
             {gameState === 'instructions' && (
-                <button className="btn-start" onClick={startGame}>
+                <SafeButton className="btn-start" onClick={startGame}>
                     {t("sdmt.start")}
-                </button>
+                </SafeButton>
             )}
 
             {gameState === 'playing' && (
@@ -190,9 +191,9 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
 
             {gameState === 'stats' && (
                 <>
-                    <button className="btn-repeat" onClick={resetGame}>
+                    <SafeButton className="btn-repeat" onClick={resetGame}>
                         {t("buttons.repeat", { ns: "common" })}
-                    </button>
+                    </SafeButton>
                     <NextTaskButton 
                         onClick={() => onComplete({
                         result: results,

@@ -1,11 +1,12 @@
 // components/Recorder/NextTaskButton.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { SafeButton } from '../Shared/SafeButton';
 
 export const NextTaskButton = ({ onClick, disabled = false, isLoading = false }) => {
     const { t } = useTranslation();
     return (
-        <button onClick={onClick} disabled={disabled || isLoading}>
+        <SafeButton onClick={onClick} disabled={disabled || isLoading}>
         {isLoading ? (
             <>
             <span className="spinner" />
@@ -14,6 +15,6 @@ export const NextTaskButton = ({ onClick, disabled = false, isLoading = false })
         ) : (
             t("buttons.next")
         )}
-        </button>
+        </SafeButton>
     );
 };

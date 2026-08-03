@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import checkIcon from "../../assets/successIcons/checkmark-icon.svg";
+import { SafeButton } from '../Shared/SafeButton';
 import "./D15DemoMessage.css";
 
 // ── DIALOG 1: ADD COLOUR ──────────────────────────────────────────────
@@ -84,7 +85,7 @@ export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange
     <div className="d15-demo-container">
       <div className="mechanics-tabs" role="tablist">
         {tabs.map((tab) => (
-          <button
+          <SafeButton
             key={tab.key}
             className={`mechanics-tab${activeTab === tab.key ? " mechanics-tab--active" : ""}`}
             role="tab"
@@ -92,7 +93,7 @@ export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange
             onClick={() => handleTabClick(tab.key)}
           >
             {tab.label}
-          </button>
+          </SafeButton>
         ))}
       </div>
 

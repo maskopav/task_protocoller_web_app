@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
+import { SafeButton } from '../Shared/SafeButton';
 import "./ConfirmDialog.css"
 
 export const ConfirmDialogContext = createContext();
@@ -64,17 +65,17 @@ export function ConfirmDialogProvider({ children }) {
 
             <div className="confirm-buttons">
               {dialog.infoOnly ? (
-                <button className="btn-confirm" onClick={handleConfirm}>
+                <SafeButton className="btn-confirm" onClick={handleConfirm}>
                   {dialog.confirmText}
-                </button>
+                </SafeButton>
               ) : (
                 <>
-                  <button className="btn-cancel" onClick={handleCancel}>
+                  <SafeButton className="btn-cancel" onClick={handleCancel}>
                     {dialog.cancelText}
-                  </button>
-                  <button className="btn-confirm" onClick={handleConfirm}>
+                  </SafeButton>
+                  <SafeButton className="btn-confirm" onClick={handleConfirm}>
                     {dialog.confirmText}
-                  </button>
+                  </SafeButton>
                 </>
               )}
             </div>

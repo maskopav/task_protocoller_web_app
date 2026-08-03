@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
+import { SafeButton } from '../Shared/SafeButton';
 import './VideoRecorder.css';
 
 export const VideoRecorder = ({ title, instructions, onNextTask }) => {
@@ -100,32 +101,32 @@ export const VideoRecorder = ({ title, instructions, onNextTask }) => {
             
             <div className="controls-container">
                 {phase === 'SETUP' && (
-                    <button className="btn-primary" onClick={handleStartCalibration}>
+                    <SafeButton className="btn-primary" onClick={handleStartCalibration}>
                         Start Calibration
-                    </button>
+                    </SafeButton>
                 )}
                 
                 {phase === 'CALIBRATE' && (
-                    <button 
-                        className="btn-primary" 
-                        disabled={!isReady} 
-                        onClick={() => { 
-                            setPhase('RECORDING'); 
-                            startRecording(); 
+                    <SafeButton
+                        className="btn-primary"
+                        disabled={!isReady}
+                        onClick={() => {
+                            setPhase('RECORDING');
+                            startRecording();
                             // Optional: play successAudio.current.play() here if desired
                         }}
                     >
                         {isReady ? "Start Recording" : "Awaiting Correct Position..."}
-                    </button>
+                    </SafeButton>
                 )}
 
                 {phase === 'RECORDING' && (
-                    <button 
+                    <SafeButton 
                         className="btn-primary btn-stop" 
                         onClick={() => { setPhase('DONE'); stopRecording(); }}
                     >
                         Stop Recording
-                    </button>
+                    </SafeButton>
                 )}
                 
                 {phase === 'DONE' && (

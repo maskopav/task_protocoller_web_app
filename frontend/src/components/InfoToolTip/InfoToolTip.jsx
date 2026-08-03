@@ -2,6 +2,7 @@
 import React from "react";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import { useTranslation } from "react-i18next";
+import { SafeButton } from '../Shared/SafeButton';
 import infoIcon from "../../assets/generalIcons/info-icon.svg"; 
 import "./InfoToolTip.css";
 
@@ -26,13 +27,13 @@ export default function InfoTooltip({ title, text, icon }) {
   const displayIcon = icon || infoIcon;
 
   return (
-    <button 
+    <SafeButton 
       className="info-tooltip-btn" 
       onClick={handleClick}
       aria-label="More information"
       type="button"
     >
       <img src={displayIcon} alt="Info" className="info-icon-svg" />
-    </button>
+    </SafeButton>
   );
 }
