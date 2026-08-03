@@ -9,14 +9,14 @@
 .identifiers-form-group {
   width: 100%;
   max-width: 420px;
-  margin-bottom: 1.2rem;
+  margin-bottom: clamp(0.3rem, 2dvh, 1.2rem);
   text-align: left;
 }
 
 .identifiers-form-group label {
   display: block;
   font-weight: 500;
-  margin: clamp(3px, 1.8dvw, 12px) 0;
+  margin: clamp(2px, 1.5dvh, 12px) 0;
   color: #444;
 }
 

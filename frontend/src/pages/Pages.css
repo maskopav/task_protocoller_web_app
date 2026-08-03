@@ -186,7 +186,7 @@ p {
 .task-header-row {
   display: flex;
   align-items: center;
-  margin-bottom: 0.1rem;
+  margin-bottom: clamp(0px, 0.5dvh, 0.2rem);
 }
 
 .task-header-left {

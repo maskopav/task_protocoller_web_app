@@ -1,6 +1,7 @@
 /* src/components/Recorder/MediaPermissionContent.css */
 .media-permission-main {
-  min-height: 0 !important;
+  flex: 0 0 auto;
+  min-height: min-content !important;
 }
 
 .media-permission-main:empty {
@@ -15,7 +16,7 @@
   width: 300px;
   max-width: 100%;
   height: auto;
-  max-height: 250px;
+  max-height: clamp(120px, 25dvh, 250px);
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
