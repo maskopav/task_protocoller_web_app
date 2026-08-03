@@ -70,12 +70,12 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
 
     // ONLY scroll if the user has advanced to a new unanswered question
     if (firstUnansweredIndex > lastScrolledIndex.current) {
-      // Target the previous question to keep both answered and next in view
-      const targetIndex = firstUnansweredIndex > 0 ? firstUnansweredIndex - 1 : 0;
-      const targetCard = listRef.current.children[targetIndex];
+      // 1. Target the unanswered question directly
+      const targetCard = listRef.current.children[firstUnansweredIndex];
       
       if (targetCard) {
-        targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        // 2. Use 'nearest' instead of 'start'
+        targetCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
         
         // Update the ref so we don't scroll again until they reach the NEXT question
         lastScrolledIndex.current = firstUnansweredIndex;
