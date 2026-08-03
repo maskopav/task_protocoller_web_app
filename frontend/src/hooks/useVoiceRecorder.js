@@ -1,7 +1,7 @@
 // hooks/useVoiceRecorder.js
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { logToServer } from '../utils/frontendLogger';
-import { exportWAV } from '../utils/audioUtils';
+import { initSession, appendChunk, buildWAV, clearSession } from '../utils/audioIDB';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Recording state machine constants.
@@ -27,34 +27,63 @@ const LEVEL_FRAME_INTERVAL_MS = 1000 / 25;
 // AudioWorklet source — inlined as a string so no extra build step or
 // public-folder asset is required.
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// AudioWorklet source — inlined as a string so no extra build step or
+// public-folder asset is required.
+// ─────────────────────────────────────────────────────────────────────────────
 const WORKLET_CODE = `
 class RecorderWorklet extends AudioWorkletProcessor {
     constructor() {
         super();
         this.isRecording = false;
+        
+        // 4096 samples = exactly 32 audio quanta (128 samples each).
+        // At 48kHz, this fires a message to the main thread ~11.7 times per second
+        this.batchSize = 4096;
+        this.buffer = new Int16Array(this.batchSize);
+        this.offset = 0;
+
         this.port.onmessage = (e) => {
-            if (e.data.command === 'start') this.isRecording = true;
-            if (e.data.command === 'stop')  this.isRecording = false;
+            if (e.data.command === 'start') {
+                this.isRecording = true;
+            } else if (e.data.command === 'stop') {
+                this.isRecording = false;
+                this.flush(); // Catch the final tail of the recording
+            }
         };
     }
-    process(inputs, outputs, parameters) {
+
+    flush() {
+        if (this.offset > 0) {
+            // .slice() creates a new Int16Array with its own tightly-packed ArrayBuffer
+            // containing only the recorded samples (important for the very last chunk)
+            const chunk = this.buffer.slice(0, this.offset);
+            
+            // Transfer ownership to the main thread
+            this.port.postMessage({ buffer: chunk.buffer }, [chunk.buffer]);
+            
+            // Reset state for the next batch
+            this.offset = 0;
+            this.buffer = new Int16Array(this.batchSize);
+        }
+    }
+
+    process(inputs) {
         if (!this.isRecording) return true;
         const input = inputs[0];
-        if (input && input.length > 0 && input[0].length > 0) {
-            // Copy into a new buffer we own, then transfer ownership via postMessage.
-            // The original input[0] belongs to the audio thread and will be reused
-            // after process() returns — we must never hold a reference to it.
-            const channelData = new Float32Array(input[0]);
-            // Safety clamp: the upstream GainNode operates in the internal float
-            // graph, which allows values outside [-1, 1].  Clamp before capturing
-            // so the WAV never contains out-of-range samples.  With a conservative
-            // boost this should rarely trigger, but it guards against unexpectedly
-            // loud input or pathological gain values.
-            for (let i = 0; i < channelData.length; i++) {
-                if      (channelData[i] >  1.0) channelData[i] =  1.0;
-                else if (channelData[i] < -1.0) channelData[i] = -1.0;
+        if (!input || !input[0] || !input[0].length) return true;
+
+        const float = input[0];
+        
+        for (let i = 0; i < float.length; i++) {
+            // Encode Float32 → Int16 PCM here, on the audio thread.
+            const s = float[i] < -1 ? -1 : float[i] > 1 ? 1 : float[i];
+            this.buffer[this.offset++] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            
+            // Send to main thread only when our batch is full
+            if (this.offset >= this.batchSize) {
+                this.flush();
             }
-            this.port.postMessage({ buffer: channelData }, [channelData.buffer]);
         }
         return true;
     }
@@ -111,7 +140,9 @@ export const useVoiceRecorder = (options = {}) => {
     const [durationExpired, setDurationExpired] = useState(false);
 
     // ── Refs ───────────────────────────────────────────────────────────────────
-    const audioChunks       = useRef([]);
+    const chunkCountRef = useRef(0);
+    const pendingWritesRef = useRef(Promise.resolve());
+    const pcmBatchRef = useRef([]);
     const audioContext      = useRef(null);
     const analyser          = useRef(null);
     const animationFrame    = useRef(null);
@@ -301,6 +332,42 @@ export const useVoiceRecorder = (options = {}) => {
         return () => subscribersRef.current.delete(callback);
     }, []);
 
+        const flushPCMChunkBatch = useCallback(() => {
+        if (pcmBatchRef.current.length === 0) return pendingWritesRef.current;
+
+        let totalSamples = 0;
+        for (let i = 0; i < pcmBatchRef.current.length; i++) {
+            totalSamples += pcmBatchRef.current[i].byteLength >> 1;
+        }
+
+        const merged = new Int16Array(totalSamples);
+        let offset = 0;
+
+        for (let i = 0; i < pcmBatchRef.current.length; i++) {
+            const chunk = pcmBatchRef.current[i];
+            merged.set(chunk, offset);
+            offset += chunk.length;
+        }
+
+        pcmBatchRef.current = [];
+        pendingWritesRef.current = pendingWritesRef.current.then(() =>
+            appendChunk(merged.buffer)
+        );
+        return pendingWritesRef.current;
+    }, []);
+
+    const enqueuePCMChunk = useCallback((buffer) => {
+        const chunk = new Int16Array(buffer);
+        pcmBatchRef.current.push(chunk);
+
+        // 16 worklet quanta = 2048 samples; small RAM footprint, far fewer IDB writes.
+        if (pcmBatchRef.current.length >= 16) {
+            flushPCMChunkBatch().catch(err =>
+                logToServer('IDB | flushPCMChunkBatch failed', err.message)
+            );
+        }
+    }, [flushPCMChunkBatch]);
+
     // ── Recording ──────────────────────────────────────────────────────────────
     const startRecording = async () => {
         // guard against a double-start.  Without this, calling startRecording
@@ -309,7 +376,10 @@ export const useVoiceRecorder = (options = {}) => {
         if (!stream || statusRef.current === RECORDING) return;
 
         setDurationExpired(false);
-        audioChunks.current = [];
+        chunkCountRef.current = 0;
+        pcmBatchRef.current = [];
+        pendingWritesRef.current = Promise.resolve();
+        await initSession();
 
         if (mode === 'countDown') {
             setRemainingTime(duration || 10);
@@ -337,6 +407,12 @@ export const useVoiceRecorder = (options = {}) => {
         if (!audioContext.current.workletLoaded) {
             const blob      = new Blob([WORKLET_CODE], { type: 'application/javascript' });
             const workletUrl = URL.createObjectURL(blob);
+            if (!audioContext.current.audioWorklet || typeof AudioWorkletNode === 'undefined') {
+                const err = new Error('AudioWorklet is not supported in this browser.');
+                logToServer('AudioContext | AudioWorklet unsupported');
+                onError(err);
+                return;
+            }
             await audioContext.current.audioWorklet.addModule(workletUrl);
             URL.revokeObjectURL(workletUrl);
             audioContext.current.workletLoaded = true;
@@ -358,30 +434,26 @@ export const useVoiceRecorder = (options = {}) => {
             numberOfOutputs: 0,
         });
 
-        // Receive raw PCM from the isolated audio thread.
-        // The first arriving chunk marks the true start of the WAV —
-        // this timestamp replaces any Date.now() captured before async setup.
         workletNode.port.onmessage = (event) => {
-            if (statusRef.current === RECORDING) {
-                if (audioChunks.current.length === 0) {
-                    firstChunkTimeRef.current = Date.now();
-                }
-                audioChunks.current.push(event.data.buffer);
+            if (statusRef.current !== RECORDING) return;
+
+            if (chunkCountRef.current === 0) {
+                firstChunkTimeRef.current = Date.now();
             }
+
+            chunkCountRef.current += 1;
+            enqueuePCMChunk(event.data.buffer);
         };
 
-        // Pipeline:  source → inputGainNode → workletNode (sink, no outputs)
-        //                                   ↘ analyser   (viz sees boosted signal)
-        source.connect(inputGainNode);
-        inputGainNode.connect(workletNode);
+        // Pipeline Branch 1: source → workletNode (Raw, untouched audio for saving)
+        source.connect(workletNode);
 
+        // Pipeline Branch 2: source → inputGainNode → analyser (Boosted audio ONLY for UI visualizer)
+        source.connect(inputGainNode);
+        
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 256;
         inputGainNode.connect(analyser.current);
-
-        sourceNodeRef.current  = source;
-        workletNodeRef.current = workletNode;
-        inputGainRef.current   = inputGainNode;
 
         workletNode.port.postMessage({ command: 'start' });
 
@@ -434,25 +506,37 @@ export const useVoiceRecorder = (options = {}) => {
         }
 
         // Export WAV using the NATIVE hardware sample rate
-        if (audioChunks.current.length > 0 && audioContext.current) {
+        if (chunkCountRef.current > 0 && audioContext.current) {
             const sampleRate = audioContext.current.sampleRate;
-            const audioBlob = exportWAV(audioChunks.current, sampleRate);
-            const url = URL.createObjectURL(audioBlob);
-            
-            audioURLRef.current = url;
-            setAudioURL(url);
-            onRecordingComplete(audioBlob, url);
+
+            flushPCMChunkBatch()
+                .then(() => pendingWritesRef.current)
+                .then(() => buildWAV(sampleRate))
+                .then((audioBlob) => {
+                    const url = URL.createObjectURL(audioBlob);
+                    audioURLRef.current = url;
+                    setAudioURL(url);
+                    onRecordingComplete(audioBlob, url);
+                })
+                .catch((err) => {
+                    logToServer('IDB | buildWAV failed', err.message);
+                    onError(err);
+                });
         }
     }, [onRecordingComplete]); // wrapped in useCallback to safely trigger inside the timer
 
-    const repeatRecording = () => {
+    const repeatRecording = async () => {
         if (audioURL) {
             URL.revokeObjectURL(audioURL);
             audioURLRef.current = null;
             setAudioURL(null);
         }
 
-        audioChunks.current = [];
+        const inFlightWrites = pendingWritesRef.current;
+
+        chunkCountRef.current = 0;
+        pcmBatchRef.current = [];
+        pendingWritesRef.current = Promise.resolve();
         firstChunkTimeRef.current = null;
 
         // clear stale node refs so nothing accidentally reaches them between
@@ -479,6 +563,15 @@ export const useVoiceRecorder = (options = {}) => {
             audioContext.current.close();
             audioContext.current = null;
         }
+        // Await in-flight transactions before wiping the database ──
+        try {
+            await inFlightWrites;
+        } catch (err) {
+            // Ignore previous chunk write errors; we are clearing the session anyway
+        }
+        
+        clearSession().catch(err => logToServer('IDB | clearSession failed', err.message));
+        
     };
 
     // Monitor the recording time and force stop
@@ -551,6 +644,9 @@ export const useVoiceRecorder = (options = {}) => {
         return () => {
             // Use refs, not state, to avoid stale closure values captured at
             // mount time (stream, audioURL are both null on first render).
+            chunkCountRef.current = 0;
+            pcmBatchRef.current = [];
+            pendingWritesRef.current = Promise.resolve();
             if (audioURLRef.current) URL.revokeObjectURL(audioURLRef.current);
             if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
             if (streamRef.current) {
