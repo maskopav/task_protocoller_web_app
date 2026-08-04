@@ -175,7 +175,7 @@
     },
     "volumeCheck": {
       "title": "Audio Volume Setup",
-      "instructions": "Please use the audio player below to test your audio volume. <br/><br/><strong>Adjust your device's volume</strong> until you can hear the message clearly."
+      "instructions": "Please use the audio player below to test your audio volume. <br/><br/><strong>Adjust your device's volume</strong> until you can hear the message clearly. Then, select the number you hear."
     },
     "audioGuideIntro": {
       "title": "Audio Guide",

@@ -839,7 +839,12 @@ export default function ParticipantInterfacePage() {
       };
 
       if (isSystemTask) {
-        logInteraction(`${currentTaskObj.type}_completed`);
+        // Volume check carries real answer data worth keeping — attach it so
+        // the backend can set the volume_check_result flag on the session.
+        const extra = currentTaskObj.type === 'volume_check'
+          ? { correct: data?.correct, selectedNumber: data?.selectedNumber, targetNumber: data?.targetNumber }
+          : {};
+        logInteraction(`${currentTaskObj.type}_completed`, extra);
         if (!isAttempt) proceedToNext();
         return;
       }

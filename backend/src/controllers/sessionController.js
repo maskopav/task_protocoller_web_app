@@ -136,6 +136,12 @@ export const updateProgress = async (req, res) => {
           queryParams.push(flag);
         }
 
+        // Volume-check outcome — same first-class-flag pattern as mic_check_result.
+        if (event.action === 'volume_check_completed' && event.correct !== undefined) {
+          taskIndexQuery += ", volume_check_result = ?";
+          queryParams.push(event.correct ? 'passed' : 'failed');
+        }
+
         queryParams.push(sessionId);
         // Update last_activity_at will as well
         await connection.query(

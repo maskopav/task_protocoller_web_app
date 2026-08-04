@@ -69,3 +69,29 @@
     gap: 1rem;
     width: 100%;
 }
+
+/* 3. Two rows, two columns — gap scales with viewport height so bigger
+   phones get more breathing room (fewer accidental taps) and small
+   phones tighten up just enough to still fit in one screen */
+.volume-check-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(0.9rem, 2.1dvh, 1.25rem);
+    width: 100%;
+}
+
+.btn-option {
+    min-width: 0;
+    padding: clamp(0.85rem, 2dvh, 1.15rem) clamp(3.5rem, 6dvw, 4.5rem);
+    font-size: clamp(1.1rem, 2.2dvh, 1.25rem);
+    background-color: var(--grey);
+    color: var(--muted);
+    transition: all 0.2s ease-in-out; /* Smooth transition */
+}
+
+.btn-option--selected {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    transform: scale(1.03); /* Keeps your current subtle pop */
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); /* Subtle blue glow */
+}
