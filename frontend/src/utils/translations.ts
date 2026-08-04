@@ -182,9 +182,17 @@ export function getResolvedParams(category: string, actualParams: Record<string,
       }
     // Parameter has no translation values (keep numeric / literal values)
     } else {
+      // Technical boolean-flag params are stored as the literal strings
+      // "true"/"false" (e.g. recordVideo) and are read via strict === 'true'
+      // checks elsewhere (Recorder.jsx, ParticipantInterfacePage.jsx). They
+      // are never meant to be swapped for a translated display label, even
+      // if the translation JSON happens to define one (e.g. for the admin
+      // params UI) — doing so silently breaks those downstream checks.
+      const isBooleanFlag = actualValue === "true" || actualValue === "false";
+
       // Only override with label if the original value is a string
       // and label is explicitly provided (e.g. "fairytale": { label: "Fairytale" })
-      if (typeof actualValue === "string" && paramTranslation.label && taskBaseConfig[category]?.type !== "questionnaire") {
+      if (!isBooleanFlag && typeof actualValue === "string" && paramTranslation.label && taskBaseConfig[category]?.type !== "questionnaire") {
         result[paramKey] = paramTranslation.label;
       } else {
         // Otherwise, preserve the numeric / literal value
@@ -219,4 +227,3 @@ export function getDefaultParams(category: string): Record<string, any> {
     })
   );
 }
-
