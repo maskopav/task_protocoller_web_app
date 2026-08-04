@@ -51,11 +51,11 @@ const VolumeCheck = ({ onComplete, audioGuideEnabled = true }) => {
                 ))}
             </div>
             <SafeButton
-                className="btn-start"
+                className="btn-next"
                 disabled={selected === null}
                 onClick={handleContinue}
             >
-                {t("buttons.continue", { ns: "common" })}
+                {t("buttons.next", { ns: "common" })}
             </SafeButton>
         </div>
     );

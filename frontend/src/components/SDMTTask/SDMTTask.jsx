@@ -109,7 +109,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
         !(keypadSetting.includes('during') && gameState !== 'playing');
 
     const instructionConfig = useMemo(() => {
-        if (gameState === 'stats')   return { key: "sdmt.completedInstructions", ns: "tasks" };
+        if (gameState === 'stats')   return { key: "completion.taskCompletedInstructions", ns: "common" };
         if (gameState === 'playing') return { key: "sdmt.instructionsActive",    ns: "tasks" };
         return                              { key: "sdmt.instructions",          ns: "tasks" };
     }, [gameState]);

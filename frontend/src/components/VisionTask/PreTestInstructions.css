@@ -93,25 +93,6 @@
   font-weight: bold;
 }
 
-/* Adjustments for the start button since TaskLayout wraps it in .bottom-controls */
-.start-button {
-  width: 100%;
-  max-width: 400px;
-  padding: clamp(12px, 2dvh, 16px);
-  border-radius: var(--radius, 10px);
-  border: none;
-  background-color: var(--primary, #3b82f6);
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: bold;
-}
-
-.start-button.is-disabled {
-  background-color: #cbd5e1;
-  cursor: not-allowed;
-}
-
 .start-button:not(.is-disabled):hover {
   filter: brightness(0.9);
 }

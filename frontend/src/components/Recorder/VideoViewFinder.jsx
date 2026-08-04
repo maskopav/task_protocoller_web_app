@@ -345,7 +345,7 @@ export const VideoViewFinder = ({
             {phase === 'CALIBRATE' && (
                 <div className="video-bottom-controls">
                     <SafeButton
-                        className="btn-primary"
+                        className="btn-next"
                         disabled={!(isSteady && isFaceCorrect)}
                         onClick={onFinishCalibration}
                     >

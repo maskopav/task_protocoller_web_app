@@ -11,7 +11,7 @@ import {
 } from "../../assets/visionIcons/visionAssets";
 
 export default function PreTestInstructions({ onComplete, audioPlayer }) {
-  const { t } = useTranslation(["tasks"]);
+  const { t } = useTranslation(["tasks", "common"]);
   const [answers, setAnswers] = useState({});
   const [showHint, setShowHint] = useState(false);
 
@@ -77,11 +77,11 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
         </div>
       )}
       <SafeButton
-        className={`btn-primary start-button${allAnswered ? "" : " is-disabled"}`}
-        aria-disabled={!allAnswered}
+        className={`btn-next`}
+        disabled={!allAnswered}
         onClick={handleStart}
       >
-        {t("preTestChecklist.buttons.start")}
+        {t("buttons.next", { ns: "common" })}
       </SafeButton>
     </>
   );
@@ -113,26 +113,26 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
               <div className="radio-group">
                 <label className={`radio-label ${answers[item.id] === 'yes' ? 'selected-cannot' : ''}`}>
                   <input type="radio" name={item.id} value="yes" checked={answers[item.id] === "yes"} onChange={() => handleSelect(item.id, "yes")} />
-                  {t("preTestChecklist.buttons.yes")}
+                  {t("buttons.yes", { ns: "common" })}
                 </label>
                 <label className={`radio-label ${answers[item.id] === 'no' ? 'selected-done' : ''}`}>
                   <input type="radio" name={item.id} value="no" checked={answers[item.id] === "no"} onChange={() => handleSelect(item.id, "no")} />
-                  {t("preTestChecklist.buttons.no")}
+                  {t("buttons.no", { ns: "common" })}
                 </label>
                 <label className={`radio-label ${answers[item.id] === 'dontKnow' ? 'selected-cannot' : ''}`}>
                   <input type="radio" name={item.id} value="dontKnow" checked={answers[item.id] === "dontKnow"} onChange={() => handleSelect(item.id, "dontKnow")} />
-                  {t("preTestChecklist.buttons.dontKnow")}
+                  {t("buttons.dontKnow", { ns: "common" })}
                 </label>
               </div>
             ) : (
               <div className="radio-group">
                 <label className={`radio-label ${answers[item.id] === 'done' ? 'selected' : ''}`}>
                   <input type="radio" name={item.id} value="done" checked={answers[item.id] === "done"} onChange={() => handleSelect(item.id, "done")} />
-                  {t("preTestChecklist.buttons.done")}
+                  {t("buttons.done", { ns: "common" })}
                 </label>
                 <label className={`radio-label ${answers[item.id] === 'cannot' ? 'selected' : ''}`}>
                   <input type="radio" name={item.id} value="cannot" checked={answers[item.id] === "cannot"} onChange={() => handleSelect(item.id, "cannot")} />
-                  {t("preTestChecklist.buttons.cannot")}
+                  {t("buttons.cannot", { ns: "common" })}
                 </label>
               </div>
             )}

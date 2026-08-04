@@ -1,9 +1,4 @@
 /* src/components/Recorder/MediaPermissionContent.css */
-.media-permission-main {
-  flex: 0 0 auto;
-  min-height: min-content !important;
-}
-
 .media-permission-main:empty {
   display: none;
 }

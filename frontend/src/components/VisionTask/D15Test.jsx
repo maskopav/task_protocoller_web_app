@@ -10,7 +10,7 @@ import { SafeButton } from '../Shared/SafeButton';
 import "./D15Test.css";
 
 export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, audioGuideEnabled = true }) {
-  const { t } = useTranslation("tasks");
+  const { t } = useTranslation("tasks", "common");
   const { confirm } = useContext(ConfirmDialogContext);
 
   const [d15Colors, setD15Colors] = useState([]);
@@ -265,17 +265,15 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
     <>
       {/* {!isSubmitted && (
         <SafeButton className="btn-secondary" onClick={handleReset}>
-          {t("d15colour.controls.reset")}
+          {t("buttons.reset", { ns: "common" })}
         </SafeButton>
       )} */}
       <SafeButton
-        className="btn-submit"
+        className="btn-next"
         onClick={handleDone}
         disabled={!isTrayFull}
       >
-        {isSubmitted
-          ? t("d15colour.controls.continue", "Continue")
-          : t("d15colour.controls.submit")}
+        {t("buttons.next", { ns: "common" })}
       </SafeButton>
     </>
   );

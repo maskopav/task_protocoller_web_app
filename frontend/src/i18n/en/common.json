@@ -2,6 +2,7 @@
     "buttons": {
       "next": "Next",
       "repeat": "Try Again",
+      "reset": "Reset",
       "start": "Start",
       "sending": "Saving…",
       "pause": "Pause",
@@ -27,7 +28,11 @@
       "continue": "Continue",
       "backToEditor": "Back to editor",
       "startCalibration": "To camera calibration",
-      "seeTopic": "Show Topic"
+      "seeTopic": "Show Topic",
+      "cannot": "Can't / Don't Know",
+      "yes": "Yes",
+      "no": "No",
+      "dontKnow": "Don't know"
     },
     "status": {
       "ready": "Ready",

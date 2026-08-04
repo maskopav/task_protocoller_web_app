@@ -167,10 +167,10 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
         <SafeButton
           type="submit"
           form="identifiers-form"
-          className="btn-primary identifiers-btn"
+          className="btn-next"
           disabled={isSubmitting}
         >
-          {isSubmitting ? t('buttons.saving') : t('buttons.continue')}
+          {isSubmitting ? t('buttons.saving') : t('buttons.next')}
         </SafeButton>
       }
     />

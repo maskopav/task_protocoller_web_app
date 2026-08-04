@@ -37,8 +37,8 @@ export function InfoPage({ content, onNext }) {
   );
 
   const controlsContent = (
-    <SafeButton className="btn-primary" onClick={onNext}>
-      {t("buttons.continue")}
+    <SafeButton className="btn-next" onClick={onNext}>
+      {t("buttons.next")}
     </SafeButton>
   );
 

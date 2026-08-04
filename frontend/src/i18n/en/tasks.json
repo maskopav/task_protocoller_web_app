@@ -316,8 +316,6 @@
       "timeoutSubmit": "Submit",
       "timeoutContinue": "Keep going",
       "controls": {
-        "reset": "Reset",
-        "submit": "Continue",
         "addTabLabel": "Add color",
         "modifyTabLabel": "Modify sequence"
       },
@@ -361,14 +359,6 @@
       "subtitle": "Now, we will test your color vision. Please try to setup your screen:",
       "subtitleBelow": "If you do not know how to do it, please proceed further anyway. <br><br> You can tap info icon for help.",
       "selectFirstHint": "Please select the status buttons above first.",
-      "buttons": {
-        "done": "Done",
-        "cannot": "Can't / Don't Know",
-        "start": "Next",
-        "yes": "Yes",
-        "no": "No",
-        "dontKnow": "Don't know"
-      },
       "items": {
         "landscape": {
           "label": "Rotate your phone sideways.",
@@ -404,7 +394,6 @@
       "title": "Symbols",
       "instructions": "Tap the corresponding keypad number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong> for the task.",
       "instructionsActive": "Match the symbol to the number.",
-      "completedInstructions": "Symbols task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you want to repeat the task.",
       "demoTitle": "Symbol matching task",
       "demoText": "Match the appeared symbol to the corresponding number using the keypad.",
       "taskComplete": "Task Complete!",
