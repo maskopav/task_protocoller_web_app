@@ -103,7 +103,7 @@
       "lastName": "Last Name",
       "birthYear": "Year of Birth",
       "externalId": "External ID",
-      "sex": "Sex",
+      "gender": "Gender",
       "yearPlaceholder": "e.g. 1965",
       "yearTitle": "Enter a 4-digit year",
       "fillAllFields": "Please fill in all required fields to continue.",
