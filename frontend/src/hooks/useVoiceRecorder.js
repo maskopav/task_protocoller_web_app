@@ -1,6 +1,6 @@
 // hooks/useVoiceRecorder.js
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { logToServer } from '../utils/frontendLogger';
+import { logger } from '../utils/frontendLogger';
 import { initSession, appendChunk, buildWAV, clearSession } from '../utils/audioIDB';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -183,14 +183,6 @@ export const useVoiceRecorder = (options = {}) => {
             /HeyTapBrowser/i.test(ua) ? 'OPPO Browser'        :
             /VivoBrowser/i.test(ua)   ? 'Vivo Browser'        : null;
 
-        logToServer('MIC | permission check', {
-            browser: browserName || ua.match(/(Chrome|Firefox|Safari|Edge)\/[\d.]+/)?.[0] || 'Unknown',
-            incompatible: !!browserName,
-            isSecureContext: window.isSecureContext,
-            protocol: location.protocol,
-            hasMediaDevices: !!navigator.mediaDevices?.getUserMedia,
-        });
-
         // Block known broken browsers immediately
         if (browserName) {
             setIncompatibleBrowser(browserName);
@@ -202,7 +194,7 @@ export const useVoiceRecorder = (options = {}) => {
             const reason = !window.isSecureContext
                 ? 'Not a secure context (HTTPS required)'
                 : 'getUserMedia API not available';
-            logToServer('MIC | BLOCKED', { reason });
+            logger.warn("Microphone access blocked", { reason });
             onError(new Error(reason));
             setPermission(false);
             return false;
@@ -230,28 +222,20 @@ export const useVoiceRecorder = (options = {}) => {
                     echoCancellation: false,
                     noiseSuppression: false,
                 });
-                logToServer('MIC | applyConstraints succeeded');
             } catch (constraintErr) {
-                logToServer('MIC | applyConstraints failed (non-critical)', constraintErr.name);
+                logger.warn("applyConstraints failed (non-critical)", { error: constraintErr.name });
             }
 
             const settings = track.getSettings();
             if (settings.autoGainControl || settings.echoCancellation || settings.noiseSuppression) {
                 console.warn('⚠️ OS/Hardware ignored raw audio constraints!', settings);
-                logToServer('MIC | WARNING: Hardware forced processing despite constraints', settings);
+                logger.warn("Hardware forced audio processing despite constraints", { settings });
             }
-
-            logToServer('MIC | granted', {
-                label: track?.label || 'unknown',
-                readyState: track?.readyState,
-                settings: settings ?? 'unsupported',
-            });
 
             // Create the AudioContext here so the VAD can share it.
             if (!audioContext.current) {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 audioContext.current = new AudioContextClass();
-                logToServer('AudioContext | created at permission time, sampleRate:', audioContext.current.sampleRate);
             }
 
             setPermission(true);
@@ -274,9 +258,8 @@ export const useVoiceRecorder = (options = {}) => {
                 AbortError:            'Request aborted',
                 SecurityError:         'Blocked by browser security policy',
             };
-            logToServer('MIC | denied', {
-                error: err.name,
-                diagnosis: diagnosisMap[err.name] || 'Unknown error',
+            logger.error("Microphone access denied", err, { 
+                diagnosis: diagnosisMap[err.name] || 'Unknown error' 
             });
             setPermission(false);
             onError(err);
@@ -367,7 +350,7 @@ export const useVoiceRecorder = (options = {}) => {
         // 16 worklet quanta = 2048 samples; small RAM footprint, far fewer IDB writes.
         if (pcmBatchRef.current.length >= 16) {
             flushPCMChunkBatch().catch(err =>
-                logToServer('IDB | flushPCMChunkBatch failed', err.message)
+                logger.error("Failed to flush PCM chunk batch to IDB", err)
             );
         }
     }, [flushPCMChunkBatch]);
@@ -389,7 +372,7 @@ export const useVoiceRecorder = (options = {}) => {
                 });
                 setStream(activeStream);
             } catch (err) {
-                logToServer('MIC | failed to re-acquire on start', err.message);
+                logger.error("Failed to re-acquire microphone on start", err);
                 onError(err);
                 return;
             }
@@ -415,8 +398,8 @@ export const useVoiceRecorder = (options = {}) => {
         if (!audioContext.current) {
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
             audioContext.current = new AudioContextClass();
-            logToServer('AudioContext | late creation (post-repeat), sampleRate:', audioContext.current.sampleRate);
         }
+
         // iOS Safari: AudioContext must be resumed inside a user-gesture handler.
         if (audioContext.current.state === 'suspended') {
             await audioContext.current.resume();
@@ -429,7 +412,7 @@ export const useVoiceRecorder = (options = {}) => {
             const workletUrl = URL.createObjectURL(blob);
             if (!audioContext.current.audioWorklet || typeof AudioWorkletNode === 'undefined') {
                 const err = new Error('AudioWorklet is not supported in this browser.');
-                logToServer('AudioContext | AudioWorklet unsupported');
+                logger.fatal("AudioWorklet unsupported by browser", err);
                 onError(err);
                 return;
             }
@@ -449,7 +432,6 @@ export const useVoiceRecorder = (options = {}) => {
         const gainValue    = resolveInputGain(inputGain);
         const inputGainNode = audioContext.current.createGain();
         inputGainNode.gain.value = gainValue;
-        logToServer('AudioContext | inputGain applied:', gainValue);
 
         const workletNode = new AudioWorkletNode(audioContext.current, 'recorder-worklet', {
             numberOfOutputs: 0,
@@ -545,7 +527,7 @@ export const useVoiceRecorder = (options = {}) => {
                     onRecordingComplete(audioBlob, url);
                 })
                 .catch((err) => {
-                    logToServer('IDB | buildWAV failed', err.message);
+                    logger.error("Failed to build WAV from IDB", err);
                     onError(err);
                 });
         }
@@ -596,7 +578,7 @@ export const useVoiceRecorder = (options = {}) => {
             // Ignore previous chunk write errors; we are clearing the session anyway
         }
         
-        clearSession().catch(err => logToServer('IDB | clearSession failed', err.message));
+        clearSession().catch(err => logger.error("Failed to clear audio session from IDB", err));
         
     };
 

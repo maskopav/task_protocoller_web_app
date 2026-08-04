@@ -50,9 +50,9 @@ app.use("/projects", projectsRouter)
 app.use("/user-projects", userProjectsRouter)
 app.use("/task-results", taskResultsRouter)
 app.post("/logs/frontend", (req, res) => {
-  const { message, details } = req.body;
-  if (message) {
-    logFrontendToFile(message, details);
+  // Pass the entire structured JSON payload to the upgraded logger
+  if (req.body && req.body.message) {
+    logFrontendToFile(req.body);
   }
   res.status(200).json({ success: true });
 });

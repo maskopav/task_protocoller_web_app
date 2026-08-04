@@ -8,7 +8,6 @@ import { assignProtocolToParticipant } from "../utils/assignmentHelper.js";
 // GET /api/participant-protocol/:token
 export async function resolveParticipantToken(req, res) {
   const { token } = req.params;
-  logToFile(`🔍 resolveParticipantToken token=${token}`);
 
   try {
     // 1. Load from PARTICIPANT-PROTOCOLS table → get its id
@@ -171,7 +170,7 @@ export async function resolveParticipantToken(req, res) {
     });
 
   } catch (err) {
-    console.error("Error resolving participant token:", err);
+    logToFile("ERROR", "Error resolving participant token", { token, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal server error" });
   }
 }
@@ -179,7 +178,6 @@ export async function resolveParticipantToken(req, res) {
 // GET /api/participant-protocol?project_id=1,participant_id=1
 /// e.g. http://localhost:3000/participant-protocol?project_id=1
 export const getParticipantProtocolView = async (req, res) => {
-  logToFile("📘 getParticipantProtocolView called");
 
   const { project_id, participant_id } = req.query;
 
@@ -201,7 +199,7 @@ export const getParticipantProtocolView = async (req, res) => {
     res.json(rows);
 
   } catch (err) {
-    logToFile(`❌ Error getParticipantProtocolView: ${err.stack || err}`);
+    logToFile("ERROR", "Failed to load participant-protocol view", { projectId: project_id, participantId: participant_id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Failed to load participant-protocol view" });
   }
 };
@@ -209,7 +207,6 @@ export const getParticipantProtocolView = async (req, res) => {
 // GET /api/participant-protocol/:id
 export const getParticipantProtocolViewById = async (req, res) => {
   const { id } = req.params;
-  logToFile(`📘 getParticipantProtocolViewById id=${id}`);
 
   try {
     const rows = await executeQuery(
@@ -224,7 +221,7 @@ export const getParticipantProtocolViewById = async (req, res) => {
     res.json(rows[0]);
 
   } catch (err) {
-    logToFile(`❌ Error getParticipantProtocolViewById: ${err.stack || err}`);
+    logToFile("ERROR", "Failed to load participant-protocol by ID", { id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Failed to load participant-protocol" });
   }
 };
@@ -249,7 +246,7 @@ export async function activateParticipantProtocol(req, res) {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Activation error:", err);
+    logToFile("ERROR", "Failed to activate participant protocol", { participantProtocolId: participant_protocol_id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal error" });
   }
 }
@@ -271,7 +268,7 @@ export async function deactivateParticipantProtocol(req, res) {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Deactivation error:", err);
+    logToFile("ERROR", "Failed to deactivate participant protocol", { participantProtocolId: participant_protocol_id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal error" });
   }
 }
@@ -284,8 +281,8 @@ export const assignProtocol = async (req, res) => {
     return res.status(400).json({ error: "Missing required fields (participant_id, project_id, protocol_id)" });
   }
 
-  logToFile(`🔗 Assigning protocol ${protocol_id} to participant ${participant_id}`);
-
+  logToFile("INFO", "Assigning protocol to participant", { participant_id, project_id, protocol_id });
+  
   try {
     const result = await executeTransaction(async (conn) => {
       // Use the shared helper
@@ -320,7 +317,7 @@ export const sendManualEmail = async (req, res) => {
       res.status(500).json({ error: "Failed to send email" });
     }
   } catch (err) {
-    console.error("Manual email error:", err);
+    logToFile("ERROR", "Manual email dispatch failed", { email, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal server error during email dispatch" });
   }
 };
@@ -376,7 +373,7 @@ export async function swapParticipantProtocolLanguage(req, res) {
   } catch (err) {
     // If anything fails, revert all changes so data isn't corrupted
     await connection.rollback();
-    console.error("Swap language error:", err);
+    logToFile("ERROR", "Failed to swap participant protocol language", { token, newProjectProtocolId: new_project_protocol_id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal error while swapping language" });
   } finally {
     connection.release();

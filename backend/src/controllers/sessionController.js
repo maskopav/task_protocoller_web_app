@@ -22,6 +22,7 @@ export const initSession = async (req, res) => {
     );
 
     if (!ppRow) {
+      logToFile("WARN", "Invalid token used for session init", { token, ipAddress, userAgent });
       return res.status(404).json({ error: "Invalid token" });
     }
     const participantProtocolId = ppRow.id;
@@ -46,7 +47,12 @@ export const initSession = async (req, res) => {
          VALUES (?, ?, ?, ?, UTC_TIMESTAMP())`,
         [existingSession.id, ipAddress, userAgent, JSON.stringify(deviceMetadata || {})]
       );
-      logToFile(`Resuming session: ID ${existingSession.id} for PP_ID ${participantProtocolId}. Jumping to task index: ${existingSession.current_task_index}`);
+
+      logToFile("INFO", "Resuming incomplete session", { 
+        sessionId: existingSession.id, 
+        participantProtocolId, 
+        taskIndex: existingSession.current_task_index 
+      });
       
       return res.json({ 
         success: true, 
@@ -81,7 +87,6 @@ export const initSession = async (req, res) => {
       );
 
       await connection.commit();
-      logToFile(`✅ Session initialized: ID ${newSessionId} for PP_ID ${participantProtocolId}`);
 
       res.json({ success: true, sessionId: newSessionId });
     } catch (dbErr) {
@@ -91,7 +96,11 @@ export const initSession = async (req, res) => {
       connection.release(); // ALWAYS release the connection back to the pool
     }
   } catch (err) {
-    logToFile("❌ Session Init Error:", err);
+    logToFile("ERROR", "Session initialization failed", { 
+      token, 
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ error: "Failed to initialize session" });
   }
 };
@@ -167,8 +176,13 @@ export const updateProgress = async (req, res) => {
       connection.release();
     }
   } catch (err) {
-    console.error("❌ Progress Update Error:", err);
-    logToFile(`❌ Progress Update Error for Session ${sessionId}:`, err);
+    console.error("Progress Update Error:", err);
+    logToFile("ERROR", "Progress update failed", {
+      sessionId,
+      action: event?.action,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(200).json({ warning: "Logging failed", error: err.message });
   }
 };
@@ -195,7 +209,11 @@ export const updateSessionIdentifiers = async (req, res) => {
     res.json({ success: true, message: "Identifiers saved successfully." });
 
   } catch (err) {
-    logToFile(`❌ Error updating identifiers for session ${id}: ${err.message}`);
+    logToFile("ERROR", "Failed to update session identifiers", {
+      sessionId: id,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ error: "Failed to save session identifiers." });
   }
 };

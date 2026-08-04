@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useConfirm } from '../components/ConfirmDialog/ConfirmDialogContext';
-import { logToServer } from '../utils/frontendLogger';
+import { logger } from '../utils/frontendLogger';
 
 export const useTaskTopics = ({
     recordingTime,
@@ -22,7 +22,7 @@ export const useTaskTopics = ({
     // Capture the current recording time whenever the topic index changes
     useEffect(() => {
         setTopicStartMark(recordingTime);
-        logToServer(`Topic index changed to ${dynamicIndex}, setting topic start mark at ${recordingTime} seconds`);
+        logger.info(`Topic index changed to ${dynamicIndex}, setting topic start mark at ${recordingTime} seconds`);
     }, [dynamicIndex]);
 
     // --- Core Topic Handlers ---

@@ -8,7 +8,7 @@ import { fetchParticipantProtocol } from "../api/participantProtocols";
 import { randomizeTasks } from '../utils/randomizer';
 import { initSession } from "../api/sessions";
 import { saveTaskResult } from "../api/taskResults"
-import { logToServer } from "../utils/frontendLogger";
+import { logger } from "../utils/frontendLogger";
 import ParticipantLanguageSelector from "../components/LanguageSwitcher/ParticipantLanguageSelector";
 
 // ─── NEW IMPORTS ──────────────────────────────────────────────────────────────
@@ -112,7 +112,6 @@ export default function ParticipantInterfaceLoader() {
       let startingTaskIndex = 0;
       let isResumed         = false;
       localStorage.setItem("neuroSHARE_tokenId", token);
-      logToServer(`[DEBUG - Loader] Token explicitly saved to localStorage: ${token}`);
 
       try {
         const sessionData = await initSession({ token, taskOrder });
@@ -132,12 +131,13 @@ export default function ParticipantInterfaceLoader() {
           startingTaskIndex = Math.max(0, parseInt(sessionData.currentTaskIndex, 10) - 1);
         }
 
-        logToServer(
+        logger.info(
           isResumed
             ? `Resumed session: ${sessionId} at server index ${startingTaskIndex}`
             : `New session started: ${sessionId}`
         );
       } catch (err) {
+        logger.error(`Warning: Could not init session, proceeding anyway: ${err.message}`);
         console.error("Warning: Could not init session, proceeding anyway", err);
       }
 
@@ -150,7 +150,7 @@ export default function ParticipantInterfaceLoader() {
         startingTaskIndex = await calculateOfflineProgress(
           sessionId,
           startingTaskIndex,
-          logToServer
+          logger
         );
         if (startingTaskIndex > previousIndex) {
           isResumed = true;
@@ -317,12 +317,10 @@ function LoadingScreen({ phase, networkStatus, t }) {
 // Reads pending recordings from IDB and fast-forwards the starting task index.
 // We DO NOT upload here—that blocks the UI and forces repeats if offline.
 // Uploads are handled gracefully by ParticipantInterfacePage in the background.
-async function calculateOfflineProgress(sessionId, startingTaskIndex, logFn) {
+async function calculateOfflineProgress(sessionId, startingTaskIndex, logger) {
   try {
     let pending = await getPendingRecordingsForSession(sessionId);
     if (pending.length === 0) return startingTaskIndex;
-
-    logFn(`[IDB Resume] Found ${pending.length} pending recording(s) locally.`);
 
     let adjustedStart = startingTaskIndex;
 
@@ -330,18 +328,29 @@ async function calculateOfflineProgress(sessionId, startingTaskIndex, logFn) {
       const taskIdx = record.metadata?.taskIndex;
 
       if (taskIdx === undefined || taskIdx !== adjustedStart) {
-        logFn(`[IDB Resume] Gap detected — expected task ${adjustedStart}, found task ${taskIdx}. Stopping skip.`);
+
+        if (logger) {
+          logger.warn("IDB Resume gap detected. Stopping skip.", {
+            expectedTaskIndex: adjustedStart,
+            foundTaskIndex: taskIdx,
+            sessionId
+          });
+        }
         break;
       }
 
       adjustedStart++;
-      logFn(`[IDB Resume] Skipping task ${taskIdx} (already completed offline). New start: ${adjustedStart}`);
     }
 
     return adjustedStart;
 
   } catch (err) {
-    logFn(`[IDB Resume] Fatal error reading IDB: ${err.message}`);
+    if (logger) {
+      logger.error("Fatal error reading IDB during offline progress calculation", err, {
+        sessionId,
+        startingTaskIndex
+      });
+    }
     return startingTaskIndex;
   }
 }

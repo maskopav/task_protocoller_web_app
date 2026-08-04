@@ -10,6 +10,7 @@ export const getAllUsers = async (req, res) => {
         const rows = await executeQuery("SELECT * FROM v_users_management", []);
         res.json(rows);
     } catch (err) {
+        logToFile("ERROR", "Failed to fetch all users", { error: err.message, stack: err.stack });
         res.status(500).json({ error: "Failed to fetch users" });
     }
 };
@@ -21,6 +22,12 @@ export const toggleUserStatus = async (req, res) => {
         await executeQuery("UPDATE users SET is_active = ? WHERE id = ?", [is_active, user_id]);
         res.json({ success: true });
     } catch (err) {
+        logToFile("ERROR", "Failed to toggle user status", { 
+          userId: user_id, 
+          isActive: is_active, 
+          error: err.message, 
+          stack: err.stack 
+        });
         res.status(500).json({ error: "Failed to update status" });
     }
 };
@@ -70,10 +77,13 @@ export const createAdmin = async (req, res) => {
             fullName: full_name, 
             tempPassword,
             loginLink: baseUrl,
-        }, lang).catch(err => logToFile(`📧 Failed to send admin welcome email: ${err.message}`));
-
-        logToFile(`✅ Admin ${email} created with the temp password: ${tempPassword}, login link: ${baseUrl}`);
-
+        }, lang).catch(err => logToFile("ERROR", "Failed to send admin welcome email", {
+            email,
+            fullName: full_name,
+            error: err.message,
+            stack: err.stack
+        }));
+        
         res.status(201).json({ 
             success: true, 
             message: "Admin created successfully and notification email sent.",
@@ -83,6 +93,7 @@ export const createAdmin = async (req, res) => {
         if (err.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ error: "User with this email already exists" });
         }
+        logToFile("ERROR", "Failed to create admin", { error: err.message, stack: err.stack });
         res.status(500).json({ error: "Failed to create admin" });
     }
 };
@@ -99,6 +110,12 @@ export const updateUser = async (req, res) => {
         if (err.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ error: "Email already in use by another account" });
         }
+        logToFile("ERROR", "Failed to update user", { 
+          userId: user_id, 
+          email, 
+          error: err.message, 
+          stack: err.stack 
+        });
         res.status(500).json({ error: "Failed to update user" });
     }
 };

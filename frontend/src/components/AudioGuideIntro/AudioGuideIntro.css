@@ -1,0 +1,20 @@
+/* components/AudioGuideIntro/AudioGuideIntro.css */
+
+.media-permission-main {
+  /* Center the image within the main recording-area slot */
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.intro-preview-img {
+  width: 100%;
+  max-width: 300px; /* Keeps it from getting too large on desktop */
+  max-height: clamp(80px, 20dvh, 200px); /* Prevents overflow on smaller smartphones */
+  object-fit: contain;
+  border-radius: var(--radius, 12px); /* Softens the image edges */
+}
+
+.guide-description p:last-child {
+  margin-bottom: 0;
+}

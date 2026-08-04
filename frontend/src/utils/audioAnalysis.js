@@ -1,5 +1,5 @@
 // src/utils/audioAnalysis.js
-import { logToServer } from "./frontendLogger";
+import { logger } from "./frontendLogger";
 
 const FALLBACK_DURATION_MS = 5000;
 
@@ -18,7 +18,7 @@ export async function calculateSNR(audioUrl, speechSegments, recordingStartTime,
     // 2. Check for dead mic (hardware mute)
     const maxAmplitude = getMaxAmplitude(channelData);
     if (maxAmplitude < 0.001) {
-      logToServer("Audio is completely silent (Max Amplitude:", maxAmplitude, ")");
+      logger.warn("Audio is completely silent (Max Amplitude:", maxAmplitude, ")");
       return { snr: 0, error: 'muted', debugData: { maxAmplitude } };
     }
 
@@ -51,7 +51,7 @@ export async function calculateSNR(audioUrl, speechSegments, recordingStartTime,
     return { snr: snrDb, error: null, debugData };
 
   } catch (error) {
-    logToServer("Error analyzing audio SNR:", error);
+    logger.error("Error analyzing audio SNR:", error);
     if (error.name === 'EncodingError' || String(error).includes('decode')) {
        return { snr: 0, error: 'muted', debugData: null };
     }
@@ -67,7 +67,7 @@ async function fetchAndDecodeAudio(audioUrl) {
     const arrayBuffer = await response.arrayBuffer();
     
     if (arrayBuffer.byteLength < 500) {
-       logToServer("Audio file is empty. Likely hardware mute or OS-level block.");
+       logger.warn("Audio file is empty. Likely hardware mute or OS-level block.");
        return { error: 'muted', snr: 0, debugData: { byteLength: arrayBuffer.byteLength } };
     }
     return await audioCtx.decodeAudioData(arrayBuffer);
@@ -84,7 +84,7 @@ function getMaxAmplitude(channelData) {
 
 function determineSpeechSegments(speechSegments, recordingStartTime, fallbackDurationMs) {
     if (!speechSegments || speechSegments.length === 0) {
-        logToServer("VAD missed speech or failed. Applying manual fallback rule.");
+        logger.info("VAD missed speech or failed. Applying manual fallback rule.");
         return {
             usedFallback: true,
             activeSegments: [{

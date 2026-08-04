@@ -13,7 +13,7 @@ export default function MediaPermissionContent({
   // optional <h1> — currently invisible app-wide via TaskLayout's
   // SHOW_GLOBAL_TITLES flag, plumbed through so it works if that ever flips
   title = null,
-  showSpacer = true,
+  showSpacer = false,
 
   // TaskLayout zone classes, following the SDMTTask convention
   className = 'media-permission-container',

@@ -46,8 +46,6 @@ export const createParticipant = async (req, res) => {
      return res.status(403).json({ error: "Cannot add participants to an inactive project." });
   }
 
-  logToFile(`👤 Creating participant: ${full_name},${external_id} for project ${project_id}`);
-
   try {
     await executeTransaction(async (conn) => {
       // 1. Insert Participant
@@ -68,10 +66,9 @@ export const createParticipant = async (req, res) => {
         ...assignment
       });
       
-      logToFile(`✅ Created participant ${newParticipantId} & assigned protocol.`);
     });
   } catch (err) {
-    console.error("Create participant error:", err);
+    logToFile("ERROR", "Failed to fetch participants", { projectId: project_id, error: err.message, stack: err.stack });
     res.status(500).json({ error: err.message || "Failed to create participant" });
   }
 };
@@ -135,7 +132,7 @@ export const updateParticipant = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Update participant error:", err);
+    logToFile("ERROR", "Failed to update participant", { participantId: id, error: err.message, stack: err.stack });
     res.status(500).json({ error: err.message || "Failed to update participant" });
   }
 };
@@ -169,7 +166,7 @@ export const searchParticipant = async (req, res) => {
 
     res.json(formatted);
   } catch (err) {
-    console.error("Search error:", err);
+    logToFile("ERROR", "Failed to search participant", { externalId: external_id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Search failed" });
   }
 };

@@ -19,7 +19,6 @@ async function findParticipantByEmail(email) {
 // POST /api/auth/signup
 export const participantSignup = async (req, res) => {
   const { projectToken, full_name, birth_date, sex, email, contact_phone } = req.body;
-  logToFile(`📝 Signup Request: ${email}`);
 
   try {
     // 1. Resolve Project Protocol
@@ -87,7 +86,7 @@ export const participantSignup = async (req, res) => {
 
   } catch (err) {
     console.error("Signup error:", err);
-    logToFile(`❌ EMAIL FAILED to ${email}: ${err.message}`);
+    logToFile("ERROR", "Participant signup failed", { email, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Signup failed." });
   }
 };
@@ -95,7 +94,6 @@ export const participantSignup = async (req, res) => {
 // POST /api/auth/login
 export const participantLogin = async (req, res) => {
   const { email, password, projectToken } = req.body;
-  logToFile(`🔑 Login Request: ${email}`);
 
   try {
     const participant = await findParticipantByEmail(email);
@@ -125,8 +123,11 @@ export const participantLogin = async (req, res) => {
 
     // LOGIC CHANGE: If not assigned, assign them now (Enroll via Login)
     if (assignRows.length === 0) {
-      logToFile(`➕ Auto-assigning user ${participant.id} to protocol ${protocol_id}`);
-      
+      logToFile("INFO", "Auto-assigning user to protocol upon login", { 
+        participantId: participant.id, 
+        protocolId: protocol_id 
+      });
+
       const token = await executeTransaction(async (conn) => {
         const assignment = await assignProtocolToParticipant(conn, participant.id, project_id, protocol_id);
         await conn.query(`UPDATE participant_protocols SET is_active=1, start_date = UTC_TIMESTAMP() WHERE id=?`, [assignment.participant_protocol_id]);
@@ -139,7 +140,7 @@ export const participantLogin = async (req, res) => {
     res.json({ success: true, token: assignRows[0].access_token });
 
   } catch (err) {
-    console.error("Login error:", err);
+    logToFile("ERROR", "Participant login failed", { email, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Login failed" });
   }
 };
@@ -175,7 +176,7 @@ export const forgotPassword = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Forgot password error:", err);
+    logToFile("ERROR", "Forgot password request failed", { email, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Request failed" });
   }
 };
@@ -204,7 +205,7 @@ export const resetPassword = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Reset password error:", err);
+    logToFile("ERROR", "Reset password failed", { error: err.message, stack: err.stack });
     res.status(500).json({ error: "Reset failed" });
   }
 };
@@ -212,7 +213,6 @@ export const resetPassword = async (req, res) => {
 // POST /api/auth/admin/login
 export const adminLogin = async (req, res) => {
   const { email, password } = req.body;
-  logToFile(`👤 Admin Login Request: ${email}`);
 
   try {
     // 1. Find user - Include is_active in the SELECT statement
@@ -255,7 +255,7 @@ export const adminLogin = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Admin login error:", err);
+    logToFile("ERROR", "Admin login failed", { email, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Login failed" });
   }
 };
@@ -288,7 +288,7 @@ export const adminForgotPassword = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Admin forgot password error:", err);
+    logToFile("ERROR", "Admin forgot password request failed", { email, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Request failed" });
   }
 };
@@ -314,7 +314,7 @@ export const adminResetPassword = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Admin reset password error:", err);
+    logToFile("ERROR", "Admin reset password failed", { error: err.message, stack: err.stack });
     res.status(500).json({ error: "Reset failed" });
   }
 };
@@ -337,7 +337,7 @@ export const setupAdminProfile = async (req, res) => {
 
     res.json({ success: true, message: "Profile setup complete" });
   } catch (err) {
-    console.error("Setup profile error:", err);
+    logToFile("ERROR", "Admin profile setup failed", { userId, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Failed to update profile" });
   }
 };

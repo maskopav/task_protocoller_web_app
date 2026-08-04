@@ -53,10 +53,15 @@ async function sendEmail({ to, subject, html, attachments = [], lang = "en" }) {
       html,
       attachments,
     });
-    logToFile(`✅ EMAIL SENT to ${to} (ID: ${info.messageId})`);
+
     return true;
   } catch (error) {
-    logToFile(`❌ EMAIL FAILED to ${to}: ${error.message}`);
+    logToFile("ERROR", "Email delivery failed", { 
+      to, 
+      subject, 
+      error: error.message, 
+      stack: error.stack 
+    });
     return false;
   }
 }

@@ -35,8 +35,10 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
     
     // Validate all required fields
     for (const id of requiredIdentifiers) {
-      const value = formData[id];
       const field = fieldMap[id];
+      if (!field) continue;
+
+      const value = formData[id];
 
       // 1. Check if the field is empty
       if (!value?.trim()) {

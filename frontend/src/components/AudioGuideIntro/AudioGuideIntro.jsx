@@ -3,6 +3,7 @@ import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
+import './AudioGuideIntro.css';
 
 // Intro step explaining the header audio guide icon. The sample clip itself is
 // played by the page-level header AudioGuidePlayer (audio_guide_intro.m4a),
@@ -13,7 +14,7 @@ export default function AudioGuideIntro({ onComplete }) {
   return (
     <TaskLayout
       title={t('audioGuideIntro.title')}
-      showSpacer={true}
+      showSpacer={false}
       instructions={
         <div className="guide-description">
           <Trans t={t} i18nKey="audioGuideIntro.instructions" />

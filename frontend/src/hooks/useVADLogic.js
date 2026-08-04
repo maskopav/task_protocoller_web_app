@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { logToServer } from '../utils/frontendLogger';
+import { logger } from '../utils/frontendLogger';
 
 // VAD config - all parameters
 const VAD_CONFIG = {
@@ -15,16 +15,6 @@ const VAD_CONFIG = {
     preSpeechPadMs: 800,           // number of milliseconds of audio to prepend to a speech segment. default: 800
     minSpeechMs: 500,              // minimum duration in milliseconds for a speech segment, default: 400
     vadFallbackMs: 5000,           // time (ms) before fallback if no speech is detected at start
-};
-
-const getBrowserInfo = () => {
-    const ua = navigator.userAgent;
-    if (ua.includes('Firefox'))  return { browser: 'Firefox',  ua };
-    if (ua.includes('Edg/'))     return { browser: 'Edge',     ua };
-    if (ua.includes('OPR/') || ua.includes('Opera/')) return { browser: 'Opera', ua };
-    if (ua.includes('Chrome'))   return { browser: 'Chrome',   ua };
-    if (ua.includes('Safari'))   return { browser: 'Safari',   ua };
-    return { browser: 'Unknown', ua };
 };
 
 export const useVadLogic = ({
@@ -133,12 +123,11 @@ export const useVadLogic = ({
 
         const initVAD = async () => {
             if (!window.vad) {
-                logToServer("VAD script missing in index.html");
+                logger.fatal("VAD script missing in index.html");
                 return;
             }
 
             if (isInitializingVad.current) {
-                logToServer("VAD is already initializing, skipping...");
                 return;
             }
 
@@ -170,8 +159,7 @@ export const useVadLogic = ({
                         const isFirefoxAndroid = navigator.userAgent.includes('Firefox') && navigator.userAgent.includes('Android');
                         
                         if (isFirefoxAndroid) {
-                            logToServer("[VAD] Firefox Android detected: Forcing non-SIMD CPU fallback");
-                            ort.env.wasm.simd = false;
+                            logger.warn("Firefox Android detected: Forcing non-SIMD CPU fallback for VAD"); // STRUCTURED: Warn
                             ort.env.wasm.numThreads = 1; 
                             
                             // Nuclear path mapping: Physically hand it the safe basic file
@@ -195,10 +183,6 @@ export const useVadLogic = ({
 
                     onFrameProcessed: (probs) => {
                         setSpeechProb(probs.isSpeech);
-                        if (frameCount < 3) {
-                            logToServer(`VAD Frame Processed [${frameCount}]`, { probability: probs.isSpeech });
-                            frameCount++;
-                        }
                     },
                     onSpeechStart: () => {
                         isSpeakingRef.current = true;
@@ -259,7 +243,7 @@ export const useVadLogic = ({
                 }
             } catch (error) {
                 console.error("Failed to load VAD model:", error);
-                logToServer("Failed to load VAD model", { ...getBrowserInfo(), error: error.message || error.toString() });
+                logger.error("Failed to load VAD model", { ...getBrowserInfo(), error: error.message || error.toString() });
                 isInitializingVad.current = false;
                 setVadFailed(true);
                 setIsVadLoaded(true); // Unlock the UI Start button even on failure
@@ -321,7 +305,7 @@ export const useVadLogic = ({
                 // Double check the ref just in case of micro-second race conditions
                 if (!hasSpokenRef.current) {
                     console.warn(`VAD Fallback triggered: No speech detected after ${timeoutMs / 1000}s`);
-                    logToServer("VAD Fallback triggered: No speech detected at start.");
+                    logger.warn("VAD Fallback triggered: No speech detected at start.");
                     
                     // This will instantly set activeUseVAD to false, 
                     // which automatically unfreezes the timer in Recorder.jsx!

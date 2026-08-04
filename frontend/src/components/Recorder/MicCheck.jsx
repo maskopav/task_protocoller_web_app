@@ -10,7 +10,7 @@ import warningIcon from "../../assets/generalIcons/warning-icon.svg";
 import "./Recorder.css";
 import "./MicCheck.css";
 import { calculateSNR } from "../../utils/audioAnalysis";
-import { logToServer } from "../../utils/frontendLogger";
+import { logger } from "../../utils/frontendLogger";
 import { SafeButton } from '../Shared/SafeButton';
 
 // ==========================================
@@ -164,7 +164,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       try {
         const result = await navigator.permissions.query({ name: 'microphone' });
         if (result.state === 'denied') {
-          logToServer("MicCheck Error: Permission explicitly denied by browser/OS on load, result:", result);
+          logger.warn("MicCheck Error: Permission explicitly denied by browser/OS on load, result:", result);
           setErrorType(ERR.DENIED);
           setPhase('warning');
         } else if (result.state === 'prompt') {
@@ -179,7 +179,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
           }
         };
       } catch (error) {
-        logToServer("MicCheck Error: navigator.permissions.query failed", error);
+        logger.error("MicCheck Error: navigator.permissions.query failed", error);
         setPhase('intro');
       }
     }
@@ -194,7 +194,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   };
 
   const handleMicError = (err) => {
-    logToServer("MicCheck Error:", { name: err.name, message: err.message });
+    logger.warn("MicCheck Error:", { name: err.name, message: err.message });
     let type = ERR.GENERIC;
 
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -217,7 +217,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       audioBlob = await response.blob();
       safeAudioUrl = URL.createObjectURL(audioBlob); 
     } catch (err) {
-      logToServer("Failed to fetch audio blob for MicCheck", err);
+      logger.error("Failed to fetch audio blob for MicCheck", err);
     }
 
     setPhase('analyzing');
@@ -279,7 +279,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       }
     }
 
-    logToServer(`MicCheck completed. Phase result: ${nextPhase}. SNR: ${calculatedScore} dB`, {
+    logger.info(`MicCheck completed. Phase result: ${nextPhase}. SNR: ${calculatedScore} dB`, {
       errorType: evaluatedError,
       debugData: result.debugData
     });

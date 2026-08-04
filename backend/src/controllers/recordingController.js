@@ -52,7 +52,7 @@ export const uploadRecording = async (req, res) => {
 
       const jsonPath = path.join(UPLOAD_DIR, `${baseFilename}.json`);
       await fs.promises.writeFile(jsonPath, jsonBuffer);
-      logToFile(`✅ Saved coordinates: ${baseFilename}.json`);
+
     }
 
     // 3. Insert directly using the IDs we received
@@ -69,12 +69,16 @@ export const uploadRecording = async (req, res) => {
     );
 
     await connection.commit();
-    logToFile(`✅ Saved recording: ${finalFilename}`);
     res.json({ success: true, filename: finalFilename });
 
   } catch (err) {
     await connection.rollback();
-    logToFile("❌ Upload Error:", err);
+    logToFile("ERROR", "Failed to save recording to database", {
+      sessionId,
+      protocolTaskId,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ error: "Failed to save recording" });
   } finally {
     connection.release();
@@ -131,12 +135,16 @@ export const uploadMicCheck = async (req, res) => {
     );  
 
     await connection.commit();
-    logToFile(`✅ Saved mic check recording: ${finalFilename}`);
     res.json({ success: true, filename: finalFilename });
 
   } catch (err) {
     await connection.rollback();
-    logToFile("❌ Mic Check Upload Error:", err);
+    logToFile("ERROR", "Failed to save mic check recording", {
+      sessionId,
+      attemptNumber,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ error: "Failed to save mic check" });
   } finally {
     connection.release();

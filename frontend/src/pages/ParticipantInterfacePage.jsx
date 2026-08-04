@@ -24,7 +24,7 @@ import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progres
 import { ConfirmDialogContext } from "../components/ConfirmDialog/ConfirmDialogContext";
 import { useWakeLock } from "../hooks/useWakeLock";
 import "./Pages.css";
-import { logToServer } from "../utils/frontendLogger";
+import { logger } from "../utils/frontendLogger";
 import {
   saveRecordingLocally,
   getPendingRecordingsForSession,   // (or getPendingRecordings — same export)
@@ -299,7 +299,7 @@ export default function ParticipantInterfacePage() {
         const pending = await getPendingRecordingsForSession(sessionId);
         if (pending.length === 0) return;
 
-        logToServer(`[Reconnect Flush] Retrying ${pending.length} pending recording(s)`);
+        logger.info(`[Reconnect Flush] Retrying ${pending.length} pending recording(s)`);
 
         for (const record of pending) {
           if (!navigator.onLine) break;
@@ -339,15 +339,14 @@ export default function ParticipantInterfacePage() {
               ...(!record.metadata.isAttemptOnly && !record.metadata.isMicCheck && { taskIndex: record.metadata.taskOrder }),
             });
             
-            logToServer(`[Reconnect Flush] task ${record.metadata.taskIndex} uploaded ✓`);
           } catch (err) {
-            logToServer(`[Reconnect Flush] task ${record.metadata?.taskIndex} still failing: ${err.message}`);
+            logger.error(`[Reconnect Flush] task ${record.metadata?.taskIndex} still failing: ${err.message}`);
           } finally {
             activeUploads.delete(record.id);
           }
         }
       } catch (err) {
-        logToServer(`[Reconnect Flush] Error reading IDB: ${err.message}`);
+        logger.error(`[Reconnect Flush] Error reading IDB: ${err.message}`);
       }
     }
 
@@ -372,7 +371,7 @@ export default function ParticipantInterfacePage() {
               await trackProgress(sessionId, null, true);
               completionAckedRef.current = true;
             } catch (err) {
-              logToServer(`[Completion] Failed to mark session complete, will retry: ${err.message}`);
+              logger.error(`[Completion] Failed to mark session complete, will retry: ${err.message}`);
             } finally {
               completionInFlightRef.current = false;
             }
@@ -381,7 +380,8 @@ export default function ParticipantInterfacePage() {
           // All data is on the server — safe to drop the token now.
           localStorage.removeItem("neuroSHARE_tokenId");
         }
-      } catch {
+      } catch (err) {
+        logger.warn(`[Completion] Error reading IDB: ${err.message}`);
         // Silently ignore IDB read errors here; data is not lost.
       }
     }
@@ -438,7 +438,10 @@ export default function ParticipantInterfacePage() {
       const savedToken = localStorage.getItem("neuroSHARE_tokenId");
       
       console.log(`[DEBUG - Page] State lost or stale refresh detected! Routing to Loader...`);
-      logToServer(`[DEBUG - Page] State lost or stale refresh detected! Routing to Loader...`);
+      logger.warn("State lost or stale refresh detected. Routing to Loader.", { 
+        hasSavedToken: !!savedToken,
+        currentLoadTimestamp: location.state?.loadTimestamp
+      });
 
       if (savedToken) {
         // Force the app back to the Loader to fetch the single source of truth
@@ -861,7 +864,11 @@ export default function ParticipantInterfacePage() {
 
     } catch (err) {
       console.error('handleTaskComplete error:', err);
-      logToServer(`Task save error at index ${taskIndex}: ${err.message}`);
+      logger.error("Task save error", err, { 
+        taskIndex, 
+        isAttempt, 
+        taskType: runtimeTasks[taskIndex]?.type 
+      });
       if (!isAttempt) proceedToNext();
     } finally {
       if (!isAttempt) {
@@ -1227,10 +1234,13 @@ async function uploadInBackground(recordingId, blob, meta, sessionId, taskIndex)
       ...(meta.isAttemptOnly  && { snrScore: meta.snrScore }),
       ...(!meta.isAttemptOnly && !meta.isMicCheck && { taskIndex: meta.taskOrder }),
     });
-    logToServer(`[BG Upload] task ${taskIndex} uploaded and removed from IDB ✓`);
+    logger.info(`[BG Upload] task ${taskIndex} uploaded and removed from IDB ✓`);
  
   } catch (err) {
-    logToServer(`[BG Upload] task ${taskIndex} failed (kept in IDB for retry): ${err.message}`);
+    logger.error("Background upload failed (kept in IDB for retry)", err, { 
+      taskIndex, 
+      recordingId 
+    });
   } finally {
     activeUploads.delete(recordingId);
   }

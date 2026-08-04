@@ -15,7 +15,7 @@ import { AudioExamplePlayer } from './AudioExamplePlayer';
 import { VideoViewFinder } from './VideoViewFinder.jsx';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
-import { logToServer } from '../../utils/frontendLogger';
+import { logger } from '../../utils/frontendLogger';
 import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
 import TaskLayout from '../TaskLayout/TaskLayout';
@@ -122,12 +122,6 @@ export const Recorder = ({
         : [];
     const isDynamicTask = dynamicArray.length > 0;
 
-    useEffect(() => {
-        if (isDynamicTask) {
-            logToServer(`Recorder initialized with dynamic task: ${isDynamicTask}, true array length: ${dynamicArray.length}, raw array: ${JSON.stringify(rawArrayParam)}`);
-        }
-    }, [isDynamicTask, dynamicArray.length]);
-
     // ── Timer state (for VAD-controlled timing) ──────────────────────────
     const [isTimerActive, setIsTimerActive] = useState(forceTimerActive || !useVAD);
 
@@ -137,7 +131,7 @@ export const Recorder = ({
     const videoRecorder = useVideoRecorder({
         debugMode: DEBUG_MODE,
         onRecordingComplete: (videoData) => {
-            logToServer("Video data processed!", { size: videoData?.size, duration: videoData?.duration, type: videoData?.type })
+            logger.info("Video data processed:", { size: videoData?.size, duration: videoData?.duration, type: videoData?.type });
         }
     });
 
@@ -565,9 +559,10 @@ export const Recorder = ({
         if (!hasSpoken) vadVisualState = "waiting";
         else if (showSilenceWarning) {
             vadVisualState = "warning";
+            // Assign the translation string directly, not as an object
             vadStatusText  = durationExpired
-                ? "If you have nothing more to say, you can click Stop to finish."
-                : "If possible, try to speak a little longer.";
+                ? t("vad.durationExpired", { ns: "common" })
+                : t("vad.speakLonger", { ns: "common" });
         } else if (isSpeaking) vadVisualState = "speaking";
     }
 
@@ -666,7 +661,7 @@ export const Recorder = ({
 
             {canShowManualSwitch && !promptTopicSwitch && !awaitingNextTopic && (
                 <SafeButton className="btn-manual-switch" onClick={handleManualTopicSwitch}>
-                    Switch Topic
+                    {t("buttons.switchTopic", { ns: "common" })}
                 </SafeButton>
             )}
         </>
@@ -712,13 +707,13 @@ export const Recorder = ({
 
             {activeUseVAD && !isVadLoaded && stream && (
                 <div className="vad-loading-indicator" style={{ textAlign: 'center', fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
-                    Loading Speech Detector...
+                    {t("vad.loading", { ns: "common" })}
                 </div>
             )}
 
             {awaitingNextTopic ? (
-                <SafeButton className="btn-primary" onClick={handleStartNextTopic}>
-                    Start Next Topic
+                <SafeButton className="btn-start" onClick={handleStartNextTopic}>
+                    {t("buttons.start", { ns: "common" })}
                 </SafeButton>
             ) : (
                 // display:contents makes this wrapper transparent to the flex layout while

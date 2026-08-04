@@ -88,17 +88,12 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
       });
     } 
 
-    if (audio.readyState >= 2) {
-      playOnLoad();
-    } else {
-      audio.addEventListener('canplaythrough', playOnLoad, { once: true });
-    }
+    playOnLoad();
 
     return () => {
       audio.muted = true;
       audio.pause();
       setIsPlaying(false);
-      audio.removeEventListener('canplaythrough', playOnLoad);
     };
   }, [playTrigger, isRecordingActive, autoPlay, src, playOnMount]);
 

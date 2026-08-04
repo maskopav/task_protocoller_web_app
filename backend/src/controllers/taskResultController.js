@@ -16,8 +16,13 @@ export const saveTaskResult = async (req, res) => {
     );
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ DB Error:", err);
-    logToFile(`❌ Failed to save task result for session_id ${sessionId}, protocol_task_id ${protocolTaskId}, repeat_index ${repeatIndex}. Error: ${err.message}`);
+    logToFile("ERROR", "Failed to save task result", {
+      sessionId,
+      protocolTaskId,
+      repeatIndex,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ error: "Failed to save answers to database" });
   }
 };

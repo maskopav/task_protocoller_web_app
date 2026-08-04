@@ -5,7 +5,6 @@ import { generateAccessToken } from "../utils/tokenGenerator.js";
 
 // POST
 export const saveProtocol = async (req, res) => {
-  logToFile(`🧩 saveProtocol called with body: ${JSON.stringify(req.body)}`);
   const { 
     protocol_group_id, name, language_id, description, version, 
     created_by, updated_by, tasks, project_id, editingMode, 
@@ -21,8 +20,6 @@ export const saveProtocol = async (req, res) => {
   const sourceLanguageId = Array.isArray(language_id) ? language_id[0] : (language_id || 1);
   // Ensure language_id is an array so we can process it
   const requestLangs = Array.isArray(language_id) ? language_id : [language_id || 1];
-
-  logToFile(`Protocol Save Details - Name: ${name}, Group ID: ${protocol_group_id}, Orig Lang: ${language_id}, Source Lang: ${sourceLanguageId}, All Langs: ${requestLangs.join(', ')}, Editing Mode: ${editingMode}`);
 
   // 1. UNIQUE NAME CHECK (Upgraded for Languages)
   if (!editingMode) {
@@ -203,7 +200,12 @@ export const saveProtocol = async (req, res) => {
 
     res.json({ success: true, protocol_id: primary_protocol_id });
   } catch (err) {
-    logToFile(`❌ Error saving protocol: ${err.stack || err}`);
+    logToFile("ERROR", "Failed to save protocol", {
+      protocolName: name,
+      protocolGroupId: protocol_group_id,
+      error: err.message,
+      stack: err.stack
+    });
     if (err.errno === 1062 || err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: "This protocol name is already taken for this version and language. Please use a unique name." });
    }
@@ -214,7 +216,6 @@ export const saveProtocol = async (req, res) => {
 // GET /api/protocols/:id
 export const getProtocolById = async (req, res) => {
   const { id } = req.params;
-  logToFile(`📖 getProtocolById called with id=${id}`);
 
   try {
     // Get protocol details
@@ -302,7 +303,11 @@ export const getProtocolById = async (req, res) => {
     });
 
   } catch (err) {
-    logToFile(`❌ Error fetching protocol: ${err.stack || err}`);
+    logToFile("ERROR", "Failed to fetch protocol by ID", { 
+      protocolId: id, 
+      error: err.message, 
+      stack: err.stack 
+    });
     res.status(500).json({ error: 'Failed to load protocol' });
   }
 };
@@ -310,7 +315,6 @@ export const getProtocolById = async (req, res) => {
 // GET /api/protocols?project_id=X
 export const getProtocolsByProjectId = async (req, res) => {
   const { project_id } = req.query;
-  logToFile(`📖 getProtocolsByProjectId called with id=${project_id}`);
 
   try {
     let query = "SELECT * FROM v_project_protocols ORDER BY project_id, protocol_group_id, version DESC";
@@ -325,7 +329,11 @@ export const getProtocolsByProjectId = async (req, res) => {
     const rows = await executeQuery(query, params);
     res.json(rows);
   } catch (err) {
-    logToFile(`❌ Error fetching protocols: ${err.stack || err}`);
+    logToFile("ERROR", "Failed to fetch protocols by projectId", {
+      projectId: project_id,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ error: 'Failed to load protocols by projectId' });
   }
 };
