@@ -263,9 +263,8 @@
 
 /* ── VAD (Voice Activity Detection) ──────────────────────────────── */
 .vad-status-wrapper {
-  position: absolute;
-  bottom: clamp(0px, 1dvh, 10px);
-  left: 0;
+  position: relative;
+  margin-top: clamp(4px, 1.5dvh, 12px);
   width: 100%;
   display: flex;
   justify-content: center;
