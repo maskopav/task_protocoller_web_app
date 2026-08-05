@@ -5,6 +5,8 @@ import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import { arrowUpIcon, arrowDownIcon, arrowLeftIcon, arrowRightIcon } from '../../assets/arrowIcons/arrowAssets';
 import MediaPermissionContent from '../Recorder/MediaPermissionContent';
 import { SafeButton } from '../Shared/SafeButton';
+import AudioGuidePlayer from '../AudioGuidePlayer/AudioGuidePlayer';
+import { getCameraSetupAudioPath } from '../../utils/getAudioGuidePath';
 import './VideoViewFinder.css';
 
 // Mirrors the phases used by MicCheck's permission pre-check
@@ -26,10 +28,11 @@ export const VideoViewFinder = ({
     onDeclineVideo,
     onStartCalibration,
     onFinishCalibration,
-    permissionDenied = false
+    permissionDenied = false,
+    audioGuideEnabled = true
 }) => {
     const { confirm } = useContext(ConfirmDialogContext);
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [setupCancelled, setSetupCancelled] = useState(false);
     const [camPermState, setCamPermState] = useState(CAM_PERM.CHECKING);
     const [permissionAcknowledged, setPermissionAcknowledged] = useState(false);
@@ -135,8 +138,16 @@ export const VideoViewFinder = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [camPermState]);
 
+    const audioGuideSrc = audioGuideEnabled ? getCameraSetupAudioPath(i18n.language) : null;
+
     const instructionList = (
         <div className="calibration-instructions-layout">
+
+            <AudioGuidePlayer 
+                src={audioGuideSrc} 
+                isRecordingActive={false} 
+                autoPlay={true} 
+            />
             
             {/* ILLUSTRATION: Make sure this shows the participant holding the phone on the table */}
             <img 

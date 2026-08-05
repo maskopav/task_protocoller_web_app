@@ -68,7 +68,8 @@ export const Recorder = ({
     onBeforeRecordingStart = () => {},
     onExamplePlay = () => {},
     onPlaybackStart = () => {},
-    disableStart = false
+    disableStart = false,
+    audioGuideEnabled = true
 }) => {
     const { t } = useTranslation();
     // ── Phase state ──────────────────────────────────────────────────────
@@ -671,6 +672,7 @@ export const Recorder = ({
                     onDeclineVideo={onDeclineVideo}
                     onStartCalibration={handleStartCalibration}
                     onFinishCalibration={handleFinishCalibration}
+                    audioGuideEnabled={audioGuideEnabled}
                 />
             )}
 

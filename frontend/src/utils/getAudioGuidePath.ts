@@ -82,3 +82,7 @@ export function getAudioGuidePath(
 
   return buildAudioGuidePath(language, fileName);
 }
+
+export function getCameraSetupAudioPath(language: string = 'en'): string {
+  return buildAudioGuidePath(language, 'camera_setup');
+}

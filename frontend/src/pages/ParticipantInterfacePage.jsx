@@ -937,7 +937,7 @@ export default function ParticipantInterfacePage() {
     }
 
     // Render Audio Guide Intro
-    if (rawTask.type === "audio_guide_intro") {
+    if (rawTask.type === "audio_guide_intro" && useAudioGuide) {
       return (
         <AudioGuideIntro onComplete={(data) => handleTaskComplete(data)} />
       );
@@ -1040,6 +1040,7 @@ export default function ParticipantInterfacePage() {
           onExamplePlay={stopAudioGuides}
           onPlaybackStart={stopAudioGuides}
           disableStart={isTransitioning}
+          audioGuideEnabled={useAudioGuide}
         />
       );
     // Render Questionnaire
