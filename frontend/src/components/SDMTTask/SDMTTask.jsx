@@ -149,7 +149,10 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                     <button
                         key={`btn-${num}`}
                         className="sdmt-keypad-btn"
-                        onClick={() => { playTapSound(); handleTap(num); }}
+                        onClick={() => { 
+                            playTapSound(); 
+                            handleTap(num); 
+                        }}
                     >
                         {num}
                     </button>
@@ -186,7 +189,19 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
     const controlsContent = (
         <>
             {gameState === 'instructions' && (
-                <SafeButton className="btn-start" onClick={startGame}>
+                <SafeButton 
+                    className="btn-start" 
+                    onClick={() => {
+                        // Initialize AND actively resume audio context to unlock it on iOS/Safari
+                        if (!audioCtxRef.current) {
+                            audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                        }
+                        if (audioCtxRef.current.state === 'suspended') {
+                            audioCtxRef.current.resume();
+                        }
+                        startGame();
+                    }}
+                >
                     {t("sdmt.start")}
                 </SafeButton>
             )}

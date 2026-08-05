@@ -55,6 +55,7 @@ export const Recorder = ({
     recordVideo = false,
     hideTitle = false,
     showMicIcon,
+    showProgressBar = false,
     onRecordingStateChange,
     onAudioEvent = () => {},
     autoSubmit = false,
@@ -217,7 +218,8 @@ export const Recorder = ({
         if (onRecordingStateChange) {
             const isCalibratingVideo = isVideoEnabled && (phase === 'SETUP' || phase === 'CALIBRATE');
             onRecordingStateChange(
-                recordingStatus === RECORDING_STATES.RECORDING || isCalibratingVideo || isPreparingToRecord
+                recordingStatus === RECORDING_STATES.RECORDING || isCalibratingVideo || isPreparingToRecord,
+                isPreparingToRecord
             );
         }
     }, [recordingStatus, onRecordingStateChange, RECORDING_STATES.RECORDING, isVideoEnabled, phase, isPreparingToRecord]);
@@ -613,7 +615,7 @@ export const Recorder = ({
             {incompatibleBrowser && <IncompatibleBrowser browserName={incompatibleBrowser} />}
 
             {/* Automatically display at the top when mode is countDown and recording is active */}
-            {mode === 'countDown' && (recordingStatus === RECORDING_STATES.RECORDING || recordingStatus === RECORDING_STATES.PAUSED) && (
+            {showProgressBar && (recordingStatus === RECORDING_STATES.RECORDING || recordingStatus === RECORDING_STATES.PAUSED) && (
                 <div className="countdown-progress-wrapper">
                     <ProgressBar 
                         duration={targetDuration} 
@@ -660,7 +662,7 @@ export const Recorder = ({
                   SETUP / CALIBRATE  → full-screen calibration UI
                   RECORDING + videoCalibrated → PiP overlay during the task
                   RECORDING + !videoCalibrated → hidden (task instructions + Start button shown instead) */}
-            {isVideoEnabled && (
+            {isVideoEnabled && recordingStatus !== RECORDING_STATES.RECORDED && (
                 <VideoViewFinder
                     phase={phase} 
                     videoCalibrated={videoCalibrated}

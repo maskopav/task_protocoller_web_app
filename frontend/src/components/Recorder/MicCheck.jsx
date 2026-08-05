@@ -186,8 +186,12 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     checkMicPermission();
   }, []);
 
-  const handleLocalRecordingStateChange = (isRecording) => {
-    handleRecordingStateChange(isRecording);           
+  const handleLocalRecordingStateChange= (isRecording, isPreparing) => {
+    // Only trigger the instruction change if we have finished the setup delay
+    if (!isPreparing) {
+      handleRecordingStateChange(isRecording);           
+    }
+    
     if (onRecordingStateChange) {
       onRecordingStateChange(isRecording);             
     }
@@ -302,6 +306,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
         title={t("micCheck.noiseTitle")}
         instructions={currentInstructions}
         mode="countDown"
+        showProgressBar={true}
         duration={CONFIG.RECORDING_DURATION}
         autoPermission={true}
         useVAD={true}
