@@ -9,11 +9,13 @@ import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import SDMTDemoMessage from './SDMTDemoMessage';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
+import { useActionCooldown } from '../../hooks/useActionCooldown';
 import './SDMTTask.css';
 
 const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onAudioEvent, audioGuideEnabled = true }) => {
     const { t, i18n } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
+    const [justFinished, triggerFinishCooldown] = useActionCooldown(500);
     const demoShownRef = useRef(false);
     const audioCtxRef = useRef(null);
 
@@ -38,6 +40,12 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
         stopGame,
         resetGame,
     } = useSDMTLogic(duration, symbolOrdering, repeatIndex);
+
+    useEffect(() => {
+        if (gameState === 'stats') {
+            triggerFinishCooldown();
+        }
+    }, [gameState, triggerFinishCooldown]);
 
     useEffect(() => {
         if (onTaskActiveChange) {
@@ -191,7 +199,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
 
             {gameState === 'stats' && (
                 <>
-                    <SafeButton className="btn-repeat" onClick={resetGame}>
+                    <SafeButton className="btn-repeat" onClick={resetGame} disabled={justFinished}>
                         {t("buttons.repeat", { ns: "common" })}
                     </SafeButton>
                     <NextTaskButton 
@@ -200,7 +208,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                         timestamp: new Date().toISOString()
                         })} 
                         isLoading={isUploading}
-                        disabled={isUploading}
+                        disabled={isUploading || justFinished}
                     />
                 </>
             )}

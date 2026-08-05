@@ -7,6 +7,7 @@ import { D15MechanicsMessage } from "./D15DemoMessage";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext";
 import { SafeButton } from '../Shared/SafeButton';
+import { useActionCooldown } from '../../hooks/useActionCooldown';
 import "./D15Test.css";
 
 export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, audioGuideEnabled = true }) {
@@ -20,6 +21,7 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   const [events, setEvents] = useState([]);
   const [tray, setTray] = useState([]);
   const [shuffledCaps, setShuffledCaps] = useState([]);
+  const [justFilled, triggerFillCooldown] = useActionCooldown(500);
 
   const trayRef = useRef(null);
   const timeoutRef   = useRef(null);
@@ -208,6 +210,15 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
 
   // ── Derived display values ───────────────────────────────────────────
   const isTrayFull     = !tray.includes(null);
+
+  // Next flips from disabled to enabled the instant the last cap lands —
+  // guard against the same tap landing on it.
+  useEffect(() => {
+      if (isTrayFull) {
+          triggerFillCooldown();
+      }
+  }, [isTrayFull, triggerFillCooldown]);
+
   const displayNumbers = showNumbers === "always" || (showNumbers === "after" && isSubmitted);
   const getCapLabel    = (color) => d15Colors.indexOf(color);
 
@@ -269,11 +280,11 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
         </SafeButton>
       )} */}
       <SafeButton
-        className="btn-next"
-        onClick={handleDone}
-        disabled={!isTrayFull}
+          className="btn-next"
+          onClick={handleDone}
+          disabled={!isTrayFull || justFilled}
       >
-        {t("buttons.next", { ns: "common" })}
+          {t("buttons.next", { ns: "common" })}
       </SafeButton>
     </>
   );

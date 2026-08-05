@@ -4,6 +4,7 @@ import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
 import { useVadLogic } from '../../hooks/useVADLogic';
 import { useTaskTopics } from '../../hooks/useTaskTopics';
+import { useActionCooldown } from '../../hooks/useActionCooldown';
 import './Recorder.css';
 import checkIcon from '../../assets/successIcons/checkmark-icon.svg';
 import { RecordingTimer } from './RecordingTimer';
@@ -88,25 +89,12 @@ export const Recorder = ({
     const [isPreparingToRecord, setIsPreparingToRecord] = useState(false);
     const recordingStartTimeoutRef = useRef(null);
 
-    const STOP_COOLDOWN_MS = 500;
-    const [justStopped, setJustStopped] = useState(false);
-    const stopCooldownRef = useRef(null);
+    const [justStopped, triggerStopCooldown] = useActionCooldown(500);
     // Imperative handles to the story/example clips (owned locally here,
     // unlike the header guides which live in the parent) so they too can be
     // silenced synchronously the instant Start is clicked.
     const examplePlayerRef = useRef(null);
     const storyPlayerRef = useRef(null);
-
-    useEffect(() => {
-        return () => {
-            if (recordingStartTimeoutRef.current) {
-                clearTimeout(recordingStartTimeoutRef.current);
-            }
-            if (stopCooldownRef.current) {
-                clearTimeout(stopCooldownRef.current);
-            }
-        };
-    }, []);
 
     // Broadcast phase changes up to ParticipantInterfacePage
     useEffect(() => {
@@ -300,10 +288,7 @@ export const Recorder = ({
         onLogEvent("button_stop", { task_recording_duration: recordingTime });
         stopAudioRecording();
         if (isVideoEnabled) videoRecorder.stopRecording();
-
-        setJustStopped(true);
-        if (stopCooldownRef.current) clearTimeout(stopCooldownRef.current);
-        stopCooldownRef.current = setTimeout(() => setJustStopped(false), STOP_COOLDOWN_MS);
+        triggerStopCooldown();
     };
 
     const handleRepeat = () => {
