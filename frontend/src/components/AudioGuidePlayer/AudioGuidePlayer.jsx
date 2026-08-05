@@ -127,39 +127,50 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
     if (onEnded) onEnded();
   };
 
-  if (!src || isRecordingActive || hasError) {
+  if (!src || hasError) {
     return null;
   }
 
+  // NOTE: we deliberately do NOT early-return on isRecordingActive here.
+  // Unmounting this component while recording would destroy the <audio>
+  // DOM node; iOS Safari grants autoplay permission per-element the first
+  // time it's played from a real tap, and that permission is lost the
+  // moment the element is recreated. Since recording ends automatically
+  // (VAD/timer, not a tap), a freshly recreated element can never satisfy
+  // Safari's gesture requirement again. Keeping the same <audio> node
+  // mounted for the component's whole lifetime — and only hiding the
+  // button — preserves that unlocked state across task transitions.
   return (
     <>
-      <SafeButton
-        ref={buttonRef}
-        type="button"
-        className={`audio-instructions-btn ${
-          isPlaying ? 'is-playing' : 'is-paused'
-        }`}
-        onClick={handleTogglePlay}
-        aria-label={isPlaying ? 'Pause audio guide' : 'Play audio guide'}
-      >
-        <div className="audio-instructions-visual">
-          <img
-            src={speakerIcon}
-            alt=""
-            aria-hidden="true"
-            className="audio-instructions-speaker"
-          />
-          <div
-            className={`audio-waves ${
-              isPlaying ? 'audio-waves--active' : ''
-            }`}
-          >
-            <span className="audio-wave audio-wave--1" />
-            <span className="audio-wave audio-wave--2" />
-            <span className="audio-wave audio-wave--3" />
+      {!isRecordingActive && (
+        <SafeButton
+          ref={buttonRef}
+          type="button"
+          className={`audio-instructions-btn ${
+            isPlaying ? 'is-playing' : 'is-paused'
+          }`}
+          onClick={handleTogglePlay}
+          aria-label={isPlaying ? 'Pause audio guide' : 'Play audio guide'}
+        >
+          <div className="audio-instructions-visual">
+            <img
+              src={speakerIcon}
+              alt=""
+              aria-hidden="true"
+              className="audio-instructions-speaker"
+            />
+            <div
+              className={`audio-waves ${
+                isPlaying ? 'audio-waves--active' : ''
+              }`}
+            >
+              <span className="audio-wave audio-wave--1" />
+              <span className="audio-wave audio-wave--2" />
+              <span className="audio-wave audio-wave--3" />
+            </div>
           </div>
-        </div>
-      </SafeButton>
+        </SafeButton>
+      )}
 
       <audio
         ref={audioRef}
