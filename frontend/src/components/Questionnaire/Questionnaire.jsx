@@ -13,16 +13,24 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
   const lastScrolledIndex = useRef(0);
 
   // --- 1. Handle Input Changes ---
-  const handleChange = (questionId, value, type) => {
+  const handleChange = (questionId, value, type, exclusiveOptionValue = null) => {
     setAnswers((prev) => {
       if (type === "multiple") {
-        // Extract the current array for this specific question, defaulting to empty
         const current = prev[questionId] || []; 
         
+        // If the user selects the exclusive option ("None of the above")
+        if (value === exclusiveOptionValue && exclusiveOptionValue !== null) {
+          return { ...prev, [questionId]: current.includes(value) ? [] : [value] };
+        }
+
         if (current.includes(value)) {
           return { ...prev, [questionId]: current.filter((v) => v !== value) };
         } else {
-          return { ...prev, [questionId]: [...current, value] };
+          // Add standard option AND remove the exclusive option if it was previously checked
+          return { 
+            ...prev, 
+            [questionId]: [...current.filter((v) => v !== exclusiveOptionValue), value] 
+          };
         }
       }
       return { ...prev, [questionId]: value };
@@ -179,7 +187,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                           name={`q-${q.id}`}
                           value={opt}
                           checked={(answers[q.id] || []).includes(opt)}
-                          onChange={() => handleChange(q.id, opt, "multiple")}
+                          onChange={() => handleChange(q.id, opt, "multiple", q.exclusiveOption)}
                         />
                         <span className="option-text">{opt}</span>
                       </label>

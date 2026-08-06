@@ -38,27 +38,28 @@
     font-weight: 600;
     border-color: #bbb;
     padding: 0.4rem 0.6rem;
-    flex: 2; /* Takes more space */
+    width: 100%;
   }
 
   /* Style for the Type Selector to be compact */
-.qm-select.type-select {
-    flex: 1; /* Takes less space */
+  .qm-select.type-select {
     font-size: 1rem;
     padding: 0.55rem;
+    width: 100%;
   }
-  
-  /* Adjust input groups in the body to just be wrappers without gap if needed */
+
+  /* Let the flex properties control the widths */
   .qm-card-body .qm-input-group {
-    width: 100%; /* Ensure they fill their flex container */
+    width: auto; 
   }
-  
-  /* Ensure the flex items (input groups) have proper widths */
-  .qm-card-body .qm-input-group:first-child {
-      flex: 2;
+
+  .qm-card-body .qm-input-group:nth-child(1) {
+      flex: 3;
   }
-  .qm-card-body .qm-input-group:last-child {
+
+  .qm-card-body .qm-input-group:nth-child(2) {
       flex: 1;
+      min-width: 140px; /* Ensures the dropdown text always has enough room */
   }
   
   .qm-input,
@@ -144,9 +145,9 @@
   /* -- Question Fields (Row layout for desktop) -- */
   .qm-card-body {
     display: flex;
-    flex-direction: row; /* Changed from column to row */
+    flex-direction: row;
     gap: 1rem;
-    align-items: flex-start; /* Align to top */
+    align-items: center; /* Changed from flex-start to nicely center the checkbox with the inputs */
   }
   
   /* -- Options Section -- */
@@ -239,9 +240,9 @@
 
   /* Optional Checkbox Group */
   .qm-checkbox-group {
-    flex: 0 0 auto !important; /* Prevent it from stretching */
+    flex: 0 0 auto !important;
     justify-content: center;
-    margin-top: 0.6rem; /* Align visually with input fields */
+    margin-top: 0;
   }
 
   .qm-checkbox-group label {
@@ -261,12 +262,12 @@
   }
 
 /* Mobile adjustment: Stack them back to column */
-@media (max-width: 700px) {
+  @media (max-width: 700px) {
     .qm-card-body {
       flex-direction: column;
+      align-items: flex-start; /* Reset alignment for mobile */
     }
-    .qm-input.question-text, .qm-select.type-select {
+    .qm-card-body .qm-input-group {
         width: 100%;
-        flex: none;
     }
   }

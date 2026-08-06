@@ -181,10 +181,9 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
 
               </div>
 
-              {/* Options Section (Moved out of flex row to stack below) */}
+              {/* Options Section */}
               {q.type !== "open" && q.type !== "rating" && (
                 <div className="qm-options-section">
-                   {/* ... (Options Logic Remains the Same) ... */}
                    <label className="qm-options-label">
                       {t("protocolEditor.questionnaire.answerOptions")}
                     </label>
@@ -211,6 +210,23 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                     <button className="qm-btn-add-option" onClick={() => addOption(q.id)}>
                       + {t("protocolEditor.questionnaire.addOption")}
                     </button>
+
+                    {/*  Dropdown to select the exclusive option */}
+                    {q.type === "multiple" && q.options.length > 0 && (
+                      <div className="qm-input-group" style={{ marginTop: "1rem" }}>
+                        <label>Exclusive Option (Clears other selections)</label>
+                        <select
+                          className="qm-select type-select"
+                          value={q.exclusiveOption || ""}
+                          onChange={(e) => updateQuestion(q.id, "exclusiveOption", e.target.value)}
+                        >
+                          <option value="">-- None --</option>
+                          {q.options.map((opt, idx) => (
+                            <option key={idx} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                 </div>
               )}
 
