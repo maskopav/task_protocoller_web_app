@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from "react-i18next";
 import './ModuleCompletionOverlay.css';
 import { 
@@ -12,6 +12,8 @@ const SUCCESS_ICONS = [successA, successB, successC, successD];
 
 export const ModuleCompletionOverlay = ({ category, onComplete }) => {
     const { t } = useTranslation("common");
+    const onCompleteRef = useRef(onComplete);
+    onCompleteRef.current = onComplete; // always latest, no stale closure
     
     // Retrieve the array of praises from the translation file
     const praises = t("completion.praises", { returnObjects: true });
@@ -30,14 +32,16 @@ export const ModuleCompletionOverlay = ({ category, onComplete }) => {
     });
 
     useEffect(() => {
-        // Play a success sound
         const audio = new Audio(`${import.meta.env.VITE_APP_BASE_PATH}audio/sounds/success_sound.m4a`);
         audio.play().catch(e => console.log("Audio play blocked", e));
 
-        // Auto-close after 2.5 seconds
-        const timer = setTimeout(onComplete, 2500);
-        return () => clearTimeout(timer);
-    }, [onComplete]);
+        const timer = setTimeout(() => onCompleteRef.current(), 2500);
+
+        return () => {
+            audio.pause();      // stop it if we unmount/re-run early
+            clearTimeout(timer);
+        };
+    }, []);
 
     // Check if the current overlay is for a milestone instead of a task module
     const isMilestone = category?.startsWith('milestone_');
