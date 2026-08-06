@@ -127,12 +127,21 @@ export const VideoViewFinder = ({
         }
     };
 
-    // If the browser already granted camera access before this component
-    // mounted, there's no intro card to show — but we still need to request
-    // the actual stream so the flow lands on "instructions -> calibration"
-    // afterwards, same as the PROMPT path below.
+    // Recovery path ONLY: if the user already acknowledged the intro card
+    // (or landed on the denied screen and its retry) earlier in this same
+    // mount, and permission then flips to GRANTED — typically because they
+    // fixed it in the browser/OS settings while the denied screen was up —
+    // re-request the stream automatically so they aren't stuck. This is
+    // gated on permissionAcknowledged so it can NEVER fire on a fresh mount
+    // before the user has seen anything: that unconditional auto-fire (on
+    // camPermState alone) was the bug. navigator.permissions.query('camera')
+    // is supported on Android Chrome but not iOS Safari, so a fresh mount
+    // there can genuinely report 'granted' (e.g. a second camera task in
+    // the same session) and used to skip the intro card entirely, calling
+    // getUserMedia() with zero warning shown — invisible on iPhone because
+    // Safari always falls back to PROMPT and never takes this branch.
     useEffect(() => {
-        if (camPermState === CAM_PERM.GRANTED && !cameraGranted) {
+        if (camPermState === CAM_PERM.GRANTED && !cameraGranted && permissionAcknowledged) {
             requestCameraStream();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -245,7 +254,7 @@ export const VideoViewFinder = ({
     // Shown before ANY phase content so the user knows a browser
     // permission popup is coming, exactly as MicCheck does for the
     // microphone — regardless of what `phase` the parent has set.
-    if (camPermState === CAM_PERM.PROMPT && !permissionAcknowledged) {
+    if ((camPermState === CAM_PERM.PROMPT || camPermState === CAM_PERM.GRANTED) && !permissionAcknowledged) {
         return (
             <MediaPermissionContent
                 type="camera"
