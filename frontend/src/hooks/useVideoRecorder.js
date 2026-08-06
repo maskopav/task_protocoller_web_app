@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 const DEV_MODE = true; // Set to false when deploying
@@ -42,6 +42,22 @@ export const useVideoRecorder = ({
             node.srcObject = streamRef.current;
         }
     }, []);
+
+    const releaseStream = useCallback(() => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+    }, []);
+
+    // Safety net: release the camera if this hook's owner unmounts without
+    // ever calling stopRecording() (e.g. task skipped/abandoned mid-flow).
+    useEffect(() => {
+        return () => releaseStream();
+    }, [releaseStream]);
 
     const getMediaPermission = async () => {
         try {
@@ -281,6 +297,10 @@ export const useVideoRecorder = ({
         const finalCoordinates = coordinateTimeline.current;
         setVideoData(finalCoordinates);
         onRecordingComplete({ coordinates: finalCoordinates });
+
+        // Camera capture is done — release the hardware now instead of
+        // leaving it live through the completion screen (and into any retry).
+        releaseStream();
     };
 
     return {

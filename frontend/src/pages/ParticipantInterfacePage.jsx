@@ -1032,7 +1032,17 @@ export default function ParticipantInterfacePage() {
           isUploading={isUploading}
           onPermissionPending={setIsAwaitingPermission}
           onTopicChange={handleTopicChange}
-          onPhaseChange={setRecorderPhase}
+          onPhaseChange={(phase) => {
+            if (phase === 'RECORDING_READY') {
+              setRecorderPhase('RECORDING');
+              setAudioPhase('instructions');
+              setGuideStage('general');
+              setPlayTrigger(t => t + 1); 
+              playedRecorderPhases.current.add('instructions');
+            } else {
+              setRecorderPhase(phase);
+            }
+          }}
           onCameraPermissionDenied={setCameraDenied}
           onDeclineVideo={handleDeclineVideo}
           autoPlayStoryTrigger={storyPlayTrigger}

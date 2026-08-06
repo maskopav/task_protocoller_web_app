@@ -197,6 +197,14 @@ export const Recorder = ({
         setIsTimerActive(timerShouldRun);
     }, [forceTimerActive, activeUseVAD, hasSpoken, disableTimerFreeze, isSilentPause]);
 
+    useEffect(() => {
+        // Internally pause recording when a new topic is prompted or waiting
+        // to prevent iOS from attenuating the audio guide volume.
+        if ((awaitingNextTopic || promptTopicSwitch) && recordingStatus === RECORDING_STATES.RECORDING) {
+            pauseRecording();
+        }
+    }, [awaitingNextTopic, promptTopicSwitch, recordingStatus, pauseRecording, RECORDING_STATES.RECORDING]);
+
     // ── Stop / warning logic ─────────────────────────────────────────────
     const minimalDurationMs = minDuration || 0;
     const isMinimalReached  = voiceRecorder.recordingTime >= minimalDurationMs;
@@ -227,12 +235,16 @@ export const Recorder = ({
     const prevStatusRef = useRef(recordingStatus);
     useEffect(() => {
         if (prevStatusRef.current !== recordingStatus) {
-        if (recordingStatus === RECORDING_STATES.RECORDED) {
-            onAudioEvent('completed');
+            if (recordingStatus === RECORDING_STATES.RECORDED) {
+                // Ensure camera is released on auto-stop
+                if (isVideoEnabled && videoRecorder.recordingStatus !== "recorded") {
+                    videoRecorder.stopRecording();
+                }
+                onAudioEvent('completed');
+            }
+            prevStatusRef.current = recordingStatus;
         }
-        prevStatusRef.current = recordingStatus;
-        }
-    }, [recordingStatus, RECORDING_STATES.RECORDED, onAudioEvent]);
+    }, [recordingStatus, RECORDING_STATES.RECORDED, onAudioEvent, isVideoEnabled, videoRecorder]);
 
 
     useEffect(() => {
@@ -285,6 +297,10 @@ export const Recorder = ({
     const handleGoToCalibration = () => {
         onLogEvent("button_to_calibration");
         setPhase('SETUP');
+        
+        if (onRecordingStateChange) {
+            onRecordingStateChange(true, false);
+        }
     };
 
     const handleStop = () => {
@@ -459,6 +475,12 @@ export const Recorder = ({
         if (startCalibrationInFlightRef.current) return;
         startCalibrationInFlightRef.current = true;
         setPhase('CALIBRATE');
+        
+        // Keep state perfectly in sync before the async mic request
+        if (onRecordingStateChange) {
+            onRecordingStateChange(true, false);
+        }
+        
         // Pass `true` to instantly release the track after caching permission
         await getMicrophonePermission(true); 
         videoRecorder.startFaceDetection();
@@ -471,6 +493,15 @@ export const Recorder = ({
     const handleFinishCalibration = () => {
         setVideoCalibrated(true);
         setPhase('RECORDING');
+        
+        // 1. Instantly unblock the audio player in the parent
+        if (onRecordingStateChange) {
+            onRecordingStateChange(false, false);
+        }
+        // 2. Use a custom string to bypass the parent's delays
+        if (onPhaseChange) {
+            onPhaseChange('RECORDING_READY'); 
+        }
     };
 
     // ── Instruction parsing ───────────────────────────────────────────────
@@ -701,7 +732,12 @@ export const Recorder = ({
             )}
 
             {awaitingNextTopic ? (
-                <SafeButton className="btn-start" onClick={handleStartNextTopic}>
+                <SafeButton className="btn-start" onClick={() => {
+                    if (recordingStatus === RECORDING_STATES.PAUSED) {
+                        resumeRecording();
+                    }
+                    handleStartNextTopic();
+                }}>
                     {t("buttons.start", { ns: "common" })}
                 </SafeButton>
             ) : (
