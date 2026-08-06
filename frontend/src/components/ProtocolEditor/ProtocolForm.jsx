@@ -25,6 +25,8 @@ export default function ProtocolForm({
   setPreviewRandomized,
   onEditInfo,
   onDeleteInfo,
+  onEditInstructions,   
+  onDeleteInstructions, 
   onEditConsent,
   onDeleteConsent,
   onEditIdentifiers,
@@ -157,7 +159,7 @@ export default function ProtocolForm({
             <div className="protocol-pages-row">
               {/* Info Page Logic */}
               {isQuillEmpty(protocolData?.info_text) ? (
-                <button className="btn-add-page-minimal" onClick={onEditInfo}>
+                <button className="btn-add-page-minimal" onClick={onEditInfo} disabled={reorderMode}>
                   + {t("protocolEditor.addInfoPage")}
                 </button>
               ) : (
@@ -166,6 +168,21 @@ export default function ProtocolForm({
                   <div className="page-actions">
                     <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditInfo}>✎</span>
                     <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteInfo}>✖</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Instructions Page Logic */}
+              {isQuillEmpty(protocolData?.instructions_text) ? (
+                <button className="btn-add-page-minimal" onClick={onEditInstructions} disabled={reorderMode}>
+                  + {t("protocolEditor.addInstructionsPage", "Add Instructions")}
+                </button>
+              ) : (
+                <div className="page-item-minimal">
+                  <span className="page-label">{t("protocolEditor.instructionsAdded", "Instructions Added")} ✅</span>
+                  <div className="page-actions">
+                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditInstructions}>✎</span>
+                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteInstructions}>✖</span>
                   </div>
                 </div>
               )}

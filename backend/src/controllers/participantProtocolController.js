@@ -162,6 +162,7 @@ export async function resolveParticipantToken(req, res) {
         required_identifiers: requiredIdentifiers,
         use_audio_guide: protocolConfig?.use_audio_guide ?? 1,
         info_text: globalContentByRef.info_text || "",
+        instructions_text: globalContentByRef.instructions_text || "",
         consent_text: globalContentByRef.consent_text || "",
         global_contents: contentMap['global'] || [],
         tasks: formattedTasks,

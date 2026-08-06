@@ -20,7 +20,6 @@ import { randomizeTasks } from "../../utils/randomizer";
 import { IDENTIFIER_FIELDS } from '../Identifiers/IdentifierFields';
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-
 import "./ProtocolEditor.css";
 
 // Force Quill to use inline styles instead of classes for font sizes
@@ -31,7 +30,6 @@ Quill.register(Size, true);
 const editorModules = {
   toolbar: [
     [{ 'header': [1, 2, 3, false] }],
-    [{ 'size': ['12px', false, '20px', '28px'] }], // 'false' defaults to your base 16px
     ['bold', 'italic', 'underline'],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'align': [] }], // Adds Left, Center, Right, Justify
@@ -39,6 +37,57 @@ const editorModules = {
     [{ 'indent': '-1'}, { 'indent': '+1' }], // Adds Indentation
     ['clean']
   ],
+};
+
+const TemplateSelector = ({ templateType, currentLanguage, onSelect, i18n }) => {
+  // 1. Hardcoded fallback guarantees the modal NEVER crashes and the dropdown ALWAYS populates
+  const fallbackTemplates = {
+    info: {
+      standard: {
+        label: "neuroSHARE Standard Intro",
+        content: "<h1>Welcome to the neuroSHARE Survey</h1><p>This survey will take about <strong>20–25 minutes</strong> to complete.</p><p>Expect assignments focused on:</p><ul><li>Speech &amp; Voice</li><li>Sleep</li><li>Colour vision</li><li>Hearing</li><li>Thinking skills</li></ul>"
+      }
+    },
+    instructions: {
+      standard: {
+        label: "neuroSHARE Standard Instructions",
+        content: "<h1>Before you start</h1><p><img src=\"/assets/sittingInstructions/sitting-instructions-general.png\" alt=\"Setup Environment Guide\" style=\"max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 15px; display: block;\" /></p><ul><li><strong>Find a quiet space:</strong> Sit at a table in a room without interruptions. Please close any windows and turn off the TV or background noise.</li><li><strong>Disconnect headphones:</strong> Please use your device's built-in microphone and speakers.</li><li><strong>Check your device battery and internet connection:</strong> Make sure your internet connection is stable and your battery is sufficiently charged.</li></ul>"
+      }
+    }
+  };
+
+  let templates = fallbackTemplates[templateType] || {};
+  
+  // 2. Safely attempt to load overrides from the i18n file, if available
+  try {
+    const bundle = i18n.getResourceBundle(currentLanguage, "intro") || i18n.getResourceBundle("en", "intro");
+    if (bundle?.templates?.[templateType]) {
+      templates = bundle.templates[templateType];
+    }
+  } catch (err) {
+    console.warn("Translation bundle skipped, using fallback templates.");
+  }
+
+  return (
+    <div className="template-selector" style={{ marginBottom: '10px' }}>
+      <select 
+        onChange={(e) => {
+          const selectedKey = e.target.value;
+          if (selectedKey && templates[selectedKey]) {
+            onSelect(templates[selectedKey].content);
+            e.target.value = ""; // Reset dropdown after selection
+          }
+        }}
+      >
+        <option value="">-- Load a standard template --</option>
+        {Object.keys(templates).map(key => (
+          <option key={key} value={key}>
+            {templates[key].label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 };
 
 export function ProtocolEditor({ 
@@ -50,7 +99,7 @@ export function ProtocolEditor({
   editingMode
   }
 ) {
-  const { t, i18n } = useTranslation(["admin", "common"]);
+  const { t, i18n } = useTranslation(["admin", "common", "intro"]);
   const navigate = useNavigate();
   const { projectId } = useParams();
   const { mappings, loading, error } = useMappings();
@@ -76,6 +125,7 @@ export function ProtocolEditor({
   const [showQuestionnaireModal, setShowQuestionnaireModal] = useState(false);
   // Intro components modals
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [showIdentifiersModal, setShowIdentifiersModal] = useState(false);
 
@@ -317,10 +367,17 @@ export function ProtocolEditor({
   }
 
   const isQuillEmpty = (content) => {
-    if (!content) return true;
-    // Strip HTML tags and check if the remaining text is just whitespace
+    // Catch completely null/empty or Quill's default empty paragraph
+    if (!content || content === '<p><br></p>') return true;
+    
+    // Strip tags to check for raw text
     const plainText = content.replace(/<(.|\n)*?>/g, '').trim();
-    return plainText.length === 0;
+    
+    // Also check if media elements like images exist
+    const hasMedia = content.includes('<img');
+    
+    // It is only truly empty if there is no text AND no media
+    return plainText.length === 0 && !hasMedia;
   };
 
   // Helper to update protocol data fields
@@ -339,6 +396,18 @@ export function ProtocolEditor({
     });
     if (isConfirmed) {
       updateProtocolField("info_text", "");
+    }
+  }
+
+  async function handleDeleteInstructions() {
+    const isConfirmed = await confirm({
+      title: t("protocolEditor.confirmDeleteInstructionsTitle"),
+      message: t("protocolEditor.confirmDeleteInstructionsMsg"),
+      confirmText: t("common:delete"),
+      cancelText: t("common:cancel")
+    });
+    if (isConfirmed) {
+      updateProtocolField("instructions_text", "");
     }
   }
 
@@ -393,6 +462,8 @@ export function ProtocolEditor({
           setPreviewRandomized={setPreviewRandomized}
           onEditInfo={() => setShowInfoModal(true)}
           onDeleteInfo={handleDeleteInfo}
+          onEditInstructions={() => setShowInstructionsModal(true)}
+          onDeleteInstructions={handleDeleteInstructions}
           onEditConsent={() => setShowConsentModal(true)}
           onDeleteConsent={handleDeleteConsent}
           onEditIdentifiers={() => setShowIdentifiersModal(true)} 
@@ -400,22 +471,54 @@ export function ProtocolEditor({
         />
       </div>
 
-      {/* --- Intro Page Rich Text Modal --- */}
+      {/* --- Info Page Rich Text Modal --- */}
       <AdminModal
         open={showInfoModal}
-        title={t("protocolEditor.editInfoTitle")}
+        title={t("protocolEditor.editInfoTitle", "Edit Info")}
         onClose={() => setShowInfoModal(false)}
         onSave={() => setShowInfoModal(false)}
       >
         <div className="mobile-preview-wrapper">
+          <TemplateSelector 
+            templateType="info" 
+            currentLanguage={protocolData?.language || "en"} 
+            onSelect={(content) => updateProtocolField("info_text", content)} 
+            i18n={i18n}
+          />
           <div className="mobile-phone-frame">
             <div className="mobile-screen">
-               <ReactQuill 
+              <ReactQuill 
                 theme="snow"
                 modules={editorModules}
                 value={protocolData?.info_text || ""}
                 onChange={(val) => updateProtocolField("info_text", val)}
-                placeholder={t("protocolEditor.introPlaceholder")}
+              />
+            </div>
+          </div>
+        </div>
+      </AdminModal>
+
+      {/* --- Instructions Page Rich Text Modal --- */}
+      <AdminModal
+        open={showInstructionsModal}
+        title={t("protocolEditor.editInstructionsTitle", "Edit Instructions")}
+        onClose={() => setShowInstructionsModal(false)}
+        onSave={() => setShowInstructionsModal(false)}
+      >
+        <div className="mobile-preview-wrapper">
+          <TemplateSelector 
+            templateType="instructions" 
+            currentLanguage={protocolData?.language || "en"} 
+            onSelect={(content) => updateProtocolField("instructions_text", content)} 
+            i18n={i18n}
+          />
+          <div className="mobile-phone-frame">
+            <div className="mobile-screen">
+              <ReactQuill 
+                theme="snow"
+                modules={editorModules}
+                value={protocolData?.instructions_text || ""}
+                onChange={(val) => updateProtocolField("instructions_text", val)}
               />
             </div>
           </div>
@@ -431,7 +534,7 @@ export function ProtocolEditor({
       >
         <div className="mobile-preview-wrapper">
           <div className="mobile-phone-frame">
-            <div className="mobile-screen ql-editor">
+            <div className="mobile-screen">
                <ReactQuill 
                 theme="snow"
                 modules={editorModules}

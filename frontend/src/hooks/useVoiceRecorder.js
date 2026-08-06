@@ -432,6 +432,7 @@ export const useVoiceRecorder = (options = {}) => {
         const gainValue    = resolveInputGain(inputGain);
         const inputGainNode = audioContext.current.createGain();
         inputGainNode.gain.value = gainValue;
+        inputGainRef.current = inputGainNode;
 
         const workletNode = new AudioWorkletNode(audioContext.current, 'recorder-worklet', {
             numberOfOutputs: 0,
@@ -466,15 +467,53 @@ export const useVoiceRecorder = (options = {}) => {
     const pauseRecording = () => {
         if (statusRef.current === RECORDING) {
             setRecordingStatus(PAUSED);
+        
+            // Tell worklet to pause saving PCM data
             if (workletNodeRef.current) {
                 workletNodeRef.current.port.postMessage({ command: 'stop' });
+            }
+            
+            // CATCH AND RELEASE: Kill the mic track so iOS restores system volume!
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
             }
         }
     };
 
-    const resumeRecording = () => {
+    const resumeRecording = async () => {
         if (statusRef.current === PAUSED) {
+            
+            // Re-acquire the stream silently
+            let activeStream = streamRef.current;
+            if (!activeStream || activeStream.getAudioTracks()[0].readyState === 'ended') {
+                try {
+                    activeStream = await navigator.mediaDevices.getUserMedia({
+                        video: false,
+                        audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
+                    });
+                    setStream(activeStream);
+                    
+                    // Re-connect the new stream to our existing audio graph
+                    if (audioContext.current && inputGainRef.current && workletNodeRef.current) {
+                        if (sourceNodeRef.current) sourceNodeRef.current.disconnect();
+                        
+                        const source = audioContext.current.createMediaStreamSource(activeStream);
+                        sourceNodeRef.current = source;
+                        
+                        // Reconnect pipeline branches exactly as startRecording does
+                        source.connect(workletNodeRef.current);
+                        source.connect(inputGainRef.current);
+                    }
+                } catch (err) {
+                    logToServer('MIC | failed to re-acquire on resume', err.message);
+                    onError(err);
+                    return;
+                }
+            }
+
             setRecordingStatus(RECORDING);
+            
+            // Tell worklet to resume saving PCM data
             if (workletNodeRef.current) {
                 workletNodeRef.current.port.postMessage({ command: 'start' });
             }

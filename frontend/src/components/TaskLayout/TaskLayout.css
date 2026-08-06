@@ -184,3 +184,33 @@
   padding: 0;
 }
 
+/* ── Rich Text Overrides ───────────────────────────────────────────── */
+.participant-rich-text ul {
+  list-style-type: disc;
+  padding-left: clamp(1.5rem, 4vw, 2.5rem);
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.participant-rich-text ol {
+  list-style-type: decimal;
+  padding-left: clamp(1.5rem, 4vw, 2.5rem);
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.participant-rich-text li {
+  margin-bottom: 0.25em;
+}
+
+.participant-rich-text img {
+  max-width: 100% !important;
+  /* Limits the height based on screen size so it never pushes buttons off-screen */
+  max-height: clamp(100px, 30dvh, 250px) !important; 
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain; /* Ensures the image doesn't stretch or distort */
+  display: block !important;
+  margin: 0 auto 15px auto !important; /* Centers the image */
+  border-radius: var(--radius, 8px); 
+}

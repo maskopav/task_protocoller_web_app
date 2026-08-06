@@ -356,7 +356,6 @@ async function calculateOfflineProgress(sessionId, startingTaskIndex, logger) {
 }
 
 // ─── Protocol Mapping Helper ──────────────────────────────────────────────────
-// (unchanged from original)
 function mapProtocol(raw, mappings) {
   const language = mappings.languages.find(l => l.id === raw.language_id);
   const mappedTasks = raw.tasks.map(t => {
@@ -368,18 +367,10 @@ function mapProtocol(raw, mappings) {
       protocol_task_id: t.protocol_task_id
     };
   });
+  
   return {
-    id: raw.id,
-    name: raw.name,
-    version: raw.version,
-    description: raw.description,
-    protocol_group_id: raw.protocol_group_id,
-    language: language?.code || "en",
-    tasks: mappedTasks,
-    randomization: raw.randomization,
-    required_identifiers: raw.required_identifiers,
-    use_audio_guide: raw.use_audio_guide,
-    info_text: raw.info_text,
-    consent_text: raw.consent_text
+    ...raw, 
+    language: language?.code || "en", // Overwrite the ID with the actual language code
+    tasks: mappedTasks                // Overwrite the raw tasks with our mapped tasks
   };
 }

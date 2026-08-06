@@ -1,0 +1,16 @@
+{
+  "templates": {
+    "info": {
+      "neuroSHARE": {
+        "label": "neuroSHARE Standard Intro",
+        "content": "<h1>Welcome to the neuroSHARE Survey</h1><p>This survey will take about <strong>20–25 minutes</strong> to complete.</p><p>Expect assignments focused on:</p><ul><li>Speech &amp; Voice</li><li>Sleep</li><li>Colour vision</li><li>Hearing</li><li>Thinking skills</li></ul>"
+      }
+    },
+    "instructions": {
+      "standard": {
+        "label": "neuroSHARE Standard Instructions",
+        "content": "<h1>Before you start</h1><p><img src=\"/assets/sittingInstructions/sitting-instructions-general.png\" alt=\"Setup Environment Guide\" style=\"max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 15px; display: block;\" /></p><ul><li><strong>Find a quiet space:</strong> Sit at a table in a room without interruptions. Please close any windows and turn off the TV or background noise.</li><li><strong>Disconnect headphones:</strong> Please use your device's built-in microphone and speakers.</li><li><strong>Check your device battery and internet connection:</strong> Make sure your internet connection is stable and your battery is sufficiently charged.</li></ul>"
+      }
+    }
+  }
+}

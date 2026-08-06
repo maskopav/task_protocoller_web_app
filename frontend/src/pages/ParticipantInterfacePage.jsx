@@ -218,6 +218,17 @@ export default function ParticipantInterfacePage() {
       });
     }
 
+    // Add Instructions Page
+    const instructionsHtml = selectedProtocol.instructions_text || findGlobalContent('instructions');
+    if (instructionsHtml) {
+      introSteps.push({
+        type: "instructions",
+        content: instructionsHtml,
+        category: "instructions",
+        isSystemTask: true
+      });
+    }
+
     // Add Consent Page (check root field OR new array)
     const consentHtml = selectedProtocol.consent_text || findGlobalContent('consent');
     if (consentHtml) {
@@ -463,7 +474,7 @@ export default function ParticipantInterfacePage() {
     let isReading = false;
     let isRetelling = false;
 
-    if (rawTask && !['info', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(rawTask.type)) {
+    if (rawTask && !['info', 'instructions', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(rawTask.type)) {
        task = resolveTask(rawTask, t);
        isReading = task?.category === 'reading';
        isRetelling = task?.category === 'retelling';
@@ -791,7 +802,7 @@ export default function ParticipantInterfacePage() {
     }
     try {
       const currentTaskObj = runtimeTasks[taskIndex];
-      const isSystemTask = ['info', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(currentTaskObj.type);
+      const isSystemTask = ['info', 'instructions', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(currentTaskObj.type);
       const isMicCheck = currentTaskObj.type === 'mic_check';
     
       if (testingMode || editingMode || !sessionId) {
@@ -944,8 +955,8 @@ export default function ParticipantInterfacePage() {
     }
 
     // Render Info Page
-    if (rawTask.type === "info") {
-      return <InfoPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'info' })} />;
+    if (rawTask.type === "info" || rawTask.type === "instructions") {
+      return <InfoPage content={rawTask.content} onNext={() => handleTaskComplete({ type: rawTask.type })} />;
     }
 
     // Render Consent Page

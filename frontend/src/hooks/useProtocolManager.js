@@ -36,6 +36,7 @@ export function useProtocolManager() {
       project_id: Number(projectId),  
       editingMode,
       info_text: selectedProtocol.info_text,
+      instructions_text: selectedProtocol.instructions_text,
       consent_text: selectedProtocol.consent_text,
       required_identifiers: selectedProtocol.required_identifiers
     };
