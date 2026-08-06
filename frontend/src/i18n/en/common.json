@@ -94,6 +94,7 @@
     "questionnaire": {
       "selectOption": "Select an option...",
       "typeAnswer": "Type your answer here...",
+      "pleaseSpecify": "Please specify",
       "required": "* required",
       "rating": {
         "veryBad": "Very bad",

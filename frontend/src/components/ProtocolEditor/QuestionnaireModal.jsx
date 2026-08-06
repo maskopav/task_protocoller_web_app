@@ -65,16 +65,29 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
     );
   };
 
+  const toggleFreeTextOption = (questionId, opt) =>
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        const current = q.freeTextOptions || [];
+        return {
+          ...q,
+          freeTextOptions: current.includes(opt) ? current.filter((o) => o !== opt) : [...current, opt],
+        };
+      })
+    );
+
   const removeOption = (questionId, index) => {
     setQuestions((prev) =>
-      prev.map((q) =>
-        q.id === questionId
-          ? {
-              ...q,
-              options: q.options.filter((_, i) => i !== index),
-            }
-          : q
-      )
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        const removedOpt = q.options[index];
+        return {
+          ...q,
+          options: q.options.filter((_, i) => i !== index),
+          freeTextOptions: (q.freeTextOptions || []).filter((o) => o !== removedOpt),
+        };
+      })
     );
   };
 
@@ -83,8 +96,11 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
   };
 
   const handleSave = () => {
-    // Send flat data back to Editor
-    onSave({ title, description, questions });
+    const cleaned = questions.map((q) => ({
+      ...q,
+      freeTextOptions: (q.freeTextOptions || []).filter((opt) => q.options.includes(opt)),
+    }));
+    onSave({ title, description, questions: cleaned });
   };
 
   if (!open) return null;
@@ -197,16 +213,14 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                           placeholder={`${t("protocolEditor.questionnaire.Option")} ${i + 1}`}
                           onChange={(e) => updateOption(q.id, i, e.target.value)}
                         />
-                        <button
-                          className="qm-btn-remove-option"
-                          onClick={() => removeOption(q.id, i)}
-                          title="Remove option"
-                        >
-                          ✕
-                        </button>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                          <input type="checkbox" checked={q.freeTextOptions?.includes(opt) ?? false}
+                            onChange={() => toggleFreeTextOption(q.id, opt)} />
+                          Allow write-in
+                        </label>
+                        <button className="qm-btn-remove-option" onClick={() => removeOption(q.id, i)} title="Remove option">✕</button>
                       </div>
                     ))}
-
                     <button className="qm-btn-add-option" onClick={() => addOption(q.id)}>
                       + {t("protocolEditor.questionnaire.addOption")}
                     </button>

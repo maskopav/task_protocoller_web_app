@@ -14,39 +14,63 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
 
   // --- 1. Handle Input Changes ---
   const handleChange = (questionId, value, type, exclusiveOptionValue = null) => {
+    const question = data.questions.find((q) => q.id === questionId);
     setAnswers((prev) => {
+      let nextValue;
       if (type === "multiple") {
-        const current = prev[questionId] || []; 
-        
-        // If the user selects the exclusive option ("None of the above")
+        const current = prev[questionId] || [];
         if (value === exclusiveOptionValue && exclusiveOptionValue !== null) {
-          return { ...prev, [questionId]: current.includes(value) ? [] : [value] };
-        }
-
-        if (current.includes(value)) {
-          return { ...prev, [questionId]: current.filter((v) => v !== value) };
+          nextValue = current.includes(value) ? [] : [value];
+        } else if (current.includes(value)) {
+          nextValue = current.filter((v) => v !== value);
         } else {
-          // Add standard option AND remove the exclusive option if it was previously checked
-          return { 
-            ...prev, 
-            [questionId]: [...current.filter((v) => v !== exclusiveOptionValue), value] 
-          };
+          nextValue = [...current.filter((v) => v !== exclusiveOptionValue), value];
         }
+      } else {
+        nextValue = value;
       }
-      return { ...prev, [questionId]: value };
+
+      const next = { ...prev, [questionId]: nextValue };
+      (question?.freeTextOptions || []).forEach((opt) => {
+        const stillSelected = type === "multiple" ? nextValue.includes(opt) : nextValue === opt;
+        if (!stillSelected) delete next[`${questionId}__freeText__${opt}`];
+      });
+      return next;
     });
-    if (onLogAnswer) {
-      onLogAnswer(questionId, value);
-    }
+    if (onLogAnswer) onLogAnswer(questionId, value);
   };
 
   // --- 2. Per-question answered check (Moved up for use in useEffects) ---
   const isAnswered = (q) => {
     const val = answers[q.id];
-    if (q.type === "multiple") return Array.isArray(val) && val.length > 0;
-    if (q.type === "open")     return typeof val === "string" && val.trim().length > 0;
-    return val !== undefined && val !== "" && val !== null;
+    if (q.type === "multiple" && !(Array.isArray(val) && val.length > 0)) return false;
+    if (q.type === "open" && !(typeof val === "string" && val.trim().length > 0)) return false;
+    if (q.type !== "multiple" && q.type !== "open" && (val === undefined || val === "" || val === null)) return false;
+
+    if (q.freeTextOptions?.length) {
+      const selected = q.freeTextOptions.filter((opt) =>
+        q.type === "multiple" ? val.includes(opt) : val === opt
+      );
+      return selected.every((opt) => (answers[`${q.id}__freeText__${opt}`] || "").trim().length > 0);
+    }
+    return true;
   };
+
+  const handleFreeTextChange = (questionId, opt, text) => {
+    setAnswers((prev) => ({ ...prev, [`${questionId}__freeText__${opt}`]: text }));
+    if (onLogAnswer) onLogAnswer(`${questionId}__freeText__${opt}`, text);
+  };
+
+  const renderFreeText = (q, opt, selected) =>
+    q.freeTextOptions?.includes(opt) && selected && (
+      <input
+        type="text"
+        className="answer-input-text"
+        placeholder={t("questionnaire.pleaseSpecify", { ns: "common" })}
+        value={answers[`${q.id}__freeText__${opt}`] || ""}
+        onChange={(e) => handleFreeTextChange(q.id, opt, e.target.value)}
+      />
+    );
 
   // --- 3. Validation ---
   useEffect(() => {
@@ -162,53 +186,53 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                 {/* SINGLE CHOICE */}
                 {q.type === "single" && (
                   <div className="options-group" role="radiogroup">
-                    {q.options?.map((opt, i) => (
-                      <label key={i} className="option-label">
-                        <input
-                          type="radio"
-                          name={`q-${q.id}`}
-                          value={opt}
-                          checked={answers[q.id] === opt}
-                          onChange={() => handleChange(q.id, opt, "single")}
-                        />
-                        <span className="option-text">{opt}</span>
-                      </label>
-                    ))}
+                    {q.options?.map((opt, i) => {
+                      const checked = answers[q.id] === opt;
+                      const needsFreeText = q.freeTextOptions?.includes(opt);
+                      return (
+                        <React.Fragment key={i}>
+                          <label className="option-label">
+                            <input type="radio" name={`q-${q.id}`} value={opt} checked={checked}
+                              onChange={() => handleChange(q.id, opt, "single")} />
+                            <span className="option-text">{opt}</span>
+                          </label>
+                          {renderFreeText(q, opt, checked)}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* MULTIPLE CHOICE */}
                 {q.type === "multiple" && (
                   <div className="options-group">
-                    {q.options?.map((opt, i) => (
-                      <label key={i} className="option-label">
-                        <input
-                          type="checkbox"
-                          name={`q-${q.id}`}
-                          value={opt}
-                          checked={(answers[q.id] || []).includes(opt)}
-                          onChange={() => handleChange(q.id, opt, "multiple", q.exclusiveOption)}
-                        />
-                        <span className="option-text">{opt}</span>
-                      </label>
-                    ))}
+                    {q.options?.map((opt, i) => {
+                      const checked = answers[q.id]?.includes(opt) ?? false;
+                      const needsFreeText = q.freeTextOptions?.includes(opt);
+                      return (
+                        <React.Fragment key={i}>
+                          <label className="option-label">
+                            <input type="checkbox" name={`q-${q.id}`} value={opt} checked={checked}
+                              onChange={() => handleChange(q.id, opt, "multiple", q.exclusiveOption)} />
+                            <span className="option-text">{opt}</span>
+                          </label>
+                          {renderFreeText(q, opt, checked)}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* DROPDOWN */}
                 {q.type === "dropdown" && (
-                  <select
-                    className="answer-select"
-                    value={answers[q.id] || ""}
-                    onChange={(e) => handleChange(q.id, e.target.value, "dropdown")}
-                  >
-                    <option value="" disabled>
-                      -- {t("questionnaire.selectOption")} --
-                    </option>
-                    {q.options?.map((opt, i) => (
-                      <option key={i} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                  <>
+                    <select className="answer-select" value={answers[q.id] || ""}
+                      onChange={(e) => handleChange(q.id, e.target.value, "dropdown")}>
+                      <option value="" disabled>-- {t("questionnaire.selectOption")} --</option>
+                      {q.options?.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+                    </select>
+                    {renderFreeText(q, answers[q.id], Boolean(answers[q.id]))}
+                  </>
                 )}
 
                 {/* EMOJI RATING SCALE */}
