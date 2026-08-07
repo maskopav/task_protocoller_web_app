@@ -79,7 +79,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                     ),
                     message:  <SDMTDemoMessage />,
                     infoOnly: true,
-                    confirmText: t("buttons.gotIt", { ns: "common" })
+                    confirmText: t("buttons.ok", { ns: "common" })
                 });
             }
         };

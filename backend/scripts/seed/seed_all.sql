@@ -53,4 +53,6 @@ VALUES
 ),
 ('sdmt',
  (SELECT id FROM task_types WHERE type='cognitive')
+),
+('feedback', (SELECT id FROM task_types WHERE type='questionnaire')
 );

@@ -422,6 +422,121 @@
           }
         }
       }
+    },
+    "feedback": {
+      "name": "Feedback",
+      "description": "A standard feedback questionnaire assessing task difficulty, audio/video issues, and overall user experience. Added pre-filled; the questions can still be adjusted before saving.",
+      "title": "Questionnaire: {{title}}",
+      "instructions": "Please answer the following questions.",
+      "params": {
+        "title": { "label": "Title" },
+        "description": { "label": "Description" },
+        "questions": { "label": "Questions" }
+      },
+      "defaultContent": {
+        "title": "Feedback",
+        "description": "",
+        "questions": [
+          {
+            "id": 1782904964479,
+            "text": "Overall, how easy was it to complete the tasks?",
+            "type": "rating",
+            "options": [],
+            "freeTextOptions": []
+          },
+          {
+            "id": 1782904989314,
+            "text": "Overall, how easy were the instructions to understand?",
+            "type": "rating",
+            "options": [],
+            "freeTextOptions": []
+          },
+          {
+            "id": 1782905036461,
+            "text": "How helpful was the audio guide?",
+            "type": "rating",
+            "optional": true,
+            "freeTextOptions": []
+          },
+          {
+            "id": 1786019769001,
+            "text": "Did you have trouble hearing the audio (guide, fairytale or examples)?",
+            "type": "single",
+            "options": [
+              "No, I heard everything clearly.",
+              "Yes, minor difficulty.",
+              "Yes, significant difficulty.",
+              "Audio didn't work at all."
+            ],
+            "optional": false,
+            "freeTextOptions": []
+          },
+          {
+            "id": 1786019769820,
+            "text": "Which task(s) did you find the most difficult or frustrating?",
+            "type": "multiple",
+            "options": [
+              "Long /aaa/",
+              "Repetition /pa-ta-ka/",
+              "Reading text",
+              "Fairytale retelling",
+              "Monologue",
+              "Symbol matching",
+              "Vision task (colour matching)",
+              "Questionnaires",
+              "None — I found them all manageable"
+            ],
+            "optional": false,
+            "exclusiveOption": "None — I found them all manageable",
+            "freeTextOptions": []
+          },
+          {
+            "id": 1786019771650,
+            "text": "Did background noise or other distractions interfere with your ability to complete the tasks?",
+            "type": "single",
+            "options": [
+              "No",
+              "Slightly",
+              "Yes",
+              "Not sure"
+            ],
+            "optional": false,
+            "freeTextOptions": []
+          },
+          {
+            "id": 1786019772865,
+            "text": "Did you experience any of the following technical issues?",
+            "type": "multiple",
+            "options": [
+              "Difficulty allowing microphone or camera access",
+              "Difficulty getting the camera to recognize my face",
+              "Difficulties maintaining camera position while speaking",
+              "Long delays or waiting time between tasks",
+              "Audio guide volume was too low or decreased unexpectedly",
+              "Accidentally exited or navigated away from a task",
+              "Troubles setting your screen for vision task",
+              "The app froze, crashed, or became unresponsive",
+              "A recording didn't seem to start or stop properly",
+              "Lost internet connection during the session",
+              "Other:",
+              "None of the above"
+            ],
+            "optional": false,
+            "exclusiveOption": "None of the above",
+            "freeTextOptions": [
+              "Other:"
+            ]
+          },
+          {
+            "id": 1786019773779,
+            "text": "Is there anything else you'd like to tell us about your experience?",
+            "type": "open",
+            "options": [],
+            "optional": true,
+            "freeTextOptions": []
+          }
+        ]
+      }
     }
   }
   
