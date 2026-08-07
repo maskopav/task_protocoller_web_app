@@ -455,7 +455,7 @@
             "id": 1782905036461,
             "text": "How helpful was the audio guide?",
             "type": "rating",
-            "optional": true,
+            "optional": false,
             "freeTextOptions": []
           },
           {
