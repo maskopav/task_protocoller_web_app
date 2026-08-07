@@ -55,7 +55,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
       ),
       message: <D15AddColourMessage />,
       infoOnly: true,
-      confirmText: t("buttons.gotIt", { ns: "common" })
+      confirmText: t("buttons.ok", { ns: "common" })
     });
     addGuideRef.current?.stop();
 
@@ -72,7 +72,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
       ),
       message: <D15ModifyColourMessage />,
       infoOnly: true,
-      confirmText: t("buttons.gotIt", { ns: "common" })
+      confirmText: t("buttons.ok", { ns: "common" })
     });
     modifyGuideRef.current?.stop();
 
@@ -99,7 +99,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
       ),
       message: <D15TrialCompleteMessage />,
       infoOnly: true,
-      confirmText: t("buttons.gotIt", { ns: "common" })
+      confirmText: t("buttons.ok", { ns: "common" })
     });
     trialGuideRef.current?.stop();
     setStep("test");
