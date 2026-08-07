@@ -6,6 +6,7 @@ import { initReactI18next } from "react-i18next";
 import enCommon from "./en/common.json";
 import enTasks from "./en/tasks.json";
 import enAdmin from "./en/admin.json";
+import enIntro from "./en/intro.json";
 
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
@@ -27,13 +28,14 @@ i18n
   .init({
     fallbackLng: "en",
     lng: "cs",
-    ns: ["common", "tasks", "admin"],
+    ns: ["common", "tasks", "admin", "intro"],
     defaultNS: "common",
     resources: {
       en: {
         common: enCommon,
         tasks: enTasks,
-        admin: enAdmin
+        admin: enAdmin,
+        intro: enIntro
       },
       cs: {
         common: csCommon,

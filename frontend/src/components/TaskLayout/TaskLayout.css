@@ -185,6 +185,24 @@
 }
 
 /* ── Rich Text Overrides ───────────────────────────────────────────── */
+.participant-rich-text {
+  font-size: clamp(1.45rem, min(5.5vw, 4.5dvh), 1.8rem);
+  line-height: 1.3;
+  white-space: normal !important; 
+  word-break: normal !important;
+  overflow-wrap: break-word !important; 
+}
+
+/* Ensure child paragraph tags inherit task font-size & line-height */
+.participant-rich-text h,
+.participant-rich-text p,
+.participant-rich-text div,
+.participant-rich-text span {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: #000000 !important;
+}
+
 .participant-rich-text ul {
   list-style-type: disc;
   padding-left: clamp(1.5rem, 4vw, 2.5rem);
@@ -206,7 +224,7 @@
 .participant-rich-text img {
   max-width: 100% !important;
   /* Limits the height based on screen size so it never pushes buttons off-screen */
-  max-height: clamp(100px, 30dvh, 250px) !important; 
+  max-height: clamp(10dvh, 20dvh, 25dvh) !important; 
   width: auto !important;
   height: auto !important;
   object-fit: contain; /* Ensures the image doesn't stretch or distort */

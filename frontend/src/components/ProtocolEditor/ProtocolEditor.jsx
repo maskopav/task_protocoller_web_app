@@ -40,32 +40,14 @@ const editorModules = {
 };
 
 const TemplateSelector = ({ templateType, currentLanguage, onSelect, i18n }) => {
-  // 1. Hardcoded fallback guarantees the modal NEVER crashes and the dropdown ALWAYS populates
-  const fallbackTemplates = {
-    info: {
-      standard: {
-        label: "neuroSHARE Standard Intro",
-        content: "<h1>Welcome to the neuroSHARE Survey</h1><p>This survey will take about <strong>20–25 minutes</strong> to complete.</p><p>Expect assignments focused on:</p><ul><li>Speech &amp; Voice</li><li>Sleep</li><li>Colour vision</li><li>Hearing</li><li>Thinking skills</li></ul>"
-      }
-    },
-    instructions: {
-      standard: {
-        label: "neuroSHARE Standard Instructions",
-        content: "<h1>Before you start</h1><p><img src=\"/assets/sittingInstructions/sitting-instructions-general.png\" alt=\"Setup Environment Guide\" style=\"max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 15px; display: block;\" /></p><ul><li><strong>Find a quiet space:</strong> Sit at a table in a room without interruptions. Please close any windows and turn off the TV or background noise.</li><li><strong>Disconnect headphones:</strong> Please use your device's built-in microphone and speakers.</li><li><strong>Check your device battery and internet connection:</strong> Make sure your internet connection is stable and your battery is sufficiently charged.</li></ul>"
-      }
-    }
-  };
-
-  let templates = fallbackTemplates[templateType] || {};
+  let templates = {};
   
-  // 2. Safely attempt to load overrides from the i18n file, if available
-  try {
-    const bundle = i18n.getResourceBundle(currentLanguage, "intro") || i18n.getResourceBundle("en", "intro");
-    if (bundle?.templates?.[templateType]) {
-      templates = bundle.templates[templateType];
-    }
-  } catch (err) {
-    console.warn("Translation bundle skipped, using fallback templates.");
+  // 1. Get the raw JSON bundle for the protocol's language, fallback to 'en'
+  const bundle = i18n.getResourceBundle(currentLanguage, "intro") || i18n.getResourceBundle("en", "intro");
+  
+  // 2. Safely traverse the JSON object without relying on i18next dot-notation parsing
+  if (bundle && bundle.templates && bundle.templates[templateType]) {
+    templates = bundle.templates[templateType];
   }
 
   return (
@@ -75,7 +57,7 @@ const TemplateSelector = ({ templateType, currentLanguage, onSelect, i18n }) => 
           const selectedKey = e.target.value;
           if (selectedKey && templates[selectedKey]) {
             onSelect(templates[selectedKey].content);
-            e.target.value = ""; // Reset dropdown after selection
+            e.target.value = ""; 
           }
         }}
       >
@@ -533,6 +515,12 @@ export function ProtocolEditor({
         onSave={() => setShowConsentModal(false)}
       >
         <div className="mobile-preview-wrapper">
+          <TemplateSelector 
+            templateType="consent" 
+            currentLanguage={protocolData?.language || "en"} 
+            onSelect={(content) => updateProtocolField("consent_text", content)} 
+            i18n={i18n}
+          />
           <div className="mobile-phone-frame">
             <div className="mobile-screen">
                <ReactQuill 
