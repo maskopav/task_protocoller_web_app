@@ -252,7 +252,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                     {t("protocolEditor.questionnaire.ratingPreview")}
                   </label>
                   <div className="qm-rating-preview-faces">
-                    {DEFAULT_EMOJI_SCALE.map((item) => (
+                    {DEFAULT_EMOJI_SCALE.slice().reverse().map((item) => (
                       <span
                         key={item.value}
                         className="qm-rating-preview-face"
