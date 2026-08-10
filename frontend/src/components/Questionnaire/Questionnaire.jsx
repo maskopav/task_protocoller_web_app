@@ -242,7 +242,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                     role="radiogroup"
                     aria-label={q.text}
                   >
-                    {(q.scale || DEFAULT_EMOJI_SCALE).map((item) => {
+                    {(q.scale || DEFAULT_EMOJI_SCALE).slice().reverse().map((item) => {
                       const selected = answers[q.id] === item.value;
                       return (
                         <button
