@@ -476,6 +476,7 @@
             "text": "Which task(s) did you find the most difficult or frustrating?",
             "type": "multiple",
             "options": [
+              "None — I found them all manageable",
               "Long /aaa/",
               "Repetition /pa-ta-ka/",
               "Reading text",
@@ -483,8 +484,7 @@
               "Monologue",
               "Symbol matching",
               "Vision task (colour matching)",
-              "Questionnaires",
-              "None — I found them all manageable"
+              "Questionnaires"
             ],
             "optional": false,
             "exclusiveOption": "None — I found them all manageable",
