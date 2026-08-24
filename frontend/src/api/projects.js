@@ -1,6 +1,6 @@
 // src/api/projects.js
-const API_BASE = import.meta.env.VITE_API_BASE;
 import { getMappings } from "./mappings";
+import { apiFetch } from "./apiClient";
 
 // Fetch stats for a specific project from the view
 // We reuse the generic mappings endpoint since the view is now in the DB
@@ -8,7 +8,7 @@ export async function getProjectStats(projectId) {
   try {
     const data = await getMappings(["v_project_summary_stats"]);
     const allStats = data.v_project_summary_stats || [];
-    
+
     // Filter client-side for the specific project
     const projectStats = allStats.find(p => p.project_id === Number(projectId));
     return projectStats || null;
@@ -23,16 +23,15 @@ export async function fetchProjectsList(userId, role) {
   if (userId) params.append("userId", userId);
   if (role) params.append("role", role);
 
-  const res = await fetch(`${API_BASE}/projects/projects-list?${params.toString()}`);
-  
+  const res = await apiFetch(`/projects/projects-list?${params.toString()}`);
+
   if (!res.ok) throw new Error("Failed to fetch projects");
   return res.json();
 }
 
 export async function createProjectApi(payload) {
-  const res = await fetch(`${API_BASE}/projects/create`, {
+  const res = await apiFetch(`/projects/create`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
   const json = await res.json();
@@ -41,9 +40,8 @@ export async function createProjectApi(payload) {
 }
 
 export async function updateProjectApi(payload) {
-  const res = await fetch(`${API_BASE}/projects/update`, {
+  const res = await apiFetch(`/projects/update`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
   const json = await res.json();
@@ -56,7 +54,7 @@ export async function getProjectFieldwork(projectId) {
   try {
     const data = await getMappings(["v_session_summary"]);
     const allSessions = data.v_session_summary || [];
-    
+
     // Filter client-side for the specific project
     return allSessions.filter(s => s.project_id === Number(projectId));
   } catch (err) {

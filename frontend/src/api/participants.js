@@ -1,21 +1,20 @@
 /* frontend/src/api/participants.js */
-const API_BASE = import.meta.env.VITE_API_BASE;
+import { apiFetch } from "./apiClient";
 
 export async function getParticipants(projectId) {
     // If projectId is provided, filter by it. Otherwise, fetch all.
-    const url = projectId 
-        ? `${API_BASE}/participants?project_id=${projectId}`
-        : `${API_BASE}/participants`;
+    const url = projectId
+        ? `/participants?project_id=${projectId}`
+        : `/participants`;
 
-    const res = await fetch(url);
+    const res = await apiFetch(url);
     if (!res.ok) throw new Error("Failed to load participants");
     return res.json();
 }
 
 export async function createParticipant(data) {
-  const res = await fetch(`${API_BASE}/participants/create`, {
+  const res = await apiFetch(`/participants/create`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
   const json = await res.json();
@@ -24,23 +23,22 @@ export async function createParticipant(data) {
 }
 
 export async function updateParticipant(id, data) {
-    const res = await fetch(`${API_BASE}/participants/${id}`, {
+    const res = await apiFetch(`/participants/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
-    
+
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || "Failed to update participant");
     return json;
   }
 
   export async function searchParticipant(externalId) {
-    const url = `${API_BASE}/participants/search?external_id=${encodeURIComponent(externalId)}`;
-    
-    const res = await fetch(url);
+    const url = `/participants/search?external_id=${encodeURIComponent(externalId)}`;
+
+    const res = await apiFetch(url);
     if (res.status === 404) return null; // Not found
     if (!res.ok) throw new Error("Search failed");
-    
+
     return res.json();
   }

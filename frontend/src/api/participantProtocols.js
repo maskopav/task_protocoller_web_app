@@ -1,5 +1,8 @@
 // src/api/participantProtocol.js
 const API_BASE = import.meta.env.VITE_API_BASE;
+import { apiFetch } from "./apiClient";
+
+// -- Participant-facing: gated by the token itself, no admin auth --
 
 export async function fetchParticipantProtocol(token) {
   const res = await fetch(`${API_BASE}/participant-protocols/${token}`);
@@ -11,11 +14,13 @@ export async function fetchParticipantProtocol(token) {
   return res.json();
 }
 
+// -- Admin dashboard actions: require a logged-in admin --
+
 export async function fetchParticipantProtocolView(filters = {}) {
   const query = new URLSearchParams(filters).toString();
-  const url = `${API_BASE}/participant-protocols${query ? `?${query}` : ""}`;
+  const url = `/participant-protocols${query ? `?${query}` : ""}`;
 
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) {
     throw new Error("Failed to load participant-protocols view");
   }
@@ -23,9 +28,9 @@ export async function fetchParticipantProtocolView(filters = {}) {
 }
 
 export async function fetchParticipantProtocolById(id) {
-  const url = `${API_BASE}/participant-protocols/${id}`;
+  const url = `/participant-protocols/${id}`;
 
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) {
     throw new Error("Failed to load entry");
   }
@@ -33,20 +38,18 @@ export async function fetchParticipantProtocolById(id) {
 }
 
 export async function activateParticipantProtocol(participantProtocolId) {
-  const res = await fetch(`${API_BASE}/participant-protocols/activate`, {
+  const res = await apiFetch(`/participant-protocols/activate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participant_protocol_id: participantProtocolId })
   });
-  
+
   if (!res.ok) throw new Error("Activation failed");
   return res.json();
 }
 
 export async function deactivateParticipantProtocol(participantProtocolId) {
-  const res = await fetch(`${API_BASE}/participant-protocols/deactivate`, {
+  const res = await apiFetch(`/participant-protocols/deactivate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participant_protocol_id: participantProtocolId })
   });
 
@@ -56,13 +59,11 @@ export async function deactivateParticipantProtocol(participantProtocolId) {
 
 export async function assignProtocolToParticipant(data) {
   // data: { participant_id, protocol_id, project_id }
-  console.log(data);
-  const res = await fetch(`${API_BASE}/participant-protocols/assign`, {
+  const res = await apiFetch(`/participant-protocols/assign`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
-  
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Failed to assign protocol");
@@ -71,9 +72,8 @@ export async function assignProtocolToParticipant(data) {
 }
 
 export async function sendProtocolEmailApi({ email, subject, body, link, lang }) {
-  const res = await fetch(`${API_BASE}/participant-protocols/send-manual-email`, {
+  const res = await apiFetch(`/participant-protocols/send-manual-email`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, subject, body, link, lang }),
   });
   if (!res.ok) {
