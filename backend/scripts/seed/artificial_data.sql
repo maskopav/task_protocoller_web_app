@@ -7,10 +7,12 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- --------------------------
 -- 0) Users
 -- --------------------------
--- Role 1 is 'Master'
+-- Role 1 is 'Master', Role 2 is 'admin' (non-master — used to exercise requireRole('master') gating in tests)
 -- IMPORTANT: Replace '$2b$10$GENERATED_HASH_HERE' with the output from node hash_gen.js
+-- Both rows below share the same hash because it's a hash of the same test password ('1234'), not user-specific.
 INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_change_password`) VALUES
-('master@test.com', '$2b$10$/Teq2XvSByAetcjsvriAb.FfoITQy0FoYP72hxE/vo6PRqI76J98m', 'System Master', 1, 0);
+('master@test.com', '$2b$10$/Teq2XvSByAetcjsvriAb.FfoITQy0FoYP72hxE/vo6PRqI76J98m', 'System Master', 1, 0),
+('admin@test.com', '$2b$10$/Teq2XvSByAetcjsvriAb.FfoITQy0FoYP72hxE/vo6PRqI76J98m', 'Project Admin', 2, 0);
 
 -- --------------------------
 -- 1) Projects
