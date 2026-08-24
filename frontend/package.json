@@ -7,7 +7,10 @@
     "dev": "vite --mode development",
     "build": "vite build --mode production && shx mkdir -p ../backend/locales && shx cp -r src/i18n/* ../backend/locales/",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -27,6 +30,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-basic-ssl": "^2.1.4",
     "@vitejs/plugin-react": "^5.0.3",
+    "@vitest/coverage-v8": "^4.1.11",
     "baseline-browser-mapping": "^2.9.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -34,6 +38,7 @@
     "globals": "^16.4.0",
     "shx": "^0.4.0",
     "typescript": "^5.9.3",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vitest": "^4.1.11"
   }
 }
