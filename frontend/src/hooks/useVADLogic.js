@@ -243,7 +243,7 @@ export const useVadLogic = ({
                 }
             } catch (error) {
                 console.error("Failed to load VAD model:", error);
-                logger.error("Failed to load VAD model", { ...getBrowserInfo(), error: error.message || error.toString() });
+                logger.error("Failed to load VAD model", { error: error.message || error.toString() });
                 isInitializingVad.current = false;
                 setVadFailed(true);
                 setIsVadLoaded(true); // Unlock the UI Start button even on failure

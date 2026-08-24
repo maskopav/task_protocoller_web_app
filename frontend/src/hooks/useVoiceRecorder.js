@@ -505,7 +505,7 @@ export const useVoiceRecorder = (options = {}) => {
                         source.connect(inputGainRef.current);
                     }
                 } catch (err) {
-                    logToServer('MIC | failed to re-acquire on resume', err.message);
+                    logger.error("MIC | failed to re-acquire on resume", err);
                     onError(err);
                     return;
                 }
