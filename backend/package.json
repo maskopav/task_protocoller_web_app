@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:test:reset": "node --env-file=.env.test src/runInit.js",
-    "start:test": "node --env-file=.env.test server.js"
+    "start:test": "node --env-file=.env.test server.js",
+    "db:schema:diff": "node scripts/schema/compareSchemas.js"
   },
   "keywords": [],
   "author": "",
