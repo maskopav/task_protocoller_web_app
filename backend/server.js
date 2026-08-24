@@ -19,7 +19,36 @@ import { requireAuth } from "./src/middleware/authMiddleware.js";
 import cors from "cors";
 
 const app = express();
-app.use(cors());
+
+// Restrict which browser origins may read API responses. This doesn't block
+// direct clients (curl, server-to-server) — Origin is a browser-only header
+// and CORS is enforced by the browser, not the server; that's what the admin
+// JWT auth is for. What this closes is a different hole: with no origin
+// restriction, any website's JavaScript could read responses from this API's
+// public, unauthenticated endpoints (e.g. /mappings' full table dumps, or
+// /participant-protocols/:token if a token ever leaked into a malicious page).
+const allowedOrigins = (process.env.CORS_ORIGIN || "https://localhost:5173,https://localhost:5183")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    // No Origin header at all means a same-origin browser request or a
+    // non-browser client (curl, server-to-server) — neither is a CORS concern.
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+}));
+app.use((err, req, res, next) => {
+  if (err && err.message === "Not allowed by CORS") {
+    return res.status(403).json({ error: "Not allowed by CORS" });
+  }
+  next(err);
+});
+
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
