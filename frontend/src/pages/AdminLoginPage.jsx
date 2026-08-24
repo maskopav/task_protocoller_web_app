@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
       const res = await loginAdmin(formData);
       
       if (res.success && res.user) {
-        login(res.user); 
+        login(res.user, res.token);
         if (res.user.must_change_password) {
           navigate("/setup-account");
         } else {

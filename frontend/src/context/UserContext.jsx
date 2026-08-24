@@ -19,13 +19,15 @@ export const UserProvider = ({ children }) => {
 
   const [user, setUser] = useState(getInitialUser);
 
-  const login = (userData) => {
+  const login = (userData, token) => {
     localStorage.setItem("adminUser", JSON.stringify(userData));
+    if (token) localStorage.setItem("adminToken", token);
     setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem("adminUser");
+    localStorage.removeItem("adminToken");
     setUser(null);
     navigate("/login");
   };

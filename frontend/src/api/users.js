@@ -1,25 +1,23 @@
 // src/api/users.js
-const API_BASE = import.meta.env.VITE_API_BASE;
+import { apiFetch } from "./apiClient";
 
 export async function fetchAllAdmins() {
-    const res = await fetch(`${API_BASE}/users/users`);
+    const res = await apiFetch(`/users/users`);
     if (!res.ok) throw new Error("Failed to fetch admins");
     return res.json();
   }
-  
+
   export async function toggleAdminActive(user_id, is_active) {
-    const res = await fetch(`${API_BASE}/users/toggle-status`, {
+    const res = await apiFetch(`/users/toggle-status`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id, is_active })
     });
     return res.json();
   }
 
   export async function createAdminApi(payload) {
-    const res = await fetch(`${API_BASE}/users/create`, {
+    const res = await apiFetch(`/users/create`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
     const json = await res.json();
@@ -28,9 +26,8 @@ export async function fetchAllAdmins() {
   }
 
   export async function updateUserApi(payload) {
-    const res = await fetch(`${API_BASE}/users/update`, {
+    const res = await apiFetch(`/users/update`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
     const json = await res.json();
