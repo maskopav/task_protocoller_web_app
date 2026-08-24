@@ -14,6 +14,7 @@ import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
 import userProjectsRouter from "./src/routes/userProjects.js";
 import { logFrontendToFile } from "./src/utils/logger.js";
+import { requireAuth } from "./src/middleware/authMiddleware.js";
 
 import cors from "cors";
 
@@ -25,30 +26,27 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Test routes
 app.get('/test', (req, res) => res.json({ response: 'test' }));
-app.get('/envtest', (req, res) => {
-  res.json({
-    DB_HOST: process.env.DB_HOST,
-    DB_USER: process.env.DB_USER,
-    DB_NAME: process.env.DB_NAME,
-    SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_PORT: process.env.SMTP_PORT,
-    SMTP_USER: process.env.SMTP_USER,
-    SMTP_PASS: process.env.SMTP_PASS ? "Loaded!" : "Missing or undefined",
-  });
-});
 
 
+// Public: reference-table lookups consumed by both admin dashboards and
+// participant sessions (MappingProvider wraps the whole app, see AppProvider.jsx).
 app.use("/mappings", mappingsRouter);
-app.use("/protocols", protocolsRouter); 
+// Public: participant-facing routes are individually gated by their own
+// unguessable per-participant access token inside the router.
 app.use("/participant-protocols", participantProtocolsRouter);
-app.use("/participants", participantsRouter);
+// Public: participant signup/login and session/recording/task-result writes
+// during an active study session, gated by participant tokens, not admin auth.
 app.use("/sessions", sessionsRouter);
 app.use("/recordings", recordingsRouter);
 app.use("/auth", authRouter);
-app.use("/users", usersRouter)
-app.use("/projects", projectsRouter)
-app.use("/user-projects", userProjectsRouter)
 app.use("/task-results", taskResultsRouter)
+
+// Admin-only: require a valid admin JWT.
+app.use("/protocols", requireAuth, protocolsRouter);
+app.use("/participants", requireAuth, participantsRouter);
+app.use("/users", requireAuth, usersRouter)
+app.use("/projects", requireAuth, projectsRouter)
+app.use("/user-projects", requireAuth, userProjectsRouter)
 app.post("/logs/frontend", (req, res) => {
   // Pass the entire structured JSON payload to the upgraded logger
   if (req.body && req.body.message) {

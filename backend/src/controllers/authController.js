@@ -3,8 +3,9 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { executeQuery, executeTransaction } from "../db/queryHelper.js";
 import { assignProtocolToParticipant } from "../utils/assignmentHelper.js";
-import { sendParticipantCredentials, sendPasswordResetEmail } from "../utils/emailService.js"; 
+import { sendParticipantCredentials, sendPasswordResetEmail } from "../utils/emailService.js";
 import { logToFile } from "../utils/logger.js";
+import { signAdminToken } from "../utils/jwt.js";
 
 const SALT_ROUNDS = 10;
 
@@ -241,17 +242,20 @@ export const adminLogin = async (req, res) => {
       return res.status(401).json({ error: "Invalid admin credentials" });
     }
 
-    // 4. Return user data
+    // 4. Return user data + session token
+    const userPayload = {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      role_id: user.role_id,
+      must_change_password: user.must_change_password
+    };
+
     res.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        role: user.role,
-        role_id: user.role_id,
-        must_change_password: user.must_change_password
-      }
+      user: userPayload,
+      token: signAdminToken(userPayload)
     });
 
   } catch (err) {
