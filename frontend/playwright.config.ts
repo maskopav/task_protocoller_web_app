@@ -7,6 +7,11 @@ const FRONTEND_URL = 'https://localhost:5183';
 const BACKEND_URL = 'http://localhost:3001';
 const BACKEND_DIR = path.resolve(__dirname, '../backend');
 
+// A real, clear speech sample (existing task-illustration asset) fed to
+// getUserMedia in place of a live microphone, so MicCheck's SNR calculation
+// sees genuine speech instead of Chromium's default synthetic tone.
+const FAKE_AUDIO_FILE = path.resolve(__dirname, 'public/audio/illustrations/syllableRepeating_pataka.wav');
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -18,11 +23,21 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    permissions: ['microphone', 'camera'],
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--use-fake-device-for-media-stream',
+            '--use-fake-ui-for-media-stream',
+            `--use-file-for-fake-audio-capture=${FAKE_AUDIO_FILE}`,
+          ],
+        },
+      },
     },
   ],
   webServer: [
