@@ -18,6 +18,13 @@ import { requireAuth } from "./src/middleware/authMiddleware.js";
 
 import cors from "cors";
 
+// Without this, admin login still reaches bcrypt even when JWT_SECRET is not set and then dies inside
+// jwt.sign() as an opaque 500 — the frontend renders that as a generic
+// "can't reach the server" message. Refuse to boot instead.
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not set — add it to backend/.env");
+}
+
 const app = express();
 
 // Restrict which browser origins may read API responses. This doesn't block
