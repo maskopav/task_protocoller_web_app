@@ -76,6 +76,11 @@ VITE_API_BASE=http://localhost:3000/api
 DATA_PATH=./uploads
 I18N_PATH=./locales
 
+# Signing key for admin JWTs — any long random string - e.g.
+# node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+JWT_SECRET=your_random_secret
+JWT_EXPIRES_IN=8h
+
 # Gmail Config For Sending emails
 SMPT_HOST=smtp.gmail.com
 SMTP_PORT=587
