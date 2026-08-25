@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import DOMPurify from 'dompurify';
 import 'react-quill-new/dist/quill.snow.css';
-import TaskLayout from '../TaskLayout/TaskLayout'; 
+import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
 
-const extractTitleAndBody = (rawContent) => {
+export const extractTitleAndBody = (rawContent) => {
   if (!rawContent) return { title: null, body: '' };
-  
+
   const basePath = (import.meta.env.VITE_APP_BASE_PATH || '/').replace(/\/$/, '');
   const adjustedContent = rawContent.replace(/src="\//g, `src="${basePath}/`);
 
@@ -21,7 +22,15 @@ const extractTitleAndBody = (rawContent) => {
     el.style.lineHeight = '';
   });
 
-  return { title, body: doc.body.innerHTML };
+  // This HTML is admin-authored (protocol_contents.text_html) and rendered
+  // straight into every participant's browser via dangerouslySetInnerHTML
+  // below. Sanitize right here, at the last point before that render, so a
+  // compromised or malicious admin account can't run script against
+  // participants (e.g. via <img src=x onerror=...>, which dangerouslySetInnerHTML
+  // does NOT block on its own — only <script> tags are inert that way).
+  const body = DOMPurify.sanitize(doc.body.innerHTML);
+
+  return { title, body };
 };
 
 export function InfoPage({ content, onNext }) {
