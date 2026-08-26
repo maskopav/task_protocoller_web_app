@@ -81,11 +81,15 @@ I18N_PATH=./locales
 JWT_SECRET=your_random_secret
 JWT_EXPIRES_IN=8h
 
+# Browser origins allowed to read API responses (comma-separated). Defaults to
+# https://localhost:5173,https://localhost:5183 (Vite's dev ports) if unset.
+CORS_ORIGIN=https://localhost:5173
+
 # Gmail Config For Sending emails
-SMPT_HOST=smtp.gmail.com
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMPT_USER=your_email@gmail.com
-SMPT_PASS=your_google_app_password
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_google_app_password
 ```
 
 #### Note on Gmail Configuration
