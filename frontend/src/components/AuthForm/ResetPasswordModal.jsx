@@ -1,17 +1,14 @@
-// frontend/src/components/ParticipantAuth/ResetPasswordModal.jsx
+// frontend/src/components/AuthForm/ResetPasswordModal.jsx
 import React, { useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { resetPassword, adminResetPasswordApi } from "../../api/auth";
+import { useParams, useNavigate } from "react-router-dom";
+import { adminResetPasswordApi } from "../../api/auth";
 import { useTranslation } from "react-i18next";
 import "./ResetPasswordModal.css"; // New dedicated styles
 
-export default function ResetPasswordModal({ isAdmin = false }) {
+export default function ResetPasswordModal() {
   const { token } = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation(["common"]);
-
-  const returnToken = searchParams.get("returnToken"); // The saved protocol token
 
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,15 +24,9 @@ export default function ResetPasswordModal({ isAdmin = false }) {
     setStatus({ loading: true, error: "", success: false });
 
     try {
-      if (isAdmin) {
-        await adminResetPasswordApi(token, password);
-      } else {
-        await resetPassword(token, password);
-      }
+      await adminResetPasswordApi(token, password);
       setStatus({ loading: false, error: "", success: true });
-      // Determine where to redirect
-      const targetPath = isAdmin ? "/login" : (returnToken ? `/protocol/${returnToken}` : "/");
-      setTimeout(() => navigate(targetPath, { replace: true }), 3000);
+      setTimeout(() => navigate("/login", { replace: true }), 3000);
     } catch (err) {
       setStatus({ loading: false, error: err.message, success: false });
     }

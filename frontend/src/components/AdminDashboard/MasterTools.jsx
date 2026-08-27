@@ -32,6 +32,15 @@ export default function MasterTools() {
             <p>{t("adminDashboard.masterTools.projectsDesc")}</p>
           </div>
         </button>
+
+        {/* Sites Card */}
+        <button className="action-card btn-data" onClick={() => navigate("/admin/site-management")}>
+          <div className="icon">🏥</div>
+          <div className="text">
+            <h3>{t("adminDashboard.masterTools.sites")}</h3>
+            <p>{t("adminDashboard.masterTools.sitesDesc")}</p>
+          </div>
+        </button>
       </div>
     </section>
   );

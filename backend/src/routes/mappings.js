@@ -4,9 +4,9 @@ import pool from "../db/connection.js";
 
 const router = express.Router();
 
-// This endpoint is intentionally public (participant sessions load it via
-// MappingProvider, see frontend/src/context/AppProvider.jsx), so it can't be
-// closed off with auth. 
+// This endpoint is intentionally public (MappingProvider loads it before
+// login, see frontend/src/context/AppProvider.jsx), so it can't be closed off
+// with auth. Never add `sites`/`site_projects` here — sites carry access tokens.
 const ALLOWED_TABLES = new Set([
   "projects",
   "protocols",
@@ -14,7 +14,6 @@ const ALLOWED_TABLES = new Set([
   "languages",
   "tasks",
   "v_project_summary_stats",
-  "v_session_summary",
 ]);
 
 // GET /api/mappings?tables=tasks,languages,protocols

@@ -1,9 +1,5 @@
 import express from "express";
-import { participantSignup, 
-    participantLogin, 
-    forgotPassword, 
-    resetPassword,
-    adminLogin,
+import { adminLogin,
     adminForgotPassword,
     adminResetPassword,
     setupAdminProfile
@@ -11,10 +7,6 @@ import { participantSignup,
 
 const router = express.Router();
 
-router.post("/signup", participantSignup);
-router.post("/login", participantLogin);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
 router.post("/admin/login", adminLogin);
 router.post("/admin/forgot-password", adminForgotPassword);
 router.post("/admin/reset-password", adminResetPassword);

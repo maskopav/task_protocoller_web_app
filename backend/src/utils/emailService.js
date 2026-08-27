@@ -1,7 +1,6 @@
 // src/utils/emailService.js¨
 import "dotenv/config";
 import nodemailer from "nodemailer";
-import QRCode from "qrcode";
 import path from "path";
 import i18next from "i18next";
 import Backend from "i18next-fs-backend";
@@ -67,41 +66,6 @@ async function sendEmail({ to, subject, html, attachments = [], lang = "en" }) {
 }
 
 /**
- * HELPER: Participant Credentials (with QR)
- */
-export async function sendParticipantCredentials(email, data, lang = "en") {
-  const t = i18next.getFixedT(lang, "common");
-  const qrCodeBuffer = await QRCode.toBuffer(data.personalLink);
-
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
-      <h2 style="color: #3764df;">${t("email.welcome", { name: data.name })}</h2>
-      <p>${t("email.assignedProtocol")}</p>
-      <div style="text-align: center; background: #f9f9f9; padding: 20px; margin: 20px 0;">
-        <a href="${data.personalLink}" style="background:#3764df; color:white; padding:12px 25px; text-decoration:none; border-radius:5px;">
-           ${t("email.openProtocol")}
-        </a>
-        <br/><br/>
-        <img src="cid:qrcode" width="150" />
-      </div>
-      <p>${t("email.manualLogin")}:</p>
-      <ul>
-        <li><strong>Email:</strong> ${email}</li>
-        <li><strong>${t("email.password")}:</strong> ${data.password}</li>
-      </ul>
-    </div>
-  `;
-
-  return sendEmail({
-    to: email,
-    subject: t("email.subjectCredentials"),
-    html,
-    attachments: [{ filename: "qrcode.png", content: qrCodeBuffer, cid: "qrcode" }],
-    lang
-  });
-}
-
-/**
  * HELPER: Admin Password Reset
  */
 export async function sendPasswordResetEmail(email, resetLink, protocolToken, lang = "en") {
@@ -151,39 +115,6 @@ export async function sendAdminWelcomeEmail(email, { fullName, tempPassword, log
     to: email,
     subject: t("email.adminWelcomeSubject"),
     html,
-    lang
-  });
-}
-
-/**
- * HELPER: Send Manual/Optional Protocol Email (with QR and custom body)
- */
-export async function sendManualProtocolEmail(email, { customBody, link, subject }, lang = "en") {
-  const t = i18next.getFixedT(lang, "common");
-  
-  // Generate QR code from the protocol link
-  const qrCodeBuffer = await QRCode.toBuffer(link);
-
-  const finalSubject = subject || t("email.subjectProtocol");
-
-  // Wrap the custom body in basic styling and include the QR code
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
-      <div style="white-space: pre-wrap; margin-bottom: 20px; font-size: 1.1em; color: #333;">
-        ${customBody}
-      </div>
-      <div style="text-align: center; background: #f9f9f9; padding: 20px; border-radius: 8px;">
-        <img src="cid:qrcode" width="150" alt="Protocol QR Code" />
-        <p style="font-size: 0.8em; color: #666; margin-top: 10px;">${t("email.openProtocol")}</p>
-      </div>
-    </div>
-  `;
-
-  return sendEmail({
-    to: email,
-    subject: finalSubject,
-    html,
-    attachments: [{ filename: "qrcode.png", content: qrCodeBuffer, cid: "qrcode" }],
     lang
   });
 }

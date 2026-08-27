@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMappings } from "../context/MappingContext";
 import { getProjectStats } from "../api/projects";
+import { fetchSites } from "../api/sites";
 
 import ProjectStats from "../components/ProjectDashboard/ProjectStats";
 import ProjectActions from "../components/ProjectDashboard/ProjectActions";
@@ -20,6 +21,7 @@ export default function ProjectDashboardPage() {
   const { refreshMappings, mappings } = useMappings();
 
   const [stats, setStats] = useState(null);
+  const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -30,6 +32,7 @@ export default function ProjectDashboardPage() {
       await refreshMappings(["projects"]);
       const statsData = await getProjectStats(projectId);
       setStats(statsData);
+      setSites(await fetchSites(projectId));
     } catch (e) {
       console.error("Error loading dashboard data:", e);
     } finally {
@@ -103,11 +106,37 @@ export default function ProjectDashboardPage() {
       <ProjectStats stats={stats} />
 
       <h2 className="section-heading">{t("projectDashboard.actionsTitle")}</h2>
-      <ProjectActions 
-        onParticipants={() => navigate(`/admin/projects/${projectId}/participants`)}
+      <ProjectActions
         onProtocols={() => navigate(`/admin/projects/${projectId}/protocols`)}
-        onData={() => navigate(`/admin/projects/${projectId}/fieldwork`)}
       />
+
+      <h2 className="section-heading">{t("projectDashboard.sitesTitle")}</h2>
+      <section className="section card">
+        {sites.length === 0 ? (
+          <p className="empty-row">{t("projectDashboard.noSites")}</p>
+        ) : (
+          <div className="table-scroll-area">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>{t("management.siteManagement.table.name")}</th>
+                  <th>{t("management.siteManagement.table.description")}</th>
+                  <th>{t("management.siteManagement.table.status")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sites.map((s) => (
+                  <tr key={s.id}>
+                    <td className="highlighted">{s.name}</td>
+                    <td>{s.description}</td>
+                    <td>{s.is_active ? t("management.status.active") : t("management.status.inactive")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {project && (
         <EditProjectModal 

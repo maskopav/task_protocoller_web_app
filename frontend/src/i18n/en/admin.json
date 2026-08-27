@@ -27,7 +27,9 @@
       "users": "Admin User Management",
       "usersDesc": "Manage administrator accounts, assign project permissions, and reset credentials.",
       "projects": "Global Project Overview",
-      "projectsDesc": "View and manage all system projects, activate or deactivate projects."
+      "projectsDesc": "View and manage all system projects, activate or deactivate projects.",
+      "sites": "Site Management",
+      "sitesDesc": "Manage clinical sites, their access tokens, assigned projects and site-level config."
     }
   },
   "management": {
@@ -96,6 +98,32 @@
     "messages": {
       "updateSuccess": "Project updated successfully",
       "updateError": "Failed to update project status"
+    },
+    "siteManagement": {
+      "title": "Site Management",
+      "description": "Sites run protocols through the external desktop app. Each site authenticates with its access token and receives a config with all protocols inherited from its assigned projects.",
+      "tableTitle": "All Sites",
+      "createNew": "Create New Site",
+      "editTitle": "Edit Site",
+      "manageProjects": "Manage Projects",
+      "assignedProjects": "Assigned Projects",
+      "availableProjects": "Available Projects",
+      "noAssignedProjects": "No projects assigned yet — this site receives an empty config.",
+      "copyToken": "Copy access token",
+      "configJson": "Site config (JSON)",
+      "configJsonHint": "Free-form JSON returned to the desktop app as site.config_json.",
+      "table": {
+        "name": "Name",
+        "description": "Description",
+        "projects": "Projects",
+        "token": "Access Token",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "errors": {
+        "nameRequired": "Site name is required.",
+        "invalidJson": "The site config must be valid JSON."
+      }
     }
   },
   "projectDashboard": {
@@ -118,28 +146,16 @@
     "stats": {
       "volumeTitle": "Overall Statistics",
       "protocols": "Current Protocols",
-      "participants": "Total Participants",
-      "assignments": "Protocol Assignments",
-      "flowTitle": "Protocol Assignments Flow (Status)",
-      "pending": "Pending",
-      "active": "Active",
-      "finished": "Finished",
-      "healthTitle": "Protocol Versions",
-      "currentVersionUsers": "Participants on Current Version",
-      "legacyVersionUsers": "Participants on Legacy Version",
-      "updateWarning": "{{count}} participants are on an outdated protocol version. Consider updating them."
+      "sites": "Assigned Sites"
     },
     "actionsTitle": "Quick Actions",
     "actions": {
-      "participants": "Participants",
-      "participantsDesc": "Manage subjects, enroll new participants, assign and activate protocols.",
       "protocols": "Protocols",
-      "protocolsDesc": "Design new tasks, edit existing protocols (version changes), and manage languages.",
-      "fieldwork": "Fieldwork Management",
-      "fieldworkDesc": "Monitor data collection in real time, track participant progress and export these data."
-    }
+      "protocolsDesc": "Design new tasks, edit existing protocols (version changes), and manage languages."
+    },
+    "sitesTitle": "Sites",
+    "noSites": "No sites are assigned to this project yet. Assign them in Site Management."
   },
-  
   "participantDashboard": {
     "title": "Participants Management & Protocols Activation",
     "addParticipant": "Add New Participant",
@@ -199,10 +215,9 @@
       "activate": " & Activate"
     },
     "alerts": {
-        "createError": "Failed to save participant"
+      "createError": "Failed to save participant"
     }
   },
-
   "protocolDashboard": {
     "title": "Protocols Management",
     "createNew": "Create New Protocol",
@@ -364,7 +379,7 @@
       "externalId": "External ID",
       "protocol": "Protocol",
       "version": "Version",
-      "nTasks": "N Tasks",      
+      "nTasks": "N Tasks",
       "nQuest": "N Quest.",
       "project": "Project",
       "start": "Start date",
@@ -387,14 +402,13 @@
         "title": "Send protocol confirmation"
       },
       "end": {
-        "message":"End assignment of \"{{protocol}}\" for \"{{participant}}\"?",
-        "title":"Inactivate protocol assignment"
-      }, 
+        "message": "End assignment of \"{{protocol}}\" for \"{{participant}}\"?",
+        "title": "Inactivate protocol assignment"
+      },
       "confirm": "Confirm",
       "cancel": "Cancel"
     }
   },
-
   "assignmentModal": {
     "title": "Protocol Assigned",
     "warning": "⚠️ <strong>Important:</strong> This link is for the <strong>participant only</strong>. Opening it will start a real data collection session.<br/>To test the protocol yourself without saving data, please go to the <strong>Protocols</strong> tab and click the <strong>Show</strong> button instead.",
@@ -410,7 +424,6 @@
     "emailSentSuccess": "Email was successfully sent!",
     "participant": "participant"
   },
-
   "validation": {
     "participant": {
       "identityRequired": "Please provide either an External ID or the full set of personal details (Name, Birth Date, and Sex).",
@@ -428,4 +441,3 @@
     }
   }
 }
-  

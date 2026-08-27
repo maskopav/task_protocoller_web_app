@@ -1,54 +1,6 @@
 import i18n from "../i18n";
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-export async function signupParticipant(data) {
-  const res = await fetch(`${API_BASE}/auth/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Signup failed");
-  return json; // returns { token: "..." }
-}
-
-export async function loginParticipant(data) {
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Login failed");
-  return json; // returns { token: "..." }
-}
-
-export async function forgotPassword(userEmail) {
-  const protocolToken = window.location.hash.split("/")[2];
-    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        email: userEmail,
-        protocolToken: protocolToken, 
-        lang: i18n.language
-      }),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Request failed");
-    return json;
-  }
-  
-  export async function resetPassword(token, newPassword) {
-    const res = await fetch(`${API_BASE}/auth/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, newPassword }),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Reset failed");
-    return json;
-  }
 
   export async function loginAdmin(data) {
     const res = await fetch(`${API_BASE}/auth/admin/login`, {

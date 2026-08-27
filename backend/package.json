@@ -24,11 +24,8 @@
     "i18next": "^25.7.4",
     "i18next-fs-backend": "^2.6.1",
     "jsonwebtoken": "^9.0.3",
-    "mariadb": "^3.4.5",
-    "multer": "^2.0.2",
     "mysql2": "^3.15.3",
-    "nodemailer": "^9.0.5",
-    "qrcode": "^1.5.4"
+    "nodemailer": "^9.0.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",

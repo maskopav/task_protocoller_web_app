@@ -1,12 +1,12 @@
 # TaskProtocoller Web App
 
-**TaskProtocoller** is a comprehensive, modular platform designed for research and clinical studies. It serves a dual purpose: providing a standardized testing interface for participants and a robust management suite for researchers.
+**TaskProtocoller** is a comprehensive, modular platform designed for research and clinical studies. Researchers design task protocols and manage projects in the web app; the protocols are performed at **sites** (clinics) by an external specialized desktop application, which fetches its configuration from this backend.
 
 
 
 ## Overview
 
-The platform is built to facilitate a wide range of assessments, including:
+The platform is built to define and distribute a wide range of assessments, including:
 * **Speech & Voice**: Guided recording tasks such as phonation, repetition, reading, and retelling tasks.
 * **Hearing & Auditory**: Digit to noise task.
 * **Visual & Cognitive**: Farnsworth D-15 Dichotomous Test.
@@ -20,15 +20,17 @@ The platform is built to facilitate a wide range of assessments, including:
 
 ## Key Features
 
-### 🙋‍♂️ For Participants 
-* **Guided Interface**: Step-by-step instructions for performing cognitive and voice tasks.
-* **Multilingual Support**: Supports dynamic translations (currently EN, CS, DE) to ensure clarity for all users.
-* **Interactive Tools**: Real-time audio visualizers and automated recording modes (countdowns, manual stops).
+### For Sites
+* **Config by token**: Each site holds a unique access token; `GET /site-config/:token` returns every protocol the site inherits through its assigned projects, grouped by project, plus the site's free-form `config_json`.
+* **Multi-project sites**: A site can participate in several projects at once — protocol inheritance is derived from the project links, never stored twice.
+* **Multilingual Protocols**: Language variants (currently EN, CS, DE) are delivered side by side; the site app picks by language code.
 
-### 🧑‍💼 For Administrators
-* **Protocol Designer**: Define task order, repetitions, and specific parameters like reading material or phonemes.
-* **Participant Management**: Generate unique tokens, assign protocols to specific participants, and track progress.
-* **Project Dashboard**: High-level overview of study statistics and protocol versions.
+### For Administrators
+* **Protocol Designer**: Define task order, repetitions, and specific parameters like reading material or phonemes — with an in-browser protocol preview.
+* **Site Management**: Create sites, copy their access tokens, assign projects, and edit site-level config JSON (master role).
+* **Project Dashboard**: High-level overview of protocols and participating sites.
+
+Details of the sites-based redesign (schema, API, what was removed) are in [`docs/newshare_changes.md`](docs/newshare_changes.md). The planned desktop-app upload flow is drafted in [`docs/desktop_upload_spec_draft.md`](docs/desktop_upload_spec_draft.md).
 
 ---
 
@@ -119,6 +121,23 @@ npm install # can be run only once
 npm run dev
 ```
 The application will now be live at: `http://localhost:5173`. Ignore the warning net::ERR_CERT_AUTHORITY_INVALID that your connection is not private, click on broader setting and click on continue to web localhost...
+
+---
+
+## Testing
+
+* **Backend unit tests**: `cd backend && npm test` (Vitest; DB access is mocked, no database needed).
+* **Frontend unit tests**: `cd frontend && npm test` (Vitest).
+* **End-to-end tests**: `cd frontend && npm run test:e2e` (Playwright). These boot the real backend against a disposable test database and need a `backend/.env.test` (gitignored) with:
+  ```env
+  DB_HOST=127.0.0.1
+  DB_USER=root
+  DB_PASSWORD=your_password
+  DB_NAME=task_protocoller_test   # created manually; db:test:reset drops and reseeds it
+  PORT=3001
+  CORS_ORIGIN=https://localhost:5183
+  JWT_SECRET=any_long_random_string
+  ```
 
 ---
 

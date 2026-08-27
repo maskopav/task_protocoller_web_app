@@ -1,7 +1,6 @@
 // src/controllers/protocolController.js
 import { executeTransaction, executeQuery } from '../db/queryHelper.js';
 import { logToFile } from '../utils/logger.js';
-import { generateAccessToken } from "../utils/tokenGenerator.js";
 
 // POST
 export const saveProtocol = async (req, res) => {
@@ -166,38 +165,11 @@ export const saveProtocol = async (req, res) => {
           }
         }
 
-        // Token & project_protocol connection
-        let accessToken = generateAccessToken();
-        let unique = false;
-        while (!unique) {
-          const [rows] = await conn.query(`SELECT id FROM project_protocols WHERE access_token = ?`, [accessToken]);
-          if (rows.length === 0) unique = true;
-          else accessToken = generateAccessToken();
-        }
-
-        const [ppResult] = await conn.query(
-          `INSERT INTO project_protocols (project_id, protocol_id, access_token) VALUES (?, ?, ?)`,
-          [project_id, newProtocolId, accessToken]
+        // project_protocol connection
+        await conn.query(
+          `INSERT INTO project_protocols (project_id, protocol_id) VALUES (?, ?)`,
+          [project_id, newProtocolId]
         );
-        const newProjectProtocolId = ppResult.insertId;
-
-        // Migration logic for participants
-        if (editingMode && oldProtocolId && project_id) {
-          const [oldPpRows] = await conn.query(`SELECT id FROM project_protocols WHERE project_id = ? AND protocol_id = ?`, [project_id, oldProtocolId]);
-          if (oldPpRows.length > 0) {
-            const [participants] = await conn.query(
-              `SELECT id, participant_id, access_token, start_date, is_active FROM participant_protocols WHERE project_protocol_id = ? AND end_date IS NULL`, 
-              [oldPpRows[0].id]
-            );
-            for (const p of participants) {
-              await conn.query(`UPDATE participant_protocols SET is_active = 0, end_date = UTC_TIMESTAMP(), access_token = NULL WHERE id = ?`, [p.id]);
-              await conn.query(
-                `INSERT INTO participant_protocols (participant_id, project_protocol_id, access_token, start_date, is_active) VALUES (?, ?, ?, ?, ?)`,
-                [p.participant_id, newProjectProtocolId, p.access_token, p.start_date, p.is_active]
-              );
-            }
-          }
-        }
       }
 
       return firstInsertedId;
@@ -218,38 +190,68 @@ export const saveProtocol = async (req, res) => {
  }
 };
 
+const parseJson = (raw, fallback) => {
+  if (raw == null) return fallback;
+  if (typeof raw !== 'string') return raw;
+  try { return JSON.parse(raw); } catch { return fallback; }
+};
+
+// Loads a protocol row plus its contents and ordered tasks — the common core
+// shared by the admin editor fetch below and the site config endpoint
+// (siteController.js). Returns null when the protocol doesn't exist.
+export async function assembleProtocol(protocolId) {
+  const protocolRows = await executeQuery(
+    `SELECT * FROM protocols WHERE id = ?`,
+    [protocolId]
+  );
+  if (protocolRows.length === 0) return null;
+
+  const protocol = protocolRows[0];
+  protocol.randomization = parseJson(protocol.randomization, {});
+  protocol.required_identifiers = parseJson(protocol.required_identifiers, []) || [];
+
+  const contents = await executeQuery(
+    `SELECT protocol_task_id, content_type, text_html FROM protocol_contents WHERE protocol_id = ?`,
+    [protocolId]
+  );
+
+  const contentMap = contents.reduce((acc, c) => {
+    const key = c.protocol_task_id || 'global';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push({ type: c.content_type, html: c.text_html });
+    return acc;
+  }, {});
+
+  // Maps 'info' -> 'info_text' and 'consent' -> 'consent_text' (legacy root fields)
+  const globalFields = {};
+  (contentMap['global'] || []).forEach(c => {
+    globalFields[`${c.type}_text`] = c.html;
+  });
+
+  const taskRows = await executeQuery(
+    `SELECT id, task_id, task_order, params FROM protocol_tasks WHERE protocol_id = ? ORDER BY task_order ASC`,
+    [protocolId]
+  );
+
+  const tasks = taskRows.map(t => ({
+    ...t,
+    params: parseJson(t.params, {}),
+    contents: contentMap[t.id] || []
+  }));
+
+  return { protocol, contentMap, globalFields, tasks };
+}
+
 // GET /api/protocols/:id
 export const getProtocolById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Get protocol details
-    const protocolRows = await executeQuery(
-      `SELECT * FROM protocols WHERE id = ?`,
-      [id]
-    );
-
-    if (protocolRows.length === 0) {
+    const assembled = await assembleProtocol(id);
+    if (!assembled) {
       return res.status(404).json({ error: 'Protocol not found' });
     }
-    const protocol = protocolRows[0];
-    if (protocol.randomization && typeof protocol.randomization === 'string') {
-      try {
-          protocol.randomization = JSON.parse(protocol.randomization);
-      } catch (e) {
-          protocol.randomization = {};
-      }
-    }
-
-    if (protocol.required_identifiers && typeof protocol.required_identifiers === 'string') {
-      try { 
-          protocol.required_identifiers = JSON.parse(protocol.required_identifiers); 
-      } catch (e) { 
-          protocol.required_identifiers = []; 
-      }
-    } else if (!protocol.required_identifiers) {
-      protocol.required_identifiers = [];
-    }
+    const { protocol, contentMap, globalFields, tasks } = assembled;
 
     // Fetch all active sibling languages for this protocol group
     const siblingRows = await executeQuery(
@@ -266,45 +268,13 @@ export const getProtocolById = async (req, res) => {
     const otherCodes = siblingRows.filter(row => row.protocol_id !== parseInt(id)).map(r => r.code);
     const finalLanguageArray = [primaryCode, ...otherCodes];
 
-    // 1. Get the new content rows
-    const contents = await executeQuery(
-      `SELECT protocol_task_id, content_type, text_html FROM protocol_contents WHERE protocol_id = ?`,
-      [id]
-    );
-
-    // 2. Map contents
-    const contentMap = contents.reduce((acc, c) => {
-      const key = c.protocol_task_id || 'global';
-      if (!acc[key]) acc[key] = [];
-      acc[key].push({ type: c.content_type, html: c.text_html });
-      return acc;
-    }, {});
-
-    // 3. Create a helper object to restore the old 'info_text' and 'consent_text' fields
-    const globalFields = {};
-    (contentMap['global'] || []).forEach(c => {
-      // Maps 'info' -> 'info_text' and 'consent' -> 'consent_text'
-      globalFields[`${c.type}_text`] = c.html;
-    });
-
-    const taskRows = await executeQuery(
-      `SELECT id, task_id, task_order, params FROM protocol_tasks WHERE protocol_id = ? ORDER BY task_order ASC`,
-      [id]
-    );
-
-    const tasks = taskRows.map(t => ({
-      ...t,
-      params: t.params ? JSON.parse(t.params) : {},
-      contents: contentMap[t.id] || []
-    }));
-
-    // 4. Spread globalFields into the result so the frontend sees .info_text
-    res.json({ 
-      ...protocol, 
+    // Spread globalFields into the result so the frontend sees .info_text
+    res.json({
+      ...protocol,
       language: finalLanguageArray,
       ...globalFields, // RESTORES info_text and consent_text
       global_contents: contentMap['global'] || [],
-      tasks 
+      tasks
     });
 
   } catch (err) {

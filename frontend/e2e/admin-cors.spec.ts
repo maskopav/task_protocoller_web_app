@@ -28,3 +28,10 @@ test('allows a request with no Origin header at all (non-browser client)', async
   const res = await request.get(`${BACKEND_URL}/mappings?tables=languages`);
   expect(res.ok()).toBeTruthy();
 });
+
+test('site-config stays reachable without an Origin header (the desktop-app path)', async ({ request }) => {
+  // The external desktop app is a non-browser client — it sends no Origin, so
+  // it must never be blocked by the CORS restriction. Unknown token → 404 (not 403).
+  const res = await request.get(`${BACKEND_URL}/site-config/definitely-not-a-real-token`);
+  expect(res.status()).toBe(404);
+});

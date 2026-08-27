@@ -5,7 +5,6 @@ import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLangua
 import { useProtocolActions } from "../../hooks/useProtocolActions";
 import { useParams } from "react-router-dom";
 import { getProtocolsByProjectId } from "../../api/protocols";
-import EnrollmentModal from "./EnrollmentModal";
 import "./Protocols.css";
 
 export default function Protocols({ onSelectProtocol }) {
@@ -17,7 +16,6 @@ export default function Protocols({ onSelectProtocol }) {
   const [protocolName, setProtocolName] = useState("");
   const [protocolDescription, setProtocolDescription] = useState("");
   const [protocolLanguage, setProtocolLanguage] = useState("en");
-  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
 
   const { viewProtocol, editProtocol, duplicateProtocol } = useProtocolActions();
 
@@ -123,16 +121,6 @@ export default function Protocols({ onSelectProtocol }) {
                     >
                       {t("protocolDashboard.buttons.duplicate")}
                     </button>
-                    {allowEdit && (
-                      <button
-                        className="btn-share"
-                        onClick={() => setSelectedEnrollment(p)}
-                        disabled={isReadOnly}
-                        title={t("protocolDashboard.buttons.share")}
-                      >
-                        🔀
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))
@@ -221,14 +209,6 @@ export default function Protocols({ onSelectProtocol }) {
         allowEdit={true}
         isHistory={false}
       />
-
-      {/* Render the modal if a protocol is selected */}
-      {selectedEnrollment && (
-        <EnrollmentModal 
-          protocol={selectedEnrollment} 
-          onClose={() => setSelectedEnrollment(null)} 
-        />
-      )}
 
       <ProtocolTableSection
         list={archivedProtocols}

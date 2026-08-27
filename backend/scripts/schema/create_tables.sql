@@ -61,8 +61,7 @@ CREATE TABLE `protocols` (
 CREATE TABLE `project_protocols` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `project_id` integer NOT NULL,
-  `protocol_id` integer NOT NULL,
-  `access_token` char(64) UNIQUE DEFAULT NULL
+  `protocol_id` integer NOT NULL
 );
 
 CREATE TABLE `protocol_tasks` (
@@ -104,90 +103,24 @@ CREATE TABLE `languages` (
   `native_name` varchar(255)
 );
 
-CREATE TABLE `participants` (
+CREATE TABLE `sites` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `external_id` varchar(255) UNIQUE COMMENT 'Optional external ID if linked to hospital or registry',
-  `full_name` varchar(255) DEFAULT NULL,
-  `birth_date` date DEFAULT NULL,
-  `sex` varchar(10),
-  `contact_email` varchar(255),
-  `contact_phone` varchar(255),
-  `notes` text,
+  `name` varchar(255) UNIQUE NOT NULL,
+  `description` text,
+  `access_token` char(64) UNIQUE NOT NULL COMMENT 'Site ID token stored in the external app and sent with the config request',
+  `config_json` JSON DEFAULT NULL COMMENT 'Free-form site-level config echoed back in the config JSON',
+  `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp,
-  `login_email` varchar(255) UNIQUE DEFAULT NULL,
-  `login_password_hash` varchar(255) DEFAULT NULL,
-  `reset_password_token` VARCHAR(255) DEFAULT NULL,
-  `reset_password_expires` TIMESTAMP DEFAULT NULL,
-  `creation_source` varchar(50) NOT NULL DEFAULT 'admin' COMMENT 'signup or admin'
+  `created_by` integer,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_by` integer
 );
 
-CREATE TABLE `participant_protocols` (
+CREATE TABLE `site_projects` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `participant_id` integer NOT NULL,
-  `project_protocol_id` integer NOT NULL,
-  `access_token` char(64) UNIQUE DEFAULT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
-  `start_date` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `end_date` timestamp DEFAULT NULL,
-  `is_active` BOOLEAN DEFAULT FALSE
-);
-
-CREATE TABLE `sessions` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `participant_protocol_id` integer NOT NULL,
-  `session_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `progress` JSON COMMENT 'Stores completed task IDs and timestamps',
-  `completed` boolean DEFAULT false,
-  `camera_declined` boolean DEFAULT false COMMENT 'Participant declined camera access mid-session',
-  `mic_check_result` varchar(20) DEFAULT NULL COMMENT 'Last mic-check outcome: passed | noisy_background | mic_muted',
-  `volume_check_result` varchar(20) DEFAULT NULL COMMENT 'Volume check outcome: passed | failed',
-  `identifiers` JSON DEFAULT NULL COMMENT 'Participant identifiers',
-  `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
-  `current_task_index` integer NOT NULL DEFAULT 1,
-  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE `session_environments` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `session_id` integer NOT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` varchar(512) DEFAULT NULL,
-  `device_metadata` JSON DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`session_id`) REFERENCES `sessions`(`id`) ON DELETE CASCADE
-);
-
-CREATE TABLE `recordings` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `session_id` integer NOT NULL,
-  `protocol_task_id` integer NOT NULL,
-  `repeat_index` integer NOT NULL DEFAULT 1 COMMENT '1..n repetition count per session/task',
-  `recording_url` varchar(255) NOT NULL,
-  `duration_seconds` integer,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE `session_mic_checks` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `session_id` integer NOT NULL,
-  `recording_url` varchar(255) NOT NULL,
-  `snr_score` float DEFAULT NULL,
-  `duration_seconds` integer DEFAULT NULL,
-  `speech_segments` JSON DEFAULT NULL COMMENT 'Stores arrays of [start_ms, end_ms]',
-  `attempt_number` integer DEFAULT 1,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE
-);
-
-CREATE TABLE `task_results` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `session_id` integer NOT NULL,
-  `protocol_task_id` integer NOT NULL, 
-  `repeat_index` integer DEFAULT 1,
-  `payload` JSON NOT NULL,            
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`),
-  FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`)
+  `site_id` integer NOT NULL,
+  `project_id` integer NOT NULL,
+  `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX `user_projects_index_0` ON `user_projects` (`user_id`, `project_id`);
@@ -200,7 +133,7 @@ CREATE UNIQUE INDEX `project_protocols_index_3` ON `project_protocols` (`project
 
 CREATE UNIQUE INDEX `protocol_tasks_index_4` ON `protocol_tasks` (`protocol_id`, `task_order`);
 
-CREATE UNIQUE INDEX `recordings_index_5` ON `recordings` (`session_id`, `protocol_task_id`, `repeat_index`);
+CREATE UNIQUE INDEX `site_projects_index` ON `site_projects` (`site_id`, `project_id`);
 
 ALTER TABLE `users` ADD FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
@@ -228,12 +161,10 @@ ALTER TABLE `protocol_tasks` ADD FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id
 
 ALTER TABLE `tasks` ADD FOREIGN KEY (`type_id`) REFERENCES `task_types` (`id`);
 
-ALTER TABLE `participant_protocols` ADD FOREIGN KEY (`participant_id`) REFERENCES `participants` (`id`);
+ALTER TABLE `sites` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
 
-ALTER TABLE `participant_protocols` ADD FOREIGN KEY (`project_protocol_id`) REFERENCES `project_protocols` (`id`);
+ALTER TABLE `sites` ADD FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`);
 
-ALTER TABLE `sessions` ADD FOREIGN KEY (`participant_protocol_id`) REFERENCES `participant_protocols` (`id`);
+ALTER TABLE `site_projects` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `recordings` ADD FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`);
-
-ALTER TABLE `recordings` ADD FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`);
+ALTER TABLE `site_projects` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE;

@@ -1,66 +1,3 @@
-CREATE OR REPLACE VIEW v_participant_protocols AS
-SELECT
-    pp.id                            AS participant_protocol_id,
-    pp.access_token,
-    pp.start_date,
-    pp.end_date,
-    pp.is_active,
-
-    -- participant
-    p.id                             AS participant_id,
-    p.external_id,
-    p.full_name,
-    p.birth_date,
-    p.sex,
-    COALESCE(p.contact_email,p.login_email) AS contact_email,
-    p.contact_phone,
-    p.notes,
-
-    -- project
-    pr.id                            AS project_id,
-    pr.name                          AS project_name,
-    pr.frequency                     AS project_frequency,
-    pr.is_active                     AS project_is_active,
-
-    -- project_protocols
-    ppr.id                           AS project_protocol_id,
-
-    -- protocol
-    proto.id                         AS protocol_id,
-    proto.name                       AS protocol_name,
-    proto.version                    AS protocol_version,
-    proto.is_current                 AS is_current_protocol,
-    proto.language_id,
-
-    -- Aggregated Counts
-    COALESCE(agg.n_tasks, 0)         AS n_tasks,
-    COALESCE(agg.n_quest, 0)         AS n_quest
-
-FROM participant_protocols pp
-JOIN participants p
-    ON p.id = pp.participant_id
-
-JOIN project_protocols ppr
-    ON ppr.id = pp.project_protocol_id
-
-JOIN projects pr
-    ON pr.id = ppr.project_id
-
-JOIN protocols proto
-    ON proto.id = ppr.protocol_id
-
-LEFT JOIN (
-    SELECT 
-        pt.protocol_id, 
-        SUM(IF(t.category != 'questionnaire', 1, 0)) AS n_tasks,
-        SUM(IF(t.category = 'questionnaire', 1, 0)) AS n_quest
-    FROM protocol_tasks pt 
-    JOIN tasks t ON pt.task_id = t.id 
-    GROUP BY pt.protocol_id
-) agg ON agg.protocol_id = proto.id
-WHERE pp.access_token IS NOT NULL;
-
-
 CREATE OR REPLACE VIEW v_project_protocols AS
 SELECT 
     p.id,
@@ -76,7 +13,6 @@ SELECT
     p.updated_by,
     -- Join Data
     pp.project_id,
-    pp.access_token,
     pr.name AS project_name,
     pr.end_date AS project_end_date,
     -- Aggregated Counts (Default to 0 if NULL)
@@ -115,84 +51,32 @@ SELECT
     -- This comes from the definition table, so it counts them even if no one is assigned yet.
     COALESCE(proto_stats.count_current_defined, 0) AS count_current_protocols_defined,
 
-    -- 2. PARTICIPANT VOLUME (From v_participant_protocols)
-    -- Total distinct human beings in the project
-    COALESCE(part_stats.total_participants, 0) AS total_participants,
-    
-    -- Total assignments (links between humans and protocols)
-    COALESCE(part_stats.total_assignments, 0) AS total_assignments,
+    -- 2. SITES (From site_projects)
+    COALESCE(site_stats.count_sites, 0) AS count_sites
 
-    -- 3. PARTICIPANT STATUS (From v_participant_protocols)
-    -- PENDING: Assigned but not started (Inactive, no end date)
-    COALESCE(part_stats.count_pending, 0) AS count_pending_assignments,
-
-    -- ACTIVE: Currently provisioned (Active flag is 1)
-    COALESCE(part_stats.count_active, 0) AS count_active_assignments,
-
-    -- FINISHED: Done (Inactive, has end date)
-    COALESCE(part_stats.count_finished, 0) AS count_finished_assignments,
-
-    -- 4. VERSION HEALTH / MAINTENANCE
-    -- HEALTHY: Active users running the LATEST protocol version
-    COALESCE(part_stats.count_version_current, 0) AS count_users_on_current_version,
-    
-    -- LEGACY WARNING: Active users running an OUTDATED protocol version
-    COALESCE(part_stats.count_version_legacy, 0) AS count_users_on_legacy_version
-
-FROM 
+FROM
     projects p
 -- JOIN 1: Get Protocol Counts (The Definitions)
 LEFT JOIN (
-    SELECT 
+    SELECT
         project_id,
         -- Counts distinct protocol IDs where is_current = 1
         COUNT(DISTINCT IF(is_current = 1, id, NULL)) AS count_current_defined
-    FROM 
+    FROM
         v_project_protocols
-    GROUP BY 
+    GROUP BY
         project_id
 ) proto_stats ON p.id = proto_stats.project_id
--- JOIN 2: Get Participant Stats (The Usage)
+-- JOIN 2: Get Site Counts
 LEFT JOIN (
-    SELECT 
+    SELECT
         project_id,
-        
-        -- Volume
-        COUNT(DISTINCT participant_id) AS total_participants,
-        COUNT(participant_protocol_id) AS total_assignments,
-        
-        -- Status Logic
-        SUM(CASE 
-            WHEN (is_active = 0 OR is_active IS NULL) AND end_date IS NULL THEN 1 
-            ELSE 0 
-        END) AS count_pending,
-        
-        SUM(CASE 
-            WHEN is_active = 1 THEN 1 
-            ELSE 0 
-        END) AS count_active,
-        
-        SUM(CASE 
-            WHEN (is_active = 0 OR is_active IS NULL) AND end_date IS NOT NULL THEN 1 
-            ELSE 0 
-        END) AS count_finished,
-        
-        -- Version Logic
-        SUM(CASE 
-            WHEN is_active = 1 AND is_current_protocol = 1 THEN 1 
-            ELSE 0 
-        END) AS count_version_current,
-        
-        SUM(CASE 
-            WHEN is_active = 1 AND (is_current_protocol = 0 OR is_current_protocol IS NULL) THEN 1 
-            ELSE 0 
-        END) AS count_version_legacy
-
-    FROM 
-        v_participant_protocols
-    GROUP BY 
+        COUNT(*) AS count_sites
+    FROM
+        site_projects
+    GROUP BY
         project_id
-) part_stats ON p.id = part_stats.project_id;
+) site_stats ON p.id = site_stats.project_id;
 
 -- View for the main User Table
 CREATE OR REPLACE VIEW v_users_management AS
@@ -257,146 +141,24 @@ SELECT
     JSON_VALUE(params, CONCAT('$.questions[', n, '].type')) AS q_type
 FROM seq;
 
-CREATE OR REPLACE VIEW v_quest_results AS
-SELECT 
-    tr.session_id,
-    tr.protocol_task_id,
-    tr.repeat_index,
-    def.quest_name,
-    def.q_text,
-    -- Extract the answer using the ID from our CTE view against the new 'payload' column
-    JSON_VALUE(tr.payload, CONCAT('$."', def.q_id, '"')) AS participant_answer,
-    tr.created_at
-FROM task_results tr
-JOIN v_quest_definitions def ON tr.protocol_task_id = def.protocol_task_id;
-
-CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_progress_detailed AS
-WITH RECURSIVE seq AS (
-    -- 1. Flatten the JSON progress array
-    SELECT 
-        id AS session_id,
-        participant_protocol_id,
-        progress,
-        0 AS n
-    FROM sessions
-    WHERE JSON_LENGTH(progress) > 0
-    
-    UNION ALL
-    
-    SELECT 
-        session_id,
-        participant_protocol_id,
-        progress,
-        n + 1
-    FROM seq
-    WHERE n + 1 < JSON_LENGTH(progress)
-),
-flattened_data AS (
-    -- 2. Extract fields and convert timestamps
-    SELECT 
-        s.session_id,
-        s.participant_protocol_id,
-        CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, CONCAT('$[', s.n, '].timestamp')), 'T', ' '), 'Z', '') AS DATETIME(3)) AS event_time,
-        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].action')) AS action,
-        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].taskIndex')) AS task_sequence,
-        
-        -- Extract the ID and the Task Name directly from JSON
-        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].protocolTaskId')) AS protocol_task_id,
-        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].taskName')) AS task_name,
-        
-        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].questionId')) AS question_id,
-        JSON_VALUE(s.progress, CONCAT('$[', s.n, '].value')) AS interaction_value
-    FROM seq s
-)
-SELECT 
-    fd.session_id,
-    vpp.participant_id,
-    vpp.full_name AS participant_name,
-    vpp.project_name,
-    fd.event_time,
-    -- Seconds since the previous event in this session
-    TIMESTAMPDIFF(SECOND, 
-        LAG(fd.event_time) OVER (PARTITION BY fd.session_id ORDER BY fd.event_time), 
-        fd.event_time
-    ) AS seconds_from_prev_event,
-
-    fd.action,
-    fd.task_sequence,
-    fd.protocol_task_id,
-    
-    -- Display Name: If it's a real task, grab category from DB. If not, use taskName from JSON.
-    COALESCE(t.category, fd.task_name) AS task_category_or_name,
-    
-    fd.question_id,
-    fd.interaction_value
-FROM flattened_data fd
-JOIN v_participant_protocols vpp ON fd.participant_protocol_id = vpp.participant_protocol_id
-LEFT JOIN protocol_tasks pt ON fd.protocol_task_id = pt.id
-LEFT JOIN tasks t ON pt.task_id = t.id
-ORDER BY fd.session_id, fd.event_time;
-CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_summary AS
-SELECT 
-    s.id AS session_id,
-    vpp.project_id,
-    vpp.participant_id,
-    
-    -- Participant Identifier
-    COALESCE(
-        NULLIF(part.external_id, ''),
-        CONCAT_WS(', ', part.full_name, part.birth_date, part.sex)
-    ) AS participant_identifier,
-    
-    vpp.project_name,
-    vpp.protocol_name,
-    
-    -- 1. Language Information
-    lang.name AS protocol_language,
-    lang.code AS protocol_language_code,
-    
-    -- 2. Timestamps
-    CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)) AS session_started_at,
-    s.last_activity_at AS session_last_activity_at,
-    
-    -- 3. Total Duration
-    TIMESTAMPDIFF(
-        SECOND, 
-        CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)), 
-        s.last_activity_at
-    ) AS total_duration_seconds,
-    
-    -- 4. JSON Flags
-    IF(s.progress LIKE '%"resumed"%', TRUE, FALSE) AS was_resumed,
-    IF(s.progress LIKE '%"language_switched"%', TRUE, FALSE) AS language_switched,
-    
-    -- 5. Finished / Resumed / Incomplete Status
-    CASE 
-        WHEN s.completed = 1 THEN 'Finished' 
-        WHEN (s.completed = 0 OR s.completed IS NULL) 
-             AND s.last_activity_at >= (UTC_TIMESTAMP() - INTERVAL 12 HOUR) THEN 'Resumed'
-        ELSE 'Incomplete' 
-    END AS protocol_status,
-    
-    s.completed AS is_finished_flag,
-
-    -- 6. Current Task Name
-    -- If completed, return NULL. Otherwise, get DB category OR fallback to the JSON taskName of the last event.
-    IF(s.completed = 1, NULL, 
-        COALESCE(
-            t.category, 
-            JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
-        )
-    ) AS last_activity_task_name
-
-FROM sessions s
-JOIN v_participant_protocols vpp ON s.participant_protocol_id = vpp.participant_protocol_id
-JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
-JOIN participants part ON pp.participant_id = part.id
-JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
-JOIN protocols p ON proj_p.protocol_id = p.id
-JOIN languages lang ON p.language_id = lang.id
-
--- Dynamically join to find the task category using the protocolTaskId of the LAST event in the JSON
-LEFT JOIN protocol_tasks pt 
-    ON pt.id = JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].protocolTaskId'))
-LEFT JOIN tasks t 
-    ON pt.task_id = t.id;
+-- Site -> project -> current protocol spine.
+-- Used by the site config endpoint and the admin site/project detail reads.
+CREATE OR REPLACE VIEW v_site_protocols AS
+SELECT
+    s.id            AS site_id,
+    s.name          AS site_name,
+    s.is_active     AS site_is_active,
+    pr.id           AS project_id,
+    pr.name         AS project_name,
+    pr.is_active    AS project_is_active,
+    proto.id        AS protocol_id,
+    proto.name      AS protocol_name,
+    proto.version   AS protocol_version,
+    proto.language_id,
+    l.code          AS language_code
+FROM sites s
+JOIN site_projects sp     ON sp.site_id = s.id
+JOIN projects pr          ON pr.id = sp.project_id AND pr.is_active = 1
+JOIN project_protocols pp ON pp.project_id = pr.id
+JOIN protocols proto      ON proto.id = pp.protocol_id AND proto.is_current = 1
+JOIN languages l          ON l.id = proto.language_id;

@@ -15,7 +15,7 @@ test('rejects a request for a table outside the allowlist (e.g. users)', async (
 });
 
 test('rejects a stacked-query injection attempt disguised as a table name', async ({ request }) => {
-  const payload = 'languages;DROP TABLE participants;--';
+  const payload = 'languages;DROP TABLE projects;--';
   const res = await request.get(`${BACKEND_URL}/mappings?tables=${encodeURIComponent(payload)}`);
   expect(res.status()).toBe(400);
 });
@@ -29,9 +29,9 @@ test('legitimate multi-table requests still work after the fix', async ({ reques
   expect(Array.isArray(body.languages)).toBe(true);
 });
 
-test('the injection attempt did not actually drop anything — participants table still intact', async ({ request }) => {
+test('the injection attempt did not actually drop anything — projects table still intact', async ({ request }) => {
   // Sent right after the injection-attempt test above; if the DROP TABLE had
   // executed, this legitimate query would now fail server-side (500), not 400.
-  const res = await request.get(`${BACKEND_URL}/mappings?tables=languages`);
+  const res = await request.get(`${BACKEND_URL}/mappings?tables=projects`);
   expect(res.ok()).toBeTruthy();
 });

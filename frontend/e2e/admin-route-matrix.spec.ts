@@ -2,13 +2,13 @@ import { test, expect, type APIRequestContext, type APIResponse } from '@playwri
 
 // Regression guard for the admin-auth work: every admin-only route must reject
 // a request that carries no Bearer token, and the routes that are deliberately
-// public (participant-facing, gated by their own per-participant token instead)
+// public (the site config endpoint, gated by its own per-site token instead)
 // must keep working without one. If a future change adds a new admin route and
 // forgets requireAuth, or over-gates a public one, this is what catches it.
 //
-// Fixed participant access token from backend/scripts/seed/e2e_participant_seed.sql.
+// Fixed site access token from backend/scripts/seed/e2e_seed.sql.
 const BACKEND_URL = 'http://localhost:3001';
-const PARTICIPANT_TOKEN = 'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2';
+const SITE_TOKEN = 'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2';
 
 type RouteCheck = {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -21,12 +21,6 @@ const GATED_ROUTES: RouteCheck[] = [
   { method: 'GET', path: '/protocols' },
   { method: 'GET', path: '/protocols/1' },
   { method: 'POST', path: '/protocols/save', data: {} },
-
-  // /participants — requireAuth applied at the router mount
-  { method: 'GET', path: '/participants' },
-  { method: 'GET', path: '/participants/search?external_id=x' },
-  { method: 'POST', path: '/participants/create', data: {} },
-  { method: 'PUT', path: '/participants/1', data: {} },
 
   // /users — requireAuth at the mount, requireRole('master') added per-route for the mutating ones
   { method: 'GET', path: '/users/users' },
@@ -44,18 +38,18 @@ const GATED_ROUTES: RouteCheck[] = [
   { method: 'POST', path: '/user-projects/assign-project', data: {} },
   { method: 'DELETE', path: '/user-projects/remove-assignment/1' },
 
-  // /participant-protocols admin actions — gated per-route (the router itself is mounted public
-  // because GET /:token and PATCH /:token/language must stay reachable by participants)
-  { method: 'GET', path: '/participant-protocols' },
-  { method: 'POST', path: '/participant-protocols/activate', data: {} },
-  { method: 'POST', path: '/participant-protocols/deactivate', data: {} },
-  { method: 'POST', path: '/participant-protocols/assign', data: {} },
-  { method: 'POST', path: '/participant-protocols/send-manual-email', data: {} },
+  // /sites — requireAuth at the mount, requireRole('master') per-route for the mutating ones
+  { method: 'GET', path: '/sites' },
+  { method: 'GET', path: '/sites/1' },
+  { method: 'POST', path: '/sites/create', data: {} },
+  { method: 'PUT', path: '/sites/1', data: {} },
+  { method: 'POST', path: '/sites/1/projects', data: {} },
+  { method: 'DELETE', path: '/sites/1/projects/1' },
 ];
 
 const PUBLIC_ROUTES: RouteCheck[] = [
   { method: 'GET', path: '/mappings?tables=languages' },
-  { method: 'GET', path: `/participant-protocols/${PARTICIPANT_TOKEN}` },
+  { method: 'GET', path: `/site-config/${SITE_TOKEN}` },
 ];
 
 function call(request: APIRequestContext, route: RouteCheck): Promise<APIResponse> {
