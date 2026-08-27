@@ -149,12 +149,61 @@ export function buildWAV(sampleRate) {
 
         const { totalSamples, seq } = meta;
         const header = generateWAVHeader(sampleRate, totalSamples);
-        
+
         const chunks = await getReq(store.getAll(IDBKeyRange.bound(1, seq)));
         const parts = [header, ...chunks];
 
         return new Blob(parts, { type: 'audio/wav' });
     });
+}
+
+/**
+ * Merges every stored chunk into one contiguous Int16Array. Only needed when
+ * a caller must process the samples as a whole (e.g. resampling) — buildWAV()
+ * above intentionally avoids this merge and streams chunks straight into the
+ * Blob, since a resample-free upload should pay zero extra copy cost.
+ */
+export async function getAllSamplesInt16() {
+    // ── FALLBACK PATH ──
+    if (idbAvailable === false) {
+        const merged = new Int16Array(memoryTotalSamples);
+        let offset = 0;
+        for (const buf of memoryChunks) {
+            const view = new Int16Array(buf);
+            merged.set(view, offset);
+            offset += view.length;
+        }
+        return merged;
+    }
+
+    // ── INDEXEDDB PATH ──
+    return runTransaction('readonly', async (store) => {
+        const meta = await getReq(store.get(META_KEY));
+        if (!meta || meta.seq === 0) {
+            return new Int16Array(0);
+        }
+
+        const { totalSamples, seq } = meta;
+        const chunks = await getReq(store.getAll(IDBKeyRange.bound(1, seq)));
+
+        const merged = new Int16Array(totalSamples);
+        let offset = 0;
+        for (const buf of chunks) {
+            const view = new Int16Array(buf);
+            merged.set(view, offset);
+            offset += view.length;
+        }
+        return merged;
+    });
+}
+
+/** Pure WAV encoder: header + samples, no IDB access. Used for the resampled path. */
+export function encodeWAV(int16Samples, sampleRate) {
+    if (!int16Samples || int16Samples.length === 0) {
+        return new Blob([], { type: 'audio/wav' });
+    }
+    const header = generateWAVHeader(sampleRate, int16Samples.length);
+    return new Blob([header, int16Samples.buffer], { type: 'audio/wav' });
 }
 
 export function clearSession() {
