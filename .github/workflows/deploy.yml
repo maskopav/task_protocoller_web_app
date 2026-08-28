@@ -30,6 +30,14 @@ jobs:
         run: npm run build
 
       # --- 3. UPLOAD FRONTEND VIA SFTP ---
+      # sftp_only: true is required -- this account has no SSH shell/exec
+      # access (confirmed with the account holder), only the SFTP subsystem.
+      # Without this flag, the action falls back to SSH-exec calls (e.g. to
+      # create the remote directory) that this account can't run, which is
+      # the likely cause of every run hanging to a ~16min timeout and failing
+      # before this fix. NOTE: with sftp_only: true, the action does NOT
+      # auto-create the remote folder -- '/dist' must already exist on the
+      # server before this step runs.
       - name: Upload Frontend to Server
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
@@ -37,8 +45,10 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           port: ${{ secrets.FTP_PORT }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local_path: './frontend/dist/*' 
-          remote_path: '/dist' 
+          local_path: './frontend/dist/*'
+          remote_path: '/dist'
+          sftp_only: true
+          sftpArgs: '-o ConnectTimeout=5'
 
       # --- 4. PREPARE BACKEND (DELETE NODE_MODULES) ---
       - name: Remove Backend node_modules before upload
