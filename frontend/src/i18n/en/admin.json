@@ -1,7 +1,7 @@
 {
   "adminLogin": {
     "title": "Welcome to the TaskProtocoller",
-    "subtitle": "<strong>Admin module:</strong> Manage your research projects and participants.",
+    "subtitle": "<strong>Admin module:</strong> Manage your research projects, protocols and sites.",
     "errorGeneric": "Invalid email or password. Please try again.",
     "errorConnection": "Unable to connect to the server. Please check your internet connection.",
     "errorDeactivated": "Your account has been deactivated. Please contact the Master administrator (pavlamaskova6@gmail.com).",

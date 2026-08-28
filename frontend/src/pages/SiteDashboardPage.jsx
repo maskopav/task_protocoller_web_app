@@ -80,6 +80,12 @@ export default function SiteDashboardPage() {
             <span className="metadata-label">{t("management.siteManagement.table.contactEmails")}</span>
             <span className="metadata-value">✉️ {site?.contact_emails || "—"}</span>
           </div>
+
+          <div className="metadata-item">
+            <span className="metadata-label">{t("management.siteManagement.table.token")}</span>
+            <span className="metadata-value">🏛️ {site?.access_token || "—"}</span>
+          </div>
+
           {isMaster && (
             <button
               className="btn-edit-project"

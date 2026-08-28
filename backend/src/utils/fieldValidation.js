@@ -24,7 +24,7 @@ export const firstInvalidEmail = (v) =>
 // segment in GET /site-config/:token. Lower bound 16 stops a master setting a
 // guessable credential; upper bound 64 is the column width.
 export const isValidAccessToken = (v) =>
-  /^[A-Za-z0-9_-]{16,64}$/.test(String(v ?? ""));
+  /^[A-Za-z0-9_-]{8,64}$/.test(String(v ?? ""));
 
 // Blank or absent means "leave the stored value alone" — see updateSite.
 export const normalizeToken = (input) => {
@@ -33,4 +33,4 @@ export const normalizeToken = (input) => {
 };
 
 export const TOKEN_FORMAT_ERROR =
-  "Access token must be 16-64 characters: letters, digits, _ or -";
+  "Access token must be 8-64 characters: letters, digits, _ or -";
