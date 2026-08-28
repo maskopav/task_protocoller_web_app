@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:test:reset": "node --env-file=.env.test src/runInit.js && node --env-file=.env.test src/runE2ESeed.js",
+    "db:views": "node src/applyViews.js",
     "start:test": "node --env-file=.env.test server.js",
     "db:schema:diff": "node scripts/schema/compareSchemas.js"
   },

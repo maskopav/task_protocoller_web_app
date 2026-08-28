@@ -335,68 +335,80 @@ LEFT JOIN protocol_tasks pt ON fd.protocol_task_id = pt.id
 LEFT JOIN tasks t ON pt.task_id = t.id
 ORDER BY fd.session_id, fd.event_time;
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_summary AS
-SELECT 
+SELECT
     s.id AS session_id,
+    pp.id AS participant_protocol_id,
     vpp.project_id,
     vpp.participant_id,
-    
+
     -- Participant Identifier
     COALESCE(
         NULLIF(part.external_id, ''),
         CONCAT_WS(', ', part.full_name, part.birth_date, part.sex)
-    ) AS participant_identifier,
-    
+    ) AS participant_name,
+
     vpp.project_name,
     vpp.protocol_name,
-    
+
     -- 1. Language Information
     lang.name AS protocol_language,
     lang.code AS protocol_language_code,
-    
+
     -- 2. Timestamps
     CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)) AS session_started_at,
     s.last_activity_at AS session_last_activity_at,
-    
+
     -- 3. Total Duration
     TIMESTAMPDIFF(
-        SECOND, 
-        CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)), 
+        SECOND,
+        CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)),
         s.last_activity_at
     ) AS total_duration_seconds,
-    
+
     -- 4. JSON Flags
     IF(s.progress LIKE '%"resumed"%', TRUE, FALSE) AS was_resumed,
     IF(s.progress LIKE '%"language_switched"%', TRUE, FALSE) AS language_switched,
-    
-    -- 5. Finished / Resumed / Incomplete Status
-    CASE 
-        WHEN s.completed = 1 THEN 'Finished' 
-        WHEN (s.completed = 0 OR s.completed IS NULL) 
-             AND s.last_activity_at >= (UTC_TIMESTAMP() - INTERVAL 12 HOUR) THEN 'Resumed'
-        ELSE 'Incomplete' 
+
+    -- 5. Participant lifecycle status shown in the admin Fieldwork table:
+    --      created     -> assigned, participant never opened the protocol (no session row)
+    --      in_progress -> started, can still resume within the return window
+    --      incomplete  -> started, window expired -> would restart from the beginning
+    --      finished    -> completed successfully
+    -- SESSION_RESUME_WINDOW_HOURS: the "72" below is kept in sync with the
+    -- canonical constant in backend/src/config/constants.js by any DB
+    -- init/migration script (see syncViewConstants.js) — change the constant,
+    -- not this literal, then re-run `npm run db:views`.
+    CASE
+        WHEN s.id IS NULL THEN 'created'
+        WHEN s.completed = 1 THEN 'finished'
+        WHEN s.last_activity_at >= (UTC_TIMESTAMP() - INTERVAL 72 HOUR) THEN 'in_progress'
+        ELSE 'incomplete'
     END AS protocol_status,
-    
+
     s.completed AS is_finished_flag,
 
     -- 6. Current Task Name
     -- If completed, return NULL. Otherwise, get DB category OR fallback to the JSON taskName of the last event.
-    IF(s.completed = 1, NULL, 
+    IF(s.id IS NULL OR s.completed = 1, NULL,
         COALESCE(
-            t.category, 
+            t.category,
             JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
         )
     ) AS last_activity_task_name
 
-FROM sessions s
-JOIN v_participant_protocols vpp ON s.participant_protocol_id = vpp.participant_protocol_id
-JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+FROM participant_protocols pp
+JOIN v_participant_protocols vpp ON pp.id = vpp.participant_protocol_id
 JOIN participants part ON pp.participant_id = part.id
 JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
 JOIN protocols p ON proj_p.protocol_id = p.id
 JOIN languages lang ON p.language_id = lang.id
 
+-- LEFT JOIN: a participant who was assigned a protocol but never opened it
+-- has no row in `sessions` at all, and must still show up (as 'created').
+LEFT JOIN sessions s ON s.participant_protocol_id = pp.id
+
 -- Dynamically join to find the task category using the protocolTaskId of the LAST event in the JSON
-LEFT JOIN protocol_tasks pt 
+LEFT JOIN protocol_tasks pt
     ON pt.id = JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].protocolTaskId'))
-LEFT JOIN tasks t 
+LEFT JOIN tasks t
     ON pt.task_id = t.id;

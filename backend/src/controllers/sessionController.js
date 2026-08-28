@@ -2,6 +2,7 @@
 import pool from "../db/connection.js";
 import { executeQuery } from "../db/queryHelper.js";
 import { logToFile } from '../utils/logger.js';
+import { SESSION_RESUME_WINDOW_HOURS } from "../config/constants.js";
 
 // POST /api/sessions/init
 export const initSession = async (req, res) => {
@@ -27,16 +28,16 @@ export const initSession = async (req, res) => {
     }
     const participantProtocolId = ppRow.id;
 
-    // 2. Check for an existing incomplete session for today (last 12 hours))
+    // 2. Check for an existing incomplete session within the resume window
     const [existingSession] = await executeQuery(
-      `SELECT id, current_task_index, progress, task_order 
-       FROM sessions 
-       WHERE participant_protocol_id = ? 
-         AND completed = false 
-         AND last_activity_at >= UTC_TIMESTAMP() - INTERVAL 12 HOUR 
-       ORDER BY last_activity_at DESC 
+      `SELECT id, current_task_index, progress, task_order
+       FROM sessions
+       WHERE participant_protocol_id = ?
+         AND completed = false
+         AND last_activity_at >= UTC_TIMESTAMP() - INTERVAL ? HOUR
+       ORDER BY last_activity_at DESC
        LIMIT 1`,
-      [participantProtocolId]
+      [participantProtocolId, SESSION_RESUME_WINDOW_HOURS]
     );
 
     // If an active session exists, return it to resume!
