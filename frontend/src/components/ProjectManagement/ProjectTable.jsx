@@ -25,9 +25,9 @@ export default function ProjectTable({ projects, onEdit, onToggleActive, onAddCl
                 <th>{t("management.projectManagement.table.startDate")}</th>
                 <th>{t("management.projectManagement.table.endDate")}</th>
                 <th>{t("management.projectManagement.table.label")}</th>
-                <th>{t("management.projectManagement.table.frequency")}</th>
-                <th>{t("management.projectManagement.table.country")}</th>
-                <th>{t("management.projectManagement.table.contact")}</th>
+                <th>{t("management.projectManagement.table.countries")}</th>
+                <th>{t("management.projectManagement.table.contactPersons")}</th>
+                <th>{t("management.projectManagement.table.contactEmails")}</th>
                 <th>{t("management.projectManagement.table.actions")}</th>
             </tr>
             </thead>
@@ -46,9 +46,9 @@ export default function ProjectTable({ projects, onEdit, onToggleActive, onAddCl
                     {p.is_active ? t("projectDashboard.status.active") : t("projectDashboard.status.inactive")}
                     </span>
                 </td>
-                <td>{p.frequency}</td>
-                <td>{p.country}</td>
-                <td>{p.contact_person}</td>
+                <td>{p.countries}</td>
+                <td>{p.contact_persons}</td>
+                <td>{p.contact_emails}</td>
                 <td className="actions-cell">
                     <button 
                         className="btn-mgmt-icon btn-edit" 

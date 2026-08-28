@@ -42,9 +42,7 @@ SELECT
     p.description,
     p.start_date,
     p.is_active AS project_is_active,
-    p.country,
-    p.frequency,
-    p.contact_person,
+    p.countries,
 
     -- 1. PROTOCOL DEFINITIONS (From v_project_protocols)
     -- Counts how many DISTINCT protocols are currently marked as 'is_current = 1'

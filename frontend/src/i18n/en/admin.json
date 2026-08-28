@@ -74,9 +74,9 @@
         "endDate": "End Date",
         "label": "Label",
         "status": "Status",
-        "frequency": "Frequency",
-        "country": "Country",
-        "contact": "Contact Person",
+        "countries": "Countries",
+        "contactPersons": "Contact Person(s)",
+        "contactEmails": "Contact Email(s)",
         "actions": "Actions"
       }
     },
@@ -121,11 +121,17 @@
       "availableProjects": "Available Projects",
       "noAssignedProjects": "No projects assigned yet — this site receives an empty config.",
       "copyToken": "Copy access token",
+      "accessToken": "Access Token",
+      "accessTokenPlaceholder": "leave blank to generate",
+      "accessTokenHint": "16-64 characters: letters, digits, _ or -. Leave blank to generate one. Changing it stops every desktop app still using the old token.",
       "configJson": "Site config (JSON)",
       "configJsonHint": "Free-form JSON returned to the desktop app as site.config_json.",
       "table": {
         "name": "Name",
         "description": "Description",
+        "country": "Country",
+        "contactPersons": "Contact Person(s)",
+        "contactEmails": "Contact Email(s)",
         "projects": "Projects",
         "token": "Access Token",
         "status": "Status",
@@ -133,7 +139,9 @@
       },
       "errors": {
         "nameRequired": "Site name is required.",
-        "invalidJson": "The site config must be valid JSON."
+        "invalidJson": "The site config must be valid JSON.",
+        "invalidToken": "The access token must be 16-64 characters: letters, digits, _ or -.",
+        "invalidEmail": "Not a valid email address: {{email}}"
       }
     }
   },
@@ -150,9 +158,13 @@
     "fields": {
       "name": "Project Name",
       "description": "Description",
-      "country": "Country",
-      "frequency": "Frequency",
-      "contact": "Contact Person"
+      "countries": "Countries",
+      "contactPersons": "Contact Person(s)",
+      "contactEmails": "Contact Email(s)"
+    },
+    "errors": {
+      "nameRequired": "Project name is required.",
+      "invalidEmail": "Not a valid email address: {{email}}"
     },
     "stats": {
       "volumeTitle": "Overall Statistics",

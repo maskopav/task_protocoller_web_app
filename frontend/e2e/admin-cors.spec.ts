@@ -18,14 +18,16 @@ test('rejects a request carrying a disallowed Origin header', async ({ request }
 });
 
 test('allows a request carrying the configured frontend Origin', async ({ request }) => {
-  const res = await request.get(`${BACKEND_URL}/mappings?tables=languages`, {
+  // /test rather than /mappings: this spec is about CORS, and /mappings now
+  // needs an admin JWT (a 401 would mask the CORS result being asserted).
+  const res = await request.get(`${BACKEND_URL}/test`, {
     headers: { Origin: ALLOWED_ORIGIN },
   });
   expect(res.ok()).toBeTruthy();
 });
 
 test('allows a request with no Origin header at all (non-browser client)', async ({ request }) => {
-  const res = await request.get(`${BACKEND_URL}/mappings?tables=languages`);
+  const res = await request.get(`${BACKEND_URL}/test`);
   expect(res.ok()).toBeTruthy();
 });
 

@@ -26,6 +26,7 @@ export default function SiteTable({ sites, onEdit, onToggleActive, onManageProje
               <th>ID</th>
               <th>{t("management.siteManagement.table.name")}</th>
               <th>{t("management.siteManagement.table.description")}</th>
+              <th>{t("management.siteManagement.table.country")}</th>
               <th>{t("management.siteManagement.table.projects")}</th>
               <th>{t("management.siteManagement.table.token")}</th>
               <th>{t("management.siteManagement.table.status")}</th>
@@ -40,6 +41,7 @@ export default function SiteTable({ sites, onEdit, onToggleActive, onManageProje
                 <td className="text-muted" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {s.description}
                 </td>
+                <td>{s.country}</td>
                 <td>{s.project_count ?? 0}</td>
                 <td>
                   <code className="link-text-inline">{s.access_token?.slice(0, 8)}…</code>

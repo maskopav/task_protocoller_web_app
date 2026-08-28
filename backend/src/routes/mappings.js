@@ -4,9 +4,13 @@ import pool from "../db/connection.js";
 
 const router = express.Router();
 
-// This endpoint is intentionally public (MappingProvider loads it before
-// login, see frontend/src/context/AppProvider.jsx), so it can't be closed off
-// with auth. Never add `sites`/`site_projects` here — sites carry access tokens.
+// Behind requireAuth (see server.js). Each entry is dumped with `SELECT *`, so
+// every column added to an allowlisted table becomes readable by every logged-in
+// admin — including non-masters, who are otherwise scoped by user_projects.
+// Keep this to reference/lookup data: never add `users` (password hashes) or
+// `sites`/`site_projects` (access tokens). The allowlist stays even with auth in
+// front of it, because it is also what stops the SQL injection this route once
+// had (see frontend/e2e/mappings-security.spec.ts).
 const ALLOWED_TABLES = new Set([
   "projects",
   "protocols",

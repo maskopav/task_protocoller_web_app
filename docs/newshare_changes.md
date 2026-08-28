@@ -14,7 +14,8 @@ Result-data ingestion (the desktop app uploading session ZIPs) is **phase B**
 ### New tables
 
 ```
-sites          id, name (UNIQUE), description, access_token (char(64) UNIQUE),
+sites          id, name (UNIQUE), description, country, contact_persons,
+               contact_emails, access_token (char(64) UNIQUE),
                config_json (JSON), is_active, created_at/by, updated_at/by
 site_projects  id, site_id, project_id, assigned_at
                UNIQUE (site_id, project_id); FKs ON DELETE CASCADE
@@ -244,3 +245,33 @@ allowlist — they carry access tokens and only travel over the authenticated
   Paris via `user_sites` so the user-scoped dashboard list is testable.
 - `e2e_participant_seed.sql` → renamed `e2e_seed.sql`: same protocol fixture,
   now linked to an "E2E Site" with the fixed token the Playwright specs use.
+
+## Project & site attribute cleanup (follow-up)
+
+`projects` dropped `frequency` and renamed `country` -> `countries`,
+`contact_person` -> `contact_persons`, gaining `contact_emails`. `sites` gained
+`country`, `contact_persons`, `contact_emails`. All are comma-separated free
+text in a single column — no JSON, no child tables. `v_project_summary_stats`
+lost `frequency`/`contact_person` and gained `countries`; no consumer read the
+dropped two.
+
+`sites.access_token` is now admin-editable in `SiteModal`. `updateSite` uses
+`access_token = IFNULL(?, access_token)` (and the same for the three new site
+columns) because `SiteManagementPage`'s activate/deactivate button re-posts a
+partial payload — under the previous full-overwrite semantics that would have
+nulled a `NOT NULL UNIQUE` credential and locked out the desktop app. Format is
+validated in `backend/src/utils/fieldValidation.js` as 16-64 chars of
+`[A-Za-z0-9_-]`: deliberately wider than the generator's 32-hex output, because
+the seeded tokens (`paris000...`) are alphanumeric but not hex.
+
+**`/mappings` is no longer public.** Its old comment claimed it could not be
+gated because `MappingProvider` loads before login, but every `useMappings()`
+consumer sits inside `ProtectedRoute`. It is now mounted with `requireAuth`;
+`api/mappings.js` switched from bare `fetch` to `apiFetch` (it needs the Bearer
+token) and `MappingProvider` waits for a logged-in user. This mattered because
+the route is a `SELECT *` dump, so `contact_emails` would otherwise have been
+world-readable. Residual: any authenticated admin can still dump all projects,
+bypassing the per-user `user_projects` scoping in `getProjectList`.
+
+**Migration note:** same as above — no incremental migrations, so a plain
+`node src/runInit.js` rebuilds and reseeds.

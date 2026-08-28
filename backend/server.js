@@ -30,8 +30,8 @@ const app = express();
 // and CORS is enforced by the browser, not the server; that's what the admin
 // JWT auth is for. What this closes is a different hole: with no origin
 // restriction, any website's JavaScript could read responses from this API's
-// public, unauthenticated endpoints (e.g. /mappings' full table dumps, or
-// /participant-protocols/:token if a token ever leaked into a malicious page).
+// public, unauthenticated endpoints (e.g. /auth/admin/login, or
+// /site-config/:token if a site token ever leaked into a malicious page).
 const allowedOrigins = (process.env.CORS_ORIGIN || "https://localhost:5173,https://localhost:5183")
   .split(",")
   .map((origin) => origin.trim())
@@ -62,9 +62,6 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 app.get('/test', (req, res) => res.json({ response: 'test' }));
 
 
-// Public: reference-table lookups consumed by the admin dashboards
-// (MappingProvider wraps the whole app, see AppProvider.jsx).
-app.use("/mappings", mappingsRouter);
 // Public: admin login/reset flows (no JWT yet at that point).
 app.use("/auth", authRouter);
 // Public: gated by the site's unguessable access token — this is the endpoint
@@ -72,6 +69,11 @@ app.use("/auth", authRouter);
 app.get("/site-config/:token", getSiteConfig);
 
 // Admin-only: require a valid admin JWT.
+// /mappings used to be public because MappingProvider mounts above the auth
+// boundary and fired on the login page. Nothing pre-login actually reads it —
+// every useMappings() consumer sits inside ProtectedRoute — so it is gated
+// here and MappingProvider now waits for a logged-in user instead.
+app.use("/mappings", requireAuth, mappingsRouter);
 app.use("/protocols", requireAuth, protocolsRouter);
 app.use("/users", requireAuth, usersRouter)
 app.use("/projects", requireAuth, projectsRouter)

@@ -38,6 +38,16 @@ const rules = {
  * Module-Specific Validation Schemes
  */
 export const validate = {
+  // Comma-separated email list (projects/sites contact_emails).
+  // Returns the first invalid entry, or null when the list is valid or empty.
+  // The backend re-checks this — see backend/src/utils/fieldValidation.js.
+  emailList: (value) =>
+    String(value ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .find((e) => !rules.isValidEmail(e)) ?? null,
+
   participant: (data) => {
     const errors = {};
 

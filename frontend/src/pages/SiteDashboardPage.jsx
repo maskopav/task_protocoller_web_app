@@ -65,6 +65,21 @@ export default function SiteDashboardPage() {
               {site?.description || t("projectDashboard.noDescription")}
             </span>
           </div>
+
+          <div className="metadata-item">
+            <span className="metadata-label">{t("management.siteManagement.table.country")}</span>
+            <span className="metadata-value">📍 {site?.country || "—"}</span>
+          </div>
+
+          <div className="metadata-item">
+            <span className="metadata-label">{t("management.siteManagement.table.contactPersons")}</span>
+            <span className="metadata-value">👤 {site?.contact_persons || "—"}</span>
+          </div>
+
+          <div className="metadata-item">
+            <span className="metadata-label">{t("management.siteManagement.table.contactEmails")}</span>
+            <span className="metadata-value">✉️ {site?.contact_emails || "—"}</span>
+          </div>
           {isMaster && (
             <button
               className="btn-edit-project"

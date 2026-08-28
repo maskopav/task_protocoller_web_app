@@ -17,20 +17,20 @@ INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_chang
 -- --------------------------
 -- 1) Projects
 -- --------------------------
-INSERT INTO projects (id, name, description, start_date, is_active, frequency, country, contact_person, created_by, updated_at, updated_by)
+INSERT INTO projects (id, name, description, start_date, is_active, countries, contact_persons, contact_emails, created_by, updated_at, updated_by)
 VALUES
-(1, 'Test Study 001', 'Initial testing project', '2026-01-01', 1, 'weekly', 'Global', 'Admin', 1, CURRENT_TIMESTAMP, 1),
-(2, 'Test Study 002', 'Second testing project', '2026-01-01', 1, 'monthly', 'Global', 'Admin', 1, CURRENT_TIMESTAMP, 1);
+(1, 'Test Study 001', 'Initial testing project', '2026-01-01', 1, 'France, United Kingdom', 'Alice Martin, Bob Smith', 'alice.martin@example.org, bob.smith@example.org', 1, CURRENT_TIMESTAMP, 1),
+(2, 'Test Study 002', 'Second testing project', '2026-01-01', 1, 'Czechia', 'Carla Novak', 'carla.novak@example.org', 1, CURRENT_TIMESTAMP, 1);
 
 -- --------------------------
 -- 2) Sites
 -- --------------------------
 -- Site 1 inherits from two projects, site 2 from one — exercises the
 -- multi-project config case (see docs/newshare_changes.md).
-INSERT INTO sites (id, name, description, access_token, config_json, is_active, created_by)
+INSERT INTO sites (id, name, description, country, contact_persons, contact_emails, access_token, config_json, is_active, created_by)
 VALUES
-(1, 'Paris', 'Test site with two projects', 'paris000paris000paris000paris000', '{"defaultLanguage": "fr"}', 1, 1),
-(2, 'London', 'Test site with one project', 'london00london00london00london00', NULL, 1, 1);
+(1, 'Paris', 'Test site with two projects', 'France', 'Alice Martin', 'alice.martin@example.org', 'paris000paris000paris000paris000', '{"defaultLanguage": "fr"}', 1, 1),
+(2, 'London', 'Test site with one project', 'United Kingdom', 'Bob Smith, Dana Lee', 'bob.smith@example.org, dana.lee@example.org', 'london00london00london00london00', NULL, 1, 1);
 
 INSERT INTO site_projects (site_id, project_id) VALUES
 (1, 1),

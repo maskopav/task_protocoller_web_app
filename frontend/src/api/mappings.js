@@ -1,14 +1,11 @@
 // src/api/mappings.js
-const API_BASE = import.meta.env.VITE_API_BASE;
+import { apiFetch } from "./apiClient";
 
+// /mappings is behind requireAuth (see backend/server.js), so this must carry
+// the admin JWT. apiFetch also clears the session and bounces to #/login on 401.
 export async function getMappings(tables = []) {
   const query = tables.length ? `?tables=${tables.join(",")}` : "";
-  const url = `${API_BASE}/mappings${query}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`Invalid JSON response from ${url}`);
-  }
+  const res = await apiFetch(`/mappings${query}`);
+  if (!res.ok) throw new Error(`Failed to load mappings (${res.status})`);
+  return res.json();
 }

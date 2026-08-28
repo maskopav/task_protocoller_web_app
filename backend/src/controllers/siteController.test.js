@@ -10,6 +10,7 @@ const {
   getSites,
   getSiteConfig,
   createSite,
+  updateSite,
   assignProjectToSite,
 } = await import('./siteController.js');
 
@@ -172,7 +173,7 @@ describe('createSite', () => {
     expect(params[0]).toBe('Paris');
     expect(params[2]).toMatch(/^[0-9a-f]{32}$/);
     expect(params[3]).toBe('{"a":1}');
-    expect(params[4]).toBe(7);
+    expect(params.at(-1)).toBe(7);
   });
 
   it('rejects invalid config_json without touching the database', async () => {
@@ -189,6 +190,67 @@ describe('createSite', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(executeQuery).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateSite', () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  // The payload SiteManagementPage's activate/deactivate button posts: no token,
+  // no contact fields. Nothing here may clobber them.
+  const base = { name: 'Paris', description: 'd', config_json: null, is_active: 1 };
+  const call = async (body) => {
+    const res = makeRes();
+    await updateSite({ params: { id: '1' }, body, admin: { id: 7 } }, res);
+    return res;
+  };
+
+  it('leaves the access token untouched when the payload omits it', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+
+    const res = await call(base);
+
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toMatch(/access_token\s*=\s*IFNULL\(\?, access_token\)/);
+    expect(params[4]).toBeNull();
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('accepts the seeded non-hex token', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+
+    const res = await call({ ...base, access_token: SITE_TOKEN });
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(executeQuery.mock.calls[0][1][4]).toBe(SITE_TOKEN);
+  });
+
+  it('rejects a too-short token without touching the database', async () => {
+    const res = await call({ ...base, access_token: 'abc' });
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid entry in the comma-separated contact emails', async () => {
+    const res = await call({ ...base, contact_emails: 'a@b.org, nope' });
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+
+  it('blames the token, not the name, on a duplicate-token collision', async () => {
+    executeQuery.mockRejectedValueOnce(Object.assign(new Error('dup'), {
+      code: 'ER_DUP_ENTRY',
+      sqlMessage: "Duplicate entry 'x' for key 'sites.access_token'",
+    }));
+
+    const res = await call({ ...base, access_token: 'london00london00london00london00' });
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json.mock.calls[0][0].error).toMatch(/token/i);
   });
 });
 

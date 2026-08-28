@@ -17,6 +17,9 @@ type RouteCheck = {
 };
 
 const GATED_ROUTES: RouteCheck[] = [
+  // /mappings — was public until the project contact fields landed; nothing
+  // pre-login reads it, so it is gated at the mount like every other admin route
+  { method: 'GET', path: '/mappings?tables=languages' },
   // /protocols — requireAuth applied at the router mount in server.js
   { method: 'GET', path: '/protocols' },
   { method: 'GET', path: '/protocols/1' },
@@ -53,7 +56,6 @@ const GATED_ROUTES: RouteCheck[] = [
 ];
 
 const PUBLIC_ROUTES: RouteCheck[] = [
-  { method: 'GET', path: '/mappings?tables=languages' },
   { method: 'GET', path: `/site-config/${SITE_TOKEN}` },
 ];
 

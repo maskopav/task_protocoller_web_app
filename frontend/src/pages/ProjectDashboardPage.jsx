@@ -9,7 +9,7 @@ import ProjectStats from "../components/ProjectDashboard/ProjectStats";
 import ProjectActions from "../components/ProjectDashboard/ProjectActions";
 import StatusBadge from "../components/ProjectDashboard/StatusBadge";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar"; 
-import EditProjectModal from "../components/ProjectDashboard/EditProjectModal";
+import ProjectModal from "../components/ProjectManagement/ProjectModal";
 
 import "./Pages.css";
 import "../components/ProjectDashboard/ProjectDashboard.css";
@@ -78,18 +78,18 @@ export default function ProjectDashboardPage() {
           </div>
 
           <div className="metadata-item">
-            <span className="metadata-label">{t("projectDashboard.fields.country")}</span>
-            <span className="metadata-value">📍 {project?.country || "—"}</span>
+            <span className="metadata-label">{t("projectDashboard.fields.countries")}</span>
+            <span className="metadata-value">📍 {project?.countries || "—"}</span>
           </div>
 
           <div className="metadata-item">
-            <span className="metadata-label">{t("projectDashboard.fields.frequency")}</span>
-            <span className="metadata-value">⏱️ {project?.frequency || "—"}</span>
+            <span className="metadata-label">{t("projectDashboard.fields.contactPersons")}</span>
+            <span className="metadata-value">👤 {project?.contact_persons || "—"}</span>
           </div>
 
           <div className="metadata-item">
-            <span className="metadata-label">{t("projectDashboard.fields.contact")}</span>
-            <span className="metadata-value">👤 {project?.contact_person || "—"}</span>
+            <span className="metadata-label">{t("projectDashboard.fields.contactEmails")}</span>
+            <span className="metadata-value">✉️ {project?.contact_emails || "—"}</span>
           </div>
           <button 
             className="btn-edit-project" 
@@ -139,7 +139,7 @@ export default function ProjectDashboardPage() {
       </section>
 
       {project && (
-        <EditProjectModal 
+        <ProjectModal 
           open={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           project={project}

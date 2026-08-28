@@ -5,9 +5,11 @@ import { MappingProvider } from "./MappingContext";
 import { ProtocolProvider } from "./ProtocolContext";
 import { ConfirmDialogProvider } from "../components/ConfirmDialog/ConfirmDialogContext";
 
-export const AppProvider = ({ children }) => {
-  const mappingTables = ["projects", "protocols", "task_types", "languages", "tasks"];
+// Module scope, not per-render: MappingProvider has this in a useCallback dep
+// array, so a fresh array literal each render would refetch in a loop.
+const mappingTables = ["projects", "protocols", "task_types", "languages", "tasks"];
 
+export const AppProvider = ({ children }) => {
   return (
     <UserProvider> 
       <MappingProvider tables={mappingTables}>

@@ -1,6 +1,12 @@
 // src/controllers/siteController.js
 import { executeQuery } from "../db/queryHelper.js";
 import { generateAccessToken } from "../utils/tokenGenerator.js";
+import {
+  firstInvalidEmail,
+  isValidAccessToken,
+  normalizeToken,
+  TOKEN_FORMAT_ERROR,
+} from "../utils/fieldValidation.js";
 import { logToFile } from "../utils/logger.js";
 import { assembleProtocol } from "./protocolController.js";
 
@@ -22,6 +28,16 @@ const normalizeConfigJson = (input) => {
   }
 };
 
+// sites has two UNIQUE columns, so "duplicate entry" alone is ambiguous. mysql
+// names the index after the column, e.g.
+//   Duplicate entry 'x' for key 'sites.access_token'
+// ponytail: string-matching a driver message. The alternative is a
+// SELECT-then-INSERT pre-check, which races. Revisit if mysql rewords it.
+const dupEntryMessage = (err) =>
+  /access_token/.test(err.sqlMessage || err.message || "")
+    ? "This access token is already used by another site"
+    : "A site with this name already exists";
+
 const siteRow = (row) => ({ ...row, config_json: parseJson(row.config_json, null) });
 
 // GET /sites                 — all sites with project counts
@@ -42,7 +58,8 @@ export const getSites = async (req, res) => {
       );
     } else if (userId && role !== "master") {
       rows = await executeQuery(
-        `SELECT s.id, s.name, s.description, s.is_active, COUNT(sp.id) AS project_count
+        `SELECT s.id, s.name, s.description, s.country, s.contact_persons, s.contact_emails,
+                s.is_active, COUNT(sp.id) AS project_count
          FROM sites s
          JOIN user_sites us ON us.site_id = s.id
          LEFT JOIN site_projects sp ON sp.site_id = s.id
@@ -102,7 +119,9 @@ export const getSiteById = async (req, res) => {
 
 // POST /sites/create
 export const createSite = async (req, res) => {
-  const { name, description, config_json } = req.body;
+  const {
+    name, description, config_json, access_token, country, contact_persons, contact_emails,
+  } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: "Site name is required" });
   }
@@ -112,16 +131,27 @@ export const createSite = async (req, res) => {
     return res.status(400).json({ error: "config_json is not valid JSON" });
   }
 
+  // Blank on create means "generate one for me".
+  const token = normalizeToken(access_token) ?? generateAccessToken();
+  if (!isValidAccessToken(token)) {
+    return res.status(400).json({ error: TOKEN_FORMAT_ERROR });
+  }
+
+  const badEmail = firstInvalidEmail(contact_emails);
+  if (badEmail) return res.status(400).json({ error: `Not a valid email address: ${badEmail}` });
+
   try {
     const result = await executeQuery(
-      `INSERT INTO sites (name, description, access_token, config_json, created_by)
-       VALUES (?, ?, ?, ?, ?)`,
-      [name.trim(), description || null, generateAccessToken(), configToStore, req.admin?.id ?? null]
+      `INSERT INTO sites (name, description, access_token, config_json, country, contact_persons, contact_emails, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name.trim(), description || null, token, configToStore,
+       country || null, contact_persons || null, contact_emails || null,
+       req.admin?.id ?? null]
     );
     res.json({ success: true, site_id: Number(result.insertId) });
   } catch (err) {
     if (err.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ error: "A site with this name already exists" });
+      return res.status(409).json({ error: dupEntryMessage(err) });
     }
     logToFile("ERROR", "Failed to create site", { name, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Failed to create site" });
@@ -131,7 +161,9 @@ export const createSite = async (req, res) => {
 // PUT /sites/:id
 export const updateSite = async (req, res) => {
   const { id } = req.params;
-  const { name, description, config_json, is_active } = req.body;
+  const {
+    name, description, config_json, is_active, access_token, country, contact_persons, contact_emails,
+  } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: "Site name is required" });
   }
@@ -141,13 +173,33 @@ export const updateSite = async (req, res) => {
     return res.status(400).json({ error: "config_json is not valid JSON" });
   }
 
+  const token = normalizeToken(access_token);
+  if (token !== null && !isValidAccessToken(token)) {
+    return res.status(400).json({ error: TOKEN_FORMAT_ERROR });
+  }
+
+  const badEmail = firstInvalidEmail(contact_emails);
+  if (badEmail) return res.status(400).json({ error: `Not a valid email address: ${badEmail}` });
+
   try {
     const result = await executeQuery(
       `UPDATE sites
        SET name = ?, description = ?, config_json = ?, is_active = ?,
+           /* IFNULL, not overwrite: callers that re-post a partial payload
+              (SiteManagementPage's activate/deactivate button) must not be able
+              to null the site's credential or silently drop its contacts.
+              access_token is NOT NULL UNIQUE and is the only credential each
+              desktop install has, so "absent => unchanged" has to be a property
+              of the endpoint rather than of every caller. */
+           access_token = IFNULL(?, access_token),
+           country = IFNULL(?, country),
+           contact_persons = IFNULL(?, contact_persons),
+           contact_emails = IFNULL(?, contact_emails),
            updated_at = UTC_TIMESTAMP(), updated_by = ?
        WHERE id = ?`,
-      [name.trim(), description || null, configToStore, is_active ? 1 : 0, req.admin?.id ?? null, id]
+      [name.trim(), description || null, configToStore, is_active ? 1 : 0,
+       token, country ?? null, contact_persons ?? null, contact_emails ?? null,
+       req.admin?.id ?? null, id]
     );
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Site not found" });
@@ -155,7 +207,7 @@ export const updateSite = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     if (err.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ error: "A site with this name already exists" });
+      return res.status(409).json({ error: dupEntryMessage(err) });
     }
     logToFile("ERROR", "Failed to update site", { siteId: id, error: err.message, stack: err.stack });
     res.status(500).json({ error: "Failed to update site" });
