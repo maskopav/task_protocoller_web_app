@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { initSession, appendChunk, getAllSamplesInt16, encodeWAV, buildWAV, clearSession } from './audioIDB';
+import { initSession, appendChunk, getAllSamplesInt16, encodeWAV, clearSession } from './audioIDB';
 
 // This test environment has no `indexedDB` global (vitest runs in plain
 // Node), so initSession() falls through to the in-memory fallback path —
@@ -66,25 +66,10 @@ describe('audioIDB', () => {
     expect(Array.from(wav.pcm)).toEqual(Array.from(samples));
   });
 
-  it('buildWAV(rate) and encodeWAV(getAllSamplesInt16(), rate) produce byte-identical output', async () => {
-    await appendChunk(chunkOf([10, -10, 20, -20, 30]));
-    await appendChunk(chunkOf([40, 50]));
-
-    const fromBuildWAV = await buildWAV(44100);
-    const merged = await getAllSamplesInt16();
-    const fromEncodeWAV = encodeWAV(merged, 44100);
-
-    const [a, b] = await Promise.all([fromBuildWAV.arrayBuffer(), fromEncodeWAV.arrayBuffer()]);
-    expect(new Uint8Array(a)).toEqual(new Uint8Array(b));
-  });
-
   it('returns empty output for a session with no recorded audio', async () => {
-    const blob = await buildWAV(48000);
-    expect(blob.size).toBe(0);
-
     const samples = await getAllSamplesInt16();
     expect(samples.length).toBe(0);
-
+    expect(encodeWAV(samples, 48000).size).toBe(0);
     expect(encodeWAV(new Int16Array(0), 48000).size).toBe(0);
   });
 

@@ -18,13 +18,21 @@
 // noise frequency response, a swept-sine spectrogram, and an above-Nyquist
 // tone probe, all run against this exact function): `npm run verify:resample`
 // in frontend/, or see scripts/verifyResampleSpectrum.mjs.
-// Default import + destructure rather than named imports: the package ships
-// as a CJS/UMD bundle with no `exports` map, so its named exports are only
-// visible via bundler-specific interop (works under Vite) and are NOT
-// detected by plain Node's ESM/CJS interop (used by scripts/*.mjs) — this
-// form works identically in both.
-import LibSampleRate from '@alexanderolsen/libsamplerate-js';
-const { create, ConverterType } = LibSampleRate;
+// Namespace import + `.default` fallback, not a plain default import: the
+// package marks itself `__esModule: true` without actually setting a real
+// `default` export. A plain `import X from '...'` follows that flag and
+// resolves to `X.default`, which doesn't exist -- verified this throws
+// "Cannot destructure property 'create' of 'LibSampleRate' as it is
+// undefined" in an actual browser via scripts/verifyRecordingPipelineBrowser.mjs,
+// even though the equivalent named-import form worked under Vite's test
+// runner (vitest's transform handles this package's shape differently than
+// Vite's real dev-server bundling does). `NS.default` covers plain Node
+// (always the true `module.exports`, regardless of static export detection);
+// `NS` itself covers Vite/browser (where the named exports land directly on
+// the namespace object and `.default` is absent). This is the one form
+// that's been confirmed working in both.
+import * as LibSampleRateNS from '@alexanderolsen/libsamplerate-js';
+const { create, ConverterType } = LibSampleRateNS.default || LibSampleRateNS;
 
 // CD-quality / effectively universal — chosen for interoperability with
 // downstream audio tooling rather than for maximum size reduction. Native

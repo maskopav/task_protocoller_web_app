@@ -151,12 +151,19 @@ export const uploadMicCheck = async (req, res) => {
   }
 };
 
+// finalizeRecording() on the client uploads FLAC when encoding succeeded,
+// WAV as its fallback. The extension is derived from the file's own magic
+// bytes here rather than trusted from the client's declared filename, so a
+// client-side labeling bug can never leave a file on disk with an extension
+// that lies about its actual format.
+const isFlac = (buffer) => buffer.length >= 4 && buffer.toString("ascii", 0, 4) === "fLaC";
+
 const processAndSaveAudio = async (buffer, baseFilename) => {
-  const wavFilename = `${baseFilename}.wav`;
-  const wavPath = path.join(UPLOAD_DIR, wavFilename);
+  const extension = isFlac(buffer) ? "flac" : "wav";
+  const filename = `${baseFilename}.${extension}`;
+  const filePath = path.join(UPLOAD_DIR, filename);
 
-  await fs.promises.writeFile(wavPath, buffer);
+  await fs.promises.writeFile(filePath, buffer);
 
-  return wavFilename;
-
+  return filename;
 };

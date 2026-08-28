@@ -3,9 +3,17 @@ import { optimizeCoordinateTimeline } from "../utils/coordinateOptimizer";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
+// finalizeRecording() returns FLAC when encoding succeeds, WAV as its
+// fallback -- the blob's own MIME type says which, so the filename follows
+// it instead of assuming. (The backend re-derives the real extension from
+// the file's magic bytes regardless -- see recordingController.js.)
+function audioFilename(blob, base) {
+  return blob.type === "audio/flac" ? `${base}.flac` : `${base}.wav`;
+}
+
 export async function uploadRecording(blob, metadata) {
   const formData = new FormData();
-  formData.append("audio", blob, "recording.wav");
+  formData.append("audio", blob, audioFilename(blob, "recording"));
 
   let coordsBlob = null;
   let encoding = null;
@@ -64,7 +72,7 @@ export async function uploadRecording(blob, metadata) {
 export async function uploadMicCheck(blob, metadata) {
   const formData = new FormData();
   
-  formData.append("audio", blob, "mic_check.wav");
+  formData.append("audio", blob, audioFilename(blob, "mic_check"));
   formData.append("token", metadata.token);
   formData.append("sessionId", metadata.sessionId);
   formData.append("snrScore", metadata.snrScore);

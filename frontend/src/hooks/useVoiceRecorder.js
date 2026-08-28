@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { logger } from '../utils/frontendLogger';
 import { initSession, appendChunk, clearSession } from '../utils/audioIDB';
-import { finalizeRecordingWAV } from '../utils/finalizeRecording';
+import { finalizeRecording } from '../utils/finalizeRecording';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Recording state machine constants.
@@ -553,14 +553,15 @@ export const useVoiceRecorder = (options = {}) => {
             inputGainRef.current = null;
         }
 
-        // Export WAV, downsampled to TARGET_SAMPLE_RATE when the device's
-        // native rate is higher (see finalizeRecording.js / resampleAudio.js).
+        // Build the upload Blob: downsample to TARGET_SAMPLE_RATE when the
+        // device's native rate is higher, then encode losslessly as FLAC
+        // (falls back to WAV on either step's failure) -- see finalizeRecording.js.
         if (chunkCountRef.current > 0 && audioContext.current) {
             const sampleRate = audioContext.current.sampleRate;
 
             flushPCMChunkBatch()
                 .then(() => pendingWritesRef.current)
-                .then(() => finalizeRecordingWAV(sampleRate))
+                .then(() => finalizeRecording(sampleRate))
                 .then((audioBlob) => {
                     const url = URL.createObjectURL(audioBlob);
                     audioURLRef.current = url;

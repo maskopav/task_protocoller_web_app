@@ -129,39 +129,10 @@ function generateWAVHeader(sampleRate, totalSamples) {
     return header;
 }
 
-export function buildWAV(sampleRate) {
-    // ── FALLBACK PATH ──
-    if (idbAvailable === false) {
-        if (memoryTotalSamples === 0) {
-            return Promise.resolve(new Blob([], { type: 'audio/wav' }));
-        }
-        const header = generateWAVHeader(sampleRate, memoryTotalSamples);
-        const parts = [header, ...memoryChunks];
-        return Promise.resolve(new Blob(parts, { type: 'audio/wav' }));
-    }
-
-    // ── INDEXEDDB PATH ──
-    return runTransaction('readonly', async (store) => {
-        const meta = await getReq(store.get(META_KEY));
-        if (!meta || meta.seq === 0) {
-            return new Blob([], { type: 'audio/wav' });
-        }
-
-        const { totalSamples, seq } = meta;
-        const header = generateWAVHeader(sampleRate, totalSamples);
-
-        const chunks = await getReq(store.getAll(IDBKeyRange.bound(1, seq)));
-        const parts = [header, ...chunks];
-
-        return new Blob(parts, { type: 'audio/wav' });
-    });
-}
-
 /**
- * Merges every stored chunk into one contiguous Int16Array. Only needed when
- * a caller must process the samples as a whole (e.g. resampling) — buildWAV()
- * above intentionally avoids this merge and streams chunks straight into the
- * Blob, since a resample-free upload should pay zero extra copy cost.
+ * Merges every stored chunk into one contiguous Int16Array. finalizeRecording.js
+ * always needs this shape (both the resample and the FLAC-encode step operate
+ * on one contiguous buffer, not on IDB chunks directly).
  */
 export async function getAllSamplesInt16() {
     // ── FALLBACK PATH ──
@@ -197,7 +168,7 @@ export async function getAllSamplesInt16() {
     });
 }
 
-/** Pure WAV encoder: header + samples, no IDB access. Used for the resampled path. */
+/** Pure WAV encoder: header + samples, no IDB access. Used as the FLAC-failure fallback. */
 export function encodeWAV(int16Samples, sampleRate) {
     if (!int16Samples || int16Samples.length === 0) {
         return new Blob([], { type: 'audio/wav' });
