@@ -113,7 +113,7 @@ export default function SiteModal({ site, onClose, onSuccess }) {
             value={formData.access_token}
             onChange={(e) => handleInputChange("access_token", e.target.value)}
           />
-          <span className="text-muted small">{t("management.siteManagement.accessTokenHint")}</span>
+          <span className="text-muted small">⚠️ {t("management.siteManagement.accessTokenHint")}</span>
         </div>
         <div className="form-col">
           <label className="form-label">{t("management.siteManagement.configJson")}</label>

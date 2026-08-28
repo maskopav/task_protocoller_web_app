@@ -123,7 +123,7 @@
       "copyToken": "Copy access token",
       "accessToken": "Access Token",
       "accessTokenPlaceholder": "leave blank to generate",
-      "accessTokenHint": "16-64 characters: letters, digits, _ or -. Leave blank to generate one. Changing it stops every desktop app still using the old token.",
+      "accessTokenHint": "Changing this stops every desktop app still using the old token.",
       "configJson": "Site config (JSON)",
       "configJsonHint": "Free-form JSON returned to the desktop app as site.config_json.",
       "table": {
