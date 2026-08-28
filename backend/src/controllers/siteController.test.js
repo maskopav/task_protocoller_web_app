@@ -7,6 +7,7 @@ vi.mock('../db/queryHelper.js', () => ({
 
 const { executeQuery } = await import('../db/queryHelper.js');
 const {
+  getSites,
   getSiteConfig,
   createSite,
   assignProjectToSite,
@@ -55,6 +56,39 @@ const mockConfigQueries = (siteRow) => {
     throw new Error(`Unexpected query: ${sql}`);
   });
 };
+
+describe('getSites', () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it('scopes to the user via user_sites and never selects the access token', async () => {
+    executeQuery.mockResolvedValueOnce([
+      { id: 1, name: 'Paris', description: 'd', is_active: 1, project_count: 2 },
+    ]);
+
+    const res = makeRes();
+    await getSites({ query: { userId: '2', role: 'admin' } }, res);
+
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toContain('JOIN user_sites');
+    expect(sql).not.toContain('access_token');
+    expect(sql).not.toContain('s.*');
+    expect(params).toEqual(['2']);
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it('returns all sites for master role', async () => {
+    executeQuery.mockResolvedValueOnce([]);
+
+    const res = makeRes();
+    await getSites({ query: { userId: '1', role: 'master' } }, res);
+
+    const [sql] = executeQuery.mock.calls[0];
+    expect(sql).not.toContain('user_sites');
+    expect(sql).toContain('LEFT JOIN site_projects');
+  });
+});
 
 describe('getSiteConfig', () => {
   beforeEach(() => {

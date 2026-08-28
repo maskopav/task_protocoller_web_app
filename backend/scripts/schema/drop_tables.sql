@@ -1,5 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `user_sites`;
 DROP TABLE IF EXISTS `site_projects`;
 DROP TABLE IF EXISTS `sites`;
 DROP TABLE IF EXISTS `project_protocols`;

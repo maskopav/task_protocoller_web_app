@@ -8,6 +8,16 @@ export async function fetchSites(projectId) {
   return res.json();
 }
 
+// Sites assigned to the logged-in admin (master sees all)
+export async function fetchSitesList(userId, role) {
+  const params = new URLSearchParams();
+  if (userId) params.append("userId", userId);
+  if (role) params.append("role", role);
+  const res = await apiFetch(`/sites?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed to fetch sites");
+  return res.json();
+}
+
 export async function fetchSiteById(siteId) {
   const res = await apiFetch(`/sites/${siteId}`);
   if (!res.ok) throw new Error("Failed to fetch site");

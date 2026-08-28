@@ -24,10 +24,12 @@ const normalizeConfigJson = (input) => {
 
 const siteRow = (row) => ({ ...row, config_json: parseJson(row.config_json, null) });
 
-// GET /sites            — all sites with project counts
-// GET /sites?project_id — sites assigned to one project
+// GET /sites                 — all sites with project counts
+// GET /sites?project_id      — sites assigned to one project
+// GET /sites?userId=&role=   — sites assigned to one admin (master sees all);
+//                              scoped rows never include the access token
 export const getSites = async (req, res) => {
-  const { project_id } = req.query;
+  const { project_id, userId, role } = req.query;
   try {
     let rows;
     if (project_id) {
@@ -37,6 +39,17 @@ export const getSites = async (req, res) => {
          WHERE sp.project_id = ?
          ORDER BY s.name`,
         [project_id]
+      );
+    } else if (userId && role !== "master") {
+      rows = await executeQuery(
+        `SELECT s.id, s.name, s.description, s.is_active, COUNT(sp.id) AS project_count
+         FROM sites s
+         JOIN user_sites us ON us.site_id = s.id
+         LEFT JOIN site_projects sp ON sp.site_id = s.id
+         WHERE us.user_id = ?
+         GROUP BY s.id
+         ORDER BY s.name`,
+        [userId]
       );
     } else {
       rows = await executeQuery(

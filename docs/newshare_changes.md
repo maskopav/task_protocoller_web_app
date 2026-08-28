@@ -18,7 +18,13 @@ sites          id, name (UNIQUE), description, access_token (char(64) UNIQUE),
                config_json (JSON), is_active, created_at/by, updated_at/by
 site_projects  id, site_id, project_id, assigned_at
                UNIQUE (site_id, project_id); FKs ON DELETE CASCADE
+user_sites     id, user_id, site_id, assigned_at
+               UNIQUE (user_id, site_id); FKs ON DELETE CASCADE
 ```
+
+- `user_sites` mirrors `user_projects`: it links admin users to the sites shown
+  in the "Your Assigned Sites" dashboard section. Master sees all sites and
+  needs no rows here.
 
 - `sites.access_token` is the credential the desktop app stores and sends with
   its config request. Generated server-side (32 hex chars via
@@ -47,6 +53,8 @@ The results chain returns redesigned in phase B, parented to sites.
 - Added: `v_site_protocols` — the site → project (active) → current-protocol
   spine (incl. `language_code`), used by the config endpoint and the admin
   site/project detail reads.
+- Added: `v_user_site_assignments` — mirror of `v_user_project_assignments`,
+  backs the user↔site assignment table on the admin-management page.
 - Changed: `v_project_protocols` lost `access_token`;
   `v_project_summary_stats` lost all participant counts and gained
   `count_sites`.
@@ -122,7 +130,7 @@ Notes:
 
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| GET | `/sites` | any admin | List sites (+`project_count`); `?project_id=` filters to one project's sites |
+| GET | `/sites` | any admin | List sites (+`project_count`); `?project_id=` filters to one project's sites; `?userId=&role=` scopes to one admin's assigned sites via `user_sites` (master sees all) — the scoped rows never include `access_token`/`config_json` |
 | GET | `/sites/:id` | any admin | Site detail + assigned projects + inherited protocols |
 | POST | `/sites/create` | master | `{name, description, config_json}` — token generated server-side |
 | PUT | `/sites/:id` | master | Update `{name, description, config_json, is_active}` |
@@ -130,6 +138,18 @@ Notes:
 | DELETE | `/sites/:id/projects/:projectId` | master | Remove assignment |
 
 `config_json` accepts an object or a JSON string; invalid JSON → 400.
+
+### New: `/user-sites` (admin, JWT required)
+
+Mirror of `/user-projects` — like it, mounted behind `requireAuth` only (no
+per-route master gating; the UI exposes it only on the master-only
+admin-management page):
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/user-sites/user-sites` | List assignments (`v_user_site_assignments`) |
+| POST | `/user-sites/assign-site` | Assign `{user_id, site_id}`; duplicate → 400 |
+| DELETE | `/user-sites/remove-assignment/:id` | Remove by assignment id |
 
 `sites`/`site_projects` are intentionally **not** in the public `/mappings`
 allowlist — they carry access tokens and only travel over the authenticated
@@ -163,10 +183,23 @@ allowlist — they carry access tokens and only travel over the authenticated
 
 - `/admin/site-management` (master-only card on the admin dashboard):
   site table with token copy, create/edit modal (raw `config_json` textarea
-  with JSON validation), and a manage-projects modal (assign/remove).
+  with JSON validation), and a manage-projects modal (assign/remove). Acts as
+  the global site overview, parallel to "Global Project Overview".
+- Admin dashboard: "Your Assigned Sites" card grid (`SiteGrid`) above
+  "Your Assigned Projects", fed by `GET /sites?userId=&role=`. Cards link to
+  the new site detail page.
+- `/admin/sites/:siteId` (`SiteDashboardPage`) — per-site mirror of the
+  project dashboard with roles reversed: site metadata + status, stats
+  (assigned projects / inherited protocols, both from the single
+  `GET /sites/:id` response), and a clickable assigned-projects table linking
+  to each project's dashboard. Master additionally gets an edit button reusing
+  the existing `SiteModal`.
+- Admin-management page: user↔site assignment UI mirroring the user↔project
+  flow (`AssignSiteModal`, `UserSiteTable`, a per-user 🏥 assign button).
 - Project dashboard shows the sites assigned to the project and a
   `count_sites` stat.
-- New API module `src/api/sites.js` (authenticated `apiFetch`).
+- New API modules `src/api/sites.js` and `src/api/userSites.js`
+  (authenticated `apiFetch`).
 - i18n: new keys only in `en/admin.json`
   (`adminDashboard.masterTools.sites*`, `management.siteManagement.*`,
   `projectDashboard.sitesTitle`/`noSites`/`stats.sites`); `cs`/`de` fall back
@@ -177,13 +210,16 @@ allowlist — they carry access tokens and only travel over the authenticated
 - **Backend unit** (`cd backend && npm test`, Vitest):
   `src/controllers/siteController.test.js` covers the config shape (grouping
   by project), 404/403 token handling, token non-leakage, create validation
-  (token format, invalid `config_json`), and duplicate-assignment mapping.
+  (token format, invalid `config_json`), duplicate-assignment mapping, and
+  the `getSites` user scoping (joins `user_sites`, never selects the token).
+  `src/controllers/userSiteController.test.js` covers the assignment
+  endpoints (list / duplicate → 400 / remove).
 - **E2E** (`cd frontend && npm run test:e2e`, Playwright):
   - `site-config.spec.ts` — fetches the config with the fixed seed token
     (`e2e2e2e2…` from `backend/scripts/seed/e2e_seed.sql`), asserts the
     inherited protocol and that the token never appears in the body.
-  - `admin-route-matrix.spec.ts` — `/sites/*` require a JWT; `/site-config`
-    stays public.
+  - `admin-route-matrix.spec.ts` — `/sites/*` and `/user-sites/*` require a
+    JWT; `/site-config` stays public.
   - `admin-cors.spec.ts` — `/site-config` reachable with no Origin header.
   - `mappings-security.spec.ts` — retargeted off the removed `participants`
     table.
@@ -204,6 +240,7 @@ allowlist — they carry access tokens and only travel over the authenticated
 
 - `artificial_data.sql` seeds two projects and two sites: Paris (projects 1+2,
   exercising the multi-project case) and London (project 1), with fixed
-  human-readable tokens for local testing.
+  human-readable tokens for local testing. It also assigns admin@test.com to
+  Paris via `user_sites` so the user-scoped dashboard list is testable.
 - `e2e_participant_seed.sql` → renamed `e2e_seed.sql`: same protocol fixture,
   now linked to an "E2E Site" with the fixed token the Playwright specs use.

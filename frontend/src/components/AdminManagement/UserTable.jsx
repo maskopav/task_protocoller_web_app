@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import AssignIcon from "../Icons/AssignIcon"; // Reusing the shared icon
 import "./AdminManagement.css";
 
-export default function UserTable({ users, onToggleStatus, onEdit, onAssignProject, onAddClick }) {
+export default function UserTable({ users, onToggleStatus, onEdit, onAssignProject, onAssignSite, onAddClick }) {
   const { t } = useTranslation(["admin", "common"]);
 
   return (
@@ -58,6 +58,15 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
                       onClick={() => onAssignProject(u)}
                     >
                       <AssignIcon title={t("management.buttons.assign")} />
+                    </button>
+
+                    {/* Site Assign Button */}
+                    <button
+                      className="btn-mgmt-icon btn-assign-purple"
+                      title={t("management.buttons.assignSite")}
+                      onClick={() => onAssignSite(u)}
+                    >
+                      🏥
                     </button>
 
                     {/* Dynamic Status Toggle Button */}

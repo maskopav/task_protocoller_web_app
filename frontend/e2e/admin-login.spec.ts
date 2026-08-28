@@ -14,7 +14,7 @@ test('admin can log in and reach the dashboard', async ({ page }) => {
   await page.locator('button[type="submit"]').click();
 
   await expect(page).toHaveURL(/\/admin$/);
-  await expect(page.getByRole('heading', { name: 'Admin Management' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible();
 });
 
 test('shows an error for a wrong password without navigating away', async ({ page }) => {

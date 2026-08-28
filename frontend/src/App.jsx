@@ -6,6 +6,7 @@ import AdminManagementPage from "./pages/AdminManagementPage";
 import ProjectManagementPage from "./pages/ProjectManagementPage";
 import SiteManagementPage from "./pages/SiteManagementPage";
 import ProjectDashboardPage from "./pages/ProjectDashboardPage";
+import SiteDashboardPage from "./pages/SiteDashboardPage";
 import ProtocolDashboardPage from "./pages/ProtocolDashboardPage";
 import ProtocolEditorPage from "./pages/ProtocolEditorPage";
 import ParticipantInterfacePage from "./pages/ParticipantInterfacePage";
@@ -44,6 +45,10 @@ export default function App() {
 
       <Route path="/admin/site-management" element={
         <ProtectedRoute><SiteManagementPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/sites/:siteId" element={
+        <ProtectedRoute><SiteDashboardPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/projects/:projectId" element={

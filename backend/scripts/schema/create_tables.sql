@@ -123,6 +123,13 @@ CREATE TABLE `site_projects` (
   `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE `user_sites` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `user_id` integer NOT NULL,
+  `site_id` integer NOT NULL,
+  `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE UNIQUE INDEX `user_projects_index_0` ON `user_projects` (`user_id`, `project_id`);
 
 CREATE UNIQUE INDEX `protocols_index_1` ON `protocols` (`protocol_group_id`, `version`, `language_id`);
@@ -134,6 +141,8 @@ CREATE UNIQUE INDEX `project_protocols_index_3` ON `project_protocols` (`project
 CREATE UNIQUE INDEX `protocol_tasks_index_4` ON `protocol_tasks` (`protocol_id`, `task_order`);
 
 CREATE UNIQUE INDEX `site_projects_index` ON `site_projects` (`site_id`, `project_id`);
+
+CREATE UNIQUE INDEX `user_sites_index` ON `user_sites` (`user_id`, `site_id`);
 
 ALTER TABLE `users` ADD FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
@@ -168,3 +177,7 @@ ALTER TABLE `sites` ADD FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`);
 ALTER TABLE `site_projects` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `site_projects` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `user_sites` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `user_sites` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;

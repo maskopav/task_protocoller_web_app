@@ -6,12 +6,15 @@ import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import UserTable from "../components/AdminManagement/UserTable";
 import UserProjectTable from "../components/AdminManagement/UserProjectTable";
+import UserSiteTable from "../components/AdminManagement/UserSiteTable";
 import AssignProjectModal from "../components/AdminManagement/AssignProjectModal";
+import AssignSiteModal from "../components/AdminManagement/AssignSiteModal";
 import AddAdminModal from "../components/AdminManagement/AddAdminModal";
 import EditAdminModal from "../components/AdminManagement/EditAdminModal";
 import { fetchProjectsList } from "../api/projects";
 import { fetchAllAdmins, toggleAdminActive} from "../api/users";
 import { fetchAdminAssignments, assignProjectToUser, removeUserProjectAssignmentApi } from "../api/userProjects";
+import { fetchSiteAssignments, assignSiteToUser, removeUserSiteAssignmentApi } from "../api/userSites";
 import "./Pages.css";
 
 export default function AdminManagementPage() {
@@ -21,21 +24,25 @@ export default function AdminManagementPage() {
 
   const [users, setUsers] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [siteAssignments, setSiteAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUserForProject, setSelectedUserForProject] = useState(null);
+  const [selectedUserForSite, setSelectedUserForSite] = useState(null);
   const [allProjects, setAllProjects] = useState([]);
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
 
   const loadData = async () => {
     try {
-      const [uData, aData, pData] = await Promise.all([
+      const [uData, aData, sData, pData] = await Promise.all([
         fetchAllAdmins(),
         fetchAdminAssignments(),
+        fetchSiteAssignments(),
         fetchProjectsList()
       ]);
       setUsers(uData);
       setAssignments(aData);
+      setSiteAssignments(sData);
       setAllProjects(pData);
     } catch (err) {
       console.error("Management data error:", err);
@@ -79,7 +86,35 @@ export default function AdminManagementPage() {
     try {
       await assignProjectToUser(user_id, project_id);
       setSelectedUserForProject(null);
-      await loadData(); 
+      await loadData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleRemoveSiteAssignment = async (id) => {
+    const isConfirmed = await confirm({
+      title: t("management.confirm.deleteTitle"),
+      message: t("management.confirm.removeSiteAssignment"),
+      confirmText: t("management.confirm.confirm"),
+      cancelText: t("management.confirm.cancel"),
+    });
+
+    if (isConfirmed) {
+      try {
+        await removeUserSiteAssignmentApi(id);
+        await loadData();
+      } catch (err) {
+        alert(err.message || "Failed to remove assignment.");
+      }
+    }
+  };
+
+  const handleAssignSite = async (user_id, site_id) => {
+    try {
+      await assignSiteToUser(user_id, site_id);
+      setSelectedUserForSite(null);
+      await loadData();
     } catch (err) {
       alert(err.message);
     }
@@ -104,6 +139,7 @@ export default function AdminManagementPage() {
           onToggleStatus={handleToggleStatus}
           onEdit={(u) => setUserToEdit(u)}
           onAssignProject={(u) => setSelectedUserForProject(u)}
+          onAssignSite={(u) => setSelectedUserForSite(u)}
           onAddClick={() => setIsAddAdminOpen(true)}
         />
 
@@ -121,17 +157,30 @@ export default function AdminManagementPage() {
           onSuccess={loadData}
         />
 
-        <UserProjectTable 
-          assignments={assignments} 
+        <UserProjectTable
+          assignments={assignments}
           onRemove={handleRemoveAssignment}
         />
+
+        <UserSiteTable
+          assignments={siteAssignments}
+          onRemove={handleRemoveSiteAssignment}
+        />
       </div>
-      
+
       {selectedUserForProject && (
-        <AssignProjectModal 
+        <AssignProjectModal
           user={selectedUserForProject}
           onClose={() => setSelectedUserForProject(null)}
           onAssign={handleAssignProject}
+        />
+      )}
+
+      {selectedUserForSite && (
+        <AssignSiteModal
+          user={selectedUserForSite}
+          onClose={() => setSelectedUserForSite(null)}
+          onAssign={handleAssignSite}
         />
       )}
     </div>

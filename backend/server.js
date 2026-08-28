@@ -8,6 +8,7 @@ import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
 import userProjectsRouter from "./src/routes/userProjects.js";
+import userSitesRouter from "./src/routes/userSites.js";
 import sitesRouter from "./src/routes/sites.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
 import { logFrontendToFile } from "./src/utils/logger.js";
@@ -75,6 +76,7 @@ app.use("/protocols", requireAuth, protocolsRouter);
 app.use("/users", requireAuth, usersRouter)
 app.use("/projects", requireAuth, projectsRouter)
 app.use("/user-projects", requireAuth, userProjectsRouter)
+app.use("/user-sites", requireAuth, userSitesRouter)
 app.use("/sites", requireAuth, sitesRouter)
 app.post("/logs/frontend", (req, res) => {
   // Pass the entire structured JSON payload to the upgraded logger

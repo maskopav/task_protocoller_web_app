@@ -38,6 +38,11 @@ const GATED_ROUTES: RouteCheck[] = [
   { method: 'POST', path: '/user-projects/assign-project', data: {} },
   { method: 'DELETE', path: '/user-projects/remove-assignment/1' },
 
+  // /user-sites — requireAuth at the router mount
+  { method: 'GET', path: '/user-sites/user-sites' },
+  { method: 'POST', path: '/user-sites/assign-site', data: {} },
+  { method: 'DELETE', path: '/user-sites/remove-assignment/1' },
+
   // /sites — requireAuth at the mount, requireRole('master') per-route for the mutating ones
   { method: 'GET', path: '/sites' },
   { method: 'GET', path: '/sites/1' },

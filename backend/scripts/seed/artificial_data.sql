@@ -37,4 +37,7 @@ INSERT INTO site_projects (site_id, project_id) VALUES
 (1, 2),
 (2, 1);
 
+-- Assign the non-master admin to Paris so the user-scoped sites list is testable
+INSERT INTO user_sites (user_id, site_id) VALUES (2, 1);
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -18,9 +18,10 @@
     "errorLength": "Password must be at least 8 characters long."
   },
   "adminDashboard": {
-    "title": "Admin Management",
-    "description": "Select a project to manage protocols and participants, or use administrative tools below, if you have masters rights.",
+    "title": "Dashboard",
+    "description": "Select a project to manage its protocols. Selects sites to assign projects and configure settings.",
     "projectsTitle": "Your Assigned Projects",
+    "sitesTitle": "Your Assigned Sites",
     "enterProject": "Enter Dashboard →",
     "masterTools": {
       "heading": "Master Administrative Tools",
@@ -48,6 +49,14 @@
       "noData": "No projects assigned to administrators yet.",
       "table": {
         "project": "Assigned Project",
+        "date": "Date Assigned"
+      }
+    },
+    "siteAssignments": {
+      "title": "Site Assignments",
+      "noData": "No sites assigned to administrators yet.",
+      "table": {
+        "site": "Assigned Site",
         "date": "Date Assigned"
       }
     },
@@ -79,6 +88,7 @@
     },
     "buttons": {
       "assign": "Assign Project",
+      "assignSite": "Assign Site",
       "activate": "Activate User",
       "deactivate": "Deactivate User",
       "edit": "Edit Admin",
@@ -87,6 +97,7 @@
     },
     "confirm": {
       "removeAssignment": "Are you sure you want to remove this project assignment?",
+      "removeSiteAssignment": "Are you sure you want to remove this site assignment?",
       "confirm": "Remove",
       "cancel": "Cancel",
       "deleteTitle": "Confirm Removal"
@@ -155,6 +166,12 @@
     },
     "sitesTitle": "Sites",
     "noSites": "No sites are assigned to this project yet. Assign them in Site Management."
+  },
+  "siteDashboard": {
+    "stats": {
+      "projects": "Assigned Projects",
+      "protocols": "Inherited Protocols"
+    }
   },
   "participantDashboard": {
     "title": "Participants Management & Protocols Activation",

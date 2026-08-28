@@ -108,6 +108,23 @@ JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
 ORDER BY up.user_id, p.name;
 
+-- View for the User-Site Assignments Table
+CREATE OR REPLACE VIEW v_user_site_assignments AS
+SELECT
+    us.id as assignment_id,
+    us.user_id,
+    u.full_name as user_name,
+    u.email as user_email,
+    s.id as site_id,
+    s.name as site_name,
+    us.assigned_at
+FROM user_sites us
+JOIN users u ON us.user_id = u.id
+JOIN sites s ON us.site_id = s.id
+JOIN roles r ON u.role_id = r.id
+WHERE r.name != 'master'
+ORDER BY us.user_id, s.name;
+
 -- Questionnaires views
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_quest_definitions AS
 WITH RECURSIVE seq AS (
