@@ -21,8 +21,8 @@ export default function ProjectGrid({ projects, onProjectClick }) {
               <StatusBadge active={project.project_is_active === 1} />
             </div>
             <div className="project-card-body">
-              <p>{project.country} • {project.frequency}</p>
-              <p className="project-descr">{project.description}</p>
+              <p>{project.country}</p>
+              <p className="project-descr">{project.description?.split('.')[0]}</p>
             </div>
           </div>
         ))}

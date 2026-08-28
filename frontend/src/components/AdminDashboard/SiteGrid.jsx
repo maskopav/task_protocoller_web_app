@@ -22,7 +22,6 @@ export default function SiteGrid({ sites, onSiteClick }) {
             </div>
             <div className="project-card-body">
               <p>{site.project_count} {t("siteDashboard.stats.projects")}</p>
-              <p className="project-descr">{site.description}</p>
             </div>
           </div>
         ))}
