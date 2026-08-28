@@ -69,10 +69,8 @@ export default function AddParticipantModal({
 
   // Computed validation state
   const validation = useMemo(() => {
-    console.log("Validating form data:", formData);
     const result = validate.participant(formData);
-    console.log("Validation result:", result);
-    
+
     // Local context check: Protocol is required for Create/Assign mode
     if (!isEditMode && !formData.protocol_id) {
       result.isValid = false;
@@ -149,7 +147,6 @@ export default function AddParticipantModal({
             protocol_id: formData.protocol_id,
             project_id: projectId
         });
-        console.log('Assign mode')
       } else if (isEditMode) {
           // EDIT MODE: Update details
           await updateParticipant(participantToEdit.participant_id, payload);
