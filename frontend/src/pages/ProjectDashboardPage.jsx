@@ -126,7 +126,11 @@ export default function ProjectDashboardPage() {
               </thead>
               <tbody>
                 {sites.map((s) => (
-                  <tr key={s.id}>
+                  <tr
+                    key={s.id}
+                    onClick={() => navigate(`/admin/sites/${s.id}`)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <td className="highlighted">{s.name}</td>
                     <td>{s.description}</td>
                     <td>{s.is_active ? t("management.status.active") : t("management.status.inactive")}</td>
