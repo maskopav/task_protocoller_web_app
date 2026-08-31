@@ -133,6 +133,24 @@ const currentStepText = (r) => r.last_activity_task_name || "—";
 const languageCodeText = (r) => r.protocol_language_code || "—";
 const sessionIdText = (r) => (r.session_id ?? "—").toString();
 
+// The resume deadline only means anything while it's still live (in_progress)
+// or just expired (incomplete) — for 'created'/'finished' there's no window
+// to speak of, so the column stays blank there.
+function isResumeRelevant(r) {
+  return r.protocol_status === "in_progress" || r.protocol_status === "incomplete";
+}
+
+// "in 2d" / "in 5h" / "in 20m" for a still-open window — gives admins a
+// scannable sense of urgency without doing date math in their head.
+function formatRelative(deadlineStr) {
+  const deadline = new Date(deadlineStr.replace(" ", "T") + "Z");
+  const diffHours = (deadline.getTime() - Date.now()) / 3_600_000;
+  if (diffHours <= 0) return "expired";
+  if (diffHours < 1) return `in ${Math.round(diffHours * 60)}m`;
+  if (diffHours < 48) return `in ${Math.round(diffHours)}h`;
+  return `in ${Math.round(diffHours / 24)}d`;
+}
+
 // Every column pulls straight from `v_session_summary` fields. `required`
 // columns can't be hidden (need at least identity + status); the rest are
 // user-toggleable via the "Columns" menu, defaulting per `defaultVisible`.
@@ -185,6 +203,27 @@ const COLUMN_DEFS = [
     },
   },
   {
+    id: "progress",
+    label: "Progress",
+    // Rough gauge of how far into the protocol they are — the whole point
+    // is to make sense of a session without knowing this protocol's task
+    // list by heart, so it's on by default.
+    value: (r) => (r.completion_percent ?? "").toString(),
+    render: (r) => {
+      if (r.completion_percent === null || r.completion_percent === undefined) {
+        return <span className="fieldwork-current-step">—</span>;
+      }
+      return (
+        <div className="fieldwork-progress">
+          <div className="fieldwork-progress-track">
+            <div className="fieldwork-progress-fill" style={{ width: `${r.completion_percent}%` }} />
+          </div>
+          <span className="fieldwork-progress-label">{r.completion_percent}%</span>
+        </div>
+      );
+    },
+  },
+  {
     id: "started",
     label: "Started",
     value: (r) => csvDateTime(r.session_started_at),
@@ -196,6 +235,23 @@ const COLUMN_DEFS = [
     defaultVisible: false,
     value: (r) => csvDateTime(r.session_last_activity_at),
     render: lastActivityText,
+  },
+  {
+    id: "resumableUntil",
+    label: "Resumable Until",
+    defaultVisible: false,
+    value: (r) => (isResumeRelevant(r) ? csvDateTime(r.resumable_until) : ""),
+    render: (r) => {
+      if (!isResumeRelevant(r)) return "—";
+      return (
+        <span className={r.protocol_status === "incomplete" ? "fieldwork-resumable-expired" : undefined}>
+          {formatDateTime(r.resumable_until)}
+          {r.protocol_status === "in_progress" && (
+            <span className="fieldwork-resumable-relative"> ({formatRelative(r.resumable_until)})</span>
+          )}
+        </span>
+      );
+    },
   },
   {
     id: "duration",

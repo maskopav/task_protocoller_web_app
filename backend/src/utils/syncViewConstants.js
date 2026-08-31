@@ -9,8 +9,11 @@ import { SESSION_RESUME_WINDOW_HOURS } from '../config/constants.js';
 // the SQL file by hand.
 export async function syncViewConstants(viewsPath) {
   const raw = await fs.readFile(viewsPath, 'utf-8');
-  const pattern = /(INTERVAL )\d+( HOUR\) THEN 'in_progress')/;
-  const synced = raw.replace(pattern, `$1${SESSION_RESUME_WINDOW_HOURS}$2`);
+  // Global: every `INTERVAL <n> HOUR` in this file represents the same
+  // resume window (the protocol_status cutoff and the resumable_until
+  // deadline), so all occurrences are kept in sync together.
+  const pattern = /INTERVAL \d+ HOUR/g;
+  const synced = raw.replace(pattern, `INTERVAL ${SESSION_RESUME_WINDOW_HOURS} HOUR`);
 
   if (synced !== raw) {
     await fs.writeFile(viewsPath, synced, 'utf-8');

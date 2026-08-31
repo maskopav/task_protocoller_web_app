@@ -334,6 +334,8 @@ JOIN v_participant_protocols vpp ON fd.participant_protocol_id = vpp.participant
 LEFT JOIN protocol_tasks pt ON fd.protocol_task_id = pt.id
 LEFT JOIN tasks t ON pt.task_id = t.id
 ORDER BY fd.session_id, fd.event_time;
+
+
 CREATE OR REPLACE SQL SECURITY INVOKER VIEW v_session_summary AS
 SELECT
     s.id AS session_id,
@@ -403,7 +405,31 @@ SELECT
     --      mic_check_last_error   -> error_type of the most recent attempt ('none' if it passed)
     mic.attempts AS mic_check_attempts,
     mic.pass_attempt AS mic_check_pass_attempt,
-    mic.last_error_type AS mic_check_last_error
+    mic.last_error_type AS mic_check_last_error,
+
+    -- 8. Completion percentage — a rough progress gauge for admins who
+    -- aren't familiar with this protocol's task list, not an exact count.
+    -- Deliberately NOT sessions.current_task_index: that counter's 1-based
+    -- position runs through the WHOLE runtime step list — volume_check,
+    -- audio_guide_intro, info, identifiers, mic_check — before the real
+    -- protocol_tasks even start (see ParticipantInterfacePage.jsx's intro
+    -- steps + logInteraction), so it's on a completely different scale than
+    -- protocol_tasks and overshoots 100% long before the participant is
+    -- actually done. Instead, `completed.steps` (below) counts real
+    -- `task_saved` events that carry a protocolTaskId — one per repeat
+    -- attempt, so repeats are naturally counted correctly — against
+    -- `steps.total_steps` (also repeat-aware, see that join's comment).
+    -- NULL for 'created' (nothing to show yet); pinned to 100 once finished.
+    CASE
+        WHEN s.id IS NULL THEN NULL
+        WHEN s.completed = 1 THEN 100
+        WHEN COALESCE(steps.total_steps, 0) <= 0 THEN NULL
+        ELSE LEAST(100, ROUND(COALESCE(completed.steps, 0) / steps.total_steps * 100))
+    END AS completion_percent,
+
+    -- 9. Resume deadline — the exact moment an 'in_progress' session flips to
+    -- 'incomplete' (last activity + the same resume window used above).
+    IF(s.id IS NULL, NULL, DATE_ADD(s.last_activity_at, INTERVAL 72 HOUR)) AS resumable_until
 
 FROM participant_protocols pp
 JOIN v_participant_protocols vpp ON pp.id = vpp.participant_protocol_id
@@ -415,6 +441,36 @@ JOIN languages lang ON p.language_id = lang.id
 -- LEFT JOIN: a participant who was assigned a protocol but never opened it
 -- has no row in `sessions` at all, and must still show up (as 'created').
 LEFT JOIN sessions s ON s.participant_protocol_id = pp.id
+
+-- Repeat-aware total step count per protocol, for completion_percent above.
+-- Deliberately separate from v_participant_protocols/v_project_protocols'
+-- own n_tasks/n_quest (raw task-row counts, used elsewhere for "how many
+-- tasks are configured") — this one instead counts what a participant
+-- actually steps through, expanding each row by its params.repeat.
+LEFT JOIN (
+    SELECT
+        pt.protocol_id,
+        SUM(COALESCE(JSON_VALUE(pt.params, '$.repeat'), 1)) AS total_steps
+    FROM protocol_tasks pt
+    GROUP BY pt.protocol_id
+) steps ON steps.protocol_id = p.id
+
+-- Real protocol-task completions per session: every `task_saved` progress
+-- event that carries a protocolTaskId (i.e. an actual protocol_tasks row,
+-- as opposed to an intro/system screen or a mic-check attempt). A repeated
+-- task fires one such event per repetition, so COUNT(*) here already lines
+-- up with `steps.total_steps` above without any separate repeat handling.
+LEFT JOIN (
+    SELECT
+        sess.id AS session_id,
+        COUNT(*) AS steps
+    FROM sessions sess
+    JOIN JSON_TABLE(sess.progress, '$[*]' COLUMNS (
+        action VARCHAR(50) PATH '$.action',
+        protocol_task_id INT PATH '$.protocolTaskId'
+    )) jt ON jt.action = 'task_saved' AND jt.protocol_task_id IS NOT NULL
+    GROUP BY sess.id
+) completed ON completed.session_id = s.id
 
 -- Per-session mic-check summary, built from every `mic_check_result` event
 -- in `progress` (JSON_TABLE + ROW_NUMBER, supported since MariaDB 10.6).

@@ -265,6 +265,45 @@
   color: var(--danger);
 }
 
+.fieldwork-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 110px;
+}
+
+.fieldwork-progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.fieldwork-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.fieldwork-progress-label {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 2.4em;
+  text-align: right;
+}
+
+.fieldwork-resumable-expired {
+  color: var(--muted);
+}
+
+.fieldwork-resumable-relative {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 @media (max-width: 850px) {
   .fieldwork-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
