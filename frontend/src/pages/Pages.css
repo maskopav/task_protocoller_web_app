@@ -222,6 +222,11 @@ p {
 /* --- Smart Buttons --- */
 button {
   width: 100%;
+  /* iOS Safari otherwise keeps native button chrome (its own background/
+     border) layered under custom styles, which can make solid-color
+     backgrounds render inconsistently there vs. other browsers. */
+  -webkit-appearance: none;
+  appearance: none;
   /* Noticeably taller on phones, comfortable on laptops */
   padding: clamp(12px, 2dvh, 16px) clamp(16px, 3dvw, 20px);
   margin: clamp(3px, 0.7dvh, 6px) 0;
@@ -249,11 +254,16 @@ button:active {
   transform: translateY(1px);
 }
 
-button:disabled {
+button:disabled:not(.btn-loading) {
   color: var(--text);
   background: #dee1e491;
   cursor: not-allowed;
   box-shadow: none;
+  opacity: 0.85; /* enough to read as "busy"/"unavailable" */
+}
+
+button:disabled.btn-loading {
+  cursor: wait;
 }
 
 .button-group {
@@ -288,13 +298,6 @@ button:disabled {
 .btn-repeat .spinner {
   border-color: rgba(0, 0, 0, 0.25);
   border-top-color: currentColor; /* Matches the black text color */
-}
-
-/* Keep button width stable so it doesn't jump/reflow when text changes
-   from "Next" to a spinner + "Sending" */
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.85; /* enough to read as "busy", not "unavailable" */
 }
 
 .btn-start { background: var(--success); }
