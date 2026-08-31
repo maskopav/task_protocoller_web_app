@@ -235,6 +235,8 @@ allowlist — they carry access tokens and only travel over the authenticated
   PORT=3001
   CORS_ORIGIN=https://localhost:5183
   JWT_SECRET=any-long-random-string
+  LOGIN_RATE_LIMIT=50   # raises /auth/admin/login's rate limit (prod default: 10 per 15 min)
+                        # so the full E2E suite's many real logins don't trip its own brute-force guard
   ```
 
 ## Seeds

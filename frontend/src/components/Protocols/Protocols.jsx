@@ -114,8 +114,10 @@ export default function Protocols({ onSelectProtocol }) {
                   <td>{getLangName(p.language_id)}</td>
                   <td>{p.description}</td>
                   {isHistory && (
-                    <td className={`project-name-cell ${p.isArchived ? "archived" : "in-other-project"}`}>
-                      {p.project_name}
+                    <td>
+                      <span className={`status-badge ${p.isArchived ? "archived" : "in-other-project"}`}>
+                        {p.project_name}
+                      </span>
                     </td>
                   )}
                   <td>{p.version}</td>

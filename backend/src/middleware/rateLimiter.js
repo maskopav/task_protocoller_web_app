@@ -10,7 +10,10 @@ import rateLimit from "express-rate-limit";
 export function createLoginLimiter(overrides = {}) {
   return rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 10,
+    // Overridable so the E2E suite (many independent specs each logging in
+    // for real, in one long-lived server process) doesn't trip its own
+    // brute-force guard. Unset in production -> unchanged default of 10.
+    limit: Number(process.env.LOGIN_RATE_LIMIT) || 10,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many login attempts. Please try again later." },

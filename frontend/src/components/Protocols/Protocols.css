@@ -203,18 +203,6 @@
 .btn-edit { background: var(--primary); }
 .btn-duplicate { background: var(--warning); }
 .btn-archive { background: var(--danger); }
-
-.project-name-cell.in-other-project {
-  background-color: rgba(55, 100, 223, 0.08);
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.project-name-cell.archived {
-  background-color: #ffeaea;
-  color: var(--danger);
-  font-weight: 600;
-}
 .btn-search { background-color: var(--warning);}
 .btn-share { background: var(--success); }
 

@@ -59,10 +59,11 @@ export const getSites = async (req, res) => {
     } else if (userId && role !== "master") {
       rows = await executeQuery(
         `SELECT s.id, s.name, s.description, s.country, s.contact_persons, s.contact_emails,
-                s.is_active, COUNT(sp.id) AS project_count
+                s.is_active, COUNT(CASE WHEN p.is_active = 1 THEN sp.id END) AS project_count
          FROM sites s
          JOIN user_sites us ON us.site_id = s.id
          LEFT JOIN site_projects sp ON sp.site_id = s.id
+         LEFT JOIN projects p ON p.id = sp.project_id
          WHERE us.user_id = ?
          GROUP BY s.id
          ORDER BY s.name`,
@@ -70,8 +71,9 @@ export const getSites = async (req, res) => {
       );
     } else {
       rows = await executeQuery(
-        `SELECT s.*, COUNT(sp.id) AS project_count FROM sites s
+        `SELECT s.*, COUNT(CASE WHEN p.is_active = 1 THEN sp.id END) AS project_count FROM sites s
          LEFT JOIN site_projects sp ON sp.site_id = s.id
+         LEFT JOIN projects p ON p.id = sp.project_id
          GROUP BY s.id
          ORDER BY s.name`,
         []

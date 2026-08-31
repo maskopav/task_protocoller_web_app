@@ -104,7 +104,7 @@ export default function SiteDashboardPage() {
           <h3>{t("projectDashboard.stats.volumeTitle")}</h3>
           <div className="stat-row large">
             <div className="stat-item">
-              <span className="stat-value">{site?.projects?.length || 0}</span>
+              <span className="stat-value">{site?.projects?.filter(p => p.is_active).length || 0}</span>
               <span className="stat-label">{t("siteDashboard.stats.projects")}</span>
             </div>
             <div className="stat-divider"></div>
