@@ -1,9 +1,20 @@
 /* src/components/Fieldwork/FieldworkTable.css */
 
+/* Pin the page to the viewport height so the table below can flex-grow into
+   whatever space the toolbar/summary strip leave, instead of stopping at a
+   fixed vh guess. Combined-class selector so it reliably beats the shared
+   .dashboard-page rule in Pages.css regardless of CSS import order. */
+.dashboard-page.fieldwork-page {
+  height: 100dvh;
+  overflow-y: hidden;
+}
+
 .fieldwork-container {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+  flex: 1;
+  min-height: 0;
 }
 
 /* --- Status Summary Strip --- */
@@ -88,9 +99,89 @@
   width: auto;
 }
 
+.fieldwork-toolbar-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+/* --- Columns menu (native <details>/<summary> popover) --- */
+.fieldwork-columns-menu {
+  position: relative;
+}
+
+.fieldwork-columns-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.fieldwork-columns-btn::-webkit-details-marker {
+  display: none;
+}
+
+.fieldwork-columns-btn::after {
+  content: "▾";
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.fieldwork-columns-menu[open] .fieldwork-columns-btn {
+  border-color: var(--primary);
+}
+
+.fieldwork-columns-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 180px;
+  padding: 0.6rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--sharp-radius);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.fieldwork-columns-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.fieldwork-columns-option:hover {
+  background: var(--bg);
+}
+
+.fieldwork-columns-option input[disabled] {
+  cursor: not-allowed;
+}
+
 /* --- Table --- */
-.fieldwork-scroll-area {
-  max-height: 60vh;
+/* Combined-class selector so this reliably beats the single-class
+   .table-scroll-area rule in Protocols.css (27vh cap), regardless of which
+   stylesheet the bundler ends up placing later. */
+.table-scroll-area.fieldwork-scroll-area {
+  flex: 1;
+  min-height: 200px;
+  max-height: none;
   border: 1px solid var(--border);
 }
 
@@ -168,6 +259,10 @@
 .fieldwork-current-step {
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.fieldwork-mic-failed {
+  color: var(--danger);
 }
 
 @media (max-width: 850px) {

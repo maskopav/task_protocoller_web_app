@@ -29,7 +29,7 @@ export default function ProjectFieldworkPage() {
   }, [projectId]);
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page fieldwork-page">
       <DashboardTopBar onBack={() => navigate(`/admin/projects/${projectId}`)} />
       
       <div className="page-header">

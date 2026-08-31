@@ -394,7 +394,16 @@ SELECT
             t.category,
             JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
         )
-    ) AS last_activity_task_name
+    ) AS last_activity_task_name,
+
+    -- 7. Mic-check outcome, parsed from every `mic_check_result` event logged
+    -- to `progress` (MicCheck.jsx), not just the single latest flag:
+    --      mic_check_attempts     -> how many attempts were logged this session (NULL = never reached mic check)
+    --      mic_check_pass_attempt -> which attempt number first passed (NULL = never passed)
+    --      mic_check_last_error   -> error_type of the most recent attempt ('none' if it passed)
+    mic.attempts AS mic_check_attempts,
+    mic.pass_attempt AS mic_check_pass_attempt,
+    mic.last_error_type AS mic_check_last_error
 
 FROM participant_protocols pp
 JOIN v_participant_protocols vpp ON pp.id = vpp.participant_protocol_id
@@ -406,6 +415,33 @@ JOIN languages lang ON p.language_id = lang.id
 -- LEFT JOIN: a participant who was assigned a protocol but never opened it
 -- has no row in `sessions` at all, and must still show up (as 'created').
 LEFT JOIN sessions s ON s.participant_protocol_id = pp.id
+
+-- Per-session mic-check summary, built from every `mic_check_result` event
+-- in `progress` (JSON_TABLE + ROW_NUMBER, supported since MariaDB 10.6).
+-- A session with no progress or no mic-check events simply has no row here,
+-- so the LEFT JOIN below naturally yields NULLs for it.
+LEFT JOIN (
+    SELECT
+        numbered.session_id,
+        COUNT(*) AS attempts,
+        MIN(CASE WHEN numbered.passed = 'true' THEN numbered.mic_attempt_number END) AS pass_attempt,
+        SUBSTRING_INDEX(GROUP_CONCAT(numbered.error_type ORDER BY numbered.mic_attempt_number DESC), ',', 1) AS last_error_type
+    FROM (
+        SELECT
+            sess.id AS session_id,
+            ROW_NUMBER() OVER (PARTITION BY sess.id ORDER BY jt.seq) AS mic_attempt_number,
+            jt.passed,
+            jt.error_type
+        FROM sessions sess
+        JOIN JSON_TABLE(sess.progress, '$[*]' COLUMNS (
+            seq FOR ORDINALITY,
+            action VARCHAR(50) PATH '$.action',
+            passed VARCHAR(10) PATH '$.passed',
+            error_type VARCHAR(30) PATH '$.error_type'
+        )) jt ON jt.action = 'mic_check_result'
+    ) numbered
+    GROUP BY numbered.session_id
+) mic ON mic.session_id = s.id
 
 -- Dynamically join to find the task category using the protocolTaskId of the LAST event in the JSON
 LEFT JOIN protocol_tasks pt
