@@ -185,7 +185,7 @@ allowlist — they carry access tokens and only travel over the authenticated
 - `/admin/site-management` (master-only card on the admin dashboard):
   site table with token copy, create/edit modal (raw `config_json` textarea
   with JSON validation), and a manage-projects modal (assign/remove). Acts as
-  the global site overview, parallel to "Global Project Overview".
+  the global site overview, parallel to "Project Management".
 - Admin dashboard: "Your Assigned Sites" card grid (`SiteGrid`) above
   "Your Assigned Projects", fed by `GET /sites?userId=&role=`. Cards link to
   the new site detail page.

@@ -27,7 +27,7 @@
       "heading": "Master Administrative Tools",
       "users": "Admin User Management",
       "usersDesc": "Manage administrator accounts, assign project permissions, and reset credentials.",
-      "projects": "Global Project Overview",
+      "projects": "Project Management",
       "projectsDesc": "View and manage all system projects, activate or deactivate projects.",
       "sites": "Site Management",
       "sitesDesc": "Manage clinical sites, their access tokens, assigned projects and site-level config."
