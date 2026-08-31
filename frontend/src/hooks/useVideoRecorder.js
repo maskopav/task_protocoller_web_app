@@ -63,7 +63,7 @@ export const useVideoRecorder = ({
         try {
             const streamData = await navigator.mediaDevices.getUserMedia({
                 audio: false,
-                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
             });
 
             if (videoRef.current) videoRef.current.srcObject = streamData;
@@ -272,14 +272,22 @@ export const useVideoRecorder = ({
             if (videoRef.current && faceDetector.current && recordingStatus !== "recorded") {
                 const now = performance.now();
                 const result = faceDetector.current.detectForVideo(videoRef.current, now);
-                
+
                 if (result.faceLandmarks && result.faceLandmarks.length > 0) {
                     coordinateTimeline.current.push({
                         timestamp: now,
-                        landmarks: result.faceLandmarks[0] 
+                        landmarks: result.faceLandmarks[0]
                     });
                 }
-                recordingLoopRef.current = setTimeout(captureCoordinates, FRAME_RATE_MS);
+                // detectForVideo is synchronous and can itself take longer
+                // than FRAME_RATE_MS on slower devices. Subtract the time it
+                // just spent so we don't ALSO tack a full 33ms wait on top of
+                // that (which was compounding into ~107ms/frame instead of
+                // ~33ms). If inference already blew the budget, fire again
+                // immediately instead of padding the delay further.
+                const elapsed = performance.now() - now;
+                const nextDelay = Math.max(0, FRAME_RATE_MS - elapsed);
+                recordingLoopRef.current = setTimeout(captureCoordinates, nextDelay);
             }
         };
         
