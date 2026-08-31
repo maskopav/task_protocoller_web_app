@@ -54,6 +54,7 @@
     "createNew": "Vytvořit nový protokol",
     "currentProtocols": "Aktuální protokoly",
     "archivedProtocols": "Historie protokolů",
+    "archivedLabel": "Archivováno",
     "namePlaceholder": "Název protokolu",
     "nameExists": "Protokol s tímto názvem již existuje.",
     "descriptionPlaceholder": "Popis (nepovinné)",
@@ -62,8 +63,11 @@
       "create": "Vytvořit protokol",
       "show": "Zobrazit",
       "edit": "Upravit",
-      "duplicate": "Duplikovat"
+      "duplicate": "Duplikovat",
+      "archive": "Archivovat"
     },
+    "confirmArchiveTitle": "Archivovat protokol?",
+    "confirmArchiveMsg": "Archivací protokolu \"{{name}}\" bude odebrán ze všech projektů, které jej používají. Poté bude viditelný pouze v sekci Archivováno.",
     "table": {
       "name": "Název",
       "language": "Jazyk",

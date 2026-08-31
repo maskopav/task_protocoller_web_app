@@ -252,6 +252,7 @@
     "createNew": "Create New Protocol",
     "currentProtocols": "Current Protocols",
     "archivedProtocols": "Archived / Other Protocols",
+    "archivedLabel": "Archived",
     "namePlaceholder": "Protocol name",
     "descriptionPlaceholder": "Description (optional)",
     "noData": "No protocols found",
@@ -260,8 +261,11 @@
       "show": "Show",
       "edit": "Edit",
       "duplicate": "Duplicate",
+      "archive": "Archive",
       "share": "General Enrollment"
     },
+    "confirmArchiveTitle": "Archive Protocol?",
+    "confirmArchiveMsg": "Archiving \"{{name}}\" will remove it from every project currently using it. It will only be visible in the Archived section afterwards.",
     "table": {
       "name": "Name",
       "language": "Language",

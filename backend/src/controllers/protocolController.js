@@ -308,3 +308,76 @@ export const getProtocolsByProjectId = async (req, res) => {
     res.status(500).json({ error: 'Failed to load protocols by projectId' });
   }
 };
+
+// GET /api/protocols/archived — protocols that have been archived (no longer
+// linked to any project). Aggregation mirrors v_project_protocols, minus the
+// project join that archived rows no longer have.
+export const getArchivedProtocols = async (req, res) => {
+  try {
+    const rows = await executeQuery(
+      `SELECT
+         p.id, p.protocol_group_id, p.name, p.language_id, p.description, p.version,
+         p.is_current, p.created_at, p.created_by, p.updated_at, p.updated_by,
+         COALESCE(agg.n_tasks, 0) AS n_tasks,
+         COALESCE(agg.n_quest, 0) AS n_quest
+       FROM protocols p
+       LEFT JOIN (
+         SELECT pt.protocol_id,
+           SUM(IF(t.category != 'questionnaire', 1, 0)) AS n_tasks,
+           SUM(IF(t.category = 'questionnaire', 1, 0)) AS n_quest
+         FROM protocol_tasks pt
+         JOIN tasks t ON pt.task_id = t.id
+         GROUP BY pt.protocol_id
+       ) agg ON agg.protocol_id = p.id
+       WHERE p.is_archived = 1
+       ORDER BY p.updated_at DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    logToFile("ERROR", "Failed to fetch archived protocols", {
+      error: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ error: 'Failed to load archived protocols' });
+  }
+};
+
+// POST /api/protocols/:id/archive
+// Archives every current-language variant of the protocol's group: marks
+// them is_archived and removes their project_protocols links, so they drop
+// out of every project (and v_site_protocols) that was using them.
+export const archiveProtocol = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [protocol] = await executeQuery("SELECT protocol_group_id FROM protocols WHERE id = ?", [id]);
+    if (!protocol) {
+      return res.status(404).json({ error: 'Protocol not found' });
+    }
+
+    await executeTransaction(async (conn) => {
+      const [rows] = await conn.query(
+        "SELECT id FROM protocols WHERE protocol_group_id = ? AND is_current = 1",
+        [protocol.protocol_group_id]
+      );
+      const ids = rows.map(r => r.id);
+      if (ids.length === 0) return;
+
+      const placeholders = ids.map(() => '?').join(',');
+      await conn.query(`DELETE FROM project_protocols WHERE protocol_id IN (${placeholders})`, ids);
+      await conn.query(
+        `UPDATE protocols SET is_archived = 1, updated_at = UTC_TIMESTAMP() WHERE id IN (${placeholders})`,
+        ids
+      );
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    logToFile("ERROR", "Failed to archive protocol", {
+      protocolId: id,
+      error: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ error: 'Failed to archive protocol' });
+  }
+};

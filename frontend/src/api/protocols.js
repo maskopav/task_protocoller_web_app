@@ -34,3 +34,15 @@ export async function getProtocolsByProjectId(projectId) {
   if (!res.ok) throw new Error("Failed to fetch protocols");
   return res.json();
 }
+
+export async function getArchivedProtocols() {
+  const res = await apiFetch(`/protocols/archived`);
+  if (!res.ok) throw new Error("Failed to fetch archived protocols");
+  return res.json();
+}
+
+export async function archiveProtocol(protocolId) {
+  const res = await apiFetch(`/protocols/${protocolId}/archive`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to archive protocol");
+  return res.json();
+}

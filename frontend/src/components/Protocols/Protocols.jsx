@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useMappings } from "../../context/MappingContext";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
 import { useProtocolActions } from "../../hooks/useProtocolActions";
+import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import { useParams } from "react-router-dom";
-import { getProtocolsByProjectId } from "../../api/protocols";
+import { getProtocolsByProjectId, getArchivedProtocols, archiveProtocol as archiveProtocolApi } from "../../api/protocols";
 import "./Protocols.css";
 
 export default function Protocols({ onSelectProtocol }) {
@@ -12,12 +13,14 @@ export default function Protocols({ onSelectProtocol }) {
   const { mappings } = useMappings();
   const { projectId } = useParams();
   const [protocols, setProtocols] = useState([]);
+  const [archivedList, setArchivedList] = useState([]);
   const [loadingProtocols, setLoadingProtocols] = useState(false);
   const [protocolName, setProtocolName] = useState("");
   const [protocolDescription, setProtocolDescription] = useState("");
   const [protocolLanguage, setProtocolLanguage] = useState("en");
 
   const { viewProtocol, editProtocol, duplicateProtocol } = useProtocolActions();
+  const confirm = useConfirm();
 
   const languages = mappings?.languages || [];
 
@@ -31,29 +34,50 @@ export default function Protocols({ onSelectProtocol }) {
   const projectName = currentProject?.name || "Current Project";
   const isReadOnly = currentProject?.is_active === 0;
 
+  const loadProtocols = useCallback(async () => {
+    setLoadingProtocols(true);
+    try {
+      const [data, archived] = await Promise.all([
+        getProtocolsByProjectId(),
+        getArchivedProtocols(),
+      ]);
+      setProtocols(data);
+      setArchivedList(archived);
+    } catch (err) {
+      console.error("Failed to load project protocols:", err);
+    } finally {
+      setLoadingProtocols(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!projectId) return;
+    loadProtocols();
+  }, [projectId, loadProtocols]);
 
-    async function loadProjectProtocols() {
-      setLoadingProtocols(true);
-      try {
-        const data = await getProtocolsByProjectId();
-        setProtocols(data);
-      } catch (err) {
-        console.error("Failed to load project protocols:", err);
-      } finally {
-        setLoadingProtocols(false);
-      }
+  const handleArchive = async (protocol) => {
+    const isConfirmed = await confirm({
+      title: t("protocolDashboard.confirmArchiveTitle"),
+      message: t("protocolDashboard.confirmArchiveMsg", { name: protocol.name }),
+      confirmText: t("protocolDashboard.buttons.archive"),
+      cancelText: t("common:cancel"),
+    });
+    if (!isConfirmed) return;
+
+    try {
+      await archiveProtocolApi(protocol.id);
+      await loadProtocols();
+    } catch (err) {
+      console.error("Failed to archive protocol:", err);
     }
-
-    loadProjectProtocols();
-  }, [projectId]);
+  };
 
   const currentProtocols = protocols.filter(p => p.is_current == 1).filter(p => p.project_id == projectId);
-  // Archived/Other protocols: Anything not current in this project
-  const archivedProtocols = protocols.filter(p => 
-    p.is_current != 1 || p.project_id != projectId
-  );
+  // Other protocols: old versions, other projects' protocols, and truly archived ones
+  const archivedProtocols = [
+    ...protocols.filter(p => p.is_current != 1 || p.project_id != projectId),
+    ...archivedList.map(p => ({ ...p, project_name: t("protocolDashboard.archivedLabel"), isArchived: true })),
+  ];
 
   if (loadingProtocols) return <p>{t("loading")}</p>;
 
@@ -68,11 +92,11 @@ export default function Protocols({ onSelectProtocol }) {
               <th>{t("protocolDashboard.table.name")}</th>
               <th>{t("protocolDashboard.table.language")}</th>
               <th>{t("protocolDashboard.table.description")}</th>
+              {isHistory && <th>{t("protocolDashboard.table.projectName")}</th>}
               <th>{t("protocolDashboard.table.version")}</th>
-              <th>{t("protocolDashboard.table.tasks")}</th> 
+              <th>{t("protocolDashboard.table.tasks")}</th>
               <th>{t("protocolDashboard.table.quests")}</th>
               <th>{t("protocolDashboard.table.createdAt")}</th>
-              {isHistory && <th>{t("protocolDashboard.table.projectName")}</th>}
               <th>{t("protocolDashboard.table.actions")}</th>
             </tr>
           </thead>
@@ -89,12 +113,16 @@ export default function Protocols({ onSelectProtocol }) {
                   <td className="highlighted">{p.name}</td>
                   <td>{getLangName(p.language_id)}</td>
                   <td>{p.description}</td>
+                  {isHistory && (
+                    <td className={`project-name-cell ${p.isArchived ? "archived" : "in-other-project"}`}>
+                      {p.project_name}
+                    </td>
+                  )}
                   <td>{p.version}</td>
                   {/* Display Aggregated Counts */}
                   <td>{p.n_tasks}</td>
                   <td>{p.n_quest}</td>
                   <td>{p.created_at?.slice(0, 10)}</td>
-                  {isHistory && <td>{p.project_name}</td>}
                   <td className="actions">
                     <button
                       className="btn-view"
@@ -121,6 +149,16 @@ export default function Protocols({ onSelectProtocol }) {
                     >
                       {t("protocolDashboard.buttons.duplicate")}
                     </button>
+                    {!isHistory && (
+                      <button
+                        className="btn-archive"
+                        onClick={() => handleArchive(p)}
+                        disabled={isReadOnly}
+                        title={t("protocolDashboard.buttons.archive")}
+                      >
+                        {t("protocolDashboard.buttons.archive")}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
