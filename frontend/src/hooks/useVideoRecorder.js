@@ -2,7 +2,21 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 const DEV_MODE = true; // Set to false when deploying
-const FRAME_RATE_MS = 33; 
+const FRAME_RATE_MS = 33;
+// Neither FilesetResolver nor FaceLandmarker support cancellation, so a
+// stalled (not failed) CDN/model request would otherwise hang
+// isLoadingModel=true forever. Racing against this turns that into a
+// regular, retryable failure instead.
+const MODEL_LOAD_TIMEOUT_MS = 30000;
+
+function withTimeout(promise, ms) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Face model load timed out after ${ms}ms`)), ms)
+        ),
+    ]);
+}
 
 export const useVideoRecorder = ({ 
     onRecordingComplete = () => {}, 
@@ -29,6 +43,10 @@ export const useVideoRecorder = ({
     const audioRecorder = useRef(null);
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
+    // Holds the in-flight/settled load so preloadFaceModel() is idempotent
+    // and getMediaPermission() can just await whichever prefetch already
+    // started, instead of loading the model twice.
+    const modelLoadPromiseRef = useRef(null);
 
     // Callback ref for the <video> element. We use a callback (rather than a
     // plain ref) because the element can mount either BEFORE or AFTER the
@@ -59,17 +77,17 @@ export const useVideoRecorder = ({
         return () => releaseStream();
     }, [releaseStream]);
 
-    const getMediaPermission = async () => {
-        try {
-            const streamData = await navigator.mediaDevices.getUserMedia({
-                audio: false,
-                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
-            });
+    // Loads the face-tracking model, independent of camera permission, so it
+    // can be kicked off as early as possible (e.g. on mount, while the
+    // participant is still reading the permission intro / instructions) to
+    // overlap the download with time they're already spending on those
+    // screens. Idempotent: a second call while one is in flight (or already
+    // settled) just returns the same promise instead of loading it again.
+    const preloadFaceModel = useCallback(() => {
+        if (modelLoadPromiseRef.current) return modelLoadPromiseRef.current;
 
-            if (videoRef.current) videoRef.current.srcObject = streamData;
-            streamRef.current = streamData;
-
-            setIsLoadingModel(true);
+        setIsLoadingModel(true);
+        const load = async () => {
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
             );
@@ -82,7 +100,32 @@ export const useVideoRecorder = ({
                 runningMode: "VIDEO",
                 numFaces: 1
             });
-            setIsLoadingModel(false);
+        };
+
+        const promise = withTimeout(load(), MODEL_LOAD_TIMEOUT_MS)
+            .then(() => setIsLoadingModel(false))
+            .catch((err) => {
+                setIsLoadingModel(false);
+                faceDetector.current = null;
+                modelLoadPromiseRef.current = null; // allow a retry to start a fresh load
+                throw err;
+            });
+
+        modelLoadPromiseRef.current = promise;
+        return promise;
+    }, []);
+
+    const getMediaPermission = async () => {
+        try {
+            const streamData = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+            });
+
+            if (videoRef.current) videoRef.current.srcObject = streamData;
+            streamRef.current = streamData;
+
+            await preloadFaceModel();
 
             return true;
         } catch (err) {
@@ -312,8 +355,8 @@ export const useVideoRecorder = ({
     };
 
     return {
-        videoRef, attachVideoRef, canvasRef, recordingStatus, isSteady, 
-        isFaceCorrect, guidance, getMediaPermission, 
+        videoRef, attachVideoRef, canvasRef, recordingStatus, isSteady,
+        isFaceCorrect, guidance, getMediaPermission, preloadFaceModel,
         startFaceDetection, startRecording, stopRecording,
         isLoadingModel, videoData
     };

@@ -361,6 +361,19 @@ export const Recorder = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoPermission]);
 
+    // Kick off the face-tracking model download as early as possible for
+    // video tasks. It needs no camera/microphone permission, so it doesn't
+    // have to wait for the permission intro card or getUserMedia() — running
+    // it in parallel lets the download overlap with the time the participant
+    // spends on the permission/instructions screens instead of adding to the
+    // wait once they reach calibration.
+    React.useEffect(() => {
+        if (isVideoEnabled) {
+            videoRecorder.preloadFaceModel();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVideoEnabled]);
+
     const [exampleExists, setExampleExists] = React.useState(false);
     React.useEffect(() => {
         async function checkExample() {
