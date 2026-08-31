@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { roundCoordinateTimeline, compressJsonToBlob } from './coordinateOptimizer';
 
 describe('roundCoordinateTimeline', () => {
-  it('rounds landmark coordinates to the given precision', () => {
+  it('rounds landmark coordinates to the given precision and flattens them', () => {
     const timeline = [
       {
         timestamp: 123.6,
@@ -13,7 +13,7 @@ describe('roundCoordinateTimeline', () => {
     expect(result).toEqual([
       {
         timestamp: 124,
-        landmarks: [{ x: 0.1235, y: 0.9877, z: -0.1111 }],
+        landmarks: [0.1235, 0.9877, -0.1111],
       },
     ]);
   });
@@ -21,7 +21,7 @@ describe('roundCoordinateTimeline', () => {
   it('defaults to 4 decimal places of precision', () => {
     const timeline = [{ timestamp: 0, landmarks: [{ x: 1 / 3, y: 0, z: 0 }] }];
     const result = roundCoordinateTimeline(timeline);
-    expect(result[0].landmarks[0].x).toBe(0.3333);
+    expect(result[0].landmarks[0]).toBe(0.3333);
   });
 
   it('handles an empty timeline', () => {

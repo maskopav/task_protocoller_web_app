@@ -5,9 +5,6 @@ import crypto from "crypto";
 import pool from "../db/connection.js";
 import { logToFile } from '../utils/logger.js';
 import { dateInYyyyMmDdHhMmSs } from "../utils/dateFormatter.js";
-import zlib from "zlib";
-import { promisify } from "util";
-const gunzip = promisify(zlib.gunzip);
 
 // Configuration for file storage
 const UPLOAD_DIR = process.env.DATA_PATH; 
@@ -43,16 +40,16 @@ export const uploadRecording = async (req, res) => {
     // Save Audio using your existing helper
     const finalFilename = await processAndSaveAudio(audioFile.buffer, baseFilename);
 
-    // Save Coordinates directly to the disk if they exist!
+    // Save Coordinates directly to the disk if they exist! The frontend
+    // already gzips this payload before upload (see coordinateOptimizer.js)
+    // -- write those bytes straight through instead of decompressing, so the
+    // file on disk stays compressed too (previously this un-gzipped before
+    // writing, throwing away the size savings on every stored recording).
     if (coordsFile) {
       const isGzipped = req.body.coordinatesEncoding === "gzip";
-      const jsonBuffer = isGzipped
-        ? await gunzip(coordsFile.buffer)
-        : coordsFile.buffer;
-
-      const jsonPath = path.join(UPLOAD_DIR, `${baseFilename}.json`);
-      await fs.promises.writeFile(jsonPath, jsonBuffer);
-
+      const extension = isGzipped ? "json.gz" : "json";
+      const jsonPath = path.join(UPLOAD_DIR, `${baseFilename}.${extension}`);
+      await fs.promises.writeFile(jsonPath, coordsFile.buffer);
     }
 
     // 3. Insert directly using the IDs we received
