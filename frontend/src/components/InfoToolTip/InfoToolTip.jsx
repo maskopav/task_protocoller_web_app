@@ -1,4 +1,4 @@
-// src/components/InfoTooltip/InfoTooltip.jsx
+// src/components/InfoToolTip/InfoToolTip.jsx
 import React from "react";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import { useTranslation } from "react-i18next";

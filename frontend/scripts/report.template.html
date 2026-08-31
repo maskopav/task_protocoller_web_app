@@ -1,0 +1,903 @@
+<title>Aliasing Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:        #fcfcfb;
+    --surface-page:   #f9f9f7;
+    --ink:            #0b0b0b;
+    --ink-secondary:  #52514e;
+    --ink-muted:      #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --series-before:  #2a78d6;
+    --series-after:   #eb6834;
+    --good:           #0ca30c;
+    --good-bg:        #e6f5e6;
+    --warn:           #b9790a;
+    --warn-bg:        #fbf0dc;
+    --border:         rgba(11,11,11,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --surface:        #1a1a19;
+      --surface-page:   #0d0d0d;
+      --ink:            #ffffff;
+      --ink-secondary:  #c3c2b7;
+      --ink-muted:      #8f8d86;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --series-before:  #3987e5;
+      --series-after:   #d95926;
+      --good:           #3ecf3e;
+      --good-bg:        #123512;
+      --warn:           #f0b429;
+      --warn-bg:        #3a2e0c;
+      --border:         rgba(255,255,255,0.10);
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface:        #1a1a19;
+    --surface-page:   #0d0d0d;
+    --ink:            #ffffff;
+    --ink-secondary:  #c3c2b7;
+    --ink-muted:      #8f8d86;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --series-before:  #3987e5;
+    --series-after:   #d95926;
+    --good:           #3ecf3e;
+    --good-bg:        #123512;
+    --warn:           #f0b429;
+    --warn-bg:        #3a2e0c;
+    --border:         rgba(255,255,255,0.10);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-page);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .page {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  /* ---- header ---- */
+  .report-header { margin-bottom: 40px; }
+  .eyebrow {
+    margin: 0 0 10px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--series-before);
+  }
+  h1 {
+    margin: 0 0 14px;
+    font-size: clamp(32px, 4.2vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  .dek {
+    margin: 0 0 28px;
+    max-width: 62ch;
+    font-size: 16.5px;
+    line-height: 1.6;
+    color: var(--ink-secondary);
+  }
+  .dek code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.92em;
+    background: var(--gridline);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat-tile {
+    background: var(--surface);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 104px;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .stat-value {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .stat-sub { font-size: 12.5px; color: var(--ink-secondary); margin-top: auto; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 3px 8px 3px 7px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+  .badge.pass { color: var(--good); background: var(--good-bg); }
+  .badge.warn { color: var(--warn); background: var(--warn-bg); }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ---- sections ---- */
+  main { display: flex; flex-direction: column; gap: 28px; }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 30px 26px;
+  }
+  .chart-card h2 {
+    margin: 0 0 10px;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .section-copy {
+    margin: 0 0 22px;
+    max-width: 68ch;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--ink-secondary);
+  }
+  .section-copy strong { color: var(--ink); font-weight: 600; }
+
+  .chart-wrap { position: relative; width: 100%; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+  .legend { display: flex; gap: 20px; margin-bottom: 4px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-secondary); }
+  .legend-swatch { width: 16px; height: 2px; border-radius: 1px; flex: none; }
+
+  .reading-note {
+    margin: 20px 0 0;
+    padding: 12px 14px;
+    border-left: 2px solid var(--series-before);
+    background: var(--surface-page);
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-secondary);
+  }
+  .reading-note strong { color: var(--ink); font-weight: 600; }
+
+  /* ---- tooltip ---- */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--surface);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    line-height: 1.5;
+    padding: 8px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.08s ease;
+    z-index: 5;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .tt-key { display: inline-block; width: 10px; height: 2px; border-radius: 1px; }
+  .tooltip .tt-val { font-weight: 600; }
+  .tooltip .tt-freq { color: #c3c2b7; margin-bottom: 3px; }
+
+  /* ---- spectrogram ---- */
+  .spectrogram-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: end;
+  }
+  .spectrogram-col h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-secondary);
+  }
+  .spectrogram-col .rate-tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin: 0 0 10px;
+  }
+  .spec-frame {
+    position: relative;
+    padding-left: 40px;
+    padding-bottom: 22px;
+  }
+  .spec-frame canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+    image-rendering: pixelated;
+  }
+  .spec-ytick {
+    position: absolute;
+    left: 0;
+    width: 34px;
+    text-align: right;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    transform: translateY(-50%);
+  }
+  .spec-xtick {
+    position: absolute;
+    bottom: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    transform: translateX(-50%);
+  }
+  .spec-nyquist-line {
+    position: absolute;
+    left: 40px;
+    right: 0;
+    height: 0;
+    border-top: 1px dashed var(--series-after);
+  }
+  .spec-nyquist-label {
+    position: absolute;
+    left: 40px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    color: var(--series-after);
+    background: var(--surface);
+    padding: 0 4px;
+    transform: translateY(-100%);
+  }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--ink-muted);
+  }
+  footer code {
+    font-family: "IBM Plex Mono", monospace;
+    background: var(--gridline);
+    padding: 0.05em 0.4em;
+    border-radius: 3px;
+  }
+
+  @media (max-width: 720px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .spectrogram-pair { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="report-header">
+    <p class="eyebrow">Spectral verification</p>
+    <h1>Aliasing Audit</h1>
+    <p class="dek">
+      Every voice recording gets downsampled from the device's native rate to 44.1&nbsp;kHz before upload
+      (<code>resampleAudio.js</code>), to cut data usage without touching audio quality. The three tests below run the
+      <strong>actual production resampler</strong> — not a reimplementation — against standard DSP test signals and
+      inspect the resulting spectra, which is the only reliable way to confirm a downsampler is filtering correctly
+      rather than aliasing.
+    </p>
+    <div class="stat-row" id="stat-row"></div>
+  </header>
+
+  <main>
+
+    <section class="chart-card" id="section-noise">
+      <p class="eyebrow">Test 1 — Noise floor</p>
+      <h2>Frequency response under white noise</h2>
+      <p class="section-copy">
+        White noise carries equal energy at every frequency at once, so feeding it through the resampler and
+        comparing the spectrum before/after directly traces out the <strong>filter's measured response</strong> —
+        where it stays flat, and where it cuts. A correct anti-aliasing filter stays flat through the audible range
+        and then drops sharply right at the new Nyquist frequency (22.05&nbsp;kHz); a naive decimator would instead
+        alias the upper band straight back down into the passband.
+      </p>
+      <div class="legend" id="noise-legend"></div>
+      <div class="chart-wrap" id="noise-chart-wrap"></div>
+      <p class="reading-note" id="noise-note"></p>
+    </section>
+
+    <section class="chart-card" id="section-chirp">
+      <p class="eyebrow">Test 2 — Swept sine</p>
+      <h2>20&nbsp;Hz → 24&nbsp;kHz chirp, before and after</h2>
+      <p class="section-copy">
+        A linear sweep through every frequency at once is the standard textbook check for aliasing: on a
+        spectrogram it draws a single clean diagonal line. If a downsampler folds high frequencies back into the
+        passband instead of filtering them out, a second, mirrored line appears — reflecting back down from the new
+        Nyquist as the sweep approaches it. A correct resampler instead shows the line simply <strong>fade to
+        silence</strong> right at the boundary.
+      </p>
+      <div class="spectrogram-pair">
+        <div class="spectrogram-col">
+          <h3>Before</h3>
+          <p class="rate-tag mono">48,000 Hz native</p>
+          <div class="spec-frame" id="spec-before-frame"><canvas id="spec-before"></canvas></div>
+        </div>
+        <div class="spectrogram-col">
+          <h3>After</h3>
+          <p class="rate-tag mono">44,100 Hz resampled</p>
+          <div class="spec-frame" id="spec-after-frame"><canvas id="spec-after"></canvas></div>
+        </div>
+      </div>
+      <p class="reading-note" id="chirp-note"></p>
+    </section>
+
+    <section class="chart-card" id="section-tones">
+      <p class="eyebrow">Test 3 — Multi-tone probe</p>
+      <h2>1 / 8 / 20 / 23.5 kHz test tones</h2>
+      <p class="section-copy">
+        Four pure tones, one of them (23.5&nbsp;kHz) deliberately placed <strong>above</strong> the new Nyquist
+        frequency where it cannot survive resampling. The three in-band tones should come through essentially
+        unchanged; the fourth should vanish — with no new peak appearing anywhere else in the spectrum, which is
+        what an aliasing artifact would look like.
+      </p>
+      <div class="legend" id="tone-legend"></div>
+      <div class="chart-wrap" id="tone-chart-wrap"></div>
+      <p class="reading-note" id="tone-note"></p>
+    </section>
+
+  </main>
+
+  <footer>
+    Generated by <code>scripts/verifyResampleSpectrum.mjs</code>, which runs the real
+    <code>resampleTo44100()</code> from <code>src/utils/resampleAudio.js</code> (libsamplerate, WASM,
+    SRC_SINC_BEST_QUALITY) against synthetic test signals and writes their spectra to
+    <code>scripts/spectrum-data.json</code> for this page to render. Re-run the script any time the resampler
+    changes to regenerate the data this report is built from.
+  </footer>
+
+</div>
+
+<script>
+const SPECTRUM_DATA = /*__SPECTRUM_DATA__*/;
+</script>
+<script>
+(function () {
+  'use strict';
+  const D = SPECTRUM_DATA;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  function isDark() {
+    const root = document.documentElement;
+    const stamp = root.getAttribute('data-theme');
+    if (stamp === 'dark') return true;
+    if (stamp === 'light') return false;
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function fmtHz(f) {
+    if (f >= 1000) {
+      const k = f / 1000;
+      const s = Number.isInteger(k) ? String(k) : k.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+      return s + 'k';
+    }
+    return String(Math.round(f));
+  }
+
+  // ============================================================
+  // Headline stats
+  // ============================================================
+  function computeStats() {
+    const nb = D.noise.before, na = D.noise.after;
+    let sumAbs = 0, n = 0;
+    for (let i = 0; i < nb.db.length; i++) {
+      const f = (i + 0.5) * nb.freqBinHz;
+      if (f < 40 || f > 8000) continue;
+      const j = Math.floor(f / na.freqBinHz);
+      if (j < 0 || j >= na.db.length) continue;
+      sumAbs += Math.abs(na.db[j] - nb.db[i]);
+      n++;
+    }
+    const passbandDeviation = n ? sumAbs / n : NaN;
+
+    const tb = D.tones.before, ta = D.tones.after;
+    const nyquist = D.targetRate / 2;
+    const survivors = D.tones.freqs.filter((f) => f < nyquist);
+    const removed = D.tones.freqs.filter((f) => f >= nyquist);
+
+    const peaks = [];
+    for (let i = 2; i < ta.db.length - 2; i++) {
+      const v = ta.db[i];
+      if (v > -30 && v >= ta.db[i - 1] && v >= ta.db[i + 1] && v > ta.db[i - 2] && v > ta.db[i + 2]) {
+        peaks.push({ f: (i + 0.5) * ta.freqBinHz, db: v });
+      }
+    }
+    const spurious = peaks.filter((p) => !survivors.some((s) => Math.abs(p.f - s) < 150));
+    const survivorsFound = survivors.filter((s) => peaks.some((p) => Math.abs(p.f - s) < 150));
+
+    let removedPeakBefore = -Infinity;
+    for (let i = 0; i < tb.db.length; i++) {
+      const f = (i + 0.5) * tb.freqBinHz;
+      if (Math.abs(f - removed[0]) < 150 && tb.db[i] > removedPeakBefore) removedPeakBefore = tb.db[i];
+    }
+
+    return {
+      passbandDeviation,
+      passbandPass: Math.abs(passbandDeviation) < 1.5,
+      aliasPass: spurious.length === 0 && survivorsFound.length === survivors.length,
+      survivorsFound: survivorsFound.length,
+      survivorsTotal: survivors.length,
+      removedFreq: removed[0],
+      removedPeakBefore,
+      spuriousCount: spurious.length,
+    };
+  }
+
+  function renderStats() {
+    const s = computeStats();
+    const row = document.getElementById('stat-row');
+    const tiles = [
+      {
+        label: 'Sample rate',
+        value: (D.nativeRate / 1000).toFixed(0) + 'k → ' + (D.targetRate / 1000).toFixed(1) + 'k',
+        sub: 'native → upload',
+      },
+      {
+        label: 'Passband deviation',
+        value: (s.passbandDeviation >= 0 ? '+' : '') + s.passbandDeviation.toFixed(2) + ' dB',
+        sub: '0–8 kHz, vs. white noise',
+        badge: s.passbandPass ? ['pass', 'PASS · < 1.5 dB'] : ['warn', 'CHECK'],
+      },
+      {
+        label: 'Alias rejection',
+        value: s.aliasPass ? 'No leakage' : 'Leakage found',
+        sub: (s.removedFreq / 1000).toFixed(1) + ' kHz probe, ' + s.removedPeakBefore.toFixed(1) + ' dB before',
+        badge: s.aliasPass ? ['pass', 'PASS · 0 spurious peaks'] : ['warn', s.spuriousCount + ' SPURIOUS'],
+      },
+      {
+        label: 'Method',
+        value: 'SINC BEST',
+        sub: 'libsamplerate · WASM',
+      },
+    ];
+    tiles.forEach((t) => {
+      const el = document.createElement('div');
+      el.className = 'stat-tile';
+      const badge = t.badge
+        ? '<span class="badge ' + t.badge[0] + '">' + t.badge[1] + '</span>'
+        : '';
+      el.innerHTML =
+        '<span class="stat-label">' + t.label + '</span>' +
+        '<span class="stat-value tabular">' + t.value + '</span>' +
+        (badge || '<span class="stat-sub">' + t.sub + '</span>');
+      row.appendChild(el);
+    });
+
+    document.getElementById('noise-note').innerHTML =
+      '<strong>How to read this:</strong> the two lines should overlap almost exactly from 0 up to about 21 kHz ' +
+      '(measured passband deviation: ' + s.passbandDeviation.toFixed(2) + ' dB) — that’s the resampler ' +
+      'being transparent to real content. The orange line should then fall away sharply right at the dashed ' +
+      '22.05 kHz marker rather than tapering off gradually well before it, which would mean the filter is eating ' +
+      'into audible frequencies unnecessarily.';
+
+    document.getElementById('tone-note').innerHTML =
+      '<strong>How to read this:</strong> ' + s.survivorsFound + ' of ' + s.survivorsTotal + ' in-band tones ' +
+      'survive resampling at their original level, and the ' + (s.removedFreq / 1000).toFixed(1) + ' kHz tone ' +
+      '(' + s.removedPeakBefore.toFixed(1) + ' dB before, clearly audible) disappears entirely — ' +
+      (s.spuriousCount === 0
+        ? 'with <strong>no new peak</strong> appearing anywhere else in the after-spectrum, which is the signature of correct filtering rather than a lucky cancellation.'
+        : 'but ' + s.spuriousCount + ' unexplained peak(s) appear elsewhere, which would indicate aliasing.');
+  }
+
+  // ============================================================
+  // Line chart (log-frequency x, dB y) — used for noise + tones
+  // ============================================================
+  function buildLineChart(opts) {
+    const { mount, before, after, fMin, fMax, xTicks, refLines, dMin, dMax } = opts;
+    const W = 960, H = 380;
+    const M = { left: 46, right: 16, top: 14, bottom: 34 };
+    const plotL = M.left, plotR = W - M.right, plotT = M.top, plotB = H - M.bottom;
+
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    mount.appendChild(svg);
+
+    const gridline = cssVar('--gridline');
+    const baseline = cssVar('--baseline');
+    const inkMuted = cssVar('--ink-muted');
+    const seriesBefore = cssVar('--series-before');
+    const seriesAfter = cssVar('--series-after');
+
+    function xOf(f) {
+      const t = (Math.log10(f) - Math.log10(fMin)) / (Math.log10(fMax) - Math.log10(fMin));
+      return plotL + clamp(t, 0, 1) * (plotR - plotL);
+    }
+    function yOf(db) {
+      const t = (db - dMin) / (dMax - dMin);
+      return plotB - clamp(t, 0, 1) * (plotB - plotT);
+    }
+
+    // horizontal gridlines (dB)
+    const dbStep = 20;
+    for (let db = Math.ceil(dMin / dbStep) * dbStep; db <= dMax; db += dbStep) {
+      const y = yOf(db);
+      const line = document.createElementNS(SVGNS, 'line');
+      line.setAttribute('x1', plotL); line.setAttribute('x2', plotR);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('stroke', gridline); line.setAttribute('stroke-width', '1');
+      svg.appendChild(line);
+      const label = document.createElementNS(SVGNS, 'text');
+      label.setAttribute('x', plotL - 8); label.setAttribute('y', y + 3.5);
+      label.setAttribute('text-anchor', 'end');
+      label.setAttribute('font-size', '10.5'); label.setAttribute('fill', inkMuted);
+      label.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      label.textContent = db + ' dB';
+      svg.appendChild(label);
+    }
+
+    // vertical gridlines / freq ticks
+    xTicks.forEach((f) => {
+      const x = xOf(f);
+      const line = document.createElementNS(SVGNS, 'line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', plotT); line.setAttribute('y2', plotB);
+      line.setAttribute('stroke', gridline); line.setAttribute('stroke-width', '1');
+      svg.appendChild(line);
+      const label = document.createElementNS(SVGNS, 'text');
+      label.setAttribute('x', x); label.setAttribute('y', plotB + 18);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-size', '10.5'); label.setAttribute('fill', inkMuted);
+      label.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      label.textContent = fmtHz(f) + 'Hz';
+      svg.appendChild(label);
+    });
+
+    // baseline
+    const base = document.createElementNS(SVGNS, 'line');
+    base.setAttribute('x1', plotL); base.setAttribute('x2', plotR);
+    base.setAttribute('y1', plotB); base.setAttribute('y2', plotB);
+    base.setAttribute('stroke', baseline); base.setAttribute('stroke-width', '1');
+    svg.appendChild(base);
+
+    // reference lines (e.g. Nyquist)
+    (refLines || []).forEach((r) => {
+      const x = xOf(r.freq);
+      const line = document.createElementNS(SVGNS, 'line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', plotT); line.setAttribute('y2', plotB);
+      line.setAttribute('stroke', seriesAfter);
+      line.setAttribute('stroke-width', '1.25');
+      line.setAttribute('stroke-dasharray', '3 3');
+      svg.appendChild(line);
+      const label = document.createElementNS(SVGNS, 'text');
+      label.setAttribute('x', x); label.setAttribute('y', plotT + 10);
+      label.setAttribute('text-anchor', x > (plotL + plotR) / 2 ? 'end' : 'start');
+      label.setAttribute('dx', x > (plotL + plotR) / 2 ? -5 : 5);
+      label.setAttribute('font-size', '10'); label.setAttribute('fill', seriesAfter);
+      label.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      label.textContent = r.label;
+      svg.appendChild(label);
+    });
+
+    // tone markers (small ticks above baseline, used by the tone chart)
+    (opts.pointMarkers || []).forEach((m) => {
+      const x = xOf(m.freq);
+      const tick = document.createElementNS(SVGNS, 'circle');
+      tick.setAttribute('cx', x); tick.setAttribute('cy', plotB);
+      tick.setAttribute('r', 2.5);
+      tick.setAttribute('fill', m.survives ? seriesAfter : inkMuted);
+      svg.appendChild(tick);
+    });
+
+    function pathFor(series, color) {
+      let d = '';
+      for (let i = 0; i < series.db.length; i++) {
+        const f = (i + 0.5) * series.freqBinHz;
+        if (f < fMin || f > fMax) continue;
+        const x = xOf(f), y = yOf(series.db[i]);
+        d += (d ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+      }
+      const path = document.createElementNS(SVGNS, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linejoin', 'round');
+      path.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(path);
+    }
+    pathFor(before, seriesBefore);
+    pathFor(after, seriesAfter);
+
+    // ---- crosshair + tooltip ----
+    const crosshair = document.createElementNS(SVGNS, 'line');
+    crosshair.setAttribute('y1', plotT); crosshair.setAttribute('y2', plotB);
+    crosshair.setAttribute('stroke', inkMuted);
+    crosshair.setAttribute('stroke-width', '1');
+    crosshair.setAttribute('opacity', '0');
+    svg.appendChild(crosshair);
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    mount.appendChild(tooltip);
+
+    const hit = document.createElementNS(SVGNS, 'rect');
+    hit.setAttribute('x', plotL); hit.setAttribute('y', plotT);
+    hit.setAttribute('width', plotR - plotL); hit.setAttribute('height', plotB - plotT);
+    hit.setAttribute('fill', 'transparent');
+    hit.setAttribute('tabindex', '0');
+    hit.style.cursor = 'crosshair';
+    svg.appendChild(hit);
+
+    function valueAt(series, freq) {
+      const idx = Math.round(freq / series.freqBinHz - 0.5);
+      const i = clamp(idx, 0, series.db.length - 1);
+      return series.db[i];
+    }
+
+    function showAt(freq) {
+      const clampedFreq = clamp(freq, fMin, fMax);
+      const x = xOf(clampedFreq);
+      crosshair.setAttribute('x1', x); crosshair.setAttribute('x2', x);
+      crosshair.setAttribute('opacity', '1');
+
+      const bVal = valueAt(before, clampedFreq);
+      const rows = [
+        '<div class="tt-freq">' + Math.round(clampedFreq).toLocaleString() + ' Hz</div>',
+        '<div class="tt-row"><span class="tt-key" style="background:' + seriesBefore + '"></span>' +
+          '<span>before</span><span class="tt-val" style="margin-left:auto">' + bVal.toFixed(1) + ' dB</span></div>',
+      ];
+      if (clampedFreq <= (after.db.length * after.freqBinHz)) {
+        const aVal = valueAt(after, clampedFreq);
+        rows.push(
+          '<div class="tt-row"><span class="tt-key" style="background:' + seriesAfter + '"></span>' +
+          '<span>after</span><span class="tt-val" style="margin-left:auto">' + aVal.toFixed(1) + ' dB</span></div>'
+        );
+      }
+      tooltip.innerHTML = rows.join('');
+      tooltip.classList.add('visible');
+
+      const bbox = mount.getBoundingClientRect();
+      const px = (x / W) * bbox.width;
+      const py = (yOf(bVal) / H) * bbox.height;
+      let left = px + 14, top = py - 10;
+      if (left + 170 > bbox.width) left = px - 14 - 170;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = Math.max(0, top) + 'px';
+    }
+    function hide() {
+      crosshair.setAttribute('opacity', '0');
+      tooltip.classList.remove('visible');
+    }
+    function freqFromClientX(clientX) {
+      const bbox = svg.getBoundingClientRect();
+      const relX = ((clientX - bbox.left) / bbox.width) * W;
+      const t = (relX - plotL) / (plotR - plotL);
+      return fMin * Math.pow(fMax / fMin, clamp(t, 0, 1));
+    }
+    hit.addEventListener('pointermove', (e) => showAt(freqFromClientX(e.clientX)));
+    hit.addEventListener('pointerleave', hide);
+    hit.addEventListener('pointerdown', (e) => showAt(freqFromClientX(e.clientX)));
+    let focusFreq = fMin;
+    hit.addEventListener('focus', () => showAt(focusFreq));
+    hit.addEventListener('blur', hide);
+    hit.addEventListener('keydown', (e) => {
+      const stepFactor = Math.pow(fMax / fMin, 1 / 200);
+      if (e.key === 'ArrowRight') { focusFreq = clamp(focusFreq * stepFactor, fMin, fMax); showAt(focusFreq); e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { focusFreq = clamp(focusFreq / stepFactor, fMin, fMax); showAt(focusFreq); e.preventDefault(); }
+    });
+  }
+
+  function buildLegend(mount, items) {
+    items.forEach((it) => {
+      const el = document.createElement('div');
+      el.className = 'legend-item';
+      const sw = document.createElement('span');
+      sw.className = 'legend-swatch';
+      sw.style.background = it.color;
+      const label = document.createElement('span');
+      label.textContent = it.label;
+      el.appendChild(sw); el.appendChild(label);
+      mount.appendChild(el);
+    });
+  }
+
+  function renderNoiseChart() {
+    const mount = document.getElementById('noise-chart-wrap');
+    buildLegend(document.getElementById('noise-legend'), [
+      { color: cssVar('--series-before'), label: 'Before · 48,000 Hz native' },
+      { color: cssVar('--series-after'), label: 'After · 44,100 Hz resampled' },
+    ]);
+    buildLineChart({
+      mount,
+      before: D.noise.before,
+      after: D.noise.after,
+      fMin: 20,
+      fMax: 24000,
+      xTicks: [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000],
+      refLines: [{ freq: D.targetRate / 2, label: 'Nyquist · ' + (D.targetRate / 2 / 1000).toFixed(2) + 'k' }],
+      dMin: -100,
+      dMax: 0,
+    });
+  }
+
+  function renderToneChart() {
+    const mount = document.getElementById('tone-chart-wrap');
+    buildLegend(document.getElementById('tone-legend'), [
+      { color: cssVar('--series-before'), label: 'Before · 48,000 Hz native' },
+      { color: cssVar('--series-after'), label: 'After · 44,100 Hz resampled' },
+    ]);
+    const nyquist = D.targetRate / 2;
+    buildLineChart({
+      mount,
+      before: D.tones.before,
+      after: D.tones.after,
+      fMin: 20,
+      fMax: 24000,
+      xTicks: [20, 100, 1000, 8000, 20000, 23500],
+      refLines: [{ freq: nyquist, label: 'Nyquist · ' + (nyquist / 1000).toFixed(2) + 'k' }],
+      pointMarkers: D.tones.freqs.map((f) => ({ freq: f, survives: f < nyquist })),
+      dMin: -100,
+      dMax: 0,
+    });
+  }
+
+  // ============================================================
+  // Spectrogram (canvas heatmap)
+  // ============================================================
+  const SEQ_STEPS = [
+    { v: 0.00, rgb: [205, 226, 251] }, { v: 0.08, rgb: [183, 211, 246] },
+    { v: 0.17, rgb: [158, 197, 244] }, { v: 0.25, rgb: [134, 182, 239] },
+    { v: 0.33, rgb: [109, 167, 236] }, { v: 0.42, rgb: [85, 152, 231] },
+    { v: 0.50, rgb: [57, 135, 229] }, { v: 0.58, rgb: [42, 120, 214] },
+    { v: 0.67, rgb: [37, 106, 191] }, { v: 0.75, rgb: [28, 92, 171] },
+    { v: 0.83, rgb: [24, 79, 149] }, { v: 0.92, rgb: [16, 66, 129] },
+    { v: 1.00, rgb: [13, 54, 107] },
+  ];
+  function seqColor(t, dark) {
+    const tt = clamp(dark ? 1 - t : t, 0, 1);
+    let lo = SEQ_STEPS[0], hi = SEQ_STEPS[SEQ_STEPS.length - 1];
+    for (let i = 0; i < SEQ_STEPS.length - 1; i++) {
+      if (tt >= SEQ_STEPS[i].v && tt <= SEQ_STEPS[i + 1].v) { lo = SEQ_STEPS[i]; hi = SEQ_STEPS[i + 1]; break; }
+    }
+    const span = (hi.v - lo.v) || 1;
+    const f = (tt - lo.v) / span;
+    return [
+      Math.round(lo.rgb[0] + (hi.rgb[0] - lo.rgb[0]) * f),
+      Math.round(lo.rgb[1] + (hi.rgb[1] - lo.rgb[1]) * f),
+      Math.round(lo.rgb[2] + (hi.rgb[2] - lo.rgb[2]) * f),
+    ];
+  }
+
+  function paintSpectrogram(canvas, spec, dMin, dMax, dark) {
+    const width = spec.frames.length;
+    const height = spec.frames[0].length;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(width, height);
+    for (let x = 0; x < width; x++) {
+      const frame = spec.frames[x];
+      for (let yBin = 0; yBin < height; yBin++) {
+        const db = frame[yBin];
+        const t = clamp((db - dMin) / (dMax - dMin), 0, 1);
+        const rgb = seqColor(t, dark);
+        const y = height - 1 - yBin; // low freq at bottom
+        const idx = (y * width + x) * 4;
+        img.data[idx] = rgb[0]; img.data[idx + 1] = rgb[1]; img.data[idx + 2] = rgb[2]; img.data[idx + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  function addSpecTicks(frameEl, canvas, spec, fMaxCommon, durationSec) {
+    // remove stale ticks (theme re-render)
+    frameEl.querySelectorAll('.spec-ytick, .spec-xtick').forEach((n) => n.remove());
+    const freqMax = spec.freqBinHz * spec.frames[0].length;
+    const yTicks = [0, 8000, 16000, freqMax].filter((f, i, arr) => arr.indexOf(f) === i);
+    yTicks.forEach((f) => {
+      const el = document.createElement('div');
+      el.className = 'spec-ytick';
+      el.style.top = (100 - (f / fMaxCommon) * 100) + '%';
+      el.textContent = fmtHz(f);
+      frameEl.appendChild(el);
+    });
+    const xTicks = [0, 1, 2, 3].filter((t) => t <= durationSec + 0.05);
+    xTicks.forEach((t) => {
+      const el = document.createElement('div');
+      el.className = 'spec-xtick';
+      el.style.left = (40 + (t / durationSec) * (canvas.clientWidth || 1)) + 'px';
+      el.style.left = 'calc(40px + ' + (t / durationSec) * 100 + '% - ' + (t / durationSec) * 40 + 'px)';
+      el.textContent = t + 's';
+      frameEl.appendChild(el);
+    });
+  }
+
+  function renderSpectrograms() {
+    const dark = isDark();
+    const fMaxCommon = D.nativeRate / 2; // "before" spans the full native Nyquist
+    const dMin = -90, dMax = 0;
+
+    const beforeCanvas = document.getElementById('spec-before');
+    const afterCanvas = document.getElementById('spec-after');
+    paintSpectrogram(beforeCanvas, D.chirp.before, dMin, dMax, dark);
+    paintSpectrogram(afterCanvas, D.chirp.after, dMin, dMax, dark);
+
+    const beforeFreqMax = D.chirp.before.freqBinHz * D.chirp.before.frames[0].length;
+    const afterFreqMax = D.chirp.after.freqBinHz * D.chirp.after.frames[0].length;
+    beforeCanvas.style.aspectRatio = D.chirp.before.frames.length + ' / ' + D.chirp.before.frames[0].length;
+    afterCanvas.style.aspectRatio = D.chirp.after.frames.length + ' / ' + D.chirp.after.frames[0].length;
+    // shrink the "after" panel proportionally so equal Hz maps to equal px in both
+    afterCanvas.parentElement.style.maxWidth = (afterFreqMax / beforeFreqMax) * 100 + '%';
+
+    addSpecTicks(document.getElementById('spec-before-frame'), beforeCanvas, D.chirp.before, fMaxCommon, D.chirp.durationSec);
+    addSpecTicks(document.getElementById('spec-after-frame'), afterCanvas, D.chirp.after, fMaxCommon, D.chirp.durationSec);
+
+    // Nyquist marker on the "before" panel, at the height matching 22.05kHz
+    const beforeFrame = document.getElementById('spec-before-frame');
+    beforeFrame.querySelectorAll('.spec-nyquist-line, .spec-nyquist-label').forEach((n) => n.remove());
+    const nyquist = D.targetRate / 2;
+    const topPct = 100 - (nyquist / fMaxCommon) * 100;
+    const line = document.createElement('div');
+    line.className = 'spec-nyquist-line';
+    line.style.top = topPct + '%';
+    beforeFrame.appendChild(line);
+    const label = document.createElement('div');
+    label.className = 'spec-nyquist-label';
+    label.style.top = topPct + '%';
+    label.textContent = (nyquist / 1000).toFixed(2) + ' kHz — new Nyquist';
+    beforeFrame.appendChild(label);
+
+    document.getElementById('chirp-note').innerHTML =
+      'The sweep in the <strong>after</strong> panel tracks the same diagonal as <strong>before</strong>, then the ' +
+      'signal collapses into the noise floor right where it crosses the dashed 22.05 kHz line — there is no ' +
+      'second line reflecting back down from that boundary, which is what an aliased (incorrectly filtered) ' +
+      'downsample would produce instead.';
+  }
+
+  renderStats();
+  renderNoiseChart();
+  renderToneChart();
+  renderSpectrograms();
+
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderSpectrograms);
+  }
+})();
+</script>

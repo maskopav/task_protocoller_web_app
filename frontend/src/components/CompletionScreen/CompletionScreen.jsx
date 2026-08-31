@@ -7,7 +7,7 @@ import {
   uploadingIcon,
 } from "../../assets/successIcons/successAssets";
 import helpIcon from "../../assets/generalIcons/help-icon.svg";
-import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import AudioGuidePlayer from "../AudioGuidePlayer/AudioGuidePlayer";
 import { getCompletionAudioPath } from "../../utils/getAudioGuidePath";
 import "./CompletionScreen.css";

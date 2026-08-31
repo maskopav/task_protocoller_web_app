@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:test:reset": "node --env-file=.env.test src/runInit.js && node --env-file=.env.test src/runE2ESeed.js",
+    "db:views": "node src/applyViews.js",
     "start:test": "node --env-file=.env.test server.js",
     "db:schema:diff": "node scripts/schema/compareSchemas.js"
   },
@@ -21,6 +22,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.6.2",
     "i18next": "^25.7.4",
     "i18next-fs-backend": "^2.6.1",
     "jsonwebtoken": "^9.0.3",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
+    "supertest": "^7.2.2",
     "vitest": "^4.1.11"
   }
 }

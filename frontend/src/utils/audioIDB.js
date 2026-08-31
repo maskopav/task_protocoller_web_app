@@ -129,32 +129,52 @@ function generateWAVHeader(sampleRate, totalSamples) {
     return header;
 }
 
-export function buildWAV(sampleRate) {
+/**
+ * Merges every stored chunk into one contiguous Int16Array. finalizeRecording.js
+ * always needs this shape (both the resample and the FLAC-encode step operate
+ * on one contiguous buffer, not on IDB chunks directly).
+ */
+export async function getAllSamplesInt16() {
     // ── FALLBACK PATH ──
     if (idbAvailable === false) {
-        if (memoryTotalSamples === 0) {
-            return Promise.resolve(new Blob([], { type: 'audio/wav' }));
+        const merged = new Int16Array(memoryTotalSamples);
+        let offset = 0;
+        for (const buf of memoryChunks) {
+            const view = new Int16Array(buf);
+            merged.set(view, offset);
+            offset += view.length;
         }
-        const header = generateWAVHeader(sampleRate, memoryTotalSamples);
-        const parts = [header, ...memoryChunks];
-        return Promise.resolve(new Blob(parts, { type: 'audio/wav' }));
+        return merged;
     }
 
     // ── INDEXEDDB PATH ──
     return runTransaction('readonly', async (store) => {
         const meta = await getReq(store.get(META_KEY));
         if (!meta || meta.seq === 0) {
-            return new Blob([], { type: 'audio/wav' });
+            return new Int16Array(0);
         }
 
         const { totalSamples, seq } = meta;
-        const header = generateWAVHeader(sampleRate, totalSamples);
-        
         const chunks = await getReq(store.getAll(IDBKeyRange.bound(1, seq)));
-        const parts = [header, ...chunks];
 
-        return new Blob(parts, { type: 'audio/wav' });
+        const merged = new Int16Array(totalSamples);
+        let offset = 0;
+        for (const buf of chunks) {
+            const view = new Int16Array(buf);
+            merged.set(view, offset);
+            offset += view.length;
+        }
+        return merged;
     });
+}
+
+/** Pure WAV encoder: header + samples, no IDB access. Used as the FLAC-failure fallback. */
+export function encodeWAV(int16Samples, sampleRate) {
+    if (!int16Samples || int16Samples.length === 0) {
+        return new Blob([], { type: 'audio/wav' });
+    }
+    const header = generateWAVHeader(sampleRate, int16Samples.length);
+    return new Blob([header, int16Samples.buffer], { type: 'audio/wav' });
 }
 
 export function clearSession() {

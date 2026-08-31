@@ -172,7 +172,7 @@ export default function Identifiers({ requiredIdentifiers = [], onNext, sessionI
           className="btn-next"
           disabled={isSubmitting}
         >
-          {isSubmitting ? t('buttons.saving') : t('buttons.next')}
+          {isSubmitting ? t('buttons.sending') : t('buttons.next')}
         </SafeButton>
       }
     />

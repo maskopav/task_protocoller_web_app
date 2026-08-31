@@ -1,6 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { runSqlFile, runSqlFileInTransaction } from './utils/runSqlFile.js';
+import { syncViewConstants } from './utils/syncViewConstants.js';
 import pool from './db/connection.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +32,7 @@ async function init() {
 
     // Step 2 — DDL: Create views
     console.log('Creating database views...');
+    await syncViewConstants(viewsPath);
     await runSqlFile(pool, viewsPath);
 
     // Step 3 — DML: Seed lookup data (transactional — rolls back automatically)

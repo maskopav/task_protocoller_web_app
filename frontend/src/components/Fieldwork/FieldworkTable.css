@@ -1,0 +1,187 @@
+/* src/components/Fieldwork/FieldworkTable.css */
+
+.fieldwork-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* --- Status Summary Strip --- */
+.fieldwork-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.fieldwork-summary-card {
+  --accent: var(--primary);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: auto;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--sharp-radius);
+  box-shadow: none;
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition);
+}
+
+.fieldwork-summary-card:hover:not(:disabled) {
+  transform: none;
+  filter: none;
+  background: #ffffff;
+}
+
+.fieldwork-summary-card.is-active {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px var(--accent) inset;
+}
+
+.fieldwork-summary-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.fieldwork-summary-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* --- Toolbar --- */
+.fieldwork-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.fieldwork-toolbar-filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.fieldwork-search,
+.fieldwork-status-select {
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  font-size: 0.9rem;
+}
+
+.fieldwork-search {
+  min-width: 240px;
+}
+
+.fieldwork-toolbar .btn-edit {
+  width: auto;
+}
+
+/* --- Table --- */
+.fieldwork-scroll-area {
+  max-height: 60vh;
+  border: 1px solid var(--border);
+}
+
+.fieldwork-table th,
+.fieldwork-table td {
+  padding: 0.55rem 0.6rem;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+.participant-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.participant-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.protocol-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.protocol-lang-tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+}
+
+.fieldwork-table .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fieldwork-flags {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.fieldwork-current-step {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 850px) {
+  .fieldwork-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fieldwork-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fieldwork-search {
+    min-width: 0;
+    flex: 1;
+  }
+}
