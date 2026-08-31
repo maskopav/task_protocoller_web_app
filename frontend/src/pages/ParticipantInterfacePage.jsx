@@ -18,26 +18,24 @@ import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
 import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
-import { uploadRecording, uploadMicCheck } from "../api/recordings";
-import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import { ConfirmDialogContext } from "../components/ConfirmDialog/ConfirmDialogContext";
 import { useWakeLock } from "../hooks/useWakeLock";
 import "./Pages.css";
 import { logger } from "../utils/frontendLogger";
-import {
-  saveRecordingLocally,
-  getPendingRecordingsForSession,   // (or getPendingRecordings — same export)
-  markRecordingStatus,
-  deleteLocalRecording,
-} from '../utils/offlineStorage';
+import { saveRecordingLocally, getPendingRecordingsForSession } from '../utils/offlineStorage';
+import { uploadInBackground, flushPendingRecordings } from '../utils/recordingUploadQueue';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
-const activeUploads = new Set();
 const TRANSITION_LOCK_MS = 350
+// navigator.onLine stays true on a slow/degraded connection (it only reflects
+// whether there's a network interface at all), so the reconnect-triggered
+// flush below never fires for that case. This periodic pass is what actually
+// catches recordings left in IDB after fetchWithTimeout aborts one.
+const PENDING_UPLOAD_RETRY_MS = 20_000;
 
 
 export default function ParticipantInterfacePage() {
@@ -304,65 +302,17 @@ export default function ParticipantInterfacePage() {
   // sitting in IDB as 'pending'.
   useEffect(() => {
     if (networkStatus === 'offline' || !sessionId) return;
-
-    async function flushOnReconnect() {
-      try {
-        const pending = await getPendingRecordingsForSession(sessionId);
-        if (pending.length === 0) return;
-
-        logger.info(`[Reconnect Flush] Retrying ${pending.length} pending recording(s)`);
-
-        for (const record of pending) {
-          if (!navigator.onLine) break;
-          
-          if (activeUploads.has(record.id)) continue;
-          activeUploads.add(record.id);
-
-          try {
-            // 1. ROUTE THE API CALL (using record.metadata, NOT meta)
-            if (record.metadata.isSystemTask) {
-              // System tasks skip data upload
-            } else if (record.metadata.isMicCheck && record.metadata.isBlob) {
-              await uploadMicCheck(record.blob, record.metadata);
-            } else if (record.metadata.isBlob) {
-              await uploadRecording(record.blob, record.metadata);
-            } else if (record.metadata.isMicCheck) {
-              // Mic-check "skipped" event with no audio — nothing to persist to task_results.
-              // Progress (skipped, attempts) is captured via trackProgress below instead.
-            } else {
-              await saveTaskResult({
-                sessionId: record.metadata.sessionId,
-                protocolTaskId: record.metadata.protocolTaskId,
-                repeat_index: record.metadata.repeatIndex || 1,
-                payload: record.metadata.payload                               
-              });
-            }
-
-            // 2. Safely remove from IndexedDB
-            await markRecordingStatus(record.id, 'uploaded');
-            await deleteLocalRecording(record.id);
-            
-            // 3. TRACK PROGRESS CAREFULLY (using record.metadata, NOT meta)
-            await trackProgress(sessionId, {
-              action: record.metadata.progressAction,
-              protocolTaskId: record.metadata.protocolTaskId,
-              ...(record.metadata.isAttemptOnly  && { snrScore: record.metadata.snrScore }),
-              ...(!record.metadata.isAttemptOnly && !record.metadata.isMicCheck && { taskIndex: record.metadata.taskOrder }),
-            });
-            
-          } catch (err) {
-            logger.error(`[Reconnect Flush] task ${record.metadata?.taskIndex} still failing: ${err.message}`);
-          } finally {
-            activeUploads.delete(record.id);
-          }
-        }
-      } catch (err) {
-        logger.error(`[Reconnect Flush] Error reading IDB: ${err.message}`);
-      }
-    }
-
-    flushOnReconnect();
+    flushPendingRecordings(sessionId);
   }, [networkStatus, sessionId]);
+
+  // Backstop for a connection that is slow but never actually reports
+  // 'offline': the reconnect effect above won't refire, so poll for anything
+  // left in IDB (e.g. a recording whose upload hit fetchWithTimeout) too.
+  useEffect(() => {
+    if (!isSessionActive || !sessionId) return;
+    const interval = setInterval(() => flushPendingRecordings(sessionId), PENDING_UPLOAD_RETRY_MS);
+    return () => clearInterval(interval);
+  }, [isSessionActive, sessionId]);
 
   // Poll IDB while the CompletionScreen is visible so the participant sees live
   // upload status and we know when it is safe to clear the localStorage token.
@@ -372,6 +322,11 @@ export default function ParticipantInterfacePage() {
 
     async function checkPending() {
       try {
+        // Actively retry, not just observe -- otherwise a recording that hit
+        // fetchWithTimeout on a slow connection would sit in IDB until an
+        // actual online/offline event fires, potentially stalling completion.
+        if (navigator.onLine) await flushPendingRecordings(sessionId);
+
         const pending = await getPendingRecordingsForSession(sessionId);
         setPendingUploadCount(pending.length);
 
@@ -864,11 +819,15 @@ export default function ParticipantInterfacePage() {
       }
    
       await saveRecordingLocally(recordingId, blob, uploadMeta);
-   
+
+      // Not awaited: the blob is already safe in IDB above, and
+      // uploadInBackground swallows its own errors (keeping the record in IDB
+      // for flushPendingRecordings to retry) -- so a slow/stalled connection
+      // can no longer block the participant from moving to the next task.
       if (navigator.onLine) {
-        await uploadInBackground(recordingId, blob, uploadMeta, sessionId, taskIndex);
+        uploadInBackground(recordingId, blob, uploadMeta, sessionId, taskIndex);
       }
-   
+
       if (!isAttempt) {
         proceedToNext();
       }
@@ -1219,51 +1178,4 @@ export default function ParticipantInterfacePage() {
       </div>
     </div>
   );
-}
-
-// Handles the upload, the two-step IDB deletion, and the server progress update.
-// Defined outside the component so it is stable and never recreated on render.
-//
-async function uploadInBackground(recordingId, blob, meta, sessionId, taskIndex) {
-  if (activeUploads.has(recordingId)) return;
-  activeUploads.add(recordingId);
-
-  try {
-    if (meta.isSystemTask) {
-      // Do nothing API-wise
-    } else if (meta.isMicCheck && meta.isBlob) {
-      await uploadMicCheck(blob, meta);
-    } else if (meta.isBlob) {
-      await uploadRecording(blob, meta);
-    } else if (meta.isMicCheck) {
-      // Mic-check "skipped" event with no audio — nothing to persist to task_results.
-      // Progress (skipped, attempts) is captured via trackProgress below instead.
-    } else {
-      await saveTaskResult({
-        sessionId: meta.sessionId,
-        protocolTaskId: meta.protocolTaskId,
-        repeat_index: meta.repeatIndex || 1,
-        payload: meta.payload
-      });
-    }
- 
-    await markRecordingStatus(recordingId, 'uploaded');
-    await deleteLocalRecording(recordingId);
- 
-    await trackProgress(sessionId, {
-      action: meta.progressAction,
-      protocolTaskId: meta.protocolTaskId,
-      ...(meta.isAttemptOnly  && { snrScore: meta.snrScore }),
-      ...(!meta.isAttemptOnly && !meta.isMicCheck && { taskIndex: meta.taskOrder }),
-    });
-    logger.info(`[BG Upload] task ${taskIndex} uploaded and removed from IDB ✓`);
- 
-  } catch (err) {
-    logger.error("Background upload failed (kept in IDB for retry)", err, { 
-      taskIndex, 
-      recordingId 
-    });
-  } finally {
-    activeUploads.delete(recordingId);
-  }
 }
