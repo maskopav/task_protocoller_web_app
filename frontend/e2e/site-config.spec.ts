@@ -24,7 +24,7 @@ test('a valid site token returns the config with inherited protocols grouped by 
   expect(protocol.name).toBe('E2E Test Protocol');
   expect(protocol.tasks).toHaveLength(3);
   expect(protocol.tasks.map((t: { task_order: number }) => t.task_order)).toEqual([1, 2, 3]);
-  expect(protocol.consent_text).toContain('E2E test consent');
+  expect(protocol.global_contents.find((c: { type: string }) => c.type === 'consent').html).toContain('E2E test consent');
 
   // The token is the site's credential — it must never appear in the response.
   expect(JSON.stringify(body)).not.toContain(SITE_TOKEN);

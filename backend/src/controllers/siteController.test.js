@@ -117,8 +117,10 @@ describe('getSiteConfig', () => {
       language_code: 'en',
       randomization: { strategy: 'none' },
       required_identifiers: [],
-      consent_text: '<p>consent</p>',
     });
+    expect(protocol.global_contents).toEqual([
+      { type: 'consent', html: '<p>consent</p>' },
+    ]);
     expect(protocol.tasks).toEqual([
       { id: 100, task_id: 2, task_order: 1, params: { duration: 3 }, contents: [] },
     ]);

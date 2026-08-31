@@ -108,7 +108,6 @@ export function ProtocolEditor({
   // Intro components modals
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
-  const [showConsentModal, setShowConsentModal] = useState(false);
   const [showIdentifiersModal, setShowIdentifiersModal] = useState(false);
 
   // --- State: UI & Validation ---
@@ -393,18 +392,6 @@ export function ProtocolEditor({
     }
   }
 
-  async function handleDeleteConsent() {
-    const isConfirmed = await confirm({
-      title: t("protocolEditor.confirmDeleteConsentTitle"),
-      message: t("protocolEditor.confirmDeleteConsentMsg"),
-      confirmText: t("common:delete"),
-      cancelText: t("common:cancel")
-    });
-    if (isConfirmed) {
-      updateProtocolField("consent_text", "");
-    }
-  }
-
   async function handleDeleteIdentifiers() {
   const isConfirmed = await confirm({
     title: t("protocolEditor.confirmDeleteIdentifiersTitle", "Remove Identifiers Page?"),
@@ -446,9 +433,7 @@ export function ProtocolEditor({
           onDeleteInfo={handleDeleteInfo}
           onEditInstructions={() => setShowInstructionsModal(true)}
           onDeleteInstructions={handleDeleteInstructions}
-          onEditConsent={() => setShowConsentModal(true)}
-          onDeleteConsent={handleDeleteConsent}
-          onEditIdentifiers={() => setShowIdentifiersModal(true)} 
+          onEditIdentifiers={() => setShowIdentifiersModal(true)}
           onDeleteIdentifiers={handleDeleteIdentifiers}
         />
       </div>
@@ -501,34 +486,6 @@ export function ProtocolEditor({
                 modules={editorModules}
                 value={protocolData?.instructions_text || ""}
                 onChange={(val) => updateProtocolField("instructions_text", val)}
-              />
-            </div>
-          </div>
-        </div>
-      </AdminModal>
-
-      {/* --- Consent Page Rich Text Modal --- */}
-      <AdminModal
-        open={showConsentModal}
-        title={t("protocolEditor.editConsentTitle")}
-        onClose={() => setShowConsentModal(false)}
-        onSave={() => setShowConsentModal(false)}
-      >
-        <div className="mobile-preview-wrapper">
-          <TemplateSelector 
-            templateType="consent" 
-            currentLanguage={protocolData?.language || "en"} 
-            onSelect={(content) => updateProtocolField("consent_text", content)} 
-            i18n={i18n}
-          />
-          <div className="mobile-phone-frame">
-            <div className="mobile-screen">
-               <ReactQuill 
-                theme="snow"
-                modules={editorModules}
-                value={protocolData?.consent_text || ""}
-                onChange={(val) => updateProtocolField("consent_text", val)}
-                placeholder={t("protocolEditor.consentPlaceholder")}
               />
             </div>
           </div>

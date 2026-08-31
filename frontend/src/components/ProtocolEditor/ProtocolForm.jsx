@@ -25,10 +25,8 @@ export default function ProtocolForm({
   setPreviewRandomized,
   onEditInfo,
   onDeleteInfo,
-  onEditInstructions,   
-  onDeleteInstructions, 
-  onEditConsent,
-  onDeleteConsent,
+  onEditInstructions,
+  onDeleteInstructions,
   onEditIdentifiers,
   onDeleteIdentifiers,
 }) {
@@ -80,11 +78,6 @@ export default function ProtocolForm({
         }
       }
     }));
-  };
-
-  const handleAudioInstructionsChange = (e) => {
-    const checked = e.target.checked;
-    setProtocolData((prev) => ({ ...prev, use_audio_guide: checked }));
   };
 
   // Helper to check if Quill content is truly empty
@@ -144,18 +137,6 @@ export default function ProtocolForm({
               editingMode={editingMode}
             />
 
-            <div className="protocol-field checkbox-field" style={{ marginTop: '10px' }}>
-              <label className="checkbox-option">
-                <input 
-                  type="checkbox" 
-                  checked={!!(protocolData?.use_audio_guide ?? true)}
-                  onChange={handleAudioInstructionsChange}
-                  disabled={reorderMode}
-                />
-                <span>{t("protocolEditor.useAudioInstructions", "Audio Instructions")}</span>
-              </label>
-            </div>
-
             <div className="protocol-pages-row">
               {/* Info Page Logic */}
               {isQuillEmpty(protocolData?.info_text) ? (
@@ -183,21 +164,6 @@ export default function ProtocolForm({
                   <div className="page-actions">
                     <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditInstructions}>✎</span>
                     <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteInstructions}>✖</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Consent Form Logic */}
-              {isQuillEmpty(protocolData?.consent_text)? (
-                <button className="btn-add-page-minimal" onClick={onEditConsent} disabled={reorderMode}>
-                  + {t("protocolEditor.addConsentForm")}
-                </button>
-              ) : (
-                <div className="page-item-minimal">
-                  <span className="page-label">{t("protocolEditor.consentFormAdded")} ✅</span>
-                  <div className="page-actions">
-                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditConsent}>✎</span>
-                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteConsent}>✖</span>
                   </div>
                 </div>
               )}

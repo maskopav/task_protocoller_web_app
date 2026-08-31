@@ -4,10 +4,10 @@ import { logToFile } from '../utils/logger.js';
 
 // POST
 export const saveProtocol = async (req, res) => {
-  const { 
-    protocol_group_id, name, language_id, description, version, 
-    created_by, updated_by, tasks, project_id, editingMode, 
-    randomization, required_identifiers, info_text, consent_text,
+  const {
+    protocol_group_id, name, language_id, description, version,
+    created_by, updated_by, tasks, project_id, editingMode,
+    randomization, required_identifiers, info_text,
     instructions_text, use_audio_guide
   } = req.body;
 
@@ -115,7 +115,7 @@ export const saveProtocol = async (req, res) => {
         const [result] = await conn.query(
           `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, created_by, updated_by, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? true) ? 1 : 0]
+          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, created_by, updated_by, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? false) ? 1 : 0]
         );
         const newProtocolId = result.insertId;
         
@@ -127,16 +127,12 @@ export const saveProtocol = async (req, res) => {
 
         // Save GLOBAL content (Rescue old translations if it's a sibling language)
         const finalInfoText = isSourceLang ? info_text : (oldGlobalContents['info'] !== undefined ? oldGlobalContents['info'] : info_text);
-        const finalConsentText = isSourceLang ? consent_text : (oldGlobalContents['consent'] !== undefined ? oldGlobalContents['consent'] : consent_text);
         const finalInstructionsText = isSourceLang ? instructions_text : (oldGlobalContents['instructions'] !== undefined ? oldGlobalContents['instructions'] : instructions_text);
 
         if (typeof finalInfoText === 'string' && finalInfoText.trim() !== '') {
           await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'info', ?)`, [newProtocolId, finalInfoText]);
         }
-        if (typeof finalConsentText === 'string' && finalConsentText.trim() !== '') {
-          await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'consent', ?)`, [newProtocolId, finalConsentText]);
-        }
-        
+
         if (typeof finalInstructionsText === 'string' && finalInstructionsText.trim() !== '') {
           await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'instructions', ?)`, [newProtocolId, finalInstructionsText]);
         }

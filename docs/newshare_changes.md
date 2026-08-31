@@ -101,8 +101,8 @@ deactivated site, `200`:
           "language_code": "fr",
           "randomization": { "strategy": "none" },
           "required_identifiers": [],
-          "use_audio_guide": 1,
-          "info_text": "", "instructions_text": "", "consent_text": "<p>…</p>",
+          "use_audio_guide": 0,
+          "info_text": "", "instructions_text": "",
           "global_contents": [ { "type": "consent", "html": "<p>…</p>" } ],
           "tasks": [
             { "id": 100, "task_id": 2, "task_order": 1,

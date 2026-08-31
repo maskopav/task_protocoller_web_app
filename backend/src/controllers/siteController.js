@@ -308,7 +308,6 @@ export const getSiteConfig = async (req, res) => {
           use_audio_guide: protocol.use_audio_guide,
           info_text: globalFields.info_text || "",
           instructions_text: globalFields.instructions_text || "",
-          consent_text: globalFields.consent_text || "",
           global_contents: contentMap["global"] || [],
           tasks
         });

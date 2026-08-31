@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useRef, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "../../i18n";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext"; 
@@ -9,39 +9,12 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
   const { confirm } = useContext(ConfirmDialogContext);
 
   const selectedLangs = Array.isArray(value) ? value : (value ? [value] : ["en"]);
-  
-  // Local state to track if multi-language is enabled (defaults to true if array has > 1)
-  const [isMulti, setIsMulti] = useState(selectedLangs.length > 1);
 
   const initialLangsRef = useRef(null);
   if (editingMode && !initialLangsRef.current && value) {
     initialLangsRef.current = selectedLangs;
   }
   const initialLangs = initialLangsRef.current || [];
-
-  // Handles the checkbox toggle
-  const handleMultiCheck = async (e) => {
-    if (disabled) return;
-    
-    if (e.target.checked) {
-       // Ask for confirmation before enabling
-       const confirmed = await confirm({
-          title: t("protocolEditor.multiLangTitle"),
-          message: t("protocolEditor.multiLangMessage"),
-          confirmText: t("common:yes", "Yes, enable"),
-          cancelText: t("common:cancel", "Cancel")
-       });
-       if (confirmed) {
-         setIsMulti(true);
-       }
-    } else {
-       // Disable and reset to just the first selected language
-       setIsMulti(false);
-       if (selectedLangs.length > 1) {
-         onChange([selectedLangs[0]]);
-       }
-    }
-  };
 
   const toggleLanguage = async (code) => {
     if (disabled) return;
@@ -58,17 +31,11 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
     }
 
     if (selectedLangs.includes(code)) {
-      if (selectedLangs.length === 1) return; 
-      if (editingMode && initialLangs.includes(code)) return; 
+      if (selectedLangs.length === 1) return;
+      if (editingMode && initialLangs.includes(code)) return;
       onChange(selectedLangs.filter((c) => c !== code));
     } else {
-      if (!editingMode && !isMulti) {
-         // Single select mode: Replace the selection
-         onChange([code]);
-      } else {
-         // Multi select mode: Append to array
-         onChange([...selectedLangs, code]);
-      }
+      onChange([...selectedLangs, code]);
     }
   };
 
@@ -161,16 +128,6 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
           );
         })}
       </div>
-
-      <label className={`protocol-multi-select-label ${disabled ? "disabled" : ""}`}>
-         <input 
-            type="checkbox" 
-            checked={isMulti} 
-            onChange={handleMultiCheck}
-            disabled={disabled}
-         />
-         {t("protocolEditor.allowMultiSelect")}
-      </label>
     </div>
   );
 }
