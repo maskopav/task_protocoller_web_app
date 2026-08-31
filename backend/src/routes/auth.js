@@ -4,13 +4,14 @@ import { adminLogin,
     adminResetPassword,
     setupAdminProfile
  } from "../controllers/authController.js";
+import { loginLimiter, authLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-router.post("/admin/login", adminLogin);
-router.post("/admin/forgot-password", adminForgotPassword);
-router.post("/admin/reset-password", adminResetPassword);
-router.post("/setup-profile", setupAdminProfile);
+router.post("/admin/login", loginLimiter, adminLogin);
+router.post("/admin/forgot-password", authLimiter, adminForgotPassword);
+router.post("/admin/reset-password", authLimiter, adminResetPassword);
+router.post("/setup-profile", authLimiter, setupAdminProfile);
 
 
 export default router;
