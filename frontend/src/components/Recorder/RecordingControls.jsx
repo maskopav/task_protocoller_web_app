@@ -47,9 +47,9 @@ export const RecordingControls = ({
                     {t("buttons.seeTopic")}
                 </SafeButton>
             ) : (
-                <SafeButton 
+                <SafeButton
                     onClick={onStart}
-                    className={`btn-start ${disableStart ? 'disabled' : ''}`}
+                    className={`btn-start ${disableStart ? 'disabled' : ''} ${isPreparingToRecord ? 'btn-loading' : ''}`}
                     disabled={disableStart}
                 >
                 {isPreparingToRecord ? (
