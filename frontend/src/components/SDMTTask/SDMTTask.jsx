@@ -236,10 +236,12 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
             className="sdmt-container"
             title={t("sdmt.title")}
             tooltip={
-                <InfoTooltip
-                    title={t("sdmt.demoTitle")}
-                    text={<SDMTDemoMessage />}
-                />
+                gameState !== 'playing' && (
+                    <InfoTooltip
+                        title={t("sdmt.demoTitle")}
+                        text={<SDMTDemoMessage />}
+                    />
+                )
             }
             showSpacer={gameState !== 'playing'}
             instructions={
