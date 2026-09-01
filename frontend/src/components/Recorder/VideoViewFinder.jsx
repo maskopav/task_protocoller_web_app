@@ -29,13 +29,18 @@ export const VideoViewFinder = ({
     onStartCalibration,
     onFinishCalibration,
     permissionDenied = false,
-    audioGuideEnabled = true
+    audioGuideEnabled = true,
+    // True when this same task attempt already got the user through the
+    // permission intro card once before (tracked by the parent, which
+    // doesn't unmount on retry — this component does). Skips straight to
+    // silently re-requesting the stream instead of showing the intro again.
+    skipPermissionIntro = false
 }) => {
     const { confirm } = useContext(ConfirmDialogContext);
     const { t, i18n } = useTranslation();
     const [setupCancelled, setSetupCancelled] = useState(false);
     const [camPermState, setCamPermState] = useState(CAM_PERM.CHECKING);
-    const [permissionAcknowledged, setPermissionAcknowledged] = useState(false);
+    const [permissionAcknowledged, setPermissionAcknowledged] = useState(() => skipPermissionIntro);
     // True once the actual getUserMedia() call has resolved successfully.
     // This — not just "intro acknowledged" — is what gates the task
     // instructions dialog, so the native camera popup always lands between
@@ -146,6 +151,19 @@ export const VideoViewFinder = ({
             setCamPermState(CAM_PERM.DENIED);
         }
     };
+
+    // Re-request the stream
+    // immediately, without waiting on the Permissions API (camPermState),
+    // so this also works on browsers like iOS Safari where that API isn't
+    // supported and camPermState would otherwise just sit at PROMPT forever.
+    // If the user revoked permission in the meantime, getUserMedia() simply
+    // fails and requestCameraStream() falls back to the normal denied screen.
+    useEffect(() => {
+        if (skipPermissionIntro) {
+            requestCameraStream();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Recovery path ONLY: if the user already acknowledged the intro card
     // (or landed on the denied screen and its retry) earlier in this same

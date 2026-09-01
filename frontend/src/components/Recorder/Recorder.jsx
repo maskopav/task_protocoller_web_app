@@ -97,6 +97,7 @@ export const Recorder = ({
     // silenced synchronously the instant Start is clicked.
     const examplePlayerRef = useRef(null);
     const storyPlayerRef = useRef(null);
+    const cameraPermissionAcknowledgedRef = useRef(false);
 
     // Broadcast phase changes up to ParticipantInterfacePage
     useEffect(() => {
@@ -715,12 +716,16 @@ export const Recorder = ({
                     videoRecorder={videoRecorder} 
                     isRecording={recordingStatus === RECORDING_STATES.RECORDING} 
                     onRequestCameraPermission={handleRequestCameraPermission}
-                    onPermissionGranted={() => setPhase('GENERAL_INFO')} // Moves to the pre-calibration info screen
+                    onPermissionGranted={() => {
+                        cameraPermissionAcknowledgedRef.current = true;
+                        setPhase('GENERAL_INFO'); // Moves to the pre-calibration info screen
+                    }}
                     onPermissionDenied={onCameraPermissionDenied}
                     onDeclineVideo={onDeclineVideo}
                     onStartCalibration={handleStartCalibration}
                     onFinishCalibration={handleFinishCalibration}
                     audioGuideEnabled={audioGuideEnabled}
+                    skipPermissionIntro={cameraPermissionAcknowledgedRef.current}
                 />
             )}
 
