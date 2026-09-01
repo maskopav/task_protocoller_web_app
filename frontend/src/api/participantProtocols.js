@@ -1,11 +1,12 @@
 // src/api/participantProtocol.js
 const API_BASE = import.meta.env.VITE_API_BASE;
 import { apiFetch } from "./apiClient";
+import { fetchWithTimeout } from "./fetchWithTimeout";
 
 // -- Participant-facing: gated by the token itself, no admin auth --
 
 export async function fetchParticipantProtocol(token) {
-  const res = await fetch(`${API_BASE}/participant-protocols/${token}`);
+  const res = await fetchWithTimeout(`${API_BASE}/participant-protocols/${token}`);
   if (!res.ok) {
     // Try to parse the specific error message from the backend
     const errData = await res.json().catch(() => ({}));
@@ -85,7 +86,7 @@ export async function sendProtocolEmailApi({ email, subject, body, link, lang })
 
 // Swap participant protocol - different language version
 export const swapParticipantProtocolLanguage = async (token, new_project_protocol_id) => {
-  const response = await fetch(`${API_BASE}/participant-protocols/${token}/language`, {
+  const response = await fetchWithTimeout(`${API_BASE}/participant-protocols/${token}/language`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ new_project_protocol_id }),

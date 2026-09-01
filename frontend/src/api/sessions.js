@@ -1,4 +1,6 @@
 // src/api/sessions.js
+import { fetchWithTimeout } from "./fetchWithTimeout";
+
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 export async function initSession({token, taskOrder}) {
@@ -14,7 +16,7 @@ export async function initSession({token, taskOrder}) {
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
 
-  const res = await fetch(`${API_BASE}/sessions/init`, {
+  const res = await fetchWithTimeout(`${API_BASE}/sessions/init`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
@@ -50,7 +52,7 @@ export async function trackProgress(sessionId, eventData, markCompleted = false)
   }
 
   // Fire and forget (don't await strict response to keep UI snappy)
-  fetch(`${API_BASE}/sessions/progress`, {
+  fetchWithTimeout(`${API_BASE}/sessions/progress`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -58,7 +60,7 @@ export async function trackProgress(sessionId, eventData, markCompleted = false)
 }
 
 export async function saveQuestionnaireAnswers(payload) {
-  const res = await fetch(`${API_BASE}/sessions/questionnaire-response`, {
+  const res = await fetchWithTimeout(`${API_BASE}/sessions/questionnaire-response`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -69,7 +71,7 @@ export async function saveQuestionnaireAnswers(payload) {
 
 
 export async function updateSessionIdentifiers(sessionId, identifiers, token) {
-  const res = await fetch(`${API_BASE}/sessions/${sessionId}/identifiers`, {
+  const res = await fetchWithTimeout(`${API_BASE}/sessions/${sessionId}/identifiers`, {
     method: "PUT",
     headers: { 
       "Content-Type": "application/json",

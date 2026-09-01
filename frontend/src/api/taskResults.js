@@ -1,8 +1,10 @@
 // src/api/taskResults.js
+import { fetchWithTimeout } from "./fetchWithTimeout";
+
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 export async function saveTaskResult(data) {
-  const res = await fetch(`${API_BASE}/task-results/save`, {
+  const res = await fetchWithTimeout(`${API_BASE}/task-results/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
