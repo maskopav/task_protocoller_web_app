@@ -369,7 +369,9 @@ export const Recorder = ({
     // wait once they reach calibration.
     React.useEffect(() => {
         if (isVideoEnabled) {
-            videoRecorder.preloadFaceModel();
+            // Failure is tracked via videoRecorder.modelLoadError (surfaced by
+            // VideoViewFinder) — this catch only silences the unhandled rejection.
+            videoRecorder.preloadFaceModel().catch(() => {});
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVideoEnabled]);

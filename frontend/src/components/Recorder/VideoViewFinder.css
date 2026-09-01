@@ -204,6 +204,15 @@
   text-decoration: underline;
 }
 
+/* Quiet "give up on calibration" link, revealed after CALIBRATION_STUCK_MS
+   of no success — reuses .btn-decline-camera's link styling. */
+.calibration-stuck-hint {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
 /* Small gray "continue without camera" link-button on the denied screen.
    Every reset here defeats the global full-width primary `button` styling. */
 .btn-decline-camera {

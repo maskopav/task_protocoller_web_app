@@ -8,7 +8,9 @@ import './MediaPermissionContent.css';
 export default function MediaPermissionContent({
   // identity
   type = 'microphone',        // 'microphone' | 'camera'
-  variant = 'intro',          // 'intro' | 'denied'
+  variant = 'intro',          // 'intro' | 'denied' | 'error' ('error': same layout as
+                               // 'denied' minus the OS-specific fix-it steps/image —
+                               // for failures with no "go to Settings" remedy)
 
   // optional <h1> — currently invisible app-wide via TaskLayout's
   // SHOW_GLOBAL_TITLES flag, plumbed through so it works if that ever flips
@@ -50,8 +52,9 @@ export default function MediaPermissionContent({
   }, [osTab]);
 
   const isDenied = variant === 'denied';
+  const showFixItSteps = isDenied; // OS "go to Settings" steps only make sense for a real permission denial
   const assetFolder = type === 'camera' ? 'cameraPermission' : 'microphonePermission';
-  const guideText = isDenied ? deniedText : introText;
+  const guideText = variant === 'intro' ? introText : deniedText;
 
   return (
     <TaskLayout
@@ -64,7 +67,7 @@ export default function MediaPermissionContent({
             <div className="guide-description">{guideText}</div>
           )}
 
-          {isDenied && (
+          {showFixItSteps && (
             <>
               <div className="tab-switcher">
                 <SafeButton
@@ -119,7 +122,7 @@ export default function MediaPermissionContent({
       }
       {...taskLayoutProps}
     >
-      {!isDenied && !imgError && (
+      {variant === 'intro' && !imgError && (
         <img
           src={imageSrc || `${baseAssetPath}assets/${assetFolder}/mic_access.png`}
           alt={`${type} permission prompt`}

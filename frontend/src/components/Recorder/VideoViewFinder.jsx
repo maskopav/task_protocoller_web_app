@@ -44,11 +44,31 @@ export const VideoViewFinder = ({
     const [cameraGranted, setCameraGranted] = useState(false);
     const requestInFlight = useRef(false);
     
-    const { 
-        attachVideoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel
+    const {
+        attachVideoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel,
+        modelLoadError, cameraErrorType, preloadFaceModel
     } = videoRecorder;
 
     const showWarningBorder = isRecording && (!isSteady || !isFaceCorrect);
+
+    // Shared "are you sure?" dialog for every bypass entry point (permission
+    // denied/hardware error, face-model load failure, stuck calibration) —
+    // they all resolve into the same onDeclineVideo, tagged with why.
+    const confirmDeclineVideo = async (reason) => {
+        const confirmed = await confirm({
+            title: t('videoCalibration.guide.declineTitle'),
+            message: t('videoCalibration.guide.declineMessage'),
+            confirmText: t('videoCalibration.guide.declineConfirm'),
+            cancelText: t('videoCalibration.guide.declineCancel'),
+        });
+        if (confirmed) onDeclineVideo(reason);
+    };
+
+    const DeclineVideoLink = ({ reason, children }) => onDeclineVideo && (
+        <button className="btn-decline-camera" onClick={() => confirmDeclineVideo(reason)}>
+            {children}
+        </button>
+    );
 
     // ── CAMERA PERMISSION PRE-CHECK ───────────────────────────────
     // Runs once on mount so we know, before showing any task/setup
@@ -207,18 +227,47 @@ export const VideoViewFinder = ({
         onPermissionDenied?.(camPermState === CAM_PERM.DENIED);
     }, [camPermState, onPermissionDenied]);
 
+    // ── STUCK CALIBRATION ─────────────────────────────────────────
+    // Some participants can never satisfy the framing heuristics (poor
+    // lighting, low-end webcam, etc.) and would otherwise be stuck on this
+    // screen forever. After a while, quietly reveal the same bypass offered
+    // for a denied/broken camera. Keyed only on `phase` — a flicker between
+    // steady/unsteady frames while still trying is not "stuck".
+    const CALIBRATION_STUCK_MS = 35000;
+    const [calibrationStuck, setCalibrationStuck] = useState(false);
+    useEffect(() => {
+        if (phase !== 'CALIBRATE') {
+            setCalibrationStuck(false);
+            return;
+        }
+        const timer = setTimeout(() => setCalibrationStuck(true), CALIBRATION_STUCK_MS);
+        return () => clearTimeout(timer);
+    }, [phase]);
+
     // ── CAMERA PERMISSION DENIED ──────────────────────────────────
     // Shown instead of ANY phase content (SETUP, CALIBRATE, RECORDING...)
     // until permission is granted. The onchange listener above will
     // flip camPermState if the user fixes it in browser settings.
     if (camPermState === CAM_PERM.DENIED) {
+        // The Permissions API only ever reports 'denied' (no err.name to
+        // classify), so a null cameraErrorType means a real permission
+        // denial — only a caught getUserMedia() failure can name a more
+        // specific hardware issue.
+        const errConfig = {
+            missing: { title: 'titleHardware', desc: 'descMissing', stepsKey: 'hardware', showImage: false },
+            busy:    { title: 'titleHardware', desc: 'descBusy',    stepsKey: 'hardware', showImage: false },
+            generic: { title: 'titleGeneric',  desc: 'descGeneric', stepsKey: 'hardware', showImage: false },
+        }[cameraErrorType] || { title: 'titleDenied', desc: 'descDenied', stepsKey: 'systemAndBrowser', showImage: true };
+
         return (
             <MediaPermissionContent
                 type="camera"
                 variant="denied"
-                deniedText={<Trans i18nKey="videoCalibration.guide.descDenied" />}
+                title={t(`videoCalibration.guide.${errConfig.title}`)}
+                deniedText={<Trans i18nKey={`videoCalibration.guide.${errConfig.desc}`} />}
+                showImage={errConfig.showImage}
                 customSteps={(osTab) => (
-                    <Trans i18nKey={`videoCalibration.guide.steps.${osTab}`} />
+                    <Trans i18nKey={`videoCalibration.guide.steps.${osTab}.${errConfig.stepsKey}`} />
                 )}
                 btnText={t('videoCalibration.guide.btnRetry')}
                 onBtnClick={() => {
@@ -230,22 +279,38 @@ export const VideoViewFinder = ({
                     setCamPermState(CAM_PERM.CHECKING);
                     requestCameraStream();
                 }}
-                secondaryControls={onDeclineVideo && (
-                    <button
-                        className="btn-decline-camera"
-                        onClick={async () => {
-                            const confirmed = await confirm({
-                                title: t('videoCalibration.guide.declineTitle'),
-                                message: t('videoCalibration.guide.declineMessage'),
-                                confirmText: t('videoCalibration.guide.declineConfirm'),
-                                cancelText: t('videoCalibration.guide.declineCancel'),
-                            });
-                            if (confirmed) onDeclineVideo();
-                        }}
-                    >
+                secondaryControls={
+                    <DeclineVideoLink reason={`camera_${cameraErrorType || 'denied'}`}>
                         {t('videoCalibration.guide.btnDecline')}
-                    </button>
-                )}
+                    </DeclineVideoLink>
+                }
+            />
+        );
+    }
+
+    // ── FACE MODEL FAILED TO LOAD ──────────────────────────────────
+    // Camera permission is fine, but the face-tracking model (independent
+    // download, see useVideoRecorder.preloadFaceModel) never finished. Without
+    // this, the calibration loop just spins forever with no visible feedback.
+    if (phase === 'CALIBRATE' && modelLoadError) {
+        return (
+            <MediaPermissionContent
+                type="camera"
+                variant="error"
+                deniedText={
+                    <>
+                        <Trans i18nKey="videoCalibration.guide.descModelLoadFailed" />
+                        <br /><br />
+                        <Trans i18nKey="videoCalibration.guide.stepsModelLoadFailed" />
+                    </>
+                }
+                btnText={t('videoCalibration.guide.btnRetry')}
+                onBtnClick={() => { preloadFaceModel().catch(() => {}); }}
+                secondaryControls={
+                    <DeclineVideoLink reason="model_load_failed">
+                        {t('videoCalibration.guide.btnDecline')}
+                    </DeclineVideoLink>
+                }
             />
         );
     }
@@ -351,6 +416,14 @@ export const VideoViewFinder = ({
                     <span className="info-text-label" onClick={showInstructionsDialog}>
                         {t('videoCalibration.viewInstructions', 'View Setup Instructions')}
                     </span>
+                </div>
+            )}
+
+            {phase === 'CALIBRATE' && calibrationStuck && (
+                <div className="calibration-stuck-hint">
+                    <DeclineVideoLink reason="calibration_timeout">
+                        {t('videoCalibration.guide.btnStuck')}
+                    </DeclineVideoLink>
                 </div>
             )}
 

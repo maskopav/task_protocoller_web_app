@@ -603,12 +603,13 @@ export default function ParticipantInterfacePage() {
     [i18n.language, useAudioGuide]
   );
 
-  // Participant confirmed "continue without camera" on the permission-denied
-  // screen. Plain function (not useCallback) so logInteraction is never stale.
-  const handleDeclineVideo = () => {
+  // Participant confirmed "continue without camera" — from the permission-denied
+  // screen, a face-model load failure, or giving up on calibration (see `reason`).
+  // Plain function (not useCallback) so logInteraction is never stale.
+  const handleDeclineVideo = (reason = 'permission_denied') => {
     // Event lands in sessions.progress; the backend additionally flips
     // sessions.camera_declined when it sees this action.
-    logInteraction('camera_access_declined');
+    logInteraction('camera_access_declined', { reason });
     setVideoDeclined(true);
     setCameraDenied(false);          // stop the camera_permission_denied guide clip
     setAudioPhase('instructions');   // queue the task's normal instruction clip,

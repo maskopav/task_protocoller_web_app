@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import { classifyMediaError } from '../utils/mediaErrorType';
 
 const DEV_MODE = true; // Set to false when deploying
 const FRAME_RATE_MS = 33;
@@ -43,10 +44,18 @@ export const useVideoRecorder = ({
     const audioRecorder = useRef(null);
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
+    // True when the face-tracking model itself failed/timed out — distinct
+    // from a camera/getUserMedia error, so the UI can offer a "retry model
+    // load" path instead of misreporting it as a blocked camera.
+    const [modelLoadError, setModelLoadError] = useState(false);
     // Holds the in-flight/settled load so preloadFaceModel() is idempotent
     // and getMediaPermission() can just await whichever prefetch already
     // started, instead of loading the model twice.
     const modelLoadPromiseRef = useRef(null);
+    // Classified getUserMedia() failure (denied/missing/busy/generic), so the
+    // "camera blocked" screen can show accurate copy instead of always
+    // assuming a permission denial.
+    const [cameraErrorType, setCameraErrorType] = useState(null);
 
     // Callback ref for the <video> element. We use a callback (rather than a
     // plain ref) because the element can mount either BEFORE or AFTER the
@@ -87,6 +96,7 @@ export const useVideoRecorder = ({
         if (modelLoadPromiseRef.current) return modelLoadPromiseRef.current;
 
         setIsLoadingModel(true);
+        setModelLoadError(false);
         const load = async () => {
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
@@ -106,6 +116,7 @@ export const useVideoRecorder = ({
             .then(() => setIsLoadingModel(false))
             .catch((err) => {
                 setIsLoadingModel(false);
+                setModelLoadError(true);
                 faceDetector.current = null;
                 modelLoadPromiseRef.current = null; // allow a retry to start a fresh load
                 throw err;
@@ -124,16 +135,26 @@ export const useVideoRecorder = ({
 
             if (videoRef.current) videoRef.current.srcObject = streamData;
             streamRef.current = streamData;
+            setCameraErrorType(null);
+        } catch (err) {
+            console.error(err);
+            setCameraErrorType(classifyMediaError(err));
+            onError(err);
+            return false;
+        }
 
+        // A model-load failure here is a separate concern from the camera
+        // permission above (tracked via modelLoadError, set inside
+        // preloadFaceModel itself) — don't relabel it as a camera error.
+        try {
             await preloadFaceModel();
-
-            return true;
         } catch (err) {
             console.error(err);
             onError(err);
-            setIsLoadingModel(false);
             return false;
         }
+
+        return true;
     };
 
     const attemptAutoZoom = async (currentEyeDist) => {
@@ -358,7 +379,7 @@ export const useVideoRecorder = ({
         videoRef, attachVideoRef, canvasRef, recordingStatus, isSteady,
         isFaceCorrect, guidance, getMediaPermission, preloadFaceModel,
         startFaceDetection, startRecording, stopRecording,
-        isLoadingModel, videoData
+        isLoadingModel, videoData, modelLoadError, cameraErrorType
     };
 
 };
