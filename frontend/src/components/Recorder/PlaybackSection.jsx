@@ -31,10 +31,11 @@ export const PlaybackSection = ({
         };
     }, [onLogEvent]);
 
-    // Only show playback section if recording is complete
-    if (!audioURL) return null;
-
     const isRecorded = recordingStatus === 'recorded';
+
+    // Show the button group as soon as recording has actually stopped
+    if (!isRecorded) return null;
+    const isProcessing = !audioURL;
 
     const handlePlay = (e) => {
         onPlaybackStart(); // stop any audio guide still playing so it doesn't overlap
@@ -79,18 +80,21 @@ export const PlaybackSection = ({
 
     return (
         <div className="playback-section">
-            <audio src={audioURL} controls onPlay={handlePlay} onPause={handlePause} onEnded={handleEnded} crossOrigin="anonymous" />
+            {audioURL && (
+                <audio src={audioURL} controls onPlay={handlePlay} onPause={handlePause} onEnded={handleEnded} crossOrigin="anonymous" />
+            )}
 
             <div className="button-group">
-                <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading}>
+                <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading || isProcessing}>
                     {t("buttons.repeat")}
                 </SafeButton>
 
                 {showNextButton && (
-                    <NextTaskButton 
-                        onClick={onNextTask} 
-                        disabled={!isRecorded}
+                    <NextTaskButton
+                        onClick={onNextTask}
+                        disabled={isProcessing}
                         isLoading={isUploading}
+                        isProcessing={isProcessing}
                     />
                 )}
             </div>

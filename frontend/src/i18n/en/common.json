@@ -5,6 +5,7 @@
       "reset": "Reset",
       "start": "Start",
       "sending": "Saving…",
+      "processing": "Processing…",
       "pause": "Pause",
       "resume": "Resume",
       "stop": "Stop",
