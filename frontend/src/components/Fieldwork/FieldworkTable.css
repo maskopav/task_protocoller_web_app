@@ -76,25 +76,6 @@
   gap: 0.6rem;
 }
 
-.fieldwork-toolbar-filters {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.fieldwork-search,
-.fieldwork-status-select {
-  padding: 0.5rem 0.7rem;
-  border-radius: var(--sharp-radius);
-  border: 1px solid var(--border);
-  background: #ffffff;
-  font-size: 0.9rem;
-}
-
-.fieldwork-search {
-  min-width: 240px;
-}
-
 .fieldwork-toolbar .btn-edit {
   width: auto;
 }
@@ -103,6 +84,21 @@
   display: flex;
   gap: 0.6rem;
   align-items: center;
+}
+
+.fieldwork-clear-filters {
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fieldwork-clear-filters:hover {
+  border-color: var(--primary);
 }
 
 /* --- Columns menu (native <details>/<summary> popover) --- */
@@ -190,6 +186,52 @@
   padding: 0.55rem 0.6rem;
   white-space: normal;
   vertical-align: middle;
+}
+
+/* --- Per-column header: sortable label + inline filter --- */
+.fieldwork-th {
+  vertical-align: top;
+}
+
+.fieldwork-th-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  width: 100%;
+  margin: 0 0 0.35rem;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.fieldwork-sort-icon {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+}
+
+.fieldwork-sort-icon-idle {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.fieldwork-sort-icon-active {
+  color: var(--primary);
+}
+
+.fieldwork-th-filter {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 400;
 }
 
 .participant-cell {
@@ -312,10 +354,5 @@
   .fieldwork-toolbar {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .fieldwork-search {
-    min-width: 0;
-    flex: 1;
   }
 }
