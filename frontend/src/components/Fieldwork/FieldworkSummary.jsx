@@ -6,7 +6,7 @@ import { STATUS_META, STATUS_ORDER } from "./statusMeta";
 // card sets/clears `columnFilters.status` so the two stay in sync.
 export default function FieldworkSummary({ rows, activeStatus, onSelectStatus }) {
   const statusCounts = useMemo(() => {
-    const counts = { created: 0, in_progress: 0, incomplete: 0, completed: 0 };
+    const counts = { created: 0, in_progress: 0, incomplete: 0, finished: 0 };
     rows.forEach((r) => {
       if (counts[r.protocol_status] !== undefined) counts[r.protocol_status]++;
     });

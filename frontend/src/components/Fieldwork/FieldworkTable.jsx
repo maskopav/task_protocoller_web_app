@@ -5,8 +5,10 @@ import "./FieldworkTable.css";
 import FieldworkSummary from "./FieldworkSummary";
 import FieldworkToolbar from "./FieldworkToolbar";
 import FieldworkColumnHeader from "./FieldworkColumnHeader";
+import FieldworkPagination from "./FieldworkPagination";
 import { useColumnVisibility } from "./useColumnVisibility";
 import { useFieldworkFilters } from "./useFieldworkFilters";
+import { usePagination } from "./usePagination";
 import { exportFieldworkCsv } from "./csvExport";
 
 export default function FieldworkTable({ rows }) {
@@ -20,9 +22,12 @@ export default function FieldworkTable({ rows }) {
     hasActiveFilters,
     filteredSortedRows,
   } = useFieldworkFilters(rows, activeColumns);
+  const { pageSize, setPageSize, currentPage, setCurrentPage, totalPages, pagedRows, totalRows } =
+    usePagination(filteredSortedRows);
 
   // Export mirrors exactly what's on screen: same columns, same order, same
-  // currently-applied per-column filters and sort.
+  // currently-applied per-column filters and sort — but always the full
+  // result set, not just the current page.
   const handleExportCSV = () => exportFieldworkCsv(filteredSortedRows, activeColumns);
 
   return (
@@ -58,12 +63,12 @@ export default function FieldworkTable({ rows }) {
             </tr>
           </thead>
           <tbody>
-            {filteredSortedRows.length === 0 ? (
+            {pagedRows.length === 0 ? (
               <tr>
                 <td colSpan={activeColumns.length} className="empty-row">No sessions found</td>
               </tr>
             ) : (
-              filteredSortedRows.map((r) => (
+              pagedRows.map((r) => (
                 <tr key={r.session_id ?? `pp-${r.participant_protocol_id}`}>
                   {activeColumns.map((col) => (
                     <td key={col.id}>{col.render(r)}</td>
@@ -74,6 +79,15 @@ export default function FieldworkTable({ rows }) {
           </tbody>
         </table>
       </div>
+
+      <FieldworkPagination
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalRows={totalRows}
+      />
     </div>
   );
 }

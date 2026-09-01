@@ -25,7 +25,7 @@ export const STATUS_META = {
     bg: "#fee2e2",
     text: "#991b1b",
   },
-  completed: {
+  finished: {
     label: "Completed",
     hint: "Completed successfully.",
     dot: "#22c55e",
@@ -34,4 +34,4 @@ export const STATUS_META = {
   },
 };
 
-export const STATUS_ORDER = ["created", "in_progress", "incomplete", "completed"];
+export const STATUS_ORDER = ["created", "in_progress", "incomplete", "finished"];

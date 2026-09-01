@@ -346,6 +346,59 @@
   color: var(--muted);
 }
 
+/* --- Pagination --- */
+.fieldwork-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.fieldwork-page-size {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fieldwork-page-size select {
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.fieldwork-page-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.fieldwork-page-nav button {
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.fieldwork-page-nav button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.fieldwork-page-indicator {
+  white-space: nowrap;
+}
+
 @media (max-width: 850px) {
   .fieldwork-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -354,5 +407,11 @@
   .fieldwork-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .fieldwork-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
   }
 }
