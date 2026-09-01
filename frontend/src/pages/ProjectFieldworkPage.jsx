@@ -1,5 +1,5 @@
 // src/pages/ProjectFieldworkPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
@@ -14,19 +14,20 @@ export default function ProjectFieldworkPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadFieldwork() {
-      try {
-        const sessions = await getProjectFieldwork(projectId);
-        setData(sessions);
-      } catch (e) {
-        console.error("Failed to load fieldwork", e);
-      } finally {
-        setLoading(false);
-      }
+  const loadFieldwork = useCallback(async () => {
+    try {
+      const sessions = await getProjectFieldwork(projectId);
+      setData(sessions);
+    } catch (e) {
+      console.error("Failed to load fieldwork", e);
+    } finally {
+      setLoading(false);
     }
-    loadFieldwork();
   }, [projectId]);
+
+  useEffect(() => {
+    loadFieldwork();
+  }, [loadFieldwork]);
 
   return (
     <div className="dashboard-page fieldwork-page">
@@ -39,7 +40,7 @@ export default function ProjectFieldworkPage() {
       {loading ? (
         <p>{t("loading", { ns: "common" })}...</p>
       ) : (
-        <FieldworkTable rows={data} />
+        <FieldworkTable rows={data} projectId={projectId} onDataChanged={loadFieldwork} />
       )}
     </div>
   );

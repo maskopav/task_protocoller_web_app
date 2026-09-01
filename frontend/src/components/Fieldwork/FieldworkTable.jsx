@@ -11,7 +11,7 @@ import { useFieldworkFilters } from "./useFieldworkFilters";
 import { usePagination } from "./usePagination";
 import { exportFieldworkCsv } from "./csvExport";
 
-export default function FieldworkTable({ rows }) {
+export default function FieldworkTable({ rows, projectId, onDataChanged }) {
   const { visibleColumns, toggleColumn, activeColumns } = useColumnVisibility();
   const {
     columnFilters,
@@ -44,6 +44,8 @@ export default function FieldworkTable({ rows }) {
         hasActiveFilters={hasActiveFilters}
         onClearFilters={clearFilters}
         onExportCsv={handleExportCSV}
+        projectId={projectId}
+        onImported={onDataChanged}
       />
 
       <div className="table-scroll-area fieldwork-scroll-area">

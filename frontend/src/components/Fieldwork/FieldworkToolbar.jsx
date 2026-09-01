@@ -1,19 +1,22 @@
 // src/components/Fieldwork/FieldworkToolbar.jsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { COLUMN_DEFS } from "./columns.jsx";
+import FieldworkImportModal from "./FieldworkImportModal";
 
 // Search/status filtering lives per-column in the table header now (see
 // FieldworkColumnHeader) — this toolbar just holds table-wide actions:
-// column visibility, clearing filters/sort, and export. Future actions
-// (e.g. an import button) slot in next to Export CSV.
+// column visibility, clearing filters/sort, import, and export.
 export default function FieldworkToolbar({
   visibleColumns,
   onToggleColumn,
   hasActiveFilters,
   onClearFilters,
   onExportCsv,
+  projectId,
+  onImported,
 }) {
   const columnsMenuRef = useRef(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   // Close the columns menu on outside click (native <details> only toggles on <summary>)
   useEffect(() => {
@@ -53,10 +56,20 @@ export default function FieldworkToolbar({
             ))}
           </div>
         </details>
+        <button className="btn-edit" onClick={() => setImportOpen(true)}>
+          Import
+        </button>
         <button className="btn-edit" onClick={onExportCsv}>
           Export CSV
         </button>
       </div>
+
+      <FieldworkImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        projectId={projectId}
+        onImported={onImported}
+      />
     </div>
   );
 }

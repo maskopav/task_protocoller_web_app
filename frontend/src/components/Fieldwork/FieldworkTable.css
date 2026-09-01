@@ -415,3 +415,60 @@
     text-align: center;
   }
 }
+
+/* --- Import modal --- */
+.fieldwork-import {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.fieldwork-import-template-btn {
+  align-self: flex-start;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fieldwork-import-file-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.fieldwork-import-status {
+  color: var(--muted);
+}
+
+.fieldwork-import-error {
+  color: var(--danger);
+}
+
+.fieldwork-import-warnings {
+  font-size: 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--sharp-radius);
+  padding: 0.6rem 0.8rem;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.fieldwork-import-warnings ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.fieldwork-import-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

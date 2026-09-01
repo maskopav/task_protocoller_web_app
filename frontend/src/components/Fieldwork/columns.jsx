@@ -109,6 +109,15 @@ export const COLUMN_DEFS = [
     },
   },
   {
+    id: "linkSentAt",
+    label: "Link Sent",
+    // When the survey agency actually contacted the participant with the
+    // link — set via the Fieldwork CSV import, distinct from "Started".
+    value: (r) => csvDateTime(r.link_sent_at),
+    sortValue: (r) => r.link_sent_at || "",
+    render: (r) => formatDateTime(r.link_sent_at),
+  },
+  {
     id: "started",
     label: "Started",
     value: (r) => csvDateTime(r.session_started_at),

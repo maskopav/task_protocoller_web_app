@@ -72,6 +72,19 @@ export async function assignProtocolToParticipant(data) {
   return res.json();
 }
 
+export async function importLinkSentDates(projectId, rows) {
+  const res = await apiFetch(`/participant-protocols/import-link-sent`, {
+    method: "POST",
+    body: JSON.stringify({ project_id: projectId, rows }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to import link-sent dates");
+  }
+  return res.json();
+}
+
 export async function sendProtocolEmailApi({ email, subject, body, link, lang }) {
   const res = await apiFetch(`/participant-protocols/send-manual-email`, {
     method: "POST",

@@ -274,6 +274,82 @@ export async function deactivateParticipantProtocol(req, res) {
   }
 }
 
+// A bare date or a date + time, space- or T-separated (e.g. "2026-09-01" or
+// "2026-09-01 10:30" or "2026-09-01T10:30:00"). Stored as-is, no timezone
+// reinterpretation — this is agency-supplied outreach metadata, not used in
+// any resume-window/scheduling logic.
+const SENT_AT_RE = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2})(:\d{2})?)?$/;
+
+function normalizeSentAt(raw) {
+  const match = SENT_AT_RE.exec((raw || "").trim());
+  if (!match) return null;
+  const [, datePart, hhmm, ss] = match;
+  const time = hhmm ? `${hhmm}${ss || ":00"}` : "00:00:00";
+  return `${datePart} ${time}`;
+}
+
+// POST /api/participant-protocol/import-link-sent
+// body: { project_id, rows: [{ external_id, sent_at }] }
+//
+// Matches each row to the participant's currently active assignment in this
+// project (by participants.external_id) and stamps link_sent_at on it.
+// Deliberately per-row: a survey agency's CSV routinely has a handful of
+// typo'd IDs or bad dates, and rejecting the whole file over one bad line
+// would just bounce back and forth over email — so every row is judged
+// independently and the response reports exactly what happened to each one.
+export async function importLinkSentDates(req, res) {
+  const { project_id, rows } = req.body;
+
+  if (!project_id || !Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ error: "Missing project_id or rows" });
+  }
+
+  const skipped = [];
+  let updated = 0;
+
+  for (const row of rows) {
+    const externalId = (row?.external_id ?? "").toString().trim();
+    const sentAt = normalizeSentAt(row?.sent_at);
+
+    if (!externalId) {
+      skipped.push({ external_id: row?.external_id ?? "", reason: "Missing ID" });
+      continue;
+    }
+    if (!sentAt) {
+      skipped.push({ external_id: externalId, reason: "Invalid or missing date" });
+      continue;
+    }
+
+    try {
+      const matches = await executeQuery(
+        `SELECT pp.id
+         FROM participant_protocols pp
+         JOIN participants part ON pp.participant_id = part.id
+         JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
+         WHERE part.external_id = ? AND proj_p.project_id = ? AND pp.is_active = 1`,
+        [externalId, project_id]
+      );
+
+      if (matches.length === 0) {
+        skipped.push({ external_id: externalId, reason: "No active assignment found in this project" });
+        continue;
+      }
+      if (matches.length > 1) {
+        skipped.push({ external_id: externalId, reason: "Multiple active assignments — ambiguous" });
+        continue;
+      }
+
+      await executeQuery(`UPDATE participant_protocols SET link_sent_at = ? WHERE id = ?`, [sentAt, matches[0].id]);
+      updated++;
+    } catch (err) {
+      logToFile("ERROR", "Failed to import link_sent_at row", { externalId, projectId: project_id, error: err.message, stack: err.stack });
+      skipped.push({ external_id: externalId, reason: "Unexpected error" });
+    }
+  }
+
+  res.json({ success: true, total: rows.length, updated, skipped });
+}
+
 // POST /api/participant-protocol/assign
 export const assignProtocol = async (req, res) => {
   const { participant_id, project_id, protocol_id } = req.body;

@@ -360,6 +360,12 @@ SELECT
     CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)) AS session_started_at,
     s.last_activity_at AS session_last_activity_at,
 
+    -- When the survey agency actually contacted the participant with the
+    -- link — distinct from `start_date` (when the link/token was created)
+    -- and unrelated to protocol_status. Set via the Fieldwork CSV import,
+    -- NULL until an agency uploads it.
+    pp.link_sent_at AS link_sent_at,
+
     -- 3. Total Duration
     TIMESTAMPDIFF(
         SECOND,

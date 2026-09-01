@@ -8,7 +8,8 @@ import {
   deactivateParticipantProtocol,
   assignProtocol,
   sendManualEmail,
-  swapParticipantProtocolLanguage
+  swapParticipantProtocolLanguage,
+  importLinkSentDates
 } from "../controllers/participantProtocolController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
@@ -31,6 +32,11 @@ router.get("/", requireAuth, getParticipantProtocolView);
 
 // POST /api/participant-protocol/send-manual-email
 router.post("/send-manual-email", requireAuth, sendManualEmail);
+
+// POST /api/participant-protocol/import-link-sent
+// body: { project_id, rows: [{ external_id, sent_at }] } — bulk-set link_sent_at
+// for a survey agency's "when we contacted this respondent" CSV.
+router.post("/import-link-sent", requireAuth, importLinkSentDates);
 
 // -- Participant-facing: gated by the unguessable per-participant token itself, not admin auth --
 

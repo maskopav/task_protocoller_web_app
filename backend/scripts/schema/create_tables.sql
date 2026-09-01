@@ -129,7 +129,8 @@ CREATE TABLE `participant_protocols` (
   `access_token` char(64) UNIQUE DEFAULT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
   `start_date` timestamp DEFAULT CURRENT_TIMESTAMP,
   `end_date` timestamp DEFAULT NULL,
-  `is_active` BOOLEAN DEFAULT FALSE
+  `is_active` BOOLEAN DEFAULT FALSE,
+  `link_sent_at` timestamp DEFAULT NULL COMMENT 'When the survey agency contacted the participant with the link — distinct from start_date (link creation time); set via the Fieldwork CSV import'
 );
 
 CREATE TABLE `sessions` (
