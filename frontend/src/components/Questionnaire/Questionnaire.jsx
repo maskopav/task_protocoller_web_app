@@ -11,9 +11,11 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
 
   const listRef = useRef(null);
   const lastScrolledIndex = useRef(0);
+  const lastInteractedType = useRef(null);
 
   // --- 1. Handle Input Changes ---
   const handleChange = (questionId, value, type, exclusiveOptionValue = null) => {
+    lastInteractedType.current = type;
     const question = data.questions.find((q) => q.id === questionId);
     setAnswers((prev) => {
       let nextValue;
@@ -83,6 +85,11 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
   // --- 4. Auto-scroll to keep previous and current question visible ---
   useEffect(() => {
     if (!data?.questions || !listRef.current) return;
+
+    // Don't auto-scroll while the user is still picking options on a
+    // multi-select question — the first checked box already counts as
+    // "answered", but jumping away mid-selection is disruptive.
+    if (lastInteractedType.current === "multiple") return;
 
     // Find the first question that hasn't been answered yet
     const firstUnansweredIndex = data.questions.findIndex((q) => !isAnswered(q));
