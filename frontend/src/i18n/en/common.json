@@ -51,7 +51,7 @@
       "speakLonger": "If possible, try to speak a little longer."
     },
     "completion": {
-      "taskCompletedInstructions": "Task completed successfully! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",
+      "taskCompletedInstructions": "Task completed! <br> Click <strong>Next</strong> to proceed, or <strong>Try Again</strong> if you wish to record a new attempt.",
       "doneTitle": "Responses saved successfully!",
       "noInternetTitle": "No Internet Connection",
       "uploadingTitle": "Uploading…",
