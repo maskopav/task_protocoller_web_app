@@ -72,15 +72,16 @@ export async function assignProtocolToParticipant(data) {
   return res.json();
 }
 
-export async function importLinkSentDates(projectId, rows) {
-  const res = await apiFetch(`/participant-protocols/import-link-sent`, {
+// contactType: "link_sent" | "call". attemptNumber: 1-3, only meaningful for "call".
+export async function importContactEvents(projectId, contactType, attemptNumber, rows) {
+  const res = await apiFetch(`/participant-protocols/import-contacts`, {
     method: "POST",
-    body: JSON.stringify({ project_id: projectId, rows }),
+    body: JSON.stringify({ project_id: projectId, contact_type: contactType, attempt_number: attemptNumber, rows }),
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Failed to import link-sent dates");
+    throw new Error(err.error || "Failed to import contact events");
   }
   return res.json();
 }

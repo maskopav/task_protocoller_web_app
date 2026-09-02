@@ -444,6 +444,42 @@
   color: var(--text);
 }
 
+.fieldwork-import-file-label select,
+.fieldwork-import-file-label input[type="file"] {
+  font-weight: 400;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--sharp-radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  font-size: 0.85rem;
+}
+
+.fieldwork-import-format-help {
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--sharp-radius);
+  padding: 0.6rem 0.8rem;
+}
+
+.fieldwork-import-format-help strong {
+  color: var(--text);
+}
+
+.fieldwork-import-format-help ul {
+  margin: 0.35rem 0;
+  padding-left: 1.1rem;
+}
+
+.fieldwork-import-format-help code {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.8rem;
+}
+
 .fieldwork-import-status {
   color: var(--muted);
 }

@@ -9,7 +9,7 @@ import {
   assignProtocol,
   sendManualEmail,
   swapParticipantProtocolLanguage,
-  importLinkSentDates
+  importContactEvents
 } from "../controllers/participantProtocolController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 
@@ -33,10 +33,11 @@ router.get("/", requireAuth, getParticipantProtocolView);
 // POST /api/participant-protocol/send-manual-email
 router.post("/send-manual-email", requireAuth, sendManualEmail);
 
-// POST /api/participant-protocol/import-link-sent
-// body: { project_id, rows: [{ external_id, sent_at }] } — bulk-set link_sent_at
-// for a survey agency's "when we contacted this respondent" CSV.
-router.post("/import-link-sent", requireAuth, importLinkSentDates);
+// POST /api/participant-protocol/import-contacts
+// body: { project_id, contact_type: "link_sent"|"call", attempt_number, rows: [{ external_id, contacted_at, notes? }] }
+// One importer for every outreach touchpoint a survey agency logs: the
+// initial link send, and up to 3 follow-up calls (with notes).
+router.post("/import-contacts", requireAuth, importContactEvents);
 
 // -- Participant-facing: gated by the unguessable per-participant token itself, not admin auth --
 

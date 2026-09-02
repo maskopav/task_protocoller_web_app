@@ -38,7 +38,7 @@ const sessionIdText = (r) => (r.session_id ?? "—").toString();
 export const COLUMN_DEFS = [
   {
     id: "participant",
-    label: "Participant",
+    label: "Respondent ID",
     required: true,
     value: (r) => r.participant_name || "",
     sortValue: (r) => (r.participant_name || "").toLowerCase(),
@@ -117,6 +117,27 @@ export const COLUMN_DEFS = [
     sortValue: (r) => r.link_sent_at || "",
     render: (r) => formatDateTime(r.link_sent_at),
   },
+  // Up to 3 follow-up calls the agency logs when a respondent is stuck —
+  // one date + one notes column per call attempt, all hidden by default
+  // since most rows never need them.
+  ...[1, 2, 3].flatMap((n) => [
+    {
+      id: `call${n}At`,
+      label: `Call ${n}`,
+      defaultVisible: false,
+      value: (r) => csvDateTime(r[`call_${n}_at`]),
+      sortValue: (r) => r[`call_${n}_at`] || "",
+      render: (r) => formatDateTime(r[`call_${n}_at`]),
+    },
+    {
+      id: `call${n}Notes`,
+      label: `Call ${n} Notes`,
+      defaultVisible: false,
+      value: (r) => r[`call_${n}_notes`] || "",
+      sortValue: (r) => (r[`call_${n}_notes`] || "").toLowerCase(),
+      render: (r) => <span className="fieldwork-current-step">{r[`call_${n}_notes`] || "—"}</span>,
+    },
+  ]),
   {
     id: "started",
     label: "Started",

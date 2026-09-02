@@ -278,30 +278,40 @@ export async function deactivateParticipantProtocol(req, res) {
 // "2026-09-01 10:30" or "2026-09-01T10:30:00"). Stored as-is, no timezone
 // reinterpretation — this is agency-supplied outreach metadata, not used in
 // any resume-window/scheduling logic.
-const SENT_AT_RE = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2})(:\d{2})?)?$/;
+const DATETIME_RE = /^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2})(:\d{2})?)?$/;
 
-function normalizeSentAt(raw) {
-  const match = SENT_AT_RE.exec((raw || "").trim());
+function normalizeDateTime(raw) {
+  const match = DATETIME_RE.exec((raw || "").trim());
   if (!match) return null;
   const [, datePart, hhmm, ss] = match;
   const time = hhmm ? `${hhmm}${ss || ":00"}` : "00:00:00";
   return `${datePart} ${time}`;
 }
 
-// POST /api/participant-protocol/import-link-sent
-// body: { project_id, rows: [{ external_id, sent_at }] }
-//
-// Matches each row to the participant's currently active assignment in this
-// project (by participants.external_id) and stamps link_sent_at on it.
-// Deliberately per-row: a survey agency's CSV routinely has a handful of
-// typo'd IDs or bad dates, and rejecting the whole file over one bad line
-// would just bounce back and forth over email — so every row is judged
-// independently and the response reports exactly what happened to each one.
-export async function importLinkSentDates(req, res) {
-  const { project_id, rows } = req.body;
+const CONTACT_TYPES = ["link_sent", "call"];
 
-  if (!project_id || !Array.isArray(rows) || rows.length === 0) {
-    return res.status(400).json({ error: "Missing project_id or rows" });
+// POST /api/participant-protocol/import-contacts
+// body: { project_id, contact_type: "link_sent" | "call", attempt_number, rows: [{ external_id, contacted_at, notes? }] }
+//
+// One importer for every outreach touchpoint (the initial link send, and up
+// to 3 follow-up calls): each row is matched to the participant's currently
+// active assignment in this project (by participants.external_id) and
+// upserted into participant_protocol_contacts, keyed on
+// (participant_protocol_id, contact_type, attempt_number) — so re-importing
+// a corrected CSV just overwrites the same row instead of duplicating it.
+//
+// Judged per-row rather than all-or-nothing: a survey agency's CSV routinely
+// has a handful of typo'd IDs or bad dates, and rejecting the whole file
+// over one bad line would just bounce back and forth over email.
+export async function importContactEvents(req, res) {
+  const { project_id, contact_type, rows } = req.body;
+  const attemptNumber = contact_type === "call" ? Number(req.body.attempt_number) : 1;
+
+  if (!project_id || !CONTACT_TYPES.includes(contact_type) || !Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ error: "Missing project_id, a valid contact_type, or rows" });
+  }
+  if (contact_type === "call" && ![1, 2, 3].includes(attemptNumber)) {
+    return res.status(400).json({ error: "attempt_number must be 1, 2, or 3 for calls" });
   }
 
   const skipped = [];
@@ -309,13 +319,14 @@ export async function importLinkSentDates(req, res) {
 
   for (const row of rows) {
     const externalId = (row?.external_id ?? "").toString().trim();
-    const sentAt = normalizeSentAt(row?.sent_at);
+    const contactedAt = normalizeDateTime(row?.contacted_at);
+    const notes = contact_type === "call" ? (row?.notes ?? "").toString().trim() || null : null;
 
     if (!externalId) {
       skipped.push({ external_id: row?.external_id ?? "", reason: "Missing ID" });
       continue;
     }
-    if (!sentAt) {
+    if (!contactedAt) {
       skipped.push({ external_id: externalId, reason: "Invalid or missing date" });
       continue;
     }
@@ -339,10 +350,16 @@ export async function importLinkSentDates(req, res) {
         continue;
       }
 
-      await executeQuery(`UPDATE participant_protocols SET link_sent_at = ? WHERE id = ?`, [sentAt, matches[0].id]);
+      await executeQuery(
+        `INSERT INTO participant_protocol_contacts
+           (participant_protocol_id, contact_type, attempt_number, contacted_at, notes)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE contacted_at = VALUES(contacted_at), notes = VALUES(notes)`,
+        [matches[0].id, contact_type, attemptNumber, contactedAt, notes]
+      );
       updated++;
     } catch (err) {
-      logToFile("ERROR", "Failed to import link_sent_at row", { externalId, projectId: project_id, error: err.message, stack: err.stack });
+      logToFile("ERROR", "Failed to import contact event row", { externalId, projectId: project_id, contactType: contact_type, attemptNumber, error: err.message, stack: err.stack });
       skipped.push({ external_id: externalId, reason: "Unexpected error" });
     }
   }
