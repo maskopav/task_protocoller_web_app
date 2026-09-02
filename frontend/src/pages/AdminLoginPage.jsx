@@ -42,11 +42,12 @@ export default function AdminLoginPage() {
       console.error("Login submission error:", err);
       
       // Map backend error messages to translation keys
+      const errMessage = err.message || "";
       let msg = t("adminLogin.errorGeneric"); // Default error
 
-      if (err.message.includes("deactivated")) {
+      if (errMessage.includes("deactivated")) {
         msg = t("adminLogin.errorDeactivated"); // Specific message for inactive users
-      } else if (err.message.includes("credentials")) {
+      } else if (errMessage.includes("credentials")) {
         msg = t("adminLogin.errorGeneric");
       } else {
         msg = t("adminLogin.errorConnection");
