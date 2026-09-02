@@ -453,7 +453,18 @@ JOIN languages lang ON p.language_id = lang.id
 
 -- LEFT JOIN: a participant who was assigned a protocol but never opened it
 -- has no row in `sessions` at all, and must still show up (as 'created').
-LEFT JOIN sessions s ON s.participant_protocol_id = pp.id
+--
+-- Only the LATEST session per assignment: initSession
+-- (backend/src/controllers/sessionController.js) inserts a *new* `sessions`
+-- row whenever there's no resumable session for this participant_protocol_id
+-- (the return window expired, so status is 'incomplete') while reusing the
+-- same participant_protocol_id — so one assignment can accumulate more than
+-- one session row over time. Each participant_protocol_id must map to
+-- exactly one Fieldwork row, so we take the highest session id (most recent
+-- attempt), not every historical restart.
+LEFT JOIN sessions s ON s.id = (
+    SELECT MAX(s2.id) FROM sessions s2 WHERE s2.participant_protocol_id = pp.id
+)
 
 -- Pivots participant_protocol_contacts (one row per outreach touchpoint —
 -- see backend/scripts/schema/create_tables.sql) into the flat columns the
