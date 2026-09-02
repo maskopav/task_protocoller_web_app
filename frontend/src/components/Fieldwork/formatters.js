@@ -65,19 +65,18 @@ function ordinal(n) {
 
 // error_type values logged by MicCheck.jsx (utils/audioAnalysis.js)
 const MIC_ERROR_LABELS = {
-  muted: "No sound detected",
-  "too-much-noise": "Too much background noise",
+  muted: "No sound",
+  "too-much-noise": "Background noise",
   "processing-error": "Processing error",
 };
 
 export function formatMicCheck(r, emptyText = "—") {
   if (!r.mic_check_attempts) return emptyText;
   if (r.mic_check_pass_attempt) {
-    return `Passed (${ordinal(r.mic_check_pass_attempt)} try)`;
+    return `Passed (${ordinal(r.mic_check_pass_attempt)})`;
   }
   const errorLabel = MIC_ERROR_LABELS[r.mic_check_last_error] || r.mic_check_last_error || "Unknown error";
-  const tries = r.mic_check_attempts === 1 ? "1 try" : `${r.mic_check_attempts} tries`;
-  return `Failed — ${errorLabel} (${tries})`;
+  return `Failed: ${errorLabel} (${r.mic_check_attempts}x)`;
 }
 
 export function statusValue(r) {
