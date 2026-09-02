@@ -21,6 +21,7 @@ import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
+import { preloadVadAssets } from '../../utils/vadPreload';
 
 const DEBUG_MODE = false;
 
@@ -376,6 +377,18 @@ export const Recorder = ({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVideoEnabled]);
+
+    // For VAD: warm the ~9MB ONNX Runtime WASM binary + Silero model into the 
+    // HTTP cache now, well before useVadLogic's MicVAD.new() call needs them 
+    // at recording start. This can't construct the real VAD instance early (it
+    // needs a live mic stream that doesn't exist yet), but prefetching the
+    // network assets removes the dominant cost of that later step from the
+    // window where face-landmark capture has just begun.
+    React.useEffect(() => {
+        if (useVAD) {
+            preloadVadAssets();
+        }
+    }, [useVAD]);
 
     const [exampleExists, setExampleExists] = React.useState(false);
     React.useEffect(() => {

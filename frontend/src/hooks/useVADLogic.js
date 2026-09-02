@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { logger } from '../utils/frontendLogger';
+import { isFirefoxAndroid } from '../utils/vadPreload';
 
 // VAD config - all parameters
 const VAD_CONFIG = {
@@ -156,9 +157,7 @@ export const useVadLogic = ({
                     
                     // 3. The exact path mapping to bypass the SIMD crash
                     ortConfig: (ort) => {
-                        const isFirefoxAndroid = navigator.userAgent.includes('Firefox') && navigator.userAgent.includes('Android');
-                        
-                        if (isFirefoxAndroid) {
+                        if (isFirefoxAndroid()) {
                             logger.warn("Firefox Android detected: Forcing non-SIMD CPU fallback for VAD"); // STRUCTURED: Warn
                             ort.env.wasm.numThreads = 1; 
                             
