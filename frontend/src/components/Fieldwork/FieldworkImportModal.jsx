@@ -1,31 +1,22 @@
 // src/components/Fieldwork/FieldworkImportModal.jsx
 import React, { useRef, useState } from "react";
 import Modal from "../ProtocolEditor/Modal";
-import { parseImportCsv, downloadImportTemplate } from "./csvImport";
+import { IMPORT_COLUMNS, parseImportCsv, downloadImportTemplate } from "./csvImport";
 import { importContactEvents } from "../../api/participantProtocols";
-
-// What a survey agency can log per respondent via this importer: the
-// initial link send, and up to 3 follow-up calls (each with notes) — mirrors
-// participant_protocol_contacts' (contact_type, attempt_number) key.
-const IMPORT_TARGETS = {
-  link_sent: { contactType: "link_sent", attemptNumber: 1, label: "Link sent date", withNotes: false },
-  call_1: { contactType: "call", attemptNumber: 1, label: "Call 1", withNotes: true },
-  call_2: { contactType: "call", attemptNumber: 2, label: "Call 2", withNotes: true },
-  call_3: { contactType: "call", attemptNumber: 3, label: "Call 3", withNotes: true },
-};
 
 const INITIAL_STATE = { status: "idle", parseErrors: [], result: null, error: "" };
 
-// Lets a survey agency upload a CSV logging one outreach touchpoint per
-// respondent (which link-send or call, when, and — for calls — notes),
-// matched against this project's participants by ID. Reports success/
-// failure per row rather than all-or-nothing, since agency CSVs routinely
-// carry a handful of typo'd IDs or malformed dates.
+// Lets the admin pick which outreach columns they're uploading this time
+// (respondent ID is always included) and which delimiter their CSV uses,
+// then matches rows against this project's participants by ID. Reports
+// success/failure per row rather than all-or-nothing, since agency CSVs
+// routinely carry a handful of typo'd IDs or malformed dates.
 export default function FieldworkImportModal({ open, onClose, projectId, onImported }) {
-  const [targetKey, setTargetKey] = useState("link_sent");
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set(IMPORT_COLUMNS.map((c) => c.key)));
+  const [delimiter, setDelimiter] = useState(",");
   const [state, setState] = useState(INITIAL_STATE);
   const fileInputRef = useRef(null);
-  const target = IMPORT_TARGETS[targetKey];
+  const selectedColumns = IMPORT_COLUMNS.filter((c) => selectedKeys.has(c.key));
 
   const reset = () => {
     setState(INITIAL_STATE);
@@ -37,8 +28,13 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
     onClose();
   };
 
-  const handleTargetChange = (e) => {
-    setTargetKey(e.target.value);
+  const toggleColumn = (key) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
     reset();
   };
 
@@ -47,7 +43,7 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
     if (!file) return;
 
     const text = await file.text();
-    const { rows, errors: parseErrors } = parseImportCsv(text, { withNotes: target.withNotes });
+    const { rows, errors: parseErrors } = parseImportCsv(text, { columns: selectedColumns, delimiter });
 
     if (rows.length === 0) {
       setState({ status: "idle", parseErrors, result: null, error: parseErrors.length ? "" : "No rows found in the file." });
@@ -56,7 +52,7 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
 
     setState({ status: "importing", parseErrors, result: null, error: "" });
     try {
-      const result = await importContactEvents(projectId, target.contactType, target.attemptNumber, rows);
+      const result = await importContactEvents(projectId, rows);
       setState({ status: "done", parseErrors, result, error: "" });
       if (result.updated > 0) onImported();
     } catch (err) {
@@ -67,35 +63,41 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
   return (
     <Modal open={open} onClose={handleClose} title="Import Outreach Data" showSaveButton={false}>
       <div className="fieldwork-import">
-        <label className="fieldwork-import-file-label">
-          <span>What are you importing?</span>
-          <select value={targetKey} onChange={handleTargetChange} disabled={state.status === "importing"}>
-            {Object.entries(IMPORT_TARGETS).map(([key, t]) => (
-              <option key={key} value={key}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
         <p>
-          Upload a CSV with the respondent ID and the date/time {target.withNotes ? "this call was made" : "the link was sent to them"}
-          {target.withNotes ? ", plus a notes column" : ""}. Rows are matched against this project's participants by
-          ID; re-uploading a corrected file simply overwrites the same {target.withNotes ? "call" : "link-sent"} entry.
+          Select the columns you're uploading, download the template, fill it in, then upload it. Column names must
+          match exactly. Dates: e.g. <code>2026-09-01</code> or <code>2026-09-01 14:30</code>.
         </p>
 
-        <div className="fieldwork-import-format-help">
-          <strong>Date format</strong> — always start with the year; time is optional (24-hour clock):
-          <ul>
-            <li><code>2026-09-01</code> — date only</li>
-            <li><code>2026-09-01 14:30</code> — date + time</li>
-            <li><code>2026-09-01 14:30:00</code> — date + time + seconds</li>
-            <li><code>2026-09-01T14:30:00</code> — ISO 8601 ("T" separator)</li>
-          </ul>
-          Don't use DD/MM/YYYY or MM/DD/YYYY — that ordering is ambiguous and will be rejected.
+        <div className="fieldwork-import-columns">
+          <label className="fieldwork-import-column-option fieldwork-import-column-fixed">
+            <input type="checkbox" checked disabled />
+            Respondent ID (always included)
+          </label>
+          {IMPORT_COLUMNS.map((col) => (
+            <label key={col.key} className="fieldwork-import-column-option">
+              <input type="checkbox" checked={selectedKeys.has(col.key)} onChange={() => toggleColumn(col.key)} />
+              {col.label}
+            </label>
+          ))}
         </div>
 
-        <button type="button" className="fieldwork-import-template-btn" onClick={() => downloadImportTemplate(target.contactType)}>
+        <div className="fieldwork-import-delimiter">
+          <span>Delimiter</span>
+          <label>
+            <input type="radio" name="delimiter" checked={delimiter === ","} onChange={() => { setDelimiter(","); reset(); }} />
+            Comma (,)
+          </label>
+          <label>
+            <input type="radio" name="delimiter" checked={delimiter === ";"} onChange={() => { setDelimiter(";"); reset(); }} />
+            Semicolon (;)
+          </label>
+        </div>
+
+        <button
+          type="button"
+          className="fieldwork-import-template-btn"
+          onClick={() => downloadImportTemplate(selectedColumns, delimiter)}
+        >
           Download CSV template
         </button>
 

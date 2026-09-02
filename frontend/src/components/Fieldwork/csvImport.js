@@ -2,28 +2,26 @@
 import { downloadCsv } from "./csvExport";
 import { timestampForFilename } from "./formatters";
 
-const ID_HEADERS = ["external_id", "id", "respondent_id", "participant_id"];
-const DATE_HEADERS = ["contacted_at", "sent_at", "link_sent_at", "date", "date_sent", "call_date", "date_called"];
-const NOTES_HEADERS = ["notes", "note", "call_notes", "comment", "comments"];
+// Every optional touchpoint column the importer understands — matches
+// participant_protocol_contacts' (contact_type, attempt_number) 1:1. The
+// admin picks a subset to import each time; external_id is always required
+// and isn't part of this list. Sample values here double as the template's
+// example row.
+export const IMPORT_COLUMNS = [
+  { key: "link_sent_at", label: "Link Sent", isDate: true, sample: "2026-09-01 10:30" },
+  { key: "call_1_at", label: "Call 1 Date", isDate: true, sample: "2026-09-03 09:00" },
+  { key: "call_1_notes", label: "Call 1 Notes", isDate: false, sample: "No answer" },
+  { key: "call_2_at", label: "Call 2 Date", isDate: true, sample: "2026-09-05 09:00" },
+  { key: "call_2_notes", label: "Call 2 Notes", isDate: false, sample: "Left voicemail" },
+  { key: "call_3_at", label: "Call 3 Date", isDate: true, sample: "" },
+  { key: "call_3_notes", label: "Call 3 Notes", isDate: false, sample: "" },
+];
 
-// Accepted date/time formats, kept in sync with the backend's own validation
-// (participantProtocolController.js's normalizeDateTime): a bare date, or a
-// date plus a 24-hour time, space- or "T"-separated, with or without
-// seconds. Deliberately year-first (ISO-style) only — DD/MM vs MM/DD is
-// genuinely ambiguous across locales, and a silently-wrong date is worse
-// than a rejected row.
+// A bare date or a date + 24h time, e.g. "2026-09-01" or "2026-09-01 14:30".
+// Kept in sync with the backend's normalizeDateTime.
 const DATE_RE = /^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/;
 
-export const DATE_FORMAT_HELP =
-  'Dates must start with the year: "YYYY-MM-DD", optionally followed by a 24-hour time. ' +
-  "Accepted examples: 2026-09-01  ·  2026-09-01 14:30  ·  2026-09-01 14:30:00  ·  2026-09-01T14:30:00. " +
-  "Don't use DD/MM/YYYY or MM/DD/YYYY — that ordering is ambiguous and will be rejected.";
-
-// Minimal RFC-4180-ish CSV line split (quoted fields, doubled-quote escapes)
-// — mirrors the escaping csvExport.js writes, so round-tripping our own
-// export/template files works, while still tolerating plain unquoted CSVs
-// exported from Excel/Sheets.
-function splitCsvLine(line) {
+function splitCsvLine(line, delimiter) {
   const cells = [];
   let cur = "";
   let inQuotes = false;
@@ -42,7 +40,7 @@ function splitCsvLine(line) {
       }
     } else if (ch === '"') {
       inQuotes = true;
-    } else if (ch === ",") {
+    } else if (ch === delimiter) {
       cells.push(cur);
       cur = "";
     } else {
@@ -53,65 +51,51 @@ function splitCsvLine(line) {
   return cells.map((c) => c.trim());
 }
 
-// Parses a survey agency's outreach CSV into { external_id, contacted_at }
-// rows (plus `notes` when `withNotes` is set, for call-log imports). Header
-// names are matched loosely (case-insensitive, a handful of common synonyms)
-// since agencies don't all call the same column the same thing. Dates are
-// validated here too (not just server-side) so a malformed file is flagged
-// immediately, with the exact expected format, instead of round-tripping to
-// the server first.
-export function parseImportCsv(text, { withNotes = false } = {}) {
+// Parses an outreach CSV: one row per respondent, columns found by exact
+// name (case-insensitive) rather than position — so any subset of
+// `columns`, in any order, works as long as the header matches exactly.
+// Only external_id is required per row; blank cells just mean "nothing to
+// import for that touchpoint".
+export function parseImportCsv(text, { columns, delimiter = "," }) {
   const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim() !== "");
   if (lines.length === 0) {
     return { rows: [], errors: ["The file is empty."] };
   }
 
-  const header = splitCsvLine(lines[0]).map((h) => h.toLowerCase());
-  const idIdx = header.findIndex((h) => ID_HEADERS.includes(h));
-  const dateIdx = header.findIndex((h) => DATE_HEADERS.includes(h));
-  const notesIdx = withNotes ? header.findIndex((h) => NOTES_HEADERS.includes(h)) : -1;
-
-  if (idIdx === -1 || dateIdx === -1) {
-    return {
-      rows: [],
-      errors: [
-        `Couldn't find both an ID column and a date column in the header row. Expected something like "external_id" and "contacted_at" — use the template if unsure.`,
-      ],
-    };
+  const header = splitCsvLine(lines[0], delimiter).map((h) => h.toLowerCase());
+  const idIdx = header.indexOf("external_id");
+  if (idIdx === -1) {
+    return { rows: [], errors: [`Missing "external_id" column — check the delimiter and column names.`] };
   }
+  const colIdx = Object.fromEntries(columns.map((c) => [c.key, header.indexOf(c.key)]));
 
   const rows = [];
   const errors = [];
   for (let i = 1; i < lines.length; i++) {
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i], delimiter);
     const external_id = cells[idIdx] || "";
-    const contacted_at = cells[dateIdx] || "";
-    const notes = notesIdx !== -1 ? cells[notesIdx] || "" : "";
+    if (!external_id) continue;
 
-    if (!external_id && !contacted_at) continue;
-    if (!external_id || !contacted_at) {
-      errors.push(`Row ${i + 1}: missing ${!external_id ? "ID" : "date"}, skipped.`);
-      continue;
+    const row = { external_id };
+    for (const col of columns) {
+      if (colIdx[col.key] === -1) continue;
+      const value = cells[colIdx[col.key]] || "";
+      if (col.isDate && value && !DATE_RE.test(value)) {
+        errors.push(`Row ${i + 1}: "${value}" in ${col.key} isn't a recognized date, that column was skipped.`);
+        continue;
+      }
+      row[col.key] = value;
     }
-    if (!DATE_RE.test(contacted_at)) {
-      errors.push(`Row ${i + 1}: "${contacted_at}" isn't a recognized date format, skipped. ${DATE_FORMAT_HELP}`);
-      continue;
-    }
-
-    rows.push(withNotes ? { external_id, contacted_at, notes } : { external_id, contacted_at });
+    rows.push(row);
   }
 
   return { rows, errors };
 }
 
-// Demonstrates the accepted date formats directly in the sample rows, so
-// the template doubles as a live example rather than just a column header.
-export function downloadImportTemplate(contactType) {
-  const withNotes = contactType === "call";
-  const header = withNotes ? "external_id,contacted_at,notes" : "external_id,contacted_at";
-  const sampleRows = withNotes
-    ? ["P-001,2026-09-01 10:30,No answer", "P-002,2026-09-01T14:05:00,Left voicemail", "P-003,2026-09-02,Rescheduled for next week"]
-    : ["P-001,2026-09-01 10:30:00", "P-002,2026-09-01T14:05:00", "P-003,2026-09-02"];
+export function downloadImportTemplate(columns, delimiter = ",") {
+  const header = ["external_id", ...columns.map((c) => c.key)];
+  const sampleRow = (id) => [id, ...columns.map((c) => c.sample)].join(delimiter);
 
-  downloadCsv(`fieldwork_import_template_${contactType}_${timestampForFilename()}.csv`, [header, ...sampleRows].join("\n"));
+  const csv = [header.join(delimiter), sampleRow("P-001"), sampleRow("P-002")].join("\n");
+  downloadCsv(`fieldwork_import_template_${timestampForFilename()}.csv`, csv);
 }

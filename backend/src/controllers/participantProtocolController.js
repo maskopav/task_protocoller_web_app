@@ -288,30 +288,38 @@ function normalizeDateTime(raw) {
   return `${datePart} ${time}`;
 }
 
-const CONTACT_TYPES = ["link_sent", "call"];
+// One row per respondent, one column per outreach touchpoint — maps each
+// CSV column directly onto a (contact_type, attempt_number) in
+// participant_protocol_contacts. A blank cell just means "nothing to import
+// for that touchpoint", not an error.
+const CONTACT_FIELDS = [
+  { column: "link_sent_at", contactType: "link_sent", attemptNumber: 1, notesColumn: null },
+  { column: "call_1_at", contactType: "call", attemptNumber: 1, notesColumn: "call_1_notes" },
+  { column: "call_2_at", contactType: "call", attemptNumber: 2, notesColumn: "call_2_notes" },
+  { column: "call_3_at", contactType: "call", attemptNumber: 3, notesColumn: "call_3_notes" },
+];
 
 // POST /api/participant-protocol/import-contacts
-// body: { project_id, contact_type: "link_sent" | "call", attempt_number, rows: [{ external_id, contacted_at, notes? }] }
+// body: { project_id, rows: [{ external_id, link_sent_at, call_1_at, call_1_notes, call_2_at, call_2_notes, call_3_at, call_3_notes }] }
 //
-// One importer for every outreach touchpoint (the initial link send, and up
-// to 3 follow-up calls): each row is matched to the participant's currently
-// active assignment in this project (by participants.external_id) and
-// upserted into participant_protocol_contacts, keyed on
+// One row per respondent covers every outreach touchpoint at once — the
+// link send plus up to 3 follow-up calls — since that's how an agency
+// actually tracks a respondent (one spreadsheet row each, not one file per
+// touchpoint). Each populated column is matched to the participant's
+// currently active assignment in this project (by participants.external_id)
+// and upserted into participant_protocol_contacts, keyed on
 // (participant_protocol_id, contact_type, attempt_number) — so re-importing
-// a corrected CSV just overwrites the same row instead of duplicating it.
+// a corrected CSV just overwrites the same cell instead of duplicating it.
 //
-// Judged per-row rather than all-or-nothing: a survey agency's CSV routinely
-// has a handful of typo'd IDs or bad dates, and rejecting the whole file
-// over one bad line would just bounce back and forth over email.
+// Judged per-row (and per-column within a row) rather than all-or-nothing:
+// a survey agency's CSV routinely has a handful of typo'd IDs or bad dates,
+// and rejecting the whole file over one bad cell would just bounce back and
+// forth over email.
 export async function importContactEvents(req, res) {
-  const { project_id, contact_type, rows } = req.body;
-  const attemptNumber = contact_type === "call" ? Number(req.body.attempt_number) : 1;
+  const { project_id, rows } = req.body;
 
-  if (!project_id || !CONTACT_TYPES.includes(contact_type) || !Array.isArray(rows) || rows.length === 0) {
-    return res.status(400).json({ error: "Missing project_id, a valid contact_type, or rows" });
-  }
-  if (contact_type === "call" && ![1, 2, 3].includes(attemptNumber)) {
-    return res.status(400).json({ error: "attempt_number must be 1, 2, or 3 for calls" });
+  if (!project_id || !Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ error: "Missing project_id or rows" });
   }
 
   const skipped = [];
@@ -319,18 +327,12 @@ export async function importContactEvents(req, res) {
 
   for (const row of rows) {
     const externalId = (row?.external_id ?? "").toString().trim();
-    const contactedAt = normalizeDateTime(row?.contacted_at);
-    const notes = contact_type === "call" ? (row?.notes ?? "").toString().trim() || null : null;
-
     if (!externalId) {
       skipped.push({ external_id: row?.external_id ?? "", reason: "Missing ID" });
       continue;
     }
-    if (!contactedAt) {
-      skipped.push({ external_id: externalId, reason: "Invalid or missing date" });
-      continue;
-    }
 
+    let participantProtocolId;
     try {
       const matches = await executeQuery(
         `SELECT pp.id
@@ -349,19 +351,41 @@ export async function importContactEvents(req, res) {
         skipped.push({ external_id: externalId, reason: "Multiple active assignments — ambiguous" });
         continue;
       }
-
-      await executeQuery(
-        `INSERT INTO participant_protocol_contacts
-           (participant_protocol_id, contact_type, attempt_number, contacted_at, notes)
-         VALUES (?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE contacted_at = VALUES(contacted_at), notes = VALUES(notes)`,
-        [matches[0].id, contact_type, attemptNumber, contactedAt, notes]
-      );
-      updated++;
+      participantProtocolId = matches[0].id;
     } catch (err) {
-      logToFile("ERROR", "Failed to import contact event row", { externalId, projectId: project_id, contactType: contact_type, attemptNumber, error: err.message, stack: err.stack });
+      logToFile("ERROR", "Failed to look up participant for contact import", { externalId, projectId: project_id, error: err.message, stack: err.stack });
       skipped.push({ external_id: externalId, reason: "Unexpected error" });
+      continue;
     }
+
+    let rowUpdated = false;
+    for (const field of CONTACT_FIELDS) {
+      const raw = row?.[field.column];
+      if (!raw) continue; // blank cell — nothing to import for this touchpoint
+
+      const contactedAt = normalizeDateTime(raw);
+      if (!contactedAt) {
+        skipped.push({ external_id: externalId, reason: `Invalid date in ${field.column}` });
+        continue;
+      }
+      const notes = field.notesColumn ? (row?.[field.notesColumn] ?? "").toString().trim() || null : null;
+
+      try {
+        await executeQuery(
+          `INSERT INTO participant_protocol_contacts
+             (participant_protocol_id, contact_type, attempt_number, contacted_at, notes)
+           VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE contacted_at = VALUES(contacted_at), notes = VALUES(notes)`,
+          [participantProtocolId, field.contactType, field.attemptNumber, contactedAt, notes]
+        );
+        rowUpdated = true;
+      } catch (err) {
+        logToFile("ERROR", "Failed to import contact event field", { externalId, projectId: project_id, column: field.column, error: err.message, stack: err.stack });
+        skipped.push({ external_id: externalId, reason: `Unexpected error saving ${field.column}` });
+      }
+    }
+
+    if (rowUpdated) updated++;
   }
 
   res.json({ success: true, total: rows.length, updated, skipped });

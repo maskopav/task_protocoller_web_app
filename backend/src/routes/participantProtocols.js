@@ -34,8 +34,8 @@ router.get("/", requireAuth, getParticipantProtocolView);
 router.post("/send-manual-email", requireAuth, sendManualEmail);
 
 // POST /api/participant-protocol/import-contacts
-// body: { project_id, contact_type: "link_sent"|"call", attempt_number, rows: [{ external_id, contacted_at, notes? }] }
-// One importer for every outreach touchpoint a survey agency logs: the
+// body: { project_id, rows: [{ external_id, link_sent_at, call_1_at, call_1_notes, call_2_at, call_2_notes, call_3_at, call_3_notes }] }
+// One row per respondent covers every outreach touchpoint at once: the
 // initial link send, and up to 3 follow-up calls (with notes).
 router.post("/import-contacts", requireAuth, importContactEvents);
 

@@ -423,6 +423,49 @@
   gap: 0.8rem;
 }
 
+.fieldwork-import code {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.85rem;
+}
+
+.fieldwork-import-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 1rem;
+  font-size: 0.85rem;
+}
+
+.fieldwork-import-column-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.fieldwork-import-column-fixed {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  cursor: default;
+}
+
+.fieldwork-import-delimiter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.fieldwork-import-delimiter label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  font-weight: 400;
+}
+
 .fieldwork-import-template-btn {
   align-self: flex-start;
   padding: 0.45rem 0.8rem;
@@ -444,7 +487,6 @@
   color: var(--text);
 }
 
-.fieldwork-import-file-label select,
 .fieldwork-import-file-label input[type="file"] {
   font-weight: 400;
   padding: 0.4rem 0.5rem;
@@ -452,32 +494,6 @@
   border: 1px solid var(--border);
   background: #ffffff;
   font-size: 0.85rem;
-}
-
-.fieldwork-import-format-help {
-  font-size: 0.8rem;
-  color: var(--muted);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--sharp-radius);
-  padding: 0.6rem 0.8rem;
-}
-
-.fieldwork-import-format-help strong {
-  color: var(--text);
-}
-
-.fieldwork-import-format-help ul {
-  margin: 0.35rem 0;
-  padding-left: 1.1rem;
-}
-
-.fieldwork-import-format-help code {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 0.05rem 0.35rem;
-  font-size: 0.8rem;
 }
 
 .fieldwork-import-status {

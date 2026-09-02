@@ -72,11 +72,11 @@ export async function assignProtocolToParticipant(data) {
   return res.json();
 }
 
-// contactType: "link_sent" | "call". attemptNumber: 1-3, only meaningful for "call".
-export async function importContactEvents(projectId, contactType, attemptNumber, rows) {
+// rows: [{ external_id, link_sent_at, call_1_at, call_1_notes, call_2_at, call_2_notes, call_3_at, call_3_notes }]
+export async function importContactEvents(projectId, rows) {
   const res = await apiFetch(`/participant-protocols/import-contacts`, {
     method: "POST",
-    body: JSON.stringify({ project_id: projectId, contact_type: contactType, attempt_number: attemptNumber, rows }),
+    body: JSON.stringify({ project_id: projectId, rows }),
   });
 
   if (!res.ok) {
