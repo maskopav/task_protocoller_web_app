@@ -299,15 +299,64 @@ const CONTACT_FIELDS = [
   { column: "call_3_at", contactType: "call", attemptNumber: 3, notesColumn: "call_3_notes" },
 ];
 
+// Resolves (external_id, project_id[, protocol_id]) to a single active
+// participant_protocol_id, or throws a { reason } describing why it can't.
+//
+// A respondent can have more than one active assignment in the same project
+// (genuinely different protocols, or — more rarely — an accidental duplicate
+// assignment of the *same* protocol). Those two cases need different
+// handling: picking the wrong one among different protocols would silently
+// write outreach data to the wrong questionnaire, so that's never guessed —
+// it's resolved by the optional protocol_id column (the actual protocols.id,
+// unique per protocol+language+version) if the CSV provides one, and left
+// ambiguous otherwise. Duplicates of the *same* protocol are safe to
+// auto-resolve, since either row means the same thing to the agency — the
+// one with the most session activity (highest session id) wins, or the most
+// recently created assignment if neither has started a session yet.
+async function resolveParticipantProtocolId(externalId, projectId, protocolId) {
+  const candidates = await executeQuery(
+    `SELECT pp.id AS participant_protocol_id, proj_p.protocol_id,
+            (SELECT MAX(s.id) FROM sessions s WHERE s.participant_protocol_id = pp.id) AS max_session_id
+     FROM participant_protocols pp
+     JOIN participants part ON pp.participant_id = part.id
+     JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
+     WHERE part.external_id = ? AND proj_p.project_id = ? AND pp.is_active = 1`,
+    [externalId, projectId]
+  );
+
+  if (candidates.length === 0) {
+    throw { reason: "No active assignment found in this project" };
+  }
+
+  let pool = candidates;
+  if (protocolId) {
+    pool = candidates.filter((c) => c.protocol_id === protocolId);
+    if (pool.length === 0) {
+      throw { reason: `No active assignment found for protocol_id ${protocolId}` };
+    }
+  }
+
+  const distinctProtocols = new Set(pool.map((c) => c.protocol_id));
+  if (distinctProtocols.size > 1) {
+    throw { reason: "Multiple active assignments across different protocols — ambiguous. Add a protocol_id column to disambiguate." };
+  }
+
+  pool.sort(
+    (a, b) => (b.max_session_id ?? -1) - (a.max_session_id ?? -1) || b.participant_protocol_id - a.participant_protocol_id
+  );
+  return pool[0].participant_protocol_id;
+}
+
 // POST /api/participant-protocol/import-contacts
-// body: { project_id, rows: [{ external_id, link_sent_at, call_1_at, call_1_notes, call_2_at, call_2_notes, call_3_at, call_3_notes }] }
+// body: { project_id, rows: [{ external_id, protocol_id?, link_sent_at, call_1_at, call_1_notes, call_2_at, call_2_notes, call_3_at, call_3_notes }] }
 //
 // One row per respondent covers every outreach touchpoint at once — the
 // link send plus up to 3 follow-up calls — since that's how an agency
 // actually tracks a respondent (one spreadsheet row each, not one file per
 // touchpoint). Each populated column is matched to the participant's
-// currently active assignment in this project (by participants.external_id)
-// and upserted into participant_protocol_contacts, keyed on
+// currently active assignment in this project (by participants.external_id,
+// optionally narrowed by protocol_id — see resolveParticipantProtocolId) and
+// upserted into participant_protocol_contacts, keyed on
 // (participant_protocol_id, contact_type, attempt_number) — so re-importing
 // a corrected CSV just overwrites the same cell instead of duplicating it.
 //
@@ -331,30 +380,18 @@ export async function importContactEvents(req, res) {
       skipped.push({ external_id: row?.external_id ?? "", reason: "Missing ID" });
       continue;
     }
+    const protocolId = row?.protocol_id ? Number(row.protocol_id) : null;
 
     let participantProtocolId;
     try {
-      const matches = await executeQuery(
-        `SELECT pp.id
-         FROM participant_protocols pp
-         JOIN participants part ON pp.participant_id = part.id
-         JOIN project_protocols proj_p ON pp.project_protocol_id = proj_p.id
-         WHERE part.external_id = ? AND proj_p.project_id = ? AND pp.is_active = 1`,
-        [externalId, project_id]
-      );
-
-      if (matches.length === 0) {
-        skipped.push({ external_id: externalId, reason: "No active assignment found in this project" });
-        continue;
-      }
-      if (matches.length > 1) {
-        skipped.push({ external_id: externalId, reason: "Multiple active assignments — ambiguous" });
-        continue;
-      }
-      participantProtocolId = matches[0].id;
+      participantProtocolId = await resolveParticipantProtocolId(externalId, project_id, protocolId);
     } catch (err) {
-      logToFile("ERROR", "Failed to look up participant for contact import", { externalId, projectId: project_id, error: err.message, stack: err.stack });
-      skipped.push({ external_id: externalId, reason: "Unexpected error" });
+      if (err?.reason) {
+        skipped.push({ external_id: externalId, reason: err.reason });
+      } else {
+        logToFile("ERROR", "Failed to look up participant for contact import", { externalId, projectId: project_id, error: err.message, stack: err.stack });
+        skipped.push({ external_id: externalId, reason: "Unexpected error" });
+      }
       continue;
     }
 

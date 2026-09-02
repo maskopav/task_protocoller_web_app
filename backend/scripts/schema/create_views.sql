@@ -352,6 +352,13 @@ SELECT
     vpp.project_name,
     vpp.protocol_name,
 
+    -- The actual protocols.id — a specific protocol+language+version, unlike
+    -- participant_protocol_id (this one assignment) or protocol_name (can be
+    -- shared across language/version variants). Shown optionally so an admin
+    -- can copy it into a CSV import to disambiguate a respondent who has more
+    -- than one active protocol assignment in this project.
+    p.id AS protocol_id,
+
     -- 1. Language Information
     lang.name AS protocol_language,
     lang.code AS protocol_language_code,

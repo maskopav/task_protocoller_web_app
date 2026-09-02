@@ -62,6 +62,19 @@ export const COLUMN_DEFS = [
     ),
   },
   {
+    id: "protocolId",
+    label: "Protocol ID",
+    defaultVisible: false,
+    // The actual protocols.id — unlike "Protocol" (name + language, can be
+    // shared across variants), this uniquely identifies one specific
+    // protocol+language+version. Surfaced so an admin can copy it into the
+    // outreach import to disambiguate a respondent with more than one active
+    // protocol in this project.
+    value: (r) => (r.protocol_id ?? "").toString(),
+    sortValue: (r) => r.protocol_id ?? -1,
+    render: (r) => (r.protocol_id ?? "—").toString(),
+  },
+  {
     id: "status",
     label: "Status",
     required: true,

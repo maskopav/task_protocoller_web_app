@@ -21,6 +21,13 @@ export const IMPORT_COLUMNS = [
 // Kept in sync with the backend's normalizeDateTime.
 const DATE_RE = /^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/;
 
+// Not a touchpoint to store — a disambiguation key (protocols.id, visible as
+// the "Protocol ID" Fieldwork column) used only to resolve which of a
+// respondent's active assignments a row applies to when they have more than
+// one. Kept separate from IMPORT_COLUMNS since it's never written to
+// participant_protocol_contacts itself.
+export const PROTOCOL_ID_COLUMN = { key: "protocol_id", label: "Protocol ID" };
+
 function splitCsvLine(line, delimiter) {
   const cells = [];
   let cur = "";
@@ -51,12 +58,15 @@ function splitCsvLine(line, delimiter) {
   return cells.map((c) => c.trim());
 }
 
+const PROTOCOL_ID_RE = /^\d+$/;
+
 // Parses an outreach CSV: one row per respondent, columns found by exact
 // name (case-insensitive) rather than position — so any subset of
 // `columns`, in any order, works as long as the header matches exactly.
 // Only external_id is required per row; blank cells just mean "nothing to
-// import for that touchpoint".
-export function parseImportCsv(text, { columns, delimiter = "," }) {
+// import for that touchpoint". `includeProtocolId` additionally looks for
+// the protocol_id disambiguation column (see PROTOCOL_ID_COLUMN).
+export function parseImportCsv(text, { columns, delimiter = ",", includeProtocolId = false }) {
   const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim() !== "");
   if (lines.length === 0) {
     return { rows: [], errors: ["The file is empty."] };
@@ -67,6 +77,7 @@ export function parseImportCsv(text, { columns, delimiter = "," }) {
   if (idIdx === -1) {
     return { rows: [], errors: [`Missing "external_id" column — check the delimiter and column names.`] };
   }
+  const protocolIdIdx = includeProtocolId ? header.indexOf(PROTOCOL_ID_COLUMN.key) : -1;
   const colIdx = Object.fromEntries(columns.map((c) => [c.key, header.indexOf(c.key)]));
 
   const rows = [];
@@ -77,6 +88,16 @@ export function parseImportCsv(text, { columns, delimiter = "," }) {
     if (!external_id) continue;
 
     const row = { external_id };
+
+    if (protocolIdIdx !== -1) {
+      const value = cells[protocolIdIdx] || "";
+      if (value && !PROTOCOL_ID_RE.test(value)) {
+        errors.push(`Row ${i + 1}: "${value}" in protocol_id isn't a whole number, that column was skipped.`);
+      } else if (value) {
+        row.protocol_id = value;
+      }
+    }
+
     for (const col of columns) {
       if (colIdx[col.key] === -1) continue;
       const value = cells[colIdx[col.key]] || "";
@@ -92,10 +113,11 @@ export function parseImportCsv(text, { columns, delimiter = "," }) {
   return { rows, errors };
 }
 
-export function downloadImportTemplate(columns, delimiter = ",") {
-  const header = ["external_id", ...columns.map((c) => c.key)];
-  const sampleRow = (id) => [id, ...columns.map((c) => c.sample)].join(delimiter);
+export function downloadImportTemplate(columns, delimiter = ",", includeProtocolId = false) {
+  const header = ["external_id", ...(includeProtocolId ? [PROTOCOL_ID_COLUMN.key] : []), ...columns.map((c) => c.key)];
+  const sampleRow = (id, protocolId) =>
+    [id, ...(includeProtocolId ? [protocolId] : []), ...columns.map((c) => c.sample)].join(delimiter);
 
-  const csv = [header.join(delimiter), sampleRow("P-001"), sampleRow("P-002")].join("\n");
+  const csv = [header.join(delimiter), sampleRow("P-001", "12"), sampleRow("P-002", "12")].join("\n");
   downloadCsv(`fieldwork_import_template_${timestampForFilename()}.csv`, csv);
 }

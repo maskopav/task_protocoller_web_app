@@ -1,7 +1,7 @@
 // src/components/Fieldwork/FieldworkImportModal.jsx
 import React, { useRef, useState } from "react";
 import Modal from "../ProtocolEditor/Modal";
-import { IMPORT_COLUMNS, parseImportCsv, downloadImportTemplate } from "./csvImport";
+import { IMPORT_COLUMNS, PROTOCOL_ID_COLUMN, parseImportCsv, downloadImportTemplate } from "./csvImport";
 import { importContactEvents } from "../../api/participantProtocols";
 
 const INITIAL_STATE = { status: "idle", parseErrors: [], result: null, error: "" };
@@ -13,6 +13,7 @@ const INITIAL_STATE = { status: "idle", parseErrors: [], result: null, error: ""
 // routinely carry a handful of typo'd IDs or malformed dates.
 export default function FieldworkImportModal({ open, onClose, projectId, onImported }) {
   const [selectedKeys, setSelectedKeys] = useState(() => new Set(IMPORT_COLUMNS.map((c) => c.key)));
+  const [includeProtocolId, setIncludeProtocolId] = useState(false);
   const [delimiter, setDelimiter] = useState(",");
   const [state, setState] = useState(INITIAL_STATE);
   const fileInputRef = useRef(null);
@@ -43,7 +44,7 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
     if (!file) return;
 
     const text = await file.text();
-    const { rows, errors: parseErrors } = parseImportCsv(text, { columns: selectedColumns, delimiter });
+    const { rows, errors: parseErrors } = parseImportCsv(text, { columns: selectedColumns, delimiter, includeProtocolId });
 
     if (rows.length === 0) {
       setState({ status: "idle", parseErrors, result: null, error: parseErrors.length ? "" : "No rows found in the file." });
@@ -81,6 +82,16 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
           ))}
         </div>
 
+        <label className="fieldwork-import-column-option fieldwork-import-protocol-id">
+          <input
+            type="checkbox"
+            checked={includeProtocolId}
+            onChange={() => { setIncludeProtocolId((v) => !v); reset(); }}
+          />
+          Include {PROTOCOL_ID_COLUMN.label} — only needed if a respondent has more than one active protocol in this
+          project. Find it in the table's "Protocol ID" column (Columns menu) and copy it into this column per row.
+        </label>
+
         <div className="fieldwork-import-delimiter">
           <span>Delimiter</span>
           <label>
@@ -96,7 +107,7 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
         <button
           type="button"
           className="fieldwork-import-template-btn"
-          onClick={() => downloadImportTemplate(selectedColumns, delimiter)}
+          onClick={() => downloadImportTemplate(selectedColumns, delimiter, includeProtocolId)}
         >
           Download CSV template
         </button>

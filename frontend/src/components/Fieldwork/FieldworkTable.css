@@ -451,6 +451,18 @@
   cursor: default;
 }
 
+.fieldwork-import-protocol-id {
+  align-items: flex-start;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.fieldwork-import-protocol-id input {
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
 .fieldwork-import-delimiter {
   display: flex;
   align-items: center;
