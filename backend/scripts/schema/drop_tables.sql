@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `session_mic_checks`;
 DROP TABLE IF EXISTS `recordings`;
 DROP TABLE IF EXISTS `session_environments`;
 DROP TABLE IF EXISTS `sessions`;
+DROP TABLE IF EXISTS `participant_protocol_contacts`;
 DROP TABLE IF EXISTS `participant_protocols`;
 DROP TABLE IF EXISTS `project_protocols`;
 DROP TABLE IF EXISTS `protocol_contents`;

@@ -129,8 +129,18 @@ CREATE TABLE `participant_protocols` (
   `access_token` char(64) UNIQUE DEFAULT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
   `start_date` timestamp DEFAULT CURRENT_TIMESTAMP,
   `end_date` timestamp DEFAULT NULL,
-  `is_active` BOOLEAN DEFAULT FALSE,
-  `link_sent_at` timestamp DEFAULT NULL COMMENT 'When the survey agency contacted the participant with the link — distinct from start_date (link creation time); set via the Fieldwork CSV import'
+  `is_active` BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE `participant_protocol_contacts` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `participant_protocol_id` integer NOT NULL,
+  `contact_type` ENUM('link_sent', 'call') NOT NULL COMMENT 'One row per outreach touchpoint a survey agency logs: the initial link send, or a follow-up call',
+  `attempt_number` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 for link_sent; 1-3 for call, one row per call attempt',
+  `contacted_at` datetime NOT NULL COMMENT 'When the agency actually contacted the participant — distinct from participant_protocols.start_date (link creation time)',
+  `notes` text DEFAULT NULL COMMENT 'Agency notes for this touchpoint, e.g. why a call went unanswered',
+  `imported_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this row was recorded via the Fieldwork CSV import',
+  UNIQUE (`participant_protocol_id`, `contact_type`, `attempt_number`)
 );
 
 CREATE TABLE `sessions` (
@@ -234,6 +244,8 @@ ALTER TABLE `participant_protocols` ADD FOREIGN KEY (`participant_id`) REFERENCE
 ALTER TABLE `participant_protocols` ADD FOREIGN KEY (`project_protocol_id`) REFERENCES `project_protocols` (`id`);
 
 ALTER TABLE `sessions` ADD FOREIGN KEY (`participant_protocol_id`) REFERENCES `participant_protocols` (`id`);
+
+ALTER TABLE `participant_protocol_contacts` ADD FOREIGN KEY (`participant_protocol_id`) REFERENCES `participant_protocols` (`id`);
 
 ALTER TABLE `recordings` ADD FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`);
 

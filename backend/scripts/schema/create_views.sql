@@ -360,11 +360,18 @@ SELECT
     CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)) AS session_started_at,
     s.last_activity_at AS session_last_activity_at,
 
-    -- When the survey agency actually contacted the participant with the
-    -- link — distinct from `start_date` (when the link/token was created)
-    -- and unrelated to protocol_status. Set via the Fieldwork CSV import,
-    -- NULL until an agency uploads it.
-    pp.link_sent_at AS link_sent_at,
+    -- Outreach touchpoints logged by the survey agency via the Fieldwork CSV
+    -- import: when the link was sent (distinct from `start_date`, when the
+    -- link/token was created), and up to 3 follow-up calls with notes.
+    -- Pivoted out of participant_protocol_contacts by the `contacts` join
+    -- below — NULL until an agency uploads it.
+    contacts.link_sent_at,
+    contacts.call_1_at,
+    contacts.call_1_notes,
+    contacts.call_2_at,
+    contacts.call_2_notes,
+    contacts.call_3_at,
+    contacts.call_3_notes,
 
     -- 3. Total Duration
     TIMESTAMPDIFF(
@@ -447,6 +454,24 @@ JOIN languages lang ON p.language_id = lang.id
 -- LEFT JOIN: a participant who was assigned a protocol but never opened it
 -- has no row in `sessions` at all, and must still show up (as 'created').
 LEFT JOIN sessions s ON s.participant_protocol_id = pp.id
+
+-- Pivots participant_protocol_contacts (one row per outreach touchpoint —
+-- see backend/scripts/schema/create_tables.sql) into the flat columns the
+-- Fieldwork table displays. A participant with no logged touchpoints simply
+-- has no row here, so the LEFT JOIN naturally yields NULLs for it.
+LEFT JOIN (
+    SELECT
+        participant_protocol_id,
+        MAX(CASE WHEN contact_type = 'link_sent' THEN contacted_at END) AS link_sent_at,
+        MAX(CASE WHEN contact_type = 'call' AND attempt_number = 1 THEN contacted_at END) AS call_1_at,
+        MAX(CASE WHEN contact_type = 'call' AND attempt_number = 1 THEN notes END) AS call_1_notes,
+        MAX(CASE WHEN contact_type = 'call' AND attempt_number = 2 THEN contacted_at END) AS call_2_at,
+        MAX(CASE WHEN contact_type = 'call' AND attempt_number = 2 THEN notes END) AS call_2_notes,
+        MAX(CASE WHEN contact_type = 'call' AND attempt_number = 3 THEN contacted_at END) AS call_3_at,
+        MAX(CASE WHEN contact_type = 'call' AND attempt_number = 3 THEN notes END) AS call_3_notes
+    FROM participant_protocol_contacts
+    GROUP BY participant_protocol_id
+) contacts ON contacts.participant_protocol_id = pp.id
 
 -- Repeat-aware total step count per protocol, for completion_percent above.
 -- Deliberately separate from v_participant_protocols/v_project_protocols'
