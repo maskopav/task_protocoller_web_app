@@ -186,7 +186,14 @@ export const saveProtocol = async (req, res) => {
           const [oldPpRows] = await conn.query(`SELECT id FROM project_protocols WHERE project_id = ? AND protocol_id = ?`, [project_id, oldProtocolId]);
           if (oldPpRows.length > 0) {
             const [participants] = await conn.query(
-              `SELECT id, participant_id, access_token, start_date, is_active FROM participant_protocols WHERE project_protocol_id = ? AND end_date IS NULL`, 
+              `SELECT pp.id, pp.participant_id, pp.access_token, pp.start_date, pp.is_active
+               FROM participant_protocols pp
+               WHERE pp.project_protocol_id = ?
+                 AND pp.end_date IS NULL
+                 AND NOT EXISTS (
+                   SELECT 1 FROM sessions s
+                   WHERE s.participant_protocol_id = pp.id AND s.completed = 1
+                 )`,
               [oldPpRows[0].id]
             );
             for (const p of participants) {
