@@ -15,6 +15,7 @@ import ParticipantAuthPage from "./pages/ParticipantAuthPage";
 import ResetPasswordModal from "./components/AuthForm/ResetPasswordModal";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import SystemLogsPage from "./pages/SystemLogsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
@@ -48,6 +49,10 @@ export default function App() {
 
       <Route path="/admin/project-management" element={
         <ProtectedRoute><ProjectManagementPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/system-logs" element={
+        <ProtectedRoute><SystemLogsPage /></ProtectedRoute>
       } />
       
       <Route path="/admin/projects/:projectId" element={

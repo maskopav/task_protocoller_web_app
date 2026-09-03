@@ -1,0 +1,95 @@
+/* SystemLogsPage.css */
+
+.log-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.log-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.log-filter-field input {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--sharp-radius);
+  font-size: 0.9rem;
+  min-width: 12rem;
+}
+
+.log-filter-field-tail input {
+  min-width: 6rem;
+}
+
+.log-filter-submit {
+  padding: 0.55rem 1.25rem;
+  border: none;
+  border-radius: var(--sharp-radius);
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.log-filter-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.log-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.log-empty {
+  color: var(--muted);
+}
+
+.log-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 2rem;
+}
+
+.log-entry {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--sharp-radius);
+  border-left: 4px solid var(--grey);
+  background: var(--card-bg);
+  font-family: "Consolas", "Menlo", monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-entry-info {
+  border-left-color: var(--primary);
+}
+
+.log-entry-warn {
+  border-left-color: var(--warning);
+}
+
+.log-entry-error {
+  border-left-color: var(--danger);
+}
+
+.log-entry-fatal {
+  border-left-color: var(--danger);
+  background: #fdecea;
+}

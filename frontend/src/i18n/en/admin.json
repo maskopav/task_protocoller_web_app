@@ -27,7 +27,9 @@
       "users": "Admin User Management",
       "usersDesc": "Manage administrator accounts, assign project permissions, and reset credentials.",
       "projects": "Global Project Overview",
-      "projectsDesc": "View and manage all system projects, activate or deactivate projects."
+      "projectsDesc": "View and manage all system projects, activate or deactivate projects.",
+      "systemLogs": "System Logs",
+      "systemLogsDesc": "Search and filter backend/frontend log entries -- no server access needed."
     }
   },
   "management": {

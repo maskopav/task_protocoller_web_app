@@ -32,6 +32,15 @@ export default function MasterTools() {
             <p>{t("adminDashboard.masterTools.projectsDesc")}</p>
           </div>
         </button>
+
+        {/* System Logs Card */}
+        <button className="action-card btn-protocols" onClick={() => navigate("/admin/system-logs")}>
+          <div className="icon">🪵</div>
+          <div className="text">
+            <h3>{t("adminDashboard.masterTools.systemLogs")}</h3>
+            <p>{t("adminDashboard.masterTools.systemLogsDesc")}</p>
+          </div>
+        </button>
       </div>
     </section>
   );

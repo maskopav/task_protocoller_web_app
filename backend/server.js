@@ -13,8 +13,8 @@ import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
 import userProjectsRouter from "./src/routes/userProjects.js";
-import { logFrontendToFile } from "./src/utils/logger.js";
-import { requireAuth } from "./src/middleware/authMiddleware.js";
+import { logFrontendToFile, readSystemLog } from "./src/utils/logger.js";
+import { requireAuth, requireRole } from "./src/middleware/authMiddleware.js";
 
 import cors from "cors";
 
@@ -89,6 +89,18 @@ app.post("/logs/frontend", (req, res) => {
     logFrontendToFile(req.body);
   }
   res.status(200).json({ success: true });
+});
+
+// Admin-only: reads system_log.txt (there's no server shell access for most
+// admins, so this is the only way to inspect it). Gated to "master" like
+// MasterTools' other diagnostic/management tools, since log entries can
+// carry participant-identifying URLs/details.
+// Query params: tail (max entries, default 200, capped 2000), search
+// (case-insensitive substring), since/until (ISO timestamp bounds).
+app.get("/logs/frontend", requireAuth, requireRole("master"), (req, res) => {
+  const { tail, search, since, until } = req.query;
+  const entries = readSystemLog({ tail, search, since, until });
+  res.json({ entries });
 });
 
 const PORT = process.env.PORT || 3000;
