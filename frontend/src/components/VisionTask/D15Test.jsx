@@ -10,6 +10,16 @@ import { SafeButton } from '../Shared/SafeButton';
 import { useActionCooldown } from '../../hooks/useActionCooldown';
 import "./D15Test.css";
 
+// Background colours the D-15 board can be tested against (colour perception
+// is sensitive to surrounding contrast/lighting conditions).
+const BOARD_BACKGROUNDS = {
+  black:     "#000000",
+  darkGrey:  "#4d4d4d",
+  grey:      "rgb(211, 211, 211)", // legacy default board colour
+  lightGrey: "#f0f0f0",
+  white:     "#ffffff",
+};
+
 export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, audioGuideEnabled = true }) {
   const { t } = useTranslation("tasks", "common");
   const { confirm } = useContext(ConfirmDialogContext);
@@ -33,7 +43,8 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   const version    = task?.params?.version   || "desaturated";
   const randomize  = task?.params?.randomize ?? true;
   const showNumbers = task?.params?.showNumbers || "never";
-  const maxDuration  = task?.params?.maxDuration ?? null; 
+  const maxDuration  = task?.params?.maxDuration ?? null;
+  const boardBackground = BOARD_BACKGROUNDS[task?.params?.background] || BOARD_BACKGROUNDS.grey;
 
   useEffect(() => { latestTrayRef.current   = tray;   }, [tray]);
   useEffect(() => { latestEventsRef.current = events; }, [events]);
@@ -224,7 +235,7 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
 
   // ── Slot content ─────────────────────────────────────────────────────
   const boardContent = (
-    <div className="d15-board">
+    <div className="d15-board" style={{ backgroundColor: boardBackground }}>
       <div className="d15-tray-section">
         <div className="d15-tray-container" ref={trayRef}>
           {tray.map((capColor, index) => (

@@ -328,6 +328,16 @@
             "demo": "Demo (For visualization)"
           }
         },
+        "background": {
+          "label": "Board background",
+          "values": {
+            "black": "Black",
+            "darkGrey": "Dark grey",
+            "grey": "Grey (Standard)",
+            "lightGrey": "Light grey",
+            "white": "White"
+          }
+        },
         "demoTrial": {
           "label": "Include trial",
           "values": {
@@ -335,8 +345,8 @@
             "no": "No"
           }
         },
-        "randomize": { 
-          "label": "Randomize caps" 
+        "randomize": {
+          "label": "Randomize caps"
         },
         "repeat": { 
           "label": "Repetitions" 

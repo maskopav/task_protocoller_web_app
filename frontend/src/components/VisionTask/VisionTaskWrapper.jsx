@@ -110,6 +110,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
   const handleTestComplete = (testResults) => {
     const finalData = {
       version: task?.params?.version || "desaturated",
+      background: task?.params?.background || "grey",
       environmentSettings: environmentData,
       completionStatus:    testResults.completionStatus || "completed",
       metrics: testResults.metrics,
@@ -139,7 +140,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
 
       {step === "trial" && (
         <D15Test
-          task={{ params: { version: "demo", randomize: true, showNumbers: "never" } }}
+          task={{ params: { version: "demo", randomize: true, showNumbers: "never", background: task?.params?.background } }}
           onNextTask={handleTrialComplete}
           onStopAudio={() => trialTaskGuideRef.current?.stop()}
           audioPlayer={
