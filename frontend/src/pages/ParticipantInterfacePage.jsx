@@ -27,10 +27,12 @@ import { saveRecordingLocally, getPendingRecordingsForSession } from '../utils/o
 import { uploadInBackground, flushPendingRecordings } from '../utils/recordingUploadQueue';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
 
 const TRANSITION_LOCK_MS = 350
+const LOCAL_FETCH_TIMEOUT_MS = 15000
 // navigator.onLine stays true on a slow/degraded connection (it only reflects
 // whether there's a network interface at all), so the reconnect-triggered
 // flush below never fires for that case. This periodic pass is what actually
@@ -770,7 +772,7 @@ export default function ParticipantInterfacePage() {
       if (data?.audioBlob) {
         blob = data.audioBlob;
       } else if (data?.audioURL) {
-        const response = await fetch(data.audioURL);
+        const response = await fetchWithTimeout(data.audioURL, {}, LOCAL_FETCH_TIMEOUT_MS);
         blob = await response.blob();
       }
    

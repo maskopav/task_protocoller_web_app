@@ -1,5 +1,6 @@
 // src/api/recordings.js
 import { optimizeCoordinateTimeline } from "../utils/coordinateOptimizer";
+import { fetchWithTimeout } from "../utils/fetchWithTimeout";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -23,21 +24,6 @@ const UPLOAD_TIMEOUT_MAX_MS    = 300_000;
 export function computeUploadTimeoutMs(payloadBytes) {
   const mb = payloadBytes / (1024 * 1024);
   return Math.min(UPLOAD_TIMEOUT_MAX_MS, UPLOAD_TIMEOUT_BASE_MS + mb * UPLOAD_TIMEOUT_MS_PER_MB);
-}
-
-async function fetchWithTimeout(url, options, timeoutMs) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } catch (err) {
-    if (err.name === "AbortError") {
-      throw new Error(`Upload timed out after ${Math.round(timeoutMs / 1000)}s`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 // finalizeRecording() returns FLAC when encoding succeeds, WAV as its

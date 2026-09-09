@@ -12,6 +12,9 @@ import "./MicCheck.css";
 import { calculateSNR } from "../../utils/audioAnalysis";
 import { logger } from "../../utils/frontendLogger";
 import { SafeButton } from '../Shared/SafeButton';
+import { fetchWithTimeout } from "../../utils/fetchWithTimeout";
+
+const LOCAL_FETCH_TIMEOUT_MS = 15000;
 
 // ==========================================
 // 1. CONFIGURATION & CONSTANTS
@@ -217,9 +220,9 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     let audioBlob;
     let safeAudioUrl;
     try {
-      const response = await fetch(taskData.audioURL);
+      const response = await fetchWithTimeout(taskData.audioURL, {}, LOCAL_FETCH_TIMEOUT_MS);
       audioBlob = await response.blob();
-      safeAudioUrl = URL.createObjectURL(audioBlob); 
+      safeAudioUrl = URL.createObjectURL(audioBlob);
     } catch (err) {
       logger.error("Failed to fetch audio blob for MicCheck", err);
     }
