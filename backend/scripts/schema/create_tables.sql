@@ -55,7 +55,8 @@ CREATE TABLE `protocols` (
   `updated_by` integer,
   `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
   `use_audio_guide` BOOLEAN NOT NULL DEFAULT true,
-  `required_identifiers` JSON DEFAULT NULL COMMENT 'Stores an array of required identifier strings'
+  `required_identifiers` JSON DEFAULT NULL COMMENT 'Stores an array of required identifier strings',
+  `enable_followup_booking` BOOLEAN NOT NULL DEFAULT false COMMENT 'Shows the in-person follow-up appointment booking step at the end of the protocol (see booking-service integration)'
 );
 
 CREATE TABLE `project_protocols` (
@@ -155,7 +156,8 @@ CREATE TABLE `sessions` (
   `identifiers` JSON DEFAULT NULL COMMENT 'Participant identifiers',
   `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
   `current_task_index` integer NOT NULL DEFAULT 1,
-  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `completed_at` timestamp NULL DEFAULT NULL COMMENT 'Set once when completed is first set true. last_activity_at keeps moving after that, so this is the only stable anchor for "N days after finishing" rules (e.g. follow-up booking eligibility).'
 );
 
 CREATE TABLE `session_environments` (

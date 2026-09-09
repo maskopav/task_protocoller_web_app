@@ -161,6 +161,7 @@ export async function resolveParticipantToken(req, res) {
         randomization: randomizationSettings,
         required_identifiers: requiredIdentifiers,
         use_audio_guide: protocolConfig?.use_audio_guide ?? 1,
+        enable_followup_booking: protocolConfig?.enable_followup_booking ?? 0,
         info_text: globalContentByRef.info_text || "",
         instructions_text: globalContentByRef.instructions_text || "",
         consent_text: globalContentByRef.consent_text || "",

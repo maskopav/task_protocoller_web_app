@@ -203,8 +203,11 @@ export const updateProgress = async (req, res) => {
 
       // 2. Mark as Completed
       if (markCompleted) {
+        // completed_at is only set the first time — a later re-run (see
+        // ALLOW_PROTOCOL_RERUN) must not push out a participant's booking
+        // eligibility window by re-stamping it.
         await connection.query(
-          `UPDATE sessions SET completed = 1 WHERE id = ?`,
+          `UPDATE sessions SET completed = 1, completed_at = COALESCE(completed_at, UTC_TIMESTAMP()) WHERE id = ?`,
           [sessionId]
         );
       }
