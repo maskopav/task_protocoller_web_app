@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS `webhooks`;
+DROP TABLE IF EXISTS `bookings`;
+DROP TABLE IF EXISTS `slots`;
+DROP TABLE IF EXISTS `resources`;
+DROP TABLE IF EXISTS `tenants`;
