@@ -41,6 +41,15 @@ export default function MasterTools() {
             <p>{t("adminDashboard.masterTools.systemLogsDesc")}</p>
           </div>
         </button>
+
+        {/* Session Data Download Card */}
+        <button className="action-card btn-protocols" onClick={() => navigate("/admin/session-data")}>
+          <div className="icon">📥</div>
+          <div className="text">
+            <h3>{t("adminDashboard.masterTools.sessionData")}</h3>
+            <p>{t("adminDashboard.masterTools.sessionDataDesc")}</p>
+          </div>
+        </button>
       </div>
     </section>
   );

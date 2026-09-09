@@ -16,6 +16,7 @@ import ResetPasswordModal from "./components/AuthForm/ResetPasswordModal";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import SystemLogsPage from "./pages/SystemLogsPage";
+import SessionDataPage from "./pages/SessionDataPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
@@ -54,7 +55,11 @@ export default function App() {
       <Route path="/admin/system-logs" element={
         <ProtectedRoute><SystemLogsPage /></ProtectedRoute>
       } />
-      
+
+      <Route path="/admin/session-data" element={
+        <ProtectedRoute><SessionDataPage /></ProtectedRoute>
+      } />
+
       <Route path="/admin/projects/:projectId" element={
         <ProtectedRoute><ProjectDashboardPage /></ProtectedRoute>
       } />

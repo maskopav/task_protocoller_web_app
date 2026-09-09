@@ -29,7 +29,9 @@
       "projects": "Global Project Overview",
       "projectsDesc": "View and manage all system projects, activate or deactivate projects.",
       "systemLogs": "System Logs",
-      "systemLogsDesc": "Search and filter backend/frontend log entries -- no server access needed."
+      "systemLogsDesc": "Search and filter backend/frontend log entries -- no server access needed.",
+      "sessionData": "Session Data Download",
+      "sessionDataDesc": "Download recordings and task results by date range or protocol as a zip."
     }
   },
   "management": {

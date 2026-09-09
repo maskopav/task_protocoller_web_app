@@ -1,7 +1,9 @@
 // src/utils/audioAnalysis.js
 import { logger } from "./frontendLogger";
+import { fetchWithTimeout } from "./fetchWithTimeout";
 
 const FALLBACK_DURATION_MS = 5000;
+const LOCAL_FETCH_TIMEOUT_MS = 15000;
 
 /**
  * Main entry point for SNR calculation
@@ -63,7 +65,7 @@ export async function calculateSNR(audioUrl, speechSegments, recordingStartTime,
 
 async function fetchAndDecodeAudio(audioUrl) {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const response = await fetch(audioUrl);
+    const response = await fetchWithTimeout(audioUrl, {}, LOCAL_FETCH_TIMEOUT_MS);
     const arrayBuffer = await response.arrayBuffer();
     
     if (arrayBuffer.byteLength < 500) {

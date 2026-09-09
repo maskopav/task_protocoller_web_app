@@ -2,7 +2,7 @@
 import pool from "../db/connection.js";
 import { executeQuery } from "../db/queryHelper.js";
 import { logToFile } from '../utils/logger.js';
-import { SESSION_RESUME_WINDOW_HOURS } from "../config/constants.js";
+import { SESSION_RESUME_WINDOW_HOURS, ALLOW_PROTOCOL_RERUN } from "../config/constants.js";
 
 // POST /api/sessions/init
 export const initSession = async (req, res) => {
@@ -28,7 +28,44 @@ export const initSession = async (req, res) => {
     }
     const participantProtocolId = ppRow.id;
 
-    // 2. Check for an existing incomplete session within the resume window
+    // 2. Never start a fresh session for an assignment that already finished —
+    // otherwise the token can be reopened after completion (e.g. link clicked
+    // again) and this handler would insert a brand-new, uncompleted session
+    // row that then outranks the real completed one everywhere latest-session
+    // is picked by id (e.g. v_session_summary), making a finished respondent
+    // look like they never started. Gated by ALLOW_PROTOCOL_RERUN so this can
+    // be turned off outside production to deliberately test re-running a
+    // completed protocol.
+    if (!ALLOW_PROTOCOL_RERUN) {
+      const [completedSession] = await executeQuery(
+        `SELECT id, current_task_index, progress, task_order
+         FROM sessions
+         WHERE participant_protocol_id = ?
+           AND completed = true
+         ORDER BY last_activity_at DESC
+         LIMIT 1`,
+        [participantProtocolId]
+      );
+
+      if (completedSession) {
+        logToFile("INFO", "Protocol already completed, returning existing session instead of creating a new one", {
+          sessionId: completedSession.id,
+          participantProtocolId
+        });
+
+        return res.json({
+          success: true,
+          sessionId: completedSession.id,
+          currentTaskIndex: completedSession.current_task_index,
+          taskOrder: typeof completedSession.task_order === 'string' ? JSON.parse(completedSession.task_order) : completedSession.task_order,
+          progress: typeof completedSession.progress === 'string' ? JSON.parse(completedSession.progress) : (completedSession.progress || []),
+          resumed: true,
+          completed: true
+        });
+      }
+    }
+
+    // 3. Check for an existing incomplete session within the resume window
     const [existingSession] = await executeQuery(
       `SELECT id, current_task_index, progress, task_order
        FROM sessions
@@ -65,7 +102,7 @@ export const initSession = async (req, res) => {
       });
     }
     
-    // 3. Insert New Session
+    // 4. Insert New Session
     const connection = await pool.getConnection(); 
     try {
       await connection.beginTransaction();

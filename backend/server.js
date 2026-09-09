@@ -9,6 +9,7 @@ import participantsRouter from "./src/routes/participants.js";
 import sessionsRouter from "./src/routes/sessions.js";
 import recordingsRouter from "./src/routes/recordings.js";
 import taskResultsRouter from "./src/routes/taskResults.js";
+import sessionDataRouter from "./src/routes/sessionData.js";
 import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
@@ -102,6 +103,12 @@ app.get("/logs/frontend", requireAuth, requireRole("master"), (req, res) => {
   const entries = readSystemLog({ tail, search, since, until });
   res.json({ entries });
 });
+
+// Admin-only: browse and download recordings + task results for study
+// sessions, filtered by date range and/or protocol, as a zip. Gated to
+// "master" like the log viewer above -- recordings and task payloads are
+// clinical/participant data.
+app.use("/session-data", requireAuth, requireRole("master"), sessionDataRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -1,0 +1,123 @@
+/* SessionDataPage.css */
+
+.sd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sd-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sd-filter-field input,
+.sd-filter-field select {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--sharp-radius);
+  font-size: 0.9rem;
+  min-width: 12rem;
+}
+
+.sd-filter-submit {
+  padding: 0.55rem 1.25rem;
+  border: none;
+  border-radius: var(--sharp-radius);
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.sd-filter-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.sd-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.sd-warning {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.sd-empty {
+  color: var(--muted);
+}
+
+.sd-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sd-count {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.sd-toolbar-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.sd-toolbar-actions button {
+  width: auto;
+}
+
+.sd-btn-secondary {
+  background: var(--dark-gray);
+}
+
+.sd-table-wrapper {
+  overflow-x: auto;
+  padding-bottom: 2rem;
+}
+
+.sd-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--sharp-radius);
+  font-size: 0.85rem;
+}
+
+.sd-table th,
+.sd-table td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.sd-table th {
+  background: #ffffff;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sd-table tbody tr:hover {
+  background: #ffffff;
+}
+
+.sd-table tbody tr.is-selected {
+  background: #eef2ff;
+}
