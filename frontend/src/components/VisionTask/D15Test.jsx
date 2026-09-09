@@ -15,6 +15,7 @@ import "./D15Test.css";
 const BOARD_BACKGROUNDS = {
   black:     "#000000",
   darkGrey:  "#4d4d4d",
+  greyOrig: "#949398",
   grey:      "rgb(211, 211, 211)", // legacy default board colour
   lightGrey: "#f0f0f0",
   white:     "#ffffff",
@@ -44,7 +45,12 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   const randomize  = task?.params?.randomize ?? true;
   const showNumbers = task?.params?.showNumbers || "never";
   const maxDuration  = task?.params?.maxDuration ?? null;
-  const boardBackground = BOARD_BACKGROUNDS[task?.params?.background] || BOARD_BACKGROUNDS.grey;
+
+  // DEV ONLY — live background switcher for eyeballing contrast during dev.
+  // Remove this state + the switcher UI below once a background is chosen.
+  const [devBackgroundOverride, setDevBackgroundOverride] = useState(null);
+  const boardBackgroundKey = devBackgroundOverride || task?.params?.background;
+  const boardBackground = BOARD_BACKGROUNDS[boardBackgroundKey] || BOARD_BACKGROUNDS.grey;
 
   useEffect(() => { latestTrayRef.current   = tray;   }, [tray]);
   useEffect(() => { latestEventsRef.current = events; }, [events]);
@@ -233,6 +239,28 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   const displayNumbers = showNumbers === "always" || (showNumbers === "after" && isSubmitted);
   const getCapLabel    = (color) => d15Colors.indexOf(color);
 
+  // DEV ONLY — remove this block together with the state above.
+  const devBackgroundSwitcher = 
+    <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "0 0 8px" }}>
+      {Object.entries(BOARD_BACKGROUNDS).map(([key, color]) => (
+        <button
+          key={key}
+          type="button"
+          title={key}
+          onClick={() => setDevBackgroundOverride(key)}
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            backgroundColor: color,
+            cursor: "pointer",
+            border: boardBackgroundKey === key ? "2px solid #2563eb" : "1px solid #999",
+            padding: 0,
+          }}
+        />
+      ))}
+    </div>;
+
   // ── Slot content ─────────────────────────────────────────────────────
   const boardContent = (
     <div className="d15-board" style={{ backgroundColor: boardBackground }}>
@@ -317,6 +345,7 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
       instructions={<Trans t={t} i18nKey="d15colour.mainInstructionsText" components={{ br: <br /> }} />}
       controls={controlsContent}
     >
+      {devBackgroundSwitcher}
       {boardContent}
     </TaskLayout>
   );
