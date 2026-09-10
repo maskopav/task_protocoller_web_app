@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBookingLink } from "../../api/booking";
+import { markSessionCompleted } from "../../api/sessions";
 import "./BookingStep.css";
 
 export default function BookingStep({ sessionId, onComplete }) {
@@ -21,16 +22,25 @@ export default function BookingStep({ sessionId, onComplete }) {
     setLoading(true);
     setError(null);
 
-    getBookingLink(sessionId, i18n.language)
-      .then((data) => {
+    (async () => {
+      try {
+        // Booking-service's eligibility gate requires sessions.completed_at
+        // to already be set (GET /sessions/:id/booking-link 409s otherwise).
+        // markSessionCompleted (not trackProgress, which is fire-and-forget
+        // and doesn't return its request promise) genuinely waits for that
+        // write to land before the link fetch below runs — and must live
+        // here, not in a sibling effect on the parent: React fires a
+        // child's own effects before its parent's, so a separate effect on
+        // ParticipantInterfacePage would race this fetch and could lose.
+        await markSessionCompleted(sessionId);
+        const data = await getBookingLink(sessionId, i18n.language);
         if (!cancelled) setBookingUrl(data.bookingUrl);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
