@@ -15,6 +15,8 @@ CREATE TABLE `resources` (
   `default_location` varchar(255) DEFAULT NULL,
   `contact_info` text DEFAULT NULL COMMENT 'Free-text contact line (email/phone/etc.) shown to respondents when there is no slot to point them at, e.g. in the cancellation email',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `resources_tenant_slug` (`tenant_id`, `slug`)
+    COMMENT 'Backstop for ensureFollowupBookingResource''s list-then-create-if-missing race: under a multi-process/clustered deployment, two processes could both see an empty list and both try to create the same resource. INSERT would then fail for the loser instead of silently duplicating the row.',
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
 );
 
