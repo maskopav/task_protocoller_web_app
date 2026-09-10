@@ -89,16 +89,22 @@ export async function bulkCreateSlots(tenantId, resourceId, {
 
   if (rows.length === 0) return { created: 0 };
 
+  // INSERT IGNORE + the slots_resource_starts_idx UNIQUE constraint (see
+  // create_tables.sql) makes this safe to call again with an overlapping
+  // range — e.g. a retry after a timeout, or generating two adjacent weeks
+  // that share a boundary day — instead of silently duplicating slots.
+  let created = 0;
   await executeTransaction(async (conn) => {
     for (const row of rows) {
-      await conn.query(
-        `INSERT INTO slots (resource_id, starts_at, ends_at, location) VALUES (?, ?, ?, ?)`,
+      const [result] = await conn.query(
+        `INSERT IGNORE INTO slots (resource_id, starts_at, ends_at, location) VALUES (?, ?, ?, ?)`,
         row
       );
+      created += result.affectedRows;
     }
   });
 
-  return { created: rows.length };
+  return { created, skipped: rows.length - created };
 }
 
 export async function listSlotsForAdmin(tenantId, resourceId, { activeOnly } = {}) {

@@ -16,9 +16,9 @@ vi.mock("../utils/tokenGenerator.js", () => ({
 // point mockConn has been reassigned in the test's beforeEach/body).
 let mockConn;
 
-const { executeTransaction } = await import("../db/queryHelper.js");
+const { executeTransaction, executeQuery } = await import("../db/queryHelper.js");
 const { generateToken } = await import("../utils/tokenGenerator.js");
-const { createBooking } = await import("./bookingService.js");
+const { createBooking, bulkCreateSlots } = await import("./bookingService.js");
 
 function makeConn({ slotRow, existingActiveRows = [], manageTokenCollisions = 0, insertId = 123 }) {
   let manageTokenLookups = 0;
@@ -116,5 +116,62 @@ describe("createBooking", () => {
     mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 } });
     await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref", email: "a@b.com", phone: "1" });
     expect(executeTransaction).toHaveBeenCalled();
+  });
+});
+
+// Regression coverage for a real bug hit in manual testing: calling
+// bulkCreateSlots twice with an overlapping range silently created a full
+// duplicate set of slots (same resource_id/starts_at, different id),
+// showing up as every time slot doubled on the booking page. Fixed by
+// INSERT IGNORE + a UNIQUE(resource_id, starts_at) index (create_tables.sql);
+// these tests lock in the safe-to-retry behavior at the application level.
+describe("bulkCreateSlots", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("rejects when the resource doesn't belong to the tenant", async () => {
+    executeQuery.mockResolvedValueOnce([]); // assertResourceOwnedByTenant finds nothing
+    await expect(bulkCreateSlots(1, 999, {
+      startDate: "2026-09-14", endDate: "2026-09-14", weekdays: [1],
+      startTime: "09:00", endTime: "10:00", durationMin: 30,
+    })).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("inserts with INSERT IGNORE and reports rows the DB actually skipped as duplicates", async () => {
+    executeQuery.mockResolvedValueOnce([{ id: 3 }]); // ownership check passes
+
+    let call = 0;
+    mockConn = {
+      query: vi.fn((sql) => {
+        call++;
+        expect(sql).toMatch(/INSERT IGNORE INTO slots/);
+        // Simulate the second of the two generated slots already existing
+        // (as if from an earlier, overlapping bulkCreateSlots call) and
+        // therefore being silently skipped rather than duplicated.
+        return Promise.resolve([{ affectedRows: call === 1 ? 1 : 0 }]);
+      }),
+    };
+
+    // 09:00-10:00 in 30-min steps generates exactly 2 slots.
+    const result = await bulkCreateSlots(1, 3, {
+      startDate: "2026-09-14", endDate: "2026-09-14", weekdays: [1],
+      startTime: "09:00", endTime: "10:00", durationMin: 30,
+    });
+
+    expect(result).toEqual({ created: 1, skipped: 1 });
+    expect(mockConn.query).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports 0 created when every slot in the range already exists", async () => {
+    executeQuery.mockResolvedValueOnce([{ id: 3 }]);
+    mockConn = { query: vi.fn(() => Promise.resolve([{ affectedRows: 0 }])) };
+
+    const result = await bulkCreateSlots(1, 3, {
+      startDate: "2026-09-14", endDate: "2026-09-14", weekdays: [1],
+      startTime: "09:00", endTime: "10:00", durationMin: 30,
+    });
+
+    expect(result).toEqual({ created: 0, skipped: 2 });
   });
 });

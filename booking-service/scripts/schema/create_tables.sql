@@ -55,5 +55,8 @@ CREATE TABLE `webhooks` (
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
 );
 
-CREATE INDEX `slots_resource_starts_idx` ON `slots` (`resource_id`, `starts_at`);
+-- UNIQUE, not just an index: makes bulkCreateSlots's INSERT IGNORE safe to
+-- call again over an overlapping range (retry after a timeout, adjacent
+-- date ranges sharing a boundary day) instead of silently duplicating slots.
+CREATE UNIQUE INDEX `slots_resource_starts_idx` ON `slots` (`resource_id`, `starts_at`);
 CREATE INDEX `bookings_external_ref_idx` ON `bookings` (`external_ref`);
