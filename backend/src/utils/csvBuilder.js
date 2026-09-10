@@ -5,7 +5,14 @@
 
 function escapeCsvValue(value) {
   if (value === null || value === undefined) return '""';
-  return `"${String(value).replace(/"/g, '""')}"`;
+  let str = String(value);
+  // Formula-injection guard: some spreadsheet apps (Excel, older Sheets/
+  // LibreOffice) execute a cell as a formula if it starts with =, +, -, @,
+  // tab, or CR. A leading apostrophe forces text interpretation.
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
 }
 
 export function buildCsv(headers, rows) {
