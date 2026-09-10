@@ -14,6 +14,7 @@ import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
 import userProjectsRouter from "./src/routes/userProjects.js";
+import adminBookingRouter from "./src/routes/adminBooking.js";
 import { logFrontendToFile, readSystemLog } from "./src/utils/logger.js";
 import { requireAuth, requireRole } from "./src/middleware/authMiddleware.js";
 
@@ -109,6 +110,28 @@ app.get("/logs/frontend", requireAuth, requireRole("master"), (req, res) => {
 // "master" like the log viewer above -- recordings and task payloads are
 // clinical/participant data.
 app.use("/session-data", requireAuth, requireRole("master"), sessionDataRouter);
+
+// Admin-only: proxies to booking-service's admin API (slot generation,
+// reservations list/export) using a server-held API key -- see
+// src/services/bookingServiceClient.js. Same access level as /protocols,
+// not master-only: managing follow-up appointment slots is an operational
+// task, not a sensitive-data export.
+app.use("/admin/booking", requireAuth, adminBookingRouter);
+
+// Optional: run booking-service (../booking-service) as a sub-app of this
+// same process/port instead of its own separate one -- see
+// booking-service/README.md's "Running mounted inside another process".
+// Off by default so local dev (where booking-service usually runs
+// standalone on its own port) is unaffected; set MOUNT_BOOKING_SERVICE=true
+// for a deployment that can't register a second app/port (e.g. constrained
+// shared hosting with no way to provision one). When on, BOOKING_SERVICE_URL
+// in this app's own .env should point back at this same server's
+// /booking-service path, since that's genuinely where it's reachable.
+if (process.env.MOUNT_BOOKING_SERVICE === "true") {
+  const { createBookingApp } = await import("../booking-service/src/app.js");
+  app.use("/booking-service", createBookingApp());
+  console.log("📅 booking-service mounted at /booking-service");
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

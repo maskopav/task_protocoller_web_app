@@ -17,6 +17,7 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import SystemLogsPage from "./pages/SystemLogsPage";
 import SessionDataPage from "./pages/SessionDataPage";
+import BookingSlotsPage from "./pages/BookingSlotsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
@@ -58,6 +59,10 @@ export default function App() {
 
       <Route path="/admin/session-data" element={
         <ProtectedRoute><SessionDataPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/booking-slots" element={
+        <ProtectedRoute><BookingSlotsPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/projects/:projectId" element={

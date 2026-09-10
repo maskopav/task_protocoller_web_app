@@ -323,6 +323,13 @@
       "adminWelcomeBody": "You have been registered as a system administrator. Please use your email and the temporary password below to log in and set up your permanent password.",
       "loginUrlLabel": "Login Page",
       "tempPasswordLabel": "Temporary Password"
+    },
+    "booking": {
+      "heading": "Schedule your follow-up visit",
+      "instructions": "Please pick a time that works for you. You'll get a confirmation email with a link to reschedule or cancel if needed.",
+      "loading": "Loading the scheduling page…",
+      "errorLoading": "We couldn't load the scheduling page right now. You can continue — we'll follow up by email.",
+      "continueButton": "Continue"
     }
   }
   

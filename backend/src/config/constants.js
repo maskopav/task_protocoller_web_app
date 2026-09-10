@@ -29,3 +29,9 @@ export const ALLOW_PROTOCOL_RERUN = true;
 // date range/protocol filter or select sessions explicitly in smaller
 // batches.
 export const MAX_EXPORT_SESSIONS = 300;
+
+// Minimum number of days after a participant completes a protocol before
+// they're eligible to book the in-person follow-up retest (avoids a
+// learning-effect confound). Used by bookingServiceClient.buildBookingLink
+// to compute the earliest date booking-service is allowed to offer.
+export const BOOKING_ELIGIBILITY_DAYS = 14;

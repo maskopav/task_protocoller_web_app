@@ -16,6 +16,7 @@ import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
 import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
 import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
+import BookingStep from "../components/Booking/BookingStep";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
@@ -276,6 +277,18 @@ export default function ParticipantInterfacePage() {
 
     finalTasks = [...finalTasks, ...resolvedVoiceTasks];
 
+    // Follow-up appointment booking — always the very last step, after
+    // every real task, since it's gated on the protocol actually being
+    // complete (see backend's GET /sessions/:id/booking-link, which
+    // requires sessions.completed_at to be set).
+    if (selectedProtocol.enable_followup_booking) {
+      finalTasks.push({
+        type: "followup_booking",
+        category: "followup_booking",
+        isSystemTask: true
+      });
+    }
+
     return finalTasks;
   }, [selectedProtocol, i18n.language]);
 
@@ -425,7 +438,21 @@ export default function ParticipantInterfacePage() {
 
   // Define your tasks and audio hook FIRST
   const rawTask = runtimeTasks[taskIndex];
-  
+
+  // Mark the session completed as soon as every real task is done — i.e.
+  // the moment the (optional) follow-up booking step becomes current —
+  // rather than waiting for that step to also finish. Booking-service's
+  // eligibility gate (GET /sessions/:id/booking-link) requires
+  // sessions.completed_at to already be set, so it must land before
+  // BookingStep's own fetch, not after. Safe to fire more than once:
+  // completed_at is only ever written once (COALESCE'd) on the backend, and
+  // the normal end-of-protocol completion write later is then a no-op.
+  useEffect(() => {
+    if (rawTask?.type === "followup_booking" && sessionId) {
+      trackProgress(sessionId, null, true);
+    }
+  }, [rawTask, sessionId]);
+
   const { currentTask, isReadingTask, isRetellingTask } = useMemo(() => {
     let task = null;
     let isReading = false;
@@ -760,7 +787,7 @@ export default function ParticipantInterfacePage() {
     }
     try {
       const currentTaskObj = runtimeTasks[taskIndex];
-      const isSystemTask = ['info', 'instructions', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(currentTaskObj.type);
+      const isSystemTask = ['info', 'instructions', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro', 'followup_booking'].includes(currentTaskObj.type);
       const isMicCheck = currentTaskObj.type === 'mic_check';
     
       if (testingMode || editingMode || !sessionId) {
@@ -902,6 +929,13 @@ export default function ParticipantInterfacePage() {
       );
     }
     
+    // Render Follow-up Booking (always the last step, when enabled)
+    if (rawTask.type === "followup_booking") {
+      return (
+        <BookingStep sessionId={sessionId} onComplete={() => handleTaskComplete({})} />
+      );
+    }
+
     // Render Volume Check
     if (rawTask.type === "volume_check") {
       return (

@@ -50,6 +50,15 @@ export default function MasterTools() {
             <p>{t("adminDashboard.masterTools.sessionDataDesc")}</p>
           </div>
         </button>
+
+        {/* Follow-up Booking Slots Card */}
+        <button className="action-card btn-protocols" onClick={() => navigate("/admin/booking-slots")}>
+          <div className="icon">📅</div>
+          <div className="text">
+            <h3>{t("adminDashboard.masterTools.bookingSlots")}</h3>
+            <p>{t("adminDashboard.masterTools.bookingSlotsDesc")}</p>
+          </div>
+        </button>
       </div>
     </section>
   );

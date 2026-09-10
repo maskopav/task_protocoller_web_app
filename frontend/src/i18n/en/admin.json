@@ -31,7 +31,9 @@
       "systemLogs": "System Logs",
       "systemLogsDesc": "Search and filter backend/frontend log entries -- no server access needed.",
       "sessionData": "Session Data Download",
-      "sessionDataDesc": "Download recordings and task results by date range or protocol as a zip."
+      "sessionDataDesc": "Download recordings and task results by date range or protocol as a zip.",
+      "bookingSlots": "Follow-up Booking Slots",
+      "bookingSlotsDesc": "Generate available appointment slots and view/export reservations."
     }
   },
   "management": {
@@ -430,6 +432,43 @@
       "languageRequired": "Please select a language.",
       "tasksRequired": "At least one task must be added."
     }
+  },
+  "bookingSlotsPage": {
+    "title": "Follow-up Booking Slots",
+    "description": "Generate available appointment slots for the standardized-room follow-up retest, and review reservations made by respondents.",
+    "generateHeading": "Generate slots",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "duration": "Duration (min)",
+    "location": "Location (optional)",
+    "locationPlaceholder": "e.g. Room 2B",
+    "weekdays": "Days of week",
+    "generateButton": "Generate slots",
+    "generatingButton": "Generating…",
+    "createdNotice_one": "Created {{count}} slot.",
+    "createdNotice_other": "Created {{count}} slots.",
+    "skippedNote_one": "({{count}} already existed and was skipped)",
+    "skippedNote_other": "({{count}} already existed and were skipped)",
+    "upcomingSlotsHeading": "Upcoming slots ({{count}})",
+    "noSlots": "No upcoming slots. Generate some above.",
+    "colStarts": "Starts",
+    "colEnds": "Ends",
+    "colLocation": "Location",
+    "colStatus": "Status",
+    "statusBooked": "Booked",
+    "statusOpen": "Open",
+    "deleteAction": "Delete",
+    "reservationsHeading": "Reservations ({{count}})",
+    "exportCsv": "Export CSV",
+    "noReservations": "No reservations yet.",
+    "colWhen": "When",
+    "colEmail": "Email",
+    "colPhone": "Phone",
+    "colBookedAt": "Booked at",
+    "loadError": "Failed to load booking data.",
+    "deleteError": "Failed to delete slot."
   }
 }
   
