@@ -69,11 +69,21 @@ export async function sendBookingRescheduledEmail({ to, resourceName, startsAt, 
   return sendEmail({ to, subject: `Appointment rescheduled — ${resourceName}`, html });
 }
 
-export async function sendBookingCancelledEmail({ to, resourceName, startsAt }) {
+export async function sendBookingCancelledEmail({ to, resourceName, startsAt, rebookLink, contactInfo }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">Your appointment was cancelled</h2>
       <p>${resourceName} — originally scheduled for ${startsAt}.</p>
+      ${rebookLink ? `
+        <div style="text-align: center; background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px;">
+          <a href="${rebookLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
+            Book a new appointment
+          </a>
+        </div>
+      ` : ""}
+      ${contactInfo ? `
+        <p style="color: #666; font-size: 0.9em;">Questions? ${contactInfo}</p>
+      ` : ""}
     </div>
   `;
   return sendEmail({ to, subject: `Appointment cancelled — ${resourceName}`, html });

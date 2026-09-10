@@ -30,13 +30,21 @@ export async function getTenantById(tenantId) {
 
 // ---- resources -----------------------------------------------------------
 
-export async function createResource(tenantId, { slug, name, defaultDurationMin, defaultLocation }) {
+export async function createResource(tenantId, { slug, name, defaultDurationMin, defaultLocation, contactInfo }) {
   const result = await executeQuery(
-    `INSERT INTO resources (tenant_id, slug, name, default_duration_min, default_location)
-     VALUES (?, ?, ?, ?, ?)`,
-    [tenantId, slug, name, defaultDurationMin || 45, defaultLocation || null]
+    `INSERT INTO resources (tenant_id, slug, name, default_duration_min, default_location, contact_info)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [tenantId, slug, name, defaultDurationMin || 45, defaultLocation || null, contactInfo || null]
   );
   return { id: result.insertId, tenantId, slug, name };
+}
+
+// Currently the only field an admin needs to change after creation without
+// recreating the resource. Kept narrow on purpose — broaden if/when a real
+// need for editing name/slug/duration shows up.
+export async function updateResourceContactInfo(tenantId, resourceId, contactInfo) {
+  await assertResourceOwnedByTenant(resourceId, tenantId);
+  await executeQuery(`UPDATE resources SET contact_info = ? WHERE id = ?`, [contactInfo || null, resourceId]);
 }
 
 export async function getResourceBySlug(tenantId, slug) {
@@ -202,7 +210,8 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
 
 export async function getBookingByManageToken(manageToken) {
   const [row] = await executeQuery(
-    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id, r.name AS resource_name, r.tenant_id
+    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id,
+            r.name AS resource_name, r.slug AS resource_slug, r.contact_info, r.tenant_id
      FROM bookings b
      JOIN slots s ON s.id = b.slot_id
      JOIN resources r ON r.id = s.resource_id

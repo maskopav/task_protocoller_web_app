@@ -4,7 +4,7 @@
 // gated by the booking's own manage_token (the token itself is the
 // credential — same trust model as this app's participant access_token).
 import * as bookingService from "../services/bookingService.js";
-import { verifyBookingLink } from "../utils/linkSigning.js";
+import { verifyBookingLink, buildSignedBookingUrl } from "../utils/linkSigning.js";
 import { getTenantById } from "../services/bookingService.js";
 import { executeQuery } from "../db/queryHelper.js";
 import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "../services/googleCalendarService.js";
@@ -14,6 +14,7 @@ import { logToFile } from "../utils/logger.js";
 import { isPastCutoff } from "../utils/dateHelpers.js";
 
 const RESCHEDULE_CUTOFF_HOURS = 24;
+const REBOOK_LINK_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
 function handleError(res, err, fallbackMessage) {
   logToFile("ERROR", fallbackMessage, { error: err.message });
@@ -83,19 +84,25 @@ export async function createPublicBooking(req, res) {
     const [slotRow] = await executeQuery(`SELECT starts_at, ends_at, location FROM slots WHERE id = ?`, [bookedSlotId]);
     const location = slotRow.location || resource.default_location;
 
-    const googleEventId = await createCalendarEvent({
+    // The booking itself is already committed at this point — Calendar
+    // push and the email send are both slow (real network round-trips to
+    // Google/SMTP) and neither can fail the booking (googleCalendarService
+    // and emailService already catch their own errors internally), so none
+    // of this blocks the response. Without this, respondents were seeing
+    // the confirm button sit unresponsive for several seconds. Matches the
+    // fire-and-forget pattern dispatchWebhookEvent already uses below.
+    createCalendarEvent({
       summary: `${resource.name} — booked`,
       description: `Booking ref: ${ref}`,
       startsAt: slotRow.starts_at, endsAt: slotRow.ends_at, location,
-    });
-    if (googleEventId) {
-      await bookingService.setBookingGoogleEventId(bookingId, googleEventId);
-    }
+    })
+      .then((googleEventId) => googleEventId && bookingService.setBookingGoogleEventId(bookingId, googleEventId))
+      .catch((err) => logToFile("ERROR", "Failed to persist Google Calendar event id", { bookingId, error: err.message }));
 
-    await sendBookingConfirmationEmail({
+    sendBookingConfirmationEmail({
       to: email, resourceName: resource.name, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
       location, manageLink: manageLinkFor(manageToken),
-    });
+    }).catch((err) => logToFile("ERROR", "Confirmation email send threw unexpectedly", { bookingId, error: err.message }));
 
     dispatchWebhookEvent(tenant.id, "booking.created", { externalRef: ref, startsAt: slotRow.starts_at, status: "booked" });
 
@@ -149,17 +156,20 @@ export async function rescheduleManageBooking(req, res) {
     const [newSlotRow] = await executeQuery(`SELECT starts_at, ends_at, location FROM slots WHERE id = ?`, [newSlotId]);
     const location = newSlotRow.location || booking.resource_name;
 
-    await updateCalendarEvent(booking.google_event_id, {
+    // Fire-and-forget — same reasoning as createPublicBooking: the
+    // reschedule is already committed, Calendar/email are slow and can't
+    // fail it, so don't make the respondent wait on them.
+    updateCalendarEvent(booking.google_event_id, {
       summary: `${booking.resource_name} — booked`,
       description: `Booking ref: ${booking.external_ref}`,
       startsAt: newSlotRow.starts_at, endsAt: newSlotRow.ends_at, location,
-    });
+    }).catch((err) => logToFile("ERROR", "Calendar event update threw unexpectedly", { bookingId: booking.id, error: err.message }));
 
-    await sendBookingRescheduledEmail({
+    sendBookingRescheduledEmail({
       to: booking.contact_email, resourceName: booking.resource_name,
       startsAt: newSlotRow.starts_at, endsAt: newSlotRow.ends_at, location,
       manageLink: manageLinkFor(req.params.manageToken),
-    });
+    }).catch((err) => logToFile("ERROR", "Reschedule email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
 
     dispatchWebhookEvent(booking.tenant_id, "booking.rescheduled", {
       externalRef: booking.external_ref, startsAt: newSlotRow.starts_at, status: "booked",
@@ -181,8 +191,29 @@ export async function cancelManageBooking(req, res) {
     }
 
     await bookingService.cancelBooking(req.params.manageToken);
-    await deleteCalendarEvent(booking.google_event_id);
-    await sendBookingCancelledEmail({ to: booking.contact_email, resourceName: booking.resource_name, startsAt: booking.starts_at });
+
+    // A fresh signed link so a cancelled respondent can rebook without
+    // going back through the original app — "now" replaces whatever
+    // eligibility floor gated the original booking, since that's already
+    // satisfied by definition (see getAvailableSlotsForReschedule's same
+    // simplification for reschedule).
+    const tenant = await getTenantById(booking.tenant_id);
+    const rebookLink = tenant
+      ? buildSignedBookingUrl({
+          publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
+          tenantId: booking.tenant_id, resourceSlug: booking.resource_slug, ref: booking.external_ref,
+          after: new Date().toISOString().slice(0, 10), ttlSeconds: REBOOK_LINK_TTL_SECONDS,
+        })
+      : null;
+
+    // Fire-and-forget — same reasoning as the other two handlers above.
+    deleteCalendarEvent(booking.google_event_id)
+      .catch((err) => logToFile("ERROR", "Calendar event deletion threw unexpectedly", { bookingId: booking.id, error: err.message }));
+    sendBookingCancelledEmail({
+      to: booking.contact_email, resourceName: booking.resource_name, startsAt: booking.starts_at,
+      rebookLink, contactInfo: booking.contact_info,
+    })
+      .catch((err) => logToFile("ERROR", "Cancellation email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
     dispatchWebhookEvent(booking.tenant_id, "booking.cancelled", { externalRef: booking.external_ref, status: "cancelled" });
 
     res.status(204).end();

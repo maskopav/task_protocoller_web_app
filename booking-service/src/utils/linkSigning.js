@@ -30,3 +30,14 @@ export function verifyBookingLink(secret, { tenantId, resourceSlug, ref, after, 
   const payload = buildLinkSignaturePayload({ tenantId, resourceSlug, ref, after, exp });
   return verifyHmac(secret, payload, sig);
 }
+
+// Builds a full, ready-to-send signed booking URL. Single source of truth
+// for link construction, used both server-side (e.g. the "book again" link
+// in the cancellation email) and by scripts/generateSignedLink.js for
+// manual dev/prod testing — keeps them from drifting out of sync.
+export function buildSignedBookingUrl({ publicBaseUrl, secret, tenantId, resourceSlug, ref, after, ttlSeconds = 3600 }) {
+  const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
+  const sig = signHmac(secret, buildLinkSignaturePayload({ tenantId, resourceSlug, ref, after, exp }));
+  const qs = new URLSearchParams({ tenant: String(tenantId), ref, after, exp: String(exp), sig }).toString();
+  return `${publicBaseUrl}/book/${resourceSlug}?${qs}`;
+}

@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post("/resources", adminController.createResource);
 router.get("/resources", adminController.listResources);
+router.patch("/resources/:resourceId/contact-info", adminController.updateResourceContactInfo);
 
 router.post("/slots/bulk", adminController.bulkCreateSlots);
 router.get("/slots", adminController.listSlots);

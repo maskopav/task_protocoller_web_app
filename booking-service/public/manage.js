@@ -106,7 +106,7 @@
         const btn = document.createElement("button");
         btn.className = "slot-btn";
         btn.textContent = time;
-        btn.addEventListener("click", () => submitReschedule(slot.id));
+        btn.addEventListener("click", () => submitReschedule(slot.id, btn));
         grid.appendChild(btn);
       }
       group.appendChild(grid);
@@ -114,7 +114,14 @@
     }
   }
 
-  async function submitReschedule(newSlotId) {
+  async function submitReschedule(newSlotId, btn) {
+    // Immediate feedback before the network round-trip — without this the
+    // click looked like nothing happened while the request was pending.
+    document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = true; });
+    const originalLabel = btn.textContent;
+    btn.classList.add("selected");
+    btn.textContent = "…";
+
     try {
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`, {
         method: "PUT",
@@ -127,6 +134,9 @@
       const { date, time } = formatSlotTime(data.startsAt);
       showDone(`Rescheduled to ${date} at ${time}${data.location ? ` — ${data.location}` : ""}. A confirmation email is on its way.`);
     } catch (err) {
+      document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = false; });
+      btn.classList.remove("selected");
+      btn.textContent = originalLabel;
       rescheduleList.insertAdjacentHTML("beforeend", `<p class="error">${err.message}</p>`);
     }
   }

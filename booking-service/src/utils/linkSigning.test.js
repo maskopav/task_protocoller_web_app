@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { signHmac, verifyHmac, verifyBookingLink, buildLinkSignaturePayload } from "./linkSigning.js";
+import { signHmac, verifyHmac, verifyBookingLink, buildLinkSignaturePayload, buildSignedBookingUrl } from "./linkSigning.js";
 
 describe("signHmac / verifyHmac", () => {
   const secret = "test-secret";
@@ -73,5 +73,35 @@ describe("verifyBookingLink", () => {
     const exp = Math.floor(Date.now() / 1000) + 3600;
     const sig = sign(fields, exp);
     expect(verifyBookingLink(secret, { ...fields, exp, after: "2020-01-01" }, sig)).toBe(false);
+  });
+});
+
+describe("buildSignedBookingUrl", () => {
+  const secret = "test-secret";
+  const opts = {
+    publicBaseUrl: "http://localhost:4100", secret, tenantId: 1,
+    resourceSlug: "standardized-room-retest", ref: "participant-42", after: "2026-09-13",
+  };
+
+  it("produces a URL that verifyBookingLink accepts", () => {
+    const url = buildSignedBookingUrl(opts);
+    const parsed = new URL(url);
+    const params = Object.fromEntries(parsed.searchParams);
+
+    expect(parsed.pathname).toBe("/book/standardized-room-retest");
+    expect(
+      verifyBookingLink(secret, {
+        tenantId: params.tenant, resourceSlug: "standardized-room-retest",
+        ref: params.ref, after: params.after, exp: params.exp,
+      }, params.sig)
+    ).toBe(true);
+  });
+
+  it("respects a custom ttlSeconds", () => {
+    const url = buildSignedBookingUrl({ ...opts, ttlSeconds: 10 });
+    const exp = Number(new URL(url).searchParams.get("exp"));
+    const nowPlus10 = Math.floor(Date.now() / 1000) + 10;
+    expect(exp).toBeLessThanOrEqual(nowPlus10 + 1);
+    expect(exp).toBeGreaterThan(nowPlus10 - 5);
   });
 });

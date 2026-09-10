@@ -100,7 +100,9 @@
     }
 
     const btn = document.getElementById("confirmBtn");
+    const originalLabel = btn.textContent;
     btn.disabled = true;
+    btn.textContent = "Booking…";
     try {
       const res = await fetch(`public/bookings/${encodeURIComponent(slug)}${search}`, {
         method: "POST",
@@ -119,6 +121,7 @@
       contactError.textContent = err.message;
       contactError.classList.remove("hidden");
       btn.disabled = false;
+      btn.textContent = originalLabel;
     }
   }
 

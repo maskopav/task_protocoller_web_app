@@ -13,6 +13,7 @@ CREATE TABLE `resources` (
   `name` varchar(255) NOT NULL,
   `default_duration_min` integer NOT NULL DEFAULT 45,
   `default_location` varchar(255) DEFAULT NULL,
+  `contact_info` text DEFAULT NULL COMMENT 'Free-text contact line (email/phone/etc.) shown to respondents when there is no slot to point them at, e.g. in the cancellation email',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
 );

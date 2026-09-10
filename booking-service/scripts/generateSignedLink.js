@@ -10,7 +10,8 @@
 //
 // Example:
 //   npm run link:generate -- 1 5b9a930b78fbf6... standardized-room-retest participant-42 2026-09-13
-import { signHmac, buildLinkSignaturePayload } from "../src/utils/linkSigning.js";
+import "dotenv/config";
+import { buildSignedBookingUrl } from "../src/utils/linkSigning.js";
 
 const [tenantId, secret, resourceSlug, ref, after, ttlSecondsArg] = process.argv.slice(2);
 
@@ -20,9 +21,10 @@ if (!tenantId || !secret || !resourceSlug || !ref || !after) {
 }
 
 const ttlSeconds = Number(ttlSecondsArg) || 3600;
-const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
-const sig = signHmac(secret, buildLinkSignaturePayload({ tenantId, resourceSlug, ref, after, exp }));
+const url = buildSignedBookingUrl({
+  publicBaseUrl: process.env.PUBLIC_BASE_URL || "http://localhost:4100",
+  secret, tenantId, resourceSlug, ref, after, ttlSeconds,
+});
 
-const qs = new URLSearchParams({ tenant: tenantId, ref, after, exp, sig }).toString();
-console.log(`\nPath (prepend your PUBLIC_BASE_URL):\n/book/${resourceSlug}?${qs}\n`);
+console.log(`\n${url}\n`);
 console.log(`Expires in ${ttlSeconds}s.`);

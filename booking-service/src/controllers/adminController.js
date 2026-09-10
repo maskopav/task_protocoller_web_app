@@ -11,15 +11,25 @@ function handleError(res, err, fallbackMessage) {
 }
 
 export async function createResource(req, res) {
-  const { slug, name, defaultDurationMin, defaultLocation } = req.body;
+  const { slug, name, defaultDurationMin, defaultLocation, contactInfo } = req.body;
   if (!slug || !name) {
     return res.status(400).json({ error: "slug and name are required" });
   }
   try {
-    const resource = await bookingService.createResource(req.tenant.id, { slug, name, defaultDurationMin, defaultLocation });
+    const resource = await bookingService.createResource(req.tenant.id, { slug, name, defaultDurationMin, defaultLocation, contactInfo });
     res.status(201).json(resource);
   } catch (err) {
     handleError(res, err, "Failed to create resource");
+  }
+}
+
+export async function updateResourceContactInfo(req, res) {
+  const { contactInfo } = req.body;
+  try {
+    await bookingService.updateResourceContactInfo(req.tenant.id, req.params.resourceId, contactInfo);
+    res.status(204).end();
+  } catch (err) {
+    handleError(res, err, "Failed to update resource contact info");
   }
 }
 

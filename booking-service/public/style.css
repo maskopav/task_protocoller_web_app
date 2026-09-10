@@ -50,6 +50,7 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
   cursor: pointer;
   font-size: 0.9rem;
 }
+.slot-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .slot-btn:hover { background: #eef1fd; }
 .slot-btn.selected { background: var(--accent); color: #fff; }
 
