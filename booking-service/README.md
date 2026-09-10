@@ -175,6 +175,14 @@ must still be set to the fully-qualified address the service is reachable
 at *including* that prefix, since it's used to build the manage-link inside
 confirmation emails (an absolute link, not a page-relative one).
 
+One thing that does need attention when mounted: `process.env` is shared
+with the host app's own process, and `DB_HOST`/`DB_USER`/`DB_PASSWORD` are
+meant to collide (same MySQL server, shared credentials) — but `DB_NAME`
+is not, since it names two different databases. If the host app's own
+`.env` already sets `DB_NAME` for its own database, set `BOOKING_DB_NAME`
+instead (see `.env.example`) so this service connects to its own database
+rather than silently reusing the host app's.
+
 ## Testing
 
 ### Unit tests
