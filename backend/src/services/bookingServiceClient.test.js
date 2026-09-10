@@ -153,6 +153,42 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1); // second call served from cache
   });
 
+  // Regression coverage for a real production incident: BookingSlotsPage
+  // loads slots and bookings concurrently (Promise.all), so two calls can
+  // land before the first one's cache write happens. Caching only the
+  // final id left both racing to independently list-then-create the same
+  // resource; the loser hit the DB's UNIQUE(tenant_id, slug) constraint and
+  // surfaced as a raw 500. This proves genuinely concurrent callers now
+  // share one in-flight attempt instead of racing.
+  it("concurrent callers share one resolution attempt instead of racing", async () => {
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 9, slug: "standardized-room-retest" }) });
+
+    const { ensureFollowupBookingResource } = await import("./bookingServiceClient.js");
+    const [idA, idB] = await Promise.all([
+      ensureFollowupBookingResource(),
+      ensureFollowupBookingResource(),
+    ]);
+
+    expect(idA).toBe(9);
+    expect(idB).toBe(9);
+    expect(global.fetch).toHaveBeenCalledTimes(2); // one list + one create, not two of each
+  });
+
+  it("clears the cached attempt on failure so a later call can retry", async () => {
+    global.fetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    const { ensureFollowupBookingResource } = await import("./bookingServiceClient.js");
+
+    await expect(ensureFollowupBookingResource()).rejects.toThrow();
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ resources: [{ id: 5, slug: "standardized-room-retest" }] }),
+    });
+    await expect(ensureFollowupBookingResource()).resolves.toBe(5);
+  });
+
   it("proxyBookingRequest attaches the Bearer API key", async () => {
     global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     const { proxyBookingRequest } = await import("./bookingServiceClient.js");
@@ -161,5 +197,76 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
 
     const [, options] = global.fetch.mock.calls[0];
     expect(options.headers.Authorization).toBe("Bearer bksvc_test_key");
+  });
+
+  // Regression coverage for a real production incident: admin proxy calls
+  // were going out over the public BOOKING_SERVICE_URL even when mounted,
+  // which meant the server calling out to its own public HTTPS address and
+  // back in again through the reverse proxy — failed outright ("fetch
+  // failed") on that specific hosting setup. These lock in that mounted
+  // mode uses a loopback URL instead.
+  describe("admin calls in mounted mode use loopback, not the public URL", () => {
+    afterEach(() => {
+      delete process.env.MOUNT_BOOKING_SERVICE;
+      delete process.env.PORT;
+      delete process.env.BOOKING_SERVICE_INTERNAL_URL;
+    });
+
+    it("defaults to http://127.0.0.1:<PORT>/booking-service when MOUNT_BOOKING_SERVICE=true", async () => {
+      process.env.MOUNT_BOOKING_SERVICE = "true";
+      process.env.PORT = "3000";
+      global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      const { proxyBookingRequest } = await import("./bookingServiceClient.js");
+
+      await proxyBookingRequest("/v1/bookings?resourceId=3");
+
+      const [url] = global.fetch.mock.calls[0];
+      expect(url).toBe("http://127.0.0.1:3000/booking-service/v1/bookings?resourceId=3");
+    });
+
+    it("falls back to PORT 3000 if PORT isn't set", async () => {
+      process.env.MOUNT_BOOKING_SERVICE = "true";
+      delete process.env.PORT;
+      global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      const { proxyBookingRequest } = await import("./bookingServiceClient.js");
+
+      await proxyBookingRequest("/v1/bookings");
+
+      const [url] = global.fetch.mock.calls[0];
+      expect(url).toBe("http://127.0.0.1:3000/booking-service/v1/bookings");
+    });
+
+    it("still uses the public BOOKING_SERVICE_URL when not mounted", async () => {
+      global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      const { proxyBookingRequest } = await import("./bookingServiceClient.js");
+
+      await proxyBookingRequest("/v1/bookings");
+
+      const [url] = global.fetch.mock.calls[0];
+      expect(url).toBe("http://localhost:4100/v1/bookings");
+    });
+
+    it("BOOKING_SERVICE_INTERNAL_URL overrides the mounted-mode default", async () => {
+      process.env.MOUNT_BOOKING_SERVICE = "true";
+      process.env.PORT = "3000";
+      process.env.BOOKING_SERVICE_INTERNAL_URL = "http://127.0.0.1:9999/custom";
+      global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      const { proxyBookingRequest } = await import("./bookingServiceClient.js");
+
+      await proxyBookingRequest("/v1/bookings");
+
+      const [url] = global.fetch.mock.calls[0];
+      expect(url).toBe("http://127.0.0.1:9999/custom/v1/bookings");
+    });
+
+    it("buildBookingLink still uses the public URL even when mounted (a participant's browser needs it, not loopback)", async () => {
+      process.env.MOUNT_BOOKING_SERVICE = "true";
+      process.env.PORT = "3000";
+      const { buildBookingLink } = await import("./bookingServiceClient.js");
+
+      const url = buildBookingLink({ ref: 1, completedAt: "2026-09-01 10:00:00", eligibilityDays: 14 });
+
+      expect(url.startsWith("http://localhost:4100/book/")).toBe(true);
+    });
   });
 });

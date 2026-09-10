@@ -66,9 +66,29 @@ export function buildBookingLink({ ref, completedAt, eligibilityDays, lang, ttlS
 
 // ---- admin proxy ---------------------------------------------------------
 
+// The public BOOKING_SERVICE_URL is right for links opened by a
+// participant's own browser (buildBookingLink, above), but wrong for
+// server-to-server admin calls when mounted: that would mean this server
+// calling out to its own public HTTPS address and back in again through
+// whatever reverse proxy/firewall sits in front of it — a "hairpin" request
+// pattern that fails outright on some hosting setups even though the exact
+// same path works fine from a real external client. When mounted, this
+// process already has booking-service listening in-process on its own
+// PORT, so the admin proxy talks to that over plain loopback HTTP instead —
+// no DNS, no TLS, no proxy hop. BOOKING_SERVICE_INTERNAL_URL overrides this
+// explicitly if the default guess is ever wrong for a given deployment.
+function adminApiBaseUrl() {
+  if (process.env.BOOKING_SERVICE_INTERNAL_URL) return process.env.BOOKING_SERVICE_INTERNAL_URL;
+  if (process.env.MOUNT_BOOKING_SERVICE === "true") {
+    const port = process.env.PORT || 3000;
+    return `http://127.0.0.1:${port}/booking-service`;
+  }
+  return env("BOOKING_SERVICE_URL");
+}
+
 async function bookingServiceFetch(path, options = {}) {
   requireConfig();
-  return fetch(`${env("BOOKING_SERVICE_URL")}${path}`, {
+  return fetch(`${adminApiBaseUrl()}${path}`, {
     ...options,
     headers: {
       Authorization: `Bearer ${env("BOOKING_SERVICE_API_KEY")}`,
@@ -83,11 +103,29 @@ async function bookingServiceFetch(path, options = {}) {
 // request time. Re-resolves automatically after a process restart, so a
 // resource created directly against booking-service (bypassing this cache)
 // is picked up on next boot without any manual step here.
-let cachedResourceId = null;
+//
+// Caches the in-flight *promise*, not just the eventual id — the admin
+// page loads slots and bookings concurrently (Promise.all), so two calls
+// can land within milliseconds of each other on a cold cache. Caching only
+// the final id left both racing to list-then-create independently, and the
+// loser got back a raw DB duplicate-key error instead of the winner's
+// resource (hit in real deployment). Sharing one in-flight promise means
+// the second caller just awaits the first's result instead of starting its
+// own attempt. On failure the cache is cleared so the next call can retry
+// rather than permanently caching a rejection.
+let resourceIdPromise = null;
 
 export async function ensureFollowupBookingResource() {
-  if (cachedResourceId) return cachedResourceId;
+  if (!resourceIdPromise) {
+    resourceIdPromise = resolveFollowupBookingResource().catch((err) => {
+      resourceIdPromise = null;
+      throw err;
+    });
+  }
+  return resourceIdPromise;
+}
 
+async function resolveFollowupBookingResource() {
   const resourceSlug = env("BOOKING_SERVICE_RESOURCE_SLUG", "standardized-room-retest");
 
   const listRes = await bookingServiceFetch("/v1/resources");
@@ -95,10 +133,7 @@ export async function ensureFollowupBookingResource() {
   const { resources } = await listRes.json();
 
   const existing = resources.find((r) => r.slug === resourceSlug);
-  if (existing) {
-    cachedResourceId = existing.id;
-    return cachedResourceId;
-  }
+  if (existing) return existing.id;
 
   logToFile("INFO", "Creating booking-service resource on first use", { resourceSlug });
   const createRes = await bookingServiceFetch("/v1/resources", {
@@ -112,8 +147,7 @@ export async function ensureFollowupBookingResource() {
   });
   if (!createRes.ok) throw new Error(`Failed to create booking-service resource (${createRes.status})`);
   const created = await createRes.json();
-  cachedResourceId = created.id;
-  return cachedResourceId;
+  return created.id;
 }
 
 // Thin passthrough used by adminBookingController.js — callers add
