@@ -138,20 +138,13 @@ describe("bulkCreateSlots", () => {
     })).rejects.toMatchObject({ statusCode: 404 });
   });
 
-  it("inserts with INSERT IGNORE and reports rows the DB actually skipped as duplicates", async () => {
-    executeQuery.mockResolvedValueOnce([{ id: 3 }]); // ownership check passes
-
-    let call = 0;
-    mockConn = {
-      query: vi.fn((sql) => {
-        call++;
-        expect(sql).toMatch(/INSERT IGNORE INTO slots/);
-        // Simulate the second of the two generated slots already existing
-        // (as if from an earlier, overlapping bulkCreateSlots call) and
-        // therefore being silently skipped rather than duplicated.
-        return Promise.resolve([{ affectedRows: call === 1 ? 1 : 0 }]);
-      }),
-    };
+  it("inserts as a single multi-row statement and reports rows the DB actually skipped as duplicates", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      // MySQL's own INSERT IGNORE affectedRows already excludes rows
+      // skipped by the UNIQUE constraint -- simulating 1 of the 2 generated
+      // slots already existing (e.g. from an earlier, overlapping call).
+      .mockResolvedValueOnce({ affectedRows: 1 });
 
     // 09:00-10:00 in 30-min steps generates exactly 2 slots.
     const result = await bulkCreateSlots(1, 3, {
@@ -160,12 +153,15 @@ describe("bulkCreateSlots", () => {
     });
 
     expect(result).toEqual({ created: 1, skipped: 1 });
-    expect(mockConn.query).toHaveBeenCalledTimes(2);
+    const insertCall = executeQuery.mock.calls[1];
+    expect(insertCall[0]).toMatch(/INSERT IGNORE INTO slots/);
+    expect(insertCall[1][0]).toHaveLength(2); // both generated rows passed in one statement
   });
 
   it("reports 0 created when every slot in the range already exists", async () => {
-    executeQuery.mockResolvedValueOnce([{ id: 3 }]);
-    mockConn = { query: vi.fn(() => Promise.resolve([{ affectedRows: 0 }])) };
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }])
+      .mockResolvedValueOnce({ affectedRows: 0 });
 
     const result = await bulkCreateSlots(1, 3, {
       startDate: "2026-09-14", endDate: "2026-09-14", weekdays: [1],

@@ -102,16 +102,16 @@ export async function bulkCreateSlots(tenantId, resourceId, {
   // create_tables.sql) makes this safe to call again with an overlapping
   // range — e.g. a retry after a timeout, or generating two adjacent weeks
   // that share a boundary day — instead of silently duplicating slots.
-  let created = 0;
-  await executeTransaction(async (conn) => {
-    for (const row of rows) {
-      const [result] = await conn.query(
-        `INSERT IGNORE INTO slots (resource_id, starts_at, ends_at, location) VALUES (?, ?, ?, ?)`,
-        row
-      );
-      created += result.affectedRows;
-    }
-  });
+  // One multi-row statement rather than a per-row INSERT loop: generating a
+  // few months of slots is hundreds of rows, and INSERT IGNORE's
+  // affectedRows already reports exactly how many were actually inserted
+  // (duplicates skipped by the UNIQUE constraint don't count), so the
+  // created/skipped split below still comes out right in a single call.
+  const result = await executeQuery(
+    `INSERT IGNORE INTO slots (resource_id, starts_at, ends_at, location) VALUES ?`,
+    [rows]
+  );
+  const created = result.affectedRows;
 
   return { created, skipped: rows.length - created };
 }
@@ -214,7 +214,8 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
 export async function getBookingByManageToken(manageToken) {
   const [row] = await executeQuery(
     `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id,
-            r.name AS resource_name, r.slug AS resource_slug, r.contact_info, r.tenant_id
+            r.name AS resource_name, r.slug AS resource_slug, r.default_location,
+            r.contact_info, r.tenant_id
      FROM bookings b
      JOIN slots s ON s.id = b.slot_id
      JOIN resources r ON r.id = s.resource_id

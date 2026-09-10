@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { iterateDates, weekdayOf, addMinutesToTime, isPastCutoff, pad2 } from "./dateHelpers.js";
+import { iterateDates, weekdayOf, addMinutesToTime, isPastCutoff, pad2, nowAsMysqlDateTime, todayAsLocalDate } from "./dateHelpers.js";
 
 describe("pad2", () => {
   it("pads single digits, leaves two digits alone", () => {
@@ -73,5 +73,32 @@ describe("isPastCutoff", () => {
     const now = new Date("2026-09-18T10:00:00"); // 2 days before
     expect(isPastCutoff(slotStart, 24, now)).toBe(false);
     expect(isPastCutoff(slotStart, 72, now)).toBe(true); // 3-day cutoff would already have passed
+  });
+});
+
+// Regression coverage for a real bug: comparing starts_at (naive local
+// wall-clock) against `new Date().toISOString()` (always UTC) let a slot
+// that had already started still be listed as "available", and could shift
+// the reschedule-link eligibility date by a day. These helpers must read
+// local Date components (getFullYear/getHours/...), never UTC ones — the
+// `new Date(y, m, d, h, min, s)` constructor below builds from local
+// components regardless of the machine's own timezone, so this test is
+// timezone-independent as long as both sides stay consistently "local".
+describe("nowAsMysqlDateTime", () => {
+  it("formats using local date/time components, not UTC", () => {
+    const local = new Date(2026, 0, 15, 23, 30, 5); // Jan 15 2026, 23:30:05 local
+    expect(nowAsMysqlDateTime(local)).toBe("2026-01-15 23:30:05");
+  });
+
+  it("pads single-digit month/day/hour/minute/second", () => {
+    const local = new Date(2026, 8, 4, 9, 5, 3); // Sep 4 2026, 09:05:03 local
+    expect(nowAsMysqlDateTime(local)).toBe("2026-09-04 09:05:03");
+  });
+});
+
+describe("todayAsLocalDate", () => {
+  it("returns just the date portion, in local time", () => {
+    const local = new Date(2026, 8, 4, 23, 59, 0);
+    expect(todayAsLocalDate(local)).toBe("2026-09-04");
   });
 });

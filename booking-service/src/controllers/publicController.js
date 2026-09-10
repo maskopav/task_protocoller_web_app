@@ -11,15 +11,11 @@ import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from ".
 import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail } from "../services/emailService.js";
 import { dispatchWebhookEvent } from "../services/webhookDispatcher.js";
 import { logToFile } from "../utils/logger.js";
-import { isPastCutoff } from "../utils/dateHelpers.js";
+import { isPastCutoff, nowAsMysqlDateTime, todayAsLocalDate } from "../utils/dateHelpers.js";
+import { handleError } from "../utils/httpErrors.js";
 
 const RESCHEDULE_CUTOFF_HOURS = 24;
 const REBOOK_LINK_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
-
-function handleError(res, err, fallbackMessage) {
-  logToFile("ERROR", fallbackMessage, { error: err.message });
-  res.status(err.statusCode || 500).json({ error: err.message || fallbackMessage });
-}
 
 async function resolveSignedResource(req) {
   const { resourceSlug } = req.params;
@@ -133,8 +129,7 @@ export async function getAvailableSlotsForReschedule(req, res) {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
     if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
 
-    const nowMysql = new Date().toISOString().slice(0, 19).replace("T", " ");
-    const slots = await bookingService.listAvailablePublicSlots(booking.resource_id, nowMysql);
+    const slots = await bookingService.listAvailablePublicSlots(booking.resource_id, nowAsMysqlDateTime());
     res.json({ slots });
   } catch (err) {
     handleError(res, err, "Failed to load available slots");
@@ -155,7 +150,7 @@ export async function rescheduleManageBooking(req, res) {
 
     await bookingService.rescheduleBooking(req.params.manageToken, newSlotId);
     const [newSlotRow] = await executeQuery(`SELECT starts_at, ends_at, location FROM slots WHERE id = ?`, [newSlotId]);
-    const location = newSlotRow.location || booking.resource_name;
+    const location = newSlotRow.location || booking.default_location;
 
     // Fire-and-forget — same reasoning as createPublicBooking: the
     // reschedule is already committed, Calendar/email are slow and can't
@@ -191,19 +186,24 @@ export async function cancelManageBooking(req, res) {
       return res.status(409).json({ error: "Too close to the appointment to cancel (cutoff: 1 day before)" });
     }
 
-    await bookingService.cancelBooking(req.params.manageToken);
+    // cancelBooking and the tenant lookup are independent (tenant_id is
+    // already known from the getBookingByManageToken call above) — run them
+    // concurrently rather than paying for two sequential DB round-trips.
+    const [, tenant] = await Promise.all([
+      bookingService.cancelBooking(req.params.manageToken),
+      getTenantById(booking.tenant_id),
+    ]);
 
     // A fresh signed link so a cancelled respondent can rebook without
     // going back through the original app — "now" replaces whatever
     // eligibility floor gated the original booking, since that's already
     // satisfied by definition (see getAvailableSlotsForReschedule's same
     // simplification for reschedule).
-    const tenant = await getTenantById(booking.tenant_id);
     const rebookLink = tenant
       ? buildSignedBookingUrl({
           publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
           tenantId: booking.tenant_id, resourceSlug: booking.resource_slug, ref: booking.external_ref,
-          after: new Date().toISOString().slice(0, 10), ttlSeconds: REBOOK_LINK_TTL_SECONDS,
+          after: todayAsLocalDate(), ttlSeconds: REBOOK_LINK_TTL_SECONDS,
           lang: booking.locale,
         })
       : null;

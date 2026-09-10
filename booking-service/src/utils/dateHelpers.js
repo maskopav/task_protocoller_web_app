@@ -45,3 +45,20 @@ export function isPastCutoff(mysqlDateTime, cutoffHoursBefore = 24, now = new Da
   const cutoff = new Date(slotDate.getTime() - cutoffHoursBefore * 60 * 60 * 1000);
   return now > cutoff;
 }
+
+// "Now" expressed in the same naive-local convention as starts_at, so it's
+// safe to compare directly (`starts_at >= nowAsMysqlDateTime()`). Using
+// `new Date().toISOString()` here instead would silently compare a UTC
+// instant against local wall-clock times — for any timezone ahead of UTC
+// (this service's stated deployment assumption, e.g. Europe/Prague) that
+// makes an already-started slot look "still upcoming" for up to a couple
+// of hours, and can shift a date-only comparison by a day.
+export function nowAsMysqlDateTime(now = new Date()) {
+  const date = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+  return `${date} ${time}`;
+}
+
+export function todayAsLocalDate(now = new Date()) {
+  return nowAsMysqlDateTime(now).slice(0, 10);
+}

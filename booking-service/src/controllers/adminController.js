@@ -3,12 +3,7 @@
 // middleware/apiKeyAuth.js). All SQL lives in services/bookingService.js.
 import * as bookingService from "../services/bookingService.js";
 import { buildCsv } from "../utils/csvBuilder.js";
-import { logToFile } from "../utils/logger.js";
-
-function handleError(res, err, fallbackMessage) {
-  logToFile("ERROR", fallbackMessage, { error: err.message });
-  res.status(err.statusCode || 500).json({ error: err.message || fallbackMessage });
-}
+import { handleError } from "../utils/httpErrors.js";
 
 export async function createResource(req, res) {
   const { slug, name, defaultDurationMin, defaultLocation, contactInfo } = req.body;
