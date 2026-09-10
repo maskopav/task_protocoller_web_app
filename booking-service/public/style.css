@@ -1,0 +1,98 @@
+:root {
+  --accent: #3764df;
+  --text: #222;
+  --muted: #666;
+  --border: #e2e2e2;
+  --bg: #f9f9fb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+h1 { font-size: 1.5rem; margin-bottom: 4px; }
+.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; }
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.day-group { margin-bottom: 20px; }
+.day-heading { font-weight: 600; margin-bottom: 8px; }
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.slot-btn {
+  padding: 10px 8px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.slot-btn:hover { background: #eef1fd; }
+.slot-btn.selected { background: var(--accent); color: #fff; }
+
+label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 0.9rem; }
+input[type="email"], input[type="tel"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+button.primary {
+  margin-top: 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button.secondary {
+  background: #fff;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+button.danger {
+  background: #fff;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.error { color: #c0392b; margin-top: 12px; }
+.notice { color: var(--muted); font-size: 0.9rem; margin-top: 12px; }
+.hidden { display: none !important; }

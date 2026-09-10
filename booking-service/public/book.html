@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <!-- Must run before any resource tag below: this service may be served
+       at the root or mounted under a subpath by a host app (see
+       src/app.js). Detecting the prefix from the page's own URL means the
+       same static files work either way, with nothing to configure. -->
+  <script>
+    (function () {
+      var m = window.location.pathname.match(/^(.*)\/(book|manage)\/[^/]+\/?$/);
+      var base = document.createElement("base");
+      base.href = (m ? m[1] : "") + "/";
+      document.head.appendChild(base);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Book an appointment</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <h1 id="resourceName">Book an appointment</h1>
+    <p class="subtitle" id="resourceLocation"></p>
+
+    <div id="loading" class="card">Loading available times…</div>
+    <div id="errorBox" class="error hidden"></div>
+
+    <div id="slotStep" class="hidden">
+      <div id="slotList"></div>
+    </div>
+
+    <div id="contactStep" class="card hidden">
+      <div id="selectedSlotSummary"></div>
+      <label for="email">Email</label>
+      <input type="email" id="email" required />
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" required />
+      <div id="contactError" class="error hidden"></div>
+      <button class="primary" id="confirmBtn">Confirm appointment</button>
+    </div>
+
+    <div id="confirmedStep" class="card hidden">
+      <h2>You're booked</h2>
+      <p id="confirmedSummary"></p>
+      <p class="notice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
+    </div>
+  </div>
+
+  <script src="book.js"></script>
+</body>
+</html>

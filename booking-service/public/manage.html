@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <!-- See book.html for why this runs first. -->
+  <script>
+    (function () {
+      var m = window.location.pathname.match(/^(.*)\/(book|manage)\/[^/]+\/?$/);
+      var base = document.createElement("base");
+      base.href = (m ? m[1] : "") + "/";
+      document.head.appendChild(base);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage your appointment</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <h1>Manage your appointment</h1>
+
+    <div id="loading" class="card">Loading…</div>
+    <div id="errorBox" class="error hidden"></div>
+
+    <div id="currentCard" class="card hidden">
+      <p id="currentSummary"></p>
+      <p id="cutoffNotice" class="notice hidden">This appointment is less than a day away, so it can no longer be changed online here — please contact us directly.</p>
+      <div id="actions" class="hidden">
+        <button class="secondary" id="rescheduleBtn">Reschedule</button>
+        <button class="danger" id="cancelBtn">Cancel appointment</button>
+      </div>
+    </div>
+
+    <div id="rescheduleStep" class="hidden">
+      <div id="rescheduleList"></div>
+    </div>
+
+    <div id="doneCard" class="card hidden">
+      <p id="doneMessage"></p>
+    </div>
+  </div>
+
+  <script src="manage.js"></script>
+</body>
+</html>

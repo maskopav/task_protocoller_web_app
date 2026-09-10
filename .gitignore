@@ -17,6 +17,10 @@ dist-ssr
 .env.test
 coverage
 
+# Google service-account private keys — never commit these
+/booking-service/google-calendar/
+*.iam.gserviceaccount.com*.json
+
 # Playwright
 /frontend/test-results
 /frontend/playwright-report
