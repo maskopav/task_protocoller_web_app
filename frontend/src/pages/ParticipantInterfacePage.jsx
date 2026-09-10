@@ -439,19 +439,11 @@ export default function ParticipantInterfacePage() {
   // Define your tasks and audio hook FIRST
   const rawTask = runtimeTasks[taskIndex];
 
-  // Mark the session completed as soon as every real task is done — i.e.
-  // the moment the (optional) follow-up booking step becomes current —
-  // rather than waiting for that step to also finish. Booking-service's
-  // eligibility gate (GET /sessions/:id/booking-link) requires
-  // sessions.completed_at to already be set, so it must land before
-  // BookingStep's own fetch, not after. Safe to fire more than once:
-  // completed_at is only ever written once (COALESCE'd) on the backend, and
-  // the normal end-of-protocol completion write later is then a no-op.
-  useEffect(() => {
-    if (rawTask?.type === "followup_booking" && sessionId) {
-      trackProgress(sessionId, null, true);
-    }
-  }, [rawTask, sessionId]);
+  // Marking the session completed once every real task is done (before the
+  // optional follow-up booking step) is handled inside BookingStep itself,
+  // awaited before it fetches its booking link — not here. A sibling effect
+  // on this parent would race BookingStep's own mount effect (React fires a
+  // child's effects before its parent's in the same commit) and could lose.
 
   const { currentTask, isReadingTask, isRetellingTask } = useMemo(() => {
     let task = null;

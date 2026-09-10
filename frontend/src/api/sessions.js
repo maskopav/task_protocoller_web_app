@@ -59,6 +59,30 @@ export async function trackProgress(sessionId, eventData, markCompleted = false)
   }).catch(err => console.warn("Failed to log progress:", err));
 }
 
+// Same endpoint as trackProgress, but actually awaited and failure-surfacing
+// — trackProgress is deliberately fire-and-forget (see its comment above)
+// and doesn't return its promise, so `await trackProgress(id, null, true)`
+// does not guarantee the server has actually persisted completed_at by the
+// time it resolves. Use this instead wherever a caller's next step depends
+// on that write having landed (e.g. BookingStep, which needs
+// sessions.completed_at set before booking-service's eligibility check will
+// accept a request). updateProgress always responds 200 even on internal
+// failure (by design, so fire-and-forget pings never surface as network
+// errors) and signals failure via a `warning` field instead — check that,
+// not just res.ok.
+export async function markSessionCompleted(sessionId) {
+  const res = await fetchWithTimeout(`${API_BASE}/sessions/progress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId, markCompleted: true }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.warning) {
+    throw new Error(data.error || "Failed to mark session completed");
+  }
+  return data;
+}
+
 export async function saveQuestionnaireAnswers(payload) {
   const res = await fetchWithTimeout(`${API_BASE}/sessions/questionnaire-response`, {
     method: "POST",

@@ -16,9 +16,22 @@ function weekdayLabel(value, locale) {
   });
 }
 
-function formatDateTime(value) {
+// slots.starts_at/ends_at are naive local wall-clock time (the room's own
+// clock, per booking-service's documented convention) — display as-is, no
+// timezone conversion.
+function formatLocalDateTime(value) {
   if (!value) return "—";
   const d = new Date(String(value).replace(" ", "T"));
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+}
+
+// bookings.created_at is a real UTC instant (DB default CURRENT_TIMESTAMP
+// under booking-service's UTC session timezone) — unlike starts_at/ends_at,
+// this one does need converting to the viewer's own local time to display
+// correctly.
+function formatUtcDateTime(value) {
+  if (!value) return "—";
+  const d = new Date(`${String(value).replace(" ", "T")}Z`);
   return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
 }
 
@@ -178,8 +191,8 @@ export default function BookingSlotsPage() {
               <tbody>
                 {slots.map((s) => (
                   <tr key={s.id}>
-                    <td>{formatDateTime(s.starts_at)}</td>
-                    <td>{formatDateTime(s.ends_at)}</td>
+                    <td>{formatLocalDateTime(s.starts_at)}</td>
+                    <td>{formatLocalDateTime(s.ends_at)}</td>
                     <td>{s.location || "—"}</td>
                     <td>{s.booking_status ? t("bookingSlotsPage.statusBooked") : t("bookingSlotsPage.statusOpen")}</td>
                     <td>
@@ -220,11 +233,11 @@ export default function BookingSlotsPage() {
               <tbody>
                 {bookings.map((b) => (
                   <tr key={b.id}>
-                    <td>{formatDateTime(b.starts_at)}</td>
+                    <td>{formatLocalDateTime(b.starts_at)}</td>
                     <td>{b.contact_email}</td>
                     <td>{b.contact_phone}</td>
                     <td>{b.status}</td>
-                    <td>{formatDateTime(b.created_at)}</td>
+                    <td>{formatUtcDateTime(b.created_at)}</td>
                   </tr>
                 ))}
               </tbody>
