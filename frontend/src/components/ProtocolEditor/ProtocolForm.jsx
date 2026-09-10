@@ -87,6 +87,11 @@ export default function ProtocolForm({
     setProtocolData((prev) => ({ ...prev, use_audio_guide: checked }));
   };
 
+  const handleFollowupBookingChange = (e) => {
+    const checked = e.target.checked;
+    setProtocolData((prev) => ({ ...prev, enable_followup_booking: checked }));
+  };
+
   // Helper to check if Quill content is truly empty
   const isQuillEmpty = (content) => {
     if (!content) return true;
@@ -153,6 +158,18 @@ export default function ProtocolForm({
                   disabled={reorderMode}
                 />
                 <span>{t("protocolEditor.useAudioInstructions", "Audio Instructions")}</span>
+              </label>
+            </div>
+
+            <div className="protocol-field checkbox-field" style={{ marginTop: '10px' }}>
+              <label className="checkbox-option">
+                <input
+                  type="checkbox"
+                  checked={!!(protocolData?.enable_followup_booking ?? false)}
+                  onChange={handleFollowupBookingChange}
+                  disabled={reorderMode}
+                />
+                <span>{t("protocolEditor.enableFollowupBooking", "Follow-up Appointment Booking")}</span>
               </label>
             </div>
 
