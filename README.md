@@ -150,6 +150,130 @@ For more detailed technical information, please refer to the specific READMEs in
 
 ---
 
+## 📅 Follow-up Booking Integration (optional)
+
+For pilots that need respondents to return for an in-person retest (e.g. a
+standardized-room session, gated to at least N days after completing the
+remote protocol), this app integrates with **[`booking-service`](booking-service/README.md)** —
+a separate, standalone appointment-booking service in this same repo. It has
+no knowledge of protocols/participants; the two talk to each other only
+through `backend/src/services/bookingServiceClient.js`.
+
+**How it fits together:**
+- `booking-service/` owns availability, the actual reservation flow (its own
+  hosted, self-contained booking/manage pages), emails, and optional Google
+  Calendar sync. Set it up first — see its own README, including the
+  Google Calendar walkthrough.
+- This app's backend never talks to booking-service's database directly —
+  only its HTTP API, using a per-deployment API key + link-signing secret
+  (see below).
+- A protocol only gets the booking step if its editor has **Follow-up
+  Appointment Booking** checked (`ProtocolEditor` → same place as the Audio
+  Instructions toggle). It then appears as the very last step, after every
+  real task — the participant picks a slot in an embedded booking-service
+  page, gets a confirmation email, and can reschedule/cancel from a link in
+  that email up to a day before the appointment.
+- Admins manage slots and see reservations from **Admin Dashboard → Master
+  Tools → Follow-up Booking Slots** (`/admin/booking-slots`) — a form to
+  bulk-generate availability and a table of reservations with CSV export.
+  This proxies to booking-service's admin API server-side, so no separate
+  login or API key is ever exposed to the browser.
+
+**Setup**, once `booking-service` itself is running (locally or deployed):
+
+1. From `booking-service/`, run `npm run tenant:create -- "Task Protocoller"`
+   and copy the three printed values.
+2. Add to `backend/.env`:
+   ```env
+   BOOKING_SERVICE_URL=http://localhost:4100
+   BOOKING_SERVICE_TENANT_ID=<from tenant:create>
+   BOOKING_SERVICE_API_KEY=<from tenant:create>
+   BOOKING_SERVICE_LINK_SIGNING_SECRET=<from tenant:create>
+   # Optional — all have sensible defaults:
+   # BOOKING_SERVICE_RESOURCE_SLUG=standardized-room-retest
+   # BOOKING_SERVICE_RESOURCE_NAME=Standardized Room Retest
+   # BOOKING_SERVICE_DEFAULT_DURATION_MIN=45
+   # BOOKING_SERVICE_DEFAULT_LOCATION=Room 2B
+   ```
+   (The bookable resource itself is created automatically on first use of
+   the admin UI/API — no manual step needed beyond the env vars above.)
+3. Restart the backend. Enable the checkbox on whichever protocol(s) need
+   the follow-up step, generate some slots from the new admin page, and
+   you're done — nothing else in the app needs to change.
+
+### Deploying where a second app/port/DNS entry isn't possible
+
+For hosting reachable only via SFTP with no way to register a second
+Node app/port (the common case on shared/managed hosting panels):
+`backend/server.js` can run booking-service as a sub-app of its own
+process at `/booking-service`, instead of as its own separate process.
+
+1. **Locally**, install both apps' dependencies (the server can't run
+   `npm install` itself, so `node_modules` has to be part of what you
+   upload):
+   ```
+   cd backend && npm install
+   cd ../booking-service && npm install
+   ```
+2. **Create the production database** for booking-service (a second
+   database on the same MySQL server as the main app is simplest — nothing
+   is shared/joined between them):
+   ```sql
+   CREATE DATABASE booking_service;
+   ```
+   then, still pointed at it, run `npm run db:init` from `booking-service/`
+   (or apply `booking-service/scripts/schema/create_tables.sql` by hand).
+3. **Create the production tenant** — from `booking-service/`, with its
+   `.env` pointed at the production DB:
+   ```
+   npm run tenant:create -- "Task Protocoller Production"
+   ```
+   Copy the three printed values; they're shown once.
+4. **Upload** `backend/` and `booking-service/` as sibling folders (matching
+   the relative import path `../booking-service/src/app.js` that
+   `server.js` uses), including each one's `node_modules`. Also upload the
+   Google service-account JSON key file (see
+   `booking-service/README.md`'s Calendar section) somewhere the server can
+   read it.
+5. **Set these in the production `backend/.env`** (nothing needed in a
+   separate `booking-service/.env` — mounted mode reads everything from
+   this one shared file):
+   ```env
+   MOUNT_BOOKING_SERVICE=true
+
+   # booking-service's own config (normally its own .env; merged in here
+   # because mounted mode runs inside this same process)
+   BOOKING_DB_NAME=booking_service   # NOT the same var as this app's own DB_NAME — see the note below
+   PUBLIC_BASE_URL=https://your-domain.com/booking-service
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=...
+   SMTP_PASS=...
+   GOOGLE_SERVICE_ACCOUNT_KEY_PATH=/absolute/path/on/server/to/key.json
+   GOOGLE_CALENDAR_ID=...
+
+   # this app's own client of booking-service, from step 3 above
+   BOOKING_SERVICE_URL=https://your-domain.com/booking-service
+   BOOKING_SERVICE_TENANT_ID=...
+   BOOKING_SERVICE_API_KEY=...
+   BOOKING_SERVICE_LINK_SIGNING_SECRET=...
+   ```
+   `BOOKING_DB_NAME` (not `DB_NAME`) matters here specifically because this
+   app's own `.env` already defines `DB_NAME` for its own database, and
+   mounted mode runs both apps in one shared process — `DB_HOST`/`DB_USER`/
+   `DB_PASSWORD` are meant to be identical (same server, shared
+   credentials), but `DB_NAME` is not, since it names two different
+   databases. See `booking-service/README.md`'s "Running mounted inside
+   another process" for more.
+6. **Restart** the backend process (however your host's panel/Passenger
+   does that — commonly touching a restart file).
+7. **Verify**: `https://your-domain.com/booking-service/health` should
+   return `{"status":"ok"}`. Then enable "Follow-up Appointment Booking" on
+   a protocol, generate a few slots from **Admin Dashboard → Master Tools →
+   Follow-up Booking Slots**, and run through one real booking end to end.
+
+---
+
 ## 🛠 Troubleshooting
 ### "scripts are disabled on this system" (PowerShell Error)
 If you see a `SecurityError` or `UnauthorizedAccess` when running `npm install`, PowerShell is blocking the script. To fix it:
