@@ -35,6 +35,8 @@ links. It has no knowledge of any other project's domain model.
 - **CSV export** of a resource's bookings.
 - **Plain HTTP admin API** — usable from any backend in any language, not
   tied to this repo's stack.
+- **Localized** (English/Czech/German out of the box) — both the hosted
+  pages and every email; see "Localization" below.
 
 ## Concepts
 
@@ -75,6 +77,39 @@ Then, as the tenant:
 5. Optionally register a webhook (`POST /v1/webhooks`) to be notified of
    `booking.created` / `booking.rescheduled` / `booking.cancelled` events
    instead of polling `GET /v1/bookings`.
+
+## Localization
+
+Both the hosted pages and every email support `en` (default), `cs`, and
+`de` out of the box. No i18next or build step — deliberately two small,
+plain-object dictionaries instead, consistent with this service's "no
+build step" design:
+
+- `src/i18n/emailTranslations.js` — server-side, used by `emailService.js`.
+- `public/i18n.js` — client-side, used by `book.js`/`manage.js`.
+
+These two files are **not shared code** (one runs in Node, one in the
+browser, and there's no bundler here to unify them) — keep their locale
+sets in sync by convention when adding a language or a new string.
+
+**How the locale is chosen:**
+- On the booking page, an explicit `?lang=cs` on the signed link wins;
+  otherwise the browser's own language is used, falling back to English.
+  A consuming app that knows the respondent's language (e.g. from its own
+  UI) should append `&lang=<code>` when building the signed link.
+- Once a booking is made, that page's resolved locale is sent along as
+  `lang` in the booking request and stored on the booking
+  (`bookings.locale`) — every subsequent email for that booking
+  (confirmation, reschedule, cancellation) uses that same stored locale,
+  and the manage-page link handed out in those emails carries
+  `?lang=<code>` too, so the whole thread stays in one language regardless
+  of what the browser opening the manage link later defaults to.
+
+Adding a fourth language: add a key to the `TRANSLATIONS` object in each
+of the two files above (same key names in both — see the existing three
+for the shape) and add it to `SUPPORTED_LOCALES`'s source array in
+`emailTranslations.js`. `src/i18n/emailTranslations.test.js` will catch a
+locale that's missing a key the others have.
 
 ## Google Calendar sync (optional)
 

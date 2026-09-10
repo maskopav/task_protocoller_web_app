@@ -6,6 +6,7 @@ import { generateApiKey, hashApiKey } from "../utils/apiKey.js";
 import crypto from "crypto";
 import { generateToken } from "../utils/tokenGenerator.js";
 import { iterateDates, weekdayOf, addMinutesToTime } from "../utils/dateHelpers.js";
+import { SUPPORTED_LOCALES } from "../i18n/emailTranslations.js";
 
 // ---- tenants -----------------------------------------------------------
 
@@ -172,7 +173,9 @@ async function generateUniqueManageToken(conn) {
   }
 }
 
-export async function createBooking({ resourceId, slotId, externalRef, email, phone }) {
+export async function createBooking({ resourceId, slotId, externalRef, email, phone, locale }) {
+  const safeLocale = SUPPORTED_LOCALES.includes(locale) ? locale : "en";
+
   return executeTransaction(async (conn) => {
     // Lock the slot row so two concurrent reservations against the same
     // slot can't both pass the availability check.
@@ -199,9 +202,9 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     const manageToken = await generateUniqueManageToken(conn);
 
     const [result] = await conn.query(
-      `INSERT INTO bookings (slot_id, external_ref, contact_email, contact_phone, manage_token, status)
-       VALUES (?, ?, ?, ?, ?, 'booked')`,
-      [slotId, externalRef, email, phone, manageToken]
+      `INSERT INTO bookings (slot_id, external_ref, contact_email, contact_phone, manage_token, locale, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'booked')`,
+      [slotId, externalRef, email, phone, manageToken, safeLocale]
     );
 
     return { bookingId: result.insertId, manageToken, slotId };

@@ -1,4 +1,7 @@
 (function () {
+  const t = window.bookingI18n.t;
+  const locale = window.bookingI18n.locale;
+
   const token = window.location.pathname.split("/").filter(Boolean).pop();
 
   const loading = document.getElementById("loading");
@@ -11,6 +14,15 @@
   const rescheduleList = document.getElementById("rescheduleList");
   const doneCard = document.getElementById("doneCard");
   const doneMessage = document.getElementById("doneMessage");
+  const rescheduleBtn = document.getElementById("rescheduleBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+
+  document.documentElement.lang = locale;
+  document.getElementById("pageHeading").textContent = t("manageHeading");
+  loading.textContent = t("manageLoading");
+  cutoffNotice.textContent = t("cutoffNotice");
+  rescheduleBtn.textContent = t("rescheduleButton");
+  cancelBtn.textContent = t("cancelButton");
 
   function showError(message) {
     loading.classList.add("hidden");
@@ -42,13 +54,13 @@
     try {
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Booking not found");
+      if (!res.ok) throw new Error(data.error || t("bookingNotFound"));
 
       loading.classList.add("hidden");
       const booking = data.booking;
 
       if (booking.status === "cancelled") {
-        showDone("This appointment has been cancelled.");
+        showDone(t("cancelledNotice"));
         return;
       }
 
@@ -68,17 +80,17 @@
 
   async function loadRescheduleSlots() {
     rescheduleStep.classList.remove("hidden");
-    rescheduleList.innerHTML = "<p>Loading available times…</p>";
+    rescheduleList.innerHTML = `<p>${t("loadingSlots")}</p>`;
 
     const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}/available-slots`);
     const data = await res.json();
     if (!res.ok) {
-      rescheduleList.innerHTML = `<p class="error">${data.error || "Failed to load available times"}</p>`;
+      rescheduleList.innerHTML = `<p class="error">${data.error || t("loadSlotsFailed")}</p>`;
       return;
     }
 
     if (data.slots.length === 0) {
-      rescheduleList.innerHTML = '<p class="notice">No other times are available right now.</p>';
+      rescheduleList.innerHTML = `<p class="notice">${t("noOtherSlots")}</p>`;
       return;
     }
 
@@ -94,7 +106,7 @@
       group.className = "day-group";
       const heading = document.createElement("div");
       heading.className = "day-heading";
-      heading.textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
+      heading.textContent = new Date(`${date}T00:00:00`).toLocaleDateString(locale, {
         weekday: "long", year: "numeric", month: "long", day: "numeric",
       });
       group.appendChild(heading);
@@ -129,10 +141,10 @@
         body: JSON.stringify({ newSlotId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to reschedule");
+      if (!res.ok) throw new Error(data.error || t("rescheduleFailed"));
 
       const { date, time } = formatSlotTime(data.startsAt);
-      showDone(`Rescheduled to ${date} at ${time}${data.location ? ` — ${data.location}` : ""}. A confirmation email is on its way.`);
+      showDone(t("rescheduledNotice", `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`));
     } catch (err) {
       document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = false; });
       btn.classList.remove("selected");
@@ -142,21 +154,21 @@
   }
 
   async function cancelBooking() {
-    if (!confirm("Cancel this appointment?")) return;
+    if (!confirm(t("confirmCancelPrompt"))) return;
     try {
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to cancel");
+        throw new Error(data.error || t("cancelFailed"));
       }
-      showDone("Your appointment has been cancelled.");
+      showDone(t("cancelledDone"));
     } catch (err) {
       alert(err.message);
     }
   }
 
-  document.getElementById("rescheduleBtn").addEventListener("click", loadRescheduleSlots);
-  document.getElementById("cancelBtn").addEventListener("click", cancelBooking);
+  rescheduleBtn.addEventListener("click", loadRescheduleSlots);
+  cancelBtn.addEventListener("click", cancelBooking);
 
   loadBooking();
 })();

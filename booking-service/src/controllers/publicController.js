@@ -65,12 +65,13 @@ export async function getPublicSlots(req, res) {
   }
 }
 
-function manageLinkFor(manageToken) {
-  return `${process.env.PUBLIC_BASE_URL}/manage/${manageToken}`;
+function manageLinkFor(manageToken, locale) {
+  const base = `${process.env.PUBLIC_BASE_URL}/manage/${manageToken}`;
+  return locale ? `${base}?lang=${encodeURIComponent(locale)}` : base;
 }
 
 export async function createPublicBooking(req, res) {
-  const { slotId, email, phone } = req.body;
+  const { slotId, email, phone, lang } = req.body;
   if (!slotId || !email || !phone) {
     return res.status(400).json({ error: "slotId, email and phone are required" });
   }
@@ -78,7 +79,7 @@ export async function createPublicBooking(req, res) {
   try {
     const { tenant, resource, ref } = await resolveSignedResource(req);
     const { bookingId, manageToken, slotId: bookedSlotId } = await bookingService.createBooking({
-      resourceId: resource.id, slotId, externalRef: ref, email, phone,
+      resourceId: resource.id, slotId, externalRef: ref, email, phone, locale: lang,
     });
 
     const [slotRow] = await executeQuery(`SELECT starts_at, ends_at, location FROM slots WHERE id = ?`, [bookedSlotId]);
@@ -101,7 +102,7 @@ export async function createPublicBooking(req, res) {
 
     sendBookingConfirmationEmail({
       to: email, resourceName: resource.name, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
-      location, manageLink: manageLinkFor(manageToken),
+      location, manageLink: manageLinkFor(manageToken, lang), locale: lang,
     }).catch((err) => logToFile("ERROR", "Confirmation email send threw unexpectedly", { bookingId, error: err.message }));
 
     dispatchWebhookEvent(tenant.id, "booking.created", { externalRef: ref, startsAt: slotRow.starts_at, status: "booked" });
@@ -168,7 +169,7 @@ export async function rescheduleManageBooking(req, res) {
     sendBookingRescheduledEmail({
       to: booking.contact_email, resourceName: booking.resource_name,
       startsAt: newSlotRow.starts_at, endsAt: newSlotRow.ends_at, location,
-      manageLink: manageLinkFor(req.params.manageToken),
+      manageLink: manageLinkFor(req.params.manageToken, booking.locale), locale: booking.locale,
     }).catch((err) => logToFile("ERROR", "Reschedule email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
 
     dispatchWebhookEvent(booking.tenant_id, "booking.rescheduled", {
@@ -203,6 +204,7 @@ export async function cancelManageBooking(req, res) {
           publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
           tenantId: booking.tenant_id, resourceSlug: booking.resource_slug, ref: booking.external_ref,
           after: new Date().toISOString().slice(0, 10), ttlSeconds: REBOOK_LINK_TTL_SECONDS,
+          lang: booking.locale,
         })
       : null;
 
@@ -211,7 +213,7 @@ export async function cancelManageBooking(req, res) {
       .catch((err) => logToFile("ERROR", "Calendar event deletion threw unexpectedly", { bookingId: booking.id, error: err.message }));
     sendBookingCancelledEmail({
       to: booking.contact_email, resourceName: booking.resource_name, startsAt: booking.starts_at,
-      rebookLink, contactInfo: booking.contact_info,
+      rebookLink, contactInfo: booking.contact_info, locale: booking.locale,
     })
       .catch((err) => logToFile("ERROR", "Cancellation email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
     dispatchWebhookEvent(booking.tenant_id, "booking.cancelled", { externalRef: booking.external_ref, status: "cancelled" });

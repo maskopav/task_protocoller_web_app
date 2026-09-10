@@ -32,21 +32,22 @@
 
     <div id="contactStep" class="card hidden">
       <div id="selectedSlotSummary"></div>
-      <label for="email">Email</label>
+      <label for="email" id="emailLabel">Email</label>
       <input type="email" id="email" required />
-      <label for="phone">Phone</label>
+      <label for="phone" id="phoneLabel">Phone</label>
       <input type="tel" id="phone" required />
       <div id="contactError" class="error hidden"></div>
       <button class="primary" id="confirmBtn">Confirm appointment</button>
     </div>
 
     <div id="confirmedStep" class="card hidden">
-      <h2>You're booked</h2>
+      <h2 id="bookedHeading">You're booked</h2>
       <p id="confirmedSummary"></p>
-      <p class="notice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
+      <p class="notice" id="bookedNotice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
     </div>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="book.js"></script>
 </body>
 </html>

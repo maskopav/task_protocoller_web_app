@@ -1,4 +1,7 @@
 (function () {
+  const t = window.bookingI18n.t;
+  const locale = window.bookingI18n.locale;
+
   const slug = window.location.pathname.split("/").filter(Boolean).pop();
   const search = window.location.search; // carries tenant/ref/after/exp/sig verbatim
 
@@ -11,6 +14,14 @@
   const confirmedStep = document.getElementById("confirmedStep");
   const confirmedSummary = document.getElementById("confirmedSummary");
   const contactError = document.getElementById("contactError");
+
+  document.documentElement.lang = locale;
+  loading.textContent = t("loadingSlots");
+  document.getElementById("emailLabel").textContent = t("emailLabel");
+  document.getElementById("phoneLabel").textContent = t("phoneLabel");
+  document.getElementById("confirmBtn").textContent = t("confirmButton");
+  document.getElementById("bookedHeading").textContent = t("bookedHeading");
+  document.getElementById("bookedNotice").textContent = t("bookedNotice");
 
   let selectedSlot = null;
 
@@ -32,7 +43,7 @@
     document.getElementById("resourceLocation").textContent = resource.defaultLocation || "";
 
     if (slots.length === 0) {
-      slotList.innerHTML = '<p class="notice">No times are available right now — please check back later.</p>';
+      slotList.innerHTML = `<p class="notice">${t("noSlots")}</p>`;
       slotStep.classList.remove("hidden");
       return;
     }
@@ -49,7 +60,7 @@
       group.className = "day-group";
       const heading = document.createElement("div");
       heading.className = "day-heading";
-      heading.textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
+      heading.textContent = new Date(`${date}T00:00:00`).toLocaleDateString(locale, {
         weekday: "long", year: "numeric", month: "long", day: "numeric",
       });
       group.appendChild(heading);
@@ -77,7 +88,7 @@
     selectedSlot = slot;
 
     const { date, time } = formatSlotTime(slot.starts_at);
-    selectedSlotSummary.innerHTML = `<strong>Selected:</strong> ${date} at ${time}${slot.location ? ` — ${slot.location}` : ""}`;
+    selectedSlotSummary.innerHTML = `<strong>${t("selectedPrefix")}</strong> ${date} at ${time}${slot.location ? ` — ${slot.location}` : ""}`;
     contactStep.classList.remove("hidden");
     contactStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
@@ -89,12 +100,12 @@
 
     if (!selectedSlot) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      contactError.textContent = "Please enter a valid email address.";
+      contactError.textContent = t("invalidEmail");
       contactError.classList.remove("hidden");
       return;
     }
     if (!/^[0-9+()\-\s]{6,20}$/.test(phone)) {
-      contactError.textContent = "Please enter a valid phone number.";
+      contactError.textContent = t("invalidPhone");
       contactError.classList.remove("hidden");
       return;
     }
@@ -102,15 +113,15 @@
     const btn = document.getElementById("confirmBtn");
     const originalLabel = btn.textContent;
     btn.disabled = true;
-    btn.textContent = "Booking…";
+    btn.textContent = t("confirmingButton");
     try {
       const res = await fetch(`public/bookings/${encodeURIComponent(slug)}${search}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotId: selectedSlot.id, email, phone }),
+        body: JSON.stringify({ slotId: selectedSlot.id, email, phone, lang: locale }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Booking failed");
+      if (!res.ok) throw new Error(data.error || t("bookingFailed"));
 
       const { date, time } = formatSlotTime(data.startsAt);
       confirmedSummary.textContent = `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`;
@@ -130,7 +141,7 @@
   fetch(`public/slots/${encodeURIComponent(slug)}${search}`)
     .then(async (res) => {
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "This booking link is invalid or has expired.");
+      if (!res.ok) throw new Error(data.error || t("invalidLink"));
       loading.classList.add("hidden");
       renderSlots(data.resource, data.slots);
     })

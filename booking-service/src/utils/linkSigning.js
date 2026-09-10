@@ -35,9 +35,14 @@ export function verifyBookingLink(secret, { tenantId, resourceSlug, ref, after, 
 // for link construction, used both server-side (e.g. the "book again" link
 // in the cancellation email) and by scripts/generateSignedLink.js for
 // manual dev/prod testing — keeps them from drifting out of sync.
-export function buildSignedBookingUrl({ publicBaseUrl, secret, tenantId, resourceSlug, ref, after, ttlSeconds = 3600 }) {
+// `lang` is deliberately not part of the signed payload — it's a display
+// preference, not something that needs tamper protection — so it's just
+// appended to the querystring.
+export function buildSignedBookingUrl({ publicBaseUrl, secret, tenantId, resourceSlug, ref, after, ttlSeconds = 3600, lang }) {
   const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
   const sig = signHmac(secret, buildLinkSignaturePayload({ tenantId, resourceSlug, ref, after, exp }));
-  const qs = new URLSearchParams({ tenant: String(tenantId), ref, after, exp: String(exp), sig }).toString();
+  const params = { tenant: String(tenantId), ref, after, exp: String(exp), sig };
+  if (lang) params.lang = lang;
+  const qs = new URLSearchParams(params).toString();
   return `${publicBaseUrl}/book/${resourceSlug}?${qs}`;
 }

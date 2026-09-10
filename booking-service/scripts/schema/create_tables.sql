@@ -37,6 +37,7 @@ CREATE TABLE `bookings` (
   `contact_email` varchar(255) NOT NULL,
   `contact_phone` varchar(255) NOT NULL,
   `manage_token` char(32) UNIQUE NOT NULL,
+  `locale` varchar(10) NOT NULL DEFAULT 'en' COMMENT 'Language for this booking''s emails (confirmation/reschedule/cancellation), chosen once at booking time — see src/i18n/emailTranslations.js',
   `status` ENUM('booked','rescheduled','cancelled') NOT NULL DEFAULT 'booked',
   `google_event_id` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
