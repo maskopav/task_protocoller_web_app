@@ -10,8 +10,8 @@ interface EnvImportMeta extends ImportMeta {
   };
 }
 
-export function getIllustrationPath(category: string, params: Record<string, any>): string | undefined {
-  const keys = Object.keys(params);
+export function getIllustrationPath(category: string, params: Record<string, any> = {}): string | undefined {
+  const keys = Object.keys(params ?? {});
   if (keys.length === 0) return undefined;
 
   const mainParam = keys[0] as keyof typeof params; // first param

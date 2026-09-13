@@ -450,7 +450,7 @@ export default function ParticipantInterfacePage() {
     let isReading = false;
     let isRetelling = false;
 
-    if (rawTask && !['info', 'instructions', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(rawTask.type)) {
+    if (rawTask && !['info', 'instructions', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro', 'followup_booking'].includes(rawTask.type)) {
        task = resolveTask(rawTask, t);
        isReading = task?.category === 'reading';
        isRetelling = task?.category === 'retelling';
