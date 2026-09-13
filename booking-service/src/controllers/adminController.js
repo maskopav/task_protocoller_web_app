@@ -4,6 +4,8 @@
 import * as bookingService from "../services/bookingService.js";
 import { buildCsv } from "../utils/csvBuilder.js";
 import { handleError } from "../utils/httpErrors.js";
+import { upsertSlotEvent, deleteCalendarEvent } from "../services/googleCalendarService.js";
+import { logToFile } from "../utils/logger.js";
 
 export async function createResource(req, res) {
   const { slug, name, defaultDurationMin, defaultLocation, contactInfo } = req.body;
@@ -43,9 +45,25 @@ export async function bulkCreateSlots(req, res) {
     return res.status(400).json({ error: "resourceId, startDate, endDate, weekdays[], startTime, endTime, durationMin are required" });
   }
   try {
-    const result = await bookingService.bulkCreateSlots(req.tenant.id, resourceId, {
+    const { insertedSlots, ...result } = await bookingService.bulkCreateSlots(req.tenant.id, resourceId, {
       startDate, endDate, weekdays, startTime, endTime, durationMin, location,
     });
+
+    // Fire-and-forget: pushing potentially hundreds of new Calendar events
+    // is slow, and a Calendar hiccup shouldn't fail slot creation (which
+    // already succeeded in the DB) or make the admin wait on it.
+    if (insertedSlots.length > 0) {
+      const resource = await bookingService.getResourceById(req.tenant.id, resourceId);
+      Promise.all(insertedSlots.map(async (slot) => {
+        const eventId = await upsertSlotEvent({
+          eventId: null, resourceName: resource.name,
+          startsAt: slot.starts_at, endsAt: slot.ends_at,
+          location: slot.location || resource.default_location, status: "available",
+        });
+        if (eventId) await bookingService.setSlotGoogleEventId(slot.id, eventId);
+      })).catch((err) => logToFile("ERROR", "Failed to sync some new slots to Calendar", { error: err.message }));
+    }
+
     res.status(201).json(result);
   } catch (err) {
     handleError(res, err, "Failed to create slots");
@@ -67,7 +85,11 @@ export async function deleteSlot(req, res) {
   const resourceId = Number(req.query.resourceId);
   if (!resourceId) return res.status(400).json({ error: "resourceId is required" });
   try {
-    await bookingService.deleteSlot(req.tenant.id, resourceId, req.params.slotId);
+    const googleEventId = await bookingService.deleteSlot(req.tenant.id, resourceId, req.params.slotId);
+    if (googleEventId) {
+      deleteCalendarEvent(googleEventId)
+        .catch((err) => logToFile("ERROR", "Failed to delete Calendar event for deleted slot", { error: err.message }));
+    }
     res.status(204).end();
   } catch (err) {
     handleError(res, err, "Failed to delete slot");

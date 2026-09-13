@@ -17,6 +17,12 @@
 //  6. Set GOOGLE_CALENDAR_ID to that calendar's ID (Settings → "Integrate
 //     calendar" → Calendar ID; for a dedicated calendar it looks like an
 //     email address ending in @group.calendar.google.com).
+//
+// Every slot (not just booked ones) gets its own event, styled by status —
+// see upsertSlotEvent below — so the shared calendar shows the whole
+// offered schedule, not just confirmed visits. The event tracks the time
+// SLOT, not any one booking of it: book/cancel/rebook cycles flip the same
+// event between "available" and "booked" rather than creating new ones.
 import { google } from "googleapis";
 import { logToFile } from "../utils/logger.js";
 
@@ -56,49 +62,88 @@ function toRfc3339(mysqlDateTime) {
   return mysqlDateTime.replace(" ", "T");
 }
 
-export async function createCalendarEvent({ summary, description, startsAt, endsAt, location }) {
+// Google Calendar's standard colorId palette (1-11). Sage/green reads as
+// "open" and Tomato/red as "taken" — a plain traffic-light convention, not
+// tied to anything Calendar itself assigns meaning to.
+const STATUS_STYLE = {
+  available: { colorId: "2", transparency: "transparent", label: "Available" }, // Sage; "transparent" also means Calendar doesn't count it as busy time
+  booked: { colorId: "11", transparency: "opaque", label: "Booked" }, // Tomato
+};
+
+// Everything above this marker is rewritten by this service on every
+// sync; everything below it is left alone. Lets a team member type notes
+// (who's covering the slot, etc.) directly into the event in Google
+// Calendar's own UI without a later status flip wiping them out.
+const TEAM_NOTES_MARKER = "\n\n--- Team notes (edit freely below — preserved on updates) ---\n";
+
+export function extractTeamNotes(existingDescription) {
+  if (!existingDescription) return "";
+  const idx = existingDescription.indexOf(TEAM_NOTES_MARKER);
+  return idx === -1 ? "" : existingDescription.slice(idx + TEAM_NOTES_MARKER.length);
+}
+
+export function buildManagedDescription(systemLines, existingDescription) {
+  return systemLines.join("\n") + TEAM_NOTES_MARKER + extractTeamNotes(existingDescription);
+}
+
+// Creates the event if `eventId` is null/not yet known, otherwise updates
+// the existing one in place (fetching its current description first, so
+// buildManagedDescription can preserve any team notes already in it).
+// Returns the event id either way — null only if Calendar isn't configured
+// or the call failed (never throws; every caller treats sync as
+// best-effort, matching the rest of this service's fire-and-forget pattern
+// for Calendar/email work).
+export async function upsertSlotEvent({ eventId, resourceName, startsAt, endsAt, location, status, systemNotes = [], contactEmail }) {
   const calendar = getClient();
   if (!calendar) return null;
 
+  const style = STATUS_STYLE[status];
+  // contactEmail only ever set for status "booked" (see callers) — shown in
+  // the title itself, not just the description, so it's visible at a glance
+  // in month/week view without opening the event.
+  const summary = contactEmail
+    ? `${style.label} — ${resourceName} — ${contactEmail}`
+    : `${style.label} — ${resourceName}`;
+
   try {
-    const res = await calendar.events.insert({
-      calendarId: process.env.GOOGLE_CALENDAR_ID,
-      requestBody: {
-        summary,
-        description,
-        location: location || undefined,
-        start: { dateTime: toRfc3339(startsAt), timeZone: CALENDAR_TIMEZONE },
-        end: { dateTime: toRfc3339(endsAt), timeZone: CALENDAR_TIMEZONE },
-      },
-    });
+    let existingDescription = null;
+    if (eventId) {
+      try {
+        const existing = await calendar.events.get({ calendarId: process.env.GOOGLE_CALENDAR_ID, eventId });
+        existingDescription = existing.data.description;
+      } catch (err) {
+        // Event may have been deleted directly in Calendar by a team
+        // member — fall through and create a fresh one rather than fail.
+        logToFile("INFO", "Existing Calendar event not found, creating a new one", { eventId });
+        eventId = null;
+      }
+    }
+
+    const requestBody = {
+      summary,
+      description: buildManagedDescription([style.label, ...systemNotes], existingDescription),
+      location: location || undefined,
+      colorId: style.colorId,
+      transparency: style.transparency,
+      start: { dateTime: toRfc3339(startsAt), timeZone: CALENDAR_TIMEZONE },
+      end: { dateTime: toRfc3339(endsAt), timeZone: CALENDAR_TIMEZONE },
+    };
+
+    if (eventId) {
+      await calendar.events.patch({ calendarId: process.env.GOOGLE_CALENDAR_ID, eventId, requestBody });
+      return eventId;
+    }
+    const res = await calendar.events.insert({ calendarId: process.env.GOOGLE_CALENDAR_ID, requestBody });
     return res.data.id;
   } catch (err) {
-    logToFile("ERROR", "Google Calendar event creation failed", { error: err.message });
+    logToFile("ERROR", "Google Calendar event upsert failed", { eventId, error: err.message });
     return null;
   }
 }
 
-export async function updateCalendarEvent(eventId, { summary, description, startsAt, endsAt, location }) {
-  const calendar = getClient();
-  if (!calendar || !eventId) return;
-
-  try {
-    await calendar.events.patch({
-      calendarId: process.env.GOOGLE_CALENDAR_ID,
-      eventId,
-      requestBody: {
-        summary,
-        description,
-        location: location || undefined,
-        start: { dateTime: toRfc3339(startsAt), timeZone: CALENDAR_TIMEZONE },
-        end: { dateTime: toRfc3339(endsAt), timeZone: CALENDAR_TIMEZONE },
-      },
-    });
-  } catch (err) {
-    logToFile("ERROR", "Google Calendar event update failed", { eventId, error: err.message });
-  }
-}
-
+// Used only when a slot itself is deleted (not just cancelled/reopened —
+// see upsertSlotEvent for the book/cancel/rebook cycle, which flips styling
+// on the same event instead of deleting it).
 export async function deleteCalendarEvent(eventId) {
   const calendar = getClient();
   if (!calendar || !eventId) return;
