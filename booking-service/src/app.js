@@ -18,6 +18,7 @@ import cors from "cors";
 import adminRouter from "./routes/admin.js";
 import publicRouter from "./routes/public.js";
 import { requireApiKey } from "./middleware/apiKeyAuth.js";
+import { rateLimit } from "./middleware/rateLimiter.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "..", "public");
@@ -50,7 +51,8 @@ export function createBookingApp() {
   app.use("/v1", requireApiKey, adminRouter);
 
   // Browser-facing API behind the hosted pages below (signed-link / manage-token auth per-route).
-  app.use("/public", publicRouter);
+  // Rate-limited since it's unauthenticated by design (see middleware/rateLimiter.js).
+  app.use("/public", rateLimit({ windowMs: 60_000, max: 30 }), publicRouter);
 
   // Hosted booking + manage pages — plain static HTML/JS, no build step.
   app.use(express.static(publicDir));
