@@ -65,7 +65,14 @@
       }
 
       const { date, time } = formatSlotTime(booking.starts_at);
-      currentSummary.innerHTML = `<strong>${booking.resource_name}</strong><br/>${date} at ${time}${booking.location ? ` — ${booking.location}` : ""}`;
+      currentSummary.textContent = "";
+      const name = document.createElement("strong");
+      name.textContent = booking.resource_name;
+      currentSummary.appendChild(name);
+      currentSummary.appendChild(document.createElement("br"));
+      currentSummary.appendChild(
+        document.createTextNode(`${date} at ${time}${booking.location ? ` — ${booking.location}` : ""}`)
+      );
       currentCard.classList.remove("hidden");
 
       if (isPastCutoffClientSide(booking.starts_at)) {
@@ -149,7 +156,10 @@
       document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = false; });
       btn.classList.remove("selected");
       btn.textContent = originalLabel;
-      rescheduleList.insertAdjacentHTML("beforeend", `<p class="error">${err.message}</p>`);
+      const errP = document.createElement("p");
+      errP.className = "error";
+      errP.textContent = err.message;
+      rescheduleList.appendChild(errP);
     }
   }
 

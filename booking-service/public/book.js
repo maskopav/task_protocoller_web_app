@@ -88,7 +88,13 @@
     selectedSlot = slot;
 
     const { date, time } = formatSlotTime(slot.starts_at);
-    selectedSlotSummary.innerHTML = `<strong>${t("selectedPrefix")}</strong> ${date} at ${time}${slot.location ? ` — ${slot.location}` : ""}`;
+    selectedSlotSummary.textContent = "";
+    const prefix = document.createElement("strong");
+    prefix.textContent = t("selectedPrefix");
+    selectedSlotSummary.appendChild(prefix);
+    selectedSlotSummary.appendChild(
+      document.createTextNode(` ${date} at ${time}${slot.location ? ` — ${slot.location}` : ""}`)
+    );
     contactStep.classList.remove("hidden");
     contactStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }

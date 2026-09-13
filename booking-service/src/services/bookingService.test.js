@@ -20,7 +20,7 @@ const { executeTransaction, executeQuery } = await import("../db/queryHelper.js"
 const { generateToken } = await import("../utils/tokenGenerator.js");
 const { createBooking, bulkCreateSlots } = await import("./bookingService.js");
 
-function makeConn({ slotRow, existingActiveRows = [], manageTokenCollisions = 0, insertId = 123 }) {
+function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], manageTokenCollisions = 0, insertId = 123 }) {
   let manageTokenLookups = 0;
   const calls = [];
   const query = vi.fn((sql, params) => {
@@ -28,6 +28,9 @@ function makeConn({ slotRow, existingActiveRows = [], manageTokenCollisions = 0,
 
     if (sql.includes("FROM slots WHERE id = ?")) {
       return Promise.resolve([slotRow ? [slotRow] : []]);
+    }
+    if (sql.includes("b.external_ref = ?")) {
+      return Promise.resolve([existingRefRows]);
     }
     if (sql.includes("FROM bookings WHERE slot_id = ? AND status != 'cancelled'")) {
       return Promise.resolve([existingActiveRows]);
@@ -89,6 +92,15 @@ describe("createBooking", () => {
       .rejects.toMatchObject({ message: "Slot is already booked", statusCode: 409 });
   });
 
+  it("rejects when the external ref already has another active booking for this resource", async () => {
+    mockConn = makeConn({
+      slotRow: { id: 15, resource_id: 1, is_active: 1 },
+      existingRefRows: [{ id: 7 }],
+    });
+    await expect(createBooking({ resourceId: 1, slotId: 15, externalRef: "ref-42", email: "a@b.com", phone: "1" }))
+      .rejects.toMatchObject({ statusCode: 409 });
+  });
+
   it("locks the slot row with FOR UPDATE before checking availability", async () => {
     mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 } });
     await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref", email: "a@b.com", phone: "1" });
@@ -139,12 +151,15 @@ describe("bulkCreateSlots", () => {
   });
 
   it("inserts as a single multi-row statement and reports rows the DB actually skipped as duplicates", async () => {
+    const insertedRow = { id: 10, starts_at: "2026-09-14 09:00:00", ends_at: "2026-09-14 09:30:00", location: null };
     executeQuery
       .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
       // MySQL's own INSERT IGNORE affectedRows already excludes rows
       // skipped by the UNIQUE constraint -- simulating 1 of the 2 generated
       // slots already existing (e.g. from an earlier, overlapping call).
-      .mockResolvedValueOnce({ affectedRows: 1 });
+      .mockResolvedValueOnce({ affectedRows: 1 })
+      // follow-up SELECT fetching back the newly-inserted row(s)
+      .mockResolvedValueOnce([insertedRow]);
 
     // 09:00-10:00 in 30-min steps generates exactly 2 slots.
     const result = await bulkCreateSlots(1, 3, {
@@ -152,10 +167,13 @@ describe("bulkCreateSlots", () => {
       startTime: "09:00", endTime: "10:00", durationMin: 30,
     });
 
-    expect(result).toEqual({ created: 1, skipped: 1 });
+    expect(result).toEqual({ created: 1, skipped: 1, insertedSlots: [insertedRow] });
     const insertCall = executeQuery.mock.calls[1];
     expect(insertCall[0]).toMatch(/INSERT IGNORE INTO slots/);
     expect(insertCall[1][0]).toHaveLength(2); // both generated rows passed in one statement
+    const selectCall = executeQuery.mock.calls[2];
+    expect(selectCall[0]).toMatch(/SELECT id, starts_at, ends_at, location FROM slots/);
+    expect(selectCall[0]).toMatch(/google_event_id IS NULL/);
   });
 
   it("reports 0 created when every slot in the range already exists", async () => {
@@ -168,6 +186,9 @@ describe("bulkCreateSlots", () => {
       startTime: "09:00", endTime: "10:00", durationMin: 30,
     });
 
-    expect(result).toEqual({ created: 0, skipped: 2 });
+    // created === 0 short-circuits the follow-up SELECT (see bookingService.js) —
+    // executeQuery should have been called exactly twice, not three times.
+    expect(executeQuery).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ created: 0, skipped: 2, insertedSlots: [] });
   });
 });

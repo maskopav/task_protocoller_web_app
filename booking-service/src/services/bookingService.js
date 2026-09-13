@@ -60,6 +60,11 @@ export async function listResources(tenantId) {
   return executeQuery(`SELECT * FROM resources WHERE tenant_id = ? ORDER BY name`, [tenantId]);
 }
 
+export async function getResourceById(tenantId, resourceId) {
+  const [row] = await executeQuery(`SELECT * FROM resources WHERE id = ? AND tenant_id = ?`, [resourceId, tenantId]);
+  return row || null;
+}
+
 // Ownership guard used before any mutation scoped by resourceId, so a
 // tenant can never touch another tenant's slots/bookings by guessing IDs.
 async function assertResourceOwnedByTenant(resourceId, tenantId) {
@@ -96,7 +101,7 @@ export async function bulkCreateSlots(tenantId, resourceId, {
     }
   }
 
-  if (rows.length === 0) return { created: 0 };
+  if (rows.length === 0) return { created: 0, skipped: 0, insertedSlots: [] };
 
   // INSERT IGNORE + the slots_resource_starts_idx UNIQUE constraint (see
   // create_tables.sql) makes this safe to call again with an overlapping
@@ -113,7 +118,22 @@ export async function bulkCreateSlots(tenantId, resourceId, {
   );
   const created = result.affectedRows;
 
-  return { created, skipped: rows.length - created };
+  // Fetched back rather than derived from insertId: INSERT IGNORE can skip
+  // rows, so auto_increment ids aren't reliably contiguous from a single
+  // insertId. The caller (adminController) uses this list to push each new
+  // slot to Google Calendar — filtering on google_event_id IS NULL means a
+  // retry over the same range only ever picks up genuinely new rows, never
+  // ones already synced.
+  const startsAtValues = rows.map((r) => r[1]);
+  const insertedSlots = created > 0
+    ? await executeQuery(
+        `SELECT id, starts_at, ends_at, location FROM slots
+         WHERE resource_id = ? AND starts_at IN (?) AND google_event_id IS NULL`,
+        [resourceId, startsAtValues]
+      )
+    : [];
+
+  return { created, skipped: rows.length - created, insertedSlots };
 }
 
 export async function listSlotsForAdmin(tenantId, resourceId, { activeOnly } = {}) {
@@ -130,6 +150,8 @@ export async function listSlotsForAdmin(tenantId, resourceId, { activeOnly } = {
   );
 }
 
+// Returns the deleted slot's google_event_id (or null) so the caller can
+// clean up its Calendar event too.
 export async function deleteSlot(tenantId, resourceId, slotId) {
   await assertResourceOwnedByTenant(resourceId, tenantId);
   const [booking] = await executeQuery(
@@ -141,7 +163,9 @@ export async function deleteSlot(tenantId, resourceId, slotId) {
     err.statusCode = 409;
     throw err;
   }
+  const [slot] = await executeQuery(`SELECT google_event_id FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
   await executeQuery(`DELETE FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+  return slot?.google_event_id || null;
 }
 
 // Public, respondent-facing slot listing: only open, unbooked, future-enough
@@ -199,6 +223,24 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
       throw err;
     }
 
+    // Slot-level uniqueness above stops two people racing for the same
+    // slot, but says nothing about one participant (or anyone who still has
+    // their signed booking link) reserving several different slots for the
+    // same resource — e.g. re-opening the original link after already
+    // booking, instead of using the manage link to reschedule. Only one
+    // active booking per (resource, externalRef) at a time; they must
+    // cancel/reschedule the existing one first.
+    const [existingForRef] = await conn.query(
+      `SELECT b.id FROM bookings b JOIN slots s ON s.id = b.slot_id
+       WHERE s.resource_id = ? AND b.external_ref = ? AND b.status != 'cancelled'`,
+      [resourceId, externalRef]
+    );
+    if (existingForRef.length > 0) {
+      const err = new Error("An active booking already exists — use the manage link from your confirmation email to reschedule or cancel it first");
+      err.statusCode = 409;
+      throw err;
+    }
+
     const manageToken = await generateUniqueManageToken(conn);
 
     const [result] = await conn.query(
@@ -213,7 +255,7 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
 
 export async function getBookingByManageToken(manageToken) {
   const [row] = await executeQuery(
-    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id,
+    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id, s.google_event_id,
             r.name AS resource_name, r.slug AS resource_slug, r.default_location,
             r.contact_info, r.tenant_id
      FROM bookings b
@@ -225,10 +267,16 @@ export async function getBookingByManageToken(manageToken) {
   return row || null;
 }
 
+// Returns both the old slot's and new slot's own details (including each
+// one's google_event_id) so the caller can flip the old slot's Calendar
+// event back to "available" and the new slot's event to "booked", rather
+// than deleting/recreating events.
 export async function rescheduleBooking(manageToken, newSlotId) {
   return executeTransaction(async (conn) => {
     const [[booking]] = await conn.query(
-      `SELECT b.*, s.resource_id FROM bookings b JOIN slots s ON s.id = b.slot_id WHERE b.manage_token = ? FOR UPDATE`,
+      `SELECT b.*, s.resource_id, s.starts_at AS old_starts_at, s.ends_at AS old_ends_at,
+              s.location AS old_location, s.google_event_id AS old_google_event_id
+       FROM bookings b JOIN slots s ON s.id = b.slot_id WHERE b.manage_token = ? FOR UPDATE`,
       [manageToken]
     );
     if (!booking || booking.status === "cancelled") {
@@ -237,7 +285,10 @@ export async function rescheduleBooking(manageToken, newSlotId) {
       throw err;
     }
 
-    const [[newSlot]] = await conn.query(`SELECT id, resource_id, is_active FROM slots WHERE id = ? FOR UPDATE`, [newSlotId]);
+    const [[newSlot]] = await conn.query(
+      `SELECT id, resource_id, is_active, starts_at, ends_at, location, google_event_id FROM slots WHERE id = ? FOR UPDATE`,
+      [newSlotId]
+    );
     if (!newSlot || newSlot.resource_id !== booking.resource_id || !newSlot.is_active) {
       const err = new Error("Slot is not available");
       err.statusCode = 409;
@@ -258,7 +309,17 @@ export async function rescheduleBooking(manageToken, newSlotId) {
       [newSlotId, booking.id]
     );
 
-    return { bookingId: booking.id, previousSlotId: booking.slot_id, newSlotId };
+    return {
+      bookingId: booking.id,
+      oldSlot: {
+        id: booking.slot_id, startsAt: booking.old_starts_at, endsAt: booking.old_ends_at,
+        location: booking.old_location, googleEventId: booking.old_google_event_id,
+      },
+      newSlot: {
+        id: newSlot.id, startsAt: newSlot.starts_at, endsAt: newSlot.ends_at,
+        location: newSlot.location, googleEventId: newSlot.google_event_id,
+      },
+    };
   });
 }
 
@@ -288,8 +349,8 @@ export async function listBookingsForAdmin(tenantId, { resourceId } = {}) {
   );
 }
 
-export async function setBookingGoogleEventId(bookingId, googleEventId) {
-  await executeQuery(`UPDATE bookings SET google_event_id = ? WHERE id = ?`, [googleEventId, bookingId]);
+export async function setSlotGoogleEventId(slotId, googleEventId) {
+  await executeQuery(`UPDATE slots SET google_event_id = ? WHERE id = ?`, [googleEventId, slotId]);
 }
 
 // ---- webhooks -----------------------------------------------------------

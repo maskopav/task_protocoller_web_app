@@ -7,7 +7,7 @@ import * as bookingService from "../services/bookingService.js";
 import { verifyBookingLink, buildSignedBookingUrl } from "../utils/linkSigning.js";
 import { getTenantById } from "../services/bookingService.js";
 import { executeQuery } from "../db/queryHelper.js";
-import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "../services/googleCalendarService.js";
+import { upsertSlotEvent } from "../services/googleCalendarService.js";
 import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail } from "../services/emailService.js";
 import { dispatchWebhookEvent } from "../services/webhookDispatcher.js";
 import { logToFile } from "../utils/logger.js";
@@ -78,7 +78,7 @@ export async function createPublicBooking(req, res) {
       resourceId: resource.id, slotId, externalRef: ref, email, phone, locale: lang,
     });
 
-    const [slotRow] = await executeQuery(`SELECT starts_at, ends_at, location FROM slots WHERE id = ?`, [bookedSlotId]);
+    const [slotRow] = await executeQuery(`SELECT starts_at, ends_at, location, google_event_id FROM slots WHERE id = ?`, [bookedSlotId]);
     const location = slotRow.location || resource.default_location;
 
     // The booking itself is already committed at this point — Calendar
@@ -88,13 +88,17 @@ export async function createPublicBooking(req, res) {
     // of this blocks the response. Without this, respondents were seeing
     // the confirm button sit unresponsive for several seconds. Matches the
     // fire-and-forget pattern dispatchWebhookEvent already uses below.
-    createCalendarEvent({
-      summary: `${resource.name} — booked`,
-      description: `Booking ref: ${ref}`,
-      startsAt: slotRow.starts_at, endsAt: slotRow.ends_at, location,
+    //
+    // The slot already has its own Calendar event from when it was
+    // generated (styled "available") — this flips that same event to
+    // "booked" rather than creating a second one for the same time slot.
+    upsertSlotEvent({
+      eventId: slotRow.google_event_id, resourceName: resource.name,
+      startsAt: slotRow.starts_at, endsAt: slotRow.ends_at, location, status: "booked",
+      systemNotes: [`Ref: ${ref}`, `Contact: ${email}, ${phone}`], contactEmail: email,
     })
-      .then((googleEventId) => googleEventId && bookingService.setBookingGoogleEventId(bookingId, googleEventId))
-      .catch((err) => logToFile("ERROR", "Failed to persist Google Calendar event id", { bookingId, error: err.message }));
+      .then((eventId) => eventId && bookingService.setSlotGoogleEventId(bookedSlotId, eventId))
+      .catch((err) => logToFile("ERROR", "Failed to sync booking to Calendar", { bookingId, error: err.message }));
 
     sendBookingConfirmationEmail({
       to: email, resourceName: resource.name, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
@@ -148,30 +152,42 @@ export async function rescheduleManageBooking(req, res) {
       return res.status(409).json({ error: "Too close to the appointment to reschedule (cutoff: 1 day before)" });
     }
 
-    await bookingService.rescheduleBooking(req.params.manageToken, newSlotId);
-    const [newSlotRow] = await executeQuery(`SELECT starts_at, ends_at, location FROM slots WHERE id = ?`, [newSlotId]);
-    const location = newSlotRow.location || booking.default_location;
+    const { oldSlot, newSlot } = await bookingService.rescheduleBooking(req.params.manageToken, newSlotId);
+    const location = newSlot.location || booking.default_location;
 
     // Fire-and-forget — same reasoning as createPublicBooking: the
     // reschedule is already committed, Calendar/email are slow and can't
     // fail it, so don't make the respondent wait on them.
-    updateCalendarEvent(booking.google_event_id, {
-      summary: `${booking.resource_name} — booked`,
-      description: `Booking ref: ${booking.external_ref}`,
-      startsAt: newSlotRow.starts_at, endsAt: newSlotRow.ends_at, location,
-    }).catch((err) => logToFile("ERROR", "Calendar event update threw unexpectedly", { bookingId: booking.id, error: err.message }));
+    //
+    // Two separate events to update, not one: the old slot reverts to
+    // "available" (it's open again), the new slot flips to "booked" — each
+    // event belongs to its own time slot and outlives this one booking.
+    upsertSlotEvent({
+      eventId: oldSlot.googleEventId, resourceName: booking.resource_name,
+      startsAt: oldSlot.startsAt, endsAt: oldSlot.endsAt,
+      location: oldSlot.location || booking.default_location, status: "available",
+    }).catch((err) => logToFile("ERROR", "Failed to revert old slot's Calendar event", { bookingId: booking.id, error: err.message }));
+
+    upsertSlotEvent({
+      eventId: newSlot.googleEventId, resourceName: booking.resource_name,
+      startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location, status: "booked",
+      systemNotes: [`Ref: ${booking.external_ref}`, `Contact: ${booking.contact_email}, ${booking.contact_phone}`],
+      contactEmail: booking.contact_email,
+    })
+      .then((eventId) => eventId && bookingService.setSlotGoogleEventId(newSlot.id, eventId))
+      .catch((err) => logToFile("ERROR", "Failed to sync rescheduled booking to Calendar", { bookingId: booking.id, error: err.message }));
 
     sendBookingRescheduledEmail({
       to: booking.contact_email, resourceName: booking.resource_name,
-      startsAt: newSlotRow.starts_at, endsAt: newSlotRow.ends_at, location,
+      startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location,
       manageLink: manageLinkFor(req.params.manageToken, booking.locale), locale: booking.locale,
     }).catch((err) => logToFile("ERROR", "Reschedule email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
 
     dispatchWebhookEvent(booking.tenant_id, "booking.rescheduled", {
-      externalRef: booking.external_ref, startsAt: newSlotRow.starts_at, status: "booked",
+      externalRef: booking.external_ref, startsAt: newSlot.startsAt, status: "booked",
     });
 
-    res.json({ startsAt: newSlotRow.starts_at, endsAt: newSlotRow.ends_at, location });
+    res.json({ startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location });
   } catch (err) {
     handleError(res, err, "Failed to reschedule booking");
   }
@@ -209,8 +225,13 @@ export async function cancelManageBooking(req, res) {
       : null;
 
     // Fire-and-forget — same reasoning as the other two handlers above.
-    deleteCalendarEvent(booking.google_event_id)
-      .catch((err) => logToFile("ERROR", "Calendar event deletion threw unexpectedly", { bookingId: booking.id, error: err.message }));
+    // The slot itself still exists and is bookable again, so its Calendar
+    // event reverts to "available" rather than being deleted.
+    upsertSlotEvent({
+      eventId: booking.google_event_id, resourceName: booking.resource_name,
+      startsAt: booking.starts_at, endsAt: booking.ends_at,
+      location: booking.location || booking.default_location, status: "available",
+    }).catch((err) => logToFile("ERROR", "Failed to revert cancelled slot's Calendar event", { bookingId: booking.id, error: err.message }));
     sendBookingCancelledEmail({
       to: booking.contact_email, resourceName: booking.resource_name, startsAt: booking.starts_at,
       rebookLink, contactInfo: booking.contact_info, locale: booking.locale,
