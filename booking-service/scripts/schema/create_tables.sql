@@ -28,6 +28,7 @@ CREATE TABLE `slots` (
   `location` varchar(255) DEFAULT NULL COMMENT 'overrides resources.default_location when set',
   `capacity` integer NOT NULL DEFAULT 1,
   `is_active` boolean NOT NULL DEFAULT true,
+  `google_event_id` varchar(255) DEFAULT NULL COMMENT 'The event represents the physical time slot, not any one booking of it -- it persists across book/cancel/rebook cycles, flipping between "available" and "booked" styling rather than being recreated. See googleCalendarService.js.',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`resource_id`) REFERENCES `resources` (`id`)
 );
@@ -41,7 +42,6 @@ CREATE TABLE `bookings` (
   `manage_token` char(32) UNIQUE NOT NULL,
   `locale` varchar(10) NOT NULL DEFAULT 'en' COMMENT 'Language for this booking''s emails (confirmation/reschedule/cancellation), chosen once at booking time — see src/i18n/emailTranslations.js',
   `status` ENUM('booked','rescheduled','cancelled') NOT NULL DEFAULT 'booked',
-  `google_event_id` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL,
   `active_slot_id` integer GENERATED ALWAYS AS (CASE WHEN `status` = 'cancelled' THEN NULL ELSE `slot_id` END) STORED
