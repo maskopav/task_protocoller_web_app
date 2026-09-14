@@ -17,6 +17,11 @@ import { handleError } from "../utils/httpErrors.js";
 const RESCHEDULE_CUTOFF_HOURS = 24;
 const REBOOK_LINK_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
+// Mirrors the client-side check in public/book.js — that one is only a UX
+// nicety, since this is a public POST endpoint anyone can call directly.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^[0-9+()\-\s]{6,20}$/;
+
 async function resolveSignedResource(req) {
   const { resourceSlug } = req.params;
   const { tenant: tenantId, ref, after, exp, sig } = req.query;
@@ -70,6 +75,12 @@ export async function createPublicBooking(req, res) {
   const { slotId, email, phone, lang } = req.body;
   if (!slotId || !email || !phone) {
     return res.status(400).json({ error: "slotId, email and phone are required" });
+  }
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: "Invalid email address" });
+  }
+  if (!PHONE_RE.test(phone)) {
+    return res.status(400).json({ error: "Invalid phone number" });
   }
 
   try {
