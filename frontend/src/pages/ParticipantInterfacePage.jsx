@@ -924,7 +924,7 @@ export default function ParticipantInterfacePage() {
     // Render Follow-up Booking (always the last step, when enabled)
     if (rawTask.type === "followup_booking") {
       return (
-        <BookingStep sessionId={sessionId} onComplete={() => handleTaskComplete({})} />
+        <BookingStep sessionId={sessionId} testingMode={testingMode} onComplete={() => handleTaskComplete({})} />
       );
     }
 

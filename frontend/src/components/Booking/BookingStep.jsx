@@ -11,13 +11,19 @@ import { getBookingLink } from "../../api/booking";
 import { markSessionCompleted } from "../../api/sessions";
 import "./BookingStep.css";
 
-export default function BookingStep({ sessionId, onComplete }) {
+export default function BookingStep({ sessionId, onComplete, testingMode = false }) {
   const { t, i18n } = useTranslation("common");
   const [bookingUrl, setBookingUrl] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!testingMode);
 
   useEffect(() => {
+    // Testing mode has no real sessionId (protocol is only being previewed,
+    // not run through protocolManager), and must never mark a session
+    // completed or mint a real booking-service link — see BookingStep's
+    // testing-mode branch below for the view-only placeholder shown instead.
+    if (testingMode) return;
+
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -45,22 +51,31 @@ export default function BookingStep({ sessionId, onComplete }) {
     return () => {
       cancelled = true;
     };
-  }, [sessionId, i18n.language]);
+  }, [sessionId, i18n.language, testingMode]);
 
   return (
     <div className="booking-step">
       <h2 className="booking-step-heading">{t("booking.heading")}</h2>
       <p className="booking-step-instructions">{t("booking.instructions")}</p>
 
-      {loading && <p className="booking-step-loading">{t("booking.loading")}</p>}
-      {error && <p className="booking-step-error">{t("booking.errorLoading")}</p>}
+      {testingMode ? (
+        <div className="booking-step-preview" role="img" aria-label={t("booking.testingPreviewLabel")}>
+          <span className="booking-step-preview-badge">{t("booking.testingPreviewBadge")}</span>
+          <p className="booking-step-preview-note">{t("booking.testingPreviewLabel")}</p>
+        </div>
+      ) : (
+        <>
+          {loading && <p className="booking-step-loading">{t("booking.loading")}</p>}
+          {error && <p className="booking-step-error">{t("booking.errorLoading")}</p>}
 
-      {bookingUrl && (
-        <iframe
-          src={bookingUrl}
-          className="booking-step-iframe"
-          title="Appointment scheduling"
-        />
+          {bookingUrl && (
+            <iframe
+              src={bookingUrl}
+              className="booking-step-iframe"
+              title="Appointment scheduling"
+            />
+          )}
+        </>
       )}
 
       <button className="booking-step-continue" onClick={onComplete}>
