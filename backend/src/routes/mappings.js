@@ -6,15 +6,13 @@ const router = express.Router();
 
 // This endpoint is intentionally public (participant sessions load it via
 // MappingProvider, see frontend/src/context/AppProvider.jsx), so it can't be
-// closed off with auth. 
+// closed off with auth.
 const ALLOWED_TABLES = new Set([
   "projects",
   "protocols",
   "task_types",
   "languages",
   "tasks",
-  "v_project_summary_stats",
-  "v_session_summary",
 ]);
 
 // GET /api/mappings?tables=tasks,languages,protocols

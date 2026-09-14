@@ -26,9 +26,9 @@ export default function AdminDashboardPage() {
     }
 
     if (user) {
-      // Find the role name from the mappings or user object
-      // Assuming user.role contains the name (e.g., 'admin' or 'master')
-      fetchProjectsList(user.id, user.role)
+      // Scoping (master vs. assigned-projects-only) is resolved server-side
+      // from the admin's own JWT — see api/projects.js.
+      fetchProjectsList()
         .then(setProjects)
         .catch(err => console.error(err))
         .finally(() => setLoading(false));

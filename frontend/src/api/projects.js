@@ -1,32 +1,29 @@
 // src/api/projects.js
-import { getMappings } from "./mappings";
 import { apiFetch } from "./apiClient";
 
-// Fetch stats for a specific project from the view
-// We reuse the generic mappings endpoint since the view is now in the DB
+// Project scoping (master sees all, other admins see only assigned
+// projects) is resolved server-side from the caller's own JWT — see
+// projectController.getProjectList — so this never needs to be told who's
+// asking.
+export async function fetchProjectsList() {
+  const res = await apiFetch(`/projects/projects-list`);
+
+  if (!res.ok) throw new Error("Failed to fetch projects");
+  return res.json();
+}
+
+// Fetch stats for a specific project — reuses the same access-scoped list
+// endpoint as fetchProjectsList and just picks out the one project, rather
+// than duplicating the master/assigned-project authorization logic here.
 export async function getProjectStats(projectId) {
   try {
-    const data = await getMappings(["v_project_summary_stats"]);
-    const allStats = data.v_project_summary_stats || [];
-
-    // Filter client-side for the specific project
+    const allStats = await fetchProjectsList();
     const projectStats = allStats.find(p => p.project_id === Number(projectId));
     return projectStats || null;
   } catch (err) {
     console.error("Failed to load project stats:", err);
     throw err;
   }
-}
-
-export async function fetchProjectsList(userId, role) {
-  const params = new URLSearchParams();
-  if (userId) params.append("userId", userId);
-  if (role) params.append("role", role);
-
-  const res = await apiFetch(`/projects/projects-list?${params.toString()}`);
-
-  if (!res.ok) throw new Error("Failed to fetch projects");
-  return res.json();
 }
 
 export async function createProjectApi(payload) {
@@ -49,16 +46,8 @@ export async function updateProjectApi(payload) {
   return json;
 }
 
-// Add to src/api/projects.js
 export async function getProjectFieldwork(projectId) {
-  try {
-    const data = await getMappings(["v_session_summary"]);
-    const allSessions = data.v_session_summary || [];
-
-    // Filter client-side for the specific project
-    return allSessions.filter(s => s.project_id === Number(projectId));
-  } catch (err) {
-    console.error("Failed to load fieldwork data:", err);
-    throw err;
-  }
+  const res = await apiFetch(`/projects/${projectId}/fieldwork`);
+  if (!res.ok) throw new Error("Failed to fetch fieldwork data");
+  return res.json();
 }

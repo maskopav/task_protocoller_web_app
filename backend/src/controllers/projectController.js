@@ -2,16 +2,20 @@
   import { executeQuery } from "../db/queryHelper.js";
 
   export const getProjectList = async (req, res) => {
-    // Extract userId and role from query parameters
-    const { userId, role } = req.query;
+    // req.admin comes from the verified JWT (see authMiddleware.requireAuth),
+    // not from the client -- a userId/role query param here would let any
+    // logged-in admin request another admin's project list, or a non-master
+    // admin request `?role=master` to see every project instead of just
+    // their assigned ones.
+    const { id: userId, role } = req.admin;
 
     try {
         let query;
         let params = [];
 
-        // Logic: Masters see all active projects. 
+        // Logic: Masters see all active projects.
         // Regular admins see only assigned active projects.
-        if (role === 'master' || !role || !userId) {
+        if (role === 'master') {
             query = "SELECT * FROM v_project_summary_stats";
         } else {
             query = `
@@ -27,6 +31,34 @@
     } catch (err) {
         console.error("Error fetching project list:", err);
         res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  };
+
+  // GET /projects/:projectId/fieldwork -- replaces the old public
+  // `/api/mappings?tables=v_session_summary` + client-side filter, which
+  // had no auth and no project scoping at all (every participant's session
+  // data, across every project, to anyone). Same access rule as the list
+  // above: master sees any project, others must be assigned to this one.
+  export const getProjectFieldwork = async (req, res) => {
+    const { projectId } = req.params;
+    const { id: userId, role } = req.admin;
+
+    try {
+        if (role !== 'master') {
+            const access = await executeQuery(
+                `SELECT 1 FROM user_projects WHERE user_id = ? AND project_id = ?`,
+                [userId, projectId]
+            );
+            if (access.length === 0) {
+                return res.status(403).json({ error: "Forbidden" });
+            }
+        }
+
+        const rows = await executeQuery(`SELECT * FROM v_session_summary WHERE project_id = ?`, [projectId]);
+        res.json(rows);
+    } catch (err) {
+        console.error("Error fetching fieldwork data:", err);
+        res.status(500).json({ error: "Failed to fetch fieldwork data" });
     }
   };
 
