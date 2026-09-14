@@ -156,3 +156,41 @@ async function resolveFollowupBookingResource() {
 export async function proxyBookingRequest(path, options) {
   return bookingServiceFetch(path, options);
 }
+
+// ---- Fieldwork integration ------------------------------------------
+
+// One admin call to booking-service, reused across every eligible row in a
+// Fieldwork response (see projectController.getProjectFieldwork) — not one
+// call per participant. booking-service's `external_ref` is this app's
+// participant_protocol_id (see buildBookingLink above), so the map is keyed
+// by that.
+//
+// listBookingsForAdmin returns every historical row (a cancel-then-rebook
+// leaves two), so per ref this keeps whichever is still active
+// ('booked'/'rescheduled') if one exists, otherwise the most recently
+// updated cancelled row — never an older, superseded row.
+export async function getFollowupBookingStatusByRef() {
+  const resourceId = await ensureFollowupBookingResource();
+  const upstream = await proxyBookingRequest(`/v1/bookings?resourceId=${resourceId}`);
+  if (!upstream.ok) throw new Error(`Failed to list bookings (${upstream.status})`);
+  const { bookings } = await upstream.json();
+
+  const byRef = new Map();
+  for (const b of bookings) {
+    const existing = byRef.get(b.external_ref);
+    if (!existing) {
+      byRef.set(b.external_ref, b);
+      continue;
+    }
+    const bActive = b.status !== "cancelled";
+    const existingActive = existing.status !== "cancelled";
+    if (bActive !== existingActive) {
+      if (bActive) byRef.set(b.external_ref, b);
+      continue;
+    }
+    if ((b.updated_at || b.created_at) > (existing.updated_at || existing.created_at)) {
+      byRef.set(b.external_ref, b);
+    }
+  }
+  return byRef;
+}

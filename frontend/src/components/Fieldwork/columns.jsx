@@ -14,6 +14,7 @@ import {
   formatRelative,
 } from "./formatters";
 import { STATUS_META, STATUS_ORDER } from "./statusMeta";
+import { reservationState, reservationLabel, reservationMeta, reservationFilterKey, reservationSortValue } from "./reservationStatus";
 
 const startedText = (r) => formatDateTime(r.session_started_at);
 const lastActivityText = (r) => formatDateTime(r.session_last_activity_at);
@@ -118,6 +119,34 @@ export const COLUMN_DEFS = [
           </div>
           <span className="fieldwork-progress-label">{r.completion_percent}%</span>
         </div>
+      );
+    },
+  },
+  {
+    id: "reservation",
+    label: "Reservation",
+    // Blank ("—") for any protocol that doesn't use follow-up booking at
+    // all — reservationLabel/-Meta already return that for a null state,
+    // so no extra guard is needed here.
+    value: (r) => reservationLabel(reservationState(r)),
+    filterType: "select",
+    filterValue: reservationFilterKey,
+    filterOptions: [
+      { value: "needs_followup", label: "Needs Follow-up" },
+      { value: "pending", label: "Pending" },
+      { value: "not_eligible_yet", label: "Not Ready" },
+      { value: "booked", label: "Booked" },
+    ],
+    sortValue: reservationSortValue,
+    render: (r) => {
+      const state = reservationState(r);
+      if (!state) return "—";
+      const meta = reservationMeta(state);
+      return (
+        <span className="status-badge" style={{ backgroundColor: meta.bg, color: meta.text }}>
+          <span className="status-dot" style={{ backgroundColor: meta.dot }} />
+          {reservationLabel(state)}
+        </span>
       );
     },
   },

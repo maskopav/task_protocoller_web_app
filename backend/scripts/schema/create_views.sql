@@ -359,6 +359,13 @@ SELECT
     -- than one active protocol assignment in this project.
     p.id AS protocol_id,
 
+    -- Whether this protocol shows the in-person follow-up booking step (see
+    -- booking-service integration) — the admin Fieldwork table's Reservation
+    -- column only means anything when this is true; the actual booking
+    -- status itself lives in booking-service's own DB and is merged in by
+    -- projectController.getProjectFieldwork, not this view.
+    p.enable_followup_booking,
+
     -- 1. Language Information
     lang.name AS protocol_language,
     lang.code AS protocol_language_code,
@@ -366,6 +373,16 @@ SELECT
     -- 2. Timestamps
     CAST(REPLACE(REPLACE(JSON_VALUE(s.progress, '$[0].timestamp'), 'T', ' '), 'Z', '') AS DATETIME(3)) AS session_started_at,
     s.last_activity_at AS session_last_activity_at,
+    s.completed_at AS session_completed_at,
+
+    -- Earliest date this participant is allowed to book the follow-up
+    -- retest (avoids a learning-effect confound) — NULL until finished, or
+    -- if this protocol doesn't use booking at all. BOOKING_ELIGIBILITY_DAYS
+    -- in backend/src/config/constants.js is the canonical source for the
+    -- "14" below; kept in sync automatically by syncViewConstants.js (run
+    -- `npm run db:views` after changing the constant).
+    IF(p.enable_followup_booking = 1 AND s.completed_at IS NOT NULL,
+       DATE_ADD(s.completed_at, INTERVAL 14 DAY), NULL) AS reservation_eligible_at,
 
     -- Outreach touchpoints logged by the survey agency via the Fieldwork CSV
     -- import: when the link was sent (distinct from `start_date`, when the

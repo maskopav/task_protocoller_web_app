@@ -269,4 +269,63 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
       expect(url.startsWith("http://localhost:4100/book/")).toBe(true);
     });
   });
+
+  describe("getFollowupBookingStatusByRef", () => {
+    it("keys the map by external_ref", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
+          { external_ref: "42", status: "booked", starts_at: "2026-10-01 09:00:00" },
+        ] }) });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      const byRef = await getFollowupBookingStatusByRef();
+
+      expect(byRef.get("42")).toMatchObject({ status: "booked" });
+      expect(byRef.get("999")).toBeUndefined();
+    });
+
+    // Regression coverage: a respondent can cancel then rebook, leaving two
+    // rows in booking-service's history for the same ref. The map must
+    // reflect the current reality (the active one), not whichever happened
+    // to be listed last.
+    it("prefers the active booking over an older cancelled row for the same ref", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
+          { external_ref: "42", status: "cancelled", updated_at: "2026-09-10 10:00:00" },
+          { external_ref: "42", status: "booked", updated_at: "2026-09-12 10:00:00" },
+        ] }) });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      const byRef = await getFollowupBookingStatusByRef();
+
+      expect(byRef.get("42").status).toBe("booked");
+    });
+
+    // A ref with only cancelled history (never rebooked) should still show
+    // its most recent cancellation, not the oldest one.
+    it("keeps the most recently updated row when every row for a ref is cancelled", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
+          { external_ref: "42", status: "cancelled", updated_at: "2026-09-10 10:00:00" },
+          { external_ref: "42", status: "cancelled", updated_at: "2026-09-15 10:00:00" },
+        ] }) });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      const byRef = await getFollowupBookingStatusByRef();
+
+      expect(byRef.get("42").updated_at).toBe("2026-09-15 10:00:00");
+    });
+
+    it("throws when booking-service's bookings call fails", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: false, status: 500 });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      await expect(getFollowupBookingStatusByRef()).rejects.toThrow(/Failed to list bookings/);
+    });
+  });
 });

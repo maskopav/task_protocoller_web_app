@@ -1,5 +1,6 @@
   // backend/src/controllers/projectController.js
   import { executeQuery } from "../db/queryHelper.js";
+  import { getFollowupBookingStatusByRef } from "../services/bookingServiceClient.js";
 
   export const getProjectList = async (req, res) => {
     // req.admin comes from the verified JWT (see authMiddleware.requireAuth),
@@ -55,6 +56,29 @@
         }
 
         const rows = await executeQuery(`SELECT * FROM v_session_summary WHERE project_id = ?`, [projectId]);
+
+        // Booking status lives in booking-service's own DB, not this one —
+        // merge it in for whichever rows actually use the booking feature.
+        // Skip the call entirely if nothing in this project needs it.
+        if (rows.some((r) => r.enable_followup_booking)) {
+            try {
+                const byRef = await getFollowupBookingStatusByRef();
+                for (const row of rows) {
+                    if (!row.enable_followup_booking) continue;
+                    const booking = byRef.get(String(row.participant_protocol_id));
+                    if (!booking) continue;
+                    row.reservation_status = booking.status;
+                    row.reservation_starts_at = booking.starts_at;
+                    row.reservation_location = booking.location;
+                    row.reservation_updated_at = booking.updated_at || booking.created_at;
+                }
+            } catch (err) {
+                // booking-service being unreachable shouldn't break the whole
+                // Fieldwork table — rows just show no reservation info this load.
+                console.error("Failed to merge booking status into fieldwork:", err);
+            }
+        }
+
         res.json(rows);
     } catch (err) {
         console.error("Error fetching fieldwork data:", err);
