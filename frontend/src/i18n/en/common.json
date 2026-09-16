@@ -33,8 +33,7 @@
       "cannot": "Can't / Don't Know",
       "yes": "Yes",
       "no": "No",
-      "dontKnow": "Don't know",
-      "startProtocol": "Start"
+      "dontKnow": "Don't know"
     },
     "onboarding": {
       "consentCheckbox": "Yes, I have read and understood the information above and I agree to participate."

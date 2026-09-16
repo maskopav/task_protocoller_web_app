@@ -79,8 +79,8 @@ export function ConsentPage({ content, checkboxText, onNext }) {
             />
             <label htmlFor="consent-check">{checkboxText || t("onboarding.consentCheckbox")}</label>
           </div>
-          <SafeButton className="btn-primary" disabled={!agreed} onClick={onNext}>
-            {t("buttons.startProtocol")}
+          <SafeButton className="btn-next" disabled={!agreed} onClick={onNext}>
+            {t("buttons.next")}
           </SafeButton>
         </div>
       }

@@ -18,6 +18,7 @@
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
+  margin-top: clamp(4px, 1dvh, 10px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background-color: #ffffff;
@@ -35,6 +36,17 @@
   line-height: 1.5;
 }
 
+/* Restore paragraph spacing: the global `p { margin: 0 }` reset (used to
+   keep short one-line task instructions compact) otherwise collapses every
+   paragraph break in long consent text down to zero visible gap. */
+.consent-text.participant-rich-text p {
+  margin: 0 0 0.9em 0;
+}
+
+.consent-text.participant-rich-text p:last-child {
+  margin-bottom: 0;
+}
+
 /* Checkbox + Next button: kept together in .bottom-controls, which
    never scrolls out of view, and laid out side by side (wrapping on
    narrow screens) so both stay visible at once. */
@@ -50,13 +62,15 @@
 
 .consent-controls .consent-checkbox {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
+  text-align: left;
 }
 
 .consent-controls .consent-checkbox input[type="checkbox"] {
   width: 1.3em;
   height: 1.3em;
+  margin-top: 0.2em;
   accent-color: var(--primary);
   cursor: pointer;
   flex-shrink: 0;
@@ -66,9 +80,10 @@
   cursor: pointer;
   font-size: clamp(1rem, 2.6vw, 1.2rem);
   color: var(--text);
+  text-align: left;
 }
 
-.consent-controls .btn-primary {
+.consent-controls .btn-next {
   width: auto;
   flex: 1 1 auto;
   min-width: 180px;
