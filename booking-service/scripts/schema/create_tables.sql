@@ -37,6 +37,7 @@ CREATE TABLE `bookings` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `slot_id` integer NOT NULL,
   `external_ref` varchar(255) NOT NULL COMMENT 'opaque ID supplied by the calling app for correlation — no FK, this service does not know what it refers to',
+  `eligible_after` date NOT NULL COMMENT 'the "after" date from the signed booking link that created this booking (calling app''s completed_at + BOOKING_ELIGIBILITY_DAYS). Persisted here — not just checked once at creation — so reschedule and cancel-then-rebook can re-enforce the same floor without this service needing to call back to the calling app, which it has no way to do (external_ref is opaque to it)',
   `contact_email` varchar(255) NOT NULL,
   `contact_phone` varchar(255) NOT NULL,
   `manage_token` char(32) UNIQUE NOT NULL,

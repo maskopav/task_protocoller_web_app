@@ -197,7 +197,7 @@ async function generateUniqueManageToken(conn) {
   }
 }
 
-export async function createBooking({ resourceId, slotId, externalRef, email, phone, locale }) {
+export async function createBooking({ resourceId, slotId, externalRef, email, phone, locale, eligibleAfter }) {
   const safeLocale = SUPPORTED_LOCALES.includes(locale) ? locale : "en";
 
   return executeTransaction(async (conn) => {
@@ -244,9 +244,9 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     const manageToken = await generateUniqueManageToken(conn);
 
     const [result] = await conn.query(
-      `INSERT INTO bookings (slot_id, external_ref, contact_email, contact_phone, manage_token, locale, status)
-       VALUES (?, ?, ?, ?, ?, ?, 'booked')`,
-      [slotId, externalRef, email, phone, manageToken, safeLocale]
+      `INSERT INTO bookings (slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'booked')`,
+      [slotId, externalRef, eligibleAfter, email, phone, manageToken, safeLocale]
     );
 
     return { bookingId: result.insertId, manageToken, slotId };
@@ -291,6 +291,18 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     );
     if (!newSlot || newSlot.resource_id !== booking.resource_id || !newSlot.is_active) {
       const err = new Error("Slot is not available");
+      err.statusCode = 409;
+      throw err;
+    }
+    // Same floor the original booking had to satisfy (bookings.eligible_after,
+    // set once at createBooking time from the signed link's "after") — a
+    // reschedule must never move the appointment earlier than that, even
+    // though slot listing for reschedule is otherwise unrestricted. Plain
+    // string comparison is safe: both sides come back from mysql2 with
+    // dateStrings:true as fixed-width, zero-padded "YYYY-MM-DD[ HH:MM:SS]",
+    // so lexicographic order matches chronological order.
+    if (newSlot.starts_at < booking.eligible_after) {
+      const err = new Error(`Slot is before this booking's earliest eligible date (${booking.eligible_after})`);
       err.statusCode = 409;
       throw err;
     }

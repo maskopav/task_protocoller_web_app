@@ -18,7 +18,7 @@ let mockConn;
 
 const { executeTransaction, executeQuery } = await import("../db/queryHelper.js");
 const { generateToken } = await import("../utils/tokenGenerator.js");
-const { createBooking, bulkCreateSlots } = await import("./bookingService.js");
+const { createBooking, bulkCreateSlots, rescheduleBooking } = await import("./bookingService.js");
 
 function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], manageTokenCollisions = 0, insertId = 123 }) {
   let manageTokenLookups = 0;
@@ -116,6 +116,20 @@ describe("createBooking", () => {
     expect(result).toEqual({ bookingId: 456, manageToken: "token-1", slotId: 15 });
   });
 
+  // Regression coverage for the 14-day-after-completion floor: it's only
+  // ever validated (via the signed link's HMAC) at the HTTP layer, so
+  // createBooking must persist it verbatim as eligible_after — that's the
+  // only copy reschedule/cancel-then-rebook can later re-check against,
+  // since this service has no way to re-derive it (external_ref is opaque).
+  it("persists eligibleAfter as eligible_after on the inserted row", async () => {
+    mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 } });
+    await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref-42", email: "a@b.com", phone: "1", eligibleAfter: "2026-01-15" });
+
+    const insertCall = mockConn.calls.find((c) => c.sql.includes("INSERT INTO bookings"));
+    expect(insertCall.sql).toMatch(/eligible_after/);
+    expect(insertCall.params).toContain("2026-01-15");
+  });
+
   it("regenerates the manage token on collision", async () => {
     mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 }, manageTokenCollisions: 1 });
     const result = await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref", email: "a@b.com", phone: "1" });
@@ -128,6 +142,70 @@ describe("createBooking", () => {
     mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 } });
     await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref", email: "a@b.com", phone: "1" });
     expect(executeTransaction).toHaveBeenCalled();
+  });
+});
+
+function makeRescheduleConn({ bookingRow, newSlotRow, existingActiveRows = [] }) {
+  const calls = [];
+  const query = vi.fn((sql, params) => {
+    calls.push({ sql, params });
+
+    if (sql.includes("FROM bookings b JOIN slots s ON s.id = b.slot_id WHERE b.manage_token = ?")) {
+      return Promise.resolve([bookingRow ? [bookingRow] : []]);
+    }
+    if (sql.includes("FROM slots WHERE id = ?")) {
+      return Promise.resolve([newSlotRow ? [newSlotRow] : []]);
+    }
+    if (sql.includes("FROM bookings WHERE slot_id = ? AND status != 'cancelled'")) {
+      return Promise.resolve([existingActiveRows]);
+    }
+    if (sql.includes("UPDATE bookings SET slot_id = ?")) {
+      return Promise.resolve([{ affectedRows: 1 }]);
+    }
+    throw new Error(`Unexpected query in test: ${sql}`);
+  });
+
+  return { query, calls };
+}
+
+// Regression coverage for the reschedule half of the 14-day-after-completion
+// bug: rescheduleBooking must re-enforce bookings.eligible_after (persisted
+// at createBooking time) even though the reschedule slot picker itself has
+// no signed link to carry that floor — otherwise a participant could book a
+// far-future slot to pass the eligibility check once, then immediately
+// reschedule to a slot that violates it.
+describe("rescheduleBooking", () => {
+  const bookingRow = {
+    id: 5, resource_id: 1, status: "booked", eligible_after: "2026-01-15",
+    slot_id: 10, old_starts_at: "2026-02-01 09:00:00", old_ends_at: "2026-02-01 09:45:00",
+    old_location: null, old_google_event_id: null,
+  };
+
+  it("rejects a new slot before the booking's eligible_after", async () => {
+    mockConn = makeRescheduleConn({
+      bookingRow,
+      newSlotRow: { id: 20, resource_id: 1, is_active: 1, starts_at: "2026-01-10 09:00:00", ends_at: "2026-01-10 09:45:00" },
+    });
+    await expect(rescheduleBooking("token", 20))
+      .rejects.toMatchObject({ statusCode: 409, message: expect.stringContaining("2026-01-15") });
+  });
+
+  it("allows a new slot on the eligible_after date itself", async () => {
+    mockConn = makeRescheduleConn({
+      bookingRow,
+      newSlotRow: { id: 21, resource_id: 1, is_active: 1, starts_at: "2026-01-15 09:00:00", ends_at: "2026-01-15 09:45:00" },
+    });
+    const result = await rescheduleBooking("token", 21);
+    expect(result.newSlot.id).toBe(21);
+  });
+
+  it("allows a new slot well after eligible_after", async () => {
+    mockConn = makeRescheduleConn({
+      bookingRow,
+      newSlotRow: { id: 22, resource_id: 1, is_active: 1, starts_at: "2026-03-01 09:00:00", ends_at: "2026-03-01 09:45:00" },
+    });
+    const result = await rescheduleBooking("token", 22);
+    expect(result.newSlot.id).toBe(22);
   });
 });
 

@@ -11,7 +11,7 @@ import { upsertSlotEvent } from "../services/googleCalendarService.js";
 import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail } from "../services/emailService.js";
 import { dispatchWebhookEvent } from "../services/webhookDispatcher.js";
 import { logToFile } from "../utils/logger.js";
-import { isPastCutoff, nowAsMysqlDateTime, todayAsLocalDate } from "../utils/dateHelpers.js";
+import { isPastCutoff, nowAsMysqlDateTime } from "../utils/dateHelpers.js";
 import { handleError } from "../utils/httpErrors.js";
 
 const RESCHEDULE_CUTOFF_HOURS = 24;
@@ -84,9 +84,9 @@ export async function createPublicBooking(req, res) {
   }
 
   try {
-    const { tenant, resource, ref } = await resolveSignedResource(req);
+    const { tenant, resource, ref, after } = await resolveSignedResource(req);
     const { bookingId, manageToken, slotId: bookedSlotId } = await bookingService.createBooking({
-      resourceId: resource.id, slotId, externalRef: ref, email, phone, locale: lang,
+      resourceId: resource.id, slotId, externalRef: ref, email, phone, locale: lang, eligibleAfter: after,
     });
 
     const [slotRow] = await executeQuery(`SELECT starts_at, ends_at, location, google_event_id FROM slots WHERE id = ?`, [bookedSlotId]);
@@ -136,15 +136,21 @@ export async function getManageBooking(req, res) {
 
 // Reschedule slot browsing is authorized by the manage_token alone (no
 // signed link needed — the participant already proved they hold this
-// booking). Simplification for v1: this shows all future open slots for
-// the resource and does not re-check the original 14-day-after-completion
-// floor (the booking already satisfied it once); revisit if that matters.
+// booking). Floored by whichever is later of "now" and the booking's own
+// eligible_after (set at createBooking time from the original signed
+// link's "after") — the original booking already satisfied eligible_after
+// once, but a reschedule could otherwise move it earlier than that, so the
+// picker only ever offers slots that keep satisfying it. rescheduleBooking
+// re-enforces the same floor server-side regardless, since this is what
+// gates what's merely *offered*, not what's *accepted*.
 export async function getAvailableSlotsForReschedule(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
     if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
 
-    const slots = await bookingService.listAvailablePublicSlots(booking.resource_id, nowAsMysqlDateTime());
+    const now = nowAsMysqlDateTime();
+    const floor = booking.eligible_after > now ? booking.eligible_after : now;
+    const slots = await bookingService.listAvailablePublicSlots(booking.resource_id, floor);
     res.json({ slots });
   } catch (err) {
     handleError(res, err, "Failed to load available slots");
@@ -221,16 +227,19 @@ export async function cancelManageBooking(req, res) {
       getTenantById(booking.tenant_id),
     ]);
 
-    // A fresh signed link so a cancelled respondent can rebook without
-    // going back through the original app — "now" replaces whatever
-    // eligibility floor gated the original booking, since that's already
-    // satisfied by definition (see getAvailableSlotsForReschedule's same
-    // simplification for reschedule).
+    // A fresh signed link so a cancelled respondent can rebook without going
+    // back through the original app — carries forward the same
+    // eligible_after the cancelled booking had (not "today"): a cancellation
+    // can happen well before the appointment date, e.g. right after booking,
+    // and "today" would let them immediately rebook earlier than the
+    // 14-day-after-completion floor. createBooking persists eligible_after
+    // on this fresh booking too, once they actually rebook, so the floor
+    // keeps propagating through any further cancel/rebook cycles.
     const rebookLink = tenant
       ? buildSignedBookingUrl({
           publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
           tenantId: booking.tenant_id, resourceSlug: booking.resource_slug, ref: booking.external_ref,
-          after: todayAsLocalDate(), ttlSeconds: REBOOK_LINK_TTL_SECONDS,
+          after: booking.eligible_after, ttlSeconds: REBOOK_LINK_TTL_SECONDS,
           lang: booking.locale,
         })
       : null;
