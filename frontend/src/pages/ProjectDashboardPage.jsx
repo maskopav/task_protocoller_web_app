@@ -45,7 +45,8 @@ export default function ProjectDashboardPage() {
   }, [loadData]);
 
   const project = mappings?.projects?.find(p => p.id === Number(projectId));
-  const isReadOnly = project?.is_active === 0;
+  // Archived project, or one this admin only reaches through a clinic.
+  const isReadOnly = project?.is_active === 0 || stats?.can_edit === false;
   
   if (loading) return <div className="app-container"><p>{t("loading", { ns: "common" })}...</p></div>;
 

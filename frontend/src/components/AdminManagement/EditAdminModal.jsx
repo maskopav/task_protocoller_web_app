@@ -5,7 +5,7 @@ import { updateUserApi } from "../../api/users";
 
 export default function EditAdminModal({ open, onClose, user, onSuccess }) {
   const { t } = useTranslation(["admin", "common"]);
-  const [formData, setFormData] = useState({ email: "", full_name: "" });
+  const [formData, setFormData] = useState({ email: "", full_name: "", can_create_projects: false, can_create_sites: false });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -14,7 +14,9 @@ export default function EditAdminModal({ open, onClose, user, onSuccess }) {
     if (user) {
       setFormData({
         email: user.user_email || "",
-        full_name: user.full_name || ""
+        full_name: user.full_name || "",
+        can_create_projects: user.can_create_projects === 1 || user.can_create_projects === true,
+        can_create_sites: user.can_create_sites === 1 || user.can_create_sites === true
       });
     }
   }, [user]);
@@ -28,7 +30,9 @@ export default function EditAdminModal({ open, onClose, user, onSuccess }) {
       await updateUserApi({
         user_id: user.user_id,
         email: formData.email,
-        full_name: formData.full_name
+        full_name: formData.full_name,
+        can_create_projects: formData.can_create_projects,
+        can_create_sites: formData.can_create_sites
       });
       onSuccess();
       onClose();
@@ -65,6 +69,32 @@ export default function EditAdminModal({ open, onClose, user, onSuccess }) {
             value={formData.full_name}
             onChange={(e) => setFormData({...formData, full_name: e.target.value})}
           />
+        </div>
+        <div className="form-col">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              className="checkbox-input"
+              checked={formData.can_create_projects}
+              onChange={() => setFormData(prev => ({
+                ...prev,
+                can_create_projects: !prev.can_create_projects,
+              }))}
+            />
+            <span>{t("management.table.canCreateProjects")}</span>
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              className="checkbox-input"
+              checked={formData.can_create_sites}
+              onChange={() => setFormData(prev => ({
+                ...prev,
+                can_create_sites: !prev.can_create_sites,
+              }))}
+            />
+            <span>{t("management.table.canCreateSites")}</span>
+          </label>
         </div>
         {error && <div className="validation-error-msg" style={{marginTop: '10px'}}>{error}</div>}
       </div>

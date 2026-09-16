@@ -36,15 +36,15 @@ export default function App() {
       } />
 
       <Route path="/admin/admin-management" element={
-        <ProtectedRoute><AdminManagementPage /></ProtectedRoute>
+        <ProtectedRoute requireMaster><AdminManagementPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/project-management" element={
-        <ProtectedRoute><ProjectManagementPage /></ProtectedRoute>
+        <ProtectedRoute requireMaster><ProjectManagementPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/site-management" element={
-        <ProtectedRoute><SiteManagementPage /></ProtectedRoute>
+        <ProtectedRoute requireMaster><SiteManagementPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/sites/:siteId" element={

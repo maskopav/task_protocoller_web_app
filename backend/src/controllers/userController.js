@@ -33,7 +33,7 @@ export const toggleUserStatus = async (req, res) => {
 };
 
 export const createAdmin = async (req, res) => {
-    const { email, full_name, project_ids, lang = 'en' } = req.body;
+    const { email, full_name, project_ids, site_ids, can_create_projects, can_create_sites, lang = 'en' } = req.body;
 
     try {
         const existingUsers = await executeQuery("SELECT id FROM users WHERE email = ?", [email]);
@@ -53,9 +53,10 @@ export const createAdmin = async (req, res) => {
 
         // 3. Insert User (Transactionally if possible, or sequential)
         const userResult = await executeQuery(
-            `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password) 
-             VALUES (?, ?, ?, ?, true)`,
-            [email, passwordHash, full_name, adminRoleId]
+            `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password, can_create_projects, can_create_sites)
+             VALUES (?, ?, ?, ?, true, ?, ?)`,
+            [email, passwordHash, full_name, adminRoleId,
+             can_create_projects ? 1 : 0, can_create_sites ? 1 : 0]
         );
         const newUserId = userResult.insertId;
 
@@ -63,6 +64,15 @@ export const createAdmin = async (req, res) => {
         if (project_ids && project_ids.length > 0) {
             for (const pid of project_ids) {
                 await executeQuery("INSERT INTO user_projects (user_id, project_id) VALUES (?, ?)", [newUserId, pid]);
+            }
+        }
+
+        // 4b. Assign Sites if any. Site access is scoped through user_sites the
+        // same way project access is scoped through user_projects, so a new
+        // admin needs both to see anything on the dashboard.
+        if (site_ids && site_ids.length > 0) {
+            for (const sid of site_ids) {
+                await executeQuery("INSERT INTO user_sites (user_id, site_id) VALUES (?, ?)", [newUserId, sid]);
             }
         }
 
@@ -99,11 +109,21 @@ export const createAdmin = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-    const { user_id, email, full_name } = req.body;
+    const { user_id, email, full_name, can_create_projects, can_create_sites } = req.body;
+    const flag = (v) => (v === undefined ? null : (v ? 1 : 0));
     try {
+        // IFNULL so a payload that omits a field leaves it alone — that is what
+        // lets the admin table toggle one flag without resending the rest.
         await executeQuery(
-            "UPDATE users SET email = ?, full_name = ? WHERE id = ?",
-            [email, full_name, user_id]
+            `UPDATE users
+             SET email = IFNULL(?, email),
+                 full_name = IFNULL(?, full_name),
+                 can_create_projects = IFNULL(?, can_create_projects),
+                 can_create_sites = IFNULL(?, can_create_sites)
+             WHERE id = ?`,
+            [email ?? null, full_name ?? null,
+             flag(can_create_projects), flag(can_create_sites),
+             user_id]
         );
         res.json({ success: true, message: "User updated successfully" });
     } catch (err) {

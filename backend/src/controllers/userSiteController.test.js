@@ -36,6 +36,29 @@ describe('getUserSiteAssignments', () => {
   });
 });
 
+describe('removeUserSiteAssignment', () => {
+  it('404s when the assignment was already gone', async () => {
+    // It used to answer success regardless, which reads in the UI as "removed"
+    // and hides that nothing changed.
+    executeQuery.mockResolvedValueOnce({ affectedRows: 0 });
+
+    const res = makeRes();
+    await removeUserSiteAssignment({ params: { id: '99' } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('reports success when a row really went away', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+
+    const res = makeRes();
+    await removeUserSiteAssignment({ params: { id: '1' } }, res);
+
+    expect(res.status).not.toHaveBeenCalledWith(404);
+    expect(res.json.mock.calls[0][0].success).toBe(true);
+  });
+});
+
 describe('assignUserToSite', () => {
   it('inserts into user_sites', async () => {
     executeQuery.mockResolvedValueOnce({});

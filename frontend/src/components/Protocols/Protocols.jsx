@@ -5,6 +5,7 @@ import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLangua
 import { useProtocolActions } from "../../hooks/useProtocolActions";
 import { useParams } from "react-router-dom";
 import { getProtocolsByProjectId } from "../../api/protocols";
+import { getProjectStats } from "../../api/projects";
 import "./Protocols.css";
 
 export default function Protocols({ onSelectProtocol }) {
@@ -16,6 +17,7 @@ export default function Protocols({ onSelectProtocol }) {
   const [protocolName, setProtocolName] = useState("");
   const [protocolDescription, setProtocolDescription] = useState("");
   const [protocolLanguage, setProtocolLanguage] = useState("en");
+  const [canEdit, setCanEdit] = useState(true);
 
   const { viewProtocol, editProtocol, duplicateProtocol } = useProtocolActions();
 
@@ -29,7 +31,10 @@ export default function Protocols({ onSelectProtocol }) {
 
   const currentProject = mappings?.projects?.find(p => p.id === Number(projectId));
   const projectName = currentProject?.name || "Current Project";
-  const isReadOnly = currentProject?.is_active === 0;
+  // Read-only either because the project is archived, or because this admin
+  // only reaches it through a clinic — a protocol is shared by every clinic on
+  // the project, so inherited access does not carry edit rights.
+  const isReadOnly = currentProject?.is_active === 0 || !canEdit;
 
   useEffect(() => {
     if (!projectId) return;
@@ -37,8 +42,12 @@ export default function Protocols({ onSelectProtocol }) {
     async function loadProjectProtocols() {
       setLoadingProtocols(true);
       try {
-        const data = await getProtocolsByProjectId();
+        const [data, stats] = await Promise.all([
+          getProtocolsByProjectId(),
+          getProjectStats(projectId),
+        ]);
         setProtocols(data);
+        setCanEdit(stats?.can_edit !== false);
       } catch (err) {
         console.error("Failed to load project protocols:", err);
       } finally {
@@ -137,7 +146,9 @@ export default function Protocols({ onSelectProtocol }) {
       <h2 className="page-title">{projectName + ': ' + t("protocolDashboard.title")}</h2>
       {isReadOnly && (
           <p className="inactive-mode-warning">
-            ⚠️{t("projectDashboard.status.inactive") + ": "+ t("projectDashboard.status.inactiveMode")}
+            {currentProject?.is_active === 0
+              ? `⚠️${t("projectDashboard.status.inactive")}: ${t("projectDashboard.status.inactiveMode")}`
+              : `⚠️${t("projectDashboard.status.inheritedMode")}`}
           </p>
         )}
 

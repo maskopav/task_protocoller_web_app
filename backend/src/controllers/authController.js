@@ -17,7 +17,7 @@ export const adminLogin = async (req, res) => {
   try {
     // 1. Find user - Include is_active in the SELECT statement
     const rows = await executeQuery(
-      `SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, r.name as role, u.is_active, u.must_change_password 
+      `SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, r.name as role, u.is_active, u.must_change_password, u.can_create_projects, u.can_create_sites
       FROM users u
       JOIN roles r ON u.role_id = r.id
       WHERE u.email = ?`,
@@ -53,7 +53,14 @@ export const adminLogin = async (req, res) => {
 
     res.json({
       success: true,
-      user: userPayload,
+      // The flag rides on the response but not on the token: createProject
+      // re-reads it from the DB, so a revoked right takes effect at once even
+      // though the cached client copy lags until the next login.
+      user: {
+        ...userPayload,
+        can_create_projects: Number(user.can_create_projects) === 1,
+        can_create_sites: Number(user.can_create_sites) === 1
+      },
       token: signAdminToken(userPayload)
     });
 

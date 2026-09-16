@@ -12,8 +12,9 @@ import AssignSiteModal from "../components/AdminManagement/AssignSiteModal";
 import AddAdminModal from "../components/AdminManagement/AddAdminModal";
 import EditAdminModal from "../components/AdminManagement/EditAdminModal";
 import { fetchProjectsList } from "../api/projects";
-import { fetchAllAdmins, toggleAdminActive} from "../api/users";
-import { fetchAdminAssignments, assignProjectToUser, removeUserProjectAssignmentApi } from "../api/userProjects";
+import { fetchSites } from "../api/sites";
+import { fetchAllAdmins, toggleAdminActive, updateUserApi } from "../api/users";
+import { fetchAdminAssignments, assignProjectToUser, setAssignmentCanEdit, removeUserProjectAssignmentApi } from "../api/userProjects";
 import { fetchSiteAssignments, assignSiteToUser, removeUserSiteAssignmentApi } from "../api/userSites";
 import "./Pages.css";
 
@@ -29,21 +30,24 @@ export default function AdminManagementPage() {
   const [selectedUserForProject, setSelectedUserForProject] = useState(null);
   const [selectedUserForSite, setSelectedUserForSite] = useState(null);
   const [allProjects, setAllProjects] = useState([]);
+  const [allSites, setAllSites] = useState([]);
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
 
   const loadData = async () => {
     try {
-      const [uData, aData, sData, pData] = await Promise.all([
+      const [uData, aData, sData, pData, siteData] = await Promise.all([
         fetchAllAdmins(),
         fetchAdminAssignments(),
         fetchSiteAssignments(),
-        fetchProjectsList()
+        fetchProjectsList(),
+        fetchSites()
       ]);
       setUsers(uData);
       setAssignments(aData);
       setSiteAssignments(sData);
       setAllProjects(pData);
+      setAllSites(siteData);
     } catch (err) {
       console.error("Management data error:", err);
     } finally {
@@ -82,10 +86,29 @@ export default function AdminManagementPage() {
     }
   };
 
-  const handleAssignProject = async (user_id, project_id) => {
+  const handleAssignProject = async (user_id, project_id, can_edit = true) => {
     try {
-      await assignProjectToUser(user_id, project_id);
+      await assignProjectToUser(user_id, project_id, can_edit);
       setSelectedUserForProject(null);
+      await loadData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleToggleRight = async (user_id, right, value) => {
+    try {
+      // updateUser is IFNULL-based, so sending one field leaves the rest alone.
+      await updateUserApi({ user_id, [right]: value });
+      await loadData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleToggleCanEdit = async (assignment_id, can_edit) => {
+    try {
+      await setAssignmentCanEdit(assignment_id, can_edit);
       await loadData();
     } catch (err) {
       alert(err.message);
@@ -140,6 +163,7 @@ export default function AdminManagementPage() {
           onEdit={(u) => setUserToEdit(u)}
           onAssignProject={(u) => setSelectedUserForProject(u)}
           onAssignSite={(u) => setSelectedUserForSite(u)}
+          onToggleRight={handleToggleRight}
           onAddClick={() => setIsAddAdminOpen(true)}
         />
 
@@ -147,6 +171,7 @@ export default function AdminManagementPage() {
           open={isAddAdminOpen}
           onClose={() => setIsAddAdminOpen(false)}
           projects={allProjects}
+          sites={allSites}
           onSuccess={loadData}
         />
 
@@ -160,6 +185,7 @@ export default function AdminManagementPage() {
         <UserProjectTable
           assignments={assignments}
           onRemove={handleRemoveAssignment}
+          onToggleCanEdit={handleToggleCanEdit}
         />
 
         <UserSiteTable

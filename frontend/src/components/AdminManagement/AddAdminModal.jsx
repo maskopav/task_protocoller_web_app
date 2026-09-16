@@ -5,12 +5,15 @@ import Modal from "../ProtocolEditor/Modal";
 import { createAdminApi } from "../../api/users";
 import "./AdminManagement.css";
 
-export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
+export default function AddAdminModal({ open, onClose, projects, sites = [], onSuccess }) {
   const { t, i18n } = useTranslation(["admin", "common"]);
   const [formData, setFormData] = useState({
     email: "",
     full_name: "",
-    project_ids: []
+    project_ids: [],
+    site_ids: [],
+    can_create_projects: false,
+    can_create_sites: false
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,6 +24,15 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
       project_ids: prev.project_ids.includes(id)
         ? prev.project_ids.filter(pId => pId !== id)
         : [...prev.project_ids, id]
+    }));
+  };
+
+  const handleToggleSite = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      site_ids: prev.site_ids.includes(id)
+        ? prev.site_ids.filter(sId => sId !== id)
+        : [...prev.site_ids, id]
     }));
   };
 
@@ -41,7 +53,7 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
       });
       onSuccess(); 
       onClose();
-      setFormData({ email: "", full_name: "", project_ids: [] });
+      setFormData({ email: "", full_name: "", project_ids: [], site_ids: [], can_create_projects: false, can_create_sites: false });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -89,8 +101,8 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
           <label className="form-label">{t("adminDashboard.projectsTitle")}</label>
           <div className="project-selection-grid">
             {projects.map(p => (
-              <div className="project-selection-checkbox">
-                <label key={p.project_id} className="checkbox-label">
+              <div key={p.project_id} className="project-selection-checkbox">
+                <label className="checkbox-label">
                   <input 
                     type="checkbox" 
                     className="checkbox-input"
@@ -102,6 +114,56 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Site access is a separate grant from project access — a site is only
+            visible to an admin listed in user_sites for it. */}
+        <div className="form-group">
+          <label className="form-label">{t("management.siteAssignments.title")}</label>
+          <div className="project-selection-grid">
+            {sites.map(s => (
+              <div key={s.id} className="project-selection-checkbox">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    className="checkbox-input"
+                    checked={formData.site_ids.includes(s.id)}
+                    onChange={() => handleToggleSite(s.id)}
+                  />
+                  <span>{s.name}</span>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Creating projects is the one right that does not follow from any
+            assignment — only a master can hand it out. */}
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              className="checkbox-input"
+              checked={formData.can_create_projects}
+              onChange={() => setFormData(prev => ({
+                ...prev,
+                can_create_projects: !prev.can_create_projects,
+              }))}
+            />
+            <span>{t("management.table.canCreateProjects")}</span>
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              className="checkbox-input"
+              checked={formData.can_create_sites}
+              onChange={() => setFormData(prev => ({
+                ...prev,
+                can_create_sites: !prev.can_create_sites,
+              }))}
+            />
+            <span>{t("management.table.canCreateSites")}</span>
+          </label>
         </div>
 
         {error && <div className="validation-error-msg">{error}</div>}

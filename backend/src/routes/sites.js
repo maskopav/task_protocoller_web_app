@@ -8,18 +8,20 @@ import {
   assignProjectToSite,
   removeProjectFromSite
 } from "../controllers/siteController.js";
-import { requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Any authenticated admin can read sites.
+// Reads are scoped per caller inside the controller.
 router.get("/", getSites);
 router.get("/:id", getSiteById);
 
-// Managing sites is restricted to the master role.
-router.post("/create", requireRole("master"), createSite);
-router.put("/:id", requireRole("master"), updateSite);
-router.post("/:id/projects", requireRole("master"), assignProjectToSite);
-router.delete("/:id/projects/:projectId", requireRole("master"), removeProjectFromSite);
+// Writes used to be master-only at the route. They are now authorised per
+// record in the controller instead, so an admin with edit rights on a project
+// can create a clinic and wire their own project to it — while a clinic that
+// was already there stays untouchable to everyone but a master.
+router.post("/create", createSite);
+router.put("/:id", updateSite);
+router.post("/:id/projects", assignProjectToSite);
+router.delete("/:id/projects/:projectId", removeProjectFromSite);
 
 export default router;

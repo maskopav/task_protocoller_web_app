@@ -4,12 +4,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
 import { fetchSiteById, assignProjectToSite, removeProjectFromSite } from "../../api/sites";
-import { useMappings } from "../../context/MappingContext";
+import { fetchProjectsList } from "../../api/projects";
 
 export default function SiteProjectsModal({ site, onClose, onChanged }) {
   const { t } = useTranslation(["admin", "common"]);
-  const { mappings } = useMappings();
   const [detail, setDetail] = useState(null);
+  const [candidates, setCandidates] = useState([]);
   const [error, setError] = useState("");
 
   const loadDetail = useCallback(async () => {
@@ -22,8 +22,18 @@ export default function SiteProjectsModal({ site, onClose, onChanged }) {
 
   useEffect(() => { loadDetail(); }, [loadDetail]);
 
+  // Assigning needs edit rights on the project, so offering anything else would
+  // only produce a 403. The scoped list already carries can_edit per row.
+  useEffect(() => {
+    fetchProjectsList()
+      .then(list => setCandidates(list.filter(p => p.can_edit !== false)))
+      .catch(err => setError(err.message));
+  }, []);
+
   const assignedIds = new Set((detail?.projects || []).map(p => p.id));
-  const availableProjects = (mappings?.projects || []).filter(p => !assignedIds.has(p.id));
+  const availableProjects = candidates
+    .map(p => ({ id: p.project_id, name: p.project_name, description: p.description }))
+    .filter(p => !assignedIds.has(p.id));
 
   const handleAssign = async (projectId) => {
     setError("");

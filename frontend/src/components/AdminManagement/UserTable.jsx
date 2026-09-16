@@ -4,8 +4,11 @@ import { useTranslation } from "react-i18next";
 import AssignIcon from "../Icons/AssignIcon"; // Reusing the shared icon
 import "./AdminManagement.css";
 
-export default function UserTable({ users, onToggleStatus, onEdit, onAssignProject, onAssignSite, onAddClick }) {
+export default function UserTable({ users, onToggleStatus, onEdit, onAssignProject, onAssignSite, onAddClick, onToggleRight }) {
   const { t } = useTranslation(["admin", "common"]);
+
+  // mysql2 hands booleans back as 0/1 depending on driver config.
+  const on = (v) => v === 1 || v === true;
 
   return (
     <section className="section card">
@@ -25,6 +28,8 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
               <th>{t("management.table.user")}</th>
               <th>{t("management.table.role")}</th>
               <th>{t("management.table.status")}</th>
+              <th style={{ textAlign: "center" }}>{t("management.table.canCreateProjects")}</th>
+              <th style={{ textAlign: "center" }}>{t("management.table.canCreateSites")}</th>
               <th style={{ textAlign: "center" }}>{t("management.table.actions")}</th>
             </tr>
           </thead>
@@ -39,6 +44,26 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
                   <span className={`status-badge ${u.is_active ? "active" : "inactive"}`}>
                     {u.is_active ? t("management.status.active") : t("management.status.inactive")}
                   </span>
+                </td>
+                {/* The two creation rights, granted and revoked in place —
+                    they belong to the user, not to any assignment. */}
+                <td style={{ textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    className="checkbox-input"
+                    checked={on(u.can_create_projects)}
+                    title={t("management.table.canCreateProjects")}
+                    onChange={() => onToggleRight(u.user_id, "can_create_projects", !on(u.can_create_projects))}
+                  />
+                </td>
+                <td style={{ textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    className="checkbox-input"
+                    checked={on(u.can_create_sites)}
+                    title={t("management.table.canCreateSites")}
+                    onChange={() => onToggleRight(u.user_id, "can_create_sites", !on(u.can_create_sites))}
+                  />
                 </td>
                 <td>
                   <div className="actions-cell">

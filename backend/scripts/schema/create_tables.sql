@@ -15,14 +15,30 @@ CREATE TABLE `users` (
   `is_active` boolean NOT NULL DEFAULT true,
   `must_change_password` boolean NOT NULL DEFAULT true,
   `reset_password_token` varchar(255) DEFAULT NULL,
-  `reset_password_expires` TIMESTAMP DEFAULT NULL
+  `reset_password_expires` TIMESTAMP DEFAULT NULL,
+  `can_create_projects` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own projects',
+  `can_create_sites` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own sites'
 ); 
 
 CREATE TABLE `user_projects` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `user_id` integer NOT NULL,
   `project_id` integer NOT NULL,
-  `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP
+  `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `can_edit` BOOLEAN NOT NULL DEFAULT 1 COMMENT 'Whether this assignment carries the right to change the project and its protocols'
+);
+
+-- Which clinics of ONE project a user may see through that project. Rows here
+-- are a whitelist scoped to (user, project): none at all means "all of the
+-- project's clinics, including ones added later". It is deliberately separate
+-- from user_sites -- that table says "you have this clinic", this one says
+-- "you are narrowed to these" -- because carrying both meanings in one table is
+-- what made every earlier version of the scoping contradict itself.
+CREATE TABLE `user_project_sites` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `user_id` integer NOT NULL,
+  `project_id` integer NOT NULL,
+  `site_id` integer NOT NULL
 );
 
 CREATE TABLE `projects` (
@@ -147,6 +163,8 @@ CREATE UNIQUE INDEX `site_projects_index` ON `site_projects` (`site_id`, `projec
 
 CREATE UNIQUE INDEX `user_sites_index` ON `user_sites` (`user_id`, `site_id`);
 
+CREATE UNIQUE INDEX `user_project_sites_index` ON `user_project_sites` (`user_id`, `project_id`, `site_id`);
+
 ALTER TABLE `users` ADD FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
 ALTER TABLE `user_projects` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
@@ -184,3 +202,9 @@ ALTER TABLE `site_projects` ADD FOREIGN KEY (`project_id`) REFERENCES `projects`
 ALTER TABLE `user_sites` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `user_sites` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `user_project_sites` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `user_project_sites` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `user_project_sites` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;

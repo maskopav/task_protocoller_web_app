@@ -11,8 +11,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- IMPORTANT: Replace '$2b$10$GENERATED_HASH_HERE' with the output from node hash_gen.js
 -- Both rows below share the same hash because it's a hash of the same test password ('1234'), not user-specific.
 INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_change_password`) VALUES
-('master@test.com', '$2b$10$PeuhdyiWpRnSpsYdFqxmO.znJ9R0Ss6/7UPO3QDwhJATby8oiZfVe', 'System Master', 1, 0),
-('admin@test.com', '$2b$10$/Teq2XvSByAetcjsvriAb.FfoITQy0FoYP72hxE/vo6PRqI76J98m', 'Project Admin', 2, 0);
+('master@test.com', '$2b$10$BhWskPU74Ri6fKxd3hkxy.qkoZVHCWj5vmh/6IXOIEcAPyZ6MnRcC ', 'System Master', 1, 0),
+('admin@test.com', '$2b$10$BhWskPU74Ri6fKxd3hkxy.qkoZVHCWj5vmh/6IXOIEcAPyZ6MnRcC ', 'Project Admin', 2, 0);
 
 -- --------------------------
 -- 1) Projects

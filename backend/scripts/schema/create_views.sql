@@ -83,7 +83,9 @@ SELECT
     u.email as user_email, 
     u.full_name, 
     r.name as role, 
-    u.is_active
+    u.is_active,
+    u.can_create_projects,
+    u.can_create_sites
 FROM users u
 JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
@@ -98,6 +100,7 @@ SELECT
     u.email as user_email, -- Added email
     p.id as project_id,
     p.name as project_name,
+    up.can_edit,
     up.assigned_at
 FROM user_projects up
 JOIN users u ON up.user_id = u.id

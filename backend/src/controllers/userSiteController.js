@@ -32,7 +32,12 @@ import { executeQuery } from "../db/queryHelper.js";
   export const removeUserSiteAssignment = async (req, res) => {
     const { id } = req.params; // Using the assignment_id
     try {
-        await executeQuery("DELETE FROM user_sites WHERE id = ?", [id]);
+        const result = await executeQuery("DELETE FROM user_sites WHERE id = ?", [id]);
+        // A blank success on a row that was not there reads as "removed"
+        // in the UI and hides the fact that nothing changed.
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Assignment not found" });
+        }
         res.json({ success: true, message: "Assignment removed successfully" });
     } catch (err) {
         res.status(500).json({ error: "Failed to remove assignment" });

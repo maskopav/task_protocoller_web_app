@@ -1,6 +1,7 @@
 // src/controllers/protocolController.js
 import { executeTransaction, executeQuery } from '../db/queryHelper.js';
 import { logToFile } from '../utils/logger.js';
+import { getVisibleProjectIds, getEditableProjectIds } from '../utils/accessScope.js';
 
 // POST
 export const saveProtocol = async (req, res) => {
@@ -14,6 +15,24 @@ export const saveProtocol = async (req, res) => {
   if (!Array.isArray(tasks) || tasks.length === 0) {
     return res.status(400).json({ error: 'No tasks provided' });
   }
+
+  // A protocol is shared by every clinic on its project, so writing one is
+  // gated on an explicit user_projects grant. Read access inherited through a
+  // clinic deliberately does not carry the right to change what the project's
+  // other clinics administer.
+  const isMaster = req.admin?.role === 'master';
+  if (!isMaster) {
+    const editable = await getEditableProjectIds(req.admin?.id ?? null);
+    if (!editable.includes(Number(project_id))) {
+      return res.status(403).json({
+        error: 'You do not have edit rights on this project.'
+      });
+    }
+  }
+
+  // Authorship comes from the verified session, not from the payload, so a
+  // change cannot be attributed to someone else.
+  const authorId = req.admin?.id ?? created_by ?? updated_by ?? null;
 
   // Identify the primary language the admin was actually editing/creating in the UI
   const sourceLanguageId = Array.isArray(language_id) ? language_id[0] : (language_id || 1);
@@ -42,6 +61,30 @@ export const saveProtocol = async (req, res) => {
   const [project] = await executeQuery("SELECT is_active FROM projects WHERE id = ?", [project_id]);
   if (project && project.is_active === 0) {
      return res.status(403).json({ error: "Cannot edit protocols in an inactive project." });
+  }
+
+  // 2b. THE GROUP MUST BELONG TO THE PROJECT BEING SAVED TO.
+  // Authorising project_id alone is not enough: the edit path below operates on
+  // protocol_group_id, flipping is_current = 0 on whatever it finds there. A
+  // caller with rights on one project could otherwise pass another project's
+  // group and retire its live protocol — which drops it out of v_site_protocols
+  // and stops every clinic on that project from receiving it. This is an
+  // integrity check as much as an authorisation one, so it applies to masters
+  // too; a group with no rows yet is a new group and passes.
+  if (protocol_group_id) {
+    const groupRows = await executeQuery(
+      `SELECT pp.project_id
+       FROM protocols p
+       LEFT JOIN project_protocols pp ON pp.protocol_id = p.id
+       WHERE p.protocol_group_id = ?`,
+      [protocol_group_id]
+    );
+    const owners = new Set(groupRows.map((r) => Number(r.project_id)));
+    if (groupRows.length > 0 && !owners.has(Number(project_id))) {
+      return res.status(403).json({
+        error: "This protocol belongs to a different project."
+      });
+    }
   }
 
   try {
@@ -115,7 +158,7 @@ export const saveProtocol = async (req, res) => {
         const [result] = await conn.query(
           `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, created_by, updated_by, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? true) ? 1 : 0]
+          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? true) ? 1 : 0]
         );
         const newProtocolId = result.insertId;
         
@@ -253,6 +296,20 @@ export const getProtocolById = async (req, res) => {
     }
     const { protocol, contentMap, globalFields, tasks } = assembled;
 
+    // 404 rather than 403, for the same reason getSiteById does it: a 403 would
+    // confirm the protocol exists. assembleProtocol itself stays unscoped — it
+    // is shared with the token-gated /site-config endpoint.
+    if (req.admin?.role !== 'master') {
+      const visible = await getVisibleProjectIds(req.admin?.id ?? null);
+      const owners = visible.length === 0 ? [] : await executeQuery(
+        `SELECT 1 FROM project_protocols WHERE protocol_id = ? AND project_id IN (?) LIMIT 1`,
+        [id, visible]
+      );
+      if (owners.length === 0) {
+        return res.status(404).json({ error: 'Protocol not found' });
+      }
+    }
+
     // Fetch all active sibling languages for this protocol group
     const siblingRows = await executeQuery(
       `SELECT l.code, p.id as protocol_id
@@ -292,14 +349,27 @@ export const getProtocolsByProjectId = async (req, res) => {
   const { project_id } = req.query;
 
   try {
-    let query = "SELECT * FROM v_project_protocols ORDER BY project_id, protocol_group_id, version DESC";
+    // Protocols.jsx calls this with no project_id and filters client-side, so
+    // an unscoped listing would hand every admin every project's protocols.
+    const isMaster = req.admin?.role === 'master';
+    const where = [];
     const params = [];
 
     if (project_id) {
-      query = `
-      SELECT * FROM v_project_protocols WHERE project_id = ? ORDER BY project_id, protocol_group_id, version DESC`
+      where.push('project_id = ?');
       params.push(project_id);
     }
+
+    if (!isMaster) {
+      const visible = await getVisibleProjectIds(req.admin?.id ?? null);
+      if (visible.length === 0) return res.json([]);
+      where.push('project_id IN (?)');
+      params.push(visible);
+    }
+
+    const query = `SELECT * FROM v_project_protocols${
+      where.length ? ` WHERE ${where.join(' AND ')}` : ''
+    } ORDER BY project_id, protocol_group_id, version DESC`;
 
     const rows = await executeQuery(query, params);
     res.json(rows);

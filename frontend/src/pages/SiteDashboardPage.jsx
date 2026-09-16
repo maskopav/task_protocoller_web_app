@@ -7,6 +7,7 @@ import { fetchSiteById } from "../api/sites";
 import StatusBadge from "../components/ProjectDashboard/StatusBadge";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import SiteModal from "../components/SiteManagement/SiteModal";
+import SiteProjectsModal from "../components/SiteManagement/SiteProjectsModal";
 
 import "./Pages.css";
 import "../components/ProjectDashboard/ProjectDashboard.css";
@@ -20,6 +21,7 @@ export default function SiteDashboardPage() {
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
 
   // GET /sites/:id returns the site plus its projects and inherited protocols
   const loadData = useCallback(async () => {
@@ -116,7 +118,17 @@ export default function SiteDashboardPage() {
         </div>
       </div>
 
-      <h2 className="section-heading">{t("management.siteManagement.assignedProjects")}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 className="section-heading">{t("management.siteManagement.assignedProjects")}</h2>
+        {/* can_manage comes from the server: master, or the admin who created
+            this clinic. Without it, the only place to put a project on a clinic
+            was the master-only Site Management page. */}
+        {site?.can_manage && !isReadOnly && (
+          <button className="btn-primary btn-sm" onClick={() => setIsProjectsModalOpen(true)}>
+            {t("management.siteManagement.manageProjects")}
+          </button>
+        )}
+      </div>
       <section className="section card">
         {!site?.projects?.length ? (
           <p className="empty-row">{t("management.siteManagement.noAssignedProjects")}</p>
@@ -147,6 +159,14 @@ export default function SiteDashboardPage() {
           </div>
         )}
       </section>
+
+      {site && isProjectsModalOpen && (
+        <SiteProjectsModal
+          site={site}
+          onClose={() => setIsProjectsModalOpen(false)}
+          onChanged={loadData}
+        />
+      )}
 
       {site && isEditModalOpen && (
         <SiteModal

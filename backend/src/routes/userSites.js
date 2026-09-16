@@ -1,4 +1,6 @@
 import express from "express";
+import { requireRole } from "../middleware/authMiddleware.js";
+
 import {
     getUserSiteAssignments,
     assignUserToSite,
@@ -7,8 +9,8 @@ import {
 
 const router = express.Router();
 
-router.get("/user-sites", getUserSiteAssignments);
-router.post("/assign-site", assignUserToSite);
-router.delete("/remove-assignment/:id", removeUserSiteAssignment);
+router.get("/user-sites", requireRole("master"), getUserSiteAssignments);
+router.post("/assign-site", requireRole("master"), assignUserToSite);
+router.delete("/remove-assignment/:id", requireRole("master"), removeUserSiteAssignment);
 
 export default router;

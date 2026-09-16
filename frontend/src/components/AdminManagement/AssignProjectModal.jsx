@@ -8,20 +8,23 @@ import "./AdminManagement.css";
 export default function AssignProjectModal({ user, onClose, onAssign }) {
   const { t } = useTranslation(["admin", "common"]);
   const [projects, setProjects] = useState([]);
+  const [canEdit, setCanEdit] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProjectsList()
       .then(setProjects)
       .finally(() => setLoading(false));
-
-    console.log(projects);
   }, []);
 
+  // Ticked by default: granting a project normally means granting authorship
+  // with it. Unticking makes the assignment read-only.
+  const editFor = (projectId) => canEdit[projectId] !== false;
+
   return (
-    <Modal 
-      open={true} 
-      onClose={onClose} 
+    <Modal
+      open={true}
+      onClose={onClose}
       title={`${t("management.buttons.assign")}: ${user.full_name}`}
       showSaveButton={false}
     >
@@ -36,10 +39,22 @@ export default function AssignProjectModal({ user, onClose, onAssign }) {
                   <div>
                     <strong style={{ display: 'block' }}>{p.project_name}</strong>
                     <span className="text-muted small">{p.description || t("projectDashboard.noDescription")}</span>
+                    <label className="checkbox-label" style={{ display: 'block', marginTop: '6px' }}>
+                      <input
+                        type="checkbox"
+                        className="checkbox-input"
+                        checked={editFor(p.project_id)}
+                        onChange={() => setCanEdit(prev => ({
+                          ...prev,
+                          [p.project_id]: !editFor(p.project_id),
+                        }))}
+                      />
+                      <span>{t("management.assign.canEdit")}</span>
+                    </label>
                   </div>
-                  <button 
-                    className="btn-primary btn-sm" 
-                    onClick={() => onAssign(user.user_id, p.project_id)}
+                  <button
+                    className="btn-primary btn-sm"
+                    onClick={() => onAssign(user.user_id, p.project_id, editFor(p.project_id))}
                   >
                     + {t("management.buttons.assignShort", "Assign")}
                   </button>

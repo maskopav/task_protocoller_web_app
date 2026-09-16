@@ -31,6 +31,13 @@
       "projectsDesc": "View and manage all system projects, activate or deactivate projects.",
       "sites": "Site Management",
       "sitesDesc": "Manage clinical sites, their access tokens, assigned projects and site-level config."
+    },
+    "myTools": {
+      "heading": "Create",
+      "newProject": "New project",
+      "newProjectDesc": "Start a project of your own and design its protocols.",
+      "newSite": "New clinic",
+      "newSiteDesc": "Register a clinic and put one of your projects on it."
     }
   },
   "management": {
@@ -42,15 +49,24 @@
       "fullName": "Full Name",
       "role": "Role",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "canCreateProjects": "May create projects",
+      "canCreateSites": "May create sites"
     },
     "projectAssignments": {
       "title": "Project Assignments",
       "noData": "No projects assigned to administrators yet.",
       "table": {
         "project": "Assigned Project",
-        "date": "Date Assigned"
-      }
+        "date": "Date Assigned",
+        "rights": "Rights",
+        "clinics": "Clinics"
+      },
+      "canEdit": "Can edit",
+      "readOnly": "Read-only",
+      "allClinics": "All clinics on this project, including ones added later",
+      "noClinics": "This project has no clinics yet.",
+      "grantedDirectly": "Assigned separately — unticking here will not hide it."
     },
     "siteAssignments": {
       "title": "Site Assignments",
@@ -143,6 +159,9 @@
         "invalidToken": "The access token must be 16-64 characters: letters, digits, _ or -.",
         "invalidEmail": "Not a valid email address: {{email}}"
       }
+    },
+    "assign": {
+      "canEdit": "May edit this project and its protocols"
     }
   },
   "projectDashboard": {
@@ -153,7 +172,8 @@
     "status": {
       "active": "Active",
       "inactive": "Inactive / Archived",
-      "inactiveMode": "Mode read-only"
+      "inactiveMode": "Mode read-only",
+      "inheritedMode": "Read-only"
     },
     "fields": {
       "name": "Project Name",
