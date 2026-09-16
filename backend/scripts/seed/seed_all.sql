@@ -45,6 +45,9 @@ VALUES
 ('hhies',
  (SELECT id FROM task_types WHERE type='questionnaire')
 ),
+('medicalHistory',
+ (SELECT id FROM task_types WHERE type='questionnaire')
+),
 ('d15colour',
  (SELECT id FROM task_types WHERE type='vision')
 ),

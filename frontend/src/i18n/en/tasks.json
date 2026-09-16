@@ -69,6 +69,28 @@
       ]
     }
   },
+    "medicalHistory": {
+    "name": "Medical History Questionnaire",
+    "description": "Screening questionnaire covering speech/voice history, neurological conditions, colour vision deficiency, cosmetic facial procedures, and facial muscle conditions that could affect the results. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Questionnaire: {{title}}",
+    "instructions": "Please answer the following questions.",
+    "params": {
+      "title": { "label": "Title" },
+      "description": { "label": "Description" },
+      "questions": { "label": "Questions" }
+    },
+    "defaultContent": {
+      "title": "Medical History Questionnaire",
+      "description": "",
+      "questions": [
+        { "id": 1789301000001, "text": "In the last 10 years, have you ever experienced speech or voice problems which resulted in a visit to a medical specialist? If yes, please specify the voice or speech problem (e.g., stuttering, dysarthria, …) in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000002, "text": "Have you ever been diagnosed with, or are you currently experiencing, a neurological condition that could affect the results (for example: stroke, Parkinson's disease, epilepsy, multiple sclerosis, or traumatic brain injury)? If yes, please specify the condition in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000003, "text": "Have you ever been diagnosed with, or do you suspect you have, a colour vision deficiency, such as red-green or blue-yellow colour blindness? If yes, please specify the deficiency in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000004, "text": "Have you ever undergone a cosmetic procedure that could potentially affect the function of your facial muscles? For example, botulinum toxin (Botox) injections. If yes, please specify the procedure in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000005, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles? For example, facial paralysis. If yes, please specify the condition in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] }
+      ]
+    }
+  },
     "phonation": {
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",
