@@ -72,9 +72,7 @@
     },
     "taskLabels": {
       "info": "Information",
-      "consent": "Consent",
       "mic_check": "Audio Test",
-      "volume_check": "Volume Test",
       "voice": "Speech section",
       "motor": "Motor section",
       "camera": "Camera section",
@@ -183,10 +181,6 @@
           }
         }
       }
-    },
-    "volumeCheck": {
-      "title": "Audio Volume Setup",
-      "instructions": "Please use the audio player below to test your audio volume. <br/><br/><strong>Adjust your device's volume</strong> until you can hear the message clearly. Then, select the number you hear."
     },
     "audioGuideIntro": {
       "title": "Audio Guide",

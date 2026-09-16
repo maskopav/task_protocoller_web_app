@@ -5,10 +5,10 @@ import { getVisibleProjectIds, getEditableProjectIds } from '../utils/accessScop
 
 // POST
 export const saveProtocol = async (req, res) => {
-  const { 
-    protocol_group_id, name, language_id, description, version, 
-    created_by, updated_by, tasks, project_id, editingMode, 
-    randomization, required_identifiers, info_text, consent_text,
+  const {
+    protocol_group_id, name, language_id, description, version,
+    created_by, updated_by, tasks, project_id, editingMode,
+    randomization, required_identifiers, info_text,
     instructions_text, use_audio_guide
   } = req.body;
 
@@ -158,7 +158,7 @@ export const saveProtocol = async (req, res) => {
         const [result] = await conn.query(
           `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? true) ? 1 : 0]
+          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? false) ? 1 : 0]
         );
         const newProtocolId = result.insertId;
         
@@ -170,16 +170,12 @@ export const saveProtocol = async (req, res) => {
 
         // Save GLOBAL content (Rescue old translations if it's a sibling language)
         const finalInfoText = isSourceLang ? info_text : (oldGlobalContents['info'] !== undefined ? oldGlobalContents['info'] : info_text);
-        const finalConsentText = isSourceLang ? consent_text : (oldGlobalContents['consent'] !== undefined ? oldGlobalContents['consent'] : consent_text);
         const finalInstructionsText = isSourceLang ? instructions_text : (oldGlobalContents['instructions'] !== undefined ? oldGlobalContents['instructions'] : instructions_text);
 
         if (typeof finalInfoText === 'string' && finalInfoText.trim() !== '') {
           await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'info', ?)`, [newProtocolId, finalInfoText]);
         }
-        if (typeof finalConsentText === 'string' && finalConsentText.trim() !== '') {
-          await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'consent', ?)`, [newProtocolId, finalConsentText]);
-        }
-        
+
         if (typeof finalInstructionsText === 'string' && finalInstructionsText.trim() !== '') {
           await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'instructions', ?)`, [newProtocolId, finalInstructionsText]);
         }
@@ -380,5 +376,78 @@ export const getProtocolsByProjectId = async (req, res) => {
       stack: err.stack
     });
     res.status(500).json({ error: 'Failed to load protocols by projectId' });
+  }
+};
+
+// GET /api/protocols/archived — protocols that have been archived (no longer
+// linked to any project). Aggregation mirrors v_project_protocols, minus the
+// project join that archived rows no longer have.
+export const getArchivedProtocols = async (req, res) => {
+  try {
+    const rows = await executeQuery(
+      `SELECT
+         p.id, p.protocol_group_id, p.name, p.language_id, p.description, p.version,
+         p.is_current, p.created_at, p.created_by, p.updated_at, p.updated_by,
+         COALESCE(agg.n_tasks, 0) AS n_tasks,
+         COALESCE(agg.n_quest, 0) AS n_quest
+       FROM protocols p
+       LEFT JOIN (
+         SELECT pt.protocol_id,
+           SUM(IF(t.category != 'questionnaire', 1, 0)) AS n_tasks,
+           SUM(IF(t.category = 'questionnaire', 1, 0)) AS n_quest
+         FROM protocol_tasks pt
+         JOIN tasks t ON pt.task_id = t.id
+         GROUP BY pt.protocol_id
+       ) agg ON agg.protocol_id = p.id
+       WHERE p.is_archived = 1
+       ORDER BY p.updated_at DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    logToFile("ERROR", "Failed to fetch archived protocols", {
+      error: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ error: 'Failed to load archived protocols' });
+  }
+};
+
+// POST /api/protocols/:id/archive
+// Archives every current-language variant of the protocol's group: marks
+// them is_archived and removes their project_protocols links, so they drop
+// out of every project (and v_site_protocols) that was using them.
+export const archiveProtocol = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [protocol] = await executeQuery("SELECT protocol_group_id FROM protocols WHERE id = ?", [id]);
+    if (!protocol) {
+      return res.status(404).json({ error: 'Protocol not found' });
+    }
+
+    await executeTransaction(async (conn) => {
+      const [rows] = await conn.query(
+        "SELECT id FROM protocols WHERE protocol_group_id = ? AND is_current = 1",
+        [protocol.protocol_group_id]
+      );
+      const ids = rows.map(r => r.id);
+      if (ids.length === 0) return;
+
+      const placeholders = ids.map(() => '?').join(',');
+      await conn.query(`DELETE FROM project_protocols WHERE protocol_id IN (${placeholders})`, ids);
+      await conn.query(
+        `UPDATE protocols SET is_archived = 1, updated_at = UTC_TIMESTAMP() WHERE id IN (${placeholders})`,
+        ids
+      );
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    logToFile("ERROR", "Failed to archive protocol", {
+      protocolId: id,
+      error: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ error: 'Failed to archive protocol' });
   }
 };

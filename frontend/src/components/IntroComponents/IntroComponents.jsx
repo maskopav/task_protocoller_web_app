@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import DOMPurify from 'dompurify';
 import 'react-quill-new/dist/quill.snow.css';
@@ -52,42 +52,6 @@ export function InfoPage({ content, onNext }) {
         <SafeButton className="btn-next" onClick={onNext}>
           {t("buttons.next")}
         </SafeButton>
-      }
-    />
-  );
-}
-
-export function ConsentPage({ content, onNext }) {
-  const { t } = useTranslation("common");
-  const [agreed, setAgreed] = useState(false);
-  const { title, body } = useMemo(() => extractTitleAndBody(content), [content]);
-
-  return (
-    <TaskLayout
-      title={title}
-      renderTitle={true}
-      instructions={
-        <div 
-          className="participant-rich-text" 
-          dangerouslySetInnerHTML={{ __html: body }} 
-        />
-      }
-      instructionsClassName="align-left"
-      controls={
-        <>
-          <div className="consent-checkbox">
-            <input 
-              type="checkbox" 
-              id="consent-check" 
-              checked={agreed} 
-              onChange={(e) => setAgreed(e.target.checked)} 
-            />
-            <label htmlFor="consent-check">{t("onboarding.consentCheckbox")}</label>
-          </div>
-          <SafeButton className="btn-primary" disabled={!agreed} onClick={onNext}>
-            {t("buttons.startProtocol")}
-          </SafeButton>
-        </>
       }
     />
   );

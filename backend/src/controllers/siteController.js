@@ -82,8 +82,9 @@ export const getSites = async (req, res) => {
             [project_id]
           )
         : await executeQuery(
-            `SELECT s.*, COUNT(sp.id) AS project_count FROM sites s
+            `SELECT s.*, COUNT(CASE WHEN p.is_active = 1 THEN sp.id END) AS project_count FROM sites s
              LEFT JOIN site_projects sp ON sp.site_id = s.id
+             LEFT JOIN projects p ON p.id = sp.project_id
              GROUP BY s.id
              ORDER BY s.name`,
             []
@@ -106,8 +107,8 @@ export const getSites = async (req, res) => {
           [project_id, siteIds]
         );
       } else {
-        // project_count must only count projects the caller may see, otherwise
-        // the card advertises a number they can never drill into.
+        // project_count must only count ACTIVE projects the caller may see,
+        // otherwise the card advertises a number they can never drill into.
         const params = [];
         let joinCond = "sp.site_id = s.id";
         if (projectIds.length > 0) {
@@ -120,9 +121,10 @@ export const getSites = async (req, res) => {
 
         rows = await executeQuery(
           `SELECT s.id, s.name, s.description, s.country, s.contact_persons, s.contact_emails,
-                  s.is_active, COUNT(sp.id) AS project_count
+                  s.is_active, COUNT(CASE WHEN p.is_active = 1 THEN sp.id END) AS project_count
            FROM sites s
            LEFT JOIN site_projects sp ON ${joinCond}
+           LEFT JOIN projects p ON p.id = sp.project_id
            WHERE s.id IN (?)
            GROUP BY s.id
            ORDER BY s.name`,
@@ -442,7 +444,6 @@ export const getSiteConfig = async (req, res) => {
           use_audio_guide: protocol.use_audio_guide,
           info_text: globalFields.info_text || "",
           instructions_text: globalFields.instructions_text || "",
-          consent_text: globalFields.consent_text || "",
           global_contents: contentMap["global"] || [],
           tasks
         });

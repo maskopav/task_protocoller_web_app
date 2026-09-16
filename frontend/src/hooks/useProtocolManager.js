@@ -27,7 +27,6 @@ export function useProtocolManager() {
       version: version,
       created_by: 1,
       randomization: selectedProtocol.randomization,
-      use_audio_guide: selectedProtocol.use_audio_guide,
       tasks: tasks.map((task, index) => ({
         task_id: mappings.tasks.find(t => t.category === task.category)?.id,
         task_order: index + 1,
@@ -37,7 +36,6 @@ export function useProtocolManager() {
       editingMode,
       info_text: selectedProtocol.info_text,
       instructions_text: selectedProtocol.instructions_text,
-      consent_text: selectedProtocol.consent_text,
       required_identifiers: selectedProtocol.required_identifiers
     };
     console.log("Saving protocol:", protocolData);

@@ -11,10 +11,9 @@ import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
 import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
-import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
+import { InfoPage } from "../components/IntroComponents/IntroComponents";
 import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
-import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
 import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import { trackProgress } from "../api/sessions";
@@ -185,13 +184,6 @@ export default function ParticipantInterfacePage() {
 
     const introSteps = [];
 
-    // Add Volume Check — first thing shown, right after the language switcher
-    introSteps.push({
-      type: "volume_check",
-      category: "volume_check",
-      isSystemTask: true
-    });
-
     // Add Audio Guide Intro — only when the protocol uses the audio guide.
     // Same 0/1-from-MariaDB handling as useAudioGuide below.
     if (selectedProtocol.use_audio_guide ?? true) {
@@ -225,17 +217,6 @@ export default function ParticipantInterfacePage() {
         type: "instructions",
         content: instructionsHtml,
         category: "instructions",
-        isSystemTask: true
-      });
-    }
-
-    // Add Consent Page (check root field OR new array)
-    const consentHtml = selectedProtocol.consent_text || findGlobalContent('consent');
-    if (consentHtml) {
-      introSteps.push({
-        type: "consent",
-        content: consentHtml,
-        category: "consent",
         isSystemTask: true
       });
     }
@@ -474,7 +455,7 @@ export default function ParticipantInterfacePage() {
     let isReading = false;
     let isRetelling = false;
 
-    if (rawTask && !['info', 'instructions', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(rawTask.type)) {
+    if (rawTask && !['info', 'instructions', 'mic_check', 'identifiers', 'audio_guide_intro'].includes(rawTask.type)) {
        task = resolveTask(rawTask, t);
        isReading = task?.category === 'reading';
        isRetelling = task?.category === 'retelling';
@@ -802,7 +783,7 @@ export default function ParticipantInterfacePage() {
     }
     try {
       const currentTaskObj = runtimeTasks[taskIndex];
-      const isSystemTask = ['info', 'instructions', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro'].includes(currentTaskObj.type);
+      const isSystemTask = ['info', 'instructions', 'identifiers', 'audio_guide_intro'].includes(currentTaskObj.type);
       const isMicCheck = currentTaskObj.type === 'mic_check';
     
       if (testingMode || editingMode || !sessionId) {
@@ -853,12 +834,7 @@ export default function ParticipantInterfacePage() {
       };
 
       if (isSystemTask) {
-        // Volume check carries real answer data worth keeping — attach it so
-        // the backend can set the volume_check_result flag on the session.
-        const extra = currentTaskObj.type === 'volume_check'
-          ? { correct: data?.correct, selectedNumber: data?.selectedNumber, targetNumber: data?.targetNumber }
-          : {};
-        logInteraction(`${currentTaskObj.type}_completed`, extra);
+        logInteraction(`${currentTaskObj.type}_completed`);
         if (!isAttempt) proceedToNext();
         return;
       }
@@ -940,13 +916,6 @@ export default function ParticipantInterfacePage() {
       );
     }
     
-    // Render Volume Check
-    if (rawTask.type === "volume_check") {
-      return (
-        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} audioGuideEnabled={useAudioGuide} />
-      );
-    }
-
     // Render Audio Guide Intro
     if (rawTask.type === "audio_guide_intro" && useAudioGuide) {
       return (
@@ -957,11 +926,6 @@ export default function ParticipantInterfacePage() {
     // Render Info Page
     if (rawTask.type === "info" || rawTask.type === "instructions") {
       return <InfoPage content={rawTask.content} onNext={() => handleTaskComplete({ type: rawTask.type })} />;
-    }
-
-    // Render Consent Page
-    if (rawTask.type === "consent") {
-      return <ConsentPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'consent' })} />;
     }
 
     // Render Identifiers Page

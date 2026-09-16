@@ -54,6 +54,7 @@
     "createNew": "Vytvořit nový protokol",
     "currentProtocols": "Aktuální protokoly",
     "archivedProtocols": "Historie protokolů",
+    "archivedLabel": "Archivováno",
     "namePlaceholder": "Název protokolu",
     "nameExists": "Protokol s tímto názvem již existuje.",
     "descriptionPlaceholder": "Popis (nepovinné)",
@@ -62,8 +63,11 @@
       "create": "Vytvořit protokol",
       "show": "Zobrazit",
       "edit": "Upravit",
-      "duplicate": "Duplikovat"
+      "duplicate": "Duplikovat",
+      "archive": "Archivovat"
     },
+    "confirmArchiveTitle": "Archivovat protokol?",
+    "confirmArchiveMsg": "Archivací protokolu \"{{name}}\" bude odebrán ze všech projektů, které jej používají. Poté bude viditelný pouze v sekci Archivováno.",
     "table": {
       "name": "Název",
       "language": "Jazyk",
@@ -93,8 +97,6 @@
     "params": "Parametry",
     "addIntroPage": "Přidat úvodní stránku",
     "introPageAdded": "Úvodní stránka",
-    "addConsentForm": "Přidat formulář souhlasu",
-    "consentFormAdded": "Formulář souhlasu",
     "simulateRandomization": "Simulovat průběh (randomizace)",
     "versionWarning": "! Úprava protokolu {{name}}: verze se zvýší a protokol bude označen jako aktuální!",
     "confirmUpdateTitle": "Aktualizovat aktivní protokol?",
@@ -103,12 +105,8 @@
     "saveFailedMsg": "Nepodařilo se uložit protokol.",
     "editIntroTitle": "Upravit úvodní stránku",
     "introPlaceholder": "Uvítací text pro účastníky...",
-    "editConsentTitle": "Upravit formulář souhlasu",
-    "consentPlaceholder": "Text právního souhlasu...",
     "confirmDeleteIntroTitle": "Smazat úvodní stránku?",
     "confirmDeleteIntroMsg": "Opravdu chcete odstranit úvodní text?",
-    "confirmDeleteConsentTitle": "Smazat formulář souhlasu?",
-    "confirmDeleteConsentMsg": "Opravdu chcete odstranit text formuláře souhlasu?",
     "questionnaire": {
       "questionnaireTitle": "Název dotazníku",
       "enterTitle": "Zadejte název dotazníku",
