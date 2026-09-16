@@ -67,16 +67,7 @@ export function ConsentPage({ content, checkboxText, onNext }) {
     <TaskLayout
       title={title}
       renderTitle={true}
-      headerClassName="consent-header"
-      instructions={
-        <div className="consent-scroll-box">
-          <div
-            className="participant-rich-text consent-text"
-            dangerouslySetInnerHTML={{ __html: body }}
-          />
-        </div>
-      }
-      instructionsClassName="align-left"
+      mainClassName="consent-main"
       controls={
         <div className="consent-controls">
           <div className="consent-checkbox">
@@ -93,6 +84,13 @@ export function ConsentPage({ content, checkboxText, onNext }) {
           </SafeButton>
         </div>
       }
-    />
+    >
+      <div className="consent-scroll-box">
+        <div
+          className="participant-rich-text consent-text"
+          dangerouslySetInnerHTML={{ __html: body }}
+        />
+      </div>
+    </TaskLayout>
   );
 }

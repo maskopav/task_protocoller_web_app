@@ -1,34 +1,31 @@
 /* ── Consent page ─────────────────────────────────────────────────── */
 
-/* The consent header grows to fill all the vertical space between the
-   title and the fixed bottom controls, instead of shrinking to fit its
-   content like other task headers do. */
-.task-header.consent-header {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.task-header.consent-header .instruction-card {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+/* The title (rendered by TaskLayout's header, above this) stays fixed
+   and never scrolls — only .recording-area, the flexible zone between
+   header and bottom-controls, is used for the consent text below. */
+.recording-area.consent-main {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
 }
 
-/* Scrollable "window" holding the consent text. It fills the entire
-   header area (see above) so long consent text never pushes the
-   checkbox/Next button off screen, and short text still uses the
-   full page instead of a small fixed-height box. */
+/* Scrollable "window" holding the consent text. It fills all the space
+   left between the fixed title above and the fixed checkbox/Next button
+   below, so long consent text scrolls inside it instead of the whole
+   page scrolling (which would carry the title/controls off screen). */
 .consent-scroll-box {
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  border-radius: var(--sharp-radius);
-  padding: clamp(0.5rem, 1.5vw, 0.9rem);
+  background-color: #ffffff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(0.6rem, 2vw, 1.1rem);
   box-sizing: border-box;
+  text-align: left;
 }
 
 /* Smaller than the standard task instruction text (so long consent text
