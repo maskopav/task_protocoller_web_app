@@ -105,6 +105,8 @@
     "introPlaceholder": "Uvítací text pro účastníky...",
     "editConsentTitle": "Upravit formulář souhlasu",
     "consentPlaceholder": "Text právního souhlasu...",
+    "consentCheckboxLabel": "Text u zaškrtávacího pole",
+    "consentCheckboxPlaceholder": "např. Ano, přečetl(a) jsem si a rozumím výše uvedeným informacím a souhlasím s účastí.",
     "confirmDeleteIntroTitle": "Smazat úvodní stránku?",
     "confirmDeleteIntroMsg": "Opravdu chcete odstranit úvodní text?",
     "confirmDeleteConsentTitle": "Smazat formulář souhlasu?",

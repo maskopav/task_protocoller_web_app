@@ -4,6 +4,7 @@ import DOMPurify from 'dompurify';
 import 'react-quill-new/dist/quill.snow.css';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
+import './IntroComponents.css';
 
 export const extractTitleAndBody = (rawContent) => {
   if (!rawContent) return { title: null, body: '' };
@@ -57,7 +58,7 @@ export function InfoPage({ content, onNext }) {
   );
 }
 
-export function ConsentPage({ content, onNext }) {
+export function ConsentPage({ content, checkboxText, onNext }) {
   const { t } = useTranslation("common");
   const [agreed, setAgreed] = useState(false);
   const { title, body } = useMemo(() => extractTitleAndBody(content), [content]);
@@ -66,28 +67,31 @@ export function ConsentPage({ content, onNext }) {
     <TaskLayout
       title={title}
       renderTitle={true}
+      headerClassName="consent-header"
       instructions={
-        <div 
-          className="participant-rich-text" 
-          dangerouslySetInnerHTML={{ __html: body }} 
-        />
+        <div className="consent-scroll-box">
+          <div
+            className="participant-rich-text consent-text"
+            dangerouslySetInnerHTML={{ __html: body }}
+          />
+        </div>
       }
       instructionsClassName="align-left"
       controls={
-        <>
+        <div className="consent-controls">
           <div className="consent-checkbox">
-            <input 
-              type="checkbox" 
-              id="consent-check" 
-              checked={agreed} 
-              onChange={(e) => setAgreed(e.target.checked)} 
+            <input
+              type="checkbox"
+              id="consent-check"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
             />
-            <label htmlFor="consent-check">{t("onboarding.consentCheckbox")}</label>
+            <label htmlFor="consent-check">{checkboxText || t("onboarding.consentCheckbox")}</label>
           </div>
           <SafeButton className="btn-primary" disabled={!agreed} onClick={onNext}>
             {t("buttons.startProtocol")}
           </SafeButton>
-        </>
+        </div>
       }
     />
   );

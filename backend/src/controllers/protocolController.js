@@ -9,7 +9,7 @@ export const saveProtocol = async (req, res) => {
     protocol_group_id, name, language_id, description, version, 
     created_by, updated_by, tasks, project_id, editingMode, 
     randomization, required_identifiers, info_text, consent_text,
-    instructions_text, use_audio_guide, enable_followup_booking
+    consent_checkbox_text, instructions_text, use_audio_guide, enable_followup_booking
   } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
@@ -129,6 +129,7 @@ export const saveProtocol = async (req, res) => {
         // Save GLOBAL content (Rescue old translations if it's a sibling language)
         const finalInfoText = isSourceLang ? info_text : (oldGlobalContents['info'] !== undefined ? oldGlobalContents['info'] : info_text);
         const finalConsentText = isSourceLang ? consent_text : (oldGlobalContents['consent'] !== undefined ? oldGlobalContents['consent'] : consent_text);
+        const finalConsentCheckboxText = isSourceLang ? consent_checkbox_text : (oldGlobalContents['consent_checkbox'] !== undefined ? oldGlobalContents['consent_checkbox'] : consent_checkbox_text);
         const finalInstructionsText = isSourceLang ? instructions_text : (oldGlobalContents['instructions'] !== undefined ? oldGlobalContents['instructions'] : instructions_text);
 
         if (typeof finalInfoText === 'string' && finalInfoText.trim() !== '') {
@@ -137,7 +138,10 @@ export const saveProtocol = async (req, res) => {
         if (typeof finalConsentText === 'string' && finalConsentText.trim() !== '') {
           await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'consent', ?)`, [newProtocolId, finalConsentText]);
         }
-        
+        if (typeof finalConsentCheckboxText === 'string' && finalConsentCheckboxText.trim() !== '') {
+          await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'consent_checkbox', ?)`, [newProtocolId, finalConsentCheckboxText]);
+        }
+
         if (typeof finalInstructionsText === 'string' && finalInstructionsText.trim() !== '') {
           await conn.query(`INSERT INTO protocol_contents (protocol_id, protocol_task_id, content_type, text_html) VALUES (?, NULL, 'instructions', ?)`, [newProtocolId, finalInstructionsText]);
         }

@@ -402,6 +402,7 @@ export function ProtocolEditor({
     });
     if (isConfirmed) {
       updateProtocolField("consent_text", "");
+      updateProtocolField("consent_checkbox_text", "");
     }
   }
 
@@ -523,7 +524,7 @@ export function ProtocolEditor({
           />
           <div className="mobile-phone-frame">
             <div className="mobile-screen">
-               <ReactQuill 
+               <ReactQuill
                 theme="snow"
                 modules={editorModules}
                 value={protocolData?.consent_text || ""}
@@ -531,6 +532,18 @@ export function ProtocolEditor({
                 placeholder={t("protocolEditor.consentPlaceholder")}
               />
             </div>
+          </div>
+          <div className="protocol-field">
+            <label className="protocol-label">
+              {t("protocolEditor.consentCheckboxLabel")}:
+            </label>
+            <input
+              type="text"
+              className="protocol-name-input"
+              placeholder={t("protocolEditor.consentCheckboxPlaceholder")}
+              value={protocolData?.consent_checkbox_text || ""}
+              onChange={(e) => updateProtocolField("consent_checkbox_text", e.target.value)}
+            />
           </div>
         </div>
       </AdminModal>
