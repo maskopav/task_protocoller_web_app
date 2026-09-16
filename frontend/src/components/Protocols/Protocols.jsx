@@ -39,7 +39,7 @@ export default function Protocols({ onSelectProtocol }) {
     async function loadProjectProtocols() {
       setLoadingProtocols(true);
       try {
-        const data = await getProtocolsByProjectId();
+        const data = await getProtocolsByProjectId(projectId);
         setProtocols(data);
       } catch (err) {
         console.error("Failed to load project protocols:", err);

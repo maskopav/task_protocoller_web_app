@@ -137,7 +137,7 @@ CREATE TABLE `participant_protocol_contacts` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `participant_protocol_id` integer NOT NULL,
   `contact_type` ENUM('link_sent', 'call') NOT NULL COMMENT 'One row per outreach touchpoint a survey agency logs: the initial link send, or a follow-up call',
-  `attempt_number` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 for link_sent; 1-3 for call, one row per call attempt',
+  `attempt_number` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 for link_sent, 1-3 for call, one row per call attempt',
   `contacted_at` datetime NOT NULL COMMENT 'When the agency actually contacted the participant — distinct from participant_protocols.start_date (link creation time)',
   `notes` text DEFAULT NULL COMMENT 'Agency notes for this touchpoint, e.g. why a call went unanswered',
   `imported_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this row was recorded via the Fieldwork CSV import',
