@@ -11,6 +11,13 @@
         "label": "neuroSHARE Standard Instructions",
         "content": "<h1>Before you start</h1><p><img src='/assets/sittingInstructions/sitting-instructions-general.png' alt='Setup Environment Guide' style='display: block;' /></p><ul><li><strong>Find a quiet space:</strong> Sit at a table in a room without interruptions. Close any windows and turn off the TV.</li><li><strong>Disconnect headphones:</strong> Use your device's built-in microphone and speakers.</li><li><strong>Check your device battery and internet connection:</strong> Ensure stable internet and sufficiently charged battery.</li></ul>"
       }
+    },
+    "consent": {
+      "standard": {
+        "label": "neuroSHARE Standard Consent",
+        "content": "<h1>Informed Consent</h1><p>Thank you for taking part in the <strong>neuroSHARE</strong> study.</p><p>Your participation is entirely <strong>voluntary</strong>. You may withdraw at any time, without giving a reason and without any consequences.</p><p>All data collected will be:</p><ul><li><strong>Anonymised</strong> and stored securely</li><li>Used only for research purposes</li><li>Not shared with third parties without your explicit consent</li></ul><p>If you have any questions about the study, please contact the research team before continuing.</p><p>By checking the box below and continuing, you confirm that you have read and understood the information above and voluntarily agree to participate.</p>",
+        "checkboxText": "Yes, I have read and understood the information above and I agree to participate."
+      }
     }
   }
 }

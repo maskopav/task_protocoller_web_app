@@ -55,25 +55,92 @@
   }
   
   /* =========================================================
-     PROTOCOL HEADER (name / description / controls)
+     PROTOCOL TOPBAR (name + settings toggle + action toolbar)
      ========================================================= */
-  
-  /* container */
-  .protocol-header {
+
+  .protocol-topbar {
     display: flex;
-    align-items: baseline;
-    margin-bottom: 5px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 6px;
+    flex: 0 0 auto;
   }
 
-  .protocol-current { flex: 1; }
-  .protocol-values { flex: 4; }
-  .protocol-controls { flex: 1; }
+  .protocol-topbar-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 320px;
+    min-width: 0;
+  }
 
-  .protocol-values { 
+  .protocol-current {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .protocol-name-wrap {
+    flex: 1 1 200px;
+    min-width: 120px;
+    max-width: 320px;
+  }
+
+  .protocol-name-input-inline {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .btn-settings-toggle {
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background var(--transition);
+  }
+
+  .btn-settings-toggle:hover:not(:disabled) {
+    background: #f0f0f0;
+  }
+
+  .protocol-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .toolbar-btn {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+
+  .protocol-settings-panel {
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    flex: 0 0 auto;
+  }
+
+  .protocol-values {
     display: flex;
     flex-direction:column;
     width: auto;
-    margin: 5px;
     box-sizing: border-box;
   }
 
@@ -135,15 +202,6 @@
     overflow-y: auto;
     white-space: pre-wrap;
     word-wrap: break-word;
-  }
-
-  /* vertical stack of buttons */
-  .button-block {
-    display: flex;
-    flex-direction: column;
-    gap: 0px;
-    max-width: 100%;
-    width: auto; 
   }
 
   .version-warning {
@@ -290,7 +348,26 @@
   /* =========================================================
      LISTS, TASK ITEMS & PROTOCOL ITEMS
      ========================================================= */
-  
+
+  .protocol-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin: 2px 2px 4px;
+    flex: 0 0 auto;
+  }
+
+  .reorder-hint {
+    font-weight: 400;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: var(--muted, #666);
+  }
+
   .protocol-list, .task-list, .task-type-list {
     flex: 1;
     list-style: none;
@@ -300,7 +377,7 @@
     scrollbar-width: thin;
     margin: 0;
   }
-   
+
   .protocol-item, .task-option {
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -308,6 +385,14 @@
     padding: 6px 10px;
     margin-bottom: 5px;
     box-sizing: border-box;
+  }
+
+  .protocol-item[draggable="true"] {
+    cursor: grab;
+  }
+
+  .protocol-item.reorder-active:hover {
+    border-color: var(--primary);
   }
   
   .task-option {
@@ -329,11 +414,58 @@
     align-items: center;
     justify-content: flex-start;
     flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
   }
-  
+
+  .drag-handle {
+    cursor: grab;
+    color: var(--muted, #888);
+    font-size: 1.1rem;
+    line-height: 1;
+    margin-right: 8px;
+    flex: 0 0 auto;
+    user-select: none;
+  }
+
+  .reorder-buttons {
+    display: flex;
+    gap: 4px;
+    flex: 0 0 auto;
+  }
+
+  .reorder-buttons button {
+    width: 24px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--text);
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition);
+  }
+
+  .reorder-buttons button:hover:not(:disabled) {
+    background: #e8f2ff;
+    border-color: var(--primary);
+  }
+
+  .reorder-buttons button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #fff !important;
+  }
+
   .protocol-item.dragging {
     background: #e0f7ff;
     opacity: 0.6;
+    cursor: grabbing;
   }
   
   .empty-protocol {
@@ -880,11 +1012,24 @@
     min-height: auto;
   }
 
-  /* Simplify protocol header layout */
-  .protocol-header {
+  /* Simplify protocol topbar layout */
+  .protocol-topbar,
+  .protocol-topbar-main,
+  .protocol-toolbar {
     flex-direction: column;
     align-items: stretch;
-    margin: 0;
+  }
+
+  .protocol-topbar {
+    margin: 0 0 6px;
+  }
+
+  .protocol-name-wrap {
+    max-width: 100%;
+  }
+
+  .protocol-toolbar {
+    justify-content: stretch;
   }
 
   .protocol-field {
@@ -904,16 +1049,18 @@
   }
 
   .protocol-name-input,
+  .protocol-name-input-inline,
   .protocol-language-select,
   .protocol-description-input {
     flex: none;         /* Stop flex-basis (200px) from forcing width */
-    width: 100% !important; 
+    width: 100% !important;
     max-width: 100%;    /* Allow it to fill the screen */
     box-sizing: border-box;
   }
 
   /* Set reasonable heights */
-  .protocol-name-input {
+  .protocol-name-input,
+  .protocol-name-input-inline {
     height: 45px;
   }
 
@@ -937,13 +1084,18 @@
   }
 
   /* Buttons */
-  .button-block button,
+  .protocol-toolbar button,
   .button-save,
   .button-show-tasks {
     width: 100%;
     font-size: 1rem;
     padding: 10px 5px;
     gap: 0 ;
+  }
+
+  .reorder-buttons button {
+    width: 36px;
+    height: 32px;
   }
 
   /* Reduce font sizes slightly */

@@ -13,6 +13,8 @@ export default function ProtocolForm({
   setReorderMode,
   onEdit,
   onDelete,
+  onMoveUp,
+  onMoveDown,
   onAddQuestionnaire,
   onSave,
   onShowProtocol,
@@ -21,12 +23,12 @@ export default function ProtocolForm({
   dragIndex,
   validation,
   editingMode,
-  previewRandomized, 
+  previewRandomized,
   setPreviewRandomized,
   onEditInfo,
   onDeleteInfo,
-  onEditInstructions,   
-  onDeleteInstructions, 
+  onEditInstructions,
+  onDeleteInstructions,
   onEditConsent,
   onDeleteConsent,
   onEditIdentifiers,
@@ -34,6 +36,9 @@ export default function ProtocolForm({
 }) {
   const { t } = useTranslation(["admin", "tasks"]);
   const [showRandomSettings, setShowRandomSettings] = useState(false);
+  // Collapsed by default once a protocol already has a name (editing an existing
+  // one); expanded by default for a brand-new protocol so the name field is visible.
+  const [showSettings, setShowSettings] = useState(() => !protocolData?.name);
 
   const handleLanguageChange = (lang) => {
     setProtocolData((prev) => ({ ...prev, language: lang }));
@@ -102,31 +107,63 @@ export default function ProtocolForm({
 
   return (
     <div className="protocol-section">
-      <div className="protocol-header">
+      <div className="protocol-topbar">
+        <div className="protocol-topbar-main">
           <h3 className="protocol-current">
             {t("protocolEditor.currentProtocol")}
           </h3>
+          <div className="protocol-name-wrap">
+            <input
+              type="text"
+              className={`protocol-name-input-inline ${validation.errors.name ? "name-input-error" : ""}`}
+              placeholder={t("protocolDashboard.namePlaceholder")}
+              value={protocolData?.name || ""}
+              onChange={handleNameChange}
+              disabled={editingMode || reorderMode}
+            />
+            {validation.errors.name && (
+              <div className="error-text">
+                {t(`validation.protocol.${validation.errors.name}`)}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            className="btn-settings-toggle"
+            onClick={() => setShowSettings((s) => !s)}
+            disabled={reorderMode}
+          >
+            {showSettings ? "▲" : "▼"} {t("protocolEditor.protocolSettings", "Protocol Settings")}
+          </button>
+        </div>
 
+        <div className="protocol-toolbar">
+          <button className="btn-add-questionnaire toolbar-btn" onClick={onAddQuestionnaire} disabled={reorderMode}>
+            📋 {t("protocolEditor.addQuestionnaire")}
+          </button>
+
+          <button
+            className={`reorder-btn toolbar-btn ${reorderMode ? "active" : ""}`}
+            onClick={() => setReorderMode(!reorderMode)}
+          >
+            {reorderMode ? `✅ ${t("protocolEditor.finishReordering")}` : `🔁 ${t("protocolEditor.reorderTasks")}`}
+          </button>
+
+          <button
+            className={`btn-randomize toolbar-btn ${randomStrategy !== 'none' ? 'active-strategy' : ''}`}
+            onClick={() => setShowRandomSettings(true)}
+            title={t("protocolEditor.randomization.title")}
+            disabled={reorderMode}
+          >
+             🎲 {t("protocolEditor.randomization.button")}
+             {randomStrategy !== 'none' && <span className="strategy-badge" />}
+          </button>
+        </div>
+      </div>
+
+      {showSettings && (
+        <div className="protocol-settings-panel">
           <div className="protocol-values">
-            <div className="protocol-field">
-              <label className="protocol-label">
-                {t("protocolDashboard.namePlaceholder")}:
-              </label>
-              <input
-                type="text"
-                className={`protocol-name-input ${validation.errors.name ? "name-input-error" : ""}`}
-                placeholder={t("protocolDashboard.namePlaceholder")}
-                value={protocolData?.name || ""}
-                onChange={handleNameChange}
-                disabled={editingMode || reorderMode} 
-              />
-              {validation.errors.name && (
-                <div className="error-text">
-                  {t(`validation.protocol.${validation.errors.name}`)}
-                </div>
-              )}
-            </div>
-            
             <div className="protocol-field">
               <label className="protocol-label">
                 {t("protocolDashboard.descriptionPlaceholder")}:
@@ -151,8 +188,8 @@ export default function ProtocolForm({
 
             <div className="protocol-field checkbox-field" style={{ marginTop: '10px' }}>
               <label className="checkbox-option">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={!!(protocolData?.use_audio_guide ?? true)}
                   onChange={handleAudioInstructionsChange}
                   disabled={reorderMode}
@@ -235,31 +272,8 @@ export default function ProtocolForm({
               )}
             </div>
           </div>
-
-          <div className="button-block">
-            <button className="btn-add-questionnaire" onClick={onAddQuestionnaire} disabled={reorderMode}>
-              📋{t("protocolEditor.addQuestionnaire")}
-            </button>
-
-            <button
-              className={`reorder-btn ${reorderMode ? "active" : ""}`}
-              onClick={() => setReorderMode(!reorderMode)}
-            >
-              {reorderMode ? t("protocolEditor.finishReordering") : `🔁 ${t("protocolEditor.reorderTasks")}`}
-            </button>
-
-            <button 
-              className={`btn-randomize ${randomStrategy !== 'none' ? 'active-strategy' : ''}`} 
-              onClick={() => setShowRandomSettings(true)}
-              title={t("protocolEditor.randomization.title")}
-              disabled={reorderMode}
-            >
-               🎲 {t("protocolEditor.randomization.button")}
-               {randomStrategy !== 'none' && <span className="strategy-badge" />}
-            </button>
-
-          </div>
-      </div>
+        </div>
+      )}
 
       {/* --- Randomization Settings Modal --- */}
       <AdminModal
@@ -361,11 +375,20 @@ export default function ProtocolForm({
         </div>
       )}
 
+      <div className="protocol-list-header">
+        <span>{t("protocolEditor.tasksListTitle", "Tasks")} ({tasks.length})</span>
+        {reorderMode && (
+          <span className="reorder-hint">
+            {t("protocolEditor.reorderHint", "Drag ⠿ or use the arrows to reorder")}
+          </span>
+        )}
+      </div>
+
       <ul className="protocol-list">
         {tasks.length === 0 ? (
           <li className={`empty-protocol ${validation.errors.tasks ? "tasks-error" : ""}`}>
             <em>
-              {validation.errors.tasks 
+              {validation.errors.tasks
                 ? t(`validation.protocol.${validation.errors.tasks}`) // Show "At least one task must be added"
                 : t("protocolEditor.noTasks")
               }
@@ -383,13 +406,35 @@ export default function ProtocolForm({
                 onDragStart={() => onDragStart(idx)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => onDrop(idx)}
-                className={`protocol-item ${dragIndex === idx ? "dragging" : ""}`}
+                className={`protocol-item ${reorderMode ? "reorder-active" : ""} ${dragIndex === idx ? "dragging" : ""}`}
               >
                 <div className="protocol-row">
+                  {reorderMode && (
+                    <span className="drag-handle" title={t("protocolEditor.tooltips.drag", "Drag to reorder")}>⠿</span>
+                  )}
                   <div className="task-title">
                     {idx + 1}. {translateTaskName(task.category)}
                   </div>
-                  {!reorderMode && (
+                  {reorderMode ? (
+                    <div className="reorder-buttons">
+                      <button
+                        type="button"
+                        title={t("protocolEditor.tooltips.moveUp", "Move up")}
+                        disabled={idx === 0}
+                        onClick={() => onMoveUp(idx)}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        title={t("protocolEditor.tooltips.moveDown", "Move down")}
+                        disabled={idx === tasks.length - 1}
+                        onClick={() => onMoveDown(idx)}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  ) : (
                     <div className="action-buttons">
                       <span className="edit-icon" title={t("protocolEditor.tooltips.edit")} onClick={() => onEdit(idx)}>✎</span>
                       <span className="delete-icon" title={t("protocolEditor.tooltips.delete")} onClick={() => onDelete(idx)}>✖</span>

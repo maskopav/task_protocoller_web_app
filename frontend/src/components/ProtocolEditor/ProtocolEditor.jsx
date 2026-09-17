@@ -56,8 +56,8 @@ const TemplateSelector = ({ templateType, currentLanguage, onSelect, i18n }) => 
         onChange={(e) => {
           const selectedKey = e.target.value;
           if (selectedKey && templates[selectedKey]) {
-            onSelect(templates[selectedKey].content);
-            e.target.value = ""; 
+            onSelect(templates[selectedKey]);
+            e.target.value = "";
           }
         }}
       >
@@ -281,6 +281,19 @@ export function ProtocolEditor({
     setDragIndex(null);
   };
 
+  // --- Handlers: Up/Down Reorder Buttons (precise alternative to drag) ---
+  function handleMoveTask(index, direction) {
+    setTasks((prev) => {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+      const updated = [...prev];
+      [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+      return updated;
+    });
+  }
+  const handleMoveUp = (index) => handleMoveTask(index, -1);
+  const handleMoveDown = (index) => handleMoveTask(index, 1);
+
   // --- Handlers: Protocol Actions ---
   async function handleSaveProtocol() {
     if (!validation.isValid) return;
@@ -436,6 +449,8 @@ export function ProtocolEditor({
           onDragStart={handleDragStart}
           onDrop={handleDrop}
           dragIndex={dragIndex}
+          onMoveUp={handleMoveUp}
+          onMoveDown={handleMoveDown}
           onAddQuestionnaire={handleCreateQuestionnaire}
           onSave={handleSaveProtocol}
           onShowProtocol={handleShowProtocol}
@@ -463,9 +478,9 @@ export function ProtocolEditor({
       >
         <div className="mobile-preview-wrapper">
           <TemplateSelector 
-            templateType="info" 
-            currentLanguage={protocolData?.language || "en"} 
-            onSelect={(content) => updateProtocolField("info_text", content)} 
+            templateType="info"
+            currentLanguage={protocolData?.language || "en"}
+            onSelect={(template) => updateProtocolField("info_text", template.content)}
             i18n={i18n}
           />
           <div className="mobile-phone-frame">
@@ -490,9 +505,9 @@ export function ProtocolEditor({
       >
         <div className="mobile-preview-wrapper">
           <TemplateSelector 
-            templateType="instructions" 
-            currentLanguage={protocolData?.language || "en"} 
-            onSelect={(content) => updateProtocolField("instructions_text", content)} 
+            templateType="instructions"
+            currentLanguage={protocolData?.language || "en"}
+            onSelect={(template) => updateProtocolField("instructions_text", template.content)}
             i18n={i18n}
           />
           <div className="mobile-phone-frame">
@@ -517,9 +532,12 @@ export function ProtocolEditor({
       >
         <div className="mobile-preview-wrapper">
           <TemplateSelector 
-            templateType="consent" 
-            currentLanguage={protocolData?.language || "en"} 
-            onSelect={(content) => updateProtocolField("consent_text", content)} 
+            templateType="consent"
+            currentLanguage={protocolData?.language || "en"}
+            onSelect={(template) => {
+              updateProtocolField("consent_text", template.content);
+              updateProtocolField("consent_checkbox_text", template.checkboxText || "");
+            }}
             i18n={i18n}
           />
           <div className="mobile-phone-frame">
