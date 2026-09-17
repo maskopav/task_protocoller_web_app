@@ -35,8 +35,12 @@ export function MappingProvider({ children, tables = [] }) {
     loadMappings();
   }, [loadMappings]);
 
-  // Expose manual refresh
-  const refreshMappings = async (customTables) => {
+  // Expose manual refresh. Memoized like loadMappings above — an unstable
+  // reference breaks every consumer that (correctly) lists it as an effect
+  // dependency: each call updates mappings state, which re-renders this
+  // provider with a new refreshMappings identity, which re-fires that
+  // consumer's effect, which calls refreshMappings again — a refetch loop.
+  const refreshMappings = useCallback(async (customTables) => {
     try {
       const data = await getMappings(customTables || tables);
       setMappings(data);
@@ -44,7 +48,7 @@ export function MappingProvider({ children, tables = [] }) {
       console.error("Error refreshing mappings:", err);
       setError(err);
     }
-  };
+  }, [tables]);
 
   return (
     <MappingContext.Provider value={{ mappings, loading, error, refreshMappings }}>

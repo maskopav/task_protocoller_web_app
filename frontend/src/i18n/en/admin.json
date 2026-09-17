@@ -1,4 +1,5 @@
 {
+  "loading": "Loading…",
   "adminLogin": {
     "title": "Welcome to the TaskProtocoller",
     "subtitle": "<strong>Admin module:</strong> Manage your research projects, protocols and sites.",

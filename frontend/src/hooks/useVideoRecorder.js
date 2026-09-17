@@ -279,7 +279,13 @@ export const useVideoRecorder = ({
                         landmarks: result.faceLandmarks[0] 
                     });
                 }
-                recordingLoopRef.current = setTimeout(captureCoordinates, FRAME_RATE_MS);
+                // detectForVideo is synchronous and on slower devices takes
+                // longer than FRAME_RATE_MS by itself. Subtract the time it
+                // just spent instead of tacking a full 33ms on top of it
+                // (which compounded into ~107ms/frame). If inference already
+                // blew the budget, fire again immediately.
+                const nextDelay = Math.max(0, FRAME_RATE_MS - (performance.now() - now));
+                recordingLoopRef.current = setTimeout(captureCoordinates, nextDelay);
             }
         };
         

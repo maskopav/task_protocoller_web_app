@@ -91,7 +91,7 @@ export function useProtocolActions() {
 /**
  * Reverse-map backend IDs into readable protocol object.
  */
-function mapProtocolWithNames(raw, mappings) {
+export function mapProtocolWithNames(raw, mappings) {
   if (!raw || !mappings) return null;
 
   const language = mappings.languages.find(l => l.id === raw.language_id);

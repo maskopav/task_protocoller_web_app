@@ -7,8 +7,11 @@ const router = express.Router();
 // Behind requireAuth (see server.js). Each entry is dumped with `SELECT *`, so
 // every column added to an allowlisted table becomes readable by every logged-in
 // admin — including non-masters, who are otherwise scoped by user_projects.
-// Keep this to reference/lookup data: never add `users` (password hashes) or
-// `sites`/`site_projects` (access tokens). The allowlist stays even with auth in
+// Keep this to reference/lookup data: never add `users` (password hashes),
+// `sites`/`site_projects` (access tokens), or the per-user-scoped views —
+// `v_project_summary_stats` was listed here, which handed every admin the
+// stats for projects that /projects/projects-list deliberately hides from
+// them. The allowlist stays even with auth in
 // front of it, because it is also what stops the SQL injection this route once
 // had (see frontend/e2e/mappings-security.spec.ts).
 const ALLOWED_TABLES = new Set([
@@ -17,7 +20,6 @@ const ALLOWED_TABLES = new Set([
   "task_types",
   "languages",
   "tasks",
-  "v_project_summary_stats",
 ]);
 
 // GET /api/mappings?tables=tasks,languages,protocols

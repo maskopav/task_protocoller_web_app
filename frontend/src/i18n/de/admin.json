@@ -1,4 +1,5 @@
 {
+    "loading": "Wird geladen…",
     "title": "Admin Task Editor",
     "availableTasks": "Available Tasks:",
     "currentProtocol": "Current Protocol:",
