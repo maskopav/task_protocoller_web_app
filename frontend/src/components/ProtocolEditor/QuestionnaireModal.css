@@ -194,6 +194,38 @@
     color: var(--danger);
   }
   
+  /* -- Conditional Visibility Section -- */
+  .qm-checkbox-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+
+  .qm-condition-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+  }
+
+  .qm-condition-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+  }
+
+  .qm-condition-value-option {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: normal;
+    text-transform: none;
+    font-size: 0.9rem;
+  }
+
   .qm-rating-preview-faces {
     display: flex;
     gap: 0.6rem;

@@ -3,7 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "./Modal";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
-import "./QuestionnaireModal.css"; 
+import "./QuestionnaireModal.css";
+import {
+  getConditionSourceQuestions,
+  sanitizeShowIf,
+  clearDanglingShowIf,
+} from "./questionConditions";
 
 export default function QuestionnaireModal({ open, onClose, onSave, initialData }) {
   const { t } = useTranslation(["admin", "common"]);
@@ -92,13 +97,42 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
   };
 
   const removeQuestion = (id) => {
-    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    setQuestions((prev) => clearDanglingShowIf(prev.filter((q) => q.id !== id), id));
+  };
+
+  // --- Conditional visibility (showIf) handlers ---
+  const setShowIfEnabled = (questionId, enabled) => {
+    if (!enabled) {
+      updateQuestion(questionId, "showIf", null);
+      return;
+    }
+    const [firstSource] = getConditionSourceQuestions(questions, questionId);
+    if (!firstSource) return;
+    updateQuestion(questionId, "showIf", { questionId: firstSource.id, values: [] });
+  };
+
+  const setShowIfSource = (questionId, sourceId) => {
+    updateQuestion(questionId, "showIf", { questionId: sourceId, values: [] });
+  };
+
+  const toggleShowIfValue = (questionId, value) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId || !q.showIf) return q;
+        const current = q.showIf.values || [];
+        const values = current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value];
+        return { ...q, showIf: { ...q.showIf, values } };
+      })
+    );
   };
 
   const handleSave = () => {
     const cleaned = questions.map((q) => ({
       ...q,
       freeTextOptions: (q.freeTextOptions || []).filter((opt) => q.options.includes(opt)),
+      showIf: sanitizeShowIf(q.showIf, questions),
     }));
     onSave({ title, description, questions: cleaned });
   };
@@ -196,6 +230,56 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                 </div>
 
               </div>
+
+              {/* Conditional Visibility Section */}
+              {(() => {
+                const sourceQuestions = getConditionSourceQuestions(questions, q.id);
+                if (sourceQuestions.length === 0) return null;
+                const selectedSource = q.showIf
+                  ? questions.find((sq) => sq.id === q.showIf.questionId)
+                  : null;
+                return (
+                  <div className="qm-options-section qm-condition-section">
+                    <label className="qm-checkbox-group-inline">
+                      <input
+                        type="checkbox"
+                        checked={!!q.showIf}
+                        onChange={(e) => setShowIfEnabled(q.id, e.target.checked)}
+                      />
+                      {t("protocolEditor.questionnaire.showOnlyIf")}
+                    </label>
+
+                    {q.showIf && (
+                      <div className="qm-condition-detail">
+                        <select
+                          className="qm-select"
+                          value={q.showIf.questionId}
+                          onChange={(e) => setShowIfSource(q.id, Number(e.target.value))}
+                        >
+                          {sourceQuestions.map((sq) => (
+                            <option key={sq.id} value={sq.id}>
+                              {`Q${questions.findIndex((x) => x.id === sq.id) + 1}: ${sq.text || t("protocolEditor.questionnaire.enterQuestionText")}`}
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="qm-condition-values">
+                          {(selectedSource?.options || []).map((opt) => (
+                            <label key={opt} className="qm-condition-value-option">
+                              <input
+                                type="checkbox"
+                                checked={q.showIf.values.includes(opt)}
+                                onChange={() => toggleShowIfValue(q.id, opt)}
+                              />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Options Section */}
               {q.type !== "open" && q.type !== "rating" && (

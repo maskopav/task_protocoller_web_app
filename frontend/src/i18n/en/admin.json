@@ -312,7 +312,8 @@
       "addQuestion": "Add question",
       "removeQuestion": "Remove question",
       "ratingPreview": "Rating preview",
-      "optional": "Optional"
+      "optional": "Optional",
+      "showOnlyIf": "Only show this question if a previous answer matches"
     },
     "tooltips": {
       "edit": "Edit this task",
