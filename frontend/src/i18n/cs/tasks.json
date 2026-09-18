@@ -54,16 +54,17 @@
       "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259610834, "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259617267, "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259622208, "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259626876, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259632940, "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259643040, "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259656707, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259672641, "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259681028, "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?", "type": "single", "options": ["Ano", "Občas", "Ne"] }
+        { "id": 1783259600000, "text": "Jak byste celkově ohodnotil(a) svůj sluch?", "type": "single", "options": ["Výborný", "Dobrý", "Průměrný", "Špatný", "Velmi špatný"] },
+        { "id": 1783259602375, "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259610834, "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259617267, "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259622208, "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259626876, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259632940, "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259643040, "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259656707, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259672641, "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
+        { "id": 1783259681028, "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } }
       ]
     }
   },

@@ -56,16 +56,17 @@
       "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259610834, "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259617267, "text": "Do you have difficulty hearing or understanding your colleagues, clients, or customers?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259622208, "text": "Do you feel handicapped by a hearing problem?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259626876, "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259632940, "text": "Does a hearing problem cause you difficulty in a cinema or in a theatre?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259643040, "text": "Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259656707, "text": "Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259672641, "text": "Does a hearing problem cause you to use the telephone less often than you would like?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259681028, "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["Yes", "Sometimes", "No"] }
+        { "id": 1783259600000, "text": "Overall, how would you rate your hearing ability?", "type": "single", "options": ["Excellent", "Good", "Fair", "Poor", "Very poor"] },
+        { "id": 1783259602375, "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259610834, "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259617267, "text": "Do you have difficulty hearing or understanding your colleagues, clients, or customers?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259622208, "text": "Do you feel handicapped by a hearing problem?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259626876, "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259632940, "text": "Does a hearing problem cause you difficulty in a cinema or in a theatre?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259643040, "text": "Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259656707, "text": "Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259672641, "text": "Does a hearing problem cause you to use the telephone less often than you would like?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } },
+        { "id": 1783259681028, "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["Yes", "Sometimes", "No"], "showIf": { "questionId": 1783259600000, "values": ["Fair", "Poor", "Very poor"] } }
       ]
     }
   },
@@ -83,11 +84,11 @@
       "title": "Medical History Questionnaire",
       "description": "",
       "questions": [
-        { "id": 1789301000001, "text": "In the last 10 years, have you ever experienced speech or voice problems which resulted in a visit to a medical specialist? If yes, please specify the voice or speech problem (e.g., stuttering, dysarthria, …) in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000002, "text": "Have you ever been diagnosed with, or are you currently experiencing, a neurological condition that could affect the results (for example: stroke, Parkinson's disease, epilepsy, multiple sclerosis, or traumatic brain injury)? If yes, please specify the condition in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000003, "text": "Have you ever been diagnosed with, or do you suspect you have, a colour vision deficiency, such as red-green or blue-yellow colour blindness? If yes, please specify the deficiency in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000004, "text": "Have you ever undergone a cosmetic procedure that could potentially affect the function of your facial muscles? For example, botulinum toxin (Botox) injections. If yes, please specify the procedure in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000005, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles? For example, facial paralysis. If yes, please specify the condition in the field below.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] }
+        { "id": 1789301000001, "text": "In the last 10 years, have you ever experienced speech or voice problems (e.g., stuttering, dysarthria, …) which resulted in a visit to a medical specialist?", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000002, "text": "Have you ever been diagnosed with, or are you currently experiencing, a neurological condition that could affect the results (for example: stroke, Parkinson's disease, epilepsy, multiple sclerosis, or traumatic brain injury)?", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000003, "text": "Have you ever been diagnosed with, or do you suspect you have, a colour vision deficiency, such as red-green or blue-yellow colour blindness?", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000004, "text": "Have you ever undergone a cosmetic procedure that could potentially affect the function of your facial muscles? For example, botulinum toxin (Botox) injections.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
+        { "id": 1789301000005, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles? For example, facial paralysis.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] }
       ]
     }
   },
@@ -536,6 +537,14 @@
             "freeTextOptions": []
           },
           {
+            "id": 1786019772000,
+            "text": "Did you experience any technical issues while completing the tasks?",
+            "type": "single",
+            "options": ["Yes", "No"],
+            "optional": false,
+            "freeTextOptions": []
+          },
+          {
             "id": 1786019772865,
             "text": "Did you experience any of the following technical issues?",
             "type": "multiple",
@@ -557,7 +566,8 @@
             "exclusiveOption": "None of the above",
             "freeTextOptions": [
               "Other:"
-            ]
+            ],
+            "showIf": { "questionId": 1786019772000, "values": ["Yes"] }
           },
           {
             "id": 1786019773779,

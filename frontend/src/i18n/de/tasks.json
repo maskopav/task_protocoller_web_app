@@ -43,16 +43,17 @@
       "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "[de] Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259610834, "text": "[de] Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259617267, "text": "[de] Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259622208, "text": "[de] Do you feel handicapped by a hearing problem?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259626876, "text": "[de] Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259632940, "text": "[de] Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259643040, "text": "[de] Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259656707, "text": "[de] Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259672641, "text": "[de] Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259681028, "text": "[de] Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] }
+        { "id": 1783259600000, "text": "[de] Overall, how would you rate your hearing ability?", "type": "single", "options": ["[de] Excellent", "[de] Good", "[de] Fair", "[de] Poor", "[de] Very poor"] },
+        { "id": 1783259602375, "text": "[de] Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259610834, "text": "[de] Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259617267, "text": "[de] Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259622208, "text": "[de] Do you feel handicapped by a hearing problem?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259626876, "text": "[de] Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259632940, "text": "[de] Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259643040, "text": "[de] Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259656707, "text": "[de] Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259672641, "text": "[de] Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } },
+        { "id": 1783259681028, "text": "[de] Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"], "showIf": { "questionId": 1783259600000, "values": ["[de] Fair", "[de] Poor", "[de] Very poor"] } }
       ]
     }
   },

@@ -8,7 +8,7 @@ import {
   getConditionSourceQuestions,
   sanitizeShowIf,
   clearDanglingShowIf,
-} from "./questionConditions";
+} from "../../utils/questionConditions";
 
 export default function QuestionnaireModal({ open, onClose, onSave, initialData }) {
   const { t } = useTranslation(["admin", "common"]);

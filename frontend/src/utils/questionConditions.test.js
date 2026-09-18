@@ -5,6 +5,8 @@ import {
   getConditionSourceQuestions,
   sanitizeShowIf,
   clearDanglingShowIf,
+  isQuestionVisible,
+  pruneHiddenAnswers,
 } from './questionConditions';
 
 const gateQuestion = {
@@ -131,5 +133,88 @@ describe('clearDanglingShowIf', () => {
   it('leaves questions without any showIf untouched', () => {
     const questions = [gateQuestion];
     expect(clearDanglingShowIf(questions, 1)).toEqual([gateQuestion]);
+  });
+});
+
+describe('isQuestionVisible', () => {
+  it('is always visible when there is no showIf', () => {
+    expect(isQuestionVisible(gateQuestion, {})).toBe(true);
+  });
+
+  it('is hidden when the gate question has not been answered yet', () => {
+    expect(isQuestionVisible(followUpQuestion, {})).toBe(false);
+  });
+
+  it('is hidden when the gate answer does not match any trigger value', () => {
+    expect(isQuestionVisible(followUpQuestion, { 1: 'Good' })).toBe(false);
+  });
+
+  it('is shown when the gate answer matches a trigger value (single/dropdown source)', () => {
+    expect(isQuestionVisible(followUpQuestion, { 1: 'Fair' })).toBe(true);
+    expect(isQuestionVisible(followUpQuestion, { 1: 'Poor' })).toBe(true);
+  });
+
+  it('is shown when any selected option matches a trigger value (multiple source)', () => {
+    const q = { id: 2, showIf: { questionId: 1, values: ['Yes'] } };
+    expect(isQuestionVisible(q, { 1: ['Maybe', 'Yes'] })).toBe(true);
+    expect(isQuestionVisible(q, { 1: ['No', 'Maybe'] })).toBe(false);
+    expect(isQuestionVisible(q, { 1: [] })).toBe(false);
+  });
+});
+
+describe('pruneHiddenAnswers', () => {
+  it('removes a follow-up answer once its gate answer no longer matches', () => {
+    const questions = [gateQuestion, followUpQuestion];
+    const answers = { 1: 'Poor', 2: 'Sometimes' };
+    expect(pruneHiddenAnswers(questions, { ...answers, 1: 'Good' })).toEqual({ 1: 'Good' });
+  });
+
+  it('also removes free-text follow-up answers for a hidden question', () => {
+    const q = {
+      id: 2,
+      type: 'single',
+      options: ['Yes', 'No'],
+      freeTextOptions: ['Yes'],
+      showIf: { questionId: 1, values: ['Fair', 'Poor'] },
+    };
+    const questions = [gateQuestion, q];
+    const answers = { 1: 'Good', 2: 'Yes', '2__freeText__Yes': 'details here' };
+    expect(pruneHiddenAnswers(questions, answers)).toEqual({ 1: 'Good' });
+  });
+
+  it('leaves answers untouched when the question is still visible', () => {
+    const questions = [gateQuestion, followUpQuestion];
+    const answers = { 1: 'Fair', 2: 'Sometimes' };
+    expect(pruneHiddenAnswers(questions, answers)).toEqual(answers);
+  });
+
+  it('leaves answers untouched when nothing has a showIf', () => {
+    const questions = [gateQuestion];
+    const answers = { 1: 'Good' };
+    expect(pruneHiddenAnswers(questions, answers)).toEqual(answers);
+  });
+
+  it('cascades: hiding a gate also clears answers gated by the question it gates', () => {
+    // Q1 gates Q2, and Q2 in turn gates Q3.
+    const q1 = { id: 1, type: 'single', options: ['Yes', 'No'] };
+    const q2 = {
+      id: 2,
+      type: 'single',
+      options: ['Yes', 'No'],
+      showIf: { questionId: 1, values: ['Yes'] },
+    };
+    const q3 = { id: 3, showIf: { questionId: 2, values: ['Yes'] } };
+    const questions = [q1, q2, q3];
+    // Both Q2 and Q3 were answered while visible; then Q1 flips to "No".
+    const answers = { 1: 'No', 2: 'Yes', 3: 'anything' };
+    expect(pruneHiddenAnswers(questions, answers)).toEqual({ 1: 'No' });
+  });
+
+  it('does not mutate the input answers object', () => {
+    const questions = [gateQuestion, followUpQuestion];
+    const answers = { 1: 'Good', 2: 'Sometimes' };
+    const snapshot = { ...answers };
+    pruneHiddenAnswers(questions, answers);
+    expect(answers).toEqual(snapshot);
   });
 });

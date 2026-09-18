@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
+import { isQuestionVisible, pruneHiddenAnswers } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
 export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
@@ -32,11 +33,14 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
         nextValue = value;
       }
 
-      const next = { ...prev, [questionId]: nextValue };
+      let next = { ...prev, [questionId]: nextValue };
       (question?.freeTextOptions || []).forEach((opt) => {
         const stillSelected = type === "multiple" ? nextValue.includes(opt) : nextValue === opt;
         if (!stillSelected) delete next[`${questionId}__freeText__${opt}`];
       });
+      // If this answer hides a follow-up question (e.g. a gate question like
+      // "did you have technical problems?" flipped to "No"), drop its stale answer.
+      next = pruneHiddenAnswers(data.questions, next);
       return next;
     });
     if (onLogAnswer) onLogAnswer(questionId, value);
@@ -58,6 +62,11 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
     return true;
   };
 
+  // Questions currently shown to the respondent, in display order. A question
+  // with a showIf (e.g. the HHIE-S follow-ups, or the feedback technical-issues
+  // list) only appears once its gate question's answer matches.
+  const visibleQuestions = (data?.questions || []).filter((q) => isQuestionVisible(q, answers));
+
   const handleFreeTextChange = (questionId, opt, text) => {
     setAnswers((prev) => ({ ...prev, [`${questionId}__freeText__${opt}`]: text }));
     if (onLogAnswer) onLogAnswer(`${questionId}__freeText__${opt}`, text);
@@ -77,8 +86,9 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
   // --- 3. Validation ---
   useEffect(() => {
     if (!data?.questions) return;
-    // A question is satisfied if it is optional OR answered
-    const allSatisfied = data.questions.every((q) => q.optional || isAnswered(q));
+    // A question is satisfied if it is optional OR answered. Hidden (showIf) questions
+    // aren't part of visibleQuestions at all, so they can't block submission.
+    const allSatisfied = visibleQuestions.every((q) => q.optional || isAnswered(q));
     setIsValid(allSatisfied);
   }, [answers, data]);
 
@@ -91,17 +101,18 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
     // "answered", but jumping away mid-selection is disruptive.
     if (lastInteractedType.current === "multiple") return;
 
-    // Find the first question that hasn't been answered yet
-    const firstUnansweredIndex = data.questions.findIndex((q) => !isAnswered(q));
+    // Find the first question that hasn't been answered yet (indices here must match
+    // the rendered "questions-list" children, i.e. visibleQuestions, not data.questions)
+    const firstUnansweredIndex = visibleQuestions.findIndex((q) => !isAnswered(q));
 
     // If all are answered, scroll to the end so the submit button is visible
     if (firstUnansweredIndex === -1) {
-      if (lastScrolledIndex.current < data.questions.length) {
+      if (lastScrolledIndex.current < visibleQuestions.length) {
         const lastCard = listRef.current.lastElementChild;
         if (lastCard) {
           // Aligning the last card to the top pulls the layout up, revealing controls below it
           lastCard.scrollIntoView({ behavior: "smooth", block: "start" });
-          lastScrolledIndex.current = data.questions.length;
+          lastScrolledIndex.current = visibleQuestions.length;
         }
       }
       return;
@@ -162,7 +173,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
         )}
 
         <div className="questions-list" ref={listRef}>
-          {data.questions.map((q) => (
+          {visibleQuestions.map((q) => (
             <div
               key={q.id}
               className={`question-card${isAnswered(q) ? " is-answered" : ""}`}

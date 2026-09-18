@@ -269,6 +269,14 @@ export const Recorder = ({
         } else {
             setIsPreparingToRecord(true);
             recordingStartTimeoutRef.current = setTimeout(() => {
+                // performanceNow is the actual t=0 for both this session's
+                // face-capture frame timestamps (performance.now()-based, see
+                // useVideoRecorder.js's captureCoordinates) and the VAD
+                // lifecycle events logged below/in useVADLogic.js -- unlike
+                // "button_start" above, this fires at the exact instant
+                // audio+video recording start, which is what a coordinates.json
+                // stall offset needs to be measured against.
+                logger.info("recording_actually_started", { performanceNow: performance.now() });
                 startAudioRecording();
                 if (isVideoEnabled) videoRecorder.startRecording();
             }, RECORDING_START_DELAY_MS);
@@ -389,6 +397,45 @@ export const Recorder = ({
             preloadVadAssets();
         }
     }, [useVAD]);
+
+    // Every performance.now() timestamp logged in this file, in useVADLogic.js,
+    // and in every coordinates.json frame (see useVideoRecorder.js's
+    // captureCoordinates) is relative to this tab's navigation start, not to
+    // wall-clock time. Logging performance.timeOrigin once per session is what
+    // lets those be converted to (and compared against) the wall-clock
+    // timestamps system_log.txt entries already carry --
+    // epochMs = performance.timeOrigin + performanceNow.
+    React.useEffect(() => {
+        logger.info("recorder_mounted", { timeOrigin: performance.timeOrigin });
+    }, []);
+
+    // Catches OS-level interruptions (screen lock, app switch, a notification
+    // stealing focus) that nothing else here can see -- these show up in a
+    // coordinates.json as an unexplained multi-second gap with no code-level
+    // cause nearby (see scripts/analyzeCoordinateFps.mjs's stall analysis on
+    // the S452 recording's 25.13s/7.6s freeze). If tab_hidden/tab_visible
+    // straddle a stall's offset, that's the cause; if not, it's something else.
+    React.useEffect(() => {
+        const handleVisibilityChange = () => {
+            logger.info(document.hidden ? "tab_hidden" : "tab_visible", { performanceNow: performance.now() });
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, []);
+
+    // A heartbeat while actively recording: if two consecutive heartbeats end
+    // up more than ~1s later than the 5s interval implies, the WHOLE page
+    // froze (main thread blocked), not just detectForVideo/MicVAD -- which
+    // narrows a future mid-recording stall down to "page-wide freeze" vs.
+    // "specific to face/VAD inference" without needing to guess.
+    React.useEffect(() => {
+        if (recordingStatus !== RECORDING_STATES.RECORDING) return;
+
+        const beat = () => logger.info("recording_heartbeat", { performanceNow: performance.now() });
+        beat();
+        const interval = setInterval(beat, 5000);
+        return () => clearInterval(interval);
+    }, [recordingStatus, RECORDING_STATES.RECORDING]);
 
     const [exampleExists, setExampleExists] = React.useState(false);
     React.useEffect(() => {
