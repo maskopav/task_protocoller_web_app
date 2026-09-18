@@ -11,7 +11,7 @@ import readline from 'readline';
 // Paths - adjust to your structure
 const TASKS_BASE_PATH = './frontend/src/config/tasksBase.ts';
 const I18N_PATH = './frontend/src/i18n';
-const LANGUAGES = ['en', 'cs']; 
+const LANGUAGES = ['en', 'cs', 'de'];
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (query) => new Promise((resolve) => rl.question(query, resolve));

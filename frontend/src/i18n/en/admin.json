@@ -141,8 +141,17 @@
       "accessToken": "Access Token",
       "accessTokenPlaceholder": "leave blank to generate",
       "accessTokenHint": "Changing this stops every desktop app still using the old token.",
-      "configJson": "Site config (JSON)",
-      "configJsonHint": "Free-form JSON returned to the desktop app as site.config_json.",
+      "settings": {
+        "title": "Desktop app settings",
+        "defaultLanguage": "Default language",
+        "languages": "Languages offered in the app",
+        "languagesHint": "None selected = every language the site's protocols exist in.",
+        "defaultMicName": "Default microphone name",
+        "defaultMicGain": "Default microphone gain",
+        "indicatorType": "Sound level indicator during speech tasks",
+        "useCalibration": "Show calibration screen if there are speech tasks",
+        "enableEditor": "Show waveform boundary editor after the protocol"
+      },
       "table": {
         "name": "Name",
         "description": "Description",
@@ -156,7 +165,6 @@
       },
       "errors": {
         "nameRequired": "Site name is required.",
-        "invalidJson": "The site config must be valid JSON.",
         "invalidToken": "The access token must be 16-64 characters: letters, digits, _ or -.",
         "invalidEmail": "Not a valid email address: {{email}}"
       }
@@ -312,6 +320,22 @@
   },
   "protocolEditor": {
     "title": "Protocol Task Editor",
+    "recordingsFileName": "Recording file name template",
+    "instructionsPdfUrl": "Protocol manual (PDF URL)",
+    "editIdentifiersTitle": "Participant identifiers",
+    "identifiersDesc": "Details the examiner fills in before starting the protocol in the desktop app:",
+    "identifiers": {
+      "catalogue": "Standard fields",
+      "custom": "Custom fields",
+      "addCustom": "Add custom field",
+      "required": "Required",
+      "placeholder": "Placeholder",
+      "name": "name (a-z, 0-9, _)",
+      "label": "Label",
+      "help": "Help text",
+      "regex": "[a-zA-Z0-9_-]+",
+      "variable": "Variable"
+    },
     "availableTasks": "Available Tasks:",
     "currentProtocol": "Current Protocol:",
     "noTasks": "No tasks added yet.",
@@ -327,7 +351,6 @@
     "params": "Parameters",
     "addInfoPage": "Add Info Page",
     "introPageAdded": "Info Page",
-    "simulateRandomization": "Simulate Randomization",
     "versionWarning": "! Editing {{name}} protocol: version will be incremented, protocol will be marked as current!",
     "confirmUpdateTitle": "Update Active Protocol?",
     "confirmUpdateMsg": "You are updating an existing protocol. All participants assigned to this protocol will be automatically moved to this new version. Their existing unique links will continue to work but will load this new content.\n\nAre you sure you want to proceed?",
@@ -387,31 +410,21 @@
       "message": "Are you sure you want to go back? Any unsaved changes will be lost.",
       "confirmText": "Yes, go back"
     },
-    "randomization": {
-      "title": "Protocol Flow & Randomization",
-      "button": "Flow Settings",
-      "strategyLabel": "Execution Strategy",
-      "none": "Strict Sequence (Fixed)",
-      "noneDesc": "Participants see tasks exactly as ordered below.",
-      "global": "Global Shuffle",
-      "globalDesc": "All tasks are randomized completely. No grouping.",
-      "module": "Module-Based Logic",
-      "moduleDesc": "Tasks are grouped by type (e.g. Voice, Vision).",
-      "moduleOptions": "Module Options",
-      "shuffleBlocks": "Shuffle Module Order",
-      "shuffleBlocksDesc": "Randomize which block comes first (e.g. Vision before Voice).",
-      "shuffleWithin": "Shuffle Within Modules",
-      "shuffleWithinDesc": "Randomize the order of tasks inside their specific module."
-    },
-    "testingBadge": {
-      "randomization": "Randomization",
-      "blocks": "Modules",
-      "within": "Within",
-      "on": "ON",
-      "off": "OFF",
-      "strategies": {
-        "global": "global",
-        "module": "module"
+    "identifiersButton": "Identifiers",
+    "fileName": {
+      "button": "Edit file name…",
+      "title": "Recording file name template",
+      "desc": "Tick the parts to include in every clip name and drag the rows to change their order.",
+      "colVariable": "Variable",
+      "colDesc": "Description",
+      "dragHint": "Drag to reorder",
+      "templateLabel": "File name template",
+      "example": "Example",
+      "vars": {
+        "installationId": "Identifier of the desktop installation (clinic).",
+        "taskIndex": "Position of the task in the protocol (required).",
+        "subtype": "Kind of task, e.g. PHONATION.",
+        "repetition": "Number of the take within the task."
       }
     }
   },
@@ -482,7 +495,11 @@
       "nameRequired": "Protocol name is required.",
       "nameExists": "A protocol with this name already exists.",
       "languageRequired": "Please select a language.",
-      "tasksRequired": "At least one task must be added."
+      "tasksRequired": "At least one task must be added.",
+      "taskIndexRequired": "The file name template must contain ${taskIndex}.",
+      "unknownField": "The file name template references an identifier that is not defined on this protocol.",
+      "invalidUrl": "The manual must be an http(s) URL.",
+      "invalidIdentifiers": "Identifier names must be unique, lower-case (a-z, 0-9, _), and custom fields need a label."
     }
   }
 }

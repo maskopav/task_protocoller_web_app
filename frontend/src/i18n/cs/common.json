@@ -54,6 +54,20 @@
       "typeAnswer": "Zde napište svou odpověď...",
       "required": "* povinné"
     },
+    "identifiers": {
+      "description": "Vyplňte prosím následující údaje.",
+      "fillAllFields": "Pro pokračování vyplňte všechna povinná pole.",
+      "selectOption": "Vyberte možnost...",
+      "autoFilled": "vyplní aplikace automaticky",
+      "catalogue": {
+        "current_date": { "label": "Datum", "help": "Datum vyšetření (vyplní se automaticky)." },
+        "sex": { "label": "Pohlaví", "help": "" },
+        "education": { "label": "Vzdělání", "help": "Nejvyšší dosažené vzdělání." },
+        "patient_code": { "label": "Kód účastníka", "help": "Studijní kód účastníka, např. HC001." },
+        "surname": { "label": "Příjmení", "help": "" },
+        "year_of_birth": { "label": "Rok narození", "help": "" }
+      }
+    },
     "notFound": {
       "title": "404 – Stránka nenalezena",
       "message": "Prosím zkontroluje URL adresu nebo kontaktujte administrátora."

@@ -11,8 +11,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- IMPORTANT: Replace '$2b$10$GENERATED_HASH_HERE' with the output from node hash_gen.js
 -- Both rows below share the same hash because it's a hash of the same test password ('1234'), not user-specific.
 INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_change_password`) VALUES
-('master@test.com', '$2b$10$BhWskPU74Ri6fKxd3hkxy.qkoZVHCWj5vmh/6IXOIEcAPyZ6MnRcC ', 'System Master', 1, 0),
-('admin@test.com', '$2b$10$BhWskPU74Ri6fKxd3hkxy.qkoZVHCWj5vmh/6IXOIEcAPyZ6MnRcC ', 'Project Admin', 2, 0);
+('master@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'System Master', 1, 0),
+('admin@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Project Admin', 2, 0);
 
 -- --------------------------
 -- 1) Projects
@@ -29,7 +29,7 @@ VALUES
 -- multi-project config case (see docs/newshare_changes.md).
 INSERT INTO sites (id, name, description, country, contact_persons, contact_emails, access_token, config_json, is_active, created_by)
 VALUES
-(1, 'Paris', 'Test site with two projects', 'France', 'Alice Martin', 'alice.martin@example.org', 'paris000paris000paris000paris000', '{"defaultLanguage": "fr"}', 1, 1),
+(1, 'Paris', 'Test site with two projects', 'France', 'Alice Martin', 'alice.martin@example.org', 'paris000paris000paris000paris000', '{"defaultLanguage":"cs","languages":["cs","en"],"useCalibration":true}', 1, 1),
 (2, 'London', 'Test site with one project', 'United Kingdom', 'Bob Smith, Dana Lee', 'bob.smith@example.org, dana.lee@example.org', 'london00london00london00london00', NULL, 1, 1);
 
 INSERT INTO site_projects (site_id, project_id) VALUES

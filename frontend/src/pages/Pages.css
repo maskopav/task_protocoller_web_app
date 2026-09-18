@@ -152,22 +152,6 @@ body {
   margin-bottom: 10dvh;
 }
 
-.testing-mode-badge {
-  background-color: var(--purple);
-  color: white;
-  padding: clamp(4px, 1dvh, 6px) clamp(10px, 2dvw, 15px);
-  border-radius: 12px;
-  font-size: clamp(0.85rem, min(2.5dvw, 2dvh), 0.95rem);
-  font-weight: bold;
-}
-
-.testing-mode-badge .badge-subtext {
-  font-weight: normal;
-  font-size: clamp(0.75rem, 2vw, 0.8rem);
-  margin-left: 6px;
-  opacity: 0.9;
-}
-
 h1 {
   /* Matches standard prominent headers */
   font-size: clamp(1.55rem, 5vw, 2.2rem); 

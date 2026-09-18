@@ -1,5 +1,13 @@
 // src/utils/validation.js
 // Centralized validation logic for TaskProtocoller
+import {
+  normalizeIdentifiers,
+  FIELD_NAME_RE,
+  IDENTIFIER_CATALOGUE,
+  DEFAULT_RECORDINGS_FILE_NAME,
+} from "../components/Identifiers/IdentifierFields";
+
+const CATALOGUE_NAMES = new Set(IDENTIFIER_CATALOGUE.map((f) => f.name));
 
 /**
  * Atomic Validation Rules
@@ -87,7 +95,26 @@ export const validate = {
     if (!rules.isRequired(data.name)) errors.name = "nameRequired";
     if (!data.language) errors.language = "languageRequired";
     if (!data.tasks || data.tasks.length === 0) errors.tasks = "tasksRequired";
-    
+
+    // Desktop-app fields — the backend re-checks these (fieldValidation.js).
+    const ids = normalizeIdentifiers(data.required_identifiers);
+    const names = ids.map((f) => f.name);
+    const badIdentifier = ids.some((f) =>
+      !FIELD_NAME_RE.test(f.name || "") ||
+      (!f.catalogue && (!rules.isRequired(f.label) || CATALOGUE_NAMES.has(f.name)))
+    );
+    if (badIdentifier || new Set(names).size !== names.length) errors.identifiers = "invalidIdentifiers";
+
+    const tpl = (data.recordings_file_name ?? "").trim() || DEFAULT_RECORDINGS_FILE_NAME;
+    if (!tpl.includes("${taskIndex}")) errors.recordings_file_name = "taskIndexRequired";
+    else if ([...tpl.matchAll(/\$\{field\.([^}]*)\}/g)].some((m) => !names.includes(m[1]))) {
+      errors.recordings_file_name = "unknownField";
+    }
+
+    if (data.instructions_pdf_url && !/^https?:\/\/\S+$/.test(data.instructions_pdf_url.trim())) {
+      errors.instructions_pdf_url = "invalidUrl";
+    }
+
     return {
       isValid: Object.keys(errors).length === 0,
       errors

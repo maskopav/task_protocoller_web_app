@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "en",
+  "languages": [
+    "en"
+  ],
+  "defaultMicName": "USB audio CODEC",
+  "defaultMicGain": 0.8,
+  "enableEditor": true,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Speech Study",
+      "protocols": [
+        {
+          "name": "Speech battery",
+          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p10_f_patient_code_label",
+              "helpKey": "p10_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "PHONATION",
+              "titleKey": "p10_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p10_t1_instr1"
+              ],
+              "length": 10,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "PATAKA",
+              "titleKey": "p10_t2_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p10_t2_instr1"
+              ],
+              "length": 7,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "READING",
+              "titleKey": "p10_t3_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p10_t3_instr1",
+                "p10_t3_instr2",
+                "p10_t3_instr3",
+                "p10_t3_instr4"
+              ],
+              "length": 150,
+              "showIndicator": false
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "MONOLOGUE",
+              "titleKey": "p10_t4_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p10_t4_instr1",
+                "p10_t4_instr2",
+                "p10_t4_instr3"
+              ],
+              "length": 60,
+              "showIndicator": false
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "RETELLING",
+              "titleKey": "p10_t5_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p10_t5_instr1",
+                "p10_t5_instr2"
+              ],
+              "length": 90,
+              "showIndicator": false,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "en": {
+      "p10_t1_title": "Prolonged phonation /aaa/",
+      "p10_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
+      "p10_t2_title": "pa-ta-ka repetition",
+      "p10_t2_instr1": "<bold>Draw a deep breath</bold> and repeat the syllables\n/pa-ta-ka-pa-ta-ka/\nas quickly and accurately as possible until the task finishes automatically after 7 seconds. Press Start to begin.",
+      "p10_t3_title": "Reading The North Wind and the Sun",
+      "p10_t3_instr1": "Press Start and read the text on the screen <bold>out loud</bold>.",
+      "p10_t3_instr2": "You might need to <bold>scroll down</bold> to reach the end.",
+      "p10_t3_instr3": "Press Stop when you are finished.",
+      "p10_t3_instr4": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.",
+      "p10_t4_title": "Monologue",
+      "p10_t4_instr1": "We will show you a topic and ask you to talk about it continously for <bold>60 seconds</bold>.",
+      "p10_t4_instr2": "<bold>Topic:</bold>\nPlease try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the Start button and begin speaking.",
+      "p10_t4_instr3": "Press Start when you are ready.",
+      "p10_t5_title": "Retelling fairytale",
+      "p10_t5_instr1": "Press Play story to listen to a spoken fairytale. After listening to the story, press button to calibrate your camera. Then <bold>retell the tale in your own words</bold> in 90 seconds.",
+      "p10_t5_instr2": "Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "p10_f_patient_code_label": "Participant code",
+      "p10_f_patient_code_help": "Study code of the participant, e.g. HC001."
+    }
+  }
+}

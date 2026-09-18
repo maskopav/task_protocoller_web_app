@@ -23,6 +23,11 @@ export interface TaskBase {
   illustration?: string;
 }
 
+// canRepeat / canSkip / showIndicator are desktop-app (SHARE) flow flags,
+// emitted into the site config by backend/src/utils/extConfig.js. Booleans
+// render as checkboxes in TaskModal. Kept inline (no helper) because
+// scripts/sync-tasks.js eval()s this object literal on its own.
+
 // Define all base tasks here (typed)
 export const taskBaseConfig: Record<string, TaskBase> = {
   questionnaire: {
@@ -31,7 +36,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       title: { default: "Questionnaire" },
       description: { default: "" },
-      questions: { default: [] } // Critical: Must be here to accept the array
+      questions: { default: [] }, // Critical: Must be here to accept the array
+      canRepeat: { default: true },
+      canSkip: { default: false },
     },
   },
 
@@ -45,6 +52,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       minDuration: { default: 10 },
       maxDuration: { default: 60 },
       recordVideo: { default: false },
+      canRepeat: { default: true },
+      canSkip: { default: false },
+      showIndicator: { default: true },
     },
   },
 
@@ -57,6 +67,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       repeat: { default: 1 },
       duration: { default: 7 },
       recordVideo: { default: false },
+      canRepeat: { default: true },
+      canSkip: { default: false },
+      showIndicator: { default: true },
     },
   },
 
@@ -70,6 +83,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
+      canRepeat: { default: true },
+      canSkip: { default: false },
+      showIndicator: { default: false },
     },
   },
 
@@ -82,6 +98,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       minDuration: { default: 0 },
       maxDuration: { default: 150 },
       recordVideo: { default: false },
+      canRepeat: { default: true },
+      canSkip: { default: false },
+      showIndicator: { default: false },
     },
   },
 
@@ -95,6 +114,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
+      canRepeat: { default: true },
+      canSkip: { default: false },
+      showIndicator: { default: false },
     },
   },
 
@@ -108,6 +130,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
+      canRepeat: { default: true },
+      canSkip: { default: false },
+      showIndicator: { default: false },
     },
   },
 
@@ -147,7 +172,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       title: { default: "" },
       description: { default: "" },
-      questions: { default: [] }
+      questions: { default: [] },
+      canRepeat: { default: true },
+      canSkip: { default: false },
     },
   },
 
@@ -157,7 +184,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       title: { default: "" },
       description: { default: "" },
-      questions: { default: [] }
+      questions: { default: [] },
+      canRepeat: { default: true },
+      canSkip: { default: false },
     },
   },
 
@@ -167,7 +196,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     params: {
       title: { default: "" },
       description: { default: "" },
-      questions: { default: [] }
+      questions: { default: [] },
+      canRepeat: { default: true },
+      canSkip: { default: false },
     },
   },
 };

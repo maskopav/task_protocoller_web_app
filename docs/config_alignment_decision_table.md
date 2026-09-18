@@ -62,3 +62,86 @@ Legend: **Web** = this repo (backend mapping layer + admin UI/DB). **Ext** = Kot
 - Backend unit test: `getSiteConfig` output validates against the ext spec (schema-shape assertions incl. `${taskIndex}` in every `recordingsFileName`, real booleans, every referenced key present in every `strings.<lang>`).
 - E2E `site-config.spec.ts` updated to the new shape; token non-leakage assertion kept.
 - Manual: feed the produced JSON to the ext app's config validator.
+
+---
+
+## Final decisions & instructions for the ext app devs (2026-09-18)
+
+The web side of this table is **implemented** on branch `newshare` (`backend/src/utils/extConfig.js` is the mapping layer; `GET /site-config/:token` now returns the ext format). The notes the ext devs added to their copy of the table were resolved as follows.
+
+### Row 1 — one token per site; `installationId` is a tracing field, not a credential
+
+- `GET /site-config/:token` keeps **one `access_token` per site**. Every computer of a site uses the same token and receives the identical config.
+- Identifying the computer is still useful — but as a **separate field next to the site token, with no effect on the config**. The ext app keeps its local `installationId` and sends it together with the site token on every recording upload (phase B); the server stores it on the corresponding session row solely to trace the origin device when hunting bugs or bad data. It remains available as the `${installationId}` filename variable.
+
+### Row 3 — keep `projects: [{ name, protocols: [...] }]`
+
+The ext note suggested the flat top-level `protocols[]` is enough. We keep the two-level structure on purpose: a site inherits protocols from **several** projects, and protocol names do not necessarily tell which study they belong to. The picker in the ext app should therefore show **project → protocol**, so the examiner sees which project a protocol is part of. Parsing change: read `projects[].protocols[]` instead of `protocols[]`.
+
+### Row 4 — settings keys
+
+Top level now carries exactly: `defaultLanguage`, `languages`, `defaultMicName`, `defaultMicGain` (number), `enableEditor`, `indicatorType` (`CIRCLE`|`WAVEFORM`), `useCalibration`. As agreed in the note, the ext app simply applies the server values (no local-override tracking required on the web side). All flags are real JSON booleans.
+
+### Row 5 — no `CALIBRATION` tasks
+
+Never emitted. When `useCalibration` is `true` and a protocol contains at least one `VOCAL` task, the ext app synthesizes the calibration screen; `optimalLoudness` is an ext-app setting. THIS DOESNT MEAN THE CALIBRATION IS DROPPED - it was just moved from tasks to general settings.
+
+### Rows 7/8 — `recordingsFileName` stays a per-protocol template (ext proposal declined)
+
+The ext note proposed a fixed app-side name (`{patient_code}-{clinic_id}-{date}`) with the server renaming uploads later. We keep the template because:
+
+- the same clip name exists on the device, in the upload and on the server — no rename step, no reconstruction from uploaded JSON in phase B;
+- uniqueness is structural: the web refuses to save a template without `${taskIndex}`;
+- the ext app already has the template resolver; the only extension is the identifier variable.
+
+Variables: `${installationId}`, `${taskIndex}`, `${task.subtype}`, `${repetition}`, and **`${field.<name>}`** = the value the examiner entered for the patient field with that `name` (sanitize to `[a-zA-Z0-9_-]`). `${patientCode}` and `useInFilename` are gone; `${field.patient_code}` replaces them. The web prefills new protocols with `${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}`; protocols created before this change fall back to `${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}`.
+
+### Rows 6/7/7a — `patientFields` per protocol; identifier catalogue
+
+`patientFields` lives **inside each protocol**. Each field is `{ name, labelKey, helpKey, placeholder, regex, required }` (`useInFilename` dropped; `helpKey` is always present, its string may be empty). The web emits **no options** — for catalogue names the ext app owns the rendering:
+
+| `name` | ext-app behaviour | web defaults |
+|---|---|---|
+| `current_date` | **auto-filled** with the examination date, not editable | required |
+| `sex` | fixed options **`male`, `female`** | required |
+| `education` | fixed options **`less than upper secondary`, `upper secondary and vocational`, `tertiary education`** | optional |
+| `patient_code` | free text | regex `[A-Za-z0-9_-]+`, placeholder `HC001`, required |
+| `surname` | free text | optional |
+| `year_of_birth` | free text | regex `\d{4}`, placeholder `1965`, optional |
+| anything else | **custom** field: free text validated by `regex` (empty = no validation) | as configured |
+
+Stored values go to `participant.json` under `name`. Labels/help are resolved through `strings.<lang>` like every other text.
+
+### Row 12/12a — task mapping and subtypes
+
+| web task | ext `type` / `subtype` |
+|---|---|
+| `phonation` | `VOCAL` / `PHONATION` |
+| `syllableRepeating` with syllable `pataka` | `VOCAL` / `PATAKA` |
+| `syllableRepeating` with any other syllable (`ta`, `ka`, …) | `VOCAL` / `SYLLABLES` |
+| `retelling` | `VOCAL` / `RETELLING` |
+| `reading` | `VOCAL` / `READING` (the text to read is the last instruction paragraph) |
+| `monologue`, `dynamic_monologue` | `VOCAL` / `MONOLOGUE` |
+| any other voice task added to the web later | `VOCAL` / **`CUSTOM`** |
+| `questionnaire`, `rbdsq`, `hhies`, `feedback` | `QUESTIONNAIRE` |
+| `d15colour` (vision), `sdmt` (cognitive) | **skipped** (logged on the server; the protocol is still served) |
+
+**`CUSTOM`** = a generic `VOCAL` screen with no app-side special behaviour: Start/Stop/Repeat flow, `length` timer, title and instructions entirely from the config, no example audio unless `audioExamplePath` is present. `COUNTING` and `EMOTIONS`/`VIDEO` are not produced by the web today.
+
+Field sources: `length` ← task duration (or min/max duration), `nrepetition` ← repetitions, `canRepeat`/`canSkip`/`showIndicator` ← admin-editable task flags (defaults: repeat on, skip off, indicator on for phonation/syllables). Questionnaire: `length` is emitted as the task duration or **300** when unset — please confirm what `length` means for `QUESTIONNAIRE`. Question types: open → `OPEN` (`questionRegex` `.+`, or `.*` when optional), single/dropdown → `SINGLE_CHOICE`, multiple → `MULTIPLE_CHOICE`, emoji rating → `SINGLE_CHOICE` with options `rating_1`…`rating_5`. Web-only question features (`exclusiveOption`, write-in options, optional choice questions, questionnaire description) are not emitted.
+
+### Row 13 — `audioExamplePath` is an absolute URL
+
+As proposed in the note, the app downloads resources itself: `audioExamplePath` is now an **absolute `https://…` URL** (e.g. `https://<web-host>/test/dist/audio/illustrations/phonation_a.wav`), emitted only for phonation /a/, pa-ta-ka, and the Puss-in-Boots / Red-Riding-Hood retellings. Download and cache it when a new config is received; absent key = no example button.
+
+### Rows 10/11/14 — what else changed in the envelope
+
+- Language variants of a protocol are merged into **one** protocol; texts of each variant go to `strings.<lang>`. `languages` = the variant languages of the site's protocols ∩ the site setting.
+- Keys are deterministic: `p<protocolGroup>_t<taskOrder>_title`, `…_instr<i>`, `…_q<i>`, `…_q<i>_text`, `…_q<i>_o<j>`, `p<protocolGroup>_f_<fieldName>_label|_help`, `rating_1..5`. Every key referenced anywhere exists in every `strings.<lang>`.
+- Inline markup is `<bold>`/`<italic>`; paragraphs are separate `instructionKeys`.
+- No `INFO` closing task, no internal ids, no `version`, `randomization`, `info_text`, `instructions_text`, `global_contents`.
+- `configVersion` = `YYYY-MM-DD.HHMMSS` (UTC) of the newest change to the site or any of its protocols.
+
+### Sample configs for testing
+
+`docs/ext_app_samples/*.json` — nine legitimate outputs of the web platform (single protocol, multi-project, merged language variants, skipped vision task, all questionnaire types, full identifier catalogue + custom fields + legacy ids, empty settings, language-restricted site, pre-change legacy protocol). Regenerate with `node backend/scripts/gen-ext-configs.js` (no database needed); `backend/src/utils/extConfig.test.js` asserts the spec invariants over the same fixtures.

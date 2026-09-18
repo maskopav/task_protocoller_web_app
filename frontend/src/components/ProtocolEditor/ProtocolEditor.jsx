@@ -1,6 +1,6 @@
 // src/components/ProtocolEditor/ProtocolEditor.jsx
 import React, { useState, useContext, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { taskBaseConfig } from "../../config/tasksBase";
@@ -16,8 +16,14 @@ import { ProtocolContext } from "../../context/ProtocolContext";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext"; // Import confirm
 import { validate } from "../../utils/validation";
 import AdminModal from "./Modal";
-import { randomizeTasks } from "../../utils/randomizer";
-import { IDENTIFIER_FIELDS } from '../Identifiers/IdentifierFields';
+import {
+  IDENTIFIER_CATALOGUE,
+  catalogueField,
+  emptyCustomField,
+  normalizeIdentifiers,
+  FIELD_NAME_RE,
+  NEW_PROTOCOL_FILE_NAME,
+} from '../Identifiers/IdentifierFields';
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import "./ProtocolEditor.css";
@@ -90,11 +96,17 @@ export function ProtocolEditor({
 
 
   const confirm = useConfirm();
-  const location = useLocation();
 
   // State: Tasks & Protocol Data 
   const [tasks, setTasks] = useState(initialTasks);
-  const [protocolData, setProtocolData] = useState(protocol || selectedProtocol || {});
+  // A brand-new protocol starts with the participant code identifier and a
+  // filename template that uses it (desktop-app defaults).
+  const [protocolData, setProtocolData] = useState(
+    protocol || selectedProtocol || {
+      required_identifiers: [catalogueField("patient_code")],
+      recordings_file_name: NEW_PROTOCOL_FILE_NAME,
+    }
+  );
 
   // State: Modals & Editing
   // Tracks which task index is currently being edited (null = creating new)
@@ -113,10 +125,6 @@ export function ProtocolEditor({
   // --- State: UI & Validation ---
   const [reorderMode, setReorderMode] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
-
-  const [previewRandomized, setPreviewRandomized] = useState(
-    location.state?.previewRandomized ?? true
-  );
 
   const protocols = mappings?.protocols || [];
 
@@ -319,20 +327,9 @@ export function ProtocolEditor({
     }
   }
 
-  function handleShowProtocol(simulateRandomization = false) {
-    let previewTasks = tasks;
-
-    // Only apply the randomizer if the checkbox is checked
-    if (simulateRandomization) {
-      const randomizationSettings = protocolData.randomization || {};
-      previewTasks = randomizeTasks(tasks, randomizationSettings);
-    }
-
-    // Create a temporary protocol object with the final task list
-    const previewProtocol = { 
-      ...protocolData, 
-      tasks: previewTasks 
-    };
+  function handleShowProtocol() {
+    // Tasks always run in the order listed here.
+    const previewProtocol = { ...protocolData, tasks };
 
     // Send the version to the interface
     setSelectedProtocol(previewProtocol);
@@ -340,7 +337,6 @@ export function ProtocolEditor({
       state: {
         protocol: previewProtocol,
         originalTasks: tasks, // untouched tasks list
-        previewRandomized: simulateRandomization,
         testingMode: true,
         editingMode,
       },
@@ -392,17 +388,17 @@ export function ProtocolEditor({
     }
   }
 
-  async function handleDeleteIdentifiers() {
-  const isConfirmed = await confirm({
-    title: t("protocolEditor.confirmDeleteIdentifiersTitle", "Remove Identifiers Page?"),
-    message: t("protocolEditor.confirmDeleteIdentifiersMsg", "Are you sure you want to remove the identifiers page?"),
-    confirmText: t("common:delete"),
-    cancelText: t("common:cancel")
-  });
-  if (isConfirmed) {
-    setProtocolData(prev => ({ ...prev, required_identifiers: [] }));
-  }
-}
+  // --- Identifier editor helpers (catalogue + custom fields) ---
+  const identifiers = normalizeIdentifiers(protocolData?.required_identifiers);
+  const setIdentifiers = (updater) =>
+    setProtocolData(prev => ({ ...prev, required_identifiers: updater(normalizeIdentifiers(prev?.required_identifiers)) }));
+  const addIdentifier = (field) => setIdentifiers(list => [...list, field]);
+  const removeIdentifierAt = (idx) => setIdentifiers(list => list.filter((_, i) => i !== idx));
+  const updateIdentifierAt = (idx, patch) => setIdentifiers(list => list.map((f, i) => (i === idx ? { ...f, ...patch } : f)));
+  const identifierNameInvalid = (f, idx) =>
+    !FIELD_NAME_RE.test(f.name || "") ||
+    IDENTIFIER_CATALOGUE.some(c => c.name === f.name) ||
+    identifiers.some((o, i) => i !== idx && o.name === f.name);
 
   return (
     <div className="admin-container">
@@ -427,14 +423,11 @@ export function ProtocolEditor({
           onShowProtocol={handleShowProtocol}
           validation={validation} 
           editingMode={editingMode}
-          previewRandomized={previewRandomized}
-          setPreviewRandomized={setPreviewRandomized}
           onEditInfo={() => setShowInfoModal(true)}
           onDeleteInfo={handleDeleteInfo}
           onEditInstructions={() => setShowInstructionsModal(true)}
           onDeleteInstructions={handleDeleteInstructions}
           onEditIdentifiers={() => setShowIdentifiersModal(true)}
-          onDeleteIdentifiers={handleDeleteIdentifiers}
         />
       </div>
 
@@ -492,39 +485,80 @@ export function ProtocolEditor({
         </div>
       </AdminModal>
 
-      {/* --- Identifiers Selection Modal --- */}
+      {/* --- Identifiers (patientFields) Modal: catalogue + custom fields --- */}
       <AdminModal
         open={showIdentifiersModal}
-        title={t("protocolEditor.editIdentifiersTitle", "Select Required Identifiers")}
+        title={t("protocolEditor.editIdentifiersTitle", "Participant identifiers")}
         onClose={() => setShowIdentifiersModal(false)}
         onSave={() => setShowIdentifiersModal(false)}
-        showFooter={true}
+        showSaveButton={true}
       >
-        <div className="identifiers-settings">
-          <p>{t("protocolEditor.identifiersDesc", "Select which participant details are required before starting the protocol:")}</p>
-          
-          {IDENTIFIER_FIELDS.map(option => (
-            <label key={option.id} className="checkbox-option" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+        <div className="modal-settings">
+          <p>{t("protocolEditor.identifiersDesc", "Details the examiner fills in before starting the protocol in the desktop app:")}</p>
+
+          <h5>{t("protocolEditor.identifiers.catalogue", "Standard fields")}</h5>
+          {IDENTIFIER_CATALOGUE.map(entry => {
+            const idx = identifiers.findIndex(f => f.catalogue && f.name === entry.name);
+            const field = idx >= 0 ? identifiers[idx] : null;
+            return (
+              <div key={entry.name}>
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={!!field}
+                    onChange={(e) => (e.target.checked ? addIdentifier(catalogueField(entry.name)) : removeIdentifierAt(idx))}
+                  />
+                  <span>
+                    {t(`identifiers.catalogue.${entry.name}.label`, { ns: "common" })} <code>{entry.name}</code>
+                    {entry.name === "current_date" && <small> ({t("identifiers.autoFilled", { ns: "common" })})</small>}
+                  </span>
+                </label>
+                {field && (
+                  <div className="sub-options identifier-options">
+                    <label className="checkbox-option">
+                      <input type="checkbox" checked={!!field.required} onChange={(e) => updateIdentifierAt(idx, { required: e.target.checked })} />
+                      {t("protocolEditor.identifiers.required", "Required")}
+                    </label>
+                    {entry.name !== "current_date" && (
+                      <label>
+                        {t("protocolEditor.identifiers.placeholder", "Placeholder")}{" "}
+                        <input type="text" value={field.placeholder ?? ""} onChange={(e) => updateIdentifierAt(idx, { placeholder: e.target.value })} />
+                      </label>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <h5>{t("protocolEditor.identifiers.custom", "Custom fields")}</h5>
+          {identifiers.map((f, idx) => f.catalogue ? null : (
+            <div key={idx} className="sub-options identifier-custom-row">
               <input
-                type="checkbox"
-                checked={(protocolData?.required_identifiers || []).includes(option.id)}
-                onChange={(e) => {
-                  const isChecked = e.target.checked;
-                  setProtocolData(prev => {
-                    const current = prev.required_identifiers || [];
-                    return {
-                      ...prev,
-                      required_identifiers: isChecked
-                        ? [...current, option.id]
-                        : current.filter(id => id !== option.id)
-                    };
-                  });
-                }}
-                style={{ marginRight: '10px' }}
+                type="text"
+                className={identifierNameInvalid(f, idx) ? "name-input-error" : ""}
+                placeholder={t("protocolEditor.identifiers.name", "name (a-z, 0-9, _)")}
+                value={f.name}
+                onChange={(e) => updateIdentifierAt(idx, { name: e.target.value })}
               />
-              <span>{t(option.tKey, { ns: "common"})}</span>
-            </label>
+              <input type="text" className={!f.label?.trim() ? "name-input-error" : ""} placeholder={t("protocolEditor.identifiers.label", "Label") + "*"} value={f.label} onChange={(e) => updateIdentifierAt(idx, { label: e.target.value })} />
+              <input type="text" placeholder={t("protocolEditor.identifiers.help", "Help text")} value={f.help} onChange={(e) => updateIdentifierAt(idx, { help: e.target.value })} />
+              <input type="text" placeholder={t("protocolEditor.identifiers.placeholder", "Placeholder")} value={f.placeholder} onChange={(e) => updateIdentifierAt(idx, { placeholder: e.target.value })} />
+              <input type="text" style={{ fontFamily: "monospace" }} placeholder={t("protocolEditor.identifiers.regex", "Regex")} value={f.regex} onChange={(e) => updateIdentifierAt(idx, { regex: e.target.value })} />
+              <label className="checkbox-option">
+                <input type="checkbox" checked={!!f.required} onChange={(e) => updateIdentifierAt(idx, { required: e.target.checked })} />
+                {t("protocolEditor.identifiers.required", "Required")}
+              </label>
+              <span className="delete-icon-small" title={t("protocolEditor.tooltips.delete")} onClick={() => removeIdentifierAt(idx)}>✖</span>
+            </div>
           ))}
+          <button type="button" className="btn-add-page-minimal" onClick={() => addIdentifier(emptyCustomField())}>
+            + {t("protocolEditor.identifiers.addCustom", "Add custom field")}
+          </button>
+
+          {validation.errors.identifiers && (
+            <div className="error-text">{t(`validation.protocol.${validation.errors.identifiers}`)}</div>
+          )}
         </div>
       </AdminModal>
 

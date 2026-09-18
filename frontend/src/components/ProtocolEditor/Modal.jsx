@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
  * @param {string} [title] - optional title displayed at the top
  * @param {string|JSX.Element} [description] - optional text or JSX under the title
  * @param {boolean} [showSaveButton=true] - whether to render the Save button
+ * @param {boolean} [showCancelButton=false] - render a Cancel button next to Save
  * @param {React.ReactNode} children - the modal content (forms, etc.)
  */
 export default function AdminModal({
@@ -21,6 +22,7 @@ export default function AdminModal({
   title,
   description,
   showSaveButton = true,
+  showCancelButton = false,
   children,
 }) {
   const { t } = useTranslation("admin");
@@ -37,11 +39,18 @@ export default function AdminModal({
           {children}
         </div>
 
-        {showSaveButton && (
+        {(showSaveButton || showCancelButton) && (
           <div className="modal-actions">
-            <button className="btn-save" onClick={onSave}>
-              {t("protocolEditor.buttons.save")}
-            </button>
+            {showCancelButton && (
+              <button className="btn-cancel" onClick={onClose}>
+                {t("protocolEditor.buttons.cancel")}
+              </button>
+            )}
+            {showSaveButton && (
+              <button className="btn-save" onClick={onSave}>
+                {t("protocolEditor.buttons.save")}
+              </button>
+            )}
           </div>
         )}
       </div>

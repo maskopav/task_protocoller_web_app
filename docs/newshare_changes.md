@@ -31,9 +31,17 @@ user_sites     id, user_id, site_id, assigned_at
   its config request. Generated server-side (32 hex chars via
   `utils/tokenGenerator.js`), never editable, and never included in the config
   response body.
-- `sites.config_json` is free-form site-level JSON echoed back verbatim in the
-  config response (`site.config_json`). The web app validates that it parses,
-  nothing more — its meaning belongs to the desktop app.
+- `sites.config_json` holds the desktop app's settings (`defaultLanguage`,
+  `languages`, `defaultMicName`, `defaultMicGain`, `enableEditor`,
+  `indicatorType`, `useCalibration`), edited through a typed form in
+  `SiteModal`. The backend type-checks known keys and strips unknown ones
+  (`normalizeSiteSettings` in `utils/fieldValidation.js`); the mapping layer
+  merges them into the top level of the config.
+- `protocols.recordings_file_name` (clip filename template, must contain
+  `${taskIndex}`) and `protocols.instructions_pdf_url` are the desktop-app
+  protocol properties; `protocols.required_identifiers` now stores identifier
+  objects `{name, catalogue, label, help, placeholder, regex, required}`
+  (legacy string ids are still read and mapped onto the catalogue).
 - Protocol inheritance is **derived, not stored**: a site's protocols are
   whatever its projects link to via the existing `project_protocols`. There is
   deliberately no `site_protocols` table.
@@ -83,47 +91,47 @@ participant/QR email helpers in `emailService.js`. Dependencies removed:
 
 The endpoint the desktop app calls. Gated by the site token; passes CORS with
 no Origin header (server-to-server). Responses: `404` unknown token, `403`
-deactivated site, `200`:
+deactivated site, `200` = the **desktop app's config format**
+(`docs/ext_app_Task_Configuration_JSON_Spec.md`, decisions in
+`docs/config_alignment_decision_table.md`):
 
 ```json
 {
-  "site": { "name": "Paris", "config_json": { "defaultLanguage": "fr" } },
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "cs", "languages": ["cs", "en"],
+  "defaultMicName": "", "defaultMicGain": 1, "enableEditor": false,
+  "indicatorType": "CIRCLE", "useCalibration": true,
   "projects": [
-    {
-      "id": 1,
-      "name": "Project A",
-      "protocols": [
-        {
-          "id": 12,
-          "name": "PD-battery",
-          "version": 3,
-          "language_id": 2,
-          "language_code": "fr",
-          "randomization": { "strategy": "none" },
-          "required_identifiers": [],
-          "use_audio_guide": 0,
-          "info_text": "", "instructions_text": "",
-          "global_contents": [ { "type": "consent", "html": "<p>…</p>" } ],
-          "tasks": [
-            { "id": 100, "task_id": 2, "task_order": 1,
-              "params": { "duration": 3, "syllable": "ta" }, "contents": [] }
-          ]
-        }
-      ]
-    }
-  ]
+    { "name": "Project A", "protocols": [
+      { "name": "PD-battery",
+        "protocolInstructionsPdfUrl": "https://…/manual.pdf",
+        "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+        "patientFields": [ { "name": "patient_code", "labelKey": "p1_f_patient_code_label", "helpKey": "p1_f_patient_code_help", "placeholder": "HC001", "regex": "[A-Za-z0-9_-]+", "required": true } ],
+        "tasks": [
+          { "type": "VOCAL", "subtype": "SYLLABLES", "titleKey": "p1_t1_title", "instructionKeys": ["p1_t1_instr1"],
+            "length": 3, "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1 }
+        ] } ] }
+  ],
+  "strings": { "cs": { "p1_t1_title": "…" }, "en": { "p1_t1_title": "…" } }
 }
 ```
 
 Notes:
-- The shape is the web app's **native** protocol serialization (same core as
-  the admin editor fetch — both are built by `assembleProtocol()` in
-  `protocolController.js`). Transforming to the desktop app's own config
-  format is deliberately deferred until that spec stabilizes.
-- A site with multiple projects gets one entry per project — the multi-project
-  case is first-class. Language variants of a protocol appear as separate
-  protocol entries (each `project_protocols` link is returned); the app picks
-  by `language_code`.
+- The handler only gathers native rows (`assembleProtocol()` per protocol,
+  `tasks` ⨝ `task_types`); the transform is the pure `buildExtConfig()` in
+  `src/utils/extConfig.js`, which also drives the fixture generator
+  `scripts/gen-ext-configs.js` (→ `docs/ext_app_samples/*.json`, no DB).
+- Language variants of a protocol (same `protocol_group_id`) are merged into
+  one entry; each variant's texts go to `strings.<lang>`. Task texts come from
+  the frontend i18n `tasks.json` files (`I18N_PATH` in prod, `frontend/src/i18n`
+  in dev), with `{{placeholder}}` resolution and HTML → `<bold>`/`<italic>`
+  conversion done server-side.
+- Vision/cognitive tasks are skipped (logged as WARN); voice → `VOCAL`
+  (+subtype), questionnaires → `QUESTIONNAIRE`. `CALIBRATION` is never emitted
+  (`useCalibration` flag instead).
+- `audioExamplePath` is an absolute URL under `ASSET_BASE_URL` (new env var =
+  public origin of the frontend build), only for the example files that exist.
 - Only `is_active` projects and `is_current` protocol versions are returned.
   A project with no linked protocols is omitted.
 
@@ -169,6 +177,13 @@ allowlist — they carry access tokens and only travel over the authenticated
 - API modules `participants.js`, `participantProtocols.js`; participant
   functions in `auth.js`.
 - Project dashboard participant/fieldwork action cards and participant stats.
+- **Flow settings / randomization** (button, modal, preview toggle,
+  `utils/randomizer.ts`, testing badge). Tasks always run in the listed order.
+  The `protocols.randomization` column is left in place but no longer written;
+  `progressTracker` still reads a legacy strategy for progress counting only.
+- The language picker on the protocol dashboard's "create protocol" card —
+  languages are chosen in the protocol editor instead; new protocols start as
+  `en`.
 
 ### Kept deliberately
 
@@ -203,8 +218,18 @@ allowlist — they carry access tokens and only travel over the authenticated
   (authenticated `apiFetch`).
 - i18n: new keys only in `en/admin.json`
   (`adminDashboard.masterTools.sites*`, `management.siteManagement.*`,
-  `projectDashboard.sitesTitle`/`noSites`/`stats.sites`); `cs`/`de` fall back
-  to English as they already do for the management sections.
+  `projectDashboard.sitesTitle`/`noSites`/`stats.sites`,
+  `protocolEditor.fileName.*`, `protocolEditor.identifiersButton`);
+  `cs`/`de` fall back to English as they already do for the management
+  sections.
+- Protocol editor layout: the identifiers editor opens from a `🪪 Identifiers`
+  button in the right-hand button block (where Flow Settings used to be), and
+  the chosen identifiers are listed in a read-only table under the
+  description. The recording filename is no longer a free-text field —
+  `FileNameModal` offers a checkbox/drag table of the available variables and
+  identifiers, an editable template line (any table edit reformats it as
+  tokens joined by `_`) and a rendered example, both also shown in the
+  current-protocol column.
 
 ## Tests
 

@@ -10,18 +10,34 @@ import { validate } from "../../utils/validation";
 // backend re-checks it — this is UX only.
 const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
+// Desktop-app settings stored in sites.config_json (exact keys the app reads).
+// Mirrors normalizeSiteSettings in backend/src/utils/fieldValidation.js.
+const SETTINGS_DEFAULTS = {
+  defaultLanguage: "en",
+  languages: [],
+  defaultMicName: "",
+  defaultMicGain: 1,
+  enableEditor: false,
+  indicatorType: "CIRCLE",
+  useCalibration: true,
+};
+const UI_LANGUAGES = ["en", "cs", "de"];
+
+const pickSettings = (raw) =>
+  Object.fromEntries(Object.keys(SETTINGS_DEFAULTS).map((k) => [k, raw?.[k] ?? SETTINGS_DEFAULTS[k]]));
+
 export default function SiteModal({ site, onClose, onSuccess }) {
   const { t } = useTranslation(["admin", "common"]);
   const isEdit = !!site;
   const [formData, setFormData] = useState({
     name: site?.name || "",
     description: site?.description || "",
-    config_json: site?.config_json ? JSON.stringify(site.config_json, null, 2) : "",
     access_token: site?.access_token || "",
     country: site?.country || "",
     contact_persons: site?.contact_persons || "",
     contact_emails: site?.contact_emails || "",
   });
+  const [settings, setSettings] = useState(pickSettings(site?.config_json));
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,16 +45,12 @@ export default function SiteModal({ site, onClose, onSuccess }) {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (error) setError("");
   };
+  const setSetting = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
+  const toggleLanguage = (code, on) =>
+    setSetting("languages", on ? [...settings.languages, code] : settings.languages.filter((l) => l !== code));
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) return setError(t("management.siteManagement.errors.nameRequired"));
-    if (formData.config_json.trim()) {
-      try {
-        JSON.parse(formData.config_json);
-      } catch {
-        return setError(t("management.siteManagement.errors.invalidJson"));
-      }
-    }
     // Blank is allowed: on create the backend generates one, on edit it keeps
     // the stored value (access_token = IFNULL(?, access_token)).
     const token = formData.access_token.trim();
@@ -55,7 +67,7 @@ export default function SiteModal({ site, onClose, onSuccess }) {
       const payload = {
         name: formData.name.trim(),
         description: formData.description,
-        config_json: formData.config_json.trim() || null,
+        config_json: { ...settings, defaultMicGain: Number(settings.defaultMicGain) || 0 },
         access_token: token,
         country: formData.country,
         contact_persons: formData.contact_persons,
@@ -74,6 +86,8 @@ export default function SiteModal({ site, onClose, onSuccess }) {
       setIsSubmitting(false);
     }
   };
+
+  const s = (key) => t(`management.siteManagement.settings.${key}`);
 
   return (
     <Modal
@@ -115,17 +129,58 @@ export default function SiteModal({ site, onClose, onSuccess }) {
           />
           <span className="text-muted small">⚠️ {t("management.siteManagement.accessTokenHint")}</span>
         </div>
-        <div className="form-col">
-          <label className="form-label">{t("management.siteManagement.configJson")}</label>
-          <textarea
-            className="participant-input description-textarea"
-            style={{ fontFamily: "monospace", minHeight: "120px" }}
-            placeholder='{ "defaultLanguage": "en" }'
-            value={formData.config_json}
-            onChange={(e) => handleInputChange("config_json", e.target.value)}
-          />
-          <span className="text-muted small">{t("management.siteManagement.configJsonHint")}</span>
-        </div>
+
+        {/* Desktop-app settings (sites.config_json) */}
+        <fieldset className="form-col" style={{ border: "1px solid #eee", borderRadius: 8, padding: "0.75rem" }}>
+          <legend className="form-label">{s("title")}</legend>
+          <div className="form-grid-2">
+            <div className="form-col">
+              <label className="form-label">{s("defaultLanguage")}</label>
+              <select className="participant-input" value={settings.defaultLanguage} onChange={(e) => setSetting("defaultLanguage", e.target.value)}>
+                {UI_LANGUAGES.map((code) => <option key={code} value={code}>{code}</option>)}
+              </select>
+            </div>
+            <div className="form-col">
+              <label className="form-label">{s("languages")}</label>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                {UI_LANGUAGES.map((code) => (
+                  <label key={code} className="checkbox-option">
+                    <input type="checkbox" checked={settings.languages.includes(code)} onChange={(e) => toggleLanguage(code, e.target.checked)} /> {code}
+                  </label>
+                ))}
+              </div>
+              <span className="text-muted small">{s("languagesHint")}</span>
+            </div>
+          </div>
+          <div className="form-grid-2">
+            <div className="form-col">
+              <label className="form-label">{s("defaultMicName")}</label>
+              <input className="participant-input" placeholder="USB audio CODEC" value={settings.defaultMicName} onChange={(e) => setSetting("defaultMicName", e.target.value)} />
+            </div>
+            <div className="form-col">
+              <label className="form-label">{s("defaultMicGain")}</label>
+              <input className="participant-input" type="number" step="0.1" min="0" value={settings.defaultMicGain} onChange={(e) => setSetting("defaultMicGain", e.target.value)} />
+            </div>
+          </div>
+          <div className="form-grid-2">
+            <div className="form-col">
+              <label className="form-label">{s("indicatorType")}</label>
+              <select className="participant-input" value={settings.indicatorType} onChange={(e) => setSetting("indicatorType", e.target.value)}>
+                <option value="CIRCLE">CIRCLE</option>
+                <option value="WAVEFORM">WAVEFORM</option>
+              </select>
+            </div>
+            <div className="form-col">
+              <label className="checkbox-option">
+                <input type="checkbox" checked={!!settings.useCalibration} onChange={(e) => setSetting("useCalibration", e.target.checked)} /> {s("useCalibration")}
+              </label>
+              <label className="checkbox-option">
+                <input type="checkbox" checked={!!settings.enableEditor} onChange={(e) => setSetting("enableEditor", e.target.checked)} /> {s("enableEditor")}
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
         {isSubmitting && <p>{t("common:saving")}...</p>}
         {error && <div className="validation-error-msg">{error}</div>}
       </div>

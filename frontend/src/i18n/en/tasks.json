@@ -7,6 +7,8 @@
     "pleaseAnswerAll": "Please answer all required questions to continue.",
     "optionalLabel": "(optional)",
     "params": {
+      "canRepeat": { "label": "Allow repeat" },
+      "canSkip": { "label": "Allow skip" },
       "title": { "label": "Title" },
       "description": { "label": "Description" },
       "questions": { "label": "Questions" }
@@ -18,6 +20,8 @@
     "title": "Questionnaire: {{title}}",
     "instructions": "Please answer the following questions.",
     "params": {
+      "canRepeat": { "label": "Allow repeat" },
+      "canSkip": { "label": "Allow skip" },
       "title": { "label": "Title" },
       "description": { "label": "Description" },
       "questions": { "label": "Questions" }
@@ -48,6 +52,8 @@
     "title": "Questionnaire: {{title}}",
     "instructions": "Please answer the following questions.",
     "params": {
+      "canRepeat": { "label": "Allow repeat" },
+      "canSkip": { "label": "Allow skip" },
       "title": { "label": "Title" },
       "description": { "label": "Description" },
       "questions": { "label": "Questions" }
@@ -77,6 +83,9 @@
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "Sustain /{{phoneme}}/ until out of breath.",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
+        "showIndicator": { "label": "Show level indicator" },
         "phoneme": {
           "label": "Phoneme",
           "values": {
@@ -107,6 +116,9 @@
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "Repeat /{{syllable}}-{{syllable}}/ syllables.",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
+        "showIndicator": { "label": "Show level indicator" },
         "syllable": {
           "label": "Syllable",
           "values": {
@@ -136,6 +148,9 @@
       "instructionsPostCalibration": "Please hold your phone in the calibrated position. <br/><br/>Press Play story to listen to a spoken story. {{playStory}} After listening to the story, press START and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, it doesn't matter if the retold tale is correct or complete.",
       "instructionsActive": "Please retell the story in your own words in {{duration}} seconds.",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
+        "showIndicator": { "label": "Show level indicator" },
         "fairytale": {
           "label": "Fairytale",
           "values": {
@@ -166,6 +181,9 @@
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "{{text}}",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
+        "showIndicator": { "label": "Show level indicator" },
         "topic": {
           "label":"Text topic",
           "values": {
@@ -204,6 +222,9 @@
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
+        "showIndicator": { "label": "Show level indicator" },
         "topic": {
           "label":"Monologue topic",
           "values": {
@@ -236,6 +257,9 @@
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
+        "showIndicator": { "label": "Show level indicator" },
         "topics": {
           "label": "Select multiple topics",
           "values": {
@@ -429,6 +453,8 @@
       "title": "Questionnaire: {{title}}",
       "instructions": "Please answer the following questions.",
       "params": {
+        "canRepeat": { "label": "Allow repeat" },
+        "canSkip": { "label": "Allow skip" },
         "title": { "label": "Title" },
         "description": { "label": "Description" },
         "questions": { "label": "Questions" }

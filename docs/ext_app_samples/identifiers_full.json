@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "en",
+  "languages": [
+    "en"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Identifier Study",
+      "protocols": [
+        {
+          "name": "All identifiers",
+          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+          "recordingsFileName": "${field.patient_code}_${field.surname}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "current_date",
+              "labelKey": "p70_f_current_date_label",
+              "helpKey": "p70_f_current_date_help",
+              "placeholder": "",
+              "regex": "",
+              "required": true
+            },
+            {
+              "name": "sex",
+              "labelKey": "p70_f_sex_label",
+              "helpKey": "p70_f_sex_help",
+              "placeholder": "",
+              "regex": "",
+              "required": true
+            },
+            {
+              "name": "education",
+              "labelKey": "p70_f_education_label",
+              "helpKey": "p70_f_education_help",
+              "placeholder": "",
+              "regex": "",
+              "required": true
+            },
+            {
+              "name": "patient_code",
+              "labelKey": "p70_f_patient_code_label",
+              "helpKey": "p70_f_patient_code_help",
+              "placeholder": "PD001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            },
+            {
+              "name": "surname",
+              "labelKey": "p70_f_surname_label",
+              "helpKey": "p70_f_surname_help",
+              "placeholder": "",
+              "regex": "",
+              "required": false
+            },
+            {
+              "name": "year_of_birth",
+              "labelKey": "p70_f_year_of_birth_label",
+              "helpKey": "p70_f_year_of_birth_help",
+              "placeholder": "1965",
+              "regex": "\\d{4}",
+              "required": false
+            },
+            {
+              "name": "visit_number",
+              "labelKey": "p70_f_visit_number_label",
+              "helpKey": "p70_f_visit_number_help",
+              "placeholder": "V0",
+              "regex": "V\\d+",
+              "required": true
+            },
+            {
+              "name": "medication_state",
+              "labelKey": "p70_f_medication_state_label",
+              "helpKey": "p70_f_medication_state_help",
+              "placeholder": "ON/OFF",
+              "regex": "",
+              "required": false
+            },
+            {
+              "name": "patient_code",
+              "labelKey": "p70_f_patient_code_label",
+              "helpKey": "p70_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "PHONATION",
+              "titleKey": "p70_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p70_t1_instr1"
+              ],
+              "length": 10,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "en": {
+      "p70_t1_title": "Prolonged phonation /aaa/",
+      "p70_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
+      "p70_f_current_date_label": "Date",
+      "p70_f_current_date_help": "Date of the examination (filled in automatically).",
+      "p70_f_sex_label": "Sex",
+      "p70_f_sex_help": "",
+      "p70_f_education_label": "Education",
+      "p70_f_education_help": "Highest completed level of education.",
+      "p70_f_patient_code_label": "Participant code",
+      "p70_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+      "p70_f_surname_label": "Surname",
+      "p70_f_surname_help": "",
+      "p70_f_year_of_birth_label": "Year of birth",
+      "p70_f_year_of_birth_help": "",
+      "p70_f_visit_number_label": "Visit number",
+      "p70_f_visit_number_help": "V0 baseline, V3 three-month follow-up",
+      "p70_f_medication_state_label": "Medication state",
+      "p70_f_medication_state_help": ""
+    }
+  }
+}

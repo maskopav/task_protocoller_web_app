@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "cs",
+  "languages": [
+    "cs"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Czech Clinic Study",
+      "protocols": [
+        {
+          "name": "Czech protocol",
+          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p90_f_patient_code_label",
+              "helpKey": "p90_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "PHONATION",
+              "titleKey": "p90_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p90_t1_instr1"
+              ],
+              "length": 10,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "PATAKA",
+              "titleKey": "p90_t2_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p90_t2_instr1"
+              ],
+              "length": 7,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "READING",
+              "titleKey": "p90_t3_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p90_t3_instr1"
+              ],
+              "length": 150,
+              "showIndicator": false
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "MONOLOGUE",
+              "titleKey": "p90_t4_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p90_t4_instr1",
+                "p90_t4_instr2",
+                "p90_t4_instr3"
+              ],
+              "length": 60,
+              "showIndicator": false
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "RETELLING",
+              "titleKey": "p90_t5_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p90_t5_instr1"
+              ],
+              "length": 90,
+              "showIndicator": false,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "cs": {
+      "p90_t1_title": "Prodloužená fonace /aaa/",
+      "p90_t1_instr1": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /aaa/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň sekund. Jakmile se vám dojde dech, stiskněte STOP.",
+      "p90_t2_title": "Opakování pa-ta-ka",
+      "p90_t2_instr1": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /pa-ta-ka/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
+      "p90_t3_title": "Čtení: northWind",
+      "p90_t3_instr1": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
+      "p90_t4_title": "Monolog na téma: dayDescription",
+      "p90_t4_instr1": "Ukážeme vám téma a požádáme vás, abyste o něm volně hovořil/a po dobu <bold>60 sekund</bold>.",
+      "p90_t4_instr2": "<bold>Téma:</bold>",
+      "p90_t4_instr3": "Až budete připraven/a, stiskněte Start.",
+      "p90_t5_title": "Vyprávění: pussInBoots",
+      "p90_t5_instr1": "Stiskněte START a převyprávějte pohádku: pussInBoots. Po dokončení stiskněte STOP.",
+      "p90_f_patient_code_label": "Kód účastníka",
+      "p90_f_patient_code_help": "Studijní kód účastníka, např. HC001."
+    }
+  }
+}

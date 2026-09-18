@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "en",
+  "languages": [
+    "en"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Legacy Study",
+      "protocols": [
+        {
+          "name": "Legacy protocol",
+          "recordingsFileName": "${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p100_f_patient_code_label",
+              "helpKey": "p100_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            },
+            {
+              "name": "sex",
+              "labelKey": "p100_f_sex_label",
+              "helpKey": "p100_f_sex_help",
+              "placeholder": "",
+              "regex": "",
+              "required": true
+            },
+            {
+              "name": "year_of_birth",
+              "labelKey": "p100_f_year_of_birth_label",
+              "helpKey": "p100_f_year_of_birth_help",
+              "placeholder": "1965",
+              "regex": "\\d{4}",
+              "required": false
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "SYLLABLES",
+              "titleKey": "p100_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p100_t1_instr1"
+              ],
+              "length": 7,
+              "showIndicator": true
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "MONOLOGUE",
+              "titleKey": "p100_t2_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p100_t2_instr1",
+                "p100_t2_instr2",
+                "p100_t2_instr3"
+              ],
+              "length": 60,
+              "showIndicator": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "en": {
+      "p100_t1_title": "ta-ta-ta repetition",
+      "p100_t1_instr1": "<bold>Draw a deep breath</bold> and repeat the syllables\n/ta-ta-ta-ta-ta-ta/\nas quickly and accurately as possible until the task finishes automatically after 7 seconds. Press Start to begin.",
+      "p100_t2_title": "Monologue",
+      "p100_t2_instr1": "We will show you a topic and ask you to talk about it continously for <bold>60 seconds</bold>.",
+      "p100_t2_instr2": "<bold>Topic:</bold>\nPlease try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the Start button and begin speaking.",
+      "p100_t2_instr3": "Press Start when you are ready.",
+      "p100_f_patient_code_label": "Participant code",
+      "p100_f_patient_code_help": "Study code of the participant, e.g. HC001.",
+      "p100_f_sex_label": "Sex",
+      "p100_f_sex_help": "",
+      "p100_f_year_of_birth_label": "Year of birth",
+      "p100_f_year_of_birth_help": ""
+    }
+  }
+}

@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "cs",
+  "languages": [
+    "cs",
+    "en"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": false,
+  "projects": [
+    {
+      "name": "Bilingual Study",
+      "protocols": [
+        {
+          "name": "Bilingual protocol",
+          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p40_f_patient_code_label",
+              "helpKey": "p40_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "PHONATION",
+              "titleKey": "p40_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p40_t1_instr1"
+              ],
+              "length": 10,
+              "showIndicator": true
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "READING",
+              "titleKey": "p40_t2_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p40_t2_instr1"
+              ],
+              "length": 150,
+              "showIndicator": false
+            },
+            {
+              "type": "QUESTIONNAIRE",
+              "titleKey": "p40_t3_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "questions": [
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t3_q1",
+                  "questionTextKey": "p40_t3_q1_text",
+                  "questionOptions": [
+                    "p40_t3_q1_o1",
+                    "p40_t3_q1_o2"
+                  ]
+                },
+                {
+                  "questionType": "OPEN",
+                  "questionKey": "p40_t3_q2",
+                  "questionTextKey": "p40_t3_q2_text",
+                  "questionRegex": ".*"
+                }
+              ],
+              "length": 300
+            },
+            {
+              "type": "QUESTIONNAIRE",
+              "titleKey": "p40_t4_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "questions": [
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q1",
+                  "questionTextKey": "p40_t4_q1_text",
+                  "questionOptions": [
+                    "p40_t4_q1_o1",
+                    "p40_t4_q1_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q2",
+                  "questionTextKey": "p40_t4_q2_text",
+                  "questionOptions": [
+                    "p40_t4_q2_o1",
+                    "p40_t4_q2_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q3",
+                  "questionTextKey": "p40_t4_q3_text",
+                  "questionOptions": [
+                    "p40_t4_q3_o1",
+                    "p40_t4_q3_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q4",
+                  "questionTextKey": "p40_t4_q4_text",
+                  "questionOptions": [
+                    "p40_t4_q4_o1",
+                    "p40_t4_q4_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q5",
+                  "questionTextKey": "p40_t4_q5_text",
+                  "questionOptions": [
+                    "p40_t4_q5_o1",
+                    "p40_t4_q5_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q6",
+                  "questionTextKey": "p40_t4_q6_text",
+                  "questionOptions": [
+                    "p40_t4_q6_o1",
+                    "p40_t4_q6_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q7",
+                  "questionTextKey": "p40_t4_q7_text",
+                  "questionOptions": [
+                    "p40_t4_q7_o1",
+                    "p40_t4_q7_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q8",
+                  "questionTextKey": "p40_t4_q8_text",
+                  "questionOptions": [
+                    "p40_t4_q8_o1",
+                    "p40_t4_q8_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q9",
+                  "questionTextKey": "p40_t4_q9_text",
+                  "questionOptions": [
+                    "p40_t4_q9_o1",
+                    "p40_t4_q9_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q10",
+                  "questionTextKey": "p40_t4_q10_text",
+                  "questionOptions": [
+                    "p40_t4_q10_o1",
+                    "p40_t4_q10_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q11",
+                  "questionTextKey": "p40_t4_q11_text",
+                  "questionOptions": [
+                    "p40_t4_q11_o1",
+                    "p40_t4_q11_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q12",
+                  "questionTextKey": "p40_t4_q12_text",
+                  "questionOptions": [
+                    "p40_t4_q12_o1",
+                    "p40_t4_q12_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p40_t4_q13",
+                  "questionTextKey": "p40_t4_q13_text",
+                  "questionOptions": [
+                    "p40_t4_q13_o1",
+                    "p40_t4_q13_o2"
+                  ]
+                }
+              ],
+              "length": 300
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "cs": {
+      "p40_t1_title": "Prodloužená fonace /eee/",
+      "p40_t1_instr1": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /eee/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň sekund. Jakmile se vám dojde dech, stiskněte STOP.",
+      "p40_t2_title": "Čtení: rainbow",
+      "p40_t2_instr1": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
+      "p40_t3_title": "Dotazník spokojenosti",
+      "p40_t3_q1_text": "Jak se dnes cítíte?",
+      "p40_t3_q1_o1": "Dobře",
+      "p40_t3_q1_o2": "Špatně",
+      "p40_t3_q2_text": "Poznámka",
+      "p40_t4_title": "RBD-SQ",
+      "p40_t4_q1_text": "[cs] I sometimes have very vivid dreams.",
+      "p40_t4_q1_o1": "[cs] Yes",
+      "p40_t4_q1_o2": "[cs] No",
+      "p40_t4_q2_text": "[cs] My dreams frequently have an aggressive or action-packed content.",
+      "p40_t4_q2_o1": "[cs] Yes",
+      "p40_t4_q2_o2": "[cs] No",
+      "p40_t4_q3_text": "[cs] The dream contents mostly match my nocturnal behavior.",
+      "p40_t4_q3_o1": "[cs] Yes",
+      "p40_t4_q3_o2": "[cs] No",
+      "p40_t4_q4_text": "[cs] I know that my arms or legs move when I sleep.",
+      "p40_t4_q4_o1": "[cs] Yes",
+      "p40_t4_q4_o2": "[cs] No",
+      "p40_t4_q5_text": "[cs] It thereby happened that I (almost) hurt my bed partner or myself.",
+      "p40_t4_q5_o1": "[cs] Yes",
+      "p40_t4_q5_o2": "[cs] No",
+      "p40_t4_q6_text": "[cs] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+      "p40_t4_q6_o1": "[cs] Yes",
+      "p40_t4_q6_o2": "[cs] No",
+      "p40_t4_q7_text": "[cs] I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+      "p40_t4_q7_o1": "[cs] Yes",
+      "p40_t4_q7_o2": "[cs] No",
+      "p40_t4_q8_text": "[cs] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+      "p40_t4_q8_o1": "[cs] Yes",
+      "p40_t4_q8_o2": "[cs] No",
+      "p40_t4_q9_text": "[cs] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+      "p40_t4_q9_o1": "[cs] Yes",
+      "p40_t4_q9_o2": "[cs] No",
+      "p40_t4_q10_text": "[cs] It happens that my movements awake me.",
+      "p40_t4_q10_o1": "[cs] Yes",
+      "p40_t4_q10_o2": "[cs] No",
+      "p40_t4_q11_text": "[cs] After awakening I mostly remember the content of my dreams well.",
+      "p40_t4_q11_o1": "[cs] Yes",
+      "p40_t4_q11_o2": "[cs] No",
+      "p40_t4_q12_text": "[cs] My sleep is frequently disturbed.",
+      "p40_t4_q12_o1": "[cs] Yes",
+      "p40_t4_q12_o2": "[cs] No",
+      "p40_t4_q13_text": "[cs] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+      "p40_t4_q13_o1": "[cs] Yes",
+      "p40_t4_q13_o2": "[cs] No",
+      "p40_f_patient_code_label": "Kód účastníka",
+      "p40_f_patient_code_help": "Studijní kód účastníka, např. HC001."
+    },
+    "en": {
+      "p40_t1_title": "Prolonged phonation /eee/",
+      "p40_t1_instr1": "<bold>Draw a deep breath</bold>, and say /eee/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
+      "p40_t2_title": "Reading The Rainbow",
+      "p40_t2_instr1": "Press Start and read the text on the screen <bold>out loud</bold>.",
+      "p40_t3_title": "Satisfaction questionnaire",
+      "p40_t3_q1_text": "How do you feel today?",
+      "p40_t3_q1_o1": "Good",
+      "p40_t3_q1_o2": "Bad",
+      "p40_t3_q2_text": "Note",
+      "p40_t4_title": "RBD-SQ",
+      "p40_t4_q1_text": "I sometimes have very vivid dreams.",
+      "p40_t4_q1_o1": "Yes",
+      "p40_t4_q1_o2": "No",
+      "p40_t4_q2_text": "My dreams frequently have an aggressive or action-packed content.",
+      "p40_t4_q2_o1": "Yes",
+      "p40_t4_q2_o2": "No",
+      "p40_t4_q3_text": "The dream contents mostly match my nocturnal behavior.",
+      "p40_t4_q3_o1": "Yes",
+      "p40_t4_q3_o2": "No",
+      "p40_t4_q4_text": "I know that my arms or legs move when I sleep.",
+      "p40_t4_q4_o1": "Yes",
+      "p40_t4_q4_o2": "No",
+      "p40_t4_q5_text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+      "p40_t4_q5_o1": "Yes",
+      "p40_t4_q5_o2": "No",
+      "p40_t4_q6_text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+      "p40_t4_q6_o1": "Yes",
+      "p40_t4_q6_o2": "No",
+      "p40_t4_q7_text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+      "p40_t4_q7_o1": "Yes",
+      "p40_t4_q7_o2": "No",
+      "p40_t4_q8_text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+      "p40_t4_q8_o1": "Yes",
+      "p40_t4_q8_o2": "No",
+      "p40_t4_q9_text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+      "p40_t4_q9_o1": "Yes",
+      "p40_t4_q9_o2": "No",
+      "p40_t4_q10_text": "It happens that my movements awake me.",
+      "p40_t4_q10_o1": "Yes",
+      "p40_t4_q10_o2": "No",
+      "p40_t4_q11_text": "After awakening I mostly remember the content of my dreams well.",
+      "p40_t4_q11_o1": "Yes",
+      "p40_t4_q11_o2": "No",
+      "p40_t4_q12_text": "My sleep is frequently disturbed.",
+      "p40_t4_q12_o1": "Yes",
+      "p40_t4_q12_o2": "No",
+      "p40_t4_q13_text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+      "p40_t4_q13_o1": "Yes",
+      "p40_t4_q13_o2": "No",
+      "p40_f_patient_code_label": "Participant code",
+      "p40_f_patient_code_help": "Study code of the participant, e.g. HC001."
+    }
+  }
+}

@@ -77,6 +77,9 @@ PORT=3000
 VITE_API_BASE=http://localhost:3000/api
 DATA_PATH=./uploads
 I18N_PATH=./locales
+# Public origin of the deployed frontend build; /site-config emits example-audio
+# URLs under it (<ASSET_BASE_URL>/audio/illustrations/*.wav). Blank = no audio examples.
+ASSET_BASE_URL=https://your-host/test/dist
 
 # Signing key for admin JWTs — any long random string - e.g.
 # node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"

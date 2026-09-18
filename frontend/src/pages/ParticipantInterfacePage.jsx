@@ -45,7 +45,6 @@ export default function ParticipantInterfacePage() {
   const location = useLocation();
   const { confirm, isDialogOpen } = useContext(ConfirmDialogContext);
   const originalTasks = location.state?.originalTasks;
-  const previewRandomized = location.state?.previewRandomized;
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
   const startingTaskIndex = parseInt(location.state?.startingTaskIndex || 0, 10);
   const isResumed = location.state?.isResumed || false;
@@ -126,8 +125,9 @@ export default function ParticipantInterfacePage() {
   const testingMode = location.state?.testingMode ?? false;
   const editingMode = location.state?.editingMode ?? false;
   const protocolData = location.state?.protocol || selectedProtocol;  
+  // Legacy protocols may still carry a randomization strategy; it only affects
+  // how progress is counted, task order is always fixed.
   const randomStrategy = protocolData?.randomization?.strategy || 'none';
-  const moduleSettings = protocolData?.randomization?.moduleSettings || {};
   // Extract language info to know if we should show the button
   const availableLanguages = protocolData?.available_languages || [];
   const hasMultipleLanguages = availableLanguages.length > 1;
@@ -466,9 +466,10 @@ export default function ParticipantInterfacePage() {
 
   // A task uses the camera-permission/calibration flow if it's a camera task OR a
   // voice task with recordVideo on (retelling with video, etc.). recordVideo is
-  // stored as the string "true"/"false", matching Recorder.jsx's own check.
+  // a boolean in new protocols and the string "true"/"false" in older rows,
+  // so compare via String() — matching Recorder.jsx's own check.
   const isVideoTask = !videoDeclined && (currentTask?.type === 'camera'
-    || currentTask?.resolvedParams?.recordVideo === 'true');
+    || String(currentTask?.resolvedParams?.recordVideo) === 'true');
 
   // --- Retrieve audio guide state (on/off) ---
   // MariaDB returns BOOLEAN as 0/1 — `?? true` only covers the missing case, !! normalizes the rest
@@ -498,7 +499,7 @@ export default function ParticipantInterfacePage() {
         'warning': 'mic_warning'
       };
       taskName = micCheckAudioMap[micCheckGuideStage] || 'audio_setup';
-    } else if (!videoDeclined && currentTask?.params?.recordVideo === 'true') {
+    } else if (!videoDeclined && String(currentTask?.params?.recordVideo) === 'true') {
       if (cameraDenied) {
         taskName = 'camera_permission_denied';
       } else if (recorderPhase === 'PERMISSION') {
@@ -692,7 +693,7 @@ export default function ParticipantInterfacePage() {
   const handleGeneralGuideEnded = useCallback(() => {
     // For video tasks the story only chains after the POST-calibration
     // instructions clip
-    if (currentTask?.params?.recordVideo === 'true' && recorderPhase !== 'RECORDING') {
+    if (String(currentTask?.params?.recordVideo) === 'true' && recorderPhase !== 'RECORDING') {
       return;
     }
 
@@ -715,7 +716,7 @@ export default function ParticipantInterfacePage() {
   useEffect(() => {
     // Prevent this fallback from triggering the story before the
     // post-calibration instructions screen of a video task
-    if (currentTask?.params?.recordVideo === 'true' && recorderPhase !== 'RECORDING') {
+    if (String(currentTask?.params?.recordVideo) === 'true' && recorderPhase !== 'RECORDING') {
         return;
     }
 
@@ -892,7 +893,6 @@ export default function ParticipantInterfacePage() {
       state: { 
         protocol: protocolData, 
         originalTasks, 
-        previewRandomized,
         testingMode, 
         editingMode
       },
@@ -1104,16 +1104,6 @@ export default function ParticipantInterfacePage() {
           </div>
 
           <div className="top-center-controls">
-            {testingMode && randomStrategy !== 'none' && (
-              <div className="testing-mode-badge">
-                🎲 {t("protocolEditor.testingBadge.randomization", { ns: "admin" })}: {t(`protocolEditor.testingBadge.strategies.${randomStrategy}`, { ns: "admin" })}
-                {randomStrategy === 'module' && (
-                  <span className="badge-subtext">
-                    ({t("protocolEditor.testingBadge.blocks", { ns: "admin" })}: {moduleSettings.shuffleBlocks ? t("protocolEditor.testingBadge.on", { ns: "admin" }) : t("protocolEditor.testingBadge.off", { ns: "admin" })} | {t("protocolEditor.testingBadge.within", { ns: "admin" })}: {moduleSettings.shuffleWithin ? t("protocolEditor.testingBadge.on", { ns: "admin" }) : t("protocolEditor.testingBadge.off", { ns: "admin" })})
-                  </span>
-                )}
-              </div>
-            )}
           </div>
 
           {/* RIGHT SIDE: Skip Button */}

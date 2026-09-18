@@ -113,7 +113,16 @@
       "fillAllFields": "Please fill in all required fields to continue.",
       "saveError": "There was an error saving your information. Please try again.",
       "invalidYear": "Please enter a valid year between {{min}} and {{max}}.",
-      "selectOption": "Select an option..."
+      "selectOption": "Select an option...",
+      "autoFilled": "auto-filled by the desktop app",
+      "catalogue": {
+        "current_date": { "label": "Date", "help": "Date of the examination (filled in automatically)." },
+        "sex": { "label": "Sex", "help": "" },
+        "education": { "label": "Education", "help": "Highest completed level of education." },
+        "patient_code": { "label": "Participant code", "help": "Study code of the participant, e.g. HC001." },
+        "surname": { "label": "Surname", "help": "" },
+        "year_of_birth": { "label": "Year of birth", "help": "" }
+      }
     },
     "notFound": {
       "title": "404 – Page not found",

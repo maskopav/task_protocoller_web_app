@@ -84,6 +84,36 @@ describe('validate.protocol', () => {
     expect(isValid).toBe(true);
     expect(errors).toEqual({});
   });
+
+  const base = { name: 'P', language: 'en', tasks: [{ id: 1 }] };
+  const code = { name: 'patient_code', catalogue: true, label: '', help: '', placeholder: '', regex: '', required: true };
+
+  it('requires ${taskIndex} in the recording file name template', () => {
+    const { errors } = validate.protocol({ ...base, recordings_file_name: '${installationId}_${repetition}' });
+    expect(errors.recordings_file_name).toBe('taskIndexRequired');
+  });
+
+  it('rejects ${field.x} variables that reference no identifier on the protocol', () => {
+    expect(validate.protocol({ ...base, recordings_file_name: '${field.patient_code}_${taskIndex}' }).errors.recordings_file_name).toBe('unknownField');
+    expect(validate.protocol({ ...base, recordings_file_name: '${field.patient_code}_${taskIndex}', required_identifiers: [code] }).isValid).toBe(true);
+    // legacy string ids resolve through the catalogue map
+    expect(validate.protocol({ ...base, recordings_file_name: '${field.patient_code}_${taskIndex}', required_identifiers: ['external_id'] }).isValid).toBe(true);
+  });
+
+  it('validates identifier names, uniqueness and custom labels', () => {
+    const custom = { name: 'visit_number', catalogue: false, label: 'Visit', help: '', placeholder: '', regex: '', required: false };
+    expect(validate.protocol({ ...base, required_identifiers: [code, custom] }).isValid).toBe(true);
+    expect(validate.protocol({ ...base, required_identifiers: [code, { ...custom, name: 'Visit-Number' }] }).errors.identifiers).toBe('invalidIdentifiers');
+    expect(validate.protocol({ ...base, required_identifiers: [code, { ...custom, label: '' }] }).errors.identifiers).toBe('invalidIdentifiers');
+    expect(validate.protocol({ ...base, required_identifiers: [code, { ...custom, name: 'patient_code' }] }).errors.identifiers).toBe('invalidIdentifiers');
+    expect(validate.protocol({ ...base, required_identifiers: [custom, custom] }).errors.identifiers).toBe('invalidIdentifiers');
+  });
+
+  it('accepts only http(s) manual URLs', () => {
+    expect(validate.protocol({ ...base, instructions_pdf_url: 'ftp://x/manual.pdf' }).errors.instructions_pdf_url).toBe('invalidUrl');
+    expect(validate.protocol({ ...base, instructions_pdf_url: 'https://x.org/manual.pdf' }).isValid).toBe(true);
+    expect(validate.protocol({ ...base, instructions_pdf_url: '' }).isValid).toBe(true);
+  });
 });
 
 describe('validate.auth.field', () => {

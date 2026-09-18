@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useMappings } from "../../context/MappingContext";
-import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
 import { useProtocolActions } from "../../hooks/useProtocolActions";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import { useParams } from "react-router-dom";
@@ -18,7 +17,6 @@ export default function Protocols({ onSelectProtocol }) {
   const [loadingProtocols, setLoadingProtocols] = useState(false);
   const [protocolName, setProtocolName] = useState("");
   const [protocolDescription, setProtocolDescription] = useState("");
-  const [protocolLanguage, setProtocolLanguage] = useState("en");
   const [canEdit, setCanEdit] = useState(true);
 
   const { viewProtocol, editProtocol, duplicateProtocol } = useProtocolActions();
@@ -193,19 +191,6 @@ export default function Protocols({ onSelectProtocol }) {
         {/* Header Row: Title on Left, Button on Right */}
         <div className="section-header create-header-row">
           <span className="section-title">{t("protocolDashboard.createNew")}</span>
-          <button
-            className="btn-create"
-            disabled={!protocolName.trim() || nameExists || isReadOnly}
-            onClick={() =>
-              onSelectProtocol({
-                name: protocolName,
-                language: protocolLanguage,
-                description: protocolDescription,
-              })
-            }
-          >
-            + {t("protocolDashboard.buttons.create")}
-          </button>
         </div>
 
         {/* Inputs Row */}
@@ -233,12 +218,20 @@ export default function Protocols({ onSelectProtocol }) {
               />
             </div>
 
-            <div className="input-group lang-group">
-              <ProtocolLanguageSelector
-                value={protocolLanguage}
-                onChange={setProtocolLanguage}
-              />
-            </div>
+            {/* Language is picked later, in the protocol editor. */}
+            <button
+              className="btn-create"
+              disabled={!protocolName.trim() || nameExists || isReadOnly}
+              onClick={() =>
+                onSelectProtocol({
+                  name: protocolName,
+                  language: "en",
+                  description: protocolDescription,
+                })
+              }
+            >
+              + {t("protocolDashboard.buttons.create")}
+            </button>
           </div>
           
           {nameExists && (

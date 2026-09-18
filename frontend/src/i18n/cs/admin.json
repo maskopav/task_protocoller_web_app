@@ -4,7 +4,6 @@
     "title": "Přehled projektu",
     "subtitle": "Načtený projekt:"
   },
-  
   "participantDashboard": {
     "title": "Participants Management & Protocols Activation",
     "addParticipant": "Add New Participant",
@@ -49,7 +48,6 @@
       "save": "Create Participant"
     }
   },
-
   "protocolDashboard": {
     "title": "Správa protokolů",
     "createNew": "Vytvořit nový protokol",
@@ -98,7 +96,6 @@
     "params": "Parametry",
     "addIntroPage": "Přidat úvodní stránku",
     "introPageAdded": "Úvodní stránka",
-    "simulateRandomization": "Simulovat průběh (randomizace)",
     "versionWarning": "! Úprava protokolu {{name}}: verze se zvýší a protokol bude označen jako aktuální!",
     "confirmUpdateTitle": "Aktualizovat aktivní protokol?",
     "confirmUpdateMsg": "Aktualizujete existující protokol. Všichni účastníci přiřazení k tomuto protokolu budou automaticky přesunuti na tuto novou verzi. Jejich stávající unikátní odkazy budou nadále fungovat, ale načtou tento nový obsah.\n\nOpravdu chcete pokračovat?",
@@ -147,33 +144,6 @@
       "title": "Neuložené změny",
       "message": "Opravdu se chcete vrátit? Veškeré neuložené změny budou ztraceny.",
       "confirmText": "Ano, vrátit se"
-    },
-    "randomization": {
-      "title": "Průběh protokolu a randomizace",
-      "button": "Nastavení průběhu",
-      "strategyLabel": "Strategie průběhu úkolů",
-      "none": "Přesné pořadí (fixní)",
-      "noneDesc": "Účastníci uvidí úlohy přesně v níže uvedeném pořadí.",
-      "global": "Globální zamíchání",
-      "globalDesc": "Všechny úlohy jsou kompletně náhodně zamíchány. Bez seskupování.",
-      "module": "Modulární logika",
-      "moduleDesc": "Úlohy jsou seskupeny do modulů podle typu (např. Hlasové, Zrakové).",
-      "moduleOptions": "Možnosti modulu",
-      "shuffleBlocks": "Zamíchat pořadí modulů",
-      "shuffleBlocksDesc": "Náhodně určit, který modul bude první (např. Zrakový před Hlasovým).",
-      "shuffleWithin": "Zamíchat uvnitř modulů",
-      "shuffleWithinDesc": "Náhodně zamíchat pořadí úloh uvnitř jejich specifického modulu."
-    },
-    "testingBadge": {
-      "randomization": "Randomizace",
-      "blocks": "Moduly",
-      "within": "Uvnitř",
-      "on": "ON",
-      "off": "OFF",
-      "strategies": {
-        "global": "globalní",
-        "module": "moduly"
-      }
     }
   },
   "participantProtocol": {
@@ -184,7 +154,7 @@
       "externalId": "Externí ID",
       "protocol": "Protokol",
       "version": "Verze",
-      "nTasks": "N úkolů",      
+      "nTasks": "N úkolů",
       "nQuest": "N dotazníků",
       "project": "Projekt",
       "start": "Začátek",
@@ -207,14 +177,13 @@
         "title": "Potvrzení o přiřazení a odeslání protokolu"
       },
       "end": {
-        "message":"Ukončit přiřazení \"{{protocol}}\" pro \"{{participant}}\"?",
-        "title":"Ukončení přiřazení protokolu"
-      }, 
+        "message": "Ukončit přiřazení \"{{protocol}}\" pro \"{{participant}}\"?",
+        "title": "Ukončení přiřazení protokolu"
+      },
       "confirm": "Potvrdit",
       "cancel": "Zrušit"
     }
   },
-
   "assignmentModal": {
     "title": "Protokol přiřazen",
     "warning": "⚠️ <strong>Důležité:</strong> Tento odkaz je určen <strong>pouze pro účastníka</strong>. Jeho otevřením se spustí reálný sběr dat.<br/>Chcete-li protokol otestovat bez uložení dat, přejděte na kartu <strong>Protokoly</strong> a klikněte na tlačítko <strong>Zobrazit</strong>.",

@@ -38,22 +38,28 @@ const spineRows = [
   { project_id: 2, project_name: 'Project B', protocol_id: 12, language_code: 'en' },
 ];
 
+// 10 (en) and 11 (cs) are language variants of one protocol group; 12 is a
+// different group. The ext config merges variants into one entry.
 const protocolRow = (id) => ({
   id,
-  protocol_group_id: 1,
-  name: `Protocol ${id}`,
-  language_id: 1,
+  protocol_group_id: id === 12 ? 2 : 1,
+  name: `Protocol ${id === 12 ? 12 : 10}`,
+  language_id: id === 11 ? 2 : 1,
   version: 1,
   is_current: 1,
+  updated_at: '2026-09-10 09:30:00',
   randomization: '{"strategy":"none"}',
-  required_identifiers: '[]',
+  required_identifiers: '["external_id"]',
   use_audio_guide: 1,
+  recordings_file_name: null,
+  instructions_pdf_url: null,
 });
 
 const mockConfigQueries = (siteRow) => {
   executeQuery.mockImplementation(async (sql, params) => {
     if (sql.includes('FROM sites WHERE access_token')) return siteRow ? [siteRow] : [];
     if (sql.includes('FROM v_site_protocols')) return spineRows;
+    if (sql.includes('FROM tasks t JOIN task_types')) return [{ id: 2, category: 'syllableRepeating', type: 'voice' }];
     if (sql.includes('FROM protocols WHERE id')) return [protocolRow(params[0])];
     if (sql.includes('FROM protocol_contents')) return [
       { protocol_task_id: null, content_type: 'consent', text_html: '<p>consent</p>' },
@@ -327,8 +333,8 @@ describe('getSiteConfig', () => {
     executeQuery.mockReset();
   });
 
-  it('returns the native config shape with protocols grouped by project', async () => {
-    mockConfigQueries({ id: 1, name: 'Paris', config_json: '{"defaultLanguage":"fr"}', is_active: 1 });
+  it('returns the desktop-app config with variants merged and protocols grouped by project', async () => {
+    mockConfigQueries({ id: 1, name: 'Paris', config_json: '{"defaultLanguage":"cs","useCalibration":false}', is_active: 1, updated_at: '2026-09-01 10:00:00' });
 
     const res = makeRes();
     await getSiteConfig({ params: { token: SITE_TOKEN } }, res);
@@ -336,25 +342,32 @@ describe('getSiteConfig', () => {
     expect(res.status).not.toHaveBeenCalled();
     const payload = res.json.mock.calls[0][0];
 
-    expect(payload.site).toEqual({ name: 'Paris', config_json: { defaultLanguage: 'fr' } });
-    expect(payload.projects).toHaveLength(2);
-    expect(payload.projects[0].protocols).toHaveLength(2);
+    expect(payload).not.toHaveProperty('site');
+    expect(payload).toMatchObject({
+      schemaVersion: 1,
+      configVersion: '2026-09-10.093000',
+      defaultLanguage: 'cs',
+      languages: ['cs', 'en'],
+      useCalibration: false,
+      enableEditor: false,
+    });
+    expect(payload.projects.map((p) => p.name)).toEqual(['Project A', 'Project B']);
+    expect(payload.projects[0].protocols).toHaveLength(1); // 10 (en) + 11 (cs) merged
     expect(payload.projects[1].protocols).toHaveLength(1);
 
     const protocol = payload.projects[0].protocols[0];
-    expect(protocol).toMatchObject({
-      id: 10,
-      name: 'Protocol 10',
-      language_code: 'en',
-      randomization: { strategy: 'none' },
-      required_identifiers: [],
-    });
-    expect(protocol.global_contents).toEqual([
-      { type: 'consent', html: '<p>consent</p>' },
-    ]);
+    expect(protocol.name).toBe('Protocol 10');
+    expect(protocol.recordingsFileName).toContain('${taskIndex}');
+    expect(protocol.patientFields.map((f) => f.name)).toEqual(['patient_code']); // legacy external_id
     expect(protocol.tasks).toEqual([
-      { id: 100, task_id: 2, task_order: 1, params: { duration: 3 }, contents: [] },
+      expect.objectContaining({ type: 'VOCAL', subtype: 'SYLLABLES', titleKey: 'p1_t1_title', length: 3, nrepetition: 1, canRepeat: true, canSkip: false, showIndicator: true }),
     ]);
+    for (const lang of ['cs', 'en']) {
+      expect(payload.strings[lang]).toHaveProperty('p1_t1_title');
+      for (const k of protocol.tasks[0].instructionKeys) expect(payload.strings[lang]).toHaveProperty(k);
+    }
+    // native-only fields never leave the server
+    expect(JSON.stringify(payload)).not.toMatch(/"(task_id|language_id|global_contents|randomization|info_text)"/);
   });
 
   it('never leaks the access token in the response body', async () => {
@@ -390,12 +403,12 @@ describe('createSite', () => {
     executeQuery.mockReset();
   });
 
-  it('generates a 32-hex access token and stores normalized config_json', async () => {
+  it('generates a 32-hex access token and stores the known settings only', async () => {
     executeQuery.mockResolvedValueOnce({ insertId: 5 });
 
     const res = makeRes();
     await createSite(
-      { body: { name: 'Paris', description: 'desc', config_json: '{"a": 1}' }, admin: { id: 1, role: 'master' } },
+      { body: { name: 'Paris', description: 'desc', config_json: '{"defaultLanguage": "cs", "useCalibration": true, "note": "legacy"}' }, admin: { id: 1, role: 'master' } },
       res
     );
 
@@ -405,8 +418,21 @@ describe('createSite', () => {
     const params = executeQuery.mock.calls[0][1];
     expect(params[0]).toBe('Paris');
     expect(params[2]).toMatch(/^[0-9a-f]{32}$/);
-    expect(params[3]).toBe('{"a":1}');
+    expect(params[3]).toBe('{"defaultLanguage":"cs","useCalibration":true}'); // unknown key stripped
     expect(params.at(-1)).toBe(1); // created_by comes from the session
+  });
+
+  it('accepts config_json as an object (the settings form posts one)', async () => {
+    executeQuery.mockResolvedValueOnce({ insertId: 5 });
+
+    const res = makeRes();
+    await createSite(
+      { body: { name: 'Paris', config_json: { languages: ['en', 'cs'], defaultMicGain: 0.5, indicatorType: 'WAVEFORM' } }, admin: { id: 1, role: 'master' } },
+      res
+    );
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(executeQuery.mock.calls[0][1][3]).toBe('{"languages":["en","cs"],"defaultMicGain":0.5,"indicatorType":"WAVEFORM"}');
   });
 
   it('rejects invalid config_json without touching the database', async () => {
@@ -414,6 +440,15 @@ describe('createSite', () => {
     await createSite({ body: { name: 'Paris', config_json: '{not json' }, admin: { id: 1, role: 'master' } }, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+
+  it('rejects a badly typed setting', async () => {
+    const res = makeRes();
+    await createSite({ body: { name: 'Paris', config_json: { indicatorType: 'SQUARE' } }, admin: { id: 1, role: 'master' } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json.mock.calls[0][0].error).toMatch(/indicatorType/);
     expect(executeQuery).not.toHaveBeenCalled();
   });
 

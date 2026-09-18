@@ -41,6 +41,20 @@
       "selectOption": "Wählen Sie eine Option...",
       "typeAnswer": "Geben Sie hier Ihre Antwort ein...",
       "required": "* erforderlich"
+    },
+    "identifiers": {
+      "description": "Bitte geben Sie die folgenden Angaben ein.",
+      "fillAllFields": "Bitte füllen Sie alle Pflichtfelder aus, um fortzufahren.",
+      "selectOption": "Option auswählen...",
+      "autoFilled": "wird von der Desktop-App automatisch ausgefüllt",
+      "catalogue": {
+        "current_date": { "label": "Datum", "help": "Datum der Untersuchung (wird automatisch ausgefüllt)." },
+        "sex": { "label": "Geschlecht", "help": "" },
+        "education": { "label": "Bildung", "help": "Höchster Bildungsabschluss." },
+        "patient_code": { "label": "Teilnehmercode", "help": "Studiencode des Teilnehmers, z. B. HC001." },
+        "surname": { "label": "Nachname", "help": "" },
+        "year_of_birth": { "label": "Geburtsjahr", "help": "" }
+      }
     }
   }
   

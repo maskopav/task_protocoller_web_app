@@ -2,8 +2,13 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
-import AdminModal from "./Modal";
+import FileNameModal from "./FileNameModal";
 import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
+import {
+  DEFAULT_RECORDINGS_FILE_NAME,
+  normalizeIdentifiers,
+  renderFileNameExample,
+} from "../Identifiers/IdentifierFields";
 
 export default function ProtocolForm({
   tasks,
@@ -21,17 +26,19 @@ export default function ProtocolForm({
   dragIndex,
   validation,
   editingMode,
-  previewRandomized, 
-  setPreviewRandomized,
   onEditInfo,
   onDeleteInfo,
   onEditInstructions,
   onDeleteInstructions,
   onEditIdentifiers,
-  onDeleteIdentifiers,
 }) {
-  const { t } = useTranslation(["admin", "tasks"]);
-  const [showRandomSettings, setShowRandomSettings] = useState(false);
+  const { t } = useTranslation(["admin", "tasks", "common"]);
+  const [showFileNameModal, setShowFileNameModal] = useState(false);
+
+  const identifiers = normalizeIdentifiers(protocolData?.required_identifiers);
+  const fileNameTemplate = protocolData?.recordings_file_name || DEFAULT_RECORDINGS_FILE_NAME;
+  const identifierLabel = (f) =>
+    f.catalogue ? t(`identifiers.catalogue.${f.name}.label`, { ns: "common" }) : f.label || f.name;
 
   const handleLanguageChange = (lang) => {
     setProtocolData((prev) => ({ ...prev, language: lang }));
@@ -46,38 +53,6 @@ export default function ProtocolForm({
   const handleDescriptionChange = (e) => {
     const description = e.target.value;
     setProtocolData((prev) => ({ ...prev, description }));
-  };
-
-  // --- Randomization Logic ---
-  const randomStrategy = protocolData?.randomization?.strategy || 'none';
-  const moduleSettings = protocolData?.randomization?.moduleSettings || { shuffleBlocks: false, shuffleWithin: false };
-
-  const handleStrategyChange = (e) => {
-    const newStrategy = e.target.value;
-    setProtocolData(prev => ({
-      ...prev,
-      randomization: {
-        ...prev.randomization,
-        strategy: newStrategy,
-        // Reset module settings if switching away from module strategy? 
-        // Optional: keeping them makes it easier if user switches back.
-        moduleSettings: prev.randomization?.moduleSettings || { shuffleBlocks: false, shuffleWithin: false }
-      }
-    }));
-  };
-
-  const handleModuleSettingChange = (e) => {
-    const { name, checked } = e.target;
-    setProtocolData(prev => ({
-      ...prev,
-      randomization: {
-        ...prev.randomization,
-        moduleSettings: {
-          ...prev.randomization?.moduleSettings,
-          [name]: checked
-        }
-      }
-    }));
   };
 
   // Helper to check if Quill content is truly empty
@@ -130,6 +105,79 @@ export default function ProtocolForm({
               />
             </div>
 
+            {/* Identifiers the examiner fills in, edited in the modal */}
+            {identifiers.length > 0 && (
+              <div className="protocol-field">
+                <label className="protocol-label">
+                  {t("protocolEditor.editIdentifiersTitle")}:
+                </label>
+                <table className="identifiers-summary">
+                  <thead>
+                    <tr>
+                      <th>{t("protocolEditor.identifiers.label")}</th>
+                      <th>{t("protocolEditor.identifiers.variable")}</th>
+                      <th>{t("protocolEditor.identifiers.required")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {identifiers.map((f, idx) => (
+                      <tr key={f.name || idx}>
+                        <td>{identifierLabel(f)}</td>
+                        <td><code>{f.name}</code></td>
+                        <td>{f.required ? "✔" : ""}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Desktop-app fields: clip filename template + manual PDF URL */}
+            <div className="protocol-field">
+              <label className="protocol-label">
+                {t("protocolEditor.recordingsFileName")}:
+              </label>
+              <div className="file-name-summary">
+                <button
+                  className="btn-file-name"
+                  onClick={() => setShowFileNameModal(true)}
+                  disabled={reorderMode}
+                >
+                  🏷️ {t("protocolEditor.fileName.button")}
+                </button>
+                <code className={validation.errors.recordings_file_name ? "error-text" : ""}>
+                  {fileNameTemplate}
+                </code>
+                <small className="text-muted">
+                  {t("protocolEditor.fileName.example")}: {renderFileNameExample(fileNameTemplate, identifiers)}
+                </small>
+              </div>
+              {validation.errors.recordings_file_name && (
+                <div className="error-text">
+                  {t(`validation.protocol.${validation.errors.recordings_file_name}`)}
+                </div>
+              )}
+            </div>
+
+            <div className="protocol-field">
+              <label className="protocol-label">
+                {t("protocolEditor.instructionsPdfUrl")}:
+              </label>
+              <input
+                type="url"
+                className={`protocol-name-input ${validation.errors.instructions_pdf_url ? "name-input-error" : ""}`}
+                placeholder="https://"
+                value={protocolData?.instructions_pdf_url || ""}
+                onChange={(e) => setProtocolData((prev) => ({ ...prev, instructions_pdf_url: e.target.value }))}
+                disabled={reorderMode}
+              />
+              {validation.errors.instructions_pdf_url && (
+                <div className="error-text">
+                  {t(`validation.protocol.${validation.errors.instructions_pdf_url}`)}
+                </div>
+              )}
+            </div>
+
             <ProtocolLanguageSelector
               value={protocolData?.language || "en"}
               onChange={handleLanguageChange}
@@ -167,22 +215,12 @@ export default function ProtocolForm({
                   </div>
                 </div>
               )}
-
-              {/* Identifiers Logic */}
-              {(!protocolData?.required_identifiers || protocolData.required_identifiers.length === 0) ? (
-                <button className="btn-add-page-minimal" onClick={onEditIdentifiers} disabled={reorderMode}>
-                  + {t("protocolEditor.addIdentifiersPage", "Add Identifiers")}
-                </button>
-              ) : (
-                <div className="page-item-minimal">
-                  <span className="page-label">{t("protocolEditor.identifiersAdded", "Identifiers Added")} ✅</span>
-                  <div className="page-actions">
-                    <span className="edit-icon-small" title="Edit" onClick={reorderMode ? null : onEditIdentifiers}>✎</span>
-                    <span className="delete-icon-small" title="Delete" onClick={reorderMode ? null : onDeleteIdentifiers}>✖</span>
-                  </div>
-                </div>
-              )}
             </div>
+            {validation.errors.identifiers && (
+              <div className="error-text">
+                {t(`validation.protocol.${validation.errors.identifiers}`)}
+              </div>
+            )}
           </div>
 
           <div className="button-block">
@@ -197,111 +235,30 @@ export default function ProtocolForm({
               {reorderMode ? t("protocolEditor.finishReordering") : `🔁 ${t("protocolEditor.reorderTasks")}`}
             </button>
 
-            <button 
-              className={`btn-randomize ${randomStrategy !== 'none' ? 'active-strategy' : ''}`} 
-              onClick={() => setShowRandomSettings(true)}
-              title={t("protocolEditor.randomization.title")}
+            <button
+              className="btn-identifiers"
+              onClick={onEditIdentifiers}
+              title={t("protocolEditor.editIdentifiersTitle")}
               disabled={reorderMode}
             >
-               🎲 {t("protocolEditor.randomization.button")}
-               {randomStrategy !== 'none' && <span className="strategy-badge" />}
+              🪪 {t("protocolEditor.identifiersButton")}
+              {identifiers.length > 0 && ` (${identifiers.length})`}
             </button>
 
           </div>
       </div>
 
-      {/* --- Randomization Settings Modal --- */}
-      <AdminModal
-        open={showRandomSettings}
-        title={t("protocolEditor.randomization.title")}
-        onClose={() => setShowRandomSettings(false)}
-        onSave={() => setShowRandomSettings(false)} // Just closes, data is synced live
-        showFooter={true} // Ensure we have a Close/Save button
-      >
-        <div className="randomization-settings">
-          <h4>{t("protocolEditor.randomization.strategyLabel")}</h4>
-          
-          {/* Strategy: None (Strict) */}
-          <label className="radio-option">
-            <input 
-              type="radio" 
-              name="strategy" 
-              value="none" 
-              checked={randomStrategy === 'none'}
-              onChange={handleStrategyChange}
-            />
-            <div className="radio-content">
-              <strong>{t("protocolEditor.randomization.none")}</strong>
-              <small>{t("protocolEditor.randomization.noneDesc")}</small>
-            </div>
-          </label>
-
-          {/* Strategy: Global Shuffle */}
-          <label className="radio-option">
-            <input 
-              type="radio" 
-              name="strategy" 
-              value="global" 
-              checked={randomStrategy === 'global'}
-              onChange={handleStrategyChange}
-            />
-            <div className="radio-content">
-              <strong>{t("protocolEditor.randomization.global")}</strong>
-              <small>{t("protocolEditor.randomization.globalDesc")}</small>
-            </div>
-          </label>
-
-          {/* Strategy: Module Logic */}
-          <label className="radio-option">
-            <input 
-              type="radio" 
-              name="strategy" 
-              value="module" 
-              checked={randomStrategy === 'module'}
-              onChange={handleStrategyChange}
-            />
-            <div className="radio-content">
-              <strong>{t("protocolEditor.randomization.module")}</strong>
-              <small>{t("protocolEditor.randomization.moduleDesc")}</small>
-            </div>
-          </label>
-
-          {/* Sub-options for Module Logic */}
-          {randomStrategy === 'module' && (
-            <div className="sub-options">
-              <h5>{t("protocolEditor.randomization.moduleOptions")}</h5>
-              
-              <label className="checkbox-option">
-                <input 
-                  type="checkbox" 
-                  name="shuffleBlocks"
-                  checked={moduleSettings.shuffleBlocks}
-                  onChange={handleModuleSettingChange}
-                />
-                <span>
-                  {t("protocolEditor.randomization.shuffleBlocks")}
-                  <br/>
-                  <small>{t("protocolEditor.randomization.shuffleBlocksDesc")}</small>
-                </span>
-              </label>
-
-              <label className="checkbox-option">
-                <input 
-                  type="checkbox" 
-                  name="shuffleWithin"
-                  checked={moduleSettings.shuffleWithin}
-                  onChange={handleModuleSettingChange}
-                />
-                <span>
-                  {t("protocolEditor.randomization.shuffleWithin")}
-                  <br/>
-                  <small>{t("protocolEditor.randomization.shuffleWithinDesc")}</small>
-                </span>
-              </label>
-            </div>
-          )}
-        </div>
-      </AdminModal>
+      {/* --- Recording file name template modal --- */}
+      <FileNameModal
+        open={showFileNameModal}
+        template={fileNameTemplate}
+        identifiers={identifiers}
+        onClose={() => setShowFileNameModal(false)}
+        onSave={(tpl) => {
+          setProtocolData((prev) => ({ ...prev, recordings_file_name: tpl }));
+          setShowFileNameModal(false);
+        }}
+      />
 
       {/* --- Version warning --- */}
       {editingMode && (
@@ -351,7 +308,8 @@ export default function ProtocolForm({
                     if (key === 'questions') return null; 
 
                     let resolvedVal = resolved[key] ?? task[key];
-                    // Handle multiple values selection for the UI Summary 
+                    if (typeof resolvedVal === "boolean") resolvedVal = String(resolvedVal);
+                    // Handle multiple values selection for the UI Summary
                     if (Array.isArray(resolvedVal)) {
                       // Extract just the 'label' from the objects and join them with commas
                       resolvedVal = resolvedVal
@@ -377,23 +335,9 @@ export default function ProtocolForm({
       </ul>
 
       <div className="button-row">
-        
-        {/* Only show the checkbox if a randomization strategy is active */}
-        {randomStrategy !== 'none' && (
-          <label className="preview-random-toggle">
-            <input 
-              type="checkbox" 
-              checked={previewRandomized} 
-              onChange={(e) => setPreviewRandomized(e.target.checked)} 
-              disabled={reorderMode}
-            />
-            {t("protocolEditor.simulateRandomization")}
-          </label>
-        )}
-
-        <button 
-          className="button-show-tasks" 
-          onClick={() => onShowProtocol(previewRandomized)} 
+        <button
+          className="button-show-tasks"
+          onClick={() => onShowProtocol()}
           disabled={!tasks.length || reorderMode}
         >
           {t("protocolEditor.showProtocol")}

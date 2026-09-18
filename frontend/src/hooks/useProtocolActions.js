@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
 import { getProtocolById } from "../api/protocols";
-import Identifiers from "../components/Identifiers/Identifiers";
+import { normalizeIdentifiers } from "../components/Identifiers/IdentifierFields";
 
 export function useProtocolActions() {
   const { setSelectedProtocol } = useContext(ProtocolContext);
@@ -111,10 +111,11 @@ export function mapProtocolWithNames(raw, mappings) {
     version: raw.version,
     description: raw.description,
     language: language?.code || "unknown",
-    randomization: raw.randomization || {}, 
     info_text: raw.info_text || "",
     instructions_text: raw.instructions_text || "",
-    required_identifiers: raw.required_identifiers,
+    required_identifiers: normalizeIdentifiers(raw.required_identifiers),
+    recordings_file_name: raw.recordings_file_name || null,
+    instructions_pdf_url: raw.instructions_pdf_url || null,
     tasks: mappedTasks,
   };
 }

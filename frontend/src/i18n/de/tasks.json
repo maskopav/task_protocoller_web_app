@@ -5,6 +5,8 @@
     "title": "Fragebogen: {{title}}",
     "instructions": "Bitte beantworten Sie die folgenden Fragen.",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
       "title": { "label": "Titel" },
       "description": { "label": "Beschreibung" },
       "questions": { "label": "Fragen" }
@@ -35,6 +37,8 @@
     "title": "Fragebogen: {{title}}",
     "instructions": "Bitte beantworten Sie die folgenden Fragen.",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
       "title": { "label": "Titel" },
       "description": { "label": "Beschreibung" },
       "questions": { "label": "Fragen" }
@@ -63,6 +67,9 @@
     "instructions": "Drücken Sie START und halten Sie /{{phoneme}}/ mindestens {{duration}} Sekunden lang, bis Sie STOP drücken können.",
     "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
+      "showIndicator": { "label": "Pegelanzeige anzeigen" },
       "phoneme": {
         "label": "Vokal",
         "values": {
@@ -85,6 +92,9 @@
     "instructions": "Drücken Sie START und wiederholen Sie /{{syllable}}/ so schnell und präzise wie möglich, bis der Timer automatisch stoppt.",
     "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
+      "showIndicator": { "label": "Pegelanzeige anzeigen" },
       "syllable": {
         "label": "Silbe",
         "values": {
@@ -107,6 +117,9 @@
     "instructionsPostCalibration": "Drücken Sie Geschichte abspielen, um sich eine gesprochene Geschichte anzuhören. {{playStory}} Drücken Sie nach dem Anhören START und <strong>erzählen Sie die Geschichte in Ihren eigenen Worten</strong> in {{duration}} Sekunden nach. <br/><br/>Sprechen Sie fortlaufend — es spielt keine Rolle, ob die nacherzählte Geschichte korrekt oder vollständig ist.",
     "instructionsActive": "Bitte erzählen Sie die Geschichte in {{duration}} Sekunden in Ihren eigenen Worten nach.",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
+      "showIndicator": { "label": "Pegelanzeige anzeigen" },
       "fairytale": {
         "label": "Märchen",
         "values": {
@@ -126,6 +139,9 @@
     "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "instructionsActive": "{{text}}",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
+      "showIndicator": { "label": "Pegelanzeige anzeigen" },
       "topic": {
         "label": "Thema des Textes",
         "values": {
@@ -156,6 +172,9 @@
     "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
     "instructionsActive": "<strong>Thema:</strong><br/>{{topicDescription}}",
     "params": {
+      "canRepeat": { "label": "Wiederholen erlauben" },
+      "canSkip": { "label": "Überspringen erlauben" },
+      "showIndicator": { "label": "Pegelanzeige anzeigen" },
       "topic": {
         "label": "Thema des Monologs",
         "values": {

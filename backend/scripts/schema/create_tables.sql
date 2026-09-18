@@ -71,7 +71,9 @@ CREATE TABLE `protocols` (
   `updated_by` integer,
   `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
   `use_audio_guide` BOOLEAN NOT NULL DEFAULT false,
-  `required_identifiers` JSON DEFAULT NULL COMMENT 'Stores an array of required identifier strings',
+  `required_identifiers` JSON DEFAULT NULL COMMENT 'Array of identifier objects {name, catalogue, label, help, placeholder, regex, required} (legacy: array of string ids)',
+  `recordings_file_name` varchar(255) DEFAULT NULL COMMENT 'Desktop-app clip filename template, must contain ${taskIndex}',
+  `instructions_pdf_url` varchar(512) DEFAULT NULL,
   `is_archived` BOOLEAN NOT NULL DEFAULT false
 );
 

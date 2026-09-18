@@ -2,6 +2,7 @@
 import { executeTransaction, executeQuery } from '../db/queryHelper.js';
 import { logToFile } from '../utils/logger.js';
 import { getVisibleProjectIds, getEditableProjectIds } from '../utils/accessScope.js';
+import { validateFileNameTemplate, isValidHttpUrl, DEFAULT_RECORDINGS_FILE_NAME } from '../utils/fieldValidation.js';
 
 // POST
 export const saveProtocol = async (req, res) => {
@@ -9,11 +10,25 @@ export const saveProtocol = async (req, res) => {
     protocol_group_id, name, language_id, description, version,
     created_by, updated_by, tasks, project_id, editingMode,
     randomization, required_identifiers, info_text,
-    instructions_text, use_audio_guide
+    instructions_text, use_audio_guide,
+    recordings_file_name, instructions_pdf_url
   } = req.body;
 
   if (!Array.isArray(tasks) || tasks.length === 0) {
     return res.status(400).json({ error: 'No tasks provided' });
+  }
+
+  // Desktop-app fields. Identifier names are accepted in both stored shapes
+  // (objects, or legacy string ids) — the mapping layer normalizes them.
+  const identifierNames = (Array.isArray(required_identifiers) ? required_identifiers : [])
+    .map((f) => (typeof f === 'string' ? f : f?.name))
+    .filter(Boolean);
+  const templateError = validateFileNameTemplate(
+    recordings_file_name || DEFAULT_RECORDINGS_FILE_NAME, identifierNames
+  );
+  if (templateError) return res.status(400).json({ error: templateError });
+  if (instructions_pdf_url && !isValidHttpUrl(instructions_pdf_url)) {
+    return res.status(400).json({ error: 'instructions_pdf_url must be an http(s) URL' });
   }
 
   // A protocol is shared by every clinic on its project, so writing one is
@@ -156,9 +171,9 @@ export const saveProtocol = async (req, res) => {
 
         // Insert the new protocol record
         const [result] = await conn.query(
-          `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? false) ? 1 : 0]
+          `INSERT INTO protocols (protocol_group_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, recordings_file_name, instructions_pdf_url, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+          [groupId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? false) ? 1 : 0, recordings_file_name || null, instructions_pdf_url || null]
         );
         const newProtocolId = result.insertId;
         

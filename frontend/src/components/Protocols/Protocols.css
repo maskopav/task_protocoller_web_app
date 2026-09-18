@@ -52,9 +52,8 @@
   flex: 1; /* Description takes remaining space */
 }
 
-.input-group.lang-group {
-  flex: 0 0 auto; /* Language fits content */
-  min-width: 120px;
+.create-inputs-row .btn-create {
+  flex: 0 0 auto; /* Create button sits at the end of the inputs row */
 }
 
 .input-group label {

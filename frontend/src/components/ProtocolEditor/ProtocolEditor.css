@@ -157,7 +157,8 @@
   
   .btn-add-questionnaire,
   .reorder-btn,
-  .btn-randomize,
+  .btn-identifiers,
+  .btn-file-name,
   .btn-add-page-minimal,
   .button-show-tasks,
   .button-save,
@@ -189,7 +190,7 @@
   }
   .reorder-btn.active { background: var(--success); }
 
-  .btn-randomize {
+  .btn-identifiers {
     background-color: var(--warning);
   }
   
@@ -266,27 +267,6 @@
     flex: 1
   }
 
-  /* --- Randomization Toggle Checkbox --- */
-  .preview-random-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--muted);
-    font-weight: 500;
-  }
-
-  .preview-random-toggle input[type="checkbox"] {
-    cursor: pointer;
-    margin: 0;
-  }
-
-  .preview-random-toggle input:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-  
   /* =========================================================
      LISTS, TASK ITEMS & PROTOCOL ITEMS
      ========================================================= */
@@ -784,36 +764,11 @@
   .ql-editor .ql-indent-2 { padding-left: 6em; }
   .ql-editor .ql-indent-3 { padding-left: 9em; }
 
-  /* Randomization Settings Styling */
-  .randomization-settings {
+  /* Shared modal settings column (identifiers editor) */
+  .modal-settings {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-  }
-
-  .radio-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .radio-option:hover {
-    background: #f9f9f9;
-  }
-
-  .radio-content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .radio-content small {
-    color: #666;
-    margin-top: 2px;
   }
 
   .sub-options {
@@ -838,22 +793,102 @@
     cursor: pointer;
   }
 
-  .btn-randomize.active-strategy {
-    background-color: #e3f2fd; /* Light blue to indicate active settings */
-    border-color: #2196f3;
-    color: #0d47a1;
+  /* Identifier editor (catalogue entry options / custom field rows) */
+  .identifier-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
   }
 
-  .strategy-badge {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background-color: #2196f3;
-    border-radius: 50%;
-    margin-left: 6px;
+  .identifier-options .checkbox-option {
+    margin-bottom: 0;
   }
 
-    
+  .identifier-custom-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) auto auto;
+    gap: 6px;
+    align-items: center;
+    margin-left: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .identifier-custom-row input[type="text"] {
+    min-width: 0;
+    padding: 4px 6px;
+  }
+
+  .identifier-custom-row .checkbox-option {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  /* Identifier summary table shown in the current-protocol column */
+  .identifiers-summary {
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .identifiers-summary th,
+  .identifiers-summary td {
+    border: 1px solid #e5e7eb;
+    padding: 2px 8px;
+    text-align: left;
+  }
+
+  .identifiers-summary th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+
+  /* Recording file name: button + resulting template + rendered example */
+  .file-name-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .file-name-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .file-name-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .file-name-table th,
+  .file-name-table td {
+    border: 1px solid #e5e7eb;
+    padding: 4px 8px;
+    text-align: left;
+  }
+
+  .file-name-table tr {
+    cursor: grab;
+  }
+
+  .file-name-table tr.dragging {
+    opacity: 0.5;
+  }
+
+  .file-name-table .drag-handle {
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .file-name-input {
+    font-family: monospace;
+    width: 100%;
+    padding: 6px;
+  }
+
   /* =========================================================
    MOBILE FRIENDLY LAYOUT IMPROVEMENTS
    ========================================================= */

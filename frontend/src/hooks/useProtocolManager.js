@@ -1,6 +1,6 @@
 // src/hooks/useProtocolManager.js
 import { saveProtocolToBackend } from "../api/protocols";
-import Identifiers from "../components/Identifiers/Identifiers";
+import { normalizeIdentifiers, DEFAULT_RECORDINGS_FILE_NAME } from "../components/Identifiers/IdentifierFields";
 import { useMappings } from "../context/MappingContext";
 
 export function useProtocolManager() {
@@ -26,7 +26,6 @@ export function useProtocolManager() {
       description: selectedProtocol.description,
       version: version,
       created_by: 1,
-      randomization: selectedProtocol.randomization,
       tasks: tasks.map((task, index) => ({
         task_id: mappings.tasks.find(t => t.category === task.category)?.id,
         task_order: index + 1,
@@ -36,7 +35,9 @@ export function useProtocolManager() {
       editingMode,
       info_text: selectedProtocol.info_text,
       instructions_text: selectedProtocol.instructions_text,
-      required_identifiers: selectedProtocol.required_identifiers
+      required_identifiers: normalizeIdentifiers(selectedProtocol.required_identifiers),
+      recordings_file_name: (selectedProtocol.recordings_file_name || "").trim() || DEFAULT_RECORDINGS_FILE_NAME,
+      instructions_pdf_url: (selectedProtocol.instructions_pdf_url || "").trim() || null,
     };
     console.log("Saving protocol:", protocolData);
     const result = await saveProtocolToBackend(protocolData);

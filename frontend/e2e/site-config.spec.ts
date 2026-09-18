@@ -19,13 +19,18 @@ async function apiLogin(request: APIRequestContext): Promise<string> {
   return body.token;
 }
 
-test('a valid site token returns the config with inherited protocols grouped by project', async ({ request }) => {
+// The response is the desktop app's config format (docs/ext_app_Task_Configuration_JSON_Spec.md):
+// settings at the top level, protocols grouped by project, all text via strings.<lang>.
+test('a valid site token returns the desktop-app config with inherited protocols grouped by project', async ({ request }) => {
   const res = await request.get(`${BACKEND_URL}/site-config/${SITE_TOKEN}`);
   expect(res.ok()).toBeTruthy();
 
   const body = await res.json();
-  expect(body.site.name).toBe('E2E Site');
-  expect(body.site.config_json).toEqual({ note: 'e2e' });
+  expect(body.schemaVersion).toBe(1);
+  expect(body.defaultLanguage).toBe('en');
+  expect(body.languages).toEqual(['en']);
+  expect(typeof body.useCalibration).toBe('boolean');
+  expect(body).not.toHaveProperty('site');
 
   expect(body.projects).toHaveLength(1);
   const project = body.projects[0];
@@ -34,9 +39,12 @@ test('a valid site token returns the config with inherited protocols grouped by 
 
   const protocol = project.protocols[0];
   expect(protocol.name).toBe('E2E Test Protocol');
-  expect(protocol.tasks).toHaveLength(3);
-  expect(protocol.tasks.map((t: { task_order: number }) => t.task_order)).toEqual([1, 2, 3]);
-  expect(protocol.global_contents.find((c: { type: string }) => c.type === 'consent').html).toContain('E2E test consent');
+  expect(protocol.recordingsFileName).toContain('${taskIndex}');
+  // syllableRepeating -> VOCAL, sdmt (cognitive) skipped, questionnaire -> QUESTIONNAIRE
+  expect(protocol.tasks.map((t: { type: string }) => t.type)).toEqual(['VOCAL', 'QUESTIONNAIRE']);
+  expect(protocol.tasks[0].subtype).toBe('SYLLABLES');
+  expect(body.strings.en[protocol.tasks[0].titleKey]).toBeTruthy();
+  expect(body.strings.en[protocol.tasks[1].titleKey]).toBe('Quick Check');
 
   // The token is the site's credential — it must never appear in the response.
   expect(JSON.stringify(body)).not.toContain(SITE_TOKEN);

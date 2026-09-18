@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "en",
+  "languages": [
+    "en"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Defaults Study",
+      "protocols": [
+        {
+          "name": "Defaults",
+          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p80_f_patient_code_label",
+              "helpKey": "p80_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "PHONATION",
+              "titleKey": "p80_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p80_t1_instr1"
+              ],
+              "length": 10,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+            },
+            {
+              "type": "VOCAL",
+              "subtype": "RETELLING",
+              "titleKey": "p80_t2_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p80_t2_instr1",
+                "p80_t2_instr2"
+              ],
+              "length": 90,
+              "showIndicator": false,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_redRidingHood.wav"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "en": {
+      "p80_t1_title": "Prolonged phonation /aaa/",
+      "p80_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
+      "p80_t2_title": "Retelling fairytale",
+      "p80_t2_instr1": "Press Play story to listen to a spoken fairytale. After listening to the story, press button to calibrate your camera. Then <bold>retell the tale in your own words</bold> in 90 seconds.",
+      "p80_t2_instr2": "Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "p80_f_patient_code_label": "Participant code",
+      "p80_f_patient_code_help": "Study code of the participant, e.g. HC001."
+    }
+  }
+}

@@ -95,6 +95,16 @@ export default function TaskModal({
                   })}
                 </div>
 
+              // BOOLEAN: checkbox (legacy rows may hold the strings "true"/"false")
+              ) : paramInfo.type === "boolean" ? (
+                <input
+                  type="checkbox"
+                  checked={value === true || value === "true"}
+                  onChange={(e) =>
+                    setEditingData((prev) => ({ ...prev, [param]: e.target.checked }))
+                  }
+                />
+
               // EXISTING: Dropdown for Enum
               ) : hasEnumValues ? (
                 <select

@@ -5,6 +5,8 @@
     "title": "Dotazník: {{title}}",
     "instructions": "Prosím zodpovězte na následující otázky.",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
       "title": { "label": "Název" },
       "description": { "label": "Popis" },
       "questions": { "label": "Otázky" }
@@ -16,6 +18,8 @@
     "title": "Dotazník: {{title}}",
     "instructions": "Prosím zodpovězte na následující otázky.",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
       "title": { "label": "Název" },
       "description": { "label": "Popis" },
       "questions": { "label": "Otázky" }
@@ -46,6 +50,8 @@
     "title": "Dotazník: {{title}}",
     "instructions": "Prosím zodpovězte na následující otázky.",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
       "title": { "label": "Název" },
       "description": { "label": "Popis" },
       "questions": { "label": "Otázky" }
@@ -74,6 +80,9 @@
     "instructions": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /{{phoneme}}/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň {{duration}} sekund. Jakmile se vám dojde dech, stiskněte STOP.",
     "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
+      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
       "phoneme": {
         "label": "Samohláska",
         "values": {
@@ -96,6 +105,9 @@
     "instructions": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /{{syllable}}/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
     "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
+      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
       "syllable": {
         "label": "Slabika",
         "values": {
@@ -118,6 +130,9 @@
     "instructionsPostCalibration": "Stisknutím tlačítka Přehrát pohádku si poslechněte namluvený příběh. {{playStory}} Po poslechu příběhu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Mluvte souvisle — nezáleží na tom, zda je převyprávěný příběh správný nebo úplný.",
     "instructionsActive": "Nyní prosím převyprávějte příběh vlastními slovy během {{duration}} sekund.",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
+      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
       "fairytale": {
         "label": "Pohádka",
         "values": {
@@ -137,6 +152,9 @@
     "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "instructionsActive": "{{text}}",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
+      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
       "topic": {
         "label": "Téma textu",
         "values": {
@@ -167,6 +185,9 @@
     "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
     "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
     "params": {
+      "canRepeat": { "label": "Povolit opakování" },
+      "canSkip": { "label": "Povolit přeskočení" },
+      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
       "topic": {
         "label": "Téma monologu",
         "values": {

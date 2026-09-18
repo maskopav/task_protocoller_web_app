@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "en",
+  "languages": [
+    "en"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Mixed Study",
+      "protocols": [
+        {
+          "name": "Mixed modalities",
+          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p50_f_patient_code_label",
+              "helpKey": "p50_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "VOCAL",
+              "subtype": "PHONATION",
+              "titleKey": "p50_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "instructionKeys": [
+                "p50_t1_instr1"
+              ],
+              "length": 10,
+              "showIndicator": true,
+              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "en": {
+      "p50_t1_title": "Prolonged phonation /aaa/",
+      "p50_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
+      "p50_f_patient_code_label": "Participant code",
+      "p50_f_patient_code_help": "Study code of the participant, e.g. HC001."
+    }
+  }
+}

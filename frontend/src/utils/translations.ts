@@ -111,9 +111,10 @@ export function getAllParams(category: string): Record<string, any> {
         ];
       }
 
-      // --- CASE 2: numeric or literal parameters (e.g. repeat, duration)
+      // --- CASE 2: boolean, numeric or literal parameters (e.g. canSkip, repeat, duration)
       const defaultValue = paramDef.default;
-      const isNumeric = typeof defaultValue === "number";
+      const type = typeof defaultValue === "boolean" ? "boolean"
+        : typeof defaultValue === "number" ? "number" : "text";
 
       return [
         paramKey,
@@ -121,7 +122,7 @@ export function getAllParams(category: string): Record<string, any> {
           key: paramKey,
           label: translateParamName(category, paramKey),
           values: [], // no enum list
-          type: isNumeric ? "number" : "text",
+          type,
           default: defaultValue,
         },
       ];

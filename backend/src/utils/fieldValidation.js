@@ -34,3 +34,56 @@ export const normalizeToken = (input) => {
 
 export const TOKEN_FORMAT_ERROR =
   "Access token must be 8-64 characters: letters, digits, _ or -";
+
+// --- Desktop-app config fields ------------------------------------------------
+// Mirrors frontend/src/components/Identifiers/IdentifierFields.js.
+
+export const DEFAULT_RECORDINGS_FILE_NAME =
+  "${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}";
+
+// null when valid, else the reason. `fieldNames` are the identifier names
+// defined on the protocol; every ${field.x} must reference one of them.
+export const validateFileNameTemplate = (tpl, fieldNames = []) => {
+  const s = String(tpl ?? "");
+  if (!s.includes("${taskIndex}")) return "recordings_file_name must contain ${taskIndex}";
+  const unknown = [...s.matchAll(/\$\{field\.([^}]*)\}/g)]
+    .map((m) => m[1])
+    .filter((n) => !fieldNames.includes(n));
+  return unknown.length
+    ? `recordings_file_name references undefined identifier(s): ${unknown.join(", ")}`
+    : null;
+};
+
+export const isValidHttpUrl = (v) => /^https?:\/\/\S+$/.test(String(v ?? ""));
+
+// Site settings pushed to the desktop app (sites.config_json). Known keys are
+// type-checked, unknown keys are stripped rather than rejected so callers that
+// re-post an older config_json (activate/deactivate button) keep working.
+const SITE_SETTING_TYPES = {
+  defaultLanguage: "string",
+  languages: "string[]",
+  defaultMicName: "string",
+  defaultMicGain: "number",
+  enableEditor: "boolean",
+  indicatorType: "CIRCLE|WAVEFORM",
+  useCalibration: "boolean",
+};
+
+const matchesType = (v, type) => {
+  if (type === "string[]") return Array.isArray(v) && v.every((x) => typeof x === "string");
+  if (type.includes("|")) return type.split("|").includes(v);
+  return typeof v === type && !(type === "number" && Number.isNaN(v));
+};
+
+// Returns { value } with only the known, well-typed keys, or { error }.
+export const normalizeSiteSettings = (obj) => {
+  if (obj == null) return { value: null };
+  if (typeof obj !== "object" || Array.isArray(obj)) return { error: "config_json must be a JSON object" };
+  const value = {};
+  for (const [key, type] of Object.entries(SITE_SETTING_TYPES)) {
+    if (obj[key] === undefined || obj[key] === null) continue;
+    if (!matchesType(obj[key], type)) return { error: `config_json.${key} must be ${type}` };
+    value[key] = obj[key];
+  }
+  return { value };
+};

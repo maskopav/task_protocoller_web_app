@@ -5,8 +5,10 @@ import {
   firstInvalidEmail,
   isValidAccessToken,
   normalizeToken,
+  normalizeSiteSettings,
   TOKEN_FORMAT_ERROR,
 } from "../utils/fieldValidation.js";
+import { buildExtConfig, loadLocales } from "../utils/extConfig.js";
 import { logToFile } from "../utils/logger.js";
 import { assembleProtocol } from "./protocolController.js";
 import {
@@ -24,16 +26,18 @@ const parseJson = (raw, fallback) => {
   try { return JSON.parse(raw); } catch { return fallback; }
 };
 
-// Accepts an object or a JSON string; returns the string to store,
-// null for empty input, or undefined when the input is not valid JSON.
+// Accepts an object or a JSON string holding the desktop-app settings.
+// Returns { value } = the string to store (null for empty input) with unknown
+// keys stripped, or { error } when the input is not valid JSON / badly typed.
 const normalizeConfigJson = (input) => {
-  if (input == null || input === "") return null;
-  if (typeof input === "object") return JSON.stringify(input);
-  try {
-    return JSON.stringify(JSON.parse(input));
-  } catch {
-    return undefined;
+  if (input == null || input === "") return { value: null };
+  let parsed = input;
+  if (typeof input !== "object") {
+    try { parsed = JSON.parse(input); } catch { return { error: "config_json is not valid JSON" }; }
   }
+  const { value, error } = normalizeSiteSettings(parsed);
+  if (error) return { error };
+  return { value: value == null ? null : JSON.stringify(value) };
 };
 
 // sites has two UNIQUE columns, so "duplicate entry" alone is ambiguous. mysql
@@ -204,10 +208,8 @@ export const createSite = async (req, res) => {
     return res.status(400).json({ error: "Site name is required" });
   }
 
-  const configToStore = normalizeConfigJson(config_json);
-  if (configToStore === undefined) {
-    return res.status(400).json({ error: "config_json is not valid JSON" });
-  }
+  const { value: configToStore, error: configError } = normalizeConfigJson(config_json);
+  if (configError) return res.status(400).json({ error: configError });
 
   // Creating a clinic follows from being able to edit a project: a clinic with
   // no project on it does nothing, so there is no separate right for it.
@@ -263,10 +265,8 @@ export const updateSite = async (req, res) => {
     return res.status(400).json({ error: "Site name is required" });
   }
 
-  const configToStore = normalizeConfigJson(config_json);
-  if (configToStore === undefined) {
-    return res.status(400).json({ error: "config_json is not valid JSON" });
-  }
+  const { value: configToStore, error: configError } = normalizeConfigJson(config_json);
+  if (configError) return res.status(400).json({ error: configError });
 
   // A non-master may maintain and archive a clinic they created themselves —
   // that is what "archive instead of delete" means here — but never one that
@@ -391,14 +391,16 @@ export const removeProjectFromSite = async (req, res) => {
 };
 
 // GET /site-config/:token — PUBLIC, gated by the site's access token.
-// Returns everything the site inherits through its projects; the external
-// desktop app decides which protocol(s) to use. The response never contains
-// the access token itself.
+// Returns everything the site inherits through its projects in the desktop
+// app's config format (see docs/ext_app_Task_Configuration_JSON_Spec.md and
+// docs/config_alignment_decision_table.md). The transform is pure and lives in
+// utils/extConfig.js; this handler only gathers the native rows. The response
+// never contains the access token itself.
 export const getSiteConfig = async (req, res) => {
   const { token } = req.params;
   try {
     const rows = await executeQuery(
-      `SELECT id, name, config_json, is_active FROM sites WHERE access_token = ?`,
+      `SELECT id, name, config_json, is_active, updated_at FROM sites WHERE access_token = ?`,
       [token]
     );
     if (rows.length === 0) {
@@ -416,45 +418,41 @@ export const getSiteConfig = async (req, res) => {
        ORDER BY project_id, protocol_id`,
       [site.id]
     );
+    const taskRows = await executeQuery(
+      `SELECT t.id, t.category, tt.type FROM tasks t JOIN task_types tt ON tt.id = t.type_id`
+    );
+    const tasksById = Object.fromEntries(taskRows.map((r) => [r.id, { category: r.category, type: r.type }]));
 
-    // Group protocol ids by project, then assemble each protocol once.
+    // Group by project; assemble each protocol once even if several projects
+    // of this site link to it.
     const projectMap = new Map();
+    const assembledById = new Map();
     for (const row of spine) {
       if (!projectMap.has(row.project_id)) {
-        projectMap.set(row.project_id, { id: row.project_id, name: row.project_name, protocols: [] });
+        projectMap.set(row.project_id, { name: row.project_name, protocols: [] });
       }
-      projectMap.get(row.project_id).protocols.push(row);
+      if (!assembledById.has(row.protocol_id)) {
+        const assembled = await assembleProtocol(row.protocol_id);
+        if (assembled) assembled.protocol.language_code = row.language_code;
+        assembledById.set(row.protocol_id, assembled);
+      }
+      const assembled = assembledById.get(row.protocol_id);
+      if (assembled) projectMap.get(row.project_id).protocols.push(assembled);
     }
 
-    const projects = [];
-    for (const project of projectMap.values()) {
-      const protocols = [];
-      for (const { protocol_id, language_code } of project.protocols) {
-        const assembled = await assembleProtocol(protocol_id);
-        if (!assembled) continue;
-        const { protocol, contentMap, globalFields, tasks } = assembled;
-        protocols.push({
-          id: protocol.id,
-          name: protocol.name,
-          version: protocol.version,
-          language_id: protocol.language_id,
-          language_code,
-          randomization: protocol.randomization,
-          required_identifiers: protocol.required_identifiers,
-          use_audio_guide: protocol.use_audio_guide,
-          info_text: globalFields.info_text || "",
-          instructions_text: globalFields.instructions_text || "",
-          global_contents: contentMap["global"] || [],
-          tasks
-        });
-      }
-      projects.push({ id: project.id, name: project.name, protocols });
-    }
-
-    res.json({
-      site: { name: site.name, config_json: parseJson(site.config_json, null) },
-      projects
+    const { config, skipped } = buildExtConfig({
+      site: { name: site.name, config_json: parseJson(site.config_json, null), updated_at: site.updated_at },
+      projects: [...projectMap.values()],
+      tasksById,
+      locales: loadLocales(),
+      assetBaseUrl: process.env.ASSET_BASE_URL || "",
+      now: new Date(),
     });
+    for (const s of skipped) {
+      logToFile("WARN", "site-config: task skipped (unsupported by the desktop app)", { site: site.name, ...s });
+    }
+
+    res.json(config);
   } catch (err) {
     logToFile("ERROR", "Failed to resolve site config", { error: err.message, stack: err.stack });
     res.status(500).json({ error: "Internal server error" });

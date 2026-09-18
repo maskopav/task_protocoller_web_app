@@ -57,7 +57,7 @@ VALUES
 -- --------------------------
 INSERT INTO sites (id, name, description, access_token, config_json, is_active, created_by)
 VALUES
-  (3, 'E2E Site', 'Fixed-token site for Playwright tests', 'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2', '{"note":"e2e"}', 1, 1);
+  (3, 'E2E Site', 'Fixed-token site for Playwright tests', 'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2', '{"defaultLanguage":"en","languages":["en"]}', 1, 1);
 
 INSERT INTO site_projects (site_id, project_id) VALUES (3, 1);
 

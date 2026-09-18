@@ -1,0 +1,446 @@
+{
+  "schemaVersion": 1,
+  "configVersion": "2026-09-10.093000",
+  "defaultLanguage": "en",
+  "languages": [
+    "en"
+  ],
+  "defaultMicName": "",
+  "defaultMicGain": 1,
+  "enableEditor": false,
+  "indicatorType": "CIRCLE",
+  "useCalibration": true,
+  "projects": [
+    {
+      "name": "Questionnaire Study",
+      "protocols": [
+        {
+          "name": "Questionnaire set",
+          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+          "patientFields": [
+            {
+              "name": "patient_code",
+              "labelKey": "p60_f_patient_code_label",
+              "helpKey": "p60_f_patient_code_help",
+              "placeholder": "HC001",
+              "regex": "[A-Za-z0-9_-]+",
+              "required": true
+            }
+          ],
+          "tasks": [
+            {
+              "type": "QUESTIONNAIRE",
+              "titleKey": "p60_t1_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "questions": [
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q1",
+                  "questionTextKey": "p60_t1_q1_text",
+                  "questionOptions": [
+                    "p60_t1_q1_o1",
+                    "p60_t1_q1_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q2",
+                  "questionTextKey": "p60_t1_q2_text",
+                  "questionOptions": [
+                    "p60_t1_q2_o1",
+                    "p60_t1_q2_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q3",
+                  "questionTextKey": "p60_t1_q3_text",
+                  "questionOptions": [
+                    "p60_t1_q3_o1",
+                    "p60_t1_q3_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q4",
+                  "questionTextKey": "p60_t1_q4_text",
+                  "questionOptions": [
+                    "p60_t1_q4_o1",
+                    "p60_t1_q4_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q5",
+                  "questionTextKey": "p60_t1_q5_text",
+                  "questionOptions": [
+                    "p60_t1_q5_o1",
+                    "p60_t1_q5_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q6",
+                  "questionTextKey": "p60_t1_q6_text",
+                  "questionOptions": [
+                    "p60_t1_q6_o1",
+                    "p60_t1_q6_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q7",
+                  "questionTextKey": "p60_t1_q7_text",
+                  "questionOptions": [
+                    "p60_t1_q7_o1",
+                    "p60_t1_q7_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q8",
+                  "questionTextKey": "p60_t1_q8_text",
+                  "questionOptions": [
+                    "p60_t1_q8_o1",
+                    "p60_t1_q8_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q9",
+                  "questionTextKey": "p60_t1_q9_text",
+                  "questionOptions": [
+                    "p60_t1_q9_o1",
+                    "p60_t1_q9_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q10",
+                  "questionTextKey": "p60_t1_q10_text",
+                  "questionOptions": [
+                    "p60_t1_q10_o1",
+                    "p60_t1_q10_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q11",
+                  "questionTextKey": "p60_t1_q11_text",
+                  "questionOptions": [
+                    "p60_t1_q11_o1",
+                    "p60_t1_q11_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q12",
+                  "questionTextKey": "p60_t1_q12_text",
+                  "questionOptions": [
+                    "p60_t1_q12_o1",
+                    "p60_t1_q12_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t1_q13",
+                  "questionTextKey": "p60_t1_q13_text",
+                  "questionOptions": [
+                    "p60_t1_q13_o1",
+                    "p60_t1_q13_o2"
+                  ]
+                }
+              ],
+              "length": 300
+            },
+            {
+              "type": "QUESTIONNAIRE",
+              "titleKey": "p60_t2_title",
+              "canRepeat": true,
+              "canSkip": false,
+              "nrepetition": 1,
+              "questions": [
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q1",
+                  "questionTextKey": "p60_t2_q1_text",
+                  "questionOptions": [
+                    "p60_t2_q1_o1",
+                    "p60_t2_q1_o2",
+                    "p60_t2_q1_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q2",
+                  "questionTextKey": "p60_t2_q2_text",
+                  "questionOptions": [
+                    "p60_t2_q2_o1",
+                    "p60_t2_q2_o2",
+                    "p60_t2_q2_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q3",
+                  "questionTextKey": "p60_t2_q3_text",
+                  "questionOptions": [
+                    "p60_t2_q3_o1",
+                    "p60_t2_q3_o2",
+                    "p60_t2_q3_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q4",
+                  "questionTextKey": "p60_t2_q4_text",
+                  "questionOptions": [
+                    "p60_t2_q4_o1",
+                    "p60_t2_q4_o2",
+                    "p60_t2_q4_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q5",
+                  "questionTextKey": "p60_t2_q5_text",
+                  "questionOptions": [
+                    "p60_t2_q5_o1",
+                    "p60_t2_q5_o2",
+                    "p60_t2_q5_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q6",
+                  "questionTextKey": "p60_t2_q6_text",
+                  "questionOptions": [
+                    "p60_t2_q6_o1",
+                    "p60_t2_q6_o2",
+                    "p60_t2_q6_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q7",
+                  "questionTextKey": "p60_t2_q7_text",
+                  "questionOptions": [
+                    "p60_t2_q7_o1",
+                    "p60_t2_q7_o2",
+                    "p60_t2_q7_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q8",
+                  "questionTextKey": "p60_t2_q8_text",
+                  "questionOptions": [
+                    "p60_t2_q8_o1",
+                    "p60_t2_q8_o2",
+                    "p60_t2_q8_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q9",
+                  "questionTextKey": "p60_t2_q9_text",
+                  "questionOptions": [
+                    "p60_t2_q9_o1",
+                    "p60_t2_q9_o2",
+                    "p60_t2_q9_o3"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t2_q10",
+                  "questionTextKey": "p60_t2_q10_text",
+                  "questionOptions": [
+                    "p60_t2_q10_o1",
+                    "p60_t2_q10_o2",
+                    "p60_t2_q10_o3"
+                  ]
+                }
+              ],
+              "length": 300
+            },
+            {
+              "type": "QUESTIONNAIRE",
+              "titleKey": "p60_t3_title",
+              "canRepeat": false,
+              "canSkip": true,
+              "nrepetition": 1,
+              "questions": [
+                {
+                  "questionType": "OPEN",
+                  "questionKey": "p60_t3_q1",
+                  "questionTextKey": "p60_t3_q1_text",
+                  "questionRegex": ".+"
+                },
+                {
+                  "questionType": "OPEN",
+                  "questionKey": "p60_t3_q2",
+                  "questionTextKey": "p60_t3_q2_text",
+                  "questionRegex": ".*"
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t3_q3",
+                  "questionTextKey": "p60_t3_q3_text",
+                  "questionOptions": [
+                    "p60_t3_q3_o1",
+                    "p60_t3_q3_o2",
+                    "p60_t3_q3_o3"
+                  ]
+                },
+                {
+                  "questionType": "MULTIPLE_CHOICE",
+                  "questionKey": "p60_t3_q4",
+                  "questionTextKey": "p60_t3_q4_text",
+                  "questionOptions": [
+                    "p60_t3_q4_o1",
+                    "p60_t3_q4_o2",
+                    "p60_t3_q4_o3",
+                    "p60_t3_q4_o4"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t3_q5",
+                  "questionTextKey": "p60_t3_q5_text",
+                  "questionOptions": [
+                    "p60_t3_q5_o1",
+                    "p60_t3_q5_o2"
+                  ]
+                },
+                {
+                  "questionType": "SINGLE_CHOICE",
+                  "questionKey": "p60_t3_q6",
+                  "questionTextKey": "p60_t3_q6_text",
+                  "questionOptions": [
+                    "rating_1",
+                    "rating_2",
+                    "rating_3",
+                    "rating_4",
+                    "rating_5"
+                  ]
+                }
+              ],
+              "length": 300
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "en": {
+      "p60_t1_title": "RBD-SQ",
+      "p60_t1_q1_text": "I sometimes have very vivid dreams.",
+      "p60_t1_q1_o1": "Yes",
+      "p60_t1_q1_o2": "No",
+      "p60_t1_q2_text": "My dreams frequently have an aggressive or action-packed content.",
+      "p60_t1_q2_o1": "Yes",
+      "p60_t1_q2_o2": "No",
+      "p60_t1_q3_text": "The dream contents mostly match my nocturnal behavior.",
+      "p60_t1_q3_o1": "Yes",
+      "p60_t1_q3_o2": "No",
+      "p60_t1_q4_text": "I know that my arms or legs move when I sleep.",
+      "p60_t1_q4_o1": "Yes",
+      "p60_t1_q4_o2": "No",
+      "p60_t1_q5_text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+      "p60_t1_q5_o1": "Yes",
+      "p60_t1_q5_o2": "No",
+      "p60_t1_q6_text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+      "p60_t1_q6_o1": "Yes",
+      "p60_t1_q6_o2": "No",
+      "p60_t1_q7_text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+      "p60_t1_q7_o1": "Yes",
+      "p60_t1_q7_o2": "No",
+      "p60_t1_q8_text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+      "p60_t1_q8_o1": "Yes",
+      "p60_t1_q8_o2": "No",
+      "p60_t1_q9_text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+      "p60_t1_q9_o1": "Yes",
+      "p60_t1_q9_o2": "No",
+      "p60_t1_q10_text": "It happens that my movements awake me.",
+      "p60_t1_q10_o1": "Yes",
+      "p60_t1_q10_o2": "No",
+      "p60_t1_q11_text": "After awakening I mostly remember the content of my dreams well.",
+      "p60_t1_q11_o1": "Yes",
+      "p60_t1_q11_o2": "No",
+      "p60_t1_q12_text": "My sleep is frequently disturbed.",
+      "p60_t1_q12_o1": "Yes",
+      "p60_t1_q12_o2": "No",
+      "p60_t1_q13_text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+      "p60_t1_q13_o1": "Yes",
+      "p60_t1_q13_o2": "No",
+      "p60_t2_title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "p60_t2_q1_text": "Does a hearing problem cause you to feel embarrassed when you meet new people?",
+      "p60_t2_q1_o1": "Yes",
+      "p60_t2_q1_o2": "Sometimes",
+      "p60_t2_q1_o3": "No",
+      "p60_t2_q2_text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?",
+      "p60_t2_q2_o1": "Yes",
+      "p60_t2_q2_o2": "Sometimes",
+      "p60_t2_q2_o3": "No",
+      "p60_t2_q3_text": "Do you have difficulty hearing or understanding your colleagues, clients, or customers?",
+      "p60_t2_q3_o1": "Yes",
+      "p60_t2_q3_o2": "Sometimes",
+      "p60_t2_q3_o3": "No",
+      "p60_t2_q4_text": "Do you feel handicapped by a hearing problem?",
+      "p60_t2_q4_o1": "Yes",
+      "p60_t2_q4_o2": "Sometimes",
+      "p60_t2_q4_o3": "No",
+      "p60_t2_q5_text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?",
+      "p60_t2_q5_o1": "Yes",
+      "p60_t2_q5_o2": "Sometimes",
+      "p60_t2_q5_o3": "No",
+      "p60_t2_q6_text": "Does a hearing problem cause you difficulty in a cinema or in a theatre?",
+      "p60_t2_q6_o1": "Yes",
+      "p60_t2_q6_o2": "Sometimes",
+      "p60_t2_q6_o3": "No",
+      "p60_t2_q7_text": "Does a hearing problem cause you to have arguments with family members?",
+      "p60_t2_q7_o1": "Yes",
+      "p60_t2_q7_o2": "Sometimes",
+      "p60_t2_q7_o3": "No",
+      "p60_t2_q8_text": "Does a hearing problem cause you difficulty when listening to TV or radio?",
+      "p60_t2_q8_o1": "Yes",
+      "p60_t2_q8_o2": "Sometimes",
+      "p60_t2_q8_o3": "No",
+      "p60_t2_q9_text": "Does a hearing problem cause you to use the telephone less often than you would like?",
+      "p60_t2_q9_o1": "Yes",
+      "p60_t2_q9_o2": "Sometimes",
+      "p60_t2_q9_o3": "No",
+      "p60_t2_q10_text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?",
+      "p60_t2_q10_o1": "Yes",
+      "p60_t2_q10_o2": "Sometimes",
+      "p60_t2_q10_o3": "No",
+      "p60_t3_title": "Custom questionnaire",
+      "p60_t3_q1_text": "Open question",
+      "p60_t3_q2_text": "Optional open question",
+      "p60_t3_q3_text": "Single choice",
+      "p60_t3_q3_o1": "A",
+      "p60_t3_q3_o2": "B",
+      "p60_t3_q3_o3": "C",
+      "p60_t3_q4_text": "Multiple choice",
+      "p60_t3_q4_o1": "X",
+      "p60_t3_q4_o2": "Y",
+      "p60_t3_q4_o3": "Z",
+      "p60_t3_q4_o4": "None",
+      "p60_t3_q5_text": "Dropdown",
+      "p60_t3_q5_o1": "One",
+      "p60_t3_q5_o2": "Two",
+      "p60_t3_q6_text": "Rating",
+      "rating_1": "Very bad",
+      "rating_2": "Bad",
+      "rating_3": "Okay",
+      "rating_4": "Good",
+      "rating_5": "Very good",
+      "p60_f_patient_code_label": "Participant code",
+      "p60_f_patient_code_help": "Study code of the participant, e.g. HC001."
+    }
+  }
+}
