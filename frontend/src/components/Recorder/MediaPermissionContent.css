@@ -3,6 +3,13 @@
   display: none;
 }
 
+/* .media-permission-main collapses to nothing when empty (no main content on this
+   screen), so the instruction card loses the gap it'd normally get from the main
+   area's padding/min-height. Restore it directly on the card. */
+.instruction-card.media-permission-instructions {
+  margin-bottom: clamp(16px, 3dvh, 32px);
+}
+
 .guide-description {
   width: 100%;
 }
