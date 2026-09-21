@@ -122,14 +122,6 @@ export default function MediaPermissionContent({
       }
       {...taskLayoutProps}
     >
-      {variant === 'intro' && !imgError && (
-        <img
-          src={imageSrc || `${baseAssetPath}assets/${assetFolder}/mic_access.png`}
-          alt={`${type} permission prompt`}
-          className="intro-preview-img"
-          onError={() => setImgError(true)}
-        />
-      )}
     </TaskLayout>
   );
 }
