@@ -8,15 +8,18 @@
   flex: 1 1 auto;
   min-height: 0;
   padding: 0;
+  justify-content: center;
 }
 
-/* Scrollable "window" holding the consent text. It fills all the space
-   left between the fixed title above and the fixed checkbox/Next button
-   below, so long consent text scrolls inside it instead of the whole
-   page scrolling (which would carry the title/controls off screen). */
+/* Scrollable "window" holding the consent text, capped below its available
+   space so long consent text scrolls inside it instead of the whole
+   page scrolling (which would carry the title/controls off screen). Grow
+   is off so it sizes to its content (up to max-height) and centers via the
+   parent's justify-content instead of stretching to fill it. */
 .consent-scroll-box {
   width: 100%;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  max-height: 67%;
   min-height: 0;
   margin-top: clamp(4px, 1dvh, 10px);
   overflow-y: auto;
@@ -29,10 +32,7 @@
   text-align: left;
 }
 
-/* Smaller than the standard task instruction text (so long consent text
-   fits comfortably), but a bit bigger than plain body copy for readability. */
 .consent-text.participant-rich-text {
-  font-size: clamp(1.1rem, 2.6vw, 1.2rem) !important;
   line-height: 1.5;
 }
 
@@ -47,9 +47,7 @@
   margin-bottom: 0;
 }
 
-/* Checkbox + Next button: kept together in .bottom-controls, which
-   never scrolls out of view, and laid out side by side (wrapping on
-   narrow screens) so both stay visible at once. */
+/* Next button: kept in .bottom-controls, which never scrolls out of view. */
 .consent-controls {
   display: flex;
   flex-direction: row;
@@ -58,30 +56,6 @@
   justify-content: center;
   gap: clamp(0.6rem, 2vw, 1.25rem);
   width: 100%;
-}
-
-.consent-controls .consent-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  text-align: left;
-}
-
-.consent-controls .consent-checkbox input[type="checkbox"] {
-  width: 1.3em;
-  height: 1.3em;
-  margin-top: 1rem;
-  accent-color: var(--primary);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.consent-controls .consent-checkbox label {
-  cursor: pointer;
-  font-size: clamp(1.1rem, 2.6vw, 1.2rem);
-  color: var(--text);
-  text-align: left;
-  margin-top: 0.5rem;
 }
 
 .consent-controls .btn-next {

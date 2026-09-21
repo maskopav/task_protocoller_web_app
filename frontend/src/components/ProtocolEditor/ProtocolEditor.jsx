@@ -415,7 +415,6 @@ export function ProtocolEditor({
     });
     if (isConfirmed) {
       updateProtocolField("consent_text", "");
-      updateProtocolField("consent_checkbox_text", "");
     }
   }
 
@@ -534,10 +533,7 @@ export function ProtocolEditor({
           <TemplateSelector 
             templateType="consent"
             currentLanguage={protocolData?.language || "en"}
-            onSelect={(template) => {
-              updateProtocolField("consent_text", template.content);
-              updateProtocolField("consent_checkbox_text", template.checkboxText || "");
-            }}
+            onSelect={(template) => updateProtocolField("consent_text", template.content)}
             i18n={i18n}
           />
           <div className="mobile-phone-frame">
@@ -550,18 +546,6 @@ export function ProtocolEditor({
                 placeholder={t("protocolEditor.consentPlaceholder")}
               />
             </div>
-          </div>
-          <div className="protocol-field">
-            <label className="protocol-label">
-              {t("protocolEditor.consentCheckboxLabel")}:
-            </label>
-            <input
-              type="text"
-              className="protocol-name-input"
-              placeholder={t("protocolEditor.consentCheckboxPlaceholder")}
-              value={protocolData?.consent_checkbox_text || ""}
-              onChange={(e) => updateProtocolField("consent_checkbox_text", e.target.value)}
-            />
           </div>
         </div>
       </AdminModal>

@@ -165,7 +165,6 @@ export async function resolveParticipantToken(req, res) {
         info_text: globalContentByRef.info_text || "",
         instructions_text: globalContentByRef.instructions_text || "",
         consent_text: globalContentByRef.consent_text || "",
-        consent_checkbox_text: globalContentByRef.consent_checkbox_text || "",
         global_contents: contentMap['global'] || [],
         tasks: formattedTasks,
         available_languages: available_languages

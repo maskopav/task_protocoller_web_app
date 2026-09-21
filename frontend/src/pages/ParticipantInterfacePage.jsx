@@ -233,11 +233,9 @@ export default function ParticipantInterfacePage() {
     // Add Consent Page (check root field OR new array)
     const consentHtml = selectedProtocol.consent_text || findGlobalContent('consent');
     if (consentHtml) {
-      const consentCheckboxText = selectedProtocol.consent_checkbox_text || findGlobalContent('consent_checkbox');
       introSteps.push({
         type: "consent",
         content: consentHtml,
-        checkboxText: consentCheckboxText,
         category: "consent",
         isSystemTask: true
       });
@@ -951,7 +949,7 @@ export default function ParticipantInterfacePage() {
 
     // Render Consent Page
     if (rawTask.type === "consent") {
-      return <ConsentPage content={rawTask.content} checkboxText={rawTask.checkboxText} onNext={() => handleTaskComplete({ type: 'consent' })} />;
+      return <ConsentPage content={rawTask.content} onNext={() => handleTaskComplete({ type: 'consent' })} />;
     }
 
     // Render Identifiers Page

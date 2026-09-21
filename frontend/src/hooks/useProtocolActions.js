@@ -115,7 +115,6 @@ export function mapProtocolWithNames(raw, mappings) {
     info_text: raw.info_text || "",
     instructions_text: raw.instructions_text || "",
     consent_text: raw.consent_text || "",
-    consent_checkbox_text: raw.consent_checkbox_text || "",
     required_identifiers: raw.required_identifiers,
     use_audio_guide: raw.use_audio_guide,
     enable_followup_booking: raw.enable_followup_booking,
