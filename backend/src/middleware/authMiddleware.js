@@ -1,6 +1,7 @@
 // backend/src/middleware/authMiddleware.js
 import { verifyAdminToken } from "../utils/jwt.js";
 import { executeQuery } from "../db/queryHelper.js";
+import { logToFile } from "../utils/logger.js";
 
 // A JWT's signature and expiry being valid only proves it was genuinely
 // issued at login — it says nothing about whether the account is still
@@ -38,6 +39,14 @@ export async function requireAuth(req, res, next) {
     next();
   } catch (err) {
     // Fail closed: if we can't confirm the account is still active, deny access.
+    // Logged because this branch fires for any DB error (e.g. a connectivity
+    // blip), not just a genuinely deactivated/missing account -- without this,
+    // those two cases were indistinguishable from the client's 401.
+    logToFile("ERROR", "requireAuth: DB check failed, denying access", {
+      userId: payload?.id,
+      path: req.originalUrl,
+      error: err.message,
+    });
     return res.status(401).json({ error: "Unauthorized" });
   }
 }
