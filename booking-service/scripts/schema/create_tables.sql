@@ -33,22 +33,29 @@ CREATE TABLE `slots` (
   FOREIGN KEY (`resource_id`) REFERENCES `resources` (`id`)
 );
 
+-- One row per respondent's engagement with a resource — either a real
+-- booking (slot_id set) or an open request (slot_id NULL, status
+-- 'requested') from someone who reported that none of the offered slots
+-- worked. 
 CREATE TABLE `bookings` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `slot_id` integer NOT NULL,
+  `resource_id` integer NOT NULL COMMENT 'always set (also reachable via slot_id -> slots.resource_id once a slot is chosen) -- needed directly since slot_id is NULL for status=requested',
+  `slot_id` integer DEFAULT NULL COMMENT 'NULL only for status=requested, where the respondent left contact info + preferred_times instead of picking a slot',
   `external_ref` varchar(255) NOT NULL COMMENT 'opaque ID supplied by the calling app for correlation — no FK, this service does not know what it refers to',
-  `eligible_after` date NOT NULL COMMENT 'the "after" date from the signed booking link that created this booking (calling app''s completed_at + BOOKING_ELIGIBILITY_DAYS). Persisted here — not just checked once at creation — so reschedule and cancel-then-rebook can re-enforce the same floor without this service needing to call back to the calling app, which it has no way to do (external_ref is opaque to it)',
+  `eligible_after` date NOT NULL COMMENT 'the "after" date from the signed booking link active when this row was created (calling app''s completed_at + BOOKING_ELIGIBILITY_DAYS). Persisted here — not just checked once — so reschedule, cancel-then-rebook, and a status=requested row''s durable link (see manage_token) can all re-enforce the same floor without this service needing to call back to the calling app, which it has no way to do (external_ref is opaque to it)',
   `contact_email` varchar(255) NOT NULL,
   `contact_phone` varchar(255) NOT NULL,
-  `manage_token` char(32) UNIQUE NOT NULL,
-  `locale` varchar(10) NOT NULL DEFAULT 'en' COMMENT 'Language for this booking''s emails (confirmation/reschedule/cancellation), chosen once at booking time — see src/i18n/emailTranslations.js',
-  `status` ENUM('booked','rescheduled','cancelled') NOT NULL DEFAULT 'booked',
+  `preferred_times` text DEFAULT NULL COMMENT 'set only for status=requested -- free-text note on when the respondent would be available, since none of the offered slots worked',
+  `manage_token` char(32) UNIQUE NOT NULL COMMENT 'durable personal link credential either way — for a real booking it unlocks reschedule/cancel; for status=requested it only ever redirects back into slot-picking, never reschedule/cancel (see publicController.js)',
+  `locale` varchar(10) NOT NULL DEFAULT 'en' COMMENT 'Language for this row''s emails, chosen once at creation time — see src/i18n/emailTranslations.js',
+  `status` ENUM('requested','booked','rescheduled','cancelled') NOT NULL DEFAULT 'booked',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL,
   `active_slot_id` integer GENERATED ALWAYS AS (CASE WHEN `status` = 'cancelled' THEN NULL ELSE `slot_id` END) STORED
-    COMMENT 'partial-unique-index trick: MySQL has no filtered unique index, so a generated column that is NULL for cancelled rows lets the UNIQUE KEY below enforce "at most one active booking per slot" (capacity is always 1 for now) while still allowing a slot to be rebooked after a cancellation',
+    COMMENT 'partial-unique-index trick: MySQL has no filtered unique index, so a generated column that is NULL for cancelled rows lets the UNIQUE KEY below enforce "at most one active booking per slot" (capacity is always 1 for now) while still allowing a slot to be rebooked after a cancellation. Always NULL for status=requested too, since slot_id itself is already NULL there',
   UNIQUE KEY `bookings_active_slot` (`active_slot_id`),
-  FOREIGN KEY (`slot_id`) REFERENCES `slots` (`id`)
+  FOREIGN KEY (`slot_id`) REFERENCES `slots` (`id`),
+  FOREIGN KEY (`resource_id`) REFERENCES `resources` (`id`)
 );
 
 CREATE TABLE `webhooks` (
