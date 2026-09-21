@@ -11,31 +11,34 @@
   const slotList = document.getElementById("slotList");
   const contactStep = document.getElementById("contactStep");
   const selectedSlotSummary = document.getElementById("selectedSlotSummary");
+  const preferredTimesField = document.getElementById("preferredTimesField");
+  const emailInput = document.getElementById("email");
+  const phoneInput = document.getElementById("phone");
   const confirmedStep = document.getElementById("confirmedStep");
   const confirmedSummary = document.getElementById("confirmedSummary");
   const contactError = document.getElementById("contactError");
   const noSlotToggle = document.getElementById("noSlotToggle");
-  const noSlotStep = document.getElementById("noSlotStep");
-  const noSlotError = document.getElementById("noSlotError");
+  const nextBtn = document.getElementById("nextBtn");
   const noSlotConfirmedStep = document.getElementById("noSlotConfirmedStep");
 
   document.documentElement.lang = locale;
   loading.textContent = t("loadingSlots");
   document.getElementById("emailLabel").textContent = t("emailLabel");
   document.getElementById("phoneLabel").textContent = t("phoneLabel");
-  document.getElementById("confirmBtn").textContent = t("confirmButton");
+  document.getElementById("nextBtn").textContent = t("nextButton");
   document.getElementById("bookedHeading").textContent = t("bookedHeading");
   document.getElementById("bookedNotice").textContent = t("bookedNotice");
   document.getElementById("noSlotToggle").textContent = t("noSlotToggle");
-  document.getElementById("noSlotIntro").textContent = t("noSlotIntro");
-  document.getElementById("noSlotEmailLabel").textContent = t("emailLabel");
-  document.getElementById("noSlotPhoneLabel").textContent = t("phoneLabel");
   document.getElementById("preferredTimesLabel").textContent = t("preferredTimesLabel");
-  document.getElementById("noSlotSubmitBtn").textContent = t("noSlotSubmitButton");
   document.getElementById("noSlotConfirmedHeading").textContent = t("noSlotConfirmedHeading");
   document.getElementById("noSlotConfirmedNotice").textContent = t("noSlotConfirmedNotice");
 
+  // Exactly one of these is true once the contact form is showing: either a
+  // specific slot was picked, or the participant said none of them work
+  // (in which case preferredTimes is collected instead). Both paths share
+  // the same email/phone fields and the same Next button below.
   let selectedSlot = null;
+  let noSlotMode = false;
 
   function showError(message) {
     loading.classList.add("hidden");
@@ -50,8 +53,7 @@
 
   // Mirrors booking-service's own server-side check (publicController.js's
   // contactFormatError) -- this copy is only a UX nicety, the server
-  // re-validates regardless. Shared by confirmBooking and submitNoSlot,
-  // which both collect the same two fields.
+  // re-validates regardless.
   function contactFormatErrorKey(email, phone) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "invalidEmail";
     if (!/^[0-9+()\-\s]{6,20}$/.test(phone)) return "invalidPhone";
@@ -108,10 +110,22 @@
     slotStep.classList.remove("hidden");
   }
 
+  // Enabled only once the participant has made a choice (a slot, or "none
+  // of these work") and filled in both contact fields -- shared by both
+  // paths, since the button and the fields underneath it are shared too.
+  function updateNextButtonState() {
+    const hasChoice = !!selectedSlot || noSlotMode;
+    nextBtn.disabled = !(hasChoice && emailInput.value.trim() && phoneInput.value.trim());
+  }
+  emailInput.addEventListener("input", updateNextButtonState);
+  phoneInput.addEventListener("input", updateNextButtonState);
+
   function selectSlot(slot, btn) {
-    document.querySelectorAll(".slot-btn.selected").forEach((el) => el.classList.remove("selected"));
+    document.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
     btn.classList.add("selected");
     selectedSlot = slot;
+    noSlotMode = false;
+    preferredTimesField.classList.add("hidden");
 
     const { date, time } = formatSlotTime(slot.starts_at);
     selectedSlotSummary.textContent = "";
@@ -123,83 +137,75 @@
     );
     contactStep.classList.remove("hidden");
     contactStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    updateNextButtonState();
   }
 
-  async function confirmBooking() {
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phone").value.trim();
+  function selectNoSlot() {
+    document.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
+    noSlotToggle.classList.add("selected");
+    selectedSlot = null;
+    noSlotMode = true;
+
+    selectedSlotSummary.textContent = "";
+    preferredTimesField.classList.remove("hidden");
+    contactStep.classList.remove("hidden");
+    contactStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    updateNextButtonState();
+  }
+
+  noSlotToggle.addEventListener("click", selectNoSlot);
+
+  // One submit path for both cases -- which endpoint it calls, and which
+  // confirmation screen it shows, depends on whichever choice (slot vs.
+  // no-slot) is currently selected.
+  async function handleNext() {
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
     contactError.classList.add("hidden");
 
-    if (!selectedSlot) return;
     const formatErrorKey = contactFormatErrorKey(email, phone);
     if (formatErrorKey) return showFieldError(contactError, t(formatErrorKey));
 
-    const btn = document.getElementById("confirmBtn");
-    const originalLabel = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t("confirmingButton");
+    const originalLabel = nextBtn.textContent;
+    nextBtn.disabled = true;
+    nextBtn.textContent = t(selectedSlot ? "confirmingButton" : "sendingButton");
     try {
-      const res = await fetch(`public/bookings/${encodeURIComponent(slug)}${search}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotId: selectedSlot.id, email, phone, lang: locale }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("bookingFailed"));
+      if (selectedSlot) {
+        const res = await fetch(`public/bookings/${encodeURIComponent(slug)}${search}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slotId: selectedSlot.id, email, phone, lang: locale }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || t("bookingFailed"));
 
-      const { date, time } = formatSlotTime(data.startsAt);
-      confirmedSummary.textContent = `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`;
-      slotStep.classList.add("hidden");
-      contactStep.classList.add("hidden");
-      confirmedStep.classList.remove("hidden");
+        const { date, time } = formatSlotTime(data.startsAt);
+        confirmedSummary.textContent = `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`;
+        slotStep.classList.add("hidden");
+        contactStep.classList.add("hidden");
+        confirmedStep.classList.remove("hidden");
+      } else {
+        const preferredTimes = document.getElementById("preferredTimes").value.trim();
+        const res = await fetch(`public/no-slot/${encodeURIComponent(slug)}${search}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, phone, preferredTimes, lang: locale }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || t("noSlotFailed"));
+
+        slotStep.classList.add("hidden");
+        contactStep.classList.add("hidden");
+        noSlotConfirmedStep.classList.remove("hidden");
+      }
     } catch (err) {
       showFieldError(contactError, err.message);
-      btn.disabled = false;
-      btn.textContent = originalLabel;
+      nextBtn.disabled = false;
+      nextBtn.textContent = originalLabel;
     }
   }
 
-  document.getElementById("confirmBtn").addEventListener("click", confirmBooking);
-
-  noSlotToggle.addEventListener("click", () => {
-    slotStep.classList.add("hidden");
-    contactStep.classList.add("hidden");
-    noSlotStep.classList.remove("hidden");
-    noSlotStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  });
-
-  async function submitNoSlot() {
-    const email = document.getElementById("noSlotEmail").value.trim();
-    const phone = document.getElementById("noSlotPhone").value.trim();
-    const preferredTimes = document.getElementById("preferredTimes").value.trim();
-    noSlotError.classList.add("hidden");
-
-    const formatErrorKey = contactFormatErrorKey(email, phone);
-    if (formatErrorKey) return showFieldError(noSlotError, t(formatErrorKey));
-
-    const btn = document.getElementById("noSlotSubmitBtn");
-    const originalLabel = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = t("sendingButton");
-    try {
-      const res = await fetch(`public/no-slot/${encodeURIComponent(slug)}${search}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, phone, preferredTimes, lang: locale }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("noSlotFailed"));
-
-      noSlotStep.classList.add("hidden");
-      noSlotConfirmedStep.classList.remove("hidden");
-    } catch (err) {
-      showFieldError(noSlotError, err.message);
-      btn.disabled = false;
-      btn.textContent = originalLabel;
-    }
-  }
-
-  document.getElementById("noSlotSubmitBtn").addEventListener("click", submitNoSlot);
+  nextBtn.addEventListener("click", handleNext);
 
   fetch(`public/slots/${encodeURIComponent(slug)}${search}`)
     .then(async (res) => {

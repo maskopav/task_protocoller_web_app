@@ -33,30 +33,24 @@
 
     <div id="contactStep" class="card hidden">
       <div id="selectedSlotSummary"></div>
+
+      <div id="preferredTimesField" class="hidden">
+        <label for="preferredTimes" id="preferredTimesLabel">When would work for you?</label>
+        <textarea id="preferredTimes" rows="3"></textarea>
+      </div>
+
       <label for="email" id="emailLabel">Email</label>
       <input type="email" id="email" required />
       <label for="phone" id="phoneLabel">Phone</label>
       <input type="tel" id="phone" required />
       <div id="contactError" class="error hidden"></div>
-      <button class="primary" id="confirmBtn">Confirm appointment</button>
+      <button class="primary" id="nextBtn" disabled>Next</button>
     </div>
 
     <div id="confirmedStep" class="card hidden">
       <h2 id="bookedHeading">You're booked</h2>
       <p id="confirmedSummary"></p>
       <p class="notice" id="bookedNotice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
-    </div>
-
-    <div id="noSlotStep" class="card hidden">
-      <p id="noSlotIntro">Let us know when you're available and we'll be in touch to schedule a time.</p>
-      <label for="noSlotEmail" id="noSlotEmailLabel">Email</label>
-      <input type="email" id="noSlotEmail" required />
-      <label for="noSlotPhone" id="noSlotPhoneLabel">Phone</label>
-      <input type="tel" id="noSlotPhone" required />
-      <label for="preferredTimes" id="preferredTimesLabel">When would work for you?</label>
-      <textarea id="preferredTimes" rows="3"></textarea>
-      <div id="noSlotError" class="error hidden"></div>
-      <button class="primary" id="noSlotSubmitBtn">Send</button>
     </div>
 
     <div id="noSlotConfirmedStep" class="card hidden">

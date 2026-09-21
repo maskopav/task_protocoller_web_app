@@ -96,6 +96,7 @@ button.secondary {
   cursor: pointer;
   margin-right: 8px;
 }
+button.secondary.selected { background: var(--accent); color: #fff; }
 
 button.danger {
   background: #fff;
