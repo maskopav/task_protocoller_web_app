@@ -85,6 +85,10 @@ export const PlaybackSection = ({
             )}
 
             <div className="button-group">
+                <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading || isProcessing}>
+                    {t("buttons.repeat")}
+                </SafeButton>
+                
                 {showNextButton && (
                     <NextTaskButton
                         onClick={onNextTask}
@@ -93,10 +97,6 @@ export const PlaybackSection = ({
                         isProcessing={isProcessing}
                     />
                 )}
-
-                <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading || isProcessing}>
-                    {t("buttons.repeat")}
-                </SafeButton>
             </div>
         </div>
     );
