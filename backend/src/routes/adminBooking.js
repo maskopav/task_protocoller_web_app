@@ -19,5 +19,6 @@ router.delete("/slots/:slotId", adminBookingController.deleteSlot);
 
 router.get("/bookings", requireRole("master"), adminBookingController.listBookings);
 router.get("/bookings/export.csv", requireRole("master"), adminBookingController.exportBookingsCsv);
+router.get("/no-slot-reports", requireRole("master"), adminBookingController.listNoSlotReports);
 
 export default router;

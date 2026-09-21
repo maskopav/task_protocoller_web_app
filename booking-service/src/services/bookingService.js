@@ -229,10 +229,11 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     // same resource — e.g. re-opening the original link after already
     // booking, instead of using the manage link to reschedule. Only one
     // active booking per (resource, externalRef) at a time; they must
-    // cancel/reschedule the existing one first.
+    // cancel/reschedule the existing one first. A 'requested' row (see
+    // reportNoSlotAvailable) never blocks this — it's not a booking, just
+    // contact info — and is cleaned up below once this one succeeds.
     const [existingForRef] = await conn.query(
-      `SELECT b.id FROM bookings b JOIN slots s ON s.id = b.slot_id
-       WHERE s.resource_id = ? AND b.external_ref = ? AND b.status != 'cancelled'`,
+      `SELECT id FROM bookings WHERE resource_id = ? AND external_ref = ? AND status NOT IN ('cancelled', 'requested')`,
       [resourceId, externalRef]
     );
     if (existingForRef.length > 0) {
@@ -244,23 +245,37 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     const manageToken = await generateUniqueManageToken(conn);
 
     const [result] = await conn.query(
-      `INSERT INTO bookings (slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'booked')`,
-      [slotId, externalRef, eligibleAfter, email, phone, manageToken, safeLocale]
+      `INSERT INTO bookings (resource_id, slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'booked')`,
+      [resourceId, slotId, externalRef, eligibleAfter, email, phone, manageToken, safeLocale]
+    );
+
+    // A prior "none of these times work for me" report for this same person
+    // (see reportNoSlotAvailable) is now resolved by this real booking —
+    // clear it so it stops showing up as needing a follow-up call.
+    await conn.query(
+      `UPDATE bookings SET status = 'cancelled', updated_at = UTC_TIMESTAMP()
+       WHERE resource_id = ? AND external_ref = ? AND status = 'requested'`,
+      [resourceId, externalRef]
     );
 
     return { bookingId: result.insertId, manageToken, slotId };
   });
 }
 
+// LEFT JOIN slots (not JOIN) because a status=requested row has no slot_id —
+// resources is joined via b.resource_id directly for the same reason,
+// rather than through slots. starts_at/ends_at/location/google_event_id all
+// come back NULL for a requested row; callers that shouldn't ever see one
+// (reschedule/cancel/manage) guard on status themselves.
 export async function getBookingByManageToken(manageToken) {
   const [row] = await executeQuery(
-    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id, s.google_event_id,
+    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.google_event_id,
             r.name AS resource_name, r.slug AS resource_slug, r.default_location,
             r.contact_info, r.tenant_id
      FROM bookings b
-     JOIN slots s ON s.id = b.slot_id
-     JOIN resources r ON r.id = s.resource_id
+     LEFT JOIN slots s ON s.id = b.slot_id
+     JOIN resources r ON r.id = b.resource_id
      WHERE b.manage_token = ?`,
     [manageToken]
   );
@@ -363,6 +378,33 @@ export async function listBookingsForAdmin(tenantId, { resourceId } = {}) {
 
 export async function setSlotGoogleEventId(slotId, googleEventId) {
   await executeQuery(`UPDATE slots SET google_event_id = ? WHERE id = ?`, [googleEventId, slotId]);
+}
+
+// A respondent's "none of these times work for me" submission -- a row in
+// the same `bookings` table, status='requested', slot_id NULL: just contact
+// info + a free-text note for staff to follow up on manually, sharing the
+// same manage_token mechanism as a real booking. See publicController.js's
+// reportNoSlot and redirectNoSlotAccessToken (which reuses
+// getBookingByManageToken above to resolve it).
+export async function reportNoSlotAvailable({ resourceId, externalRef, email, phone, preferredTimes, eligibleAfter }) {
+  return executeTransaction(async (conn) => {
+    const manageToken = await generateUniqueManageToken(conn);
+    await conn.query(
+      `INSERT INTO bookings (resource_id, external_ref, eligible_after, contact_email, contact_phone, preferred_times, manage_token, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'requested')`,
+      [resourceId, externalRef, eligibleAfter, email, phone, preferredTimes || null, manageToken]
+    );
+    return { manageToken };
+  });
+}
+
+export async function listNoSlotReportsForAdmin(tenantId, resourceId) {
+  await assertResourceOwnedByTenant(resourceId, tenantId);
+  return executeQuery(
+    `SELECT id, external_ref, contact_email, contact_phone, preferred_times, created_at
+     FROM bookings WHERE resource_id = ? AND status = 'requested' ORDER BY created_at DESC`,
+    [resourceId]
+  );
 }
 
 // ---- webhooks -----------------------------------------------------------

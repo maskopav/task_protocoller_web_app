@@ -107,6 +107,17 @@ export async function listBookings(req, res) {
   }
 }
 
+export async function listNoSlotReports(req, res) {
+  const resourceId = Number(req.query.resourceId);
+  if (!resourceId) return res.status(400).json({ error: "resourceId is required" });
+  try {
+    const reports = await bookingService.listNoSlotReportsForAdmin(req.tenant.id, resourceId);
+    res.json({ reports });
+  } catch (err) {
+    handleError(res, err, "Failed to list no-slot reports");
+  }
+}
+
 export async function registerWebhook(req, res) {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: "url is required" });

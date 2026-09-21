@@ -8,7 +8,7 @@ import { verifyBookingLink, buildSignedBookingUrl } from "../utils/linkSigning.j
 import { getTenantById } from "../services/bookingService.js";
 import { executeQuery } from "../db/queryHelper.js";
 import { upsertSlotEvent } from "../services/googleCalendarService.js";
-import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail } from "../services/emailService.js";
+import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail, sendNoSlotFollowupEmail } from "../services/emailService.js";
 import { dispatchWebhookEvent } from "../services/webhookDispatcher.js";
 import { logToFile } from "../utils/logger.js";
 import { isPastCutoff, nowAsMysqlDateTime } from "../utils/dateHelpers.js";
@@ -18,9 +18,18 @@ const RESCHEDULE_CUTOFF_HOURS = 24;
 const REBOOK_LINK_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
 // Mirrors the client-side check in public/book.js — that one is only a UX
-// nicety, since this is a public POST endpoint anyone can call directly.
+// nicety, since these are public POST endpoints anyone can call directly.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[0-9+()\-\s]{6,20}$/;
+
+// Shared by createPublicBooking and reportNoSlot -- both collect the same
+// two fields, just with a different "required" message for what else is
+// missing alongside them.
+function contactFormatError(email, phone) {
+  if (!EMAIL_RE.test(email)) return "Invalid email address";
+  if (!PHONE_RE.test(phone)) return "Invalid phone number";
+  return null;
+}
 
 async function resolveSignedResource(req) {
   const { resourceSlug } = req.params;
@@ -66,6 +75,66 @@ export async function getPublicSlots(req, res) {
   }
 }
 
+// "None of these times work for me" — no slot is booked, just contact info
+// + a free-text note for staff to follow up on manually. Auth is the same
+// signed link as getPublicSlots (proves this is a real, current
+// participant), not a manage_token, since there's no booking to attach one
+// to yet.
+export async function reportNoSlot(req, res) {
+  const { email, phone, preferredTimes, lang } = req.body;
+  if (!email || !phone) {
+    return res.status(400).json({ error: "email and phone are required" });
+  }
+  const formatError = contactFormatError(email, phone);
+  if (formatError) return res.status(400).json({ error: formatError });
+
+  try {
+    const { resource, ref, after } = await resolveSignedResource(req);
+    const { manageToken } = await bookingService.reportNoSlotAvailable({
+      resourceId: resource.id, externalRef: ref, email, phone, preferredTimes, eligibleAfter: after,
+    });
+
+    // A durable link, not the signed one they arrived on (that one expires
+    // soon and can't be reused indefinitely) -- see redirectNoSlotAccessToken.
+    sendNoSlotFollowupEmail({
+      to: email, resourceName: resource.name,
+      selfBookingLink: `${process.env.PUBLIC_BASE_URL}/no-slot/${manageToken}`,
+      contactInfo: resource.contact_info, locale: lang,
+    }).catch((err) => logToFile("ERROR", "No-slot follow-up email send threw unexpectedly", { error: err.message }));
+
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    handleError(res, err, "Failed to submit request");
+  }
+}
+
+// The durable link from a no-slot report's follow-up email (see reportNoSlot
+// above) -- the report's own manage_token, same column/mechanism a real
+// booking uses, just interpreted differently: unlike a booking's
+// reschedule/cancel, this always just redirects back into the ordinary
+// slot-picking page (there's no appointment yet). Minting a fresh signed URL
+// on every visit (rather than storing/reusing one) is what makes this link
+// itself durable even though each signed URL it produces still has its own
+// short lifetime.
+export async function redirectNoSlotAccessToken(req, res) {
+  try {
+    const report = await bookingService.getBookingByManageToken(req.params.accessToken);
+    if (!report || report.status !== "requested") return res.status(404).send("Link not found");
+
+    const tenant = await getTenantById(report.tenant_id);
+    if (!tenant) return res.status(404).send("Link not found");
+
+    const url = buildSignedBookingUrl({
+      publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
+      tenantId: tenant.id, resourceSlug: report.resource_slug, ref: report.external_ref,
+      after: report.eligible_after, ttlSeconds: REBOOK_LINK_TTL_SECONDS,
+    });
+    res.redirect(url);
+  } catch (err) {
+    handleError(res, err, "Failed to resolve link");
+  }
+}
+
 function manageLinkFor(manageToken, locale) {
   const base = `${process.env.PUBLIC_BASE_URL}/manage/${manageToken}`;
   return locale ? `${base}?lang=${encodeURIComponent(locale)}` : base;
@@ -76,12 +145,8 @@ export async function createPublicBooking(req, res) {
   if (!slotId || !email || !phone) {
     return res.status(400).json({ error: "slotId, email and phone are required" });
   }
-  if (!EMAIL_RE.test(email)) {
-    return res.status(400).json({ error: "Invalid email address" });
-  }
-  if (!PHONE_RE.test(phone)) {
-    return res.status(400).json({ error: "Invalid phone number" });
-  }
+  const formatError = contactFormatError(email, phone);
+  if (formatError) return res.status(400).json({ error: formatError });
 
   try {
     const { tenant, resource, ref, after } = await resolveSignedResource(req);
@@ -127,7 +192,10 @@ export async function createPublicBooking(req, res) {
 export async function getManageBooking(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    // A status=requested row (see reportNoSlotAvailable) shares this same
+    // manage_token mechanism but isn't a booking yet -- its own link goes
+    // through redirectNoSlotAccessToken instead, never this manage page.
+    if (!booking || booking.status === "requested") return res.status(404).json({ error: "Booking not found" });
     res.json({ booking });
   } catch (err) {
     handleError(res, err, "Failed to load booking");
@@ -146,7 +214,7 @@ export async function getManageBooking(req, res) {
 export async function getAvailableSlotsForReschedule(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found" });
 
     const now = nowAsMysqlDateTime();
     const floor = booking.eligible_after > now ? booking.eligible_after : now;
@@ -163,7 +231,7 @@ export async function rescheduleManageBooking(req, res) {
 
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found" });
 
     if (isPastCutoff(booking.starts_at, RESCHEDULE_CUTOFF_HOURS)) {
       return res.status(409).json({ error: "Too close to the appointment to reschedule (cutoff: 1 day before)" });
@@ -213,7 +281,7 @@ export async function rescheduleManageBooking(req, res) {
 export async function cancelManageBooking(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found" });
 
     if (isPastCutoff(booking.starts_at, RESCHEDULE_CUTOFF_HOURS)) {
       return res.status(409).json({ error: "Too close to the appointment to cancel (cutoff: 1 day before)" });

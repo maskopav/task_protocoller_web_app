@@ -17,6 +17,7 @@ import cors from "cors";
 
 import adminRouter from "./routes/admin.js";
 import publicRouter from "./routes/public.js";
+import { redirectNoSlotAccessToken } from "./controllers/publicController.js";
 import { requireApiKey } from "./middleware/apiKeyAuth.js";
 import { rateLimit } from "./middleware/rateLimiter.js";
 
@@ -62,6 +63,10 @@ export function createBookingApp() {
   app.get("/manage/:manageToken", (req, res) => {
     res.sendFile(path.join(publicDir, "manage.html"));
   });
+  // Durable link from a no-slot report's follow-up email — no page of its
+  // own, just a redirect into /book/:resourceSlug with a freshly-signed
+  // link (see publicController.redirectNoSlotAccessToken).
+  app.get("/no-slot/:accessToken", redirectNoSlotAccessToken);
 
   app.get("/health", (req, res) => res.json({ status: "ok" }));
 

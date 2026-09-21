@@ -3,7 +3,7 @@
 // reads localStorage for the admin JWT — see IntroComponents.test.jsx for
 // the same per-file environment override pattern.
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { bulkCreateSlots, fetchSlots, deleteSlot, fetchBookings } from "./adminBooking";
+import { bulkCreateSlots, fetchSlots, deleteSlot, fetchBookings, fetchNoSlotReports } from "./adminBooking";
 
 function jsonResponse(body, ok = true, status = ok ? 200 : 400) {
   return { ok, status, json: async () => body };
@@ -67,5 +67,21 @@ describe("adminBooking API", () => {
     const result = await fetchBookings();
 
     expect(result).toEqual({ bookings: [{ id: 1 }] });
+  });
+
+  it("fetchNoSlotReports returns the reports list", async () => {
+    globalThis.fetch.mockResolvedValueOnce(jsonResponse({ reports: [{ id: 1, contact_email: "a@b.com" }] }));
+
+    const result = await fetchNoSlotReports();
+
+    expect(result).toEqual({ reports: [{ id: 1, contact_email: "a@b.com" }] });
+    const [url] = globalThis.fetch.mock.calls[0];
+    expect(url).toMatch(/\/admin\/booking\/no-slot-reports$/);
+  });
+
+  it("fetchNoSlotReports throws the server error on failure", async () => {
+    globalThis.fetch.mockResolvedValueOnce(jsonResponse({ error: "Failed to load requests" }, false));
+
+    await expect(fetchNoSlotReports()).rejects.toThrow("Failed to load requests");
   });
 });

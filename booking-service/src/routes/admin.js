@@ -17,6 +17,8 @@ router.delete("/slots/:slotId", adminController.deleteSlot);
 router.get("/bookings", adminController.listBookings);
 router.get("/bookings/export.csv", adminController.exportBookingsCsv);
 
+router.get("/no-slot-reports", adminController.listNoSlotReports);
+
 router.post("/webhooks", adminController.registerWebhook);
 router.get("/webhooks", adminController.listWebhooks);
 

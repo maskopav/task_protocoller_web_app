@@ -28,6 +28,7 @@
 
     <div id="slotStep" class="hidden">
       <div id="slotList"></div>
+      <button type="button" class="link-btn" id="noSlotToggle">None of these times work for me</button>
     </div>
 
     <div id="contactStep" class="card hidden">
@@ -44,6 +45,23 @@
       <h2 id="bookedHeading">You're booked</h2>
       <p id="confirmedSummary"></p>
       <p class="notice" id="bookedNotice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
+    </div>
+
+    <div id="noSlotStep" class="card hidden">
+      <p id="noSlotIntro">Let us know when you're available and we'll be in touch to schedule a time.</p>
+      <label for="noSlotEmail" id="noSlotEmailLabel">Email</label>
+      <input type="email" id="noSlotEmail" required />
+      <label for="noSlotPhone" id="noSlotPhoneLabel">Phone</label>
+      <input type="tel" id="noSlotPhone" required />
+      <label for="preferredTimes" id="preferredTimesLabel">When would work for you?</label>
+      <textarea id="preferredTimes" rows="3"></textarea>
+      <div id="noSlotError" class="error hidden"></div>
+      <button class="primary" id="noSlotSubmitBtn">Send</button>
+    </div>
+
+    <div id="noSlotConfirmedStep" class="card hidden">
+      <h2 id="noSlotConfirmedHeading">Thanks — we'll be in touch</h2>
+      <p class="notice" id="noSlotConfirmedNotice">We've emailed you a link back to this page so you can check for new openings, and we'll contact you to schedule a suitable time.</p>
     </div>
   </div>
 

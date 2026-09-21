@@ -41,6 +41,15 @@ export async function fetchBookings() {
   return res.json(); // { bookings }
 }
 
+export async function fetchNoSlotReports() {
+  const res = await apiFetch(`/admin/booking/no-slot-reports`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to load requests");
+  }
+  return res.json(); // { reports }
+}
+
 // Same blob-download pattern as api/sessionData.js's downloadSessionDataZip.
 export async function downloadBookingsCsv() {
   const res = await apiFetch(`/admin/booking/bookings/export.csv`);

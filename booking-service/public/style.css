@@ -55,12 +55,25 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
 .slot-btn.selected { background: var(--accent); color: #fff; }
 
 label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 0.9rem; }
-input[type="email"], input[type="tel"] {
+input[type="email"], input[type="tel"], textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 1rem;
+  font-family: inherit;
+}
+textarea { resize: vertical; }
+
+.link-btn {
+  display: block;
+  margin: 12px auto 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 
 button.primary {

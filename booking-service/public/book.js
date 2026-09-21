@@ -14,6 +14,10 @@
   const confirmedStep = document.getElementById("confirmedStep");
   const confirmedSummary = document.getElementById("confirmedSummary");
   const contactError = document.getElementById("contactError");
+  const noSlotToggle = document.getElementById("noSlotToggle");
+  const noSlotStep = document.getElementById("noSlotStep");
+  const noSlotError = document.getElementById("noSlotError");
+  const noSlotConfirmedStep = document.getElementById("noSlotConfirmedStep");
 
   document.documentElement.lang = locale;
   loading.textContent = t("loadingSlots");
@@ -22,6 +26,14 @@
   document.getElementById("confirmBtn").textContent = t("confirmButton");
   document.getElementById("bookedHeading").textContent = t("bookedHeading");
   document.getElementById("bookedNotice").textContent = t("bookedNotice");
+  document.getElementById("noSlotToggle").textContent = t("noSlotToggle");
+  document.getElementById("noSlotIntro").textContent = t("noSlotIntro");
+  document.getElementById("noSlotEmailLabel").textContent = t("emailLabel");
+  document.getElementById("noSlotPhoneLabel").textContent = t("phoneLabel");
+  document.getElementById("preferredTimesLabel").textContent = t("preferredTimesLabel");
+  document.getElementById("noSlotSubmitBtn").textContent = t("noSlotSubmitButton");
+  document.getElementById("noSlotConfirmedHeading").textContent = t("noSlotConfirmedHeading");
+  document.getElementById("noSlotConfirmedNotice").textContent = t("noSlotConfirmedNotice");
 
   let selectedSlot = null;
 
@@ -29,6 +41,21 @@
     loading.classList.add("hidden");
     errorBox.textContent = message;
     errorBox.classList.remove("hidden");
+  }
+
+  function showFieldError(box, message) {
+    box.textContent = message;
+    box.classList.remove("hidden");
+  }
+
+  // Mirrors booking-service's own server-side check (publicController.js's
+  // contactFormatError) -- this copy is only a UX nicety, the server
+  // re-validates regardless. Shared by confirmBooking and submitNoSlot,
+  // which both collect the same two fields.
+  function contactFormatErrorKey(email, phone) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "invalidEmail";
+    if (!/^[0-9+()\-\s]{6,20}$/.test(phone)) return "invalidPhone";
+    return null;
   }
 
   function formatSlotTime(startsAt) {
@@ -105,16 +132,8 @@
     contactError.classList.add("hidden");
 
     if (!selectedSlot) return;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      contactError.textContent = t("invalidEmail");
-      contactError.classList.remove("hidden");
-      return;
-    }
-    if (!/^[0-9+()\-\s]{6,20}$/.test(phone)) {
-      contactError.textContent = t("invalidPhone");
-      contactError.classList.remove("hidden");
-      return;
-    }
+    const formatErrorKey = contactFormatErrorKey(email, phone);
+    if (formatErrorKey) return showFieldError(contactError, t(formatErrorKey));
 
     const btn = document.getElementById("confirmBtn");
     const originalLabel = btn.textContent;
@@ -135,14 +154,53 @@
       contactStep.classList.add("hidden");
       confirmedStep.classList.remove("hidden");
     } catch (err) {
-      contactError.textContent = err.message;
-      contactError.classList.remove("hidden");
+      showFieldError(contactError, err.message);
       btn.disabled = false;
       btn.textContent = originalLabel;
     }
   }
 
   document.getElementById("confirmBtn").addEventListener("click", confirmBooking);
+
+  noSlotToggle.addEventListener("click", () => {
+    slotStep.classList.add("hidden");
+    contactStep.classList.add("hidden");
+    noSlotStep.classList.remove("hidden");
+    noSlotStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  async function submitNoSlot() {
+    const email = document.getElementById("noSlotEmail").value.trim();
+    const phone = document.getElementById("noSlotPhone").value.trim();
+    const preferredTimes = document.getElementById("preferredTimes").value.trim();
+    noSlotError.classList.add("hidden");
+
+    const formatErrorKey = contactFormatErrorKey(email, phone);
+    if (formatErrorKey) return showFieldError(noSlotError, t(formatErrorKey));
+
+    const btn = document.getElementById("noSlotSubmitBtn");
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = t("sendingButton");
+    try {
+      const res = await fetch(`public/no-slot/${encodeURIComponent(slug)}${search}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, phone, preferredTimes, lang: locale }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t("noSlotFailed"));
+
+      noSlotStep.classList.add("hidden");
+      noSlotConfirmedStep.classList.remove("hidden");
+    } catch (err) {
+      showFieldError(noSlotError, err.message);
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  }
+
+  document.getElementById("noSlotSubmitBtn").addEventListener("click", submitNoSlot);
 
   fetch(`public/slots/${encodeURIComponent(slug)}${search}`)
     .then(async (res) => {

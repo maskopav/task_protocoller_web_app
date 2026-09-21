@@ -20,7 +20,21 @@ links. It has no knowledge of any other project's domain model.
   under a host app's own path with zero configuration.
 - **Reschedule / cancel** via a private manage link, automatically blocked
   inside a configurable cutoff window (24h before the appointment by
-  default).
+  default). Reschedule re-enforces the original booking's eligibility floor
+  (`eligible_after`), so it can't be used to move an appointment earlier
+  than the original signed link allowed.
+- **"None of these times work" fallback** — a respondent who can't find a
+  suitable slot can leave contact info + a free-text note instead of
+  booking. No separate table for this: it's a `bookings` row with
+  `status: 'requested'` and no `slot_id`, sharing the same `manage_token`
+  mechanism — the token's link just redirects into the ordinary
+  slot-picking page rather than a reschedule/cancel UI, and never expires
+  the way the original signed link does. Visible to the tenant via
+  `GET /v1/no-slot-reports`.
+- **Rate-limited public endpoints** — the unauthenticated `/public/*` API
+  is capped (30 req/min per IP by default, see
+  `src/middleware/rateLimiter.js`) since nothing but link/token entropy
+  otherwise gates it.
 - **Capacity-safe booking** — a row lock plus a DB-level uniqueness
   constraint prevent double-booking a slot even under concurrent requests
   (see `src/services/bookingService.test.js` and the schema comment on
@@ -47,6 +61,10 @@ links. It has no knowledge of any other project's domain model.
 - **Slot** — a specific bookable time window on a resource.
 - **Booking** — one reservation against a slot, with a `manage_token` that is
   itself the credential for the respondent-facing reschedule/cancel page.
+  A booking's `status` can also be `requested`: no slot chosen, just
+  contact info + a free-text note (see "None of these times work"
+  fallback above) — the same table and `manage_token` mechanism, just
+  never reschedulable/cancellable since there's no appointment yet.
 
 ## Setup
 
@@ -73,7 +91,11 @@ Then, as the tenant:
    confirmation email, and (if configured) a Google Calendar event, all
    happen without your app being involved again. The confirmation email
    contains a `/manage/<manageToken>` link the respondent can use to
-   reschedule/cancel until one day before the appointment.
+   reschedule/cancel until one day before the appointment. If none of the
+   offered slots work, the respondent can leave contact info + a note
+   instead (see "None of these times work" fallback above) — they get a
+   `/no-slot/<manageToken>` link back by email, good indefinitely, that
+   drops them back onto the slot picker.
 5. Optionally register a webhook (`POST /v1/webhooks`) to be notified of
    `booking.created` / `booking.rescheduled` / `booking.cancelled` events
    instead of polling `GET /v1/bookings`.
@@ -298,6 +320,3 @@ localhost:
   deployed in the same timezone as the physical resource being booked.
 - Capacity is always created as 1 (the schema supports more, but nothing
   generates or books multi-capacity slots yet).
-- Rescheduling shows all future open slots for the resource and does not
-  re-enforce whatever minimum-notice rule (`after`) gated the original
-  booking.

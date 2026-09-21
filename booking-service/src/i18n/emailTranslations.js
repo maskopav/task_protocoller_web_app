@@ -20,6 +20,10 @@ const TRANSLATIONS = {
     manageButton: "Manage my appointment",
     rebookButton: "Book a new appointment",
     questionsLabel: "Questions?",
+    noSlotSubject: (r) => `We received your message — ${r}`,
+    noSlotHeading: "Thanks for letting us know",
+    noSlotBody: (r) => `We've noted that none of the currently offered times for ${r} work for you. We'll be in touch soon to find a suitable time.`,
+    noSlotLinkButton: "Check available times",
   },
   cs: {
     confirmationSubject: (r) => `Schůzka potvrzena — ${r}`,
@@ -35,6 +39,10 @@ const TRANSLATIONS = {
     manageButton: "Spravovat schůzku",
     rebookButton: "Objednat nový termín",
     questionsLabel: "Máte dotaz?",
+    noSlotSubject: (r) => `Obdrželi jsme váš vzkaz — ${r}`,
+    noSlotHeading: "Děkujeme za informaci",
+    noSlotBody: (r) => `Zaznamenali jsme, že vám nevyhovuje žádný z aktuálně nabízených termínů pro ${r}. Brzy se vám ozveme, abychom našli vhodný termín.`,
+    noSlotLinkButton: "Zobrazit dostupné termíny",
   },
   de: {
     confirmationSubject: (r) => `Termin bestätigt — ${r}`,
@@ -50,6 +58,10 @@ const TRANSLATIONS = {
     manageButton: "Termin verwalten",
     rebookButton: "Neuen Termin buchen",
     questionsLabel: "Fragen?",
+    noSlotSubject: (r) => `Wir haben Ihre Nachricht erhalten — ${r}`,
+    noSlotHeading: "Danke für Ihre Rückmeldung",
+    noSlotBody: (r) => `Wir haben notiert, dass keiner der aktuell angebotenen Termine für ${r} für Sie passt. Wir melden uns bald, um einen passenden Termin zu finden.`,
+    noSlotLinkButton: "Verfügbare Termine ansehen",
   },
 };
 

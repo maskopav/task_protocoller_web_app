@@ -69,6 +69,28 @@ export async function sendBookingRescheduledEmail({ to, resourceName, startsAt, 
   return sendEmail({ to, subject: t(locale, "rescheduledSubject", resourceName), html });
 }
 
+// Sent when a respondent reports that none of the offered slots work for
+// them (see publicController.reportNoSlot) — no appointment exists yet, so
+// this just confirms the message was received and gives them a link back
+// to the booking page in case a new slot opens before staff reach out.
+export async function sendNoSlotFollowupEmail({ to, resourceName, selfBookingLink, contactInfo, locale = "en" }) {
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
+      <h2 style="color: #3764df;">${t(locale, "noSlotHeading")}</h2>
+      <p>${t(locale, "noSlotBody", resourceName)}</p>
+      <div style="text-align: center; background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px;">
+        <a href="${selfBookingLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
+          ${t(locale, "noSlotLinkButton")}
+        </a>
+      </div>
+      ${contactInfo ? `
+        <p style="color: #666; font-size: 0.9em;">${t(locale, "questionsLabel")} ${contactInfo}</p>
+      ` : ""}
+    </div>
+  `;
+  return sendEmail({ to, subject: t(locale, "noSlotSubject", resourceName), html });
+}
+
 export async function sendBookingCancelledEmail({ to, resourceName, startsAt, rebookLink, contactInfo, locale = "en" }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
