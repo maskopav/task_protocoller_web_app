@@ -7,6 +7,10 @@
 
 .booking-step-heading {
   margin-bottom: 8px;
+  /* Matches .task-header h1 (TaskLayout.css) so this step reads at the
+     same size as the other task screens (e.g. Recorder/phonation). */
+  font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+  color: var(--muted);
 }
 
 .booking-step-instructions {
@@ -67,16 +71,6 @@
   margin: 0;
 }
 
-.booking-step-continue {
-  background: #3764df;
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.booking-step-continue:hover {
-  background: #2c50b8;
-}
+/* .booking-step-continue intentionally has no overrides here — it inherits
+   the global `button` style from Pages.css, so it matches the size, radius
+   and color of every other task button (Recorder's Continue/Start, etc). */

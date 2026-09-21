@@ -66,7 +66,6 @@
   }
 
   function renderSlots(resource, slots) {
-    document.getElementById("resourceName").textContent = resource.name;
     document.getElementById("resourceLocation").textContent = resource.defaultLocation || "";
 
     if (slots.length === 0) {

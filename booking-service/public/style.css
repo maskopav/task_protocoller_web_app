@@ -21,8 +21,12 @@ body {
   padding: 32px 20px 60px;
 }
 
-h1 { font-size: 1.5rem; margin-bottom: 4px; }
-.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; }
+/* Font sizes and button radius below are matched to the main app's task
+   screens (Pages.css / TaskLayout.css / Recorder.css) so this page, which
+   is shown to participants inside a task iframe, doesn't look or feel like
+   a separate app. */
+h1 { font-size: 1.8rem; margin-bottom: 4px; }
+.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; }
 
 .card {
   background: #fff;
@@ -33,7 +37,7 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
 }
 
 .day-group { margin-bottom: 20px; }
-.day-heading { font-weight: 600; margin-bottom: 8px; }
+.day-heading { font-weight: 600; margin-bottom: 8px; font-size: 1.2rem; }
 
 .slot-grid {
   display: grid;
@@ -42,38 +46,32 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
 }
 
 .slot-btn {
-  padding: 10px 8px;
+  padding: 12px 8px;
   border: 1px solid var(--accent);
   color: var(--accent);
   background: #fff;
-  border-radius: 6px;
+  border-radius: 1rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 .slot-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .slot-btn:hover { background: #eef1fd; }
 .slot-btn.selected { background: var(--accent); color: #fff; }
 
-label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 0.9rem; }
+label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 1rem; }
 input[type="email"], input[type="tel"], textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-family: inherit;
 }
 textarea { resize: vertical; }
 
-.link-btn {
+.centered-btn {
   display: block;
-  margin: 12px auto 0;
-  background: none;
-  border: none;
-  color: var(--accent);
-  text-decoration: underline;
-  font-size: 0.9rem;
-  cursor: pointer;
+  margin: 16px auto 0;
 }
 
 button.primary {
@@ -82,8 +80,8 @@ button.primary {
   color: #fff;
   border: none;
   padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: 1rem;
+  font-size: 1.3rem;
   cursor: pointer;
 }
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -93,7 +91,8 @@ button.secondary {
   color: var(--accent);
   border: 1px solid var(--accent);
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
   margin-right: 8px;
 }
@@ -103,10 +102,11 @@ button.danger {
   color: #c0392b;
   border: 1px solid #c0392b;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 
 .error { color: #c0392b; margin-top: 12px; }
-.notice { color: var(--muted); font-size: 0.9rem; margin-top: 12px; }
+.notice { color: var(--muted); font-size: 1rem; margin-top: 12px; }
 .hidden { display: none !important; }
