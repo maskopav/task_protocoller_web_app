@@ -1,6 +1,7 @@
   // backend/src/controllers/projectController.js
   import { executeQuery } from "../db/queryHelper.js";
-  import { getFollowupBookingStatusByRef } from "../services/bookingServiceClient.js";
+  import { getFollowupBookingStatusByRef, buildBookingLink } from "../services/bookingServiceClient.js";
+  import { BOOKING_ELIGIBILITY_DAYS } from "../config/constants.js";
 
   export const getProjectList = async (req, res) => {
     // req.admin comes from the verified JWT (see authMiddleware.requireAuth),
@@ -66,11 +67,31 @@
                 for (const row of rows) {
                     if (!row.enable_followup_booking) continue;
                     const booking = byRef.get(String(row.participant_protocol_id));
-                    if (!booking) continue;
-                    row.reservation_status = booking.status;
-                    row.reservation_starts_at = booking.starts_at;
-                    row.reservation_location = booking.location;
-                    row.reservation_updated_at = booking.updated_at || booking.created_at;
+                    if (booking) {
+                        row.reservation_status = booking.status;
+                        row.reservation_starts_at = booking.starts_at;
+                        row.reservation_location = booking.location;
+                        row.reservation_updated_at = booking.updated_at || booking.created_at;
+                    }
+
+                    // Same signed URL originally sent to the participant —
+                    // visiting it again lets them pick a first slot or
+                    // reschedule/cancel an existing one, so it's surfaced here
+                    // regardless of booked/not-booked so staff can resend it.
+                    // Only buildable once the protocol's been completed (see
+                    // buildBookingLink's caller in bookingController.js).
+                    if (row.session_completed_at) {
+                        try {
+                            row.reservation_link = buildBookingLink({
+                                ref: row.participant_protocol_id,
+                                completedAt: row.session_completed_at,
+                                eligibilityDays: BOOKING_ELIGIBILITY_DAYS,
+                                lang: row.protocol_language_code,
+                            });
+                        } catch (err) {
+                            console.error("Failed to build reservation link for fieldwork row:", err);
+                        }
+                    }
                 }
             } catch (err) {
                 // booking-service being unreachable shouldn't break the whole

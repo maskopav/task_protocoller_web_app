@@ -69,15 +69,27 @@ const META = {
 // the one state worth spelling out with real data (the timeslot); every
 // other state is a single short word/phrase, and once overdue (never
 // booked or cancelled, doesn't matter which) it's always just "Needs
-// Follow-up" rather than two near-identical warnings.
+// Follow-up" rather than two near-identical warnings. Location is
+// deliberately left out here — it's shown, if needed, via a separate
+// column rather than crowding this cell.
 export function reservationLabel(state) {
   if (!state) return "—";
   if (state.kind === "booked") {
     const when = formatReservationTime(state.startsAt);
-    return `Booked${when ? `: ${when}` : ""}${state.location ? ` — ${state.location}` : ""}`;
+    return `Booked${when ? `: ${when}` : ""}`;
   }
   if (state.kind === "not_eligible_yet") return "Not Ready";
   return state.overdue ? "⚠ Needs Follow-up" : "Pending";
+}
+
+// The booking-management link (`reservation_link`, merged in server-side —
+// see projectController.getProjectFieldwork) is the same signed URL sent to
+// the participant regardless of whether they've booked yet: visiting it
+// again lets them pick a first slot or reschedule/cancel an existing one.
+// It's independent of `reservationState`'s kind so staff can still reach it
+// even for rows not yet eligible/booked, as long as one was ever built.
+export function reservationLink(r) {
+  return r.reservation_link || null;
 }
 
 export function reservationMeta(state) {

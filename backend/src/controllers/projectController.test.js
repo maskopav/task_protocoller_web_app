@@ -5,10 +5,11 @@ vi.mock("../db/queryHelper.js", () => ({
 }));
 vi.mock("../services/bookingServiceClient.js", () => ({
   getFollowupBookingStatusByRef: vi.fn(),
+  buildBookingLink: vi.fn(),
 }));
 
 const { executeQuery } = await import("../db/queryHelper.js");
-const { getFollowupBookingStatusByRef } = await import("../services/bookingServiceClient.js");
+const { getFollowupBookingStatusByRef, buildBookingLink } = await import("../services/bookingServiceClient.js");
 const { getProjectList, getProjectFieldwork } = await import("./projectController.js");
 
 function makeRes() {
@@ -58,6 +59,7 @@ describe("getProjectFieldwork", () => {
   beforeEach(() => {
     executeQuery.mockReset();
     getFollowupBookingStatusByRef.mockReset();
+    buildBookingLink.mockReset();
   });
 
   it("403s a non-master admin who isn't assigned to the requested project", async () => {
@@ -128,6 +130,44 @@ describe("getProjectFieldwork", () => {
       reservation_location: "Room 1", reservation_updated_at: "2026-09-20 10:00:00",
     });
     expect(res.body[1].reservation_status).toBeUndefined();
+  });
+
+  it("merges the same reservation link regardless of whether the row is booked yet", async () => {
+    executeQuery.mockResolvedValueOnce([
+      { session_id: 1, project_id: 5, participant_protocol_id: 42, enable_followup_booking: 1, session_completed_at: "2026-09-15 10:00:00", protocol_language_code: "cs" },
+      { session_id: 2, project_id: 5, participant_protocol_id: 43, enable_followup_booking: 1, session_completed_at: "2026-09-16 10:00:00" }, // not booked yet
+      { session_id: 3, project_id: 5, participant_protocol_id: 44, enable_followup_booking: 1 }, // not completed yet -- no link buildable
+    ]);
+    getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map([
+      ["42", { status: "booked", starts_at: "2026-10-01 09:00:00" }],
+    ]));
+    buildBookingLink.mockImplementation(({ ref }) => `https://booking.example/book/room?ref=${ref}`);
+    const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(buildBookingLink).toHaveBeenCalledWith(expect.objectContaining({
+      ref: 42, completedAt: "2026-09-15 10:00:00", lang: "cs",
+    }));
+    expect(res.body[0].reservation_link).toBe("https://booking.example/book/room?ref=42");
+    expect(res.body[1].reservation_link).toBe("https://booking.example/book/room?ref=43");
+    expect(res.body[2].reservation_link).toBeUndefined();
+  });
+
+  it("still returns the fieldwork rows (without a reservation_link) if buildBookingLink throws for a row", async () => {
+    executeQuery.mockResolvedValueOnce([
+      { session_id: 1, project_id: 5, participant_protocol_id: 42, enable_followup_booking: 1, session_completed_at: "2026-09-15 10:00:00" },
+    ]);
+    getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map());
+    buildBookingLink.mockImplementation(() => { throw new Error("booking-service is not configured"); });
+    const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body[0].reservation_link).toBeUndefined();
   });
 
   it("still returns the fieldwork rows if booking-service is unreachable", async () => {

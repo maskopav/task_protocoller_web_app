@@ -5,6 +5,7 @@ import {
   reservationMeta,
   reservationFilterKey,
   reservationSortValue,
+  reservationLink,
   RESERVATION_FOLLOWUP_DAYS,
 } from "./reservationStatus";
 
@@ -92,7 +93,7 @@ describe("reservationLabel", () => {
   // UTC instant -- this must NOT run it through Date/timezone conversion.
   it("formats the booked time without any timezone shift", () => {
     const label = reservationLabel({ kind: "booked", startsAt: "2026-10-01 09:30:00", location: "Room 1" });
-    expect(label).toBe("Booked: 2026-10-01 09:30 — Room 1");
+    expect(label).toBe("Booked: 2026-10-01 09:30");
   });
 
   it("is brief and consistent regardless of why a row is overdue", () => {
@@ -112,6 +113,18 @@ describe("reservationMeta", () => {
     const pending = reservationMeta({ kind: "not_booked", overdue: false });
     const overdue = reservationMeta({ kind: "not_booked", overdue: true });
     expect(pending.bg).not.toBe(overdue.bg);
+  });
+});
+
+describe("reservationLink", () => {
+  it("returns the merged-in link when present", () => {
+    expect(reservationLink({ reservation_link: "https://booking.example/book/room?ref=1" })).toBe(
+      "https://booking.example/book/room?ref=1"
+    );
+  });
+
+  it("returns null when no link was merged in (e.g. not eligible yet, or the merge failed)", () => {
+    expect(reservationLink({})).toBeNull();
   });
 });
 

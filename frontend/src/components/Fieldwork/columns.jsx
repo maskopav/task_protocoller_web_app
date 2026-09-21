@@ -14,7 +14,14 @@ import {
   formatRelative,
 } from "./formatters";
 import { STATUS_META, STATUS_ORDER } from "./statusMeta";
-import { reservationState, reservationLabel, reservationMeta, reservationFilterKey, reservationSortValue } from "./reservationStatus";
+import {
+  reservationState,
+  reservationLabel,
+  reservationMeta,
+  reservationFilterKey,
+  reservationSortValue,
+  reservationLink,
+} from "./reservationStatus";
 
 const startedText = (r) => formatDateTime(r.session_started_at);
 const lastActivityText = (r) => formatDateTime(r.session_last_activity_at);
@@ -147,6 +154,25 @@ export const COLUMN_DEFS = [
           <span className="status-dot" style={{ backgroundColor: meta.dot }} />
           {reservationLabel(state)}
         </span>
+      );
+    },
+  },
+  {
+    id: "reservationLink",
+    label: "Reservation Link",
+    // Hidden by default -- it's a staff convenience (resend/reschedule
+    // without going back to the outreach export) rather than something
+    // that needs to be visible at a glance like the status column above.
+    defaultVisible: false,
+    value: (r) => reservationLink(r) || "",
+    sortValue: (r) => reservationLink(r) || "",
+    render: (r) => {
+      const link = reservationLink(r);
+      if (!link) return "—";
+      return (
+        <a href={link} target="_blank" rel="noopener noreferrer">
+          Link
+        </a>
       );
     },
   },
