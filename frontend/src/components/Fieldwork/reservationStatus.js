@@ -38,8 +38,13 @@ export function reservationState(r) {
     return { kind: "booked", startsAt: r.reservation_starts_at, location: r.reservation_location };
   }
   if (r.protocol_status !== "finished") return { kind: "not_eligible_yet" };
+  // A cancellation is an explicit signal, not silence -- staff need to
+  // follow up regardless of how long it's been, so unlike the old
+  // behavior (grace period from reservation_updated_at, same as
+  // not_booked) this is always flagged red immediately, the same way
+  // no_slot_reported already is.
   if (r.reservation_status === "cancelled") {
-    return { kind: "cancelled", ...graceInfo(r.reservation_updated_at) };
+    return { kind: "cancelled" };
   }
   // "None of these times work for me" -- a slot was never picked, but the
   // respondent did leave contact info, so this must read differently from
@@ -86,6 +91,7 @@ export function reservationLabel(state) {
     return `Booked${when ? `: ${when}` : ""}`;
   }
   if (state.kind === "not_eligible_yet") return "Not Ready";
+  if (state.kind === "cancelled") return "Cancelled";
   if (state.overdue) return "⚠ Needs Follow-up";
   return state.kind === "no_slot_reported" ? "No Slot Found" : "Pending";
 }
@@ -111,30 +117,30 @@ export function reservationNotes(r) {
 export function reservationMeta(state) {
   if (!state || state.kind === "not_eligible_yet") return META.not_eligible_yet;
   if (state.kind === "booked") return META.booked;
-  // A no-slot report is an explicit "none of these work for me" from the
-  // respondent, not just silence -- staff need to call them back with real
-  // alternatives regardless of how many days it's been, so it's always
-  // flagged the same urgent red as an overdue row, not tied to the grace
-  // period the way not_booked/cancelled are.
-  if (state.kind === "no_slot_reported") return META.overdue;
+  // A no-slot report or a cancellation is an explicit signal from the
+  // respondent, not just silence -- staff need to follow up regardless of
+  // how many days it's been, so both are always flagged the same urgent
+  // red as an overdue row, not tied to the grace period the way
+  // not_booked is.
+  if (state.kind === "no_slot_reported" || state.kind === "cancelled") return META.overdue;
   return state.overdue ? META.overdue : META.pending;
 }
 
-// select-filter key: coarser than the full state — "never booked" and
-// "cancelled" collapse into the same bucket once overdue, since the action
-// staff need to take (call them) is the same either way. A no-slot report
-// gets its own dedicated bucket instead of collapsing into pending/
-// needs_followup: it's a distinct, explicit signal from the respondent
-// (see reservationMeta above), and staff need to be able to filter to just
-// these rows.
+// select-filter key: coarser than the full state — "never booked" collapses
+// into "needs_followup" once overdue, since the action staff need to take
+// (call them) is the same regardless of anchor date. A no-slot report and a
+// cancellation each get their own dedicated bucket instead of collapsing
+// into pending/needs_followup: both are distinct, explicit signals from the
+// respondent (see reservationMeta above), and staff need to be able to
+// filter to just these rows.
 export function reservationFilterKey(r) {
   const state = reservationState(r);
   if (!state) return "";
-  if (state.kind === "booked" || state.kind === "not_eligible_yet" || state.kind === "no_slot_reported") return state.kind;
+  if (state.kind === "booked" || state.kind === "not_eligible_yet" || state.kind === "no_slot_reported" || state.kind === "cancelled") return state.kind;
   return state.overdue ? "needs_followup" : "pending";
 }
 
-const SORT_ORDER = { not_eligible_yet: 0, pending: 1, no_slot_reported: 2, booked: 4 };
+const SORT_ORDER = { not_eligible_yet: 0, pending: 1, no_slot_reported: 2, cancelled: 2, booked: 4 };
 export function reservationSortValue(r) {
   const key = reservationFilterKey(r);
   if (key === "") return -1;

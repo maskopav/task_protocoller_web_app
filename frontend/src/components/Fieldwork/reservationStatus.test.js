@@ -67,21 +67,16 @@ describe("reservationState", () => {
     expect(state).toMatchObject({ kind: "not_booked", overdue: true });
   });
 
-  it("is 'cancelled', anchored on the cancellation itself rather than completion", () => {
+  // A cancellation is an explicit signal from the respondent, not silence --
+  // unlike not_booked, it isn't anchored on any date at all and carries no
+  // grace period, so staff see it flagged red immediately.
+  it("is 'cancelled', with no grace period regardless of when it happened", () => {
     const state = reservationState({
       enable_followup_booking: 1, protocol_status: "finished", reservation_status: "cancelled",
-      reservation_updated_at: "2026-09-19 12:00:00", // 1 day ago -- within grace
-      session_completed_at: "2026-08-01 00:00:00", // long past -- must NOT be used as the anchor
+      reservation_updated_at: "2026-09-19 12:00:00", // recent -- must not matter
+      session_completed_at: "2026-08-01 00:00:00", // long past -- must not matter either
     });
-    expect(state).toMatchObject({ kind: "cancelled", overdue: false });
-  });
-
-  it("flags a cancelled booking as overdue once its own grace period elapses", () => {
-    const state = reservationState({
-      enable_followup_booking: 1, protocol_status: "finished", reservation_status: "cancelled",
-      reservation_updated_at: "2026-09-01 12:00:00",
-    });
-    expect(state).toMatchObject({ kind: "cancelled", overdue: true });
+    expect(state).toEqual({ kind: "cancelled" });
   });
 
   // Case 4: the respondent said none of the offered slots worked and left
@@ -121,12 +116,14 @@ describe("reservationLabel", () => {
   it("is brief and consistent regardless of why a row is overdue", () => {
     expect(reservationLabel({ kind: "not_booked", overdue: false })).toBe("Pending");
     expect(reservationLabel({ kind: "not_booked", overdue: true })).toBe("⚠ Needs Follow-up");
-    expect(reservationLabel({ kind: "cancelled", overdue: false })).toBe("Pending");
-    expect(reservationLabel({ kind: "cancelled", overdue: true })).toBe("⚠ Needs Follow-up");
   });
 
   it("says 'Not Ready' for a participant who hasn't finished the protocol yet", () => {
     expect(reservationLabel({ kind: "not_eligible_yet" })).toBe("Not Ready");
+  });
+
+  it("says 'Cancelled', not the generic overdue label", () => {
+    expect(reservationLabel({ kind: "cancelled" })).toBe("Cancelled");
   });
 
   it("says 'No Slot Found' for a no-slot report, unless overdue", () => {
@@ -153,6 +150,15 @@ describe("reservationMeta", () => {
     expect(fresh).toEqual(overdue);
     expect(stale).toEqual(overdue);
   });
+
+  // Same urgent-signal reasoning as a no-slot report: a cancellation is
+  // explicit, not silence, so it's red immediately -- there's no "fresh"
+  // variant to compare against since cancelled no longer carries `overdue`.
+  it("colors a cancellation the same urgent red as an overdue row", () => {
+    const cancelled = reservationMeta({ kind: "cancelled" });
+    const overdue = reservationMeta({ kind: "not_booked", overdue: true });
+    expect(cancelled).toEqual(overdue);
+  });
 });
 
 describe("reservationLink", () => {
@@ -178,11 +184,9 @@ describe("reservationNotes", () => {
 });
 
 describe("reservationFilterKey / reservationSortValue", () => {
-  it("groups never-booked and cancelled-and-overdue under the same 'needs_followup' bucket", () => {
+  it("puts never-booked-and-overdue in the 'needs_followup' bucket", () => {
     const neverBooked = { enable_followup_booking: 1, protocol_status: "finished", session_completed_at: "2026-08-01 00:00:00" };
-    const cancelled = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "cancelled", reservation_updated_at: "2026-08-01 00:00:00" };
     expect(reservationFilterKey(neverBooked)).toBe("needs_followup");
-    expect(reservationFilterKey(cancelled)).toBe("needs_followup");
   });
 
   // A no-slot report gets its own dedicated filter bucket rather than being
@@ -195,6 +199,14 @@ describe("reservationFilterKey / reservationSortValue", () => {
     const stale = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested", reservation_updated_at: "2026-08-01 00:00:00" };
     expect(reservationFilterKey(fresh)).toBe("no_slot_reported");
     expect(reservationFilterKey(stale)).toBe("no_slot_reported");
+  });
+
+  // Same reasoning as a no-slot report: a cancellation is its own explicit
+  // signal, not folded into 'needs_followup', and there's no grace period
+  // for it to elapse.
+  it("gives a cancellation its own filter bucket", () => {
+    const cancelled = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "cancelled", reservation_updated_at: "2026-08-01 00:00:00" };
+    expect(reservationFilterKey(cancelled)).toBe("cancelled");
   });
 
   it("sorts a booked row above a needs-followup row", () => {

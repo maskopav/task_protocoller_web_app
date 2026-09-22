@@ -132,8 +132,15 @@ emailed:
 state (labelled "No Slot Found"), always shown in the same urgent red as an
 overdue row — it's an explicit "none of these work for me" from the
 respondent, not silence, so it doesn't wait on the grace period the way
-`cancelled`/`not_booked` do. It's also its own dedicated Reservation-column
-filter option, not folded into "Pending"/"Needs Follow-up".
+`not_booked` does. It's also its own dedicated Reservation-column filter
+option, not folded into "Pending"/"Needs Follow-up".
+
+A cancellation (`reservation_status: 'cancelled'`) gets the same treatment:
+its own `cancelled` display state (labelled "Cancelled"), always shown in
+that same urgent red and its own filter option, regardless of how long ago
+it happened. Like the no-slot report, it's an explicit signal from the
+respondent rather than silence, so it isn't anchored on any date or subject
+to the `RESERVATION_FOLLOWUP_DAYS` grace period the way "never booked" is.
 
 The free-text note left alongside a no-slot report (`preferred_times` in
 booking-service's `bookings` table — "mornings would work", etc.) is merged

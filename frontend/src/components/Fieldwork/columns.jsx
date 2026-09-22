@@ -142,6 +142,7 @@ export const COLUMN_DEFS = [
     filterOptions: [
       { value: "needs_followup", label: "Needs Follow-up" },
       { value: "no_slot_reported", label: "No Slot Found" },
+      { value: "cancelled", label: "Cancelled" },
       { value: "pending", label: "Pending" },
       { value: "not_eligible_yet", label: "Not Ready" },
       { value: "booked", label: "Booked" },
