@@ -106,7 +106,6 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
       {!completed && (
         <>
           <h2 className="booking-step-heading">{t("booking.heading")}</h2>
-          <p className="booking-step-instructions">{t("booking.instructions")}</p>
         </>
       )}
 

@@ -80,8 +80,7 @@
       "forgotPasswordLink": "Zapomenuté heslo?"
     },
     "booking": {
-      "heading": "Termín návštěvy",
-      "instructions": "Vyberte si prosím termín, který vám vyhovuje. Na e-mail vám přijde potvrzení s odkazem, pomocí kterého můžete termín v případě potřeby přeložit.",
+      "heading": "Termín osobní návštěvy",
       "loading": "Načítání stránky pro rezervaci termínu…",
       "errorLoading": "Stránku pro rezervaci termínu se nepodařilo načíst. Můžete pokračovat — ozveme se vám e-mailem.",
       "continueButton": "Pokračovat",
