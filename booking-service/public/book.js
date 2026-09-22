@@ -2,6 +2,10 @@
   const t = window.bookingI18n.t;
   const locale = window.bookingI18n.locale;
 
+  // Contract with the parent frame -- BookingStep.jsx checks event.data
+  // against this exact shape before revealing its "Continue" button.
+  const COMPLETION_MESSAGE = { source: "booking-service", status: "completed" };
+
   const slug = window.location.pathname.split("/").filter(Boolean).pop();
   const search = window.location.search; // carries tenant/ref/after/exp/sig verbatim
 
@@ -58,6 +62,18 @@
     phoneInput.classList.add("hidden");
     knownContactNotice.textContent = t("knownContactNotice", knownContact.email);
     knownContactNotice.classList.remove("hidden");
+  }
+
+  // Lets the parent app (which embeds this page in an iframe with no other
+  // handshake -- see BookingStep.jsx) know a booking outcome was reached,
+  // so it can reveal its own "Continue" button. "*" as target origin is
+  // fine here: this message carries no sensitive data, just a completion
+  // signal, and the parent validates event.origin against the iframe src
+  // it set itself before acting on it.
+  function notifyParentCompleted() {
+    try {
+      window.parent.postMessage(COMPLETION_MESSAGE, "*");
+    } catch (e) {}
   }
 
   function showError(message) {
@@ -204,6 +220,7 @@
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");
         confirmedStep.classList.remove("hidden");
+        notifyParentCompleted();
       } else {
         const preferredTimes = document.getElementById("preferredTimes").value.trim();
         const res = await fetch(`public/no-slot/${encodeURIComponent(slug)}${search}`, {
@@ -217,6 +234,7 @@
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");
         noSlotConfirmedStep.classList.remove("hidden");
+        notifyParentCompleted();
       }
     } catch (err) {
       showFieldError(contactError, err.message);
@@ -238,6 +256,7 @@
         // showing the slot picker (and asking for contact info) again.
         const manageUrl = new URL(`manage/${data.existingBooking.manageToken}`, document.baseURI);
         if (locale) manageUrl.searchParams.set("lang", locale);
+        notifyParentCompleted();
         window.location.replace(manageUrl.href);
         return;
       }

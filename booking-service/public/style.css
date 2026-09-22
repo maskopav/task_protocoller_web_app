@@ -58,7 +58,7 @@ h1 { font-size: 1.8rem; margin-bottom: 4px; }
 .slot-btn:hover { background: #eef1fd; }
 .slot-btn.selected { background: var(--accent); color: #fff; }
 
-label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 1rem; }
+label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 1.1rem; }
 input[type="email"], input[type="tel"], textarea {
   width: 100%;
   padding: 10px;
@@ -68,6 +68,12 @@ input[type="email"], input[type="tel"], textarea {
   font-family: inherit;
 }
 textarea { resize: vertical; }
+
+/* No card/box here on purpose -- the contact fields sit directly under the
+   slot list, separated only by margin, to read as one continuous step
+   rather than a boxed-off sub-form. */
+#contactStep { margin-top: 24px; }
+#selectedSlotSummary { font-size: 1.1rem; margin-bottom: 4px; }
 
 .centered-btn {
   display: block;

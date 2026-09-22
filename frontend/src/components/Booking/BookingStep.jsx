@@ -1,10 +1,12 @@
 // src/components/Booking/BookingStep.jsx — the last synthetic step in
 // runtimeTasks when protocolData.enable_followup_booking is on (see
 // ParticipantInterfacePage.jsx). Embeds booking-service's own hosted
-// booking page in an iframe -- there's no postMessage handshake between
-// this app and booking-service, so completion isn't auto-detected; the
-// participant clicks Continue themselves when done (or if they'd rather
-// skip and be followed up by email instead).
+// booking page in an iframe. booking-service posts a `{ source:
+// "booking-service", status: "completed" }` message (see book.js's
+// notifyParentCompleted) once a booking is confirmed, a no-slot request is
+// sent, or the participant already had a booking -- Continue only appears
+// once that lands, so there's no way to advance without actually reaching
+// one of those outcomes inside the widget.
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBookingLink } from "../../api/booking";
@@ -16,6 +18,7 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
   const [bookingUrl, setBookingUrl] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!testingMode);
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
     // Testing mode has no real sessionId (protocol is only being previewed,
@@ -53,6 +56,21 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
     };
   }, [sessionId, i18n.language, testingMode]);
 
+  useEffect(() => {
+    if (!bookingUrl) return;
+    const expectedOrigin = new URL(bookingUrl).origin;
+
+    function handleMessage(event) {
+      if (event.origin !== expectedOrigin) return;
+      if (event.data?.source === "booking-service" && event.data?.status === "completed") {
+        setCompleted(true);
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [bookingUrl]);
+
   return (
     <div className="booking-step">
       <h2 className="booking-step-heading">{t("booking.heading")}</h2>
@@ -78,9 +96,11 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
         </>
       )}
 
-      <button className="booking-step-continue" onClick={onComplete}>
-        {t("booking.continueButton")}
-      </button>
+      {(testingMode || completed) && (
+        <button className="booking-step-continue" onClick={onComplete}>
+          {t("booking.continueButton")}
+        </button>
+      )}
     </div>
   );
 }
