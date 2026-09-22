@@ -21,6 +21,7 @@ import {
   reservationFilterKey,
   reservationSortValue,
   reservationLink,
+  reservationNotes,
 } from "./reservationStatus";
 
 const startedText = (r) => formatDateTime(r.session_started_at);
@@ -174,6 +175,30 @@ export const COLUMN_DEFS = [
         <a href={link} target="_blank" rel="noopener noreferrer">
           Link
         </a>
+      );
+    },
+  },
+  {
+    id: "reservationNotes",
+    label: "Reservation Notes",
+    // Hidden by default, same reasoning as Reservation Link above -- only
+    // ever set for a "no slot works for me" report (reservationState's
+    // no_slot_reported kind), so most rows have nothing here at all.
+    defaultVisible: false,
+    value: (r) => reservationNotes(r) || "",
+    sortValue: (r) => reservationNotes(r) || "",
+    render: (r) => {
+      const notes = reservationNotes(r);
+      if (!notes) return "—";
+      // Small and truncated on purpose -- this is a free-text aside, not
+      // primary data; the full note is still there on hover (title attr).
+      return (
+        <span
+          title={notes}
+          className="fieldwork-reservation-notes"
+        >
+          {notes}
+        </span>
       );
     },
   },

@@ -6,6 +6,7 @@ import {
   reservationFilterKey,
   reservationSortValue,
   reservationLink,
+  reservationNotes,
   RESERVATION_FOLLOWUP_DAYS,
 } from "./reservationStatus";
 
@@ -163,6 +164,16 @@ describe("reservationLink", () => {
 
   it("returns null when no link was merged in (e.g. not eligible yet, or the merge failed)", () => {
     expect(reservationLink({})).toBeNull();
+  });
+});
+
+describe("reservationNotes", () => {
+  it("returns the merged-in preferred-times note when present", () => {
+    expect(reservationNotes({ reservation_preferred_times: "Mornings work best" })).toBe("Mornings work best");
+  });
+
+  it("returns null when no note was left (e.g. a real booking, not a no-slot report)", () => {
+    expect(reservationNotes({})).toBeNull();
   });
 });
 

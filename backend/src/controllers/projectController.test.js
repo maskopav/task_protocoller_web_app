@@ -211,6 +211,10 @@ describe("getProjectFieldwork", () => {
     expect(buildManageLink).not.toHaveBeenCalled();
     expect(res.body[0].reservation_status).toBe("requested");
     expect(res.body[0].reservation_link).toBe("https://booking.example/book/room?ref=44");
+    // The free-text note the respondent left ("mornings work best", etc.) —
+    // staff need this surfaced in the Fieldwork table itself, not just in
+    // booking-service's own admin view.
+    expect(res.body[0].reservation_preferred_times).toBe("mornings");
   });
 
   it("builds no link at all for a row that hasn't completed its protocol yet", async () => {

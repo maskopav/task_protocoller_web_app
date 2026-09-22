@@ -72,6 +72,10 @@
                         row.reservation_starts_at = booking.starts_at;
                         row.reservation_location = booking.location;
                         row.reservation_updated_at = booking.updated_at || booking.created_at;
+                        // Only set on a 'requested' (no-slot) report -- see
+                        // reportNoSlotAvailable in booking-service. The free-text
+                        // note the respondent left about what would work for them.
+                        row.reservation_preferred_times = booking.preferred_times || undefined;
                     }
 
                     // The link must match whichever one this respondent was

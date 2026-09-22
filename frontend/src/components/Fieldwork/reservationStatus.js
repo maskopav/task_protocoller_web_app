@@ -100,6 +100,14 @@ export function reservationLink(r) {
   return r.reservation_link || null;
 }
 
+// The free-text note a respondent left when reporting "none of these times
+// work for me" (see reportNoSlotAvailable in booking-service) — only ever
+// set alongside a 'requested' reservation_status, merged in server-side
+// the same way reservation_link is (projectController.getProjectFieldwork).
+export function reservationNotes(r) {
+  return r.reservation_preferred_times || null;
+}
+
 export function reservationMeta(state) {
   if (!state || state.kind === "not_eligible_yet") return META.not_eligible_yet;
   if (state.kind === "booked") return META.booked;

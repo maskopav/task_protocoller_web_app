@@ -337,6 +337,21 @@
   text-align: right;
 }
 
+/* The respondent's own free-text note ("none of these times work for me,
+   but mornings would") -- kept small and truncated since it's an aside, not
+   primary data; the full text is still available via the title tooltip. */
+.fieldwork-reservation-notes {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
 .fieldwork-resumable-expired {
   color: var(--muted);
 }
