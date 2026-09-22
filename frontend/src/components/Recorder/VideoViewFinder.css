@@ -204,8 +204,8 @@
   text-decoration: underline;
 }
 
-/* Quiet "give up on calibration" link, revealed after CALIBRATION_STUCK_MS
-   of no success — reuses .btn-decline-camera's link styling. */
+/* Quiet "give up on calibration" button, revealed after CALIBRATION_STUCK_MS
+   of no success — reuses .btn-decline-camera's button styling. */
 .calibration-stuck-hint {
   display: flex;
   justify-content: center;
@@ -213,24 +213,26 @@
   margin-top: 4px;
 }
 
-/* Small gray "continue without camera" link-button on the denied screen.
-   Every reset here defeats the global full-width primary `button` styling. */
+/* Muted gray "continue without camera" button - visibly a button (not a
+   text link) but deliberately quiet next to the primary CTA. Every reset
+   here defeats the global full-width primary `button` styling. */
 .btn-decline-camera {
   width: auto;
-  padding: 4px 8px;
+  padding: 8px 14px;
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   font-weight: 500;
-  background: none;
-  color: #64748b;
+  background: #cbd5e1;
+  color: #1e293b;
+  border-radius: var(--radius, 8px);
   box-shadow: none;
 }
 
 .btn-decline-camera:hover:not(:disabled) {
   filter: none;
   transform: none;
+  background: #94a3b8;
   color: #0f172a;
-  text-decoration: underline;
 }
 
 .video-bottom-controls {

@@ -5,14 +5,25 @@ import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import { isQuestionVisible, pruneHiddenAnswers } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
+// Each language names itself the same way regardless of which language the
+// UI is currently in, so a plain autonym map needs no i18n entry of its own.
+const LANGUAGE_NAMES = { en: "English", cs: "čeština", de: "Deutsch" };
+
 export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
-  const { t } = useTranslation(["common", "tasks"]);
+  const { t, i18n } = useTranslation(["common", "tasks"]);
   const [answers, setAnswers] = useState({});
   const [isValid, setIsValid] = useState(false);
 
   const listRef = useRef(null);
   const lastScrolledIndex = useRef(0);
   const lastInteractedType = useRef(null);
+
+  // Lets question text embed "<language>" to refer to the language the
+  // questionnaire (i.e. the whole protocol) is currently being shown in.
+  const resolveText = (text) =>
+    typeof text === "string"
+      ? text.replaceAll("<language>", LANGUAGE_NAMES[i18n.language] || i18n.language)
+      : text;
 
   // --- 1. Handle Input Changes ---
   const handleChange = (questionId, value, type, exclusiveOptionValue = null) => {
@@ -180,7 +191,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
             >
               <div className="question-header">
                 <h4 className="question-text">
-                  {q.text}
+                  {resolveText(q.text)}
                   {q.optional && (
                     <span className="question-optional-tag">
                       {t("questionnaire.optionalLabel", { ns: "tasks" })}
@@ -258,7 +269,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                   <div
                     className="emoji-scale-group"
                     role="radiogroup"
-                    aria-label={q.text}
+                    aria-label={resolveText(q.text)}
                   >
                     {(q.scale || DEFAULT_EMOJI_SCALE).map((item) => {
                       const selected = answers[q.id] === item.value;

@@ -38,7 +38,6 @@ export const VideoViewFinder = ({
 }) => {
     const { confirm } = useContext(ConfirmDialogContext);
     const { t, i18n } = useTranslation();
-    const [setupCancelled, setSetupCancelled] = useState(false);
     const [camPermState, setCamPermState] = useState(CAM_PERM.CHECKING);
     const [permissionAcknowledged, setPermissionAcknowledged] = useState(() => skipPermissionIntro);
     // True once the actual getUserMedia() call has resolved successfully.
@@ -211,9 +210,9 @@ export const VideoViewFinder = ({
 
     const showInstructionsDialog = async () => {
         return await confirm({
+            infoOnly: true,
             message: instructionList,
             confirmText: t('videoCalibration.btnReady'),
-            cancelText: t('videoCalibration.btnCancel')
         });
     };
 
@@ -222,16 +221,15 @@ export const VideoViewFinder = ({
     // what guarantees the native camera popup always appears BEFORE the
     // instructions, for both the "never asked" and "already granted" paths.
     useEffect(() => {
-        if (phase === 'SETUP' && !setupCancelled && cameraGranted) {
+        if (phase === 'SETUP' && cameraGranted) {
             const autoStart = async () => {
-                const isReady = await showInstructionsDialog();
-                if (isReady) onStartCalibration(); 
-                else setSetupCancelled(true); 
+                await showInstructionsDialog();
+                onStartCalibration();
             };
             autoStart();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [phase, setupCancelled, cameraGranted]); 
+    }, [phase, cameraGranted]);
 
     useEffect(() => {
         if (cameraGranted && phase === 'PERMISSION') {
@@ -442,14 +440,6 @@ export const VideoViewFinder = ({
                     <DeclineVideoLink reason="calibration_timeout">
                         {t('videoCalibration.guide.btnStuck')}
                     </DeclineVideoLink>
-                </div>
-            )}
-
-            {phase === 'SETUP' && setupCancelled && (
-                <div className="video-bottom-controls">
-                    <SafeButton className="btn-primary" onClick={() => setSetupCancelled(false)}>
-                        {t('videoCalibration.btnShowInstructions')}
-                    </SafeButton>
                 </div>
             )}
 

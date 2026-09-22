@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Recorder } from "./Recorder";
 import TaskLayout from "../TaskLayout/TaskLayout";
-import InfoTooltip from "../InfoToolTip/InfoToolTip";
 import MediaPermissionContent from "./MediaPermissionContent";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import warningIcon from "../../assets/generalIcons/warning-icon.svg";
@@ -261,7 +260,11 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       URL.revokeObjectURL(safeAudioUrl);
     }
 
-    const nextPhase = evaluatedError ? 'noise-failed' : 'noise-success';
+    let nextPhase = evaluatedError ? 'noise-failed' : 'noise-success';
+    const isFinalFailure = nextPhase === 'noise-failed' && newAttempts >= CONFIG.MAX_SCREEN_REPEATS;
+    if (isFinalFailure && evaluatedError !== 'muted') {
+      nextPhase = 'noise-failed-again';
+    }
     if (onLogEvent) {
        onLogEvent("mic_check_result", {
           snr_score: calculatedScore,
@@ -271,19 +274,14 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     }
     setPhase(nextPhase);
 
-    // Auto-advance after MAX_SCREEN_REPEATS failed noise attempts
-    if (nextPhase === 'noise-failed' && newAttempts >= CONFIG.MAX_SCREEN_REPEATS) {
-      if (evaluatedError === 'muted') {
-        confirm({
-          infoOnly: true,
-          title: "",
-          message: <Trans i18nKey="micCheck.mutedModalMessage" />,
-          confirmText: t("buttons.ok"),
-        });
-      } else {
-        if (onLogEvent) onLogEvent("mic_check_auto_advanced", { attempts: newAttempts });
-        onNext({ skipped: true, attempts: newAttempts, reason: "noisy_background" });
-      }
+    // Muted mic could not be fixed by the participant - show the terminal modal
+    if (isFinalFailure && evaluatedError === 'muted') {
+      confirm({
+        infoOnly: true,
+        title: "",
+        message: <Trans i18nKey="micCheck.mutedModalMessage" />,
+        confirmText: t("buttons.ok"),
+      });
     }
 
     logger.info(`MicCheck completed. Phase result: ${nextPhase}. SNR: ${calculatedScore} dB`, {
@@ -383,7 +381,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     );
   }
 
-  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => { setIsRetry(true); setPhase('noise'); }, t, onLogEvent, finalMicData);
+  const uiState = getUIStateContent(phase, noiseScore, errorType, onNext, () => { setIsRetry(true); setPhase('noise'); }, t, onLogEvent, finalMicData, attempts);
   if (!uiState) return null;
 
   // We only pass the instructions prop to TaskLayout if there is actual text to display
@@ -403,13 +401,12 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
           <>
             {uiState.message && (
               <div className="mic-check-message-block">
-                <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
-                  {uiState.message}
-                </span>
-                {uiState.tooltip && (
-                  <div className="mic-check-info-wrapper">
-                    {uiState.tooltip}
-                  </div>
+                {uiState.plainMessage ? (
+                  uiState.message
+                ) : (
+                  <span className={uiState.isSuccess ? "success-text-highlight" : "warning-text-highlight"}>
+                    {uiState.message}
+                  </span>
                 )}
               </div>
             )}
@@ -437,7 +434,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
 // ==========================================
 // 4. UTILITIES
 // ==========================================
-function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onLogEvent, finalMicData) {
+function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onLogEvent, finalMicData, attempts) {
   const common = { 
     onBtnClick: () => {
       if (onLogEvent) onLogEvent("button_repeat", { previous_error: errorType });
@@ -463,22 +460,30 @@ function getUIStateContent(phase, noiseScore, errorType, onNext, onRetry, t, onL
         ...common, 
         title: <WarningTitle><Trans i18nKey="micCheck.mutedTitle" /></WarningTitle>, 
         message: <Trans i18nKey="micCheck.mutedMessage" />,
-        tooltip: <InfoTooltip title="" text={<Trans i18nKey="micCheck.mutedAdditionalInfo" />} />,
-        instructions: <Trans i18nKey="micCheck.mutedInstructions" /> 
+        instructions: <Trans i18nKey="micCheck.mutedInstructions" />
       };
       
       return { 
         ...common, 
         title: <WarningTitle><Trans i18nKey="micCheck.failedTitle" /></WarningTitle>, 
         message: <Trans i18nKey="micCheck.failedMessage" />,
-        tooltip: <InfoTooltip title="" text={<Trans i18nKey="micCheck.failedAdditionalInfo" />} />,
-        instructions: <Trans i18nKey="micCheck.failedInstructions" /> 
+        instructions: <Trans i18nKey="micCheck.failedInstructions" />
       };
     }
+    case 'noise-failed-again': return {
+      message: <Trans i18nKey="micCheck.failedAgainTitle" />,
+      plainMessage: true,
+      instructions: <Trans i18nKey="micCheck.failedAgainInstructions" />,
+      btnText: <Trans i18nKey="micCheck.btnProceed" />,
+      onBtnClick: () => {
+        if (onLogEvent) onLogEvent("mic_check_auto_advanced", { attempts });
+        onNext({ skipped: true, attempts, reason: "noisy_background" });
+      },
+      isSuccess: false
+    };
     case 'noise-success': return {
       title: <Trans i18nKey="micCheck.successTitle" />,
       message: <Trans i18nKey="micCheck.successMessage" />,
-      tooltip: null,
       instructions: <Trans i18nKey="micCheck.successInstructions" />,
       btnText: <Trans i18nKey="micCheck.btnProceed" />,
       onBtnClick: () => {

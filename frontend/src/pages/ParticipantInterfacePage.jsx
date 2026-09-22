@@ -489,6 +489,7 @@ export default function ParticipantInterfacePage() {
         'calibration': 'audio_setup',
         'success': 'mic_success',
         'failed': 'mic_failed',      // General background noise
+        'failed_again': 'mic_failed_again',
         'muted': 'mic_muted',
         'warning': 'mic_warning'
       };
@@ -978,7 +979,8 @@ export default function ParticipantInterfacePage() {
               'intro': 'permission',
               'noise': 'calibration',
               'noise-success': 'success',
-              'noise-failed': errorType === 'muted' ? 'muted' : 'failed', 
+              'noise-failed': errorType === 'muted' ? 'muted' : 'failed',
+              'noise-failed-again': 'failed_again',
               'warning': 'warning'
             };
             // The warning screen doubles as the permission-denied screen; give

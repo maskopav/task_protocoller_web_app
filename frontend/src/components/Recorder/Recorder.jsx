@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { useVideoRecorder } from '../../hooks/useVideoRecorder';
 import { useVadLogic } from '../../hooks/useVADLogic';
@@ -14,6 +14,8 @@ import { RecordingControls } from './RecordingControls';
 import { PlaybackSection } from './PlaybackSection';
 import { AudioExamplePlayer } from './AudioExamplePlayer';
 import { VideoViewFinder } from './VideoViewFinder.jsx';
+import AudioGuidePlayer from '../AudioGuidePlayer/AudioGuidePlayer';
+import { getCameraCalibrationAudioPath } from '../../utils/getAudioGuidePath';
 import FormattedText from "../FormattedText/FormattedText";
 import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logger } from '../../utils/frontendLogger';
@@ -73,7 +75,7 @@ export const Recorder = ({
     disableStart = false,
     audioGuideEnabled = true
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     // ── Phase state ──────────────────────────────────────────────────────
     const isVideoEnabled = String(recordVideo) === 'true';
     // Video tasks: PERMISSION → GENERAL_INFO (pre-calibration text) → SETUP →
@@ -741,7 +743,16 @@ export const Recorder = ({
         </>
     );
     // instructions slot: instruction card content
-    const instructionsContent = (!isCalibrationPhase && !isPermissionPhase) ? (
+    const instructionsContent = phase === 'CALIBRATE' ? (
+        <>
+            <AudioGuidePlayer
+                src={audioGuideEnabled ? getCameraCalibrationAudioPath(i18n.language) : null}
+                isRecordingActive={false}
+                autoPlay={true}
+            />
+            <Trans i18nKey="videoCalibration.calibrationGuideMessage" />
+        </>
+    ) : (!isCalibrationPhase && !isPermissionPhase) ? (
         <>
             {/* Show the green check icon ONLY when the recording is fully completed */}
             {recordingStatus === RECORDING_STATES.RECORDED && (

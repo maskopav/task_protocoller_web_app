@@ -84,11 +84,19 @@
       "title": "Medical History Questionnaire",
       "description": "",
       "questions": [
-        { "id": 1789301000001, "text": "In the last 10 years, have you ever experienced speech or voice problems (e.g., stuttering, dysarthria, …) which resulted in a visit to a medical specialist?", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000002, "text": "Have you ever been diagnosed with, or are you currently experiencing, a neurological condition that could affect the results (for example: stroke, Parkinson's disease, epilepsy, multiple sclerosis, or traumatic brain injury)?", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000003, "text": "Have you ever been diagnosed with, or do you suspect you have, a colour vision deficiency, such as red-green or blue-yellow colour blindness?", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000004, "text": "Have you ever undergone a cosmetic procedure that could potentially affect the function of your facial muscles? For example, botulinum toxin (Botox) injections.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] },
-        { "id": 1789301000005, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles? For example, facial paralysis.", "type": "single", "options": ["Yes", "No"], "freeTextOptions": ["Yes"] }
+        { "id": 1789301000000, "text": "Is <language> your native language?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000001, "text": "At which age did you learn to speak <language> (years)?", "type": "open", "showIf": { "questionId": 1789301000000, "values": ["No"] } },
+        { "id": 1789301000002, "text": "What is your native language?", "type": "open", "showIf": { "questionId": 1789301000000, "values": ["No"] } },
+        { "id": 1789301000003, "text": "In the last 10 years, have you ever experienced speech or voice problems which resulted in a visit to a medical specialist?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000004, "text": "Please specify the voice or speech problem (for example: stuttering, dysarthria, …):", "type": "open", "showIf": { "questionId": 1789301000003, "values": ["Yes"] } },
+        { "id": 1789301000005, "text": "Have you ever been diagnosed with, or are you currently experiencing, a neurological condition that could affect the results (for example: stroke, Parkinson's disease, epilepsy, multiple sclerosis, or traumatic brain injury)?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000006, "text": "Please specify the condition:", "type": "open", "showIf": { "questionId": 1789301000005, "values": ["Yes"] } },
+        { "id": 1789301000007, "text": "Have you ever been diagnosed with, or do you suspect you have, a colour vision deficiency, such as red-green or blue-yellow colour blindness?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000008, "text": "Please specify the deficiency:", "type": "open", "showIf": { "questionId": 1789301000007, "values": ["Yes"] } },
+        { "id": 1789301000009, "text": "Have you ever undergone a cosmetic procedure that could potentially affect the function of your facial muscles (for example: botulinum toxin (Botox) injections)?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000010, "text": "Please specify the procedure:", "type": "open", "showIf": { "questionId": 1789301000009, "values": ["Yes"] } },
+        { "id": 1789301000011, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles (for example: facial paralysis)?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000012, "text": "Please specify the condition:", "type": "open", "showIf": { "questionId": 1789301000011, "values": ["Yes"] } }
       ]
     }
   },
@@ -471,35 +479,48 @@
         "description": "",
         "questions": [
           {
-            "id": 1782904964479,
-            "text": "Overall, how easy was it to complete the tasks?",
+            "id": 1786019770001,
+            "text": "How easy was it to complete the tasks?",
             "type": "rating",
             "options": [],
             "freeTextOptions": []
           },
           {
-            "id": 1782904976461,
+            "id": 1786019770002,
             "text": "Overall, how user-friendly was the experience?",
             "type": "rating",
             "options": [],
             "freeTextOptions": []
           },
           {
-            "id": 1782904989314,
+            "id": 1786019770003,
             "text": "Overall, how easy were the instructions to understand?",
             "type": "rating",
             "options": [],
             "freeTextOptions": []
           },
           {
-            "id": 1782905036461,
+            "id": 1786019770004,
             "text": "How helpful was the audio guide?",
             "type": "rating",
             "optional": false,
             "freeTextOptions": []
           },
           {
-            "id": 1786019769001,
+            "id": 1786019770005,
+            "text": "Did you have any motor difficulty completing the tasks?",
+            "type": "single",
+            "options": [
+              "No",
+              "Yes, minor difficulty",
+              "Yes, significant difficulty",
+              "Yes, I was unable to complete the tasks properly"
+            ],
+            "optional": false,
+            "freeTextOptions": []
+          },
+          {
+            "id": 1786019770006,
             "text": "Did you have trouble hearing the audio (guide, fairytale or examples)?",
             "type": "single",
             "options": [
@@ -513,26 +534,7 @@
           },
 
           {
-            "id": 1786019769820,
-            "text": "Which task(s) did you find the most difficult or frustrating?",
-            "type": "multiple",
-            "options": [
-              "None — I found them all manageable",
-              "Long /aaa/",
-              "Repetition /pa-ta-ka/",
-              "Reading text",
-              "Fairytale retelling",
-              "Monologue",
-              "Symbol matching",
-              "Vision task (colour matching)",
-              "Questionnaires"
-            ],
-            "optional": false,
-            "exclusiveOption": "None — I found them all manageable",
-            "freeTextOptions": []
-          },
-          {
-            "id": 1786019771650,
+            "id": 1786019770007,
             "text": "Did background noise or other distractions interfere with your ability to complete the tasks?",
             "type": "single",
             "options": [
@@ -545,7 +547,7 @@
             "freeTextOptions": []
           },
           {
-            "id": 1786019772000,
+            "id": 1786019770008,
             "text": "Did you experience any technical issues while completing the tasks?",
             "type": "single",
             "options": ["Yes", "No"],
@@ -553,8 +555,8 @@
             "freeTextOptions": []
           },
           {
-            "id": 1786019772865,
-            "text": "Did you experience any of the following technical issues?",
+            "id": 1786019770009,
+            "text": "Which technical issues you experienced?",
             "type": "multiple",
             "options": [
               "Difficulty allowing microphone or camera access",
@@ -567,18 +569,70 @@
               "The app froze, crashed, or became unresponsive",
               "A recording didn't seem to start or stop properly",
               "Lost internet connection during the session",
-              "Other:",
-              "None of the above"
+              "Other:"
             ],
             "optional": false,
-            "exclusiveOption": "None of the above",
             "freeTextOptions": [
               "Other:"
             ],
-            "showIf": { "questionId": 1786019772000, "values": ["Yes"] }
+            "showIf": { "questionId": 1786019770008, "values": ["Yes"] }
           },
+
           {
-            "id": 1786019773779,
+            "id": 1786019770010,
+            "text": "Did you find any task frustrating?",
+            "type": "single",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "optional": false,
+            "freeTextOptions": []
+          },
+
+          {
+            "id": 1786019770011,
+            "text": "Which task(s) did you find the most frustrating?",
+            "type": "multiple",
+            "options": [
+              "Long /aaa/",
+              "Repetition /pa-ta-ka/",
+              "Reading text",
+              "Fairytale retelling",
+              "Monologue",
+              "Symbol matching",
+              "Vision task (colour matching)",
+              "Smell test",
+              "Questionnaires"
+            ],
+            "optional": false,
+            "showIf": { "questionId": 1786019770010, "values": ["Yes"] },
+            "freeTextOptions": []
+          },
+
+          {
+            "id": 1786019770012,
+            "text": "Which task(s) were the most enjoyable?",
+            "type": "multiple",
+            "options": [
+              "Long /aaa/",
+              "Repetition /pa-ta-ka/",
+              "Reading text",
+              "Fairytale retelling",
+              "Monologue",
+              "Symbol matching",
+              "Vision task (colour matching)",
+              "Smell test",
+              "Questionnaires",
+              "None"
+            ],
+            "optional": false,
+            "exclusiveOption": ["None"],
+            "freeTextOptions": []
+          },
+
+          {
+            "id": 1786019770013,
             "text": "Is there anything else you'd like to tell us about your experience?",
             "type": "open",
             "options": [],

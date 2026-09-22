@@ -86,3 +86,9 @@ export function getAudioGuidePath(
 export function getCameraSetupAudioPath(language: string = 'en'): string {
   return buildAudioGuidePath(language, 'camera_setup');
 }
+
+// Narrates the on-screen "position your face so the circle turns green"
+// guidance shown above the viewfinder during the CALIBRATE phase.
+export function getCameraCalibrationAudioPath(language: string = 'en'): string {
+  return buildAudioGuidePath(language, 'camera_calibration');
+}
