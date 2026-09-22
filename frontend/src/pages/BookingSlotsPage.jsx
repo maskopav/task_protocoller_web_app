@@ -42,7 +42,8 @@ export default function BookingSlotsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
     startDate: today, endDate: today, weekdays: [1, 2, 3, 4, 5],
-    startTime: "09:00", endTime: "16:00", durationMin: 45, location: "",
+    startTime: "09:00", endTime: "16:00", durationMin: 45,
+    location: "České vysoké učení technické v Praze, Technická 1902/2, 166 27 Praha 6 (v danou dobu si Vás před hlavním vchodem vyzvedne pracovník ČVUT)",
   });
   const [creating, setCreating] = useState(false);
   const [createResult, setCreateResult] = useState(null);
