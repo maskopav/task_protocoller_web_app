@@ -118,7 +118,7 @@ export async function reportNoSlot(req, res) {
     // again now finds the contact info just submitted here on file and skips
     // asking for it a second time (see getPublicSlots' knownContact).
     sendNoSlotFollowupEmail({
-      to: email, resourceName: resource.name,
+      to: email,
       selfBookingLink: buildSignedBookingUrl({
         publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
         tenantId: tenant.id, resourceSlug: resource.slug, ref, after,
@@ -175,7 +175,7 @@ export async function createPublicBooking(req, res) {
       .catch((err) => logToFile("ERROR", "Failed to sync booking to Calendar", { bookingId, error: err.message }));
 
     sendBookingConfirmationEmail({
-      to: email, resourceName: resource.name, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
+      to: email, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
       location, manageLink: manageLinkFor(manageToken, lang), locale: lang,
     }).catch((err) => logToFile("ERROR", "Confirmation email send threw unexpectedly", { bookingId, error: err.message }));
 
@@ -262,7 +262,7 @@ export async function rescheduleManageBooking(req, res) {
       .catch((err) => logToFile("ERROR", "Failed to sync rescheduled booking to Calendar", { bookingId: booking.id, error: err.message }));
 
     sendBookingRescheduledEmail({
-      to: booking.contact_email, resourceName: booking.resource_name,
+      to: booking.contact_email,
       startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location,
       manageLink: manageLinkFor(req.params.manageToken, booking.locale), locale: booking.locale,
     }).catch((err) => logToFile("ERROR", "Reschedule email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
@@ -320,7 +320,7 @@ export async function cancelManageBooking(req, res) {
       location: booking.location || booking.default_location, status: "available",
     }).catch((err) => logToFile("ERROR", "Failed to revert cancelled slot's Calendar event", { bookingId: booking.id, error: err.message }));
     sendBookingCancelledEmail({
-      to: booking.contact_email, resourceName: booking.resource_name, startsAt: booking.starts_at,
+      to: booking.contact_email, startsAt: booking.starts_at,
       rebookLink, contactInfo: booking.contact_info, locale: booking.locale,
     })
       .catch((err) => logToFile("ERROR", "Cancellation email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
