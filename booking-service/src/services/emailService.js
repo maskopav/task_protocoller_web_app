@@ -75,7 +75,6 @@ export async function sendBookingConfirmationEmail({ to, resourceName, startsAt,
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">${t(locale, "confirmationHeading")}</h2>
-      <p>${resourceName}</p>
       ${formatSlot(locale, startsAt, endsAt, location)}
       <p>${t(locale, "manageNotice")}</p>
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
@@ -90,7 +89,6 @@ export async function sendBookingRescheduledEmail({ to, resourceName, startsAt, 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">${t(locale, "rescheduledHeading")}</h2>
-      <p>${resourceName}</p>
       ${formatSlot(locale, startsAt, endsAt, location)}
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
         ${t(locale, "manageButton")}

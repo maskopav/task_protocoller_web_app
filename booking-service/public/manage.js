@@ -16,6 +16,10 @@
   const rescheduleList = document.getElementById("rescheduleList");
   const doneCard = document.getElementById("doneCard");
   const doneMessage = document.getElementById("doneMessage");
+  const doneDetails = document.getElementById("doneDetails");
+  const doneWhen = document.getElementById("doneWhen");
+  const doneWhereRow = document.getElementById("doneWhereRow");
+  const doneWhere = document.getElementById("doneWhere");
   const rescheduleBtn = document.getElementById("rescheduleBtn");
   const cancelBtn = document.getElementById("cancelBtn");
 
@@ -25,6 +29,8 @@
   cutoffNotice.textContent = t("cutoffNotice");
   document.getElementById("manageWhenLabel").textContent = t("whenLabel");
   document.getElementById("manageWhereLabel").textContent = t("whereLabel");
+  document.getElementById("doneWhenLabel").textContent = t("whenLabel");
+  document.getElementById("doneWhereLabel").textContent = t("whereLabel");
   rescheduleBtn.textContent = t("rescheduleButton");
   cancelBtn.textContent = t("cancelButton");
 
@@ -47,10 +53,22 @@
     return new Date() > cutoff;
   }
 
-  function showDone(message) {
+  function showDone(message, details) {
     currentCard.classList.add("hidden");
     rescheduleStep.classList.add("hidden");
     doneMessage.textContent = message;
+    if (details) {
+      doneWhen.textContent = details.when;
+      if (details.where) {
+        doneWhere.textContent = details.where;
+        doneWhereRow.classList.remove("hidden");
+      } else {
+        doneWhereRow.classList.add("hidden");
+      }
+      doneDetails.classList.remove("hidden");
+    } else {
+      doneDetails.classList.add("hidden");
+    }
     doneCard.classList.remove("hidden");
   }
 
@@ -154,7 +172,7 @@
       if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "rescheduleFailed"));
 
       const { date, time } = formatSlotTime(data.startsAt);
-      showDone(t("rescheduledNotice", `${date}, ${time}${data.location ? ` — ${data.location}` : ""}`));
+      showDone(t("rescheduledNotice"), { when: `${date}, ${time}`, where: data.location });
     } catch (err) {
       document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = false; });
       btn.classList.remove("selected");

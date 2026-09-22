@@ -46,7 +46,6 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
 /* Boxed wrapper for .detail-row, used where there's no surrounding .card
    already (book.html's confirmation step). */
 .confirmed-details {
-  background: #fff;
   padding: clamp(12px, 3vw, 20px);
   margin: 0 0 16px;
   text-align: left;
@@ -57,7 +56,7 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: clamp(12px, 3vw, 20px);
-  margin-bottom: 16px;
+  margin-bottom: clamp(6px, 2vw, 12px);
 }
 
 .day-group { margin-bottom: 20px; }
