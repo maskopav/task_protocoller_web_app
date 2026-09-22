@@ -65,11 +65,26 @@ async function resolveSignedResource(req) {
   return { tenant, resource, ref, after };
 }
 
+// If this (resource, ref) already has an active appointment, the /book page
+// redirects straight to /manage/:manageToken (reschedule/cancel, no slot
+// picker) instead of showing slots. Otherwise it returns the open slots plus
+// any contact info already on file for this ref, so the page can skip
+// re-asking for it.
 export async function getPublicSlots(req, res) {
   try {
-    const { resource, after } = await resolveSignedResource(req);
-    const slots = await bookingService.listAvailablePublicSlots(resource.id, after);
-    res.json({ resource: { name: resource.name, defaultLocation: resource.default_location }, slots });
+    const { resource, ref, after } = await resolveSignedResource(req);
+    const resourceInfo = { name: resource.name, defaultLocation: resource.default_location };
+
+    const activeManageToken = await bookingService.getActiveManageTokenByRef(resource.id, ref);
+    if (activeManageToken) {
+      return res.json({ resource: resourceInfo, existingBooking: { manageToken: activeManageToken } });
+    }
+
+    const [slots, knownContact] = await Promise.all([
+      bookingService.listAvailablePublicSlots(resource.id, after),
+      bookingService.getLatestContactByRef(resource.id, ref),
+    ]);
+    res.json({ resource: resourceInfo, slots, knownContact });
   } catch (err) {
     handleError(res, err, "Failed to load slots");
   }
@@ -89,49 +104,28 @@ export async function reportNoSlot(req, res) {
   if (formatError) return res.status(400).json({ error: formatError });
 
   try {
-    const { resource, ref, after } = await resolveSignedResource(req);
-    const { manageToken } = await bookingService.reportNoSlotAvailable({
+    const { tenant, resource, ref, after } = await resolveSignedResource(req);
+    await bookingService.reportNoSlotAvailable({
       resourceId: resource.id, externalRef: ref, email, phone, preferredTimes, eligibleAfter: after,
     });
 
-    // A durable link, not the signed one they arrived on (that one expires
-    // soon and can't be reused indefinitely) -- see redirectNoSlotAccessToken.
+    // The same signed /book link the participant arrived on (a fresh 30-day
+    // one, not the possibly-near-expiry one from this request) — visiting it
+    // again now finds the contact info just submitted here on file and skips
+    // asking for it a second time (see getPublicSlots' knownContact).
     sendNoSlotFollowupEmail({
       to: email, resourceName: resource.name,
-      selfBookingLink: `${process.env.PUBLIC_BASE_URL}/no-slot/${manageToken}`,
+      selfBookingLink: buildSignedBookingUrl({
+        publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
+        tenantId: tenant.id, resourceSlug: resource.slug, ref, after,
+        ttlSeconds: REBOOK_LINK_TTL_SECONDS, lang,
+      }),
       contactInfo: resource.contact_info, locale: lang,
     }).catch((err) => logToFile("ERROR", "No-slot follow-up email send threw unexpectedly", { error: err.message }));
 
     res.status(201).json({ ok: true });
   } catch (err) {
     handleError(res, err, "Failed to submit request");
-  }
-}
-
-// The durable link from a no-slot report's follow-up email (see reportNoSlot
-// above) -- the report's own manage_token, same column/mechanism a real
-// booking uses, just interpreted differently: unlike a booking's
-// reschedule/cancel, this always just redirects back into the ordinary
-// slot-picking page (there's no appointment yet). Minting a fresh signed URL
-// on every visit (rather than storing/reusing one) is what makes this link
-// itself durable even though each signed URL it produces still has its own
-// short lifetime.
-export async function redirectNoSlotAccessToken(req, res) {
-  try {
-    const report = await bookingService.getBookingByManageToken(req.params.accessToken);
-    if (!report || report.status !== "requested") return res.status(404).send("Link not found");
-
-    const tenant = await getTenantById(report.tenant_id);
-    if (!tenant) return res.status(404).send("Link not found");
-
-    const url = buildSignedBookingUrl({
-      publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
-      tenantId: tenant.id, resourceSlug: report.resource_slug, ref: report.external_ref,
-      after: report.eligible_after, ttlSeconds: REBOOK_LINK_TTL_SECONDS,
-    });
-    res.redirect(url);
-  } catch (err) {
-    handleError(res, err, "Failed to resolve link");
   }
 }
 
@@ -193,8 +187,9 @@ export async function getManageBooking(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
     // A status=requested row (see reportNoSlotAvailable) shares this same
-    // manage_token mechanism but isn't a booking yet -- its own link goes
-    // through redirectNoSlotAccessToken instead, never this manage page.
+    // manage_token mechanism but isn't a booking yet -- it's never surfaced
+    // through /book's existingBooking check (see getPublicSlots) either,
+    // since it's not an active appointment.
     if (!booking || booking.status === "requested") return res.status(404).json({ error: "Booking not found" });
     res.json({ booking });
   } catch (err) {

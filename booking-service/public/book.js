@@ -12,6 +12,9 @@
   const contactStep = document.getElementById("contactStep");
   const selectedSlotSummary = document.getElementById("selectedSlotSummary");
   const preferredTimesField = document.getElementById("preferredTimesField");
+  const knownContactNotice = document.getElementById("knownContactNotice");
+  const emailLabel = document.getElementById("emailLabel");
+  const phoneLabel = document.getElementById("phoneLabel");
   const emailInput = document.getElementById("email");
   const phoneInput = document.getElementById("phone");
   const confirmedStep = document.getElementById("confirmedStep");
@@ -23,8 +26,8 @@
 
   document.documentElement.lang = locale;
   loading.textContent = t("loadingSlots");
-  document.getElementById("emailLabel").textContent = t("emailLabel");
-  document.getElementById("phoneLabel").textContent = t("phoneLabel");
+  emailLabel.textContent = t("emailLabel");
+  phoneLabel.textContent = t("phoneLabel");
   document.getElementById("nextBtn").textContent = t("nextButton");
   document.getElementById("bookedHeading").textContent = t("bookedHeading");
   document.getElementById("bookedNotice").textContent = t("bookedNotice");
@@ -39,6 +42,23 @@
   // the same email/phone fields and the same Next button below.
   let selectedSlot = null;
   let noSlotMode = false;
+  let knownContact = null;
+
+  // When the server already has contact info on file for this link (see
+  // getPublicSlots' knownContact) there's no need to ask again — prefill it
+  // into the shared fields and hide them, leaving just the slot/no-slot
+  // choice above the Next button.
+  function applyKnownContact() {
+    if (!knownContact) return;
+    emailInput.value = knownContact.email || "";
+    phoneInput.value = knownContact.phone || "";
+    emailLabel.classList.add("hidden");
+    emailInput.classList.add("hidden");
+    phoneLabel.classList.add("hidden");
+    phoneInput.classList.add("hidden");
+    knownContactNotice.textContent = t("knownContactNotice", knownContact.email);
+    knownContactNotice.classList.remove("hidden");
+  }
 
   function showError(message) {
     loading.classList.add("hidden");
@@ -211,6 +231,19 @@
     .then(async (res) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t("invalidLink"));
+
+      if (data.existingBooking) {
+        // This link's participant already has an active appointment --
+        // send them straight to the reschedule/cancel view instead of
+        // showing the slot picker (and asking for contact info) again.
+        const manageUrl = new URL(`manage/${data.existingBooking.manageToken}`, document.baseURI);
+        if (locale) manageUrl.searchParams.set("lang", locale);
+        window.location.replace(manageUrl.href);
+        return;
+      }
+
+      knownContact = data.knownContact || null;
+      applyKnownContact();
       loading.classList.add("hidden");
       renderSlots(data.resource, data.slots);
     })

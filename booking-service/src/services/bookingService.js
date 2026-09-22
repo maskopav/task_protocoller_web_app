@@ -282,6 +282,35 @@ export async function getBookingByManageToken(manageToken) {
   return row || null;
 }
 
+// Used by getPublicSlots to detect that this (resource, externalRef) already
+// has an active appointment -- if so, the /book page redirects straight to
+// /manage/:manageToken instead of showing the slot picker again. A
+// 'requested' row (see reportNoSlotAvailable) is not an appointment, so it's
+// excluded same as 'cancelled'.
+export async function getActiveManageTokenByRef(resourceId, externalRef) {
+  const [row] = await executeQuery(
+    `SELECT manage_token FROM bookings
+     WHERE resource_id = ? AND external_ref = ? AND status NOT IN ('cancelled', 'requested')
+     ORDER BY created_at DESC LIMIT 1`,
+    [resourceId, externalRef]
+  );
+  return row ? row.manage_token : null;
+}
+
+// Contact info from this person's most recent booking/report for this
+// resource, regardless of status -- lets the /book page skip re-asking for
+// email and phone when we already have them on file (e.g. after a
+// cancellation, or a prior "none of these times work for me" report).
+export async function getLatestContactByRef(resourceId, externalRef) {
+  const [row] = await executeQuery(
+    `SELECT contact_email, contact_phone FROM bookings
+     WHERE resource_id = ? AND external_ref = ?
+     ORDER BY created_at DESC LIMIT 1`,
+    [resourceId, externalRef]
+  );
+  return row ? { email: row.contact_email, phone: row.contact_phone } : null;
+}
+
 // Returns both the old slot's and new slot's own details (including each
 // one's google_event_id) so the caller can flip the old slot's Calendar
 // event back to "available" and the new slot's event to "booked", rather
@@ -382,10 +411,11 @@ export async function setSlotGoogleEventId(slotId, googleEventId) {
 
 // A respondent's "none of these times work for me" submission -- a row in
 // the same `bookings` table, status='requested', slot_id NULL: just contact
-// info + a free-text note for staff to follow up on manually, sharing the
-// same manage_token mechanism as a real booking. See publicController.js's
-// reportNoSlot and redirectNoSlotAccessToken (which reuses
-// getBookingByManageToken above to resolve it).
+// info + a free-text note for staff to follow up on manually. It shares the
+// manage_token column with a real booking (every row needs one), but that
+// token is otherwise unused here -- getLatestContactByRef above is what
+// surfaces this contact info again, on the next /book visit. See
+// publicController.js's reportNoSlot.
 export async function reportNoSlotAvailable({ resourceId, externalRef, email, phone, preferredTimes, eligibleAfter }) {
   return executeTransaction(async (conn) => {
     const manageToken = await generateUniqueManageToken(conn);

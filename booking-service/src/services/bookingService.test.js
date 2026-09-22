@@ -18,7 +18,10 @@ let mockConn;
 
 const { executeTransaction, executeQuery } = await import("../db/queryHelper.js");
 const { generateToken } = await import("../utils/tokenGenerator.js");
-const { createBooking, bulkCreateSlots, rescheduleBooking, reportNoSlotAvailable, listNoSlotReportsForAdmin } = await import("./bookingService.js");
+const {
+  createBooking, bulkCreateSlots, rescheduleBooking, reportNoSlotAvailable, listNoSlotReportsForAdmin,
+  getActiveManageTokenByRef, getLatestContactByRef,
+} = await import("./bookingService.js");
 
 function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], manageTokenCollisions = 0, insertId = 123 }) {
   let manageTokenLookups = 0;
@@ -355,6 +358,59 @@ describe("reportNoSlotAvailable", () => {
     });
 
     expect(result).toEqual({ manageToken: "unique-token" });
+  });
+});
+
+// getActiveManageTokenByRef backs the /book page's "already has an active
+// appointment -- send them to /manage instead" check (see
+// publicController.js's getPublicSlots), so a 'requested' no-slot report for
+// the same ref must NOT count as active here.
+describe("getActiveManageTokenByRef", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("returns the manage token when an active booking exists for this ref", async () => {
+    executeQuery.mockResolvedValueOnce([{ manage_token: "abc123" }]);
+    const result = await getActiveManageTokenByRef(3, "ref-42");
+
+    expect(result).toBe("abc123");
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toMatch(/status NOT IN \('cancelled', 'requested'\)/);
+    expect(params).toEqual([3, "ref-42"]);
+  });
+
+  it("returns null when there's no active booking for this ref", async () => {
+    executeQuery.mockResolvedValueOnce([]);
+    const result = await getActiveManageTokenByRef(3, "ref-42");
+    expect(result).toBeNull();
+  });
+});
+
+// getLatestContactByRef backs the /book page's "don't ask for contact info
+// we already have" prefill (see publicController.js's getPublicSlots) --
+// unlike getActiveManageTokenByRef, it deliberately doesn't filter by
+// status: a cancelled booking's or a 'requested' report's contact info is
+// just as reusable as an active booking's.
+describe("getLatestContactByRef", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("returns the most recent contact info for this ref regardless of status", async () => {
+    executeQuery.mockResolvedValueOnce([{ contact_email: "a@b.com", contact_phone: "123456" }]);
+    const result = await getLatestContactByRef(3, "ref-42");
+
+    expect(result).toEqual({ email: "a@b.com", phone: "123456" });
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).not.toMatch(/status/);
+    expect(params).toEqual([3, "ref-42"]);
+  });
+
+  it("returns null when nothing is on file for this ref", async () => {
+    executeQuery.mockResolvedValueOnce([]);
+    const result = await getLatestContactByRef(3, "ref-42");
+    expect(result).toBeNull();
   });
 });
 
