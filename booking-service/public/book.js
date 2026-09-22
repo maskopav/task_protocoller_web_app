@@ -234,12 +234,27 @@
 
     const { date, time } = formatSlotTime(slot.starts_at);
     selectedSlotSummary.textContent = "";
+
+    const whenRow = document.createElement("p");
+    whenRow.className = "detail-row";
     const prefix = document.createElement("strong");
+    prefix.className = "detail-label";
     prefix.textContent = t("selectedPrefix");
-    selectedSlotSummary.appendChild(prefix);
-    selectedSlotSummary.appendChild(
-      document.createTextNode(` ${date} at ${time}${slot.location ? ` — ${slot.location}` : ""}`)
-    );
+    whenRow.appendChild(prefix);
+    whenRow.appendChild(document.createTextNode(`${date} at ${time}`));
+    selectedSlotSummary.appendChild(whenRow);
+
+    if (slot.location) {
+      const whereRow = document.createElement("p");
+      whereRow.className = "detail-row";
+      const whereLabelEl = document.createElement("span");
+      whereLabelEl.className = "detail-label";
+      whereLabelEl.textContent = t("whereLabel");
+      whereRow.appendChild(whereLabelEl);
+      whereRow.appendChild(document.createTextNode(slot.location));
+      selectedSlotSummary.appendChild(whereRow);
+    }
+
     contactStep.classList.remove("hidden");
     contactStep.scrollIntoView({ behavior: "smooth", block: "nearest" });
     updateNextButtonState();
