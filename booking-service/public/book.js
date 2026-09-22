@@ -27,6 +27,7 @@
   const noSlotToggle = document.getElementById("noSlotToggle");
   const nextBtn = document.getElementById("nextBtn");
   const noSlotConfirmedStep = document.getElementById("noSlotConfirmedStep");
+  const resourceLocation = document.getElementById("resourceLocation");
 
   document.documentElement.lang = locale;
   loading.textContent = t("loadingSlots");
@@ -75,6 +76,32 @@
       window.parent.postMessage(COMPLETION_MESSAGE, "*");
     } catch (e) {}
   }
+
+  // Mirrors nextBtn's own visible/enabled/label state to the parent, which
+  // renders its own fixed footer button outside this iframe (see
+  // BookingStep.jsx) instead of relying on the one in this document --
+  // scrolling a tall slot list would otherwise push nextBtn off screen.
+  // nextBtn itself stays in the DOM (see book.html's .hidden on it) so all
+  // the existing logic below keeps working unchanged; it's just not shown.
+  function postNextState() {
+    try {
+      window.parent.postMessage({
+        source: "booking-service",
+        type: "next-state",
+        visible: !contactStep.classList.contains("hidden"),
+        enabled: !nextBtn.disabled,
+        label: nextBtn.textContent,
+      }, "*");
+    } catch (e) {}
+  }
+
+  // The parent's footer button posts this back to trigger the same submit
+  // path nextBtn.click() would.
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.source === "task-protocoller" && event.data.type === "next-click") {
+      if (!nextBtn.disabled) handleNext();
+    }
+  });
 
   function showError(message) {
     loading.classList.add("hidden");
@@ -152,6 +179,7 @@
   function updateNextButtonState() {
     const hasChoice = !!selectedSlot || noSlotMode;
     nextBtn.disabled = !(hasChoice && emailInput.value.trim() && phoneInput.value.trim());
+    postNextState();
   }
   emailInput.addEventListener("input", updateNextButtonState);
   phoneInput.addEventListener("input", updateNextButtonState);
@@ -205,6 +233,7 @@
     const originalLabel = nextBtn.textContent;
     nextBtn.disabled = true;
     nextBtn.textContent = t(selectedSlot ? "confirmingButton" : "sendingButton");
+    postNextState();
     try {
       if (selectedSlot) {
         const res = await fetch(`public/bookings/${encodeURIComponent(slug)}${search}`, {
@@ -217,9 +246,11 @@
 
         const { date, time } = formatSlotTime(data.startsAt);
         confirmedSummary.textContent = `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`;
+        resourceLocation.classList.add("hidden");
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");
         confirmedStep.classList.remove("hidden");
+        postNextState();
         notifyParentCompleted();
       } else {
         const preferredTimes = document.getElementById("preferredTimes").value.trim();
@@ -231,15 +262,18 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || t("noSlotFailed"));
 
+        resourceLocation.classList.add("hidden");
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");
         noSlotConfirmedStep.classList.remove("hidden");
+        postNextState();
         notifyParentCompleted();
       }
     } catch (err) {
       showFieldError(contactError, err.message);
       nextBtn.disabled = false;
       nextBtn.textContent = originalLabel;
+      postNextState();
     }
   }
 

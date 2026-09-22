@@ -290,12 +290,24 @@ submit the contact form, confirm the email arrives and (if Google Calendar
 is configured) the event shows up, then open the `/manage/<token>` link
 from that email to exercise reschedule/cancel and the 24h cutoff.
 
+### Local dry-run (no real emails sent)
+
+Set `EMAIL_DRY_RUN=true` in `.env` to exercise the full booking flow locally
+without sending through the real SMTP account. Every confirmation /
+reschedule / cancellation / no-slot email is instead written as an HTML file
+to `logs/dev-emails/` (gitignored) — open the file in a browser to see
+exactly what would have been sent, including the `/manage/<token>` link, so
+you can click through reschedule/cancel the same way a recipient would.
+Everything else (DB writes, Calendar sync if configured, API responses)
+behaves identically to a real run. Leave the flag unset in production.
+
 ### Testing in production
 
-There's no separate "test mode" in the code — the same paths run
-identically regardless of environment; what changes is only which `.env`
-the process was started with (DB, SMTP, Calendar credentials) and, for a
-mounted deployment, the URL prefix. So a production smoke test is the exact
+Aside from the `EMAIL_DRY_RUN` flag above, there's no separate "test mode"
+in the code — the same paths run identically regardless of environment;
+what changes is only which `.env` the process was started with (DB, SMTP,
+Calendar credentials) and, for a mounted deployment, the URL prefix. So a
+production smoke test is the exact
 same recipe as above, pointed at the production URL/DB/API key instead of
 localhost:
 

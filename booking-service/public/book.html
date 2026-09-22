@@ -44,16 +44,22 @@
       <label for="phone" id="phoneLabel">Phone</label>
       <input type="tel" id="phone" required />
       <div id="contactError" class="error hidden"></div>
-      <button class="primary" id="nextBtn" disabled>Next</button>
+      <!-- Hidden on purpose: the parent app renders the visible Next button
+           in its own fixed footer, outside this iframe, so it stays on
+           screen while a tall slot list scrolls (see BookingStep.jsx). This
+           element stays in the DOM because book.js still drives its
+           disabled/textContent state and click handling internally, and
+           mirrors that state to the parent via postMessage. -->
+      <button class="primary hidden" id="nextBtn" disabled>Next</button>
     </div>
 
-    <div id="confirmedStep" class="card hidden">
+    <div id="confirmedStep" class="hidden">
       <h2 id="bookedHeading">You're booked</h2>
-      <p id="confirmedSummary"></p>
+      <p id="confirmedSummary" class="confirmed-time"></p>
       <p class="notice" id="bookedNotice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
     </div>
 
-    <div id="noSlotConfirmedStep" class="card hidden">
+    <div id="noSlotConfirmedStep" class="hidden">
       <h2 id="noSlotConfirmedHeading">Thanks — we'll be in touch</h2>
       <p class="notice" id="noSlotConfirmedNotice">We've emailed you a link back to this page so you can check for new openings, and we'll contact you to schedule a suitable time.</p>
     </div>

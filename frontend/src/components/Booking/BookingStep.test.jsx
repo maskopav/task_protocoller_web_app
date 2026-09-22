@@ -104,6 +104,94 @@ describe("BookingStep", () => {
     expect(container.querySelector(".booking-step-continue")).toBeNull();
   });
 
+  it("renders the fixed Next button once the iframe reports next-state, and clicking it posts next-click back into the iframe", async () => {
+    await renderStep();
+    await vi.waitFor(() => expect(container.querySelector(".booking-step-iframe")).toBeTruthy());
+    const iframe = container.querySelector(".booking-step-iframe");
+    const postMessageSpy = vi.spyOn(iframe.contentWindow, "postMessage");
+
+    await act(async () => {
+      postToWindow(new URL(BOOKING_URL).origin, {
+        source: "booking-service",
+        type: "next-state",
+        visible: true,
+        enabled: true,
+        label: "Next",
+      });
+    });
+
+    const nextBtn = container.querySelector(".booking-step-next-btn");
+    expect(nextBtn).toBeTruthy();
+    expect(nextBtn.disabled).toBe(false);
+    expect(nextBtn.textContent).toBe("Next");
+
+    await act(async () => {
+      nextBtn.click();
+    });
+    expect(postMessageSpy).toHaveBeenCalledWith(
+      { source: "task-protocoller", type: "next-click" },
+      new URL(BOOKING_URL).origin
+    );
+  });
+
+  it("keeps the fixed Next button disabled until the iframe reports enabled: true", async () => {
+    await renderStep();
+    await vi.waitFor(() => expect(container.querySelector(".booking-step-iframe")).toBeTruthy());
+
+    await act(async () => {
+      postToWindow(new URL(BOOKING_URL).origin, {
+        source: "booking-service",
+        type: "next-state",
+        visible: true,
+        enabled: false,
+        label: "Next",
+      });
+    });
+
+    expect(container.querySelector(".booking-step-next-btn").disabled).toBe(true);
+  });
+
+  it("hides the fixed Next button once the iframe reports visible: false, and once booking completes", async () => {
+    await renderStep();
+    await vi.waitFor(() => expect(container.querySelector(".booking-step-iframe")).toBeTruthy());
+
+    await act(async () => {
+      postToWindow(new URL(BOOKING_URL).origin, {
+        source: "booking-service",
+        type: "next-state",
+        visible: true,
+        enabled: true,
+        label: "Next",
+      });
+    });
+    expect(container.querySelector(".booking-step-next-btn")).toBeTruthy();
+
+    await act(async () => {
+      postToWindow(new URL(BOOKING_URL).origin, {
+        source: "booking-service",
+        type: "next-state",
+        visible: false,
+        enabled: false,
+        label: "Next",
+      });
+    });
+    expect(container.querySelector(".booking-step-next-btn")).toBeNull();
+
+    // Reported visible again (e.g. no-slot path re-showing the contact
+    // step), but completion should still win and keep it hidden.
+    await act(async () => {
+      postToWindow(new URL(BOOKING_URL).origin, {
+        source: "booking-service",
+        type: "next-state",
+        visible: true,
+        enabled: true,
+        label: "Next",
+      });
+      postToWindow(new URL(BOOKING_URL).origin, COMPLETION_MESSAGE);
+    });
+    expect(container.querySelector(".booking-step-next-btn")).toBeNull();
+  });
+
   it("shows an error and no iframe or Continue button when the booking link fails to load", async () => {
     getBookingLink.mockRejectedValue(new Error("nope"));
     await renderStep();

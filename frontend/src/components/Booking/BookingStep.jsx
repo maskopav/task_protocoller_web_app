@@ -7,7 +7,7 @@
 // sent, or the participant already had a booking -- Continue only appears
 // once that lands, so there's no way to advance without actually reaching
 // one of those outcomes inside the widget.
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getBookingLink } from "../../api/booking";
 import { markSessionCompleted } from "../../api/sessions";
@@ -19,6 +19,12 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!testingMode);
   const [completed, setCompleted] = useState(false);
+  // Mirrors book.js's own nextBtn state -- that button is hidden inside the
+  // iframe (see book.html) and this is rendered instead, in a fixed footer
+  // outside the iframe's box, so it stays visible while a tall slot list
+  // scrolls inside the iframe.
+  const [nextState, setNextState] = useState({ visible: false, enabled: false, label: "" });
+  const iframeRef = useRef(null);
 
   useEffect(() => {
     // Testing mode has no real sessionId (protocol is only being previewed,
@@ -62,8 +68,15 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
 
     function handleMessage(event) {
       if (event.origin !== expectedOrigin) return;
-      if (event.data?.source === "booking-service" && event.data?.status === "completed") {
+      if (event.data?.source !== "booking-service") return;
+      if (event.data.status === "completed") {
         setCompleted(true);
+      } else if (event.data.type === "next-state") {
+        setNextState({
+          visible: !!event.data.visible,
+          enabled: !!event.data.enabled,
+          label: event.data.label || "",
+        });
       }
     }
 
@@ -71,10 +84,24 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
     return () => window.removeEventListener("message", handleMessage);
   }, [bookingUrl]);
 
+  function handleNextClick() {
+    if (!nextState.enabled || !bookingUrl) return;
+    iframeRef.current?.contentWindow?.postMessage(
+      { source: "task-protocoller", type: "next-click" },
+      new URL(bookingUrl).origin
+    );
+  }
+
+  const showNextBar = !testingMode && !completed && nextState.visible;
+
   return (
-    <div className="booking-step">
-      <h2 className="booking-step-heading">{t("booking.heading")}</h2>
-      <p className="booking-step-instructions">{t("booking.instructions")}</p>
+    <div className={`booking-step${showNextBar ? " has-next-bar" : ""}`}>
+      {!completed && (
+        <>
+          <h2 className="booking-step-heading">{t("booking.heading")}</h2>
+          <p className="booking-step-instructions">{t("booking.instructions")}</p>
+        </>
+      )}
 
       {testingMode ? (
         <div className="booking-step-preview" role="img" aria-label={t("booking.testingPreviewLabel")}>
@@ -88,8 +115,9 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
 
           {bookingUrl && (
             <iframe
+              ref={iframeRef}
               src={bookingUrl}
-              className="booking-step-iframe"
+              className={`booking-step-iframe${completed ? " booking-step-iframe--compact" : ""}`}
               title="Appointment scheduling"
             />
           )}
@@ -100,6 +128,18 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
         <button className="booking-step-continue" onClick={onComplete}>
           {t("booking.continueButton")}
         </button>
+      )}
+
+      {showNextBar && (
+        <div className="booking-step-next-bar">
+          <button
+            className="booking-step-next-btn"
+            disabled={!nextState.enabled}
+            onClick={handleNextClick}
+          >
+            {nextState.label}
+          </button>
+        </div>
       )}
     </div>
   );

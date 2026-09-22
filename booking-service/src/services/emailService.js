@@ -3,6 +3,9 @@
 // backend/src/utils/emailService.js). Copy comes from src/i18n/emailTranslations.js
 // rather than i18next — see that file for why.
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import { logToFile } from "../utils/logger.js";
 import { t } from "../i18n/emailTranslations.js";
@@ -18,7 +21,35 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
+// EMAIL_DRY_RUN=true skips the real SMTP send and instead writes the
+// rendered HTML to logs/dev-emails/ so the booking flow can be exercised
+// end-to-end locally (confirmation/reschedule/cancel/no-slot emails) without
+// sending through the real Gmail account. Everything else about the flow
+// (DB writes, Calendar sync, API responses) runs unchanged.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dryRunDir = path.resolve(__dirname, "../../logs/dev-emails");
+
+function saveDryRunPreview({ to, subject, html }) {
+  try {
+    if (!fs.existsSync(dryRunDir)) fs.mkdirSync(dryRunDir, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const slug = subject.replace(/[^a-z0-9]+/gi, "-").slice(0, 60);
+    const filePath = path.join(dryRunDir, `${stamp}_${slug}.html`);
+    const banner = `<div style="background:#fffbe6;border:1px solid #f0c36d;padding:10px;margin-bottom:16px;font-family:sans-serif;font-size:13px;">
+      <strong>DRY RUN — this email was not sent.</strong><br>To: ${to}<br>Subject: ${subject}
+    </div>`;
+    fs.writeFileSync(filePath, banner + html);
+    logToFile("INFO", "Email dry-run — not sent, preview saved", { to, subject, file: filePath });
+  } catch (err) {
+    logToFile("ERROR", "Email dry-run preview write failed", { to, subject, error: err.message });
+  }
+}
+
 async function sendEmail({ to, subject, html }) {
+  if (process.env.EMAIL_DRY_RUN === "true") {
+    saveDryRunPreview({ to, subject, html });
+    return true;
+  }
   try {
     await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME || "Booking"}" <${process.env.SMTP_USER}>`,

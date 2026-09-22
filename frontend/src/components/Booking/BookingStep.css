@@ -36,6 +36,15 @@
   margin-bottom: 20px;
 }
 
+/* Once booking-service reaches its (now single-screen, no-scroll)
+   confirmation step, the tall slot-picker height is no longer needed --
+   shrinking it here is what keeps the Continue button below on screen
+   without scrolling. */
+.booking-step-iframe--compact {
+  height: 220px;
+  min-height: 220px;
+}
+
 .booking-step-preview {
   width: 100%;
   height: 70vh;
@@ -74,3 +83,29 @@
 /* .booking-step-continue intentionally has no overrides here — it inherits
    the global `button` style from Pages.css, so it matches the size, radius
    and color of every other task button (Recorder's Continue/Start, etc). */
+
+/* Room for .booking-step-next-bar so it doesn't cover the bottom of the
+   iframe/preview box once it's showing. */
+.booking-step.has-next-bar {
+  padding-bottom: 88px;
+}
+
+.booking-step-next-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+  border-top: 1px solid #e2e2e2;
+  padding: 10px 16px max(env(safe-area-inset-bottom, 0px), 10px);
+}
+
+/* .booking-step-next-btn only constrains width here -- color, padding,
+   radius and the disabled look all come from the same global `button`
+   style .booking-step-continue relies on. */
+.booking-step-next-btn {
+  max-width: 360px;
+}

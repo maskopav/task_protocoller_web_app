@@ -25,8 +25,11 @@ body {
    screens (Pages.css / TaskLayout.css / Recorder.css) so this page, which
    is shown to participants inside a task iframe, doesn't look or feel like
    a separate app. */
-h1 { font-size: 1.8rem; margin-bottom: 4px; }
+h1 { font-size: 1.8rem; margin-bottom: 4px; color: var(--text); }
+h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--text); }
 .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; }
+
+.confirmed-time { font-size: clamp(1.15rem, 4.5vw, 1.4rem); font-weight: 600; margin: 0 0 8px; }
 
 .card {
   background: #fff;
