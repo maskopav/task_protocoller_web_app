@@ -25,8 +25,6 @@
       "logout": "Log out",
       "edit": "Edit",
       "confirm": "Confirm",
-      "continue": "Continue",
-      "backToEditor": "Back to editor",
       "startCalibration": "To camera calibration",
       "seeTopic": "Show Topic",
       "switchTopic": "Switch Topic",
@@ -61,10 +59,7 @@
       "safeToClose": "Thank you for taking part in this study! <br/><br/> You may now close this window.",
       "uploading": "Uploading your responses — please keep this page open.",
       "offlineModalInfo": "Connect to internet",
-      "offlineDataSafe": "Your responses are saved on this device. <br/>DO NOT REFRESH the page. Keep this page open and they will upload automatically when your connection returns.",
-      "offlineReturnHint": "Please leave this tab open until your internet reconnects. <br/><br/>If you must close this page now, simply click your survey link again later when you have internet.",
       "offlineBrief": "Your data will upload automatically once you're back online.",
-      "completedModule": ": completed!",
       "finished": "completed!",
       "praises": [
         "Great job!",
@@ -75,16 +70,10 @@
       ]
     },
     "taskLabels": {
-      "info": "Information",
-      "consent": "Consent",
-      "mic_check": "Audio Test",
-      "volume_check": "Volume Test",
       "voice": "Speech section",
-      "motor": "Motor section",
       "camera": "Camera section",
       "vision": "Vision section",
       "cognitive": "Thinking skills section",
-      "hearing": "Hearing section",
       "questionnaire": "Questionnaire section",
       "task": "Task",
       "milestone_25": "Over 25% ",
@@ -98,7 +87,6 @@
       "selectOption": "Select an option...",
       "typeAnswer": "Type your answer here...",
       "pleaseSpecify": "Please specify",
-      "required": "* required",
       "rating": {
         "veryBad": "Very bad",
         "bad": "Bad",
@@ -115,7 +103,6 @@
       "externalId": "External ID",
       "gender": "Gender",
       "yearPlaceholder": "e.g. 1965",
-      "yearTitle": "Enter a 4-digit year",
       "fillAllFields": "Please fill in all required fields to continue.",
       "saveError": "There was an error saving your information. Please try again.",
       "invalidYear": "Please enter a valid year between {{min}} and {{max}}.",
@@ -166,8 +153,6 @@
       "successTitle": "Microphone Ready",
       "successMessage": "Everything looks good!",
       "successInstructions": "Please <strong>stay in this room</strong> until you have finished.",
-      "failedAgainTitle": "Microphone condition is not ideal, but you can still continue.",
-      "failedAgainInstructions": "Please <strong>stay in this room</strong> until you have finished.",
       "btnProceed": "Next",
       "guide": {
         "titleDenied": "Microphone Access Denied",
@@ -199,11 +184,7 @@
       "instructions": "<strong>Audio Guide</strong> <br/><br/> Through the assessment, the tasks will be accompanied by an audio guide, such as the one you should hear right now. <br><br/> You can pause the guide by pressing the icon in the top right corner of the screen. <br><br/> If you want to replay the guide, just press the icon again."
     },
     "videoCalibration": {
-      "setupTitle": "Camera Setup",
       "step1": "<strong>Rest your arm on the table</strong> holding your phone as shown in the picture. <br/><br/> Goal - position your face so the circle <strong>turns green</strong>.",
-      "step2": "<strong>Hold the phone steady</strong> during the task.",
-      "step3": "<strong>Keep your face well-lit</strong> and visible.",
-      "step4": "<strong>Be alone</strong> in the camera view.",
       "viewInstructions": "View Setup Instructions",
       "btnReady": "I'm Ready",
       "btnCancel": "Cancel",
@@ -217,7 +198,6 @@
       "further": "Further",
       "turnLeft": "Look Left",
       "turnRight": "Look Right",
-      "perfect": "Perfect!",
 
       "permissionWarning": "In this task we will measure your facial movements while speaking. <br/><br/> No video is recorded, just anonymized coordinates data. <br/><br/> To do that, browser will ask for camera access.",
       "permissionInstruction": "Please click the button and then press <strong>Allow</strong> in the popup window.",
@@ -261,10 +241,6 @@
       "copyBtn": "Copy Link"
     },
     "auth": {
-      "signupTitle": "New Participant",
-      "loginTitle": "Welcome Back",
-      "signupDesc": "Enter your details to start the protocol.",
-      "loginDesc": "Enter your credentials to resume.",
       "email": "Email",
       "password": "Password",
       "fullName": "Full Name",
@@ -273,7 +249,6 @@
       "male": "Male",
       "female": "Female",
       "phone": "Phone number (optional)",
-      "note": "We will send login credentials to your email.",
       "btnSignup": "Sign Up",
       "btnLogin": "Login",
       "tabSignup": "Sign Up",

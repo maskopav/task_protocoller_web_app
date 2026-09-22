@@ -21,9 +21,6 @@
     "micCheck": {
       "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."
     },
-    "micCheck": {
-      "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."
-    },
     "status": {
       "ready": "⚪ Připraveno",
       "recording": "🔴 Nahrávání...",
@@ -35,9 +32,6 @@
       "languageWarning": "Vyberte si prosím jazyk, kterým mluvíte nejplynuleji, ideálně svůj mateřský jazyk. Jakmile úkoly začnou, tuto volbu již nebudete moci změnit."
     },
     "completion": {
-      "title": "Všechny úkoly dokončeny!",
-      "message": "🎉 Úspěšně jste dokončili všechny zadání. Děkujeme Vám za účast!",
-      "completedModule": ": modul dokončen!",
       "praises": [
         "🌟 Skvělá práce!",
         "🎯 Výborně!",
@@ -48,14 +42,12 @@
     },
     "taskLabels": {
       "voice": "Řečová úloha",
-      "motor": "Motorická úloha",
       "camera": "Kamerová úloha",
       "questionnaire": "Dotazník"
     },
     "questionnaire": {
       "selectOption": "Vyberte možnost...",
-      "typeAnswer": "Zde napište svou odpověď...",
-      "required": "* povinné"
+      "typeAnswer": "Zde napište svou odpověď..."
     },
     "notFound": {
       "title": "404 – Stránka nenalezena",
@@ -70,10 +62,6 @@
       "message": "Token není validní. Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
     },
     "auth": {
-      "signupTitle": "Nový účastník",
-      "loginTitle": "Vítejte zpět",
-      "signupDesc": "Zadejte své údaje pro zahájení protokolu.",
-      "loginDesc": "Zadejte své přihlašovací údaje pro pokračování.",
       "email": "Email",
       "password": "Heslo",
       "fullName": "Celé jméno",
@@ -82,7 +70,6 @@
       "male": "Muž",
       "female": "Žena",
       "phone": "Telefonní číslo (volitelné)",
-      "note": "Přihlašovací údaje vám zašleme na email.",
       "btnSignup": "Spustit protokol",
       "btnLogin": "Přihlásit se",
       "tabSignup": "Registrace",
