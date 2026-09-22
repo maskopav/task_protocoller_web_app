@@ -82,6 +82,27 @@ describe("reservationState", () => {
     });
     expect(state).toMatchObject({ kind: "cancelled", overdue: true });
   });
+
+  // Case 4: the respondent said none of the offered slots worked and left
+  // contact info instead -- this must be visibly distinct from "hasn't
+  // engaged at all" (not_booked), anchored on the report itself like a
+  // cancellation is, not on protocol completion.
+  it("is 'no_slot_reported', anchored on the report itself, when a no-slot report is on file", () => {
+    const state = reservationState({
+      enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested",
+      reservation_updated_at: "2026-09-19 12:00:00", // 1 day ago -- within grace
+      session_completed_at: "2026-08-01 00:00:00", // long past -- must NOT be used as the anchor
+    });
+    expect(state).toMatchObject({ kind: "no_slot_reported", overdue: false });
+  });
+
+  it("flags a no-slot report as overdue once its own grace period elapses", () => {
+    const state = reservationState({
+      enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested",
+      reservation_updated_at: "2026-09-01 12:00:00",
+    });
+    expect(state).toMatchObject({ kind: "no_slot_reported", overdue: true });
+  });
 });
 
 describe("reservationLabel", () => {
@@ -105,6 +126,11 @@ describe("reservationLabel", () => {
 
   it("says 'Not Ready' for a participant who hasn't finished the protocol yet", () => {
     expect(reservationLabel({ kind: "not_eligible_yet" })).toBe("Not Ready");
+  });
+
+  it("says 'No Slot Found' for a no-slot report, unless overdue", () => {
+    expect(reservationLabel({ kind: "no_slot_reported", overdue: false })).toBe("No Slot Found");
+    expect(reservationLabel({ kind: "no_slot_reported", overdue: true })).toBe("⚠ Needs Follow-up");
   });
 });
 
@@ -134,6 +160,11 @@ describe("reservationFilterKey / reservationSortValue", () => {
     const cancelled = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "cancelled", reservation_updated_at: "2026-08-01 00:00:00" };
     expect(reservationFilterKey(neverBooked)).toBe("needs_followup");
     expect(reservationFilterKey(cancelled)).toBe("needs_followup");
+  });
+
+  it("groups an overdue no-slot report into 'needs_followup' too", () => {
+    const noSlotReported = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested", reservation_updated_at: "2026-08-01 00:00:00" };
+    expect(reservationFilterKey(noSlotReported)).toBe("needs_followup");
   });
 
   it("sorts a booked row above a needs-followup row", () => {

@@ -1,6 +1,6 @@
   // backend/src/controllers/projectController.js
   import { executeQuery } from "../db/queryHelper.js";
-  import { getFollowupBookingStatusByRef, buildBookingLink } from "../services/bookingServiceClient.js";
+  import { getFollowupBookingStatusByRef, buildBookingLink, buildManageLink } from "../services/bookingServiceClient.js";
   import { BOOKING_ELIGIBILITY_DAYS } from "../config/constants.js";
 
   export const getProjectList = async (req, res) => {
@@ -74,23 +74,33 @@
                         row.reservation_updated_at = booking.updated_at || booking.created_at;
                     }
 
-                    // Same signed URL originally sent to the participant —
-                    // visiting it again lets them pick a first slot or
-                    // reschedule/cancel an existing one, so it's surfaced here
-                    // regardless of booked/not-booked so staff can resend it.
-                    // Only buildable once the protocol's been completed (see
+                    // The link must match whichever one this respondent was
+                    // actually emailed. An active appointment ('booked' or
+                    // 'rescheduled') was confirmed with a /manage/:manage_token
+                    // link (reschedule/cancel) — see booking-service's
+                    // emailService. Anyone else (never engaged, or reported
+                    // "no slot works" — status 'requested') was only ever
+                    // sent the original signed /book link, so that's what's
+                    // surfaced here too, letting staff resend it. Only
+                    // buildable once the protocol's been completed (see
                     // buildBookingLink's caller in bookingController.js).
-                    if (row.session_completed_at) {
-                        try {
+                    const hasActiveBooking = booking && (booking.status === "booked" || booking.status === "rescheduled");
+                    try {
+                        if (hasActiveBooking) {
+                            row.reservation_link = buildManageLink({
+                                manageToken: booking.manage_token,
+                                lang: row.protocol_language_code,
+                            });
+                        } else if (row.session_completed_at) {
                             row.reservation_link = buildBookingLink({
                                 ref: row.participant_protocol_id,
                                 completedAt: row.session_completed_at,
                                 eligibilityDays: BOOKING_ELIGIBILITY_DAYS,
                                 lang: row.protocol_language_code,
                             });
-                        } catch (err) {
-                            console.error("Failed to build reservation link for fieldwork row:", err);
                         }
+                    } catch (err) {
+                        console.error("Failed to build reservation link for fieldwork row:", err);
                     }
                 }
             } catch (err) {

@@ -271,12 +271,18 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
   });
 
   describe("getFollowupBookingStatusByRef", () => {
+    // No no-slot reports involved -- an empty reports list every time here.
+    function mockNoReports() {
+      return { ok: true, json: async () => ({ reports: [] }) };
+    }
+
     it("keys the map by external_ref", async () => {
       global.fetch
         .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
         .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
           { external_ref: "42", status: "booked", starts_at: "2026-10-01 09:00:00" },
-        ] }) });
+        ] }) })
+        .mockResolvedValueOnce(mockNoReports());
 
       const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
       const byRef = await getFollowupBookingStatusByRef();
@@ -295,7 +301,8 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
         .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
           { external_ref: "42", status: "cancelled", updated_at: "2026-09-10 10:00:00" },
           { external_ref: "42", status: "booked", updated_at: "2026-09-12 10:00:00" },
-        ] }) });
+        ] }) })
+        .mockResolvedValueOnce(mockNoReports());
 
       const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
       const byRef = await getFollowupBookingStatusByRef();
@@ -311,7 +318,8 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
         .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
           { external_ref: "42", status: "cancelled", updated_at: "2026-09-10 10:00:00" },
           { external_ref: "42", status: "cancelled", updated_at: "2026-09-15 10:00:00" },
-        ] }) });
+        ] }) })
+        .mockResolvedValueOnce(mockNoReports());
 
       const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
       const byRef = await getFollowupBookingStatusByRef();
@@ -326,6 +334,96 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
 
       const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
       await expect(getFollowupBookingStatusByRef()).rejects.toThrow(/Failed to list bookings/);
+    });
+
+    // Case 4 from the reservation-link review: a respondent who said "none
+    // of these times work" (no slot picked, contact info left) has to show
+    // up in the Fieldwork table just like a real booking would -- otherwise
+    // staff have no way to see that report happened at all. These rows come
+    // from a separate booking-service endpoint (/v1/no-slot-reports) since
+    // listBookingsForAdmin's own query inner-joins on slots and silently
+    // drops them (see booking-service's bookingService.js).
+    it("merges a 'requested' no-slot report into the map, tagged with status 'requested'", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ reports: [
+          { external_ref: "42", contact_email: "a@b.com", preferred_times: "mornings", created_at: "2026-09-18 10:00:00" },
+        ] }) });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      const byRef = await getFollowupBookingStatusByRef();
+
+      expect(byRef.get("42")).toMatchObject({ status: "requested", preferred_times: "mornings" });
+    });
+
+    it("prefers an active booking over a 'requested' no-slot report for the same ref", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
+          { external_ref: "42", status: "booked", updated_at: "2026-09-01 10:00:00" },
+        ] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ reports: [
+          { external_ref: "42", created_at: "2026-09-20 10:00:00" }, // later, but not an active appointment
+        ] }) });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      const byRef = await getFollowupBookingStatusByRef();
+
+      expect(byRef.get("42").status).toBe("booked");
+    });
+
+    // Between two non-active rows for the same ref (a cancelled booking and
+    // a later no-slot report, or vice versa) the more recent one wins --
+    // same "current reality" rule as two cancelled bookings above.
+    it("prefers the more recent of a cancelled booking and a 'requested' report for the same ref", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [
+          { external_ref: "42", status: "cancelled", updated_at: "2026-09-10 10:00:00" },
+        ] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ reports: [
+          { external_ref: "42", created_at: "2026-09-20 10:00:00" },
+        ] }) });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      const byRef = await getFollowupBookingStatusByRef();
+
+      expect(byRef.get("42").status).toBe("requested");
+    });
+
+    it("throws when booking-service's no-slot-reports call fails", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ bookings: [] }) })
+        .mockResolvedValueOnce({ ok: false, status: 500 });
+
+      const { getFollowupBookingStatusByRef } = await import("./bookingServiceClient.js");
+      await expect(getFollowupBookingStatusByRef()).rejects.toThrow(/Failed to list no-slot reports/);
+    });
+  });
+
+  describe("buildManageLink", () => {
+    beforeEach(setTestEnv);
+    afterEach(clearTestEnv);
+
+    // A booked respondent's Fieldwork link must be the exact reschedule/
+    // cancel link they were actually emailed (see emailService's
+    // manageLinkFor in booking-service), not the original slot-picker link.
+    it("builds a /manage/:token link off the configured public URL", async () => {
+      const { buildManageLink } = await import("./bookingServiceClient.js");
+      const url = buildManageLink({ manageToken: "tok123", lang: "cs" });
+      const parsed = new URL(url);
+
+      expect(parsed.origin).toBe("http://localhost:4100");
+      expect(parsed.pathname).toBe("/manage/tok123");
+      expect(parsed.searchParams.get("lang")).toBe("cs");
+    });
+
+    it("omits lang when not provided", async () => {
+      const { buildManageLink } = await import("./bookingServiceClient.js");
+      const url = buildManageLink({ manageToken: "tok123" });
+      expect(new URL(url).searchParams.has("lang")).toBe(false);
     });
   });
 });

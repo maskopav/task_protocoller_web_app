@@ -64,6 +64,19 @@ export function buildBookingLink({ ref, completedAt, eligibilityDays, lang, ttlS
   return `${env("BOOKING_SERVICE_URL")}/book/${resourceSlug}?${params.toString()}`;
 }
 
+// The reschedule/cancel link for an already-booked respondent — the exact
+// same link they were actually emailed (see booking-service's emailService
+// manageLinkFor), so the Fieldwork table's link column matches reality
+// instead of always re-showing the original slot-picker link. No signing
+// needed: manage_token itself is the credential (booking-service trusts
+// possession of it the same way this app trusts a participant access_token).
+export function buildManageLink({ manageToken, lang }) {
+  const params = new URLSearchParams();
+  if (lang) params.set("lang", lang);
+  const qs = params.toString();
+  return `${env("BOOKING_SERVICE_URL")}/manage/${manageToken}${qs ? `?${qs}` : ""}`;
+}
+
 // ---- admin proxy ---------------------------------------------------------
 
 // The public BOOKING_SERVICE_URL is right for links opened by a
@@ -159,38 +172,55 @@ export async function proxyBookingRequest(path, options) {
 
 // ---- Fieldwork integration ------------------------------------------
 
-// One admin call to booking-service, reused across every eligible row in a
+// Two admin calls to booking-service, reused across every eligible row in a
 // Fieldwork response (see projectController.getProjectFieldwork) — not one
 // call per participant. booking-service's `external_ref` is this app's
 // participant_protocol_id (see buildBookingLink above), so the map is keyed
 // by that.
 //
-// listBookingsForAdmin returns every historical row (a cancel-then-rebook
-// leaves two), so per ref this keeps whichever is still active
-// ('booked'/'rescheduled') if one exists, otherwise the most recently
-// updated cancelled row — never an older, superseded row.
+// listBookingsForAdmin's query inner-joins on slots, so it never returns a
+// "none of these times work for me" report (no slot_id) — those come from
+// the separate /v1/no-slot-reports endpoint and are merged in here, tagged
+// status 'requested', so case 4 (no slot picked, contact info left) is
+// visible in the Fieldwork table at all instead of silently disappearing.
+//
+// Both endpoints return every historical row for a ref (a cancel-then-rebook
+// leaves two; a no-slot report followed by an eventual real booking leaves
+// two more), so per ref this keeps whichever is still an active appointment
+// ('booked'/'rescheduled') if one exists, otherwise whichever of the
+// remaining rows (cancelled or requested) was updated most recently — never
+// an older, superseded row.
+const ACTIVE_BOOKING_STATUSES = new Set(["booked", "rescheduled"]);
+
 export async function getFollowupBookingStatusByRef() {
   const resourceId = await ensureFollowupBookingResource();
-  const upstream = await proxyBookingRequest(`/v1/bookings?resourceId=${resourceId}`);
-  if (!upstream.ok) throw new Error(`Failed to list bookings (${upstream.status})`);
-  const { bookings } = await upstream.json();
+  const [bookingsUpstream, noSlotUpstream] = await Promise.all([
+    proxyBookingRequest(`/v1/bookings?resourceId=${resourceId}`),
+    proxyBookingRequest(`/v1/no-slot-reports?resourceId=${resourceId}`),
+  ]);
+  if (!bookingsUpstream.ok) throw new Error(`Failed to list bookings (${bookingsUpstream.status})`);
+  if (!noSlotUpstream.ok) throw new Error(`Failed to list no-slot reports (${noSlotUpstream.status})`);
+  const { bookings } = await bookingsUpstream.json();
+  const { reports } = await noSlotUpstream.json();
 
   const byRef = new Map();
-  for (const b of bookings) {
+  function consider(b) {
     const existing = byRef.get(b.external_ref);
     if (!existing) {
       byRef.set(b.external_ref, b);
-      continue;
+      return;
     }
-    const bActive = b.status !== "cancelled";
-    const existingActive = existing.status !== "cancelled";
+    const bActive = ACTIVE_BOOKING_STATUSES.has(b.status);
+    const existingActive = ACTIVE_BOOKING_STATUSES.has(existing.status);
     if (bActive !== existingActive) {
       if (bActive) byRef.set(b.external_ref, b);
-      continue;
+      return;
     }
     if ((b.updated_at || b.created_at) > (existing.updated_at || existing.created_at)) {
       byRef.set(b.external_ref, b);
     }
   }
+  for (const b of bookings) consider(b);
+  for (const r of reports) consider({ ...r, status: "requested" });
   return byRef;
 }

@@ -6,10 +6,11 @@ vi.mock("../db/queryHelper.js", () => ({
 vi.mock("../services/bookingServiceClient.js", () => ({
   getFollowupBookingStatusByRef: vi.fn(),
   buildBookingLink: vi.fn(),
+  buildManageLink: vi.fn(),
 }));
 
 const { executeQuery } = await import("../db/queryHelper.js");
-const { getFollowupBookingStatusByRef, buildBookingLink } = await import("../services/bookingServiceClient.js");
+const { getFollowupBookingStatusByRef, buildBookingLink, buildManageLink } = await import("../services/bookingServiceClient.js");
 const { getProjectList, getProjectFieldwork } = await import("./projectController.js");
 
 function makeRes() {
@@ -60,6 +61,7 @@ describe("getProjectFieldwork", () => {
     executeQuery.mockReset();
     getFollowupBookingStatusByRef.mockReset();
     buildBookingLink.mockReset();
+    buildManageLink.mockReset();
   });
 
   it("403s a non-master admin who isn't assigned to the requested project", async () => {
@@ -132,14 +134,73 @@ describe("getProjectFieldwork", () => {
     expect(res.body[1].reservation_status).toBeUndefined();
   });
 
-  it("merges the same reservation link regardless of whether the row is booked yet", async () => {
+  // A booked respondent's Fieldwork link must match what was actually
+  // emailed to them: createPublicBooking's confirmation email (and a
+  // reschedule email) carries a /manage/:manageToken link, not the original
+  // signed /book link -- see booking-service's emailService.js. Anyone
+  // without an active booking (never engaged, or reported "no slot works")
+  // still gets the original signed link, since that's what would let them
+  // book for the first time or try again.
+  it("shows the manage link for a row with an active booking", async () => {
     executeQuery.mockResolvedValueOnce([
       { session_id: 1, project_id: 5, participant_protocol_id: 42, enable_followup_booking: 1, session_completed_at: "2026-09-15 10:00:00", protocol_language_code: "cs" },
-      { session_id: 2, project_id: 5, participant_protocol_id: 43, enable_followup_booking: 1, session_completed_at: "2026-09-16 10:00:00" }, // not booked yet
-      { session_id: 3, project_id: 5, participant_protocol_id: 44, enable_followup_booking: 1 }, // not completed yet -- no link buildable
     ]);
     getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map([
-      ["42", { status: "booked", starts_at: "2026-10-01 09:00:00" }],
+      ["42", { status: "booked", starts_at: "2026-10-01 09:00:00", manage_token: "tok123" }],
+    ]));
+    buildManageLink.mockImplementation(({ manageToken }) => `https://booking.example/manage/${manageToken}`);
+    const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(buildManageLink).toHaveBeenCalledWith(expect.objectContaining({ manageToken: "tok123", lang: "cs" }));
+    expect(buildBookingLink).not.toHaveBeenCalled();
+    expect(res.body[0].reservation_link).toBe("https://booking.example/manage/tok123");
+  });
+
+  // Same case, but a 'rescheduled' booking -- also active, also gets the
+  // manage link (rescheduling doesn't rotate manage_token).
+  it("shows the manage link for a rescheduled booking too", async () => {
+    executeQuery.mockResolvedValueOnce([
+      { session_id: 1, project_id: 5, participant_protocol_id: 42, enable_followup_booking: 1, session_completed_at: "2026-09-15 10:00:00" },
+    ]);
+    getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map([
+      ["42", { status: "rescheduled", manage_token: "tok123" }],
+    ]));
+    buildManageLink.mockImplementation(({ manageToken }) => `https://booking.example/manage/${manageToken}`);
+    const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(res.body[0].reservation_link).toBe("https://booking.example/manage/tok123");
+  });
+
+  it("falls back to the signed booking link for a row that was never booked", async () => {
+    executeQuery.mockResolvedValueOnce([
+      { session_id: 2, project_id: 5, participant_protocol_id: 43, enable_followup_booking: 1, session_completed_at: "2026-09-16 10:00:00" },
+    ]);
+    getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map());
+    buildBookingLink.mockImplementation(({ ref }) => `https://booking.example/book/room?ref=${ref}`);
+    const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(buildManageLink).not.toHaveBeenCalled();
+    expect(res.body[0].reservation_link).toBe("https://booking.example/book/room?ref=43");
+  });
+
+  // The whole point of case 4 (no slot worked, contact info left): staff
+  // must still see this happened, via the same signed link the follow-up
+  // email carried -- not the manage link, since there's no real appointment.
+  it("falls back to the signed booking link (not a manage link) for a 'requested' no-slot report", async () => {
+    executeQuery.mockResolvedValueOnce([
+      { session_id: 3, project_id: 5, participant_protocol_id: 44, enable_followup_booking: 1, session_completed_at: "2026-09-17 10:00:00" },
+    ]);
+    getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map([
+      ["44", { status: "requested", preferred_times: "mornings" }],
     ]));
     buildBookingLink.mockImplementation(({ ref }) => `https://booking.example/book/room?ref=${ref}`);
     const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
@@ -147,12 +208,24 @@ describe("getProjectFieldwork", () => {
 
     await getProjectFieldwork(req, res);
 
-    expect(buildBookingLink).toHaveBeenCalledWith(expect.objectContaining({
-      ref: 42, completedAt: "2026-09-15 10:00:00", lang: "cs",
-    }));
-    expect(res.body[0].reservation_link).toBe("https://booking.example/book/room?ref=42");
-    expect(res.body[1].reservation_link).toBe("https://booking.example/book/room?ref=43");
-    expect(res.body[2].reservation_link).toBeUndefined();
+    expect(buildManageLink).not.toHaveBeenCalled();
+    expect(res.body[0].reservation_status).toBe("requested");
+    expect(res.body[0].reservation_link).toBe("https://booking.example/book/room?ref=44");
+  });
+
+  it("builds no link at all for a row that hasn't completed its protocol yet", async () => {
+    executeQuery.mockResolvedValueOnce([
+      { session_id: 4, project_id: 5, participant_protocol_id: 45, enable_followup_booking: 1 }, // not completed yet
+    ]);
+    getFollowupBookingStatusByRef.mockResolvedValueOnce(new Map());
+    const req = { params: { projectId: "5" }, admin: { id: 1, role: "master" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(buildBookingLink).not.toHaveBeenCalled();
+    expect(buildManageLink).not.toHaveBeenCalled();
+    expect(res.body[0].reservation_link).toBeUndefined();
   });
 
   it("still returns the fieldwork rows (without a reservation_link) if buildBookingLink throws for a row", async () => {

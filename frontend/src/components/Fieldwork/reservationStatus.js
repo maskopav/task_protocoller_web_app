@@ -41,6 +41,13 @@ export function reservationState(r) {
   if (r.reservation_status === "cancelled") {
     return { kind: "cancelled", ...graceInfo(r.reservation_updated_at) };
   }
+  // "None of these times work for me" -- a slot was never picked, but the
+  // respondent did leave contact info, so this must read differently from
+  // not_booked (hasn't engaged at all) and be anchored on the report itself,
+  // like a cancellation, not on protocol completion.
+  if (r.reservation_status === "requested") {
+    return { kind: "no_slot_reported", ...graceInfo(r.reservation_updated_at) };
+  }
   if (!r.session_completed_at) return { kind: "not_eligible_yet" };
 
   return { kind: "not_booked", ...graceInfo(r.session_completed_at) };
@@ -79,7 +86,8 @@ export function reservationLabel(state) {
     return `Booked${when ? `: ${when}` : ""}`;
   }
   if (state.kind === "not_eligible_yet") return "Not Ready";
-  return state.overdue ? "⚠ Needs Follow-up" : "Pending";
+  if (state.overdue) return "⚠ Needs Follow-up";
+  return state.kind === "no_slot_reported" ? "No Slot Found" : "Pending";
 }
 
 // The booking-management link (`reservation_link`, merged in server-side —

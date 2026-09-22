@@ -20,7 +20,7 @@ const { executeTransaction, executeQuery } = await import("../db/queryHelper.js"
 const { generateToken } = await import("../utils/tokenGenerator.js");
 const {
   createBooking, bulkCreateSlots, rescheduleBooking, reportNoSlotAvailable, listNoSlotReportsForAdmin,
-  getActiveManageTokenByRef, getLatestContactByRef,
+  getActiveManageTokenByRef, getLatestContactByRef, listBookingsForAdmin,
 } = await import("./bookingService.js");
 
 function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], manageTokenCollisions = 0, insertId = 123 }) {
@@ -411,6 +411,25 @@ describe("getLatestContactByRef", () => {
     executeQuery.mockResolvedValueOnce([]);
     const result = await getLatestContactByRef(3, "ref-42");
     expect(result).toBeNull();
+  });
+});
+
+// The Fieldwork table (in the main app) needs manage_token to rebuild the
+// same reschedule/cancel link that was actually emailed to an already-booked
+// respondent, instead of always showing the original slot-picker link — see
+// backend/src/controllers/projectController.js's getProjectFieldwork.
+describe("listBookingsForAdmin", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("selects manage_token alongside the existing columns", async () => {
+    executeQuery.mockResolvedValueOnce([{ id: 1, external_ref: "42", status: "booked", manage_token: "tok123" }]);
+
+    await listBookingsForAdmin(1, { resourceId: 3 });
+
+    const [sql] = executeQuery.mock.calls[0];
+    expect(sql).toMatch(/b\.manage_token/);
   });
 });
 

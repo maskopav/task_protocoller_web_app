@@ -394,7 +394,7 @@ export async function cancelBooking(manageToken) {
 export async function listBookingsForAdmin(tenantId, { resourceId } = {}) {
   return executeQuery(
     `SELECT b.id, b.external_ref, b.contact_email, b.contact_phone, b.status,
-            b.created_at, b.updated_at, s.starts_at, s.ends_at, s.location,
+            b.manage_token, b.created_at, b.updated_at, s.starts_at, s.ends_at, s.location,
             r.name AS resource_name
      FROM bookings b
      JOIN slots s ON s.id = b.slot_id
