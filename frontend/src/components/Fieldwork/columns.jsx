@@ -140,6 +140,7 @@ export const COLUMN_DEFS = [
     filterValue: reservationFilterKey,
     filterOptions: [
       { value: "needs_followup", label: "Needs Follow-up" },
+      { value: "no_slot_reported", label: "No Slot Found" },
       { value: "pending", label: "Pending" },
       { value: "not_eligible_yet", label: "Not Ready" },
       { value: "booked", label: "Booked" },

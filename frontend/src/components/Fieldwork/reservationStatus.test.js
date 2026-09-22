@@ -140,6 +140,18 @@ describe("reservationMeta", () => {
     const overdue = reservationMeta({ kind: "not_booked", overdue: true });
     expect(pending.bg).not.toBe(overdue.bg);
   });
+
+  // A no-slot report is an explicit "none of these work for me" from the
+  // respondent -- staff need to call them back with real alternatives
+  // regardless of how many days it's been, so this is always the same
+  // urgent color as an overdue row, not tied to the grace period.
+  it("colors a no-slot report the same urgent red whether or not it's overdue yet", () => {
+    const fresh = reservationMeta({ kind: "no_slot_reported", overdue: false });
+    const stale = reservationMeta({ kind: "no_slot_reported", overdue: true });
+    const overdue = reservationMeta({ kind: "not_booked", overdue: true });
+    expect(fresh).toEqual(overdue);
+    expect(stale).toEqual(overdue);
+  });
 });
 
 describe("reservationLink", () => {
@@ -162,14 +174,29 @@ describe("reservationFilterKey / reservationSortValue", () => {
     expect(reservationFilterKey(cancelled)).toBe("needs_followup");
   });
 
-  it("groups an overdue no-slot report into 'needs_followup' too", () => {
-    const noSlotReported = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested", reservation_updated_at: "2026-08-01 00:00:00" };
-    expect(reservationFilterKey(noSlotReported)).toBe("needs_followup");
+  // A no-slot report gets its own dedicated filter bucket rather than being
+  // lumped into 'pending'/'needs_followup' -- it's an explicit, distinct
+  // signal from the respondent, and staff need to be able to filter to just
+  // these rows instead of finding them mixed in with everyone who simply
+  // hasn't engaged yet.
+  it("gives a no-slot report its own filter bucket, whether or not it's overdue", () => {
+    const fresh = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested", reservation_updated_at: new Date().toISOString().slice(0, 19).replace("T", " ") };
+    const stale = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested", reservation_updated_at: "2026-08-01 00:00:00" };
+    expect(reservationFilterKey(fresh)).toBe("no_slot_reported");
+    expect(reservationFilterKey(stale)).toBe("no_slot_reported");
   });
 
   it("sorts a booked row above a needs-followup row", () => {
     const booked = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "booked", reservation_starts_at: "2026-10-01 09:00:00" };
     const needsFollowup = { enable_followup_booking: 1, protocol_status: "finished", session_completed_at: "2026-08-01 00:00:00" };
     expect(reservationSortValue(booked)).toBeGreaterThan(reservationSortValue(needsFollowup));
+  });
+
+  it("sorts a no-slot report between pending and needs-followup", () => {
+    const pending = { enable_followup_booking: 1, protocol_status: "finished", session_completed_at: "2026-09-19 12:00:00" };
+    const noSlotReported = { enable_followup_booking: 1, protocol_status: "finished", reservation_status: "requested", reservation_updated_at: "2026-09-19 12:00:00" };
+    const needsFollowup = { enable_followup_booking: 1, protocol_status: "finished", session_completed_at: "2026-08-01 00:00:00" };
+    expect(reservationSortValue(noSlotReported)).toBeGreaterThan(reservationSortValue(pending));
+    expect(reservationSortValue(needsFollowup)).toBeGreaterThan(reservationSortValue(noSlotReported));
   });
 });

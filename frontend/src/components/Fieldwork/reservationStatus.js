@@ -103,23 +103,33 @@ export function reservationLink(r) {
 export function reservationMeta(state) {
   if (!state || state.kind === "not_eligible_yet") return META.not_eligible_yet;
   if (state.kind === "booked") return META.booked;
+  // A no-slot report is an explicit "none of these work for me" from the
+  // respondent, not just silence -- staff need to call them back with real
+  // alternatives regardless of how many days it's been, so it's always
+  // flagged the same urgent red as an overdue row, not tied to the grace
+  // period the way not_booked/cancelled are.
+  if (state.kind === "no_slot_reported") return META.overdue;
   return state.overdue ? META.overdue : META.pending;
 }
 
 // select-filter key: coarser than the full state — "never booked" and
 // "cancelled" collapse into the same bucket once overdue, since the action
-// staff need to take (call them) is the same either way.
+// staff need to take (call them) is the same either way. A no-slot report
+// gets its own dedicated bucket instead of collapsing into pending/
+// needs_followup: it's a distinct, explicit signal from the respondent
+// (see reservationMeta above), and staff need to be able to filter to just
+// these rows.
 export function reservationFilterKey(r) {
   const state = reservationState(r);
   if (!state) return "";
-  if (state.kind === "booked" || state.kind === "not_eligible_yet") return state.kind;
+  if (state.kind === "booked" || state.kind === "not_eligible_yet" || state.kind === "no_slot_reported") return state.kind;
   return state.overdue ? "needs_followup" : "pending";
 }
 
-const SORT_ORDER = { not_eligible_yet: 0, pending: 1, booked: 3 };
+const SORT_ORDER = { not_eligible_yet: 0, pending: 1, no_slot_reported: 2, booked: 4 };
 export function reservationSortValue(r) {
   const key = reservationFilterKey(r);
   if (key === "") return -1;
-  if (key === "needs_followup") return 2;
+  if (key === "needs_followup") return 3;
   return SORT_ORDER[key] ?? 0;
 }
