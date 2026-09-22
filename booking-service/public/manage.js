@@ -7,7 +7,10 @@
   const loading = document.getElementById("loading");
   const errorBox = document.getElementById("errorBox");
   const currentCard = document.getElementById("currentCard");
-  const currentSummary = document.getElementById("currentSummary");
+  const resourceName = document.getElementById("resourceName");
+  const currentWhen = document.getElementById("currentWhen");
+  const manageWhereRow = document.getElementById("manageWhereRow");
+  const currentWhere = document.getElementById("currentWhere");
   const cutoffNotice = document.getElementById("cutoffNotice");
   const actions = document.getElementById("actions");
   const rescheduleStep = document.getElementById("rescheduleStep");
@@ -21,6 +24,8 @@
   document.getElementById("pageHeading").textContent = t("manageHeading");
   loading.textContent = t("manageLoading");
   cutoffNotice.textContent = t("cutoffNotice");
+  document.getElementById("manageWhenLabel").textContent = t("whenLabel");
+  document.getElementById("manageWhereLabel").textContent = t("whereLabel");
   rescheduleBtn.textContent = t("rescheduleButton");
   cancelBtn.textContent = t("cancelButton");
 
@@ -65,14 +70,14 @@
       }
 
       const { date, time } = formatSlotTime(booking.starts_at);
-      currentSummary.textContent = "";
-      const name = document.createElement("strong");
-      name.textContent = booking.resource_name;
-      currentSummary.appendChild(name);
-      currentSummary.appendChild(document.createElement("br"));
-      currentSummary.appendChild(
-        document.createTextNode(`${date} at ${time}${booking.location ? ` — ${booking.location}` : ""}`)
-      );
+      resourceName.textContent = booking.resource_name;
+      currentWhen.textContent = `${date} at ${time}`;
+      if (booking.location) {
+        currentWhere.textContent = booking.location;
+        manageWhereRow.classList.remove("hidden");
+      } else {
+        manageWhereRow.classList.add("hidden");
+      }
       currentCard.classList.remove("hidden");
 
       if (isPastCutoffClientSide(booking.starts_at)) {

@@ -22,7 +22,9 @@
   const emailInput = document.getElementById("email");
   const phoneInput = document.getElementById("phone");
   const confirmedStep = document.getElementById("confirmedStep");
-  const confirmedSummary = document.getElementById("confirmedSummary");
+  const confirmedWhen = document.getElementById("confirmedWhen");
+  const whereRow = document.getElementById("whereRow");
+  const confirmedWhere = document.getElementById("confirmedWhere");
   const contactError = document.getElementById("contactError");
   const noSlotToggle = document.getElementById("noSlotToggle");
   const nextBtn = document.getElementById("nextBtn");
@@ -36,6 +38,8 @@
   document.getElementById("nextBtn").textContent = t("nextButton");
   document.getElementById("bookedHeading").textContent = t("bookedHeading");
   document.getElementById("bookedNotice").textContent = t("bookedNotice");
+  document.getElementById("whenLabel").textContent = t("whenLabel");
+  document.getElementById("whereLabel").textContent = t("whereLabel");
   document.getElementById("noSlotToggle").textContent = t("noSlotToggle");
   document.getElementById("preferredTimesLabel").textContent = t("preferredTimesLabel");
   document.getElementById("noSlotConfirmedHeading").textContent = t("noSlotConfirmedHeading");
@@ -105,6 +109,31 @@
         label: nextBtn.textContent,
       }, "*");
     } catch (e) {}
+  }
+
+  // Once the confirmation screens are showing, BookingStep.jsx shrinks the
+  // iframe down from the tall slot-picker height (see its --compact
+  // modifier) -- reporting our actual content height lets it size the box
+  // to fit instead of guessing a fixed px value that could clip a long,
+  // localized address across languages/screen widths.
+  function postHeight() {
+    try {
+      window.parent.postMessage({
+        source: "booking-service",
+        type: "height",
+        height: document.body.scrollHeight,
+      }, "*");
+    } catch (e) {}
+  }
+  // ResizeObserver's own initial callback (fired once async after observe())
+  // covers the first report; no need to call postHeight() up front here too
+  // -- doing so fired an extra message before any real outcome, which broke
+  // the "notifies immediately, before anything else" contract other code
+  // relies on.
+  if (window.ResizeObserver) {
+    new ResizeObserver(postHeight).observe(document.body);
+  } else {
+    window.addEventListener("resize", postHeight);
   }
 
   // The parent's footer button posts this back to trigger the same submit
@@ -257,7 +286,13 @@
         if (!res.ok) throw new Error(data.error || t("bookingFailed"));
 
         const { date, time } = formatSlotTime(data.startsAt);
-        confirmedSummary.textContent = `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`;
+        confirmedWhen.textContent = `${date} at ${time}`;
+        if (data.location) {
+          confirmedWhere.textContent = data.location;
+          whereRow.classList.remove("hidden");
+        } else {
+          whereRow.classList.add("hidden");
+        }
         resourceLocation.classList.add("hidden");
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");

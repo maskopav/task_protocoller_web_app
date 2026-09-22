@@ -129,8 +129,18 @@ emailed:
 
 `frontend/src/components/Fieldwork/reservationStatus.js` turns
 `reservation_status: 'requested'` into a distinct `no_slot_reported` display
-state (labelled "No Slot Found", falling into the same "Needs Follow-up"
-bucket once overdue as `cancelled`/`not_booked`).
+state (labelled "No Slot Found"), always shown in the same urgent red as an
+overdue row — it's an explicit "none of these work for me" from the
+respondent, not silence, so it doesn't wait on the grace period the way
+`cancelled`/`not_booked` do. It's also its own dedicated Reservation-column
+filter option, not folded into "Pending"/"Needs Follow-up".
+
+The free-text note left alongside a no-slot report (`preferred_times` in
+booking-service's `bookings` table — "mornings would work", etc.) is merged
+in the same way as `reservation_link`, as `reservation_preferred_times`, and
+shown in its own "Reservation Notes" column — hidden by default (like
+"Reservation Link"), small/italic and truncated with the full text on hover,
+since it's an aside rather than primary data.
 
 ## Where things live
 

@@ -13,6 +13,11 @@ body {
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
+  /* Base size for body text (headings and buttons set their own, larger,
+     sizes) so any plain paragraph -- e.g. #doneMessage, .error -- reads at
+     the same size as the labels/inputs/notices that already set 1.1rem
+     explicitly, instead of falling back to the browser's smaller default. */
+  font-size: 1.1rem;
 }
 
 .page {
@@ -25,11 +30,31 @@ body {
    screens (Pages.css / TaskLayout.css / Recorder.css) so this page, which
    is shown to participants inside a task iframe, doesn't look or feel like
    a separate app. */
-h1 { font-size: 1.8rem; margin-bottom: 4px; color: var(--text); }
-h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--text); }
+/* h1 and h2 share the same size so every page's top-level heading (this
+   page has only one or the other, never both) reads at a consistent size. */
+h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--text); }
 .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; }
 
-.confirmed-time { font-size: clamp(1.15rem, 4.5vw, 1.4rem); font-weight: 600; margin: 0 0 8px; }
+/* Shared "label: value" row used for the When/Where-style details on both
+   the booking confirmation (book.html) and the manage page (manage.html) --
+   kept at the same 1.1rem as labels/inputs/notices elsewhere on this page
+   so body text reads at one consistent size throughout. */
+.detail-row { margin: 0; font-size: 1.1rem; line-height: 1.5; }
+.detail-row + .detail-row { margin-top: 8px; }
+.detail-label { font-weight: 600; margin-right: 4px; }
+
+/* Boxed wrapper for .detail-row, used where there's no surrounding .card
+   already (book.html's confirmation step). */
+.confirmed-details {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 0 0 16px;
+  text-align: left;
+}
+
+.resource-name { font-size: 1.15rem; font-weight: 700; margin: 0 0 10px; }
 
 .card {
   background: #fff;
@@ -83,6 +108,9 @@ textarea { resize: vertical; }
   margin: 16px auto 0;
 }
 
+/* primary/secondary/danger share one font-size so every button on this
+   page reads at the same size, rather than the primary CTA looking like a
+   different scale of control from Reschedule/Cancel. */
 button.primary {
   margin-top: 20px;
   background: var(--accent);
@@ -90,7 +118,7 @@ button.primary {
   border: none;
   padding: 12px 24px;
   border-radius: 1rem;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -117,6 +145,18 @@ button.danger {
   cursor: pointer;
 }
 
+/* Reschedule/Cancel appointment on manage.html -- full-width, stacked, with
+   a real gap between them (rather than relying on .secondary's own
+   margin-right, which only helps a side-by-side layout) so they read as
+   two clearly separate actions instead of a cramped pair. */
+#actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+#actions button { margin: 0; width: 100%; }
+
 .error { color: #c0392b; margin-top: 12px; }
-.notice { color: var(--muted); font-size: 1rem; margin-top: 12px; }
+.notice { color: var(--muted); font-size: 1.1rem; margin-top: 12px; }
 .hidden { display: none !important; }

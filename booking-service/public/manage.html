@@ -23,7 +23,15 @@
     <div id="errorBox" class="error hidden"></div>
 
     <div id="currentCard" class="card hidden">
-      <p id="currentSummary"></p>
+      <p id="resourceName" class="resource-name"></p>
+      <p class="detail-row">
+        <span class="detail-label" id="manageWhenLabel">When:</span>
+        <span id="currentWhen"></span>
+      </p>
+      <p class="detail-row hidden" id="manageWhereRow">
+        <span class="detail-label" id="manageWhereLabel">Where:</span>
+        <span id="currentWhere"></span>
+      </p>
       <p id="cutoffNotice" class="notice hidden">This appointment is less than a day away, so it can no longer be changed online here — please contact us directly.</p>
       <div id="actions" class="hidden">
         <button class="secondary" id="rescheduleBtn">Reschedule</button>

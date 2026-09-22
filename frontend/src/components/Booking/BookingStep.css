@@ -37,12 +37,15 @@
 }
 
 /* Once booking-service reaches its (now single-screen, no-scroll)
-   confirmation step, the tall slot-picker height is no longer needed --
-   shrinking it here is what keeps the Continue button below on screen
-   without scrolling. */
+   confirmation step, the tall slot-picker height is no longer needed.
+   This is only the fallback size for the brief moment before book.js's
+   "height" message (see BookingStep.jsx's contentHeight) reports the
+   confirmation screen's actual height via an inline style, which is what
+   actually keeps the Continue button below on screen without an internal
+   scrollbar or clipped text. */
 .booking-step-iframe--compact {
-  height: 220px;
-  min-height: 220px;
+  height: 260px;
+  min-height: 260px;
 }
 
 .booking-step-preview {

@@ -57,8 +57,17 @@
 
     <div id="confirmedStep" class="hidden">
       <h2 id="bookedHeading">You're booked</h2>
-      <p id="confirmedSummary" class="confirmed-time"></p>
-      <p class="notice" id="bookedNotice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
+      <div class="confirmed-details">
+        <p class="detail-row">
+          <span class="detail-label" id="whenLabel">When:</span>
+          <span id="confirmedWhen"></span>
+        </p>
+        <p class="detail-row hidden" id="whereRow">
+          <span class="detail-label" id="whereLabel">Where:</span>
+          <span id="confirmedWhere"></span>
+        </p>
+      </div>
+      <p class="notice" id="bookedNotice">Check your email for a link to reschedule or cancel.</p>
     </div>
 
     <div id="noSlotConfirmedStep" class="hidden">

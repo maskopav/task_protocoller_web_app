@@ -24,6 +24,11 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
   // outside the iframe's box, so it stays visible while a tall slot list
   // scrolls inside the iframe.
   const [nextState, setNextState] = useState({ visible: false, enabled: false, label: "" });
+  // Reported by book.js's own ResizeObserver once the confirmation screens
+  // are showing, so the compact iframe (see .booking-step-iframe--compact)
+  // can size itself to the actual content instead of a guessed fixed
+  // height that would clip a long, localized address.
+  const [contentHeight, setContentHeight] = useState(null);
   const iframeRef = useRef(null);
 
   useEffect(() => {
@@ -77,6 +82,8 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
           enabled: !!event.data.enabled,
           label: event.data.label || "",
         });
+      } else if (event.data.type === "height") {
+        setContentHeight(event.data.height);
       }
     }
 
@@ -118,6 +125,7 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
               ref={iframeRef}
               src={bookingUrl}
               className={`booking-step-iframe${completed ? " booking-step-iframe--compact" : ""}`}
+              style={completed && contentHeight ? { height: `${contentHeight}px` } : undefined}
               title="Appointment scheduling"
             />
           )}
