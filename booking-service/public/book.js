@@ -41,6 +41,18 @@
   document.getElementById("noSlotConfirmedHeading").textContent = t("noSlotConfirmedHeading");
   document.getElementById("noSlotConfirmedNotice").textContent = t("noSlotConfirmedNotice");
 
+  // nextBtn is hidden by default in book.html because the embedded case
+  // (inside BookingStep.jsx's iframe) relies on the parent app's own footer
+  // button instead, driven by the next-state/next-click messages below.
+  // But this same page is also opened with no parent at all -- an emailed
+  // link, or the Fieldwork table's link column (see
+  // docs/reservation-links.md) -- where there is no parent to render one.
+  // window.parent === window (its own default) is exactly the standalone
+  // case; only there does the in-page button need to actually show.
+  if (window.self === window.parent) {
+    nextBtn.classList.remove("hidden");
+  }
+
   // Exactly one of these is true once the contact form is showing: either a
   // specific slot was picked, or the participant said none of them work
   // (in which case preferredTimes is collected instead). Both paths share

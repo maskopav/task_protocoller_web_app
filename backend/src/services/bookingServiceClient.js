@@ -224,3 +224,19 @@ export async function getFollowupBookingStatusByRef() {
   for (const r of reports) consider({ ...r, status: "requested" });
   return byRef;
 }
+
+// A single, targeted lookup for one respondent — used by
+// bookingController.getBookingLink to check whether they already have an
+// active appointment *before* deciding which link to hand back (manage vs.
+// the original signed /book link), rather than always showing the booking
+// iframe and letting it redirect after the fact. Unlike
+// getFollowupBookingStatusByRef (which lists every booking for the whole
+// resource, for the admin Fieldwork table), this hits booking-service's own
+// indexed single-ref query — no reason to pull the full list for one row.
+export async function getActiveManageTokenByRef(ref) {
+  const resourceId = await ensureFollowupBookingResource();
+  const upstream = await proxyBookingRequest(`/v1/bookings/active-manage-token?resourceId=${resourceId}&externalRef=${ref}`);
+  if (!upstream.ok) throw new Error(`Failed to look up active booking (${upstream.status})`);
+  const { manageToken } = await upstream.json();
+  return manageToken || null;
+}

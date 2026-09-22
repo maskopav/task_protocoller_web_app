@@ -190,6 +190,48 @@ describe("book.js completion signal to the parent frame", () => {
   });
 });
 
+// The link is also opened outside any iframe entirely -- straight from an
+// emailed link, or the Fieldwork table's link column (see
+// docs/reservation-links.md) -- where there is no parent app to render a
+// footer button and relay clicks via postMessage. nextBtn must not stay
+// hidden in that case, or there is no way to submit at all.
+describe("book.js standalone (not embedded in an iframe)", () => {
+  it("shows its own Next button when window.parent is itself (not embedded)", async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(jsonResponse(oneSlot));
+    // setupDom always fakes window.parent as a distinct object to simulate
+    // the embedded case -- this test deliberately leaves it as jsdom's
+    // default (window.parent === window), matching a real top-level tab.
+    const dom = new JSDOM(bookHtml, {
+      url: `http://localhost/book/test-slug?tenant=t1`,
+      runScripts: "outside-only",
+      virtualConsole: new VirtualConsole(),
+    });
+    const { window } = dom;
+    window.bookingI18n = { t: (key) => key, locale: "en" };
+    window.fetch = fetchImpl;
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    window.eval(bookJsSource);
+    const { document } = window;
+
+    await vi.waitFor(() => {
+      expect(document.getElementById("slotStep").classList.contains("hidden")).toBe(false);
+    });
+    expect(document.getElementById("nextBtn").classList.contains("hidden")).toBe(false);
+
+    document.querySelector(".slot-btn").click();
+    fireInput(document.getElementById("email"), "person@example.com");
+    fireInput(document.getElementById("phone"), "+1 555 123 4567");
+    fetchImpl.mockResolvedValueOnce(
+      jsonResponse({ startsAt: "2026-03-01 10:00:00", location: "Room A" })
+    );
+    document.getElementById("nextBtn").click();
+
+    await vi.waitFor(() => {
+      expect(document.getElementById("confirmedStep").classList.contains("hidden")).toBe(false);
+    });
+  });
+});
+
 // Covers the second contract BookingStep.jsx depends on: nextBtn itself is
 // hidden inside this page (see book.html), and the parent renders its own
 // Next button in a fixed footer outside the iframe instead, driven by these

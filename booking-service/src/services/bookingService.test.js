@@ -370,19 +370,34 @@ describe("getActiveManageTokenByRef", () => {
     executeQuery.mockReset();
   });
 
+  // Now reachable from the admin API too (booking-service exposes it so the
+  // main app can pick manage-vs-book link *before* ever showing the booking
+  // iframe -- see the main app's bookingController.getBookingLink), so it
+  // needs the same tenant-ownership guard every other admin-reachable,
+  // resourceId-scoped function has, not just the trusted internal call from
+  // getPublicSlots (where resourceId was already tenant-resolved).
+  it("rejects when the resource doesn't belong to the tenant", async () => {
+    executeQuery.mockResolvedValueOnce([]); // ownership check finds nothing
+    await expect(getActiveManageTokenByRef(1, 999, "ref-42")).rejects.toMatchObject({ statusCode: 404 });
+  });
+
   it("returns the manage token when an active booking exists for this ref", async () => {
-    executeQuery.mockResolvedValueOnce([{ manage_token: "abc123" }]);
-    const result = await getActiveManageTokenByRef(3, "ref-42");
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([{ manage_token: "abc123" }]);
+    const result = await getActiveManageTokenByRef(1, 3, "ref-42");
 
     expect(result).toBe("abc123");
-    const [sql, params] = executeQuery.mock.calls[0];
+    const [sql, params] = executeQuery.mock.calls[1];
     expect(sql).toMatch(/status NOT IN \('cancelled', 'requested'\)/);
     expect(params).toEqual([3, "ref-42"]);
   });
 
   it("returns null when there's no active booking for this ref", async () => {
-    executeQuery.mockResolvedValueOnce([]);
-    const result = await getActiveManageTokenByRef(3, "ref-42");
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([]);
+    const result = await getActiveManageTokenByRef(1, 3, "ref-42");
     expect(result).toBeNull();
   });
 });

@@ -44,12 +44,14 @@
       <label for="phone" id="phoneLabel">Phone</label>
       <input type="tel" id="phone" required />
       <div id="contactError" class="error hidden"></div>
-      <!-- Hidden on purpose: the parent app renders the visible Next button
-           in its own fixed footer, outside this iframe, so it stays on
-           screen while a tall slot list scrolls (see BookingStep.jsx). This
-           element stays in the DOM because book.js still drives its
-           disabled/textContent state and click handling internally, and
-           mirrors that state to the parent via postMessage. -->
+      <!-- Hidden by default: when embedded in BookingStep.jsx's iframe, the
+           parent app renders the visible Next button in its own fixed
+           footer instead, so it stays on screen while a tall slot list
+           scrolls, and book.js just mirrors this button's state to the
+           parent via postMessage. book.js un-hides it on load when there is
+           no parent (a standalone visit -- an emailed link, or the
+           Fieldwork table's link column), since there is no footer button
+           to submit with otherwise. -->
       <button class="primary hidden" id="nextBtn" disabled>Next</button>
     </div>
 

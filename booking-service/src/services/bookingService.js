@@ -287,7 +287,15 @@ export async function getBookingByManageToken(manageToken) {
 // /manage/:manageToken instead of showing the slot picker again. A
 // 'requested' row (see reportNoSlotAvailable) is not an appointment, so it's
 // excluded same as 'cancelled'.
-export async function getActiveManageTokenByRef(resourceId, externalRef) {
+//
+// Also reachable from the admin API (see adminController.getActiveManageToken)
+// so the main app can decide manage-vs-book link before ever displaying the
+// booking iframe -- hence the tenant ownership check, same as every other
+// admin-reachable, resourceId-scoped function. getPublicSlots' own call
+// passes its already tenant-resolved resource/tenant, so the check there is
+// redundant but harmless.
+export async function getActiveManageTokenByRef(tenantId, resourceId, externalRef) {
+  await assertResourceOwnedByTenant(resourceId, tenantId);
   const [row] = await executeQuery(
     `SELECT manage_token FROM bookings
      WHERE resource_id = ? AND external_ref = ? AND status NOT IN ('cancelled', 'requested')

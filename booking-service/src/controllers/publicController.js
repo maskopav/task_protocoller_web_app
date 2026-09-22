@@ -72,10 +72,10 @@ async function resolveSignedResource(req) {
 // re-asking for it.
 export async function getPublicSlots(req, res) {
   try {
-    const { resource, ref, after } = await resolveSignedResource(req);
+    const { tenant, resource, ref, after } = await resolveSignedResource(req);
     const resourceInfo = { name: resource.name, defaultLocation: resource.default_location };
 
-    const activeManageToken = await bookingService.getActiveManageTokenByRef(resource.id, ref);
+    const activeManageToken = await bookingService.getActiveManageTokenByRef(tenant.id, resource.id, ref);
     if (activeManageToken) {
       return res.json({ resource: resourceInfo, existingBooking: { manageToken: activeManageToken } });
     }

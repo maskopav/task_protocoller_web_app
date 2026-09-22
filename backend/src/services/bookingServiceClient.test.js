@@ -403,6 +403,44 @@ describe("ensureFollowupBookingResource / proxyBookingRequest", () => {
     });
   });
 
+  // Lets bookingController.getBookingLink check, for one specific
+  // respondent, whether they already have an active appointment *before*
+  // deciding which link to hand back -- a single targeted lookup
+  // (booking-service's own indexed query), not the bulk list
+  // getFollowupBookingStatusByRef uses for the whole Fieldwork table.
+  describe("getActiveManageTokenByRef", () => {
+    it("returns the manage token when an active booking exists for this ref", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ manageToken: "tok123" }) });
+
+      const { getActiveManageTokenByRef } = await import("./bookingServiceClient.js");
+      const result = await getActiveManageTokenByRef("42");
+
+      expect(result).toBe("tok123");
+      const [url] = global.fetch.mock.calls[1];
+      expect(url).toContain("/v1/bookings/active-manage-token?resourceId=3&externalRef=42");
+    });
+
+    it("returns null when there's no active booking for this ref", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ manageToken: null }) });
+
+      const { getActiveManageTokenByRef } = await import("./bookingServiceClient.js");
+      expect(await getActiveManageTokenByRef("42")).toBeNull();
+    });
+
+    it("throws when booking-service's lookup call fails", async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ resources: [{ id: 3, slug: "standardized-room-retest" }] }) })
+        .mockResolvedValueOnce({ ok: false, status: 500 });
+
+      const { getActiveManageTokenByRef } = await import("./bookingServiceClient.js");
+      await expect(getActiveManageTokenByRef("42")).rejects.toThrow(/Failed to look up active booking/);
+    });
+  });
+
   describe("buildManageLink", () => {
     beforeEach(setTestEnv);
     afterEach(clearTestEnv);
