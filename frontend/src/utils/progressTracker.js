@@ -69,7 +69,7 @@ export const checkCompletionOverlay = (runtimeTasks, currentTaskIndex, randomStr
         let activeMilestones = [];
 
         // Define which milestones we want to track based on total tasks
-        if (totalRealTasks < 16) {
+        if (totalRealTasks < 12) {
             activeMilestones.push({ count: Math.ceil(totalRealTasks * 0.50), label: "milestone_50" });
         } else {
             activeMilestones.push({ count: Math.ceil(totalRealTasks * 0.25), label: "milestone_25" });
