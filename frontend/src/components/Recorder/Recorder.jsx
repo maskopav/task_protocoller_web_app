@@ -26,6 +26,9 @@ import { SafeButton } from '../Shared/SafeButton';
 import { preloadVadAssets } from '../../utils/vadPreload';
 
 const DEBUG_MODE = false;
+// "Try Again" is allowed twice per task; after that the button disappears.
+// Recorder is keyed by taskIndex in ParticipantInterfacePage, so this resets per task.
+const MAX_REPEATS = 2;
 
 export const Recorder = ({
     title = "🎙️ Task Recorder",
@@ -93,6 +96,8 @@ export const Recorder = ({
     const RECORDING_START_DELAY_MS = 800;
     const [isPreparingToRecord, setIsPreparingToRecord] = useState(false);
     const recordingStartTimeoutRef = useRef(null);
+
+    const [repeatCount, setRepeatCount] = useState(0);
 
     const [justStopped, triggerStopCooldown] = useActionCooldown(500);
     // Imperative handles to the story/example clips (owned locally here,
@@ -244,11 +249,12 @@ export const Recorder = ({
                 if (isVideoEnabled && videoRecorder.recordingStatus !== "recorded") {
                     videoRecorder.stopRecording();
                 }
-                onAudioEvent('completed');
+                // Repeats used up → the completion clip must not offer Try Again either.
+                onAudioEvent('completed', { isFinalAttempt: repeatCount >= MAX_REPEATS });
             }
             prevStatusRef.current = recordingStatus;
         }
-    }, [recordingStatus, RECORDING_STATES.RECORDED, onAudioEvent, isVideoEnabled, videoRecorder]);
+    }, [recordingStatus, RECORDING_STATES.RECORDED, onAudioEvent, isVideoEnabled, videoRecorder, repeatCount]);
 
 
     useEffect(() => {
@@ -323,7 +329,8 @@ export const Recorder = ({
     };
 
     const handleRepeat = () => {
-        onLogEvent("button_repeat");
+        setRepeatCount(c => c + 1);
+        onLogEvent("button_repeat", { attempt: repeatCount + 1 });
         onAudioEvent('retry'); 
         resetTopics();
         clearSpeechSegments();
@@ -596,7 +603,10 @@ export const Recorder = ({
         } else if (phase === 'GENERAL_INFO') {
             baseInstructions = instructionsPreCalibration || instructions;
         } else if (recordingStatus === RECORDING_STATES.RECORDED) {
-            baseInstructions = completedInstructions;
+            // Repeats used up → drop the "you may Try Again" line, the button is gone.
+            baseInstructions = repeatCount >= MAX_REPEATS
+                ? t("completion.taskCompletedInstructionsFinal", { ns: "common" })
+                : completedInstructions;
         } else if (instructionsTopic && topicRevealed && phase === 'RECORDING' &&
                    recordingStatus === RECORDING_STATES.IDLE) {
             // Split pack screen 2 — the topic. Screen 1 (not yet revealed)
@@ -615,7 +625,7 @@ export const Recorder = ({
     }, [
         instructions, instructionsPreCalibration, instructionsPostCalibration, instructionsActive,
         instructionsTopic, topicRevealed,
-        completedInstructions, isCalibrationPhase, isVideoEnabled, phase,
+        completedInstructions, repeatCount, t, isCalibrationPhase, isVideoEnabled, phase,
         isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic,
         voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
@@ -860,6 +870,7 @@ export const Recorder = ({
                         onRepeat={handleRepeat}
                         onNextTask={handleNextTask}
                         showNextButton={showNextButton}
+                        showRepeatButton={repeatCount < MAX_REPEATS}
                         isUploading={isUploading || justStopped}
                         onLogEvent={onLogEvent}
                         onPlaybackStart={onPlaybackStart}

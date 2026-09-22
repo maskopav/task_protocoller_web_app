@@ -69,6 +69,9 @@ export default function ParticipantInterfacePage() {
   }, []);
 
   const [audioPhase, setAudioPhase] = useState('instructions'); // 'instructions' | 'completed'
+  // Set by the Recorder when the just-finished take was the last allowed one
+  // (Try Again exhausted) — selects the completion clip without the retry offer.
+  const [isFinalAttempt, setIsFinalAttempt] = useState(false);
   const [playTrigger, setPlayTrigger] = useState(0);
   const [pendingAudio, setPendingAudio] = useState(false);
   // Which guide clip the mic_check task currently needs: 'permission' while
@@ -621,8 +624,8 @@ export default function ParticipantInterfacePage() {
   // Per-task completion clip (header player). Null when the audio guide is off —
   // the success ding is played instead, see handleRecorderAudioEvent.
   const taskCompletedAudioSrc = useMemo(
-    () => useAudioGuide ? getTaskCompletionAudioPath(i18n.language) : null,
-    [i18n.language, useAudioGuide]
+    () => useAudioGuide ? getTaskCompletionAudioPath(i18n.language, isFinalAttempt) : null,
+    [i18n.language, useAudioGuide, isFinalAttempt]
   );
 
   // Participant confirmed "continue without camera" — from the permission-denied
@@ -731,9 +734,10 @@ export default function ParticipantInterfacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicState.index]);
 
-  const handleRecorderAudioEvent = useCallback((eventType) => {
+  const handleRecorderAudioEvent = useCallback((eventType, meta = {}) => {
     if (eventType === 'completed') {
       if (useAudioGuide) {
+        setIsFinalAttempt(!!meta.isFinalAttempt); // picks task_completed_final over task_completed
         setAudioPhase('completed');
         setPlayTrigger(t => t + 1);   // force play of the task_completed clip
       } else {

@@ -29,8 +29,13 @@ export function getCompletionAudioPath(language: string = 'en'): string {
 }
 
 // Per-task "Task completed successfully!" screen (distinct from protocol end).
-export function getTaskCompletionAudioPath(language: string = 'en'): string {
-  return buildAudioGuidePath(language, 'task_completed');
+// `isFinalAttempt` = the Try Again button is gone (repeats used up), so the clip
+// must not offer it either — see MAX_REPEATS in Recorder.jsx.
+export function getTaskCompletionAudioPath(
+  language: string = 'en',
+  isFinalAttempt: boolean = false
+): string {
+  return buildAudioGuidePath(language, isFinalAttempt ? 'task_completed_final' : 'task_completed');
 }
 
 /**

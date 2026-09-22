@@ -52,6 +52,7 @@
     },
     "completion": {
       "taskCompletedInstructions": "Task recorded! <br> Click <strong>Next</strong> to proceed. <br/><br/>Only if there was a disruption, you may Try Again.",
+      "taskCompletedInstructionsFinal": "Task recorded! <br> Click <strong>Next</strong> to proceed.",
       "doneTitle": "Hooray! You have completed the test.",
       "noInternetTitle": "No Internet Connection",
       "uploadingTitle": "Uploading…",
