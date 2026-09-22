@@ -283,7 +283,7 @@
           body: JSON.stringify({ slotId: selectedSlot.id, email, phone, lang: locale }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || t("bookingFailed"));
+        if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "bookingFailed"));
 
         const { date, time } = formatSlotTime(data.startsAt);
         confirmedWhen.textContent = `${date} at ${time}`;
@@ -307,7 +307,7 @@
           body: JSON.stringify({ email, phone, preferredTimes, lang: locale }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || t("noSlotFailed"));
+        if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "noSlotFailed"));
 
         resourceLocation.classList.add("hidden");
         slotStep.classList.add("hidden");
@@ -329,7 +329,7 @@
   fetch(`public/slots/${encodeURIComponent(slug)}${search}`)
     .then(async (res) => {
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("invalidLink"));
+      if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "invalidLink"));
 
       if (data.existingBooking) {
         // This link's participant already has an active appointment --

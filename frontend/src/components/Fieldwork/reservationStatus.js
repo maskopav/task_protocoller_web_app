@@ -16,7 +16,7 @@
 // How many days after the moment staff should expect the respondent to act
 // (completion, or a cancellation) before the row is flagged as needing
 // follow-up.
-export const RESERVATION_FOLLOWUP_DAYS = 5;
+export const RESERVATION_FOLLOWUP_DAYS = 2;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

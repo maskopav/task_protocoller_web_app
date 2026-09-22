@@ -59,7 +59,7 @@
     try {
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("bookingNotFound"));
+      if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "bookingNotFound"));
 
       loading.classList.add("hidden");
       const booking = data.booking;
@@ -97,7 +97,7 @@
     const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}/available-slots`);
     const data = await res.json();
     if (!res.ok) {
-      rescheduleList.innerHTML = `<p class="error">${data.error || t("loadSlotsFailed")}</p>`;
+      rescheduleList.innerHTML = `<p class="error">${window.bookingI18n.tForApiError(data, "loadSlotsFailed")}</p>`;
       return;
     }
 
@@ -153,7 +153,7 @@
         body: JSON.stringify({ newSlotId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("rescheduleFailed"));
+      if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "rescheduleFailed"));
 
       const { date, time } = formatSlotTime(data.startsAt);
       showDone(t("rescheduledNotice", `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`));
@@ -174,7 +174,7 @@
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || t("cancelFailed"));
+        throw new Error(window.bookingI18n.tForApiError(data, "cancelFailed"));
       }
       showDone(t("cancelledDone"));
     } catch (err) {

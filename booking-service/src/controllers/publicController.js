@@ -26,8 +26,8 @@ const PHONE_RE = /^[0-9+()\-\s]{6,20}$/;
 // two fields, just with a different "required" message for what else is
 // missing alongside them.
 function contactFormatError(email, phone) {
-  if (!EMAIL_RE.test(email)) return "Invalid email address";
-  if (!PHONE_RE.test(phone)) return "Invalid phone number";
+  if (!EMAIL_RE.test(email)) return { message: "Invalid email address", code: "INVALID_EMAIL" };
+  if (!PHONE_RE.test(phone)) return { message: "Invalid phone number", code: "INVALID_PHONE" };
   return null;
 }
 
@@ -38,6 +38,7 @@ async function resolveSignedResource(req) {
   if (!tenantId || !ref || !after || !exp || !sig) {
     const err = new Error("Missing link parameters");
     err.statusCode = 400;
+    err.code = "MISSING_LINK_PARAMS";
     throw err;
   }
 
@@ -45,6 +46,7 @@ async function resolveSignedResource(req) {
   if (!tenant) {
     const err = new Error("Invalid link");
     err.statusCode = 401;
+    err.code = "INVALID_LINK";
     throw err;
   }
 
@@ -52,6 +54,7 @@ async function resolveSignedResource(req) {
   if (!valid) {
     const err = new Error("Invalid or expired link");
     err.statusCode = 401;
+    err.code = "INVALID_OR_EXPIRED_LINK";
     throw err;
   }
 
@@ -59,6 +62,7 @@ async function resolveSignedResource(req) {
   if (!resource) {
     const err = new Error("Unknown resource");
     err.statusCode = 404;
+    err.code = "UNKNOWN_RESOURCE";
     throw err;
   }
 
@@ -98,10 +102,10 @@ export async function getPublicSlots(req, res) {
 export async function reportNoSlot(req, res) {
   const { email, phone, preferredTimes, lang } = req.body;
   if (!email || !phone) {
-    return res.status(400).json({ error: "email and phone are required" });
+    return res.status(400).json({ error: "email and phone are required", code: "MISSING_CONTACT_FIELDS" });
   }
   const formatError = contactFormatError(email, phone);
-  if (formatError) return res.status(400).json({ error: formatError });
+  if (formatError) return res.status(400).json({ error: formatError.message, code: formatError.code });
 
   try {
     const { tenant, resource, ref, after } = await resolveSignedResource(req);
@@ -137,10 +141,10 @@ function manageLinkFor(manageToken, locale) {
 export async function createPublicBooking(req, res) {
   const { slotId, email, phone, lang } = req.body;
   if (!slotId || !email || !phone) {
-    return res.status(400).json({ error: "slotId, email and phone are required" });
+    return res.status(400).json({ error: "slotId, email and phone are required", code: "MISSING_REQUIRED_FIELDS" });
   }
   const formatError = contactFormatError(email, phone);
-  if (formatError) return res.status(400).json({ error: formatError });
+  if (formatError) return res.status(400).json({ error: formatError.message, code: formatError.code });
 
   try {
     const { tenant, resource, ref, after } = await resolveSignedResource(req);
@@ -190,7 +194,7 @@ export async function getManageBooking(req, res) {
     // manage_token mechanism but isn't a booking yet -- it's never surfaced
     // through /book's existingBooking check (see getPublicSlots) either,
     // since it's not an active appointment.
-    if (!booking || booking.status === "requested") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || booking.status === "requested") return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
     res.json({ booking });
   } catch (err) {
     handleError(res, err, "Failed to load booking");
@@ -209,7 +213,7 @@ export async function getManageBooking(req, res) {
 export async function getAvailableSlotsForReschedule(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
 
     const now = nowAsMysqlDateTime();
     const floor = booking.eligible_after > now ? booking.eligible_after : now;
@@ -222,14 +226,14 @@ export async function getAvailableSlotsForReschedule(req, res) {
 
 export async function rescheduleManageBooking(req, res) {
   const { newSlotId } = req.body;
-  if (!newSlotId) return res.status(400).json({ error: "newSlotId is required" });
+  if (!newSlotId) return res.status(400).json({ error: "newSlotId is required", code: "MISSING_REQUIRED_FIELDS" });
 
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
 
     if (isPastCutoff(booking.starts_at, RESCHEDULE_CUTOFF_HOURS)) {
-      return res.status(409).json({ error: "Too close to the appointment to reschedule (cutoff: 1 day before)" });
+      return res.status(409).json({ error: "Too close to the appointment to reschedule (cutoff: 1 day before)", code: "RESCHEDULE_CUTOFF" });
     }
 
     const { oldSlot, newSlot } = await bookingService.rescheduleBooking(req.params.manageToken, newSlotId);
@@ -276,10 +280,10 @@ export async function rescheduleManageBooking(req, res) {
 export async function cancelManageBooking(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
 
     if (isPastCutoff(booking.starts_at, RESCHEDULE_CUTOFF_HOURS)) {
-      return res.status(409).json({ error: "Too close to the appointment to cancel (cutoff: 1 day before)" });
+      return res.status(409).json({ error: "Too close to the appointment to cancel (cutoff: 1 day before)", code: "CANCEL_CUTOFF" });
     }
 
     // cancelBooking and the tenant lookup are independent (tenant_id is

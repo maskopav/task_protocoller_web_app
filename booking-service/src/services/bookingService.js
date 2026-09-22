@@ -224,6 +224,7 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     if (!slot || slot.resource_id !== resourceId || !slot.is_active) {
       const err = new Error("Slot is not available");
       err.statusCode = 409;
+      err.code = "SLOT_NOT_AVAILABLE";
       throw err;
     }
 
@@ -234,6 +235,7 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     if (existingActive.length > 0) {
       const err = new Error("Slot is already booked");
       err.statusCode = 409;
+      err.code = "SLOT_ALREADY_BOOKED";
       throw err;
     }
 
@@ -253,6 +255,7 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     if (existingForRef.length > 0) {
       const err = new Error("An active booking already exists — use the manage link from your confirmation email to reschedule or cancel it first");
       err.statusCode = 409;
+      err.code = "ACTIVE_BOOKING_EXISTS";
       throw err;
     }
 
@@ -348,6 +351,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (!booking || booking.status === "cancelled") {
       const err = new Error("Booking not found");
       err.statusCode = 404;
+      err.code = "BOOKING_NOT_FOUND";
       throw err;
     }
 
@@ -358,6 +362,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (!newSlot || newSlot.resource_id !== booking.resource_id || !newSlot.is_active) {
       const err = new Error("Slot is not available");
       err.statusCode = 409;
+      err.code = "SLOT_NOT_AVAILABLE";
       throw err;
     }
     // Same floor the original booking had to satisfy (bookings.eligible_after,
@@ -370,6 +375,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (newSlot.starts_at < booking.eligible_after) {
       const err = new Error(`Slot is before this booking's earliest eligible date (${booking.eligible_after})`);
       err.statusCode = 409;
+      err.code = "SLOT_BEFORE_ELIGIBLE";
       throw err;
     }
     const [existingActive] = await conn.query(
@@ -379,6 +385,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (existingActive.length > 0) {
       const err = new Error("Slot is already booked");
       err.statusCode = 409;
+      err.code = "SLOT_ALREADY_BOOKED";
       throw err;
     }
 
@@ -409,6 +416,7 @@ export async function cancelBooking(manageToken) {
   if (result.affectedRows === 0) {
     const err = new Error("Booking not found or already cancelled");
     err.statusCode = 404;
+    err.code = "BOOKING_NOT_FOUND";
     throw err;
   }
 }

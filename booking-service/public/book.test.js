@@ -29,6 +29,21 @@ function jsonResponse(body, ok = true) {
   return { ok, json: async () => body };
 }
 
+// Minimal stand-in for public/i18n.js's real ERROR_CODE_KEYS table (see
+// that file) -- just enough entries to exercise the code -> key mapping
+// path in these tests. t() echoes the key back so assertions can tell
+// which key was chosen without needing real translated strings.
+function fakeBookingI18n() {
+  const CODE_KEYS = { SLOT_ALREADY_BOOKED: "slotAlreadyBooked" };
+  return {
+    t: (key) => key,
+    locale: "en",
+    tForApiError(data, fallbackKey) {
+      return this.t((data && CODE_KEYS[data.code]) || fallbackKey);
+    },
+  };
+}
+
 // book.js also posts next-state messages (mirroring nextBtn's visible/
 // enabled/label state to the parent's own footer button -- see
 // BookingStep.jsx) on every choice/input change, so postMessage is no
@@ -51,7 +66,7 @@ function setupDom({ slug = "test-slug", search = "?tenant=t1", fetchImpl }) {
     virtualConsole: new VirtualConsole(),
   });
   const { window } = dom;
-  window.bookingI18n = { t: (key) => key, locale: "en" };
+  window.bookingI18n = fakeBookingI18n();
   window.fetch = fetchImpl;
   window.parent = { postMessage: vi.fn() };
   // Not implemented in jsdom; only used for the slot list's day headings.
@@ -164,9 +179,12 @@ describe("book.js completion signal to the parent frame", () => {
   });
 
   it("does not notify the parent when the booking submission fails server-side", async () => {
+    // `error` is English-only (see src/utils/httpErrors.js) -- the widget
+    // must translate via the response's `code`, never show it as-is, so
+    // this stands in for a cs/de respondent seeing a raw English string.
     fetchImpl
       .mockResolvedValueOnce(jsonResponse(oneSlot))
-      .mockResolvedValueOnce(jsonResponse({ error: "slot no longer available" }, false));
+      .mockResolvedValueOnce(jsonResponse({ error: "Slot is already booked", code: "SLOT_ALREADY_BOOKED" }, false));
     const window = setupDom({ fetchImpl });
     const { document } = window;
 
@@ -182,11 +200,36 @@ describe("book.js completion signal to the parent frame", () => {
     await vi.waitFor(() => {
       expect(document.getElementById("contactError").classList.contains("hidden")).toBe(false);
     });
-    expect(document.getElementById("contactError").textContent).toBe("slot no longer available");
+    // The stub's t() just echoes the key, so this confirms the widget went
+    // through the code -> translation-key path rather than displaying
+    // data.error verbatim.
+    expect(document.getElementById("contactError").textContent).toBe("slotAlreadyBooked");
     expect(document.getElementById("confirmedStep").classList.contains("hidden")).toBe(true);
     expect(completionCalls(window.parent.postMessage)).toEqual([]);
     // Re-enabled so the participant can retry.
     expect(document.getElementById("nextBtn").disabled).toBe(false);
+  });
+
+  it("falls back to the generic failure message when the server error has no code", async () => {
+    fetchImpl
+      .mockResolvedValueOnce(jsonResponse(oneSlot))
+      .mockResolvedValueOnce(jsonResponse({ error: "boom" }, false));
+    const window = setupDom({ fetchImpl });
+    const { document } = window;
+
+    await vi.waitFor(() => {
+      expect(document.getElementById("slotStep").classList.contains("hidden")).toBe(false);
+    });
+
+    document.querySelector(".slot-btn").click();
+    fireInput(document.getElementById("email"), "person@example.com");
+    fireInput(document.getElementById("phone"), "+1 555 123 4567");
+    document.getElementById("nextBtn").click();
+
+    await vi.waitFor(() => {
+      expect(document.getElementById("contactError").classList.contains("hidden")).toBe(false);
+    });
+    expect(document.getElementById("contactError").textContent).toBe("bookingFailed");
   });
 });
 
@@ -207,7 +250,7 @@ describe("book.js standalone (not embedded in an iframe)", () => {
       virtualConsole: new VirtualConsole(),
     });
     const { window } = dom;
-    window.bookingI18n = { t: (key) => key, locale: "en" };
+    window.bookingI18n = fakeBookingI18n();
     window.fetch = fetchImpl;
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
     window.eval(bookJsSource);

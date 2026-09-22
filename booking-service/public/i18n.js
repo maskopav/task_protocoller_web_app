@@ -46,6 +46,10 @@
       confirmCancelPrompt: "Cancel this appointment?",
       cancelFailed: "Failed to cancel",
       cancelledDone: "Your appointment has been cancelled.",
+      slotNotAvailable: "This time is no longer available. Please choose another.",
+      slotAlreadyBooked: "This time was just booked by someone else. Please choose another.",
+      activeBookingExists: "You already have an active appointment. Use the link in your confirmation email to reschedule or cancel it first.",
+      missingFields: "Email and phone are required.",
     },
     cs: {
       loadingSlots: "Načítání dostupných termínů…",
@@ -84,6 +88,10 @@
       confirmCancelPrompt: "Zrušit tento termín?",
       cancelFailed: "Zrušení se nezdařilo",
       cancelledDone: "Váš termín byl zrušen.",
+      slotNotAvailable: "Tento termín již není k dispozici. Vyberte prosím jiný.",
+      slotAlreadyBooked: "Tento termín si právě rezervoval někdo jiný. Vyberte prosím jiný.",
+      activeBookingExists: "Již máte aktivní rezervaci. Pro její přeložení nebo zrušení použijte odkaz z potvrzovacího e-mailu.",
+      missingFields: "E-mail a telefon jsou povinné údaje.",
     },
     de: {
       loadingSlots: "Verfügbare Termine werden geladen…",
@@ -122,7 +130,34 @@
       confirmCancelPrompt: "Diesen Termin stornieren?",
       cancelFailed: "Stornierung fehlgeschlagen",
       cancelledDone: "Ihr Termin wurde storniert.",
+      slotNotAvailable: "Dieser Termin ist nicht mehr verfügbar. Bitte wählen Sie einen anderen.",
+      slotAlreadyBooked: "Dieser Termin wurde soeben von jemand anderem gebucht. Bitte wählen Sie einen anderen.",
+      activeBookingExists: "Sie haben bereits einen aktiven Termin. Verwenden Sie den Link in Ihrer Bestätigungs-E-Mail, um ihn zu verschieben oder zu stornieren.",
+      missingFields: "E-Mail und Telefon sind erforderlich.",
     },
+  };
+
+  // Maps the stable `code` a booking-service API error response carries
+  // (see src/utils/httpErrors.js) to a translation key here — lets the UI
+  // show a localized message instead of the English-only `error` string,
+  // which is meant for logs/admins, not respondents. An unrecognized or
+  // missing code falls back to the caller's own generic message key.
+  const ERROR_CODE_KEYS = {
+    MISSING_LINK_PARAMS: "invalidLink",
+    INVALID_LINK: "invalidLink",
+    INVALID_OR_EXPIRED_LINK: "invalidLink",
+    UNKNOWN_RESOURCE: "invalidLink",
+    INVALID_EMAIL: "invalidEmail",
+    INVALID_PHONE: "invalidPhone",
+    MISSING_CONTACT_FIELDS: "missingFields",
+    MISSING_REQUIRED_FIELDS: "missingFields",
+    SLOT_NOT_AVAILABLE: "slotNotAvailable",
+    SLOT_ALREADY_BOOKED: "slotAlreadyBooked",
+    SLOT_BEFORE_ELIGIBLE: "slotNotAvailable",
+    ACTIVE_BOOKING_EXISTS: "activeBookingExists",
+    BOOKING_NOT_FOUND: "bookingNotFound",
+    RESCHEDULE_CUTOFF: "cutoffNotice",
+    CANCEL_CUTOFF: "cutoffNotice",
   };
 
   function resolveLocale() {
@@ -140,6 +175,15 @@
       const entry = TRANSLATIONS[locale][key] ?? TRANSLATIONS.en[key];
       if (entry === undefined) return key;
       return typeof entry === "function" ? entry(...args) : entry;
+    },
+    // Translates an API error response body (`{ error, code }` — see
+    // src/utils/httpErrors.js): `error` itself is English-only and never
+    // shown as-is. `fallbackKey` covers a response with no `code` at all
+    // (a thrown error the server didn't tag) or one this table doesn't
+    // recognize yet.
+    tForApiError(data, fallbackKey) {
+      const key = (data && ERROR_CODE_KEYS[data.code]) || fallbackKey;
+      return this.t(key);
     },
   };
 })();
