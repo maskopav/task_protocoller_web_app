@@ -154,43 +154,61 @@ LEFT JOIN (
 ) proto_stats ON p.id = proto_stats.project_id
 -- JOIN 2: Get Participant Stats (The Usage)
 LEFT JOIN (
-    SELECT 
+    SELECT
         project_id,
-        
+
         -- Volume
         COUNT(DISTINCT participant_id) AS total_participants,
         COUNT(participant_protocol_id) AS total_assignments,
-        
+
         -- Status Logic
-        SUM(CASE 
-            WHEN (is_active = 0 OR is_active IS NULL) AND end_date IS NULL THEN 1 
-            ELSE 0 
+        -- A participant who has already COMPLETED a session on this
+        -- assignment is never "pending"/"active" again, regardless of
+        -- is_active/end_date (protocolController.saveProtocol deliberately
+        -- leaves completed respondents' participant_protocols row
+        -- untouched — is_active stays 1, end_date stays NULL forever).
+        SUM(CASE
+            WHEN NOT is_completed AND (is_active = 0 OR is_active IS NULL) AND end_date IS NULL THEN 1
+            ELSE 0
         END) AS count_pending,
-        
-        SUM(CASE 
-            WHEN is_active = 1 THEN 1 
-            ELSE 0 
+
+        SUM(CASE
+            WHEN NOT is_completed AND is_active = 1 THEN 1
+            ELSE 0
         END) AS count_active,
-        
-        SUM(CASE 
-            WHEN (is_active = 0 OR is_active IS NULL) AND end_date IS NOT NULL THEN 1 
-            ELSE 0 
+
+        SUM(CASE
+            WHEN is_completed OR ((is_active = 0 OR is_active IS NULL) AND end_date IS NOT NULL) THEN 1
+            ELSE 0
         END) AS count_finished,
-        
+
         -- Version Logic
-        SUM(CASE 
-            WHEN is_active = 1 AND is_current_protocol = 1 THEN 1 
-            ELSE 0 
+        -- Only flag a respondent as "on an outdated version" if they still
+        -- have work left to do on it. A respondent who already completed
+        -- the protocol is correctly frozen on the version they finished —
+        -- that's by design (see saveProtocol's migration query), not a
+        -- pending update, so it must not feed the legacy-version warning.
+        SUM(CASE
+            WHEN NOT is_completed AND is_active = 1 AND is_current_protocol = 1 THEN 1
+            ELSE 0
         END) AS count_version_current,
-        
-        SUM(CASE 
-            WHEN is_active = 1 AND (is_current_protocol = 0 OR is_current_protocol IS NULL) THEN 1 
-            ELSE 0 
+
+        SUM(CASE
+            WHEN NOT is_completed AND is_active = 1 AND (is_current_protocol = 0 OR is_current_protocol IS NULL) THEN 1
+            ELSE 0
         END) AS count_version_legacy
 
-    FROM 
-        v_participant_protocols
-    GROUP BY 
+    FROM (
+        SELECT
+            vpp.*,
+            EXISTS (
+                SELECT 1 FROM sessions s
+                WHERE s.participant_protocol_id = vpp.participant_protocol_id
+                  AND s.completed = 1
+            ) AS is_completed
+        FROM v_participant_protocols vpp
+    ) vpp_with_completion
+    GROUP BY
         project_id
 ) part_stats ON p.id = part_stats.project_id;
 
