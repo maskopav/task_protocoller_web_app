@@ -23,7 +23,7 @@ body {
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 32px 20px 60px;
+  padding: clamp(20px, 5dvh, 32px) clamp(12px, 3vw, 20px) clamp(40px, 8dvh, 60px);
 }
 
 /* Font sizes and button radius below are matched to the main app's task
@@ -47,20 +47,16 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
    already (book.html's confirmation step). */
 .confirmed-details {
   background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
+  padding: clamp(12px, 3vw, 20px);
   margin: 0 0 16px;
   text-align: left;
 }
-
-.resource-name { font-size: 1.15rem; font-weight: 700; margin: 0 0 10px; }
 
 .card {
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 20px;
+  padding: clamp(12px, 3vw, 20px);
   margin-bottom: 16px;
 }
 

@@ -7,7 +7,6 @@
   const loading = document.getElementById("loading");
   const errorBox = document.getElementById("errorBox");
   const currentCard = document.getElementById("currentCard");
-  const resourceName = document.getElementById("resourceName");
   const currentWhen = document.getElementById("currentWhen");
   const manageWhereRow = document.getElementById("manageWhereRow");
   const currentWhere = document.getElementById("currentWhere");
@@ -70,8 +69,7 @@
       }
 
       const { date, time } = formatSlotTime(booking.starts_at);
-      resourceName.textContent = booking.resource_name;
-      currentWhen.textContent = `${date} at ${time}`;
+      currentWhen.textContent = `${date}, ${time}`;
       if (booking.location) {
         currentWhere.textContent = booking.location;
         manageWhereRow.classList.remove("hidden");
@@ -156,7 +154,7 @@
       if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "rescheduleFailed"));
 
       const { date, time } = formatSlotTime(data.startsAt);
-      showDone(t("rescheduledNotice", `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`));
+      showDone(t("rescheduledNotice", `${date}, ${time}${data.location ? ` — ${data.location}` : ""}`));
     } catch (err) {
       document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = false; });
       btn.classList.remove("selected");

@@ -239,9 +239,9 @@
     whenRow.className = "detail-row";
     const prefix = document.createElement("strong");
     prefix.className = "detail-label";
-    prefix.textContent = t("selectedPrefix");
+    prefix.textContent = t("whenLabel");
     whenRow.appendChild(prefix);
-    whenRow.appendChild(document.createTextNode(`${date} at ${time}`));
+    whenRow.appendChild(document.createTextNode(`${date}, ${time}`));
     selectedSlotSummary.appendChild(whenRow);
 
     if (slot.location) {
@@ -301,7 +301,7 @@
         if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "bookingFailed"));
 
         const { date, time } = formatSlotTime(data.startsAt);
-        confirmedWhen.textContent = `${date} at ${time}`;
+        confirmedWhen.textContent = `${date}, ${time}`;
         if (data.location) {
           confirmedWhere.textContent = data.location;
           whereRow.classList.remove("hidden");
