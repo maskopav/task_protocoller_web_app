@@ -90,7 +90,16 @@
       "processing": "Zpracovávám...",
       "welcomeTitle": "TaskProtocoller",
       "welcomeSubtitle": "Prosím zaregistrujte se nebo přihlašte pro vyplnění testu. <br/><strong>Registrovaní uživatelé:</strong> použijte Váš unikátní link nebo přihlašovací údaje poslané emailem. <br/><strong>Noví uživatelé:</strong> vaše přístupové údaje Vám budou poslány emailem po registraci.",
-      "forgotPasswordLink": "Zapomenuté heslo?" 
+      "forgotPasswordLink": "Zapomenuté heslo?"
+    },
+    "booking": {
+      "heading": "Termín návštěvy",
+      "instructions": "Vyberte si prosím termín, který vám vyhovuje. Na e-mail vám přijde potvrzení s odkazem, pomocí kterého můžete termín v případě potřeby přeložit.",
+      "loading": "Načítání stránky pro rezervaci termínu…",
+      "errorLoading": "Stránku pro rezervaci termínu se nepodařilo načíst. Můžete pokračovat — ozveme se vám e-mailem.",
+      "continueButton": "Pokračovat",
+      "testingPreviewBadge": "Náhled",
+      "testingPreviewLabel": "Ve skutečném sezení se zde zobrazí živý rezervační kalendář. V náhledu se žádná rezervace neprovádí."
     }
   }
   
