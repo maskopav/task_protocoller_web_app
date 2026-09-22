@@ -19,7 +19,7 @@ let mockConn;
 const { executeTransaction, executeQuery } = await import("../db/queryHelper.js");
 const { generateToken } = await import("../utils/tokenGenerator.js");
 const {
-  createBooking, bulkCreateSlots, rescheduleBooking, reportNoSlotAvailable, listNoSlotReportsForAdmin,
+  createBooking, bulkCreateSlots, deleteSlot, rescheduleBooking, reportNoSlotAvailable, listNoSlotReportsForAdmin,
   getActiveManageTokenByRef, getLatestContactByRef, listBookingsForAdmin,
 } = await import("./bookingService.js");
 
@@ -309,6 +309,65 @@ describe("bulkCreateSlots", () => {
     // executeQuery should have been called exactly twice, not three times.
     expect(executeQuery).toHaveBeenCalledTimes(2);
     expect(result).toEqual({ created: 0, skipped: 2, insertedSlots: [] });
+  });
+});
+
+describe("deleteSlot", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("rejects when the slot has an active (non-cancelled) booking", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([{ id: 9 }]); // active booking found
+
+    await expect(deleteSlot(1, 3, 15)).rejects.toMatchObject({ statusCode: 409 });
+    expect(executeQuery).toHaveBeenCalledTimes(2); // never reaches the DELETE
+  });
+
+  it("hard-deletes the row and returns its google_event_id when nothing references it", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([]) // no active booking
+      .mockResolvedValueOnce([{ google_event_id: "evt-1" }]) // fetch google_event_id
+      .mockResolvedValueOnce({ affectedRows: 1 }); // DELETE succeeds
+
+    const result = await deleteSlot(1, 3, 15);
+
+    expect(result).toBe("evt-1");
+    expect(executeQuery.mock.calls[3][0]).toMatch(/DELETE FROM slots/);
+  });
+
+  // A cancelled or superseded (pre-reschedule) booking can leave a row with
+  // slot_id = this slot even though it's not "active" — bookings.slot_id has
+  // no ON DELETE clause (create_tables.sql), so MySQL rejects the DELETE
+  // with ER_ROW_IS_REFERENCED_2. deleteSlot should fall back to deactivating
+  // the slot instead of letting that raw FK error bubble up to the admin.
+  it("falls back to deactivating the slot when history still references it via FK", async () => {
+    const fkError = Object.assign(new Error("Cannot delete or update a parent row"), { code: "ER_ROW_IS_REFERENCED_2" });
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([]) // no active booking
+      .mockResolvedValueOnce([{ google_event_id: "evt-1" }]) // fetch google_event_id
+      .mockRejectedValueOnce(fkError) // DELETE fails on historical FK reference
+      .mockResolvedValueOnce({ affectedRows: 1 }); // fallback UPDATE succeeds
+
+    const result = await deleteSlot(1, 3, 15);
+
+    expect(result).toBe("evt-1");
+    expect(executeQuery.mock.calls[4][0]).toMatch(/UPDATE slots SET is_active = false/);
+  });
+
+  it("re-throws any other DELETE failure instead of masking it", async () => {
+    const otherError = new Error("connection lost");
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ google_event_id: "evt-1" }])
+      .mockRejectedValueOnce(otherError);
+
+    await expect(deleteSlot(1, 3, 15)).rejects.toThrow("connection lost");
   });
 });
 

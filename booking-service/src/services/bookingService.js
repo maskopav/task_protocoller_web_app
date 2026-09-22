@@ -164,7 +164,21 @@ export async function deleteSlot(tenantId, resourceId, slotId) {
     throw err;
   }
   const [slot] = await executeQuery(`SELECT google_event_id FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
-  await executeQuery(`DELETE FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+
+  // A cancelled or superseded (pre-reschedule) booking can still hold a row
+  // with slot_id = this slot -- bookings.slot_id has no ON DELETE clause
+  // (RESTRICT), so a real DELETE throws ER_ROW_IS_REFERENCED_2 in that case
+  // even though the check above found nothing *active* here. Rather than
+  // surface that raw FK error, fall back to deactivating the slot: it drops
+  // out of the admin/public lists (activeOnly / is_active filters) exactly
+  // like a deleted one would, while leaving the historical booking rows —
+  // and their slot_id — intact for the record.
+  try {
+    await executeQuery(`DELETE FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+  } catch (err) {
+    if (err.code !== "ER_ROW_IS_REFERENCED_2" && err.code !== "ER_ROW_IS_REFERENCED") throw err;
+    await executeQuery(`UPDATE slots SET is_active = false WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+  }
   return slot?.google_event_id || null;
 }
 
