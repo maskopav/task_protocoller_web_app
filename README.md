@@ -65,35 +65,26 @@ CREATE DATABASE task_protocoller;
 EXIT;
 ```
 #### C. Configure Environment
-Navigate to the `backend` folder and create a `.env` file based on your credentials:
-```env
-DB_HOST=127.0.0.1
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=db_name
-PORT=3000
-VITE_API_BASE=http://localhost:3000/api
-DATA_PATH=./uploads
-I18N_PATH=./locales
-
-# Signing key for admin JWTs — any long random string - e.g.
-# node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-JWT_SECRET=your_random_secret
-JWT_EXPIRES_IN=8h
-
-# Browser origins allowed to read API responses (comma-separated). Defaults to
-# https://localhost:5173,https://localhost:5183 (Vite's dev ports) if unset.
-CORS_ORIGIN=https://localhost:5173
-
-# Gmail Config For Sending emails
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_google_app_password
+Navigate to the `backend` folder, copy the template, then fill in your own
+values (DB credentials, a random `JWT_SECRET`, and your Gmail App Password):
+```bash
+cd backend
+cp .env.example .env
 ```
+`backend/.env.example` documents every variable inline, including the
+optional follow-up-booking integration (see "Follow-up Booking Integration"
+below) — leave those unset if you're not using that feature.
 
 #### Note on Gmail Configuration
  You must use a 16-character App Password from your Google Account settings (not your regular password) to send tokens/emails.
+
+#### Note on the frontend's API URL
+The frontend reads its own `VITE_API_BASE` from `frontend/.env.development` /
+`.env.production` / `.env.e2e` (already committed, pointing at
+`http://localhost:3000`/`3001` for dev/e2e and `/api` for production) — it is
+a Vite build-time variable read via `import.meta.env`, not something the
+backend process reads, so it does **not** belong in `backend/.env`. Only
+change it if you're running the backend on a non-default port.
 
 ### 3. Initialize Backend
 

@@ -133,6 +133,41 @@ for the shape) and add it to `SUPPORTED_LOCALES`'s source array in
 `emailTranslations.js`. `src/i18n/emailTranslations.test.js` will catch a
 locale that's missing a key the others have.
 
+## Email (SMTP)
+
+Confirmation, reschedule, cancellation, and no-slot-report emails are sent
+via your own SMTP account through `nodemailer` (`src/services/emailService.js`).
+Four `.env` values, all under "Email" in `.env.example`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_16_char_app_password
+SMTP_FROM_NAME=Booking   # optional — display name on the "From" header
+```
+
+Any SMTP provider works, but if using Gmail (the default `SMTP_HOST` above),
+Google will not accept your regular account password here — you need an
+**App Password** instead:
+
+1. Your Google Account must have **2-Step Verification** turned on first
+   (App Passwords are hidden until it is). Enable it at
+   [myaccount.google.com/security](https://myaccount.google.com/security) if
+   it isn't already.
+2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   (or Security → 2-Step Verification → App passwords, at the bottom).
+3. Enter any name for it (e.g. "booking-service") → **Create**.
+4. Google shows a 16-character password (spaces optional, e.g.
+   `abcd efgh ijkl mnop`) — copy it and set it as `SMTP_PASS`. It's only
+   shown once; if you lose it, delete that entry and generate a new one.
+5. Set `SMTP_USER` to the full Gmail address that generated the App
+   Password — the confirmation/reschedule/cancellation emails are sent
+   "from" this address.
+
+To test without sending real emails, set `EMAIL_DRY_RUN=true` — see "Local
+dry-run" under Testing below.
+
 ## Google Calendar sync (optional)
 
 Booking works fully without this configured — Calendar sync is skipped and
