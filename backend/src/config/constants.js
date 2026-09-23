@@ -19,8 +19,7 @@ export const SESSION_RESUME_WINDOW_HOURS = 72;
 // session rather than inserting a new one. Set ALLOW_PROTOCOL_RERUN=true in
 // .env for environments (e.g. internal testing) where deliberately re-running
 // an already-completed protocol needs to work.
-export const ALLOW_PROTOCOL_RERUN = true;
-//process.env.ALLOW_PROTOCOL_RERUN === "true";
+export const ALLOW_PROTOCOL_RERUN = process.env.ALLOW_PROTOCOL_RERUN === "true";
 
 // Upper bound on how many sessions a single admin "download session data"
 // export (see sessionDataController.js) can bundle into one zip. Keeps a
