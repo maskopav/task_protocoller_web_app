@@ -42,3 +42,24 @@ export async function updateParticipant(id, data) {
 
     return res.json();
   }
+
+  // Uploads a one-column CSV of external_ids; the response body is itself a
+  // result CSV (one row per input row, with participant_id/unique_link/
+  // status/error columns) -- see docs/bulk-participant-import.md.
+  export async function bulkImportParticipants(projectId, protocolId, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("project_id", projectId);
+    formData.append("protocol_id", protocolId);
+
+    const res = await apiFetch(`/participants/bulk-import`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json.error || "Bulk import failed");
+    }
+    return res.blob();
+  }

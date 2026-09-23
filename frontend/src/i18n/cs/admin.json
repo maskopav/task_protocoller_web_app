@@ -46,6 +46,19 @@
     "buttons": {
       "edit": "Edit",
       "save": "Create Participant"
+    },
+    "bulkImport": {
+      "button": "Hromadný import (CSV)",
+      "title": "Hromadný import účastníků",
+      "instruction": "Nahrajte CSV s jedním sloupcem externích ID (nadpis \"external_id\" je nepovinný). Každý řádek bude zapsán do vybraného protokolu; stažený soubor obsahuje ID v databázi a jedinečný odkaz pro každý řádek a označí případné vynechané řádky.",
+      "labels": {
+        "file": "CSV soubor"
+      },
+      "buttons": {
+        "import": "Importovat a stáhnout výsledky",
+        "importing": "Importuji..."
+      },
+      "error": "Hromadný import se nezdařil"
     }
   },
 

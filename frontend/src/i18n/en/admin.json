@@ -206,6 +206,19 @@
     },
     "alerts": {
         "createError": "Failed to save participant"
+    },
+    "bulkImport": {
+      "button": "Bulk Import (CSV)",
+      "title": "Bulk Import Participants",
+      "instruction": "Upload a CSV with one column of external IDs (a header row named \"external_id\" is optional). Each row is enrolled into the selected protocol; the download afterwards lists the resulting DB ID and unique link for every row, and flags any that were skipped.",
+      "labels": {
+        "file": "CSV File"
+      },
+      "buttons": {
+        "import": "Import & Download Results",
+        "importing": "Importing..."
+      },
+      "error": "Bulk import failed"
     }
   },
 

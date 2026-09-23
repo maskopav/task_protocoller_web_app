@@ -12,6 +12,7 @@ import { fetchParticipantProtocolView, sendProtocolEmailApi } from "../api/parti
 // Components
 import ParticipantTable from "../components/Participants/ParticipantTable";
 import AddParticipantModal from "../components/Participants/AddParticipantModal";
+import BulkImportParticipantsModal from "../components/Participants/BulkImportParticipantsModal";
 import ParticipantProtocolTable from "../components/Participants/ParticipantProtocolTable";
 import AssignmentSuccessModal from "../components/Participants/AssignmentSuccessModal"; 
 import Modal from "../components/ProtocolEditor/Modal"
@@ -34,6 +35,7 @@ export default function ParticipantDashboardPage() {
   
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
 
   // State for Modal Modes
   const [isAssignMode, setIsAssignMode] = useState(false);
@@ -230,12 +232,20 @@ export default function ParticipantDashboardPage() {
                 + {t("participantDashboard.addParticipant")}
               </button>
 
-              <button 
-                className="btn-search small" 
+              <button
+                className="btn-search small"
                 onClick={handleSearchClick}
                 disabled={isReadOnly}
               >
                 🔍 {t("participantDashboard.addExisting")}
+              </button>
+
+              <button
+                className="btn-search small"
+                onClick={() => setShowBulkImportModal(true)}
+                disabled={isReadOnly}
+              >
+                ⬆ {t("participantDashboard.bulkImport.button")}
               </button>
             </div>
           </div>
@@ -279,6 +289,15 @@ export default function ParticipantDashboardPage() {
         isAssignMode={isAssignMode}
         onSuccess={handleSuccess}
         onShowSuccessModal={handleShowSuccessModal}
+      />
+
+      {/* Bulk Import Modal */}
+      <BulkImportParticipantsModal
+        open={showBulkImportModal}
+        onClose={() => setShowBulkImportModal(false)}
+        projectId={projectId}
+        protocols={protocols}
+        onSuccess={handleSuccess}
       />
 
       {/* Global Success Modal */}
