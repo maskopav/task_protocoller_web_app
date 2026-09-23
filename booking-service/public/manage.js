@@ -7,13 +7,19 @@
   const loading = document.getElementById("loading");
   const errorBox = document.getElementById("errorBox");
   const currentCard = document.getElementById("currentCard");
-  const currentSummary = document.getElementById("currentSummary");
+  const currentWhen = document.getElementById("currentWhen");
+  const manageWhereRow = document.getElementById("manageWhereRow");
+  const currentWhere = document.getElementById("currentWhere");
   const cutoffNotice = document.getElementById("cutoffNotice");
   const actions = document.getElementById("actions");
   const rescheduleStep = document.getElementById("rescheduleStep");
   const rescheduleList = document.getElementById("rescheduleList");
   const doneCard = document.getElementById("doneCard");
   const doneMessage = document.getElementById("doneMessage");
+  const doneDetails = document.getElementById("doneDetails");
+  const doneWhen = document.getElementById("doneWhen");
+  const doneWhereRow = document.getElementById("doneWhereRow");
+  const doneWhere = document.getElementById("doneWhere");
   const rescheduleBtn = document.getElementById("rescheduleBtn");
   const cancelBtn = document.getElementById("cancelBtn");
 
@@ -21,6 +27,10 @@
   document.getElementById("pageHeading").textContent = t("manageHeading");
   loading.textContent = t("manageLoading");
   cutoffNotice.textContent = t("cutoffNotice");
+  document.getElementById("manageWhenLabel").textContent = t("whenLabel");
+  document.getElementById("manageWhereLabel").textContent = t("whereLabel");
+  document.getElementById("doneWhenLabel").textContent = t("whenLabel");
+  document.getElementById("doneWhereLabel").textContent = t("whereLabel");
   rescheduleBtn.textContent = t("rescheduleButton");
   cancelBtn.textContent = t("cancelButton");
 
@@ -43,10 +53,22 @@
     return new Date() > cutoff;
   }
 
-  function showDone(message) {
+  function showDone(message, details) {
     currentCard.classList.add("hidden");
     rescheduleStep.classList.add("hidden");
     doneMessage.textContent = message;
+    if (details) {
+      doneWhen.textContent = details.when;
+      if (details.where) {
+        doneWhere.textContent = details.where;
+        doneWhereRow.classList.remove("hidden");
+      } else {
+        doneWhereRow.classList.add("hidden");
+      }
+      doneDetails.classList.remove("hidden");
+    } else {
+      doneDetails.classList.add("hidden");
+    }
     doneCard.classList.remove("hidden");
   }
 
@@ -54,7 +76,7 @@
     try {
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("bookingNotFound"));
+      if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "bookingNotFound"));
 
       loading.classList.add("hidden");
       const booking = data.booking;
@@ -65,14 +87,13 @@
       }
 
       const { date, time } = formatSlotTime(booking.starts_at);
-      currentSummary.textContent = "";
-      const name = document.createElement("strong");
-      name.textContent = booking.resource_name;
-      currentSummary.appendChild(name);
-      currentSummary.appendChild(document.createElement("br"));
-      currentSummary.appendChild(
-        document.createTextNode(`${date} at ${time}${booking.location ? ` — ${booking.location}` : ""}`)
-      );
+      currentWhen.textContent = `${date}, ${time}`;
+      if (booking.location) {
+        currentWhere.textContent = booking.location;
+        manageWhereRow.classList.remove("hidden");
+      } else {
+        manageWhereRow.classList.add("hidden");
+      }
       currentCard.classList.remove("hidden");
 
       if (isPastCutoffClientSide(booking.starts_at)) {
@@ -92,7 +113,7 @@
     const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}/available-slots`);
     const data = await res.json();
     if (!res.ok) {
-      rescheduleList.innerHTML = `<p class="error">${data.error || t("loadSlotsFailed")}</p>`;
+      rescheduleList.innerHTML = `<p class="error">${window.bookingI18n.tForApiError(data, "loadSlotsFailed")}</p>`;
       return;
     }
 
@@ -148,10 +169,10 @@
         body: JSON.stringify({ newSlotId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || t("rescheduleFailed"));
+      if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "rescheduleFailed"));
 
       const { date, time } = formatSlotTime(data.startsAt);
-      showDone(t("rescheduledNotice", `${date} at ${time}${data.location ? ` — ${data.location}` : ""}`));
+      showDone(t("rescheduledNotice"), { when: `${date}, ${time}`, where: data.location });
     } catch (err) {
       document.querySelectorAll(".slot-btn").forEach((el) => { el.disabled = false; });
       btn.classList.remove("selected");
@@ -169,7 +190,7 @@
       const res = await fetch(`public/bookings/manage/${encodeURIComponent(token)}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || t("cancelFailed"));
+        throw new Error(window.bookingI18n.tForApiError(data, "cancelFailed"));
       }
       showDone(t("cancelledDone"));
     } catch (err) {

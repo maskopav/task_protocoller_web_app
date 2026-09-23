@@ -56,7 +56,7 @@ export async function bulkCreateSlots(req, res) {
       const resource = await bookingService.getResourceById(req.tenant.id, resourceId);
       Promise.all(insertedSlots.map(async (slot) => {
         const eventId = await upsertSlotEvent({
-          eventId: null, resourceName: resource.name,
+          eventId: null,
           startsAt: slot.starts_at, endsAt: slot.ends_at,
           location: slot.location || resource.default_location, status: "available",
         });
@@ -104,6 +104,34 @@ export async function listBookings(req, res) {
     res.json({ bookings });
   } catch (err) {
     handleError(res, err, "Failed to list bookings");
+  }
+}
+
+export async function listNoSlotReports(req, res) {
+  const resourceId = Number(req.query.resourceId);
+  if (!resourceId) return res.status(400).json({ error: "resourceId is required" });
+  try {
+    const reports = await bookingService.listNoSlotReportsForAdmin(req.tenant.id, resourceId);
+    res.json({ reports });
+  } catch (err) {
+    handleError(res, err, "Failed to list no-slot reports");
+  }
+}
+
+// Lets a consuming app check, for one specific respondent, whether they
+// already have an active appointment *before* ever showing its own booking
+// UI -- so it can send them straight to the reschedule/cancel view instead
+// of a slot picker that (per getPublicSlots) would just redirect there
+// itself after an extra round trip.
+export async function getActiveManageToken(req, res) {
+  const resourceId = Number(req.query.resourceId);
+  const { externalRef } = req.query;
+  if (!resourceId || !externalRef) return res.status(400).json({ error: "resourceId and externalRef are required" });
+  try {
+    const manageToken = await bookingService.getActiveManageTokenByRef(req.tenant.id, resourceId, externalRef);
+    res.json({ manageToken });
+  } catch (err) {
+    handleError(res, err, "Failed to look up active booking");
   }
 }
 

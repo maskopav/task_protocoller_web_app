@@ -1,9 +1,12 @@
 :root {
-  --accent: #3764df;
-  --text: #222;
-  --muted: #666;
-  --border: #e2e2e2;
+  --primary: #3764df;
+  --text: #000000;
+  --muted: #575151;
+  --border: #d6dfef;
   --bg: #f9f9fb;
+  --radius: 1rem;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+  --transition: all 0.2s ease;
 }
 
 * { box-sizing: border-box; }
@@ -13,27 +16,67 @@ body {
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
+  /* Base size for body text (headings and buttons set their own, larger,
+     sizes) so any plain paragraph -- e.g. #doneMessage, .error -- reads at
+     the same size as the labels/inputs/notices that already set 1.1rem
+     explicitly, instead of falling back to the browser's smaller default. */
+  font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
 }
 
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 32px 20px 60px;
+  /* Horizontal padding gives text room off the card's own edge now that
+     the wrapping .booking-step (frontend) carries almost no side margin
+     of its own -- the card runs nearly edge-to-edge on phones. */
+  padding: clamp(12px, 3dvh, 20px) clamp(14px, 4vw, 24px) clamp(40px, 8dvh, 60px);
 }
 
-h1 { font-size: 1.5rem; margin-bottom: 4px; }
-.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; }
+/* Font sizes and button radius below are matched to the main app's task
+   screens (Pages.css / TaskLayout.css / Recorder.css) so this page, which
+   is shown to participants inside a task iframe, doesn't look or feel like
+   a separate app. */
+/* h1 and h2 share the same size so every page's top-level heading (this
+   page has only one or the other, never both) reads at a consistent size. */
+h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--text); }
+.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem); }
+.study-intro { color: var(--muted); margin-top: 0; margin-bottom: 16px; font-size: clamp(1.2rem, min(4.8vw, 3.8dvh), 1.4rem); line-height: 1.4; }
+
+/* Shared "label: value" row used for the When/Where-style details on both
+   the booking confirmation (book.html) and the manage page (manage.html) --
+   kept at the same 1.1rem as labels/inputs/notices elsewhere on this page
+   so body text reads at one consistent size throughout. */
+.detail-row { margin: 0; font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem); line-height: 1.5; }
+.detail-row + .detail-row { margin-top: 8px; }
+.detail-label { font-weight: 600; margin-right: 4px; }
+
+/* Boxed wrapper for .detail-row, used where there's no surrounding .card
+   already (book.html's confirmation step). */
+.confirmed-details {
+  padding: clamp(12px, 3vw, 20px);
+  margin: 0 0 16px;
+  text-align: left;
+}
+
+.location-photo {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  margin: 0 0 16px;
+}
 
 .card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: var(--radius);
+  padding: clamp(0.5rem, 2vw, 1rem);
+  margin: clamp(0.2rem, 1vw, 0.5rem);
 }
 
 .day-group { margin-bottom: 20px; }
-.day-heading { font-weight: 600; margin-bottom: 8px; }
+.day-heading { font-weight: 600; margin-bottom: 8px;}
 
 .slot-grid {
   display: grid;
@@ -42,58 +85,102 @@ h1 { font-size: 1.5rem; margin-bottom: 4px; }
 }
 
 .slot-btn {
-  padding: 10px 8px;
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  padding: 12px 8px;
+  border: 1px solid var(--primary);
+  color: var(--primary);
   background: #fff;
-  border-radius: 6px;
+  border-radius: var(--radius);
   cursor: pointer;
-  font-size: 0.9rem;
 }
 .slot-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .slot-btn:hover { background: #eef1fd; }
-.slot-btn.selected { background: var(--accent); color: #fff; }
+.slot-btn.selected { background: var(--primary); color: #fff; }
 
-label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 0.9rem; }
-input[type="email"], input[type="tel"] {
+label { display: block; font-weight: 600; margin: 12px 0 4px;}
+input[type="email"], input[type="tel"], textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: var(--radius);
+  font-family: inherit;
+  /* Matches the rest of the page's body text (labels, notices, etc.) --
+     without this, inputs fall back to the browser's small default size. */
+  font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
+}
+textarea { resize: vertical; }
+
+/* No card/box here on purpose -- the contact fields sit directly under the
+   slot list, separated only by margin, to read as one continuous step
+   rather than a boxed-off sub-form. */
+#contactStep { margin-top: 24px; }
+#selectedSlotSummary {  margin-bottom: 4px; }
+
+.centered-btn {
+  display: block;
+  margin: 16px auto 0;
 }
 
-button.primary {
-  margin-top: 20px;
-  background: var(--accent);
-  color: #fff;
+button {
+  width: 100%;
+  /* iOS Safari otherwise keeps native button chrome (its own background/
+     border) layered under custom styles, which can make solid-color
+     backgrounds render inconsistently there vs. other browsers. */
+  -webkit-appearance: none;
+  appearance: none;
+  /* Noticeably taller on phones, comfortable on laptops */
+  padding: clamp(12px, 2dvh, 16px) clamp(16px, 3dvw, 20px);
+  margin: clamp(3px, 0.7dvh, 6px) 0;
+  /* Font size matches playback controls */
+  font-size: clamp(1.4rem, min(4.5dvw, 3dvh), 1.7rem);
+  font-weight: 600;
+  border-radius: var(--radius);
   border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 1rem;
   cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+}
+
+/* primary/secondary/danger share one font-size so every button on this
+   page reads at the same size, rather than the primary CTA looking like a
+   different scale of control from Reschedule/Cancel. */
+button.primary {
+  background: var(--primary);
+  color: #fff;
 }
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 button.secondary {
   background: #fff;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 8px;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+
 }
+button.secondary.selected { background: var(--primary); color: #fff; }
 
 button.danger {
   background: #fff;
   color: #c0392b;
   border: 1px solid #c0392b;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
 }
 
+/* Reschedule/Cancel appointment on manage.html -- full-width, stacked, with
+   a real gap between them (rather than relying on .secondary's own
+   margin-right, which only helps a side-by-side layout) so they read as
+   two clearly separate actions instead of a cramped pair. */
+#actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+#actions button { margin: 0; width: 100%; }
+
 .error { color: #c0392b; margin-top: 12px; }
-.notice { color: var(--muted); font-size: 0.9rem; margin-top: 12px; }
+.notice { color: var(--muted); font-size: 1.1rem; margin-top: 12px; }
 .hidden { display: none !important; }

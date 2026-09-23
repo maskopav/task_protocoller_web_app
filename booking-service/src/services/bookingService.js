@@ -164,7 +164,21 @@ export async function deleteSlot(tenantId, resourceId, slotId) {
     throw err;
   }
   const [slot] = await executeQuery(`SELECT google_event_id FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
-  await executeQuery(`DELETE FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+
+  // A cancelled or superseded (pre-reschedule) booking can still hold a row
+  // with slot_id = this slot -- bookings.slot_id has no ON DELETE clause
+  // (RESTRICT), so a real DELETE throws ER_ROW_IS_REFERENCED_2 in that case
+  // even though the check above found nothing *active* here. Rather than
+  // surface that raw FK error, fall back to deactivating the slot: it drops
+  // out of the admin/public lists (activeOnly / is_active filters) exactly
+  // like a deleted one would, while leaving the historical booking rows —
+  // and their slot_id — intact for the record.
+  try {
+    await executeQuery(`DELETE FROM slots WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+  } catch (err) {
+    if (err.code !== "ER_ROW_IS_REFERENCED_2" && err.code !== "ER_ROW_IS_REFERENCED") throw err;
+    await executeQuery(`UPDATE slots SET is_active = false WHERE id = ? AND resource_id = ?`, [slotId, resourceId]);
+  }
   return slot?.google_event_id || null;
 }
 
@@ -210,6 +224,7 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     if (!slot || slot.resource_id !== resourceId || !slot.is_active) {
       const err = new Error("Slot is not available");
       err.statusCode = 409;
+      err.code = "SLOT_NOT_AVAILABLE";
       throw err;
     }
 
@@ -220,6 +235,7 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     if (existingActive.length > 0) {
       const err = new Error("Slot is already booked");
       err.statusCode = 409;
+      err.code = "SLOT_ALREADY_BOOKED";
       throw err;
     }
 
@@ -229,42 +245,95 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     // same resource — e.g. re-opening the original link after already
     // booking, instead of using the manage link to reschedule. Only one
     // active booking per (resource, externalRef) at a time; they must
-    // cancel/reschedule the existing one first.
+    // cancel/reschedule the existing one first. A 'requested' row (see
+    // reportNoSlotAvailable) never blocks this — it's not a booking, just
+    // contact info — and is cleaned up below once this one succeeds.
     const [existingForRef] = await conn.query(
-      `SELECT b.id FROM bookings b JOIN slots s ON s.id = b.slot_id
-       WHERE s.resource_id = ? AND b.external_ref = ? AND b.status != 'cancelled'`,
+      `SELECT id FROM bookings WHERE resource_id = ? AND external_ref = ? AND status NOT IN ('cancelled', 'requested')`,
       [resourceId, externalRef]
     );
     if (existingForRef.length > 0) {
       const err = new Error("An active booking already exists — use the manage link from your confirmation email to reschedule or cancel it first");
       err.statusCode = 409;
+      err.code = "ACTIVE_BOOKING_EXISTS";
       throw err;
     }
 
     const manageToken = await generateUniqueManageToken(conn);
 
     const [result] = await conn.query(
-      `INSERT INTO bookings (slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'booked')`,
-      [slotId, externalRef, eligibleAfter, email, phone, manageToken, safeLocale]
+      `INSERT INTO bookings (resource_id, slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'booked')`,
+      [resourceId, slotId, externalRef, eligibleAfter, email, phone, manageToken, safeLocale]
+    );
+
+    // A prior "none of these times work for me" report for this same person
+    // (see reportNoSlotAvailable) is now resolved by this real booking —
+    // clear it so it stops showing up as needing a follow-up call.
+    await conn.query(
+      `UPDATE bookings SET status = 'cancelled', updated_at = UTC_TIMESTAMP()
+       WHERE resource_id = ? AND external_ref = ? AND status = 'requested'`,
+      [resourceId, externalRef]
     );
 
     return { bookingId: result.insertId, manageToken, slotId };
   });
 }
 
+// LEFT JOIN slots (not JOIN) because a status=requested row has no slot_id —
+// resources is joined via b.resource_id directly for the same reason,
+// rather than through slots. starts_at/ends_at/location/google_event_id all
+// come back NULL for a requested row; callers that shouldn't ever see one
+// (reschedule/cancel/manage) guard on status themselves.
 export async function getBookingByManageToken(manageToken) {
   const [row] = await executeQuery(
-    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.resource_id, s.google_event_id,
+    `SELECT b.*, s.starts_at, s.ends_at, s.location, s.google_event_id,
             r.name AS resource_name, r.slug AS resource_slug, r.default_location,
             r.contact_info, r.tenant_id
      FROM bookings b
-     JOIN slots s ON s.id = b.slot_id
-     JOIN resources r ON r.id = s.resource_id
+     LEFT JOIN slots s ON s.id = b.slot_id
+     JOIN resources r ON r.id = b.resource_id
      WHERE b.manage_token = ?`,
     [manageToken]
   );
   return row || null;
+}
+
+// Used by getPublicSlots to detect that this (resource, externalRef) already
+// has an active appointment -- if so, the /book page redirects straight to
+// /manage/:manageToken instead of showing the slot picker again. A
+// 'requested' row (see reportNoSlotAvailable) is not an appointment, so it's
+// excluded same as 'cancelled'.
+//
+// Also reachable from the admin API (see adminController.getActiveManageToken)
+// so the main app can decide manage-vs-book link before ever displaying the
+// booking iframe -- hence the tenant ownership check, same as every other
+// admin-reachable, resourceId-scoped function. getPublicSlots' own call
+// passes its already tenant-resolved resource/tenant, so the check there is
+// redundant but harmless.
+export async function getActiveManageTokenByRef(tenantId, resourceId, externalRef) {
+  await assertResourceOwnedByTenant(resourceId, tenantId);
+  const [row] = await executeQuery(
+    `SELECT manage_token FROM bookings
+     WHERE resource_id = ? AND external_ref = ? AND status NOT IN ('cancelled', 'requested')
+     ORDER BY created_at DESC LIMIT 1`,
+    [resourceId, externalRef]
+  );
+  return row ? row.manage_token : null;
+}
+
+// Contact info from this person's most recent booking/report for this
+// resource, regardless of status -- lets the /book page skip re-asking for
+// email and phone when we already have them on file (e.g. after a
+// cancellation, or a prior "none of these times work for me" report).
+export async function getLatestContactByRef(resourceId, externalRef) {
+  const [row] = await executeQuery(
+    `SELECT contact_email, contact_phone FROM bookings
+     WHERE resource_id = ? AND external_ref = ?
+     ORDER BY created_at DESC LIMIT 1`,
+    [resourceId, externalRef]
+  );
+  return row ? { email: row.contact_email, phone: row.contact_phone } : null;
 }
 
 // Returns both the old slot's and new slot's own details (including each
@@ -282,6 +351,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (!booking || booking.status === "cancelled") {
       const err = new Error("Booking not found");
       err.statusCode = 404;
+      err.code = "BOOKING_NOT_FOUND";
       throw err;
     }
 
@@ -292,6 +362,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (!newSlot || newSlot.resource_id !== booking.resource_id || !newSlot.is_active) {
       const err = new Error("Slot is not available");
       err.statusCode = 409;
+      err.code = "SLOT_NOT_AVAILABLE";
       throw err;
     }
     // Same floor the original booking had to satisfy (bookings.eligible_after,
@@ -304,6 +375,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (newSlot.starts_at < booking.eligible_after) {
       const err = new Error(`Slot is before this booking's earliest eligible date (${booking.eligible_after})`);
       err.statusCode = 409;
+      err.code = "SLOT_BEFORE_ELIGIBLE";
       throw err;
     }
     const [existingActive] = await conn.query(
@@ -313,6 +385,7 @@ export async function rescheduleBooking(manageToken, newSlotId) {
     if (existingActive.length > 0) {
       const err = new Error("Slot is already booked");
       err.statusCode = 409;
+      err.code = "SLOT_ALREADY_BOOKED";
       throw err;
     }
 
@@ -343,6 +416,7 @@ export async function cancelBooking(manageToken) {
   if (result.affectedRows === 0) {
     const err = new Error("Booking not found or already cancelled");
     err.statusCode = 404;
+    err.code = "BOOKING_NOT_FOUND";
     throw err;
   }
 }
@@ -350,7 +424,7 @@ export async function cancelBooking(manageToken) {
 export async function listBookingsForAdmin(tenantId, { resourceId } = {}) {
   return executeQuery(
     `SELECT b.id, b.external_ref, b.contact_email, b.contact_phone, b.status,
-            b.created_at, b.updated_at, s.starts_at, s.ends_at, s.location,
+            b.manage_token, b.created_at, b.updated_at, s.starts_at, s.ends_at, s.location,
             r.name AS resource_name
      FROM bookings b
      JOIN slots s ON s.id = b.slot_id
@@ -363,6 +437,34 @@ export async function listBookingsForAdmin(tenantId, { resourceId } = {}) {
 
 export async function setSlotGoogleEventId(slotId, googleEventId) {
   await executeQuery(`UPDATE slots SET google_event_id = ? WHERE id = ?`, [googleEventId, slotId]);
+}
+
+// A respondent's "none of these times work for me" submission -- a row in
+// the same `bookings` table, status='requested', slot_id NULL: just contact
+// info + a free-text note for staff to follow up on manually. It shares the
+// manage_token column with a real booking (every row needs one), but that
+// token is otherwise unused here -- getLatestContactByRef above is what
+// surfaces this contact info again, on the next /book visit. See
+// publicController.js's reportNoSlot.
+export async function reportNoSlotAvailable({ resourceId, externalRef, email, phone, preferredTimes, eligibleAfter }) {
+  return executeTransaction(async (conn) => {
+    const manageToken = await generateUniqueManageToken(conn);
+    await conn.query(
+      `INSERT INTO bookings (resource_id, external_ref, eligible_after, contact_email, contact_phone, preferred_times, manage_token, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'requested')`,
+      [resourceId, externalRef, eligibleAfter, email, phone, preferredTimes || null, manageToken]
+    );
+    return { manageToken };
+  });
+}
+
+export async function listNoSlotReportsForAdmin(tenantId, resourceId) {
+  await assertResourceOwnedByTenant(resourceId, tenantId);
+  return executeQuery(
+    `SELECT id, external_ref, contact_email, contact_phone, preferred_times, created_at
+     FROM bookings WHERE resource_id = ? AND status = 'requested' ORDER BY created_at DESC`,
+    [resourceId]
+  );
 }
 
 // ---- webhooks -----------------------------------------------------------

@@ -93,7 +93,7 @@ export function buildManagedDescription(systemLines, existingDescription) {
 // or the call failed (never throws; every caller treats sync as
 // best-effort, matching the rest of this service's fire-and-forget pattern
 // for Calendar/email work).
-export async function upsertSlotEvent({ eventId, resourceName, startsAt, endsAt, location, status, systemNotes = [], contactEmail }) {
+export async function upsertSlotEvent({ eventId, startsAt, endsAt, location, status, systemNotes = [], contactEmail }) {
   const calendar = getClient();
   if (!calendar) return null;
 
@@ -102,8 +102,8 @@ export async function upsertSlotEvent({ eventId, resourceName, startsAt, endsAt,
   // the title itself, not just the description, so it's visible at a glance
   // in month/week view without opening the event.
   const summary = contactEmail
-    ? `${style.label} — ${resourceName} — ${contactEmail}`
-    : `${style.label} — ${resourceName}`;
+    ? `${style.label} — ${contactEmail}`
+    : style.label;
 
   try {
     let existingDescription = null;

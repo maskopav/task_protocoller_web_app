@@ -469,7 +469,11 @@
     "colPhone": "Phone",
     "colBookedAt": "Booked at",
     "loadError": "Failed to load booking data.",
-    "deleteError": "Failed to delete slot."
+    "deleteError": "Failed to delete slot.",
+    "noSlotRequestsHeading": "\"No time works\" requests ({{count}})",
+    "noRequests": "No requests yet.",
+    "colPreferredTimes": "Preferred times",
+    "colRequestedAt": "Requested at"
   }
 }
   

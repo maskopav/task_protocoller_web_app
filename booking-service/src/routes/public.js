@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get("/slots/:resourceSlug", publicController.getPublicSlots);
 router.post("/bookings/:resourceSlug", publicController.createPublicBooking);
+router.post("/no-slot/:resourceSlug", publicController.reportNoSlot);
 
 router.get("/bookings/manage/:manageToken", publicController.getManageBooking);
 router.get("/bookings/manage/:manageToken/available-slots", publicController.getAvailableSlotsForReschedule);

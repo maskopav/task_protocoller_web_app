@@ -59,6 +59,17 @@ export const listBookings = async (req, res) => {
   }
 };
 
+export const listNoSlotReports = async (req, res) => {
+  try {
+    const resourceId = await ensureFollowupBookingResource();
+    const upstream = await proxyBookingRequest(`/v1/no-slot-reports?resourceId=${resourceId}`);
+    const data = await upstream.json();
+    res.status(upstream.status).json(data);
+  } catch (err) {
+    handleProxyError(res, err, "Failed to list no-slot reports");
+  }
+};
+
 export const exportBookingsCsv = async (req, res) => {
   try {
     const resourceId = await ensureFollowupBookingResource();

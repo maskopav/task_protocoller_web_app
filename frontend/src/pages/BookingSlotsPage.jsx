@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
-import { bulkCreateSlots, fetchSlots, deleteSlot, fetchBookings, downloadBookingsCsv } from "../api/adminBooking";
+import { bulkCreateSlots, fetchSlots, deleteSlot, fetchBookings, fetchNoSlotReports, downloadBookingsCsv } from "../api/adminBooking";
 import "./Pages.css";
 import "./BookingSlotsPage.css";
 
@@ -42,7 +42,8 @@ export default function BookingSlotsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
     startDate: today, endDate: today, weekdays: [1, 2, 3, 4, 5],
-    startTime: "09:00", endTime: "16:00", durationMin: 45, location: "",
+    startTime: "09:00", endTime: "16:00", durationMin: 45,
+    location: "ČVUT FEL, Technická 1902/2, 166 27 Praha 6 (v danou dobu si Vás před hlavním vchodem vyzvedne pracovník ČVUT)",
   });
   const [creating, setCreating] = useState(false);
   const [createResult, setCreateResult] = useState(null);
@@ -50,6 +51,7 @@ export default function BookingSlotsPage() {
 
   const [slots, setSlots] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [noSlotReports, setNoSlotReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -57,12 +59,14 @@ export default function BookingSlotsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [slotsData, bookingsData] = await Promise.all([
+      const [slotsData, bookingsData, noSlotData] = await Promise.all([
         fetchSlots({ activeOnly: true }),
         fetchBookings(),
+        fetchNoSlotReports(),
       ]);
       setSlots(slotsData.slots);
       setBookings(bookingsData.bookings);
+      setNoSlotReports(noSlotData.reports);
     } catch (err) {
       setError(err.message || t("bookingSlotsPage.loadError"));
     } finally {
@@ -238,6 +242,37 @@ export default function BookingSlotsPage() {
                     <td>{b.contact_phone}</td>
                     <td>{b.status}</td>
                     <td>{formatUtcDateTime(b.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
+
+      <section className="bs-section">
+        <div className="bs-section-header-row">
+          <h2 className="bs-section-heading">{t("bookingSlotsPage.noSlotRequestsHeading", { count: noSlotReports.length })}</h2>
+        </div>
+        <div className="bs-table-wrapper">
+          {!loading && noSlotReports.length === 0 && <p className="bs-empty">{t("bookingSlotsPage.noRequests")}</p>}
+          {noSlotReports.length > 0 && (
+            <table className="bs-table">
+              <thead>
+                <tr>
+                  <th>{t("bookingSlotsPage.colEmail")}</th>
+                  <th>{t("bookingSlotsPage.colPhone")}</th>
+                  <th>{t("bookingSlotsPage.colPreferredTimes")}</th>
+                  <th>{t("bookingSlotsPage.colRequestedAt")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {noSlotReports.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.contact_email}</td>
+                    <td>{r.contact_phone}</td>
+                    <td>{r.preferred_times || "—"}</td>
+                    <td>{formatUtcDateTime(r.created_at)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -2,11 +2,16 @@
 -- NOT RECOMMENDED TO REMOVE!
 
 -- 1. IN ORDER TO REMOVE sessions, participants, projects:
---  recordings, questionnaire_responses -> sessions -> participant_protocols -> project_protocols -> user_projects -> projects
+--  task_results, session_mic_checks, session_environments, recordings -> sessions
+--  -> participant_protocol_contacts -> participant_protocols -> project_protocols -> user_projects -> projects
+-- NOTE: follow-up booking rows (if enable_followup_booking was used) live in the
+-- separate booking-service DB, keyed by participant_protocol_id as external_ref.
+-- Deleting participant_protocols here does NOT remove them there — clean those up
+-- separately in booking-service if needed.
 START TRANSACTION;
 SET @target_project_id = 999; ----CHANGE!
 
-DELETE FROM recordings 
+DELETE FROM task_results
 WHERE session_id IN (
     SELECT s.id FROM sessions s
     JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
@@ -14,7 +19,9 @@ WHERE session_id IN (
     WHERE prp.project_id = @target_project_id
 );
 
-DELETE FROM questionnaire_responses 
+-- session_mic_checks and session_environments are ON DELETE CASCADE from sessions,
+-- but deleted explicitly here for clarity/portability.
+DELETE FROM session_mic_checks
 WHERE session_id IN (
     SELECT s.id FROM sessions s
     JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
@@ -22,14 +29,37 @@ WHERE session_id IN (
     WHERE prp.project_id = @target_project_id
 );
 
-DELETE FROM sessions 
+DELETE FROM session_environments
+WHERE session_id IN (
+    SELECT s.id FROM sessions s
+    JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.project_id = @target_project_id
+);
+
+DELETE FROM recordings
+WHERE session_id IN (
+    SELECT s.id FROM sessions s
+    JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.project_id = @target_project_id
+);
+
+DELETE FROM sessions
 WHERE participant_protocol_id IN (
     SELECT pp.id FROM participant_protocols pp
     JOIN project_protocols prp ON pp.project_protocol_id = prp.id
     WHERE prp.project_id = @target_project_id
 );
 
-DELETE FROM participant_protocols 
+DELETE FROM participant_protocol_contacts
+WHERE participant_protocol_id IN (
+    SELECT pp.id FROM participant_protocols pp
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.project_id = @target_project_id
+);
+
+DELETE FROM participant_protocols
 WHERE project_protocol_id IN (
     SELECT id FROM project_protocols WHERE project_id = @target_project_id
 );
@@ -44,28 +74,55 @@ COMMIT; -- to just test it ROLLBACK
 
 
 -- 2. IN ORDER TO REMOVE protocols:
---  recordings, questionnaire_responses -> sessions -> participant_protocols -> project_protocols -> protocol_tasks -> protocols
+--  task_results, session_mic_checks, session_environments, recordings -> sessions
+--  -> participant_protocol_contacts -> participant_protocols -> project_protocols
+--  -> protocol_tasks (-> protocol_contents, cascades automatically) -> protocols
 START TRANSACTION;
 SET @target_protocol_id = 999; ---- CHANGE!
 
-DELETE FROM recordings 
+DELETE FROM task_results
 WHERE protocol_task_id IN (
     SELECT id FROM protocol_tasks WHERE protocol_id = @target_protocol_id
 );
 
-DELETE FROM questionnaire_responses 
+DELETE FROM recordings
 WHERE protocol_task_id IN (
     SELECT id FROM protocol_tasks WHERE protocol_id = @target_protocol_id
 );
 
-DELETE FROM sessions 
+-- session_mic_checks and session_environments are ON DELETE CASCADE from sessions,
+-- but deleted explicitly here for clarity/portability.
+DELETE FROM session_mic_checks
+WHERE session_id IN (
+    SELECT s.id FROM sessions s
+    JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.protocol_id = @target_protocol_id
+);
+
+DELETE FROM session_environments
+WHERE session_id IN (
+    SELECT s.id FROM sessions s
+    JOIN participant_protocols pp ON s.participant_protocol_id = pp.id
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.protocol_id = @target_protocol_id
+);
+
+DELETE FROM sessions
 WHERE participant_protocol_id IN (
     SELECT pp.id FROM participant_protocols pp
     JOIN project_protocols prp ON pp.project_protocol_id = prp.id
     WHERE prp.protocol_id = @target_protocol_id
 );
 
-DELETE FROM participant_protocols 
+DELETE FROM participant_protocol_contacts
+WHERE participant_protocol_id IN (
+    SELECT pp.id FROM participant_protocols pp
+    JOIN project_protocols prp ON pp.project_protocol_id = prp.id
+    WHERE prp.protocol_id = @target_protocol_id
+);
+
+DELETE FROM participant_protocols
 WHERE project_protocol_id IN (
     SELECT id FROM project_protocols WHERE protocol_id = @target_protocol_id
 );

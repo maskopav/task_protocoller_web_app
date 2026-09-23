@@ -14,12 +14,26 @@ import {
   formatRelative,
 } from "./formatters";
 import { STATUS_META, STATUS_ORDER } from "./statusMeta";
-import { reservationState, reservationLabel, reservationMeta, reservationFilterKey, reservationSortValue } from "./reservationStatus";
+import {
+  reservationState,
+  reservationLabel,
+  reservationMeta,
+  reservationFilterKey,
+  reservationSortValue,
+  reservationLink,
+  reservationNotes,
+} from "./reservationStatus";
 
 const startedText = (r) => formatDateTime(r.session_started_at);
 const lastActivityText = (r) => formatDateTime(r.session_last_activity_at);
 const durationText = (r) => formatDuration(r.total_duration_seconds);
-const currentStepText = (r) => r.last_activity_task_name || "—";
+// last_activity_task_name is the raw internal task type/category (see
+// v_session_summary) -- every value already reads fine as-is except
+// "followup_booking", which this humanizes to match the "Reservation"
+// label used elsewhere (e.g. the Reservation column) for the same step.
+const currentStepLabel = (r) =>
+  r.last_activity_task_name === "followup_booking" ? "reservation" : r.last_activity_task_name;
+const currentStepText = (r) => currentStepLabel(r) || "—";
 const languageCodeText = (r) => r.protocol_language_code || "—";
 const sessionIdText = (r) => (r.session_id ?? "—").toString();
 
@@ -133,6 +147,8 @@ export const COLUMN_DEFS = [
     filterValue: reservationFilterKey,
     filterOptions: [
       { value: "needs_followup", label: "Needs Follow-up" },
+      { value: "no_slot_reported", label: "No Slot Found" },
+      { value: "cancelled", label: "Cancelled" },
       { value: "pending", label: "Pending" },
       { value: "not_eligible_yet", label: "Not Ready" },
       { value: "booked", label: "Booked" },
@@ -146,6 +162,49 @@ export const COLUMN_DEFS = [
         <span className="status-badge" style={{ backgroundColor: meta.bg, color: meta.text }}>
           <span className="status-dot" style={{ backgroundColor: meta.dot }} />
           {reservationLabel(state)}
+        </span>
+      );
+    },
+  },
+  {
+    id: "reservationLink",
+    label: "Reservation Link",
+    // Hidden by default -- it's a staff convenience (resend/reschedule
+    // without going back to the outreach export) rather than something
+    // that needs to be visible at a glance like the status column above.
+    defaultVisible: false,
+    value: (r) => reservationLink(r) || "",
+    sortValue: (r) => reservationLink(r) || "",
+    render: (r) => {
+      const link = reservationLink(r);
+      if (!link) return "—";
+      return (
+        <a href={link} target="_blank" rel="noopener noreferrer">
+          Link
+        </a>
+      );
+    },
+  },
+  {
+    id: "reservationNotes",
+    label: "Reservation Notes",
+    // Hidden by default, same reasoning as Reservation Link above -- only
+    // ever set for a "no slot works for me" report (reservationState's
+    // no_slot_reported kind), so most rows have nothing here at all.
+    defaultVisible: false,
+    value: (r) => reservationNotes(r) || "",
+    sortValue: (r) => reservationNotes(r) || "",
+    render: (r) => {
+      const notes = reservationNotes(r);
+      if (!notes) return "—";
+      // Small and truncated on purpose -- this is a free-text aside, not
+      // primary data; the full note is still there on hover (title attr).
+      return (
+        <span
+          title={notes}
+          className="fieldwork-reservation-notes"
+        >
+          {notes}
         </span>
       );
     },
@@ -223,8 +282,8 @@ export const COLUMN_DEFS = [
   {
     id: "currentStep",
     label: "Current Step",
-    value: (r) => r.last_activity_task_name || "",
-    sortValue: (r) => (r.last_activity_task_name || "").toLowerCase(),
+    value: (r) => currentStepLabel(r) || "",
+    sortValue: (r) => (currentStepLabel(r) || "").toLowerCase(),
     render: (r) => <span className="fieldwork-current-step">{currentStepText(r)}</span>,
   },
   {

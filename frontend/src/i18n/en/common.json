@@ -25,8 +25,6 @@
       "logout": "Log out",
       "edit": "Edit",
       "confirm": "Confirm",
-      "continue": "Continue",
-      "backToEditor": "Back to editor",
       "startCalibration": "To camera calibration",
       "seeTopic": "Show Topic",
       "switchTopic": "Switch Topic",
@@ -59,10 +57,7 @@
       "safeToClose": "Thank you for taking part in this study! <br/><br/> You may now close this window.",
       "uploading": "Uploading your responses — please keep this page open.",
       "offlineModalInfo": "Connect to internet",
-      "offlineDataSafe": "Your responses are saved on this device. <br/>DO NOT REFRESH the page. Keep this page open and they will upload automatically when your connection returns.",
-      "offlineReturnHint": "Please leave this tab open until your internet reconnects. <br/><br/>If you must close this page now, simply click your survey link again later when you have internet.",
       "offlineBrief": "Your data will upload automatically once you're back online.",
-      "completedModule": ": completed!",
       "finished": "completed!",
       "praises": [
         "Great job!",
@@ -73,16 +68,10 @@
       ]
     },
     "taskLabels": {
-      "info": "Information",
-      "consent": "Consent",
-      "mic_check": "Audio Test",
-      "volume_check": "Volume Test",
       "voice": "Speech section",
-      "motor": "Motor section",
       "camera": "Camera section",
       "vision": "Vision section",
       "cognitive": "Thinking skills section",
-      "hearing": "Hearing section",
       "questionnaire": "Questionnaire section",
       "task": "Task",
       "milestone_25": "Over 25% ",
@@ -96,7 +85,6 @@
       "selectOption": "Select an option...",
       "typeAnswer": "Type your answer here...",
       "pleaseSpecify": "Please specify",
-      "required": "* required",
       "rating": {
         "veryBad": "Very bad",
         "bad": "Bad",
@@ -113,7 +101,6 @@
       "externalId": "External ID",
       "gender": "Gender",
       "yearPlaceholder": "e.g. 1965",
-      "yearTitle": "Enter a 4-digit year",
       "fillAllFields": "Please fill in all required fields to continue.",
       "saveError": "There was an error saving your information. Please try again.",
       "invalidYear": "Please enter a valid year between {{min}} and {{max}}.",
@@ -164,8 +151,6 @@
       "successTitle": "Microphone Ready",
       "successMessage": "Everything looks good!",
       "successInstructions": "Please <strong>stay in this room</strong> until you have finished.",
-      "failedAgainTitle": "Microphone condition is not ideal, but you can still continue.",
-      "failedAgainInstructions": "Please <strong>stay in this room</strong> until you have finished.",
       "btnProceed": "Next",
       "guide": {
         "titleDenied": "Microphone Access Denied",
@@ -216,7 +201,6 @@
       "further": "Further",
       "turnLeft": "Look Left",
       "turnRight": "Look Right",
-      "perfect": "Perfect!",
 
       "permissionWarning": "In this task we will measure your facial movements while speaking. <br/><br/> No video is recorded, just anonymized coordinates data. <br/><br/> To do that, browser will ask for camera access.",
       "permissionInstruction": "Please click the button and then press <strong>Allow</strong> in the popup window.",
@@ -260,10 +244,6 @@
       "copyBtn": "Copy Link"
     },
     "auth": {
-      "signupTitle": "New Participant",
-      "loginTitle": "Welcome Back",
-      "signupDesc": "Enter your details to start the protocol.",
-      "loginDesc": "Enter your credentials to resume.",
       "email": "Email",
       "password": "Password",
       "fullName": "Full Name",
@@ -272,7 +252,6 @@
       "male": "Male",
       "female": "Female",
       "phone": "Phone number (optional)",
-      "note": "We will send login credentials to your email.",
       "btnSignup": "Sign Up",
       "btnLogin": "Login",
       "tabSignup": "Sign Up",
@@ -330,7 +309,6 @@
     },
     "booking": {
       "heading": "Schedule your follow-up visit",
-      "instructions": "Please pick a time that works for you. You'll get a confirmation email with a link to reschedule or cancel if needed.",
       "loading": "Loading the scheduling page…",
       "errorLoading": "We couldn't load the scheduling page right now. You can continue — we'll follow up by email.",
       "continueButton": "Continue",

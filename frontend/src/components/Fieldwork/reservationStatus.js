@@ -16,7 +16,7 @@
 // How many days after the moment staff should expect the respondent to act
 // (completion, or a cancellation) before the row is flagged as needing
 // follow-up.
-export const RESERVATION_FOLLOWUP_DAYS = 5;
+export const RESERVATION_FOLLOWUP_DAYS = 2;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -38,8 +38,20 @@ export function reservationState(r) {
     return { kind: "booked", startsAt: r.reservation_starts_at, location: r.reservation_location };
   }
   if (r.protocol_status !== "finished") return { kind: "not_eligible_yet" };
+  // A cancellation is an explicit signal, not silence -- staff need to
+  // follow up regardless of how long it's been, so unlike the old
+  // behavior (grace period from reservation_updated_at, same as
+  // not_booked) this is always flagged red immediately, the same way
+  // no_slot_reported already is.
   if (r.reservation_status === "cancelled") {
-    return { kind: "cancelled", ...graceInfo(r.reservation_updated_at) };
+    return { kind: "cancelled" };
+  }
+  // "None of these times work for me" -- a slot was never picked, but the
+  // respondent did leave contact info, so this must read differently from
+  // not_booked (hasn't engaged at all) and be anchored on the report itself,
+  // like a cancellation, not on protocol completion.
+  if (r.reservation_status === "requested") {
+    return { kind: "no_slot_reported", ...graceInfo(r.reservation_updated_at) };
   }
   if (!r.session_completed_at) return { kind: "not_eligible_yet" };
 
@@ -69,37 +81,69 @@ const META = {
 // the one state worth spelling out with real data (the timeslot); every
 // other state is a single short word/phrase, and once overdue (never
 // booked or cancelled, doesn't matter which) it's always just "Needs
-// Follow-up" rather than two near-identical warnings.
+// Follow-up" rather than two near-identical warnings. Location is
+// deliberately left out here — it's shown, if needed, via a separate
+// column rather than crowding this cell.
 export function reservationLabel(state) {
   if (!state) return "—";
   if (state.kind === "booked") {
     const when = formatReservationTime(state.startsAt);
-    return `Booked${when ? `: ${when}` : ""}${state.location ? ` — ${state.location}` : ""}`;
+    return `Booked${when ? `: ${when}` : ""}`;
   }
   if (state.kind === "not_eligible_yet") return "Not Ready";
-  return state.overdue ? "⚠ Needs Follow-up" : "Pending";
+  if (state.kind === "cancelled") return "Cancelled";
+  if (state.overdue) return "⚠ Needs Follow-up";
+  return state.kind === "no_slot_reported" ? "No Slot Found" : "Pending";
+}
+
+// The booking-management link (`reservation_link`, merged in server-side —
+// see projectController.getProjectFieldwork) is the same signed URL sent to
+// the participant regardless of whether they've booked yet: visiting it
+// again lets them pick a first slot or reschedule/cancel an existing one.
+// It's independent of `reservationState`'s kind so staff can still reach it
+// even for rows not yet eligible/booked, as long as one was ever built.
+export function reservationLink(r) {
+  return r.reservation_link || null;
+}
+
+// The free-text note a respondent left when reporting "none of these times
+// work for me" (see reportNoSlotAvailable in booking-service) — only ever
+// set alongside a 'requested' reservation_status, merged in server-side
+// the same way reservation_link is (projectController.getProjectFieldwork).
+export function reservationNotes(r) {
+  return r.reservation_preferred_times || null;
 }
 
 export function reservationMeta(state) {
   if (!state || state.kind === "not_eligible_yet") return META.not_eligible_yet;
   if (state.kind === "booked") return META.booked;
+  // A no-slot report or a cancellation is an explicit signal from the
+  // respondent, not just silence -- staff need to follow up regardless of
+  // how many days it's been, so both are always flagged the same urgent
+  // red as an overdue row, not tied to the grace period the way
+  // not_booked is.
+  if (state.kind === "no_slot_reported" || state.kind === "cancelled") return META.overdue;
   return state.overdue ? META.overdue : META.pending;
 }
 
-// select-filter key: coarser than the full state — "never booked" and
-// "cancelled" collapse into the same bucket once overdue, since the action
-// staff need to take (call them) is the same either way.
+// select-filter key: coarser than the full state — "never booked" collapses
+// into "needs_followup" once overdue, since the action staff need to take
+// (call them) is the same regardless of anchor date. A no-slot report and a
+// cancellation each get their own dedicated bucket instead of collapsing
+// into pending/needs_followup: both are distinct, explicit signals from the
+// respondent (see reservationMeta above), and staff need to be able to
+// filter to just these rows.
 export function reservationFilterKey(r) {
   const state = reservationState(r);
   if (!state) return "";
-  if (state.kind === "booked" || state.kind === "not_eligible_yet") return state.kind;
+  if (state.kind === "booked" || state.kind === "not_eligible_yet" || state.kind === "no_slot_reported" || state.kind === "cancelled") return state.kind;
   return state.overdue ? "needs_followup" : "pending";
 }
 
-const SORT_ORDER = { not_eligible_yet: 0, pending: 1, booked: 3 };
+const SORT_ORDER = { not_eligible_yet: 0, pending: 1, no_slot_reported: 2, cancelled: 2, booked: 4 };
 export function reservationSortValue(r) {
   const key = reservationFilterKey(r);
   if (key === "") return -1;
-  if (key === "needs_followup") return 2;
+  if (key === "needs_followup") return 3;
   return SORT_ORDER[key] ?? 0;
 }

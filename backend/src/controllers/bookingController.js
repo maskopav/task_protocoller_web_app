@@ -2,7 +2,7 @@
 // the booking-service adapter. HTTP glue only; link-signing logic lives in
 // services/bookingServiceClient.js.
 import { executeQuery } from "../db/queryHelper.js";
-import { buildBookingLink } from "../services/bookingServiceClient.js";
+import { buildBookingLink, buildManageLink, getActiveManageTokenByRef } from "../services/bookingServiceClient.js";
 import { BOOKING_ELIGIBILITY_DAYS } from "../config/constants.js";
 import { logToFile } from "../utils/logger.js";
 
@@ -27,12 +27,21 @@ export const getBookingLink = async (req, res) => {
       return res.status(409).json({ error: "Protocol not completed yet" });
     }
 
-    const bookingUrl = buildBookingLink({
-      ref: session.participant_protocol_id,
-      completedAt: session.completed_at,
-      eligibilityDays: BOOKING_ELIGIBILITY_DAYS,
-      lang,
-    });
+    // Check whether this respondent already has an active appointment
+    // *before* deciding which link to hand back, so BookingStep embeds the
+    // right page from the start instead of the slot picker always loading
+    // first and self-redirecting once booking-service's own page notices
+    // (see getPublicSlots' existingBooking check) -- same manage-vs-book
+    // rule used for the Fieldwork table (projectController.getProjectFieldwork).
+    const activeManageToken = await getActiveManageTokenByRef(session.participant_protocol_id);
+    const bookingUrl = activeManageToken
+      ? buildManageLink({ manageToken: activeManageToken, lang })
+      : buildBookingLink({
+          ref: session.participant_protocol_id,
+          completedAt: session.completed_at,
+          eligibilityDays: BOOKING_ELIGIBILITY_DAYS,
+          lang,
+        });
 
     res.json({ bookingUrl });
   } catch (err) {

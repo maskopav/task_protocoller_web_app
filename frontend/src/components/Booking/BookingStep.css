@@ -1,12 +1,19 @@
 .booking-step {
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 16px;
+  /* Near-zero side padding -- the card itself (booking-service's .page)
+     keeps text off its own edges, so there's no need to also inset the
+     card from the screen edges on small phones. */
+  padding: clamp(0.5rem, 2dvh, 1rem) clamp(0px, 1vw, 4px);
   text-align: center;
 }
 
 .booking-step-heading {
   margin-bottom: 8px;
+  /* Matches .task-header h1 (TaskLayout.css) so this step reads at the
+     same size as the other task screens (e.g. Recorder/phonation). */
+  font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+  color: var(--muted);
 }
 
 .booking-step-instructions {
@@ -29,7 +36,19 @@
   min-height: 480px;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
-  margin-bottom: 20px;
+  margin-bottom: clamp(6px, 1.5dvh, 12px);
+}
+
+/* Once booking-service reaches its (now single-screen, no-scroll)
+   confirmation step, the tall slot-picker height is no longer needed.
+   This is only the fallback size for the brief moment before book.js's
+   "height" message (see BookingStep.jsx's contentHeight) reports the
+   confirmation screen's actual height via an inline style, which is what
+   actually keeps the Continue button below on screen without an internal
+   scrollbar or clipped text. */
+.booking-step-iframe--compact {
+  height: 260px;
+  min-height: 260px;
 }
 
 .booking-step-preview {
@@ -67,16 +86,33 @@
   margin: 0;
 }
 
-.booking-step-continue {
-  background: #3764df;
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
+/* .booking-step-continue intentionally has no overrides here — it inherits
+   the global `button` style from Pages.css, so it matches the size, radius
+   and color of every other task button (Recorder's Continue/Start, etc). */
+
+/* Room for .booking-step-next-bar so it doesn't cover the bottom of the
+   iframe/preview box once it's showing. */
+.booking-step.has-next-bar {
+  padding-bottom: 88px;
 }
 
-.booking-step-continue:hover {
-  background: #2c50b8;
+.booking-step-next-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  /* Matches .task-card's background (Pages.css), which is what's actually
+     visible directly above this bar, so there's no seam between the two. */
+  background: var(--card-bg);
+  padding: 10px 16px max(env(safe-area-inset-bottom, 0px), 10px);
+}
+
+/* .booking-step-next-btn only constrains width here -- color, padding,
+   radius and the disabled look all come from the same global `button`
+   style .booking-step-continue relies on. */
+.booking-step-next-btn {
+  max-width: 360px;
 }

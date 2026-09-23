@@ -154,43 +154,61 @@ LEFT JOIN (
 ) proto_stats ON p.id = proto_stats.project_id
 -- JOIN 2: Get Participant Stats (The Usage)
 LEFT JOIN (
-    SELECT 
+    SELECT
         project_id,
-        
+
         -- Volume
         COUNT(DISTINCT participant_id) AS total_participants,
         COUNT(participant_protocol_id) AS total_assignments,
-        
+
         -- Status Logic
-        SUM(CASE 
-            WHEN (is_active = 0 OR is_active IS NULL) AND end_date IS NULL THEN 1 
-            ELSE 0 
+        -- A participant who has already COMPLETED a session on this
+        -- assignment is never "pending"/"active" again, regardless of
+        -- is_active/end_date (protocolController.saveProtocol deliberately
+        -- leaves completed respondents' participant_protocols row
+        -- untouched — is_active stays 1, end_date stays NULL forever).
+        SUM(CASE
+            WHEN NOT is_completed AND (is_active = 0 OR is_active IS NULL) AND end_date IS NULL THEN 1
+            ELSE 0
         END) AS count_pending,
-        
-        SUM(CASE 
-            WHEN is_active = 1 THEN 1 
-            ELSE 0 
+
+        SUM(CASE
+            WHEN NOT is_completed AND is_active = 1 THEN 1
+            ELSE 0
         END) AS count_active,
-        
-        SUM(CASE 
-            WHEN (is_active = 0 OR is_active IS NULL) AND end_date IS NOT NULL THEN 1 
-            ELSE 0 
+
+        SUM(CASE
+            WHEN is_completed OR ((is_active = 0 OR is_active IS NULL) AND end_date IS NOT NULL) THEN 1
+            ELSE 0
         END) AS count_finished,
-        
+
         -- Version Logic
-        SUM(CASE 
-            WHEN is_active = 1 AND is_current_protocol = 1 THEN 1 
-            ELSE 0 
+        -- Only flag a respondent as "on an outdated version" if they still
+        -- have work left to do on it. A respondent who already completed
+        -- the protocol is correctly frozen on the version they finished —
+        -- that's by design (see saveProtocol's migration query), not a
+        -- pending update, so it must not feed the legacy-version warning.
+        SUM(CASE
+            WHEN NOT is_completed AND is_active = 1 AND is_current_protocol = 1 THEN 1
+            ELSE 0
         END) AS count_version_current,
-        
-        SUM(CASE 
-            WHEN is_active = 1 AND (is_current_protocol = 0 OR is_current_protocol IS NULL) THEN 1 
-            ELSE 0 
+
+        SUM(CASE
+            WHEN NOT is_completed AND is_active = 1 AND (is_current_protocol = 0 OR is_current_protocol IS NULL) THEN 1
+            ELSE 0
         END) AS count_version_legacy
 
-    FROM 
-        v_participant_protocols
-    GROUP BY 
+    FROM (
+        SELECT
+            vpp.*,
+            EXISTS (
+                SELECT 1 FROM sessions s
+                WHERE s.participant_protocol_id = vpp.participant_protocol_id
+                  AND s.completed = 1
+            ) AS is_completed
+        FROM v_participant_protocols vpp
+    ) vpp_with_completion
+    GROUP BY
         project_id
 ) part_stats ON p.id = part_stats.project_id;
 
@@ -427,11 +445,26 @@ SELECT
     s.completed AS is_finished_flag,
 
     -- 6. Current Task Name
-    -- If completed, return NULL. Otherwise, get DB category OR fallback to the JSON taskName of the last event.
-    IF(s.id IS NULL OR s.completed = 1, NULL,
-        COALESCE(
-            t.category,
-            JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
+    -- If completed, return NULL -- except for the follow-up booking step,
+    -- which deliberately marks the session `completed` the instant it opens
+    -- (see BookingStep.jsx: booking-service's eligibility gate requires
+    -- completed_at to already be set before the slot link can be minted), so
+    -- a respondent stuck picking/confirming a slot would otherwise show a
+    -- blank Current Step despite still being mid-flow. This view has no
+    -- visibility into booking-service's own DB, so it can only tell "they
+    -- opened the booking step" -- getProjectFieldwork (projectController.js)
+    -- re-nulls this once it has booking-service's status and can see the
+    -- reservation is actually resolved (booked/cancelled).
+    IF(s.id IS NULL, NULL,
+        IF(s.completed = 1 AND NOT (
+                p.enable_followup_booking = 1
+                AND JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName')) = 'followup_booking'
+           ),
+           NULL,
+           COALESCE(
+               t.category,
+               JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
+           )
         )
     ) AS last_activity_task_name,
 

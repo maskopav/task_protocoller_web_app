@@ -1,11 +1,13 @@
 // src/components/Booking/BookingStep.jsx — the last synthetic step in
 // runtimeTasks when protocolData.enable_followup_booking is on (see
 // ParticipantInterfacePage.jsx). Embeds booking-service's own hosted
-// booking page in an iframe -- there's no postMessage handshake between
-// this app and booking-service, so completion isn't auto-detected; the
-// participant clicks Continue themselves when done (or if they'd rather
-// skip and be followed up by email instead).
-import React, { useEffect, useState } from "react";
+// booking page in an iframe. booking-service posts a `{ source:
+// "booking-service", status: "completed" }` message (see book.js's
+// notifyParentCompleted) once a booking is confirmed, a no-slot request is
+// sent, or the participant already had a booking -- Continue only appears
+// once that lands, so there's no way to advance without actually reaching
+// one of those outcomes inside the widget.
+import React, { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getBookingLink } from "../../api/booking";
 import { markSessionCompleted } from "../../api/sessions";
@@ -16,6 +18,18 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
   const [bookingUrl, setBookingUrl] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(!testingMode);
+  const [completed, setCompleted] = useState(false);
+  // Mirrors book.js's own nextBtn state -- that button is hidden inside the
+  // iframe (see book.html) and this is rendered instead, in a fixed footer
+  // outside the iframe's box, so it stays visible while a tall slot list
+  // scrolls inside the iframe.
+  const [nextState, setNextState] = useState({ visible: false, enabled: false, label: "" });
+  // Reported by book.js's own ResizeObserver once the confirmation screens
+  // are showing, so the compact iframe (see .booking-step-iframe--compact)
+  // can size itself to the actual content instead of a guessed fixed
+  // height that would clip a long, localized address.
+  const [contentHeight, setContentHeight] = useState(null);
+  const iframeRef = useRef(null);
 
   useEffect(() => {
     // Testing mode has no real sessionId (protocol is only being previewed,
@@ -53,10 +67,47 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
     };
   }, [sessionId, i18n.language, testingMode]);
 
+  useEffect(() => {
+    if (!bookingUrl) return;
+    const expectedOrigin = new URL(bookingUrl).origin;
+
+    function handleMessage(event) {
+      if (event.origin !== expectedOrigin) return;
+      if (event.data?.source !== "booking-service") return;
+      if (event.data.status === "completed") {
+        setCompleted(true);
+      } else if (event.data.type === "next-state") {
+        setNextState({
+          visible: !!event.data.visible,
+          enabled: !!event.data.enabled,
+          label: event.data.label || "",
+        });
+      } else if (event.data.type === "height") {
+        setContentHeight(event.data.height);
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [bookingUrl]);
+
+  function handleNextClick() {
+    if (!nextState.enabled || !bookingUrl) return;
+    iframeRef.current?.contentWindow?.postMessage(
+      { source: "task-protocoller", type: "next-click" },
+      new URL(bookingUrl).origin
+    );
+  }
+
+  const showNextBar = !testingMode && !completed && nextState.visible;
+
   return (
-    <div className="booking-step">
-      <h2 className="booking-step-heading">{t("booking.heading")}</h2>
-      <p className="booking-step-instructions">{t("booking.instructions")}</p>
+    <div className={`booking-step${showNextBar ? " has-next-bar" : ""}`}>
+      {!completed && (
+        <>
+          <h2 className="booking-step-heading">{t("booking.heading")}</h2>
+        </>
+      )}
 
       {testingMode ? (
         <div className="booking-step-preview" role="img" aria-label={t("booking.testingPreviewLabel")}>
@@ -70,17 +121,33 @@ export default function BookingStep({ sessionId, onComplete, testingMode = false
 
           {bookingUrl && (
             <iframe
+              ref={iframeRef}
               src={bookingUrl}
-              className="booking-step-iframe"
+              className={`booking-step-iframe${completed ? " booking-step-iframe--compact" : ""}`}
+              style={completed && contentHeight ? { height: `${contentHeight}px` } : undefined}
               title="Appointment scheduling"
             />
           )}
         </>
       )}
 
-      <button className="booking-step-continue" onClick={onComplete}>
-        {t("booking.continueButton")}
-      </button>
+      {(testingMode || completed) && (
+        <button className="booking-step-continue" onClick={onComplete}>
+          {t("booking.continueButton")}
+        </button>
+      )}
+
+      {showNextBar && (
+        <div className="booking-step-next-bar">
+          <button
+            className="booking-step-next-btn"
+            disabled={!nextState.enabled}
+            onClick={handleNextClick}
+          >
+            {nextState.label}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

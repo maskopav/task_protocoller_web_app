@@ -8,7 +8,7 @@ import { verifyBookingLink, buildSignedBookingUrl } from "../utils/linkSigning.j
 import { getTenantById } from "../services/bookingService.js";
 import { executeQuery } from "../db/queryHelper.js";
 import { upsertSlotEvent } from "../services/googleCalendarService.js";
-import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail } from "../services/emailService.js";
+import { sendBookingConfirmationEmail, sendBookingRescheduledEmail, sendBookingCancelledEmail, sendNoSlotFollowupEmail } from "../services/emailService.js";
 import { dispatchWebhookEvent } from "../services/webhookDispatcher.js";
 import { logToFile } from "../utils/logger.js";
 import { isPastCutoff, nowAsMysqlDateTime } from "../utils/dateHelpers.js";
@@ -18,9 +18,18 @@ const RESCHEDULE_CUTOFF_HOURS = 24;
 const REBOOK_LINK_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
 // Mirrors the client-side check in public/book.js — that one is only a UX
-// nicety, since this is a public POST endpoint anyone can call directly.
+// nicety, since these are public POST endpoints anyone can call directly.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[0-9+()\-\s]{6,20}$/;
+
+// Shared by createPublicBooking and reportNoSlot -- both collect the same
+// two fields, just with a different "required" message for what else is
+// missing alongside them.
+function contactFormatError(email, phone) {
+  if (!EMAIL_RE.test(email)) return { message: "Invalid email address", code: "INVALID_EMAIL" };
+  if (!PHONE_RE.test(phone)) return { message: "Invalid phone number", code: "INVALID_PHONE" };
+  return null;
+}
 
 async function resolveSignedResource(req) {
   const { resourceSlug } = req.params;
@@ -29,6 +38,7 @@ async function resolveSignedResource(req) {
   if (!tenantId || !ref || !after || !exp || !sig) {
     const err = new Error("Missing link parameters");
     err.statusCode = 400;
+    err.code = "MISSING_LINK_PARAMS";
     throw err;
   }
 
@@ -36,6 +46,7 @@ async function resolveSignedResource(req) {
   if (!tenant) {
     const err = new Error("Invalid link");
     err.statusCode = 401;
+    err.code = "INVALID_LINK";
     throw err;
   }
 
@@ -43,6 +54,7 @@ async function resolveSignedResource(req) {
   if (!valid) {
     const err = new Error("Invalid or expired link");
     err.statusCode = 401;
+    err.code = "INVALID_OR_EXPIRED_LINK";
     throw err;
   }
 
@@ -50,19 +62,74 @@ async function resolveSignedResource(req) {
   if (!resource) {
     const err = new Error("Unknown resource");
     err.statusCode = 404;
+    err.code = "UNKNOWN_RESOURCE";
     throw err;
   }
 
   return { tenant, resource, ref, after };
 }
 
+// If this (resource, ref) already has an active appointment, the /book page
+// redirects straight to /manage/:manageToken (reschedule/cancel, no slot
+// picker) instead of showing slots. Otherwise it returns the open slots plus
+// any contact info already on file for this ref, so the page can skip
+// re-asking for it.
 export async function getPublicSlots(req, res) {
   try {
-    const { resource, after } = await resolveSignedResource(req);
-    const slots = await bookingService.listAvailablePublicSlots(resource.id, after);
-    res.json({ resource: { name: resource.name, defaultLocation: resource.default_location }, slots });
+    const { tenant, resource, ref, after } = await resolveSignedResource(req);
+    const resourceInfo = { name: resource.name, defaultLocation: resource.default_location };
+
+    const activeManageToken = await bookingService.getActiveManageTokenByRef(tenant.id, resource.id, ref);
+    if (activeManageToken) {
+      return res.json({ resource: resourceInfo, existingBooking: { manageToken: activeManageToken } });
+    }
+
+    const [slots, knownContact] = await Promise.all([
+      bookingService.listAvailablePublicSlots(resource.id, after),
+      bookingService.getLatestContactByRef(resource.id, ref),
+    ]);
+    res.json({ resource: resourceInfo, slots, knownContact });
   } catch (err) {
     handleError(res, err, "Failed to load slots");
+  }
+}
+
+// "None of these times work for me" — no slot is booked, just contact info
+// + a free-text note for staff to follow up on manually. Auth is the same
+// signed link as getPublicSlots (proves this is a real, current
+// participant), not a manage_token, since there's no booking to attach one
+// to yet.
+export async function reportNoSlot(req, res) {
+  const { email, phone, preferredTimes, lang } = req.body;
+  if (!email || !phone) {
+    return res.status(400).json({ error: "email and phone are required", code: "MISSING_CONTACT_FIELDS" });
+  }
+  const formatError = contactFormatError(email, phone);
+  if (formatError) return res.status(400).json({ error: formatError.message, code: formatError.code });
+
+  try {
+    const { tenant, resource, ref, after } = await resolveSignedResource(req);
+    await bookingService.reportNoSlotAvailable({
+      resourceId: resource.id, externalRef: ref, email, phone, preferredTimes, eligibleAfter: after,
+    });
+
+    // The same signed /book link the participant arrived on (a fresh 30-day
+    // one, not the possibly-near-expiry one from this request) — visiting it
+    // again now finds the contact info just submitted here on file and skips
+    // asking for it a second time (see getPublicSlots' knownContact).
+    sendNoSlotFollowupEmail({
+      to: email,
+      selfBookingLink: buildSignedBookingUrl({
+        publicBaseUrl: process.env.PUBLIC_BASE_URL, secret: tenant.link_signing_secret,
+        tenantId: tenant.id, resourceSlug: resource.slug, ref, after,
+        ttlSeconds: REBOOK_LINK_TTL_SECONDS, lang,
+      }),
+      contactInfo: resource.contact_info, locale: lang,
+    }).catch((err) => logToFile("ERROR", "No-slot follow-up email send threw unexpectedly", { error: err.message }));
+
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    handleError(res, err, "Failed to submit request");
   }
 }
 
@@ -74,14 +141,10 @@ function manageLinkFor(manageToken, locale) {
 export async function createPublicBooking(req, res) {
   const { slotId, email, phone, lang } = req.body;
   if (!slotId || !email || !phone) {
-    return res.status(400).json({ error: "slotId, email and phone are required" });
+    return res.status(400).json({ error: "slotId, email and phone are required", code: "MISSING_REQUIRED_FIELDS" });
   }
-  if (!EMAIL_RE.test(email)) {
-    return res.status(400).json({ error: "Invalid email address" });
-  }
-  if (!PHONE_RE.test(phone)) {
-    return res.status(400).json({ error: "Invalid phone number" });
-  }
+  const formatError = contactFormatError(email, phone);
+  if (formatError) return res.status(400).json({ error: formatError.message, code: formatError.code });
 
   try {
     const { tenant, resource, ref, after } = await resolveSignedResource(req);
@@ -104,7 +167,7 @@ export async function createPublicBooking(req, res) {
     // generated (styled "available") — this flips that same event to
     // "booked" rather than creating a second one for the same time slot.
     upsertSlotEvent({
-      eventId: slotRow.google_event_id, resourceName: resource.name,
+      eventId: slotRow.google_event_id,
       startsAt: slotRow.starts_at, endsAt: slotRow.ends_at, location, status: "booked",
       systemNotes: [`Ref: ${ref}`, `Contact: ${email}, ${phone}`], contactEmail: email,
     })
@@ -112,7 +175,7 @@ export async function createPublicBooking(req, res) {
       .catch((err) => logToFile("ERROR", "Failed to sync booking to Calendar", { bookingId, error: err.message }));
 
     sendBookingConfirmationEmail({
-      to: email, resourceName: resource.name, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
+      to: email, startsAt: slotRow.starts_at, endsAt: slotRow.ends_at,
       location, manageLink: manageLinkFor(manageToken, lang), locale: lang,
     }).catch((err) => logToFile("ERROR", "Confirmation email send threw unexpectedly", { bookingId, error: err.message }));
 
@@ -127,7 +190,11 @@ export async function createPublicBooking(req, res) {
 export async function getManageBooking(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    // A status=requested row (see reportNoSlotAvailable) shares this same
+    // manage_token mechanism but isn't a booking yet -- it's never surfaced
+    // through /book's existingBooking check (see getPublicSlots) either,
+    // since it's not an active appointment.
+    if (!booking || booking.status === "requested") return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
     res.json({ booking });
   } catch (err) {
     handleError(res, err, "Failed to load booking");
@@ -146,7 +213,7 @@ export async function getManageBooking(req, res) {
 export async function getAvailableSlotsForReschedule(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
 
     const now = nowAsMysqlDateTime();
     const floor = booking.eligible_after > now ? booking.eligible_after : now;
@@ -159,14 +226,14 @@ export async function getAvailableSlotsForReschedule(req, res) {
 
 export async function rescheduleManageBooking(req, res) {
   const { newSlotId } = req.body;
-  if (!newSlotId) return res.status(400).json({ error: "newSlotId is required" });
+  if (!newSlotId) return res.status(400).json({ error: "newSlotId is required", code: "MISSING_REQUIRED_FIELDS" });
 
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
 
     if (isPastCutoff(booking.starts_at, RESCHEDULE_CUTOFF_HOURS)) {
-      return res.status(409).json({ error: "Too close to the appointment to reschedule (cutoff: 1 day before)" });
+      return res.status(409).json({ error: "Too close to the appointment to reschedule (cutoff: 1 day before)", code: "RESCHEDULE_CUTOFF" });
     }
 
     const { oldSlot, newSlot } = await bookingService.rescheduleBooking(req.params.manageToken, newSlotId);
@@ -180,13 +247,13 @@ export async function rescheduleManageBooking(req, res) {
     // "available" (it's open again), the new slot flips to "booked" — each
     // event belongs to its own time slot and outlives this one booking.
     upsertSlotEvent({
-      eventId: oldSlot.googleEventId, resourceName: booking.resource_name,
+      eventId: oldSlot.googleEventId,
       startsAt: oldSlot.startsAt, endsAt: oldSlot.endsAt,
       location: oldSlot.location || booking.default_location, status: "available",
     }).catch((err) => logToFile("ERROR", "Failed to revert old slot's Calendar event", { bookingId: booking.id, error: err.message }));
 
     upsertSlotEvent({
-      eventId: newSlot.googleEventId, resourceName: booking.resource_name,
+      eventId: newSlot.googleEventId,
       startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location, status: "booked",
       systemNotes: [`Ref: ${booking.external_ref}`, `Contact: ${booking.contact_email}, ${booking.contact_phone}`],
       contactEmail: booking.contact_email,
@@ -195,7 +262,7 @@ export async function rescheduleManageBooking(req, res) {
       .catch((err) => logToFile("ERROR", "Failed to sync rescheduled booking to Calendar", { bookingId: booking.id, error: err.message }));
 
     sendBookingRescheduledEmail({
-      to: booking.contact_email, resourceName: booking.resource_name,
+      to: booking.contact_email,
       startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location,
       manageLink: manageLinkFor(req.params.manageToken, booking.locale), locale: booking.locale,
     }).catch((err) => logToFile("ERROR", "Reschedule email send threw unexpectedly", { bookingId: booking.id, error: err.message }));
@@ -213,10 +280,10 @@ export async function rescheduleManageBooking(req, res) {
 export async function cancelManageBooking(req, res) {
   try {
     const booking = await bookingService.getBookingByManageToken(req.params.manageToken);
-    if (!booking || booking.status === "cancelled") return res.status(404).json({ error: "Booking not found" });
+    if (!booking || ["cancelled", "requested"].includes(booking.status)) return res.status(404).json({ error: "Booking not found", code: "BOOKING_NOT_FOUND" });
 
     if (isPastCutoff(booking.starts_at, RESCHEDULE_CUTOFF_HOURS)) {
-      return res.status(409).json({ error: "Too close to the appointment to cancel (cutoff: 1 day before)" });
+      return res.status(409).json({ error: "Too close to the appointment to cancel (cutoff: 1 day before)", code: "CANCEL_CUTOFF" });
     }
 
     // cancelBooking and the tenant lookup are independent (tenant_id is
@@ -248,12 +315,12 @@ export async function cancelManageBooking(req, res) {
     // The slot itself still exists and is bookable again, so its Calendar
     // event reverts to "available" rather than being deleted.
     upsertSlotEvent({
-      eventId: booking.google_event_id, resourceName: booking.resource_name,
+      eventId: booking.google_event_id,
       startsAt: booking.starts_at, endsAt: booking.ends_at,
       location: booking.location || booking.default_location, status: "available",
     }).catch((err) => logToFile("ERROR", "Failed to revert cancelled slot's Calendar event", { bookingId: booking.id, error: err.message }));
     sendBookingCancelledEmail({
-      to: booking.contact_email, resourceName: booking.resource_name, startsAt: booking.starts_at,
+      to: booking.contact_email, startsAt: booking.starts_at,
       rebookLink, contactInfo: booking.contact_info, locale: booking.locale,
     })
       .catch((err) => logToFile("ERROR", "Cancellation email send threw unexpectedly", { bookingId: booking.id, error: err.message }));

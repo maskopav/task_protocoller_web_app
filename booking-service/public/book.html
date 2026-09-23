@@ -20,7 +20,7 @@
 </head>
 <body>
   <div class="page">
-    <h1 id="resourceName">Book an appointment</h1>
+    <p class="study-intro" id="studyIntro"></p>
     <p class="subtitle" id="resourceLocation"></p>
 
     <div id="loading" class="card">Loading available times…</div>
@@ -28,22 +28,57 @@
 
     <div id="slotStep" class="hidden">
       <div id="slotList"></div>
+      <button type="button" class="secondary centered-btn" id="noSlotToggle">None of these times work for me</button>
     </div>
 
-    <div id="contactStep" class="card hidden">
+    <div id="contactStep" class="hidden">
       <div id="selectedSlotSummary"></div>
+
+      <div id="preferredTimesField" class="hidden">
+        <label for="preferredTimes" id="preferredTimesLabel">When would work for you?</label>
+        <textarea id="preferredTimes" rows="3"></textarea>
+      </div>
+
+      <p class="notice hidden" id="knownContactNotice"></p>
       <label for="email" id="emailLabel">Email</label>
       <input type="email" id="email" required />
       <label for="phone" id="phoneLabel">Phone</label>
       <input type="tel" id="phone" required />
       <div id="contactError" class="error hidden"></div>
-      <button class="primary" id="confirmBtn">Confirm appointment</button>
+      <!-- Hidden by default: when embedded in BookingStep.jsx's iframe, the
+           parent app renders the visible Next button in its own fixed
+           footer instead, so it stays on screen while a tall slot list
+           scrolls, and book.js just mirrors this button's state to the
+           parent via postMessage. book.js un-hides it on load when there is
+           no parent (a standalone visit -- an emailed link, or the
+           Fieldwork table's link column), since there is no footer button
+           to submit with otherwise. -->
+      <button class="primary hidden" id="nextBtn" disabled>Next</button>
     </div>
 
-    <div id="confirmedStep" class="card hidden">
+    <div id="confirmedStep" class="hidden">
       <h2 id="bookedHeading">You're booked</h2>
-      <p id="confirmedSummary"></p>
-      <p class="notice" id="bookedNotice">A confirmation email is on its way — it includes a link to reschedule or cancel up to one day before your appointment.</p>
+      <div class="confirmed-details">
+        <p class="detail-row">
+          <span class="detail-label" id="whenLabel">When:</span>
+          <span id="confirmedWhen"></span>
+        </p>
+        <p class="detail-row hidden" id="whereRow">
+          <span class="detail-label" id="whereLabel">Where:</span>
+          <span id="confirmedWhere"></span>
+        </p>
+      </div>
+      <!-- Fixed to the CVUT building -- this service is currently
+           single-location. If a second location/tenant is ever added, this
+           needs to become conditional (or per-resource) rather than always
+           shown. -->
+      <img src="images/CVUT-building.jpg" alt="ČVUT FEL" class="location-photo" />
+      <p class="notice" id="bookedNotice">Check your email for a link to reschedule or cancel.</p>
+    </div>
+
+    <div id="noSlotConfirmedStep" class="hidden">
+      <h2 id="noSlotConfirmedHeading">Thanks — we'll be in touch</h2>
+      <p class="notice" id="noSlotConfirmedNotice">We've emailed you a link back to this page so you can check for new openings, and we'll contact you to schedule a suitable time.</p>
     </div>
   </div>
 

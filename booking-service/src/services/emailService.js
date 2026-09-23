@@ -3,6 +3,9 @@
 // backend/src/utils/emailService.js). Copy comes from src/i18n/emailTranslations.js
 // rather than i18next — see that file for why.
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import { logToFile } from "../utils/logger.js";
 import { t } from "../i18n/emailTranslations.js";
@@ -18,10 +21,38 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
+// EMAIL_DRY_RUN=true skips the real SMTP send and instead writes the
+// rendered HTML to logs/dev-emails/ so the booking flow can be exercised
+// end-to-end locally (confirmation/reschedule/cancel/no-slot emails) without
+// sending through the real Gmail account. Everything else about the flow
+// (DB writes, Calendar sync, API responses) runs unchanged.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dryRunDir = path.resolve(__dirname, "../../logs/dev-emails");
+
+function saveDryRunPreview({ to, subject, html }) {
+  try {
+    if (!fs.existsSync(dryRunDir)) fs.mkdirSync(dryRunDir, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const slug = subject.replace(/[^a-z0-9]+/gi, "-").slice(0, 60);
+    const filePath = path.join(dryRunDir, `${stamp}_${slug}.html`);
+    const banner = `<div style="background:#fffbe6;border:1px solid #f0c36d;padding:10px;margin-bottom:16px;font-family:sans-serif;font-size:13px;">
+      <strong>DRY RUN — this email was not sent.</strong><br>To: ${to}<br>Subject: ${subject}
+    </div>`;
+    fs.writeFileSync(filePath, banner + html);
+    logToFile("INFO", "Email dry-run — not sent, preview saved", { to, subject, file: filePath });
+  } catch (err) {
+    logToFile("ERROR", "Email dry-run preview write failed", { to, subject, error: err.message });
+  }
+}
+
 async function sendEmail({ to, subject, html }) {
+  if (process.env.EMAIL_DRY_RUN === "true") {
+    saveDryRunPreview({ to, subject, html });
+    return true;
+  }
   try {
     await transporter.sendMail({
-      from: `"${process.env.SMTP_FROM_NAME || "Booking"}" <${process.env.SMTP_USER}>`,
+      from: `"${process.env.SMTP_FROM_NAME || "neuroSHARE návštěva"}" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
@@ -40,40 +71,83 @@ function formatSlot(locale, startsAt, endsAt, location) {
   `;
 }
 
-export async function sendBookingConfirmationEmail({ to, resourceName, startsAt, endsAt, location, manageLink, locale = "en" }) {
+// Fixed to the CVUT building -- this service is currently single-location.
+// If a second location/tenant is ever added, this needs to become
+// conditional (or per-resource) rather than always shown.
+const locationPhotoUrl = `${process.env.PUBLIC_BASE_URL}/images/CVUT-building.jpg`;
+
+// Partner-org logos + a one-line signature, appended to every outgoing
+// email so it reads as coming from a real institutional team rather than an
+// anonymous automated sender.
+function emailFooter(locale) {
+  const base = process.env.PUBLIC_BASE_URL;
+  return `
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">
+      <img src="${base}/images/logo_CVUT.jpg" alt="ČVUT" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
+      <img src="${base}/images/logo_SCAC.png" alt="SC&amp;C" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
+      <p style="color: #999; font-size: 0.85em; margin: 12px 0 0;">${t(locale, "teamSignature")}</p>
+    </div>
+  `;
+}
+
+export async function sendBookingConfirmationEmail({ to, startsAt, endsAt, location, manageLink, locale = "en" }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">${t(locale, "confirmationHeading")}</h2>
-      <p>${resourceName}</p>
       ${formatSlot(locale, startsAt, endsAt, location)}
+      <img src="${locationPhotoUrl}" alt="ČVUT FEL" width="560" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px; display: block; margin: 12px 0;" />
       <p>${t(locale, "manageNotice")}</p>
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
         ${t(locale, "manageButton")}
       </a>
+      ${emailFooter(locale)}
     </div>
   `;
-  return sendEmail({ to, subject: t(locale, "confirmationSubject", resourceName), html });
+  return sendEmail({ to, subject: t(locale, "confirmationSubject"), html });
 }
 
-export async function sendBookingRescheduledEmail({ to, resourceName, startsAt, endsAt, location, manageLink, locale = "en" }) {
+export async function sendBookingRescheduledEmail({ to, startsAt, endsAt, location, manageLink, locale = "en" }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">${t(locale, "rescheduledHeading")}</h2>
-      <p>${resourceName}</p>
       ${formatSlot(locale, startsAt, endsAt, location)}
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
         ${t(locale, "manageButton")}
       </a>
+      ${emailFooter(locale)}
     </div>
   `;
-  return sendEmail({ to, subject: t(locale, "rescheduledSubject", resourceName), html });
+  return sendEmail({ to, subject: t(locale, "rescheduledSubject"), html });
 }
 
-export async function sendBookingCancelledEmail({ to, resourceName, startsAt, rebookLink, contactInfo, locale = "en" }) {
+// Sent when a respondent reports that none of the offered slots work for
+// them (see publicController.reportNoSlot) — no appointment exists yet, so
+// this just confirms the message was received and gives them a link back
+// to the booking page in case a new slot opens before staff reach out.
+export async function sendNoSlotFollowupEmail({ to, selfBookingLink, contactInfo, locale = "en" }) {
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
+      <h2 style="color: #3764df;">${t(locale, "noSlotHeading")}</h2>
+      <p>${t(locale, "noSlotBody")}</p>
+      <div style="text-align: center; background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px;">
+        <a href="${selfBookingLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
+          ${t(locale, "noSlotLinkButton")}
+        </a>
+      </div>
+      ${contactInfo ? `
+        <p style="color: #666; font-size: 0.9em;">${t(locale, "questionsLabel")} ${contactInfo}</p>
+      ` : ""}
+      ${emailFooter(locale)}
+    </div>
+  `;
+  return sendEmail({ to, subject: t(locale, "noSlotSubject"), html });
+}
+
+export async function sendBookingCancelledEmail({ to, startsAt, rebookLink, contactInfo, locale = "en" }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">${t(locale, "cancelledHeading")}</h2>
-      <p>${t(locale, "cancelledBody", resourceName, startsAt)}</p>
+      <p>${t(locale, "cancelledBody", startsAt)}</p>
       ${rebookLink ? `
         <div style="text-align: center; background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px;">
           <a href="${rebookLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
@@ -84,7 +158,8 @@ export async function sendBookingCancelledEmail({ to, resourceName, startsAt, re
       ${contactInfo ? `
         <p style="color: #666; font-size: 0.9em;">${t(locale, "questionsLabel")} ${contactInfo}</p>
       ` : ""}
+      ${emailFooter(locale)}
     </div>
   `;
-  return sendEmail({ to, subject: t(locale, "cancelledSubject", resourceName), html });
+  return sendEmail({ to, subject: t(locale, "cancelledSubject"), html });
 }

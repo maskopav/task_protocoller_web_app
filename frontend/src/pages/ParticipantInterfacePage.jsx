@@ -189,16 +189,26 @@ export default function ParticipantInterfacePage() {
 
     const introSteps = [];
 
+    // Same 0/1-from-MariaDB handling as useAudioGuide below.
+    const audioGuideEnabled = selectedProtocol.use_audio_guide ?? true;
+
+    // Volume Check is only relevant if the audio guide will play, or if the
+    // protocol includes a task whose scoring depends on recorded loudness.
+    const VOLUME_SENSITIVE_CATEGORIES = ["retelling", "syllableRepeating", "phonation"];
+    const needsVolumeCheck = audioGuideEnabled ||
+      (selectedProtocol.tasks ?? []).some(t => VOLUME_SENSITIVE_CATEGORIES.includes(t.category));
+
     // Add Volume Check — first thing shown, right after the language switcher
-    introSteps.push({
-      type: "volume_check",
-      category: "volume_check",
-      isSystemTask: true
-    });
+    if (needsVolumeCheck) {
+      introSteps.push({
+        type: "volume_check",
+        category: "volume_check",
+        isSystemTask: true
+      });
+    }
 
     // Add Audio Guide Intro — only when the protocol uses the audio guide.
-    // Same 0/1-from-MariaDB handling as useAudioGuide below.
-    if (selectedProtocol.use_audio_guide ?? true) {
+    if (audioGuideEnabled) {
       introSteps.push({
         type: "audio_guide_intro",
         category: "audio_guide_intro",

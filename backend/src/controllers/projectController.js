@@ -1,6 +1,7 @@
   // backend/src/controllers/projectController.js
   import { executeQuery } from "../db/queryHelper.js";
-  import { getFollowupBookingStatusByRef } from "../services/bookingServiceClient.js";
+  import { getFollowupBookingStatusByRef, buildBookingLink, buildManageLink } from "../services/bookingServiceClient.js";
+  import { BOOKING_ELIGIBILITY_DAYS } from "../config/constants.js";
 
   export const getProjectList = async (req, res) => {
     // req.admin comes from the verified JWT (see authMiddleware.requireAuth),
@@ -66,11 +67,60 @@
                 for (const row of rows) {
                     if (!row.enable_followup_booking) continue;
                     const booking = byRef.get(String(row.participant_protocol_id));
-                    if (!booking) continue;
-                    row.reservation_status = booking.status;
-                    row.reservation_starts_at = booking.starts_at;
-                    row.reservation_location = booking.location;
-                    row.reservation_updated_at = booking.updated_at || booking.created_at;
+                    if (booking) {
+                        row.reservation_status = booking.status;
+                        row.reservation_starts_at = booking.starts_at;
+                        row.reservation_location = booking.location;
+                        row.reservation_updated_at = booking.updated_at || booking.created_at;
+                        // Only set on a 'requested' (no-slot) report -- see
+                        // reportNoSlotAvailable in booking-service. The free-text
+                        // note the respondent left about what would work for them.
+                        row.reservation_preferred_times = booking.preferred_times || undefined;
+                    }
+
+                    // v_session_summary leaves last_activity_task_name as
+                    // 'followup_booking' (instead of nulling it out like it
+                    // does for every other finished session) so a respondent
+                    // stuck on the reservation step still shows up in the
+                    // Fieldwork table's Current Step column -- but that view
+                    // can't see booking-service's own DB, so it can't tell
+                    // once the reservation is actually resolved. Now that we
+                    // have that status, clear it back to null the same way a
+                    // normal finished session reads, instead of permanently
+                    // showing a step the respondent already finished.
+                    if (row.last_activity_task_name === "followup_booking" &&
+                        booking && ["booked", "rescheduled", "cancelled"].includes(booking.status)) {
+                        row.last_activity_task_name = null;
+                    }
+
+                    // The link must match whichever one this respondent was
+                    // actually emailed. An active appointment ('booked' or
+                    // 'rescheduled') was confirmed with a /manage/:manage_token
+                    // link (reschedule/cancel) — see booking-service's
+                    // emailService. Anyone else (never engaged, or reported
+                    // "no slot works" — status 'requested') was only ever
+                    // sent the original signed /book link, so that's what's
+                    // surfaced here too, letting staff resend it. Only
+                    // buildable once the protocol's been completed (see
+                    // buildBookingLink's caller in bookingController.js).
+                    const hasActiveBooking = booking && (booking.status === "booked" || booking.status === "rescheduled");
+                    try {
+                        if (hasActiveBooking) {
+                            row.reservation_link = buildManageLink({
+                                manageToken: booking.manage_token,
+                                lang: row.protocol_language_code,
+                            });
+                        } else if (row.session_completed_at) {
+                            row.reservation_link = buildBookingLink({
+                                ref: row.participant_protocol_id,
+                                completedAt: row.session_completed_at,
+                                eligibilityDays: BOOKING_ELIGIBILITY_DAYS,
+                                lang: row.protocol_language_code,
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Failed to build reservation link for fieldwork row:", err);
+                    }
                 }
             } catch (err) {
                 // booking-service being unreachable shouldn't break the whole

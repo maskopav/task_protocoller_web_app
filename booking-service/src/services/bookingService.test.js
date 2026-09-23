@@ -18,7 +18,10 @@ let mockConn;
 
 const { executeTransaction, executeQuery } = await import("../db/queryHelper.js");
 const { generateToken } = await import("../utils/tokenGenerator.js");
-const { createBooking, bulkCreateSlots, rescheduleBooking } = await import("./bookingService.js");
+const {
+  createBooking, bulkCreateSlots, deleteSlot, rescheduleBooking, reportNoSlotAvailable, listNoSlotReportsForAdmin,
+  getActiveManageTokenByRef, getLatestContactByRef, listBookingsForAdmin,
+} = await import("./bookingService.js");
 
 function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], manageTokenCollisions = 0, insertId = 123 }) {
   let manageTokenLookups = 0;
@@ -29,7 +32,7 @@ function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], mana
     if (sql.includes("FROM slots WHERE id = ?")) {
       return Promise.resolve([slotRow ? [slotRow] : []]);
     }
-    if (sql.includes("b.external_ref = ?")) {
+    if (sql.includes("FROM bookings WHERE resource_id = ? AND external_ref = ?")) {
       return Promise.resolve([existingRefRows]);
     }
     if (sql.includes("FROM bookings WHERE slot_id = ? AND status != 'cancelled'")) {
@@ -42,6 +45,30 @@ function makeConn({ slotRow, existingActiveRows = [], existingRefRows = [], mana
     }
     if (sql.includes("INSERT INTO bookings")) {
       return Promise.resolve([{ insertId }]);
+    }
+    // Clears any prior 'requested' row for this ref once the real booking above succeeds.
+    if (sql.includes("AND status = 'requested'")) {
+      return Promise.resolve([{ affectedRows: 0 }]);
+    }
+    throw new Error(`Unexpected query in test: ${sql}`);
+  });
+
+  return { query, calls };
+}
+
+function makeNoSlotConn({ manageTokenCollisions = 0 } = {}) {
+  let manageTokenLookups = 0;
+  const calls = [];
+  const query = vi.fn((sql, params) => {
+    calls.push({ sql, params });
+
+    if (sql.includes("FROM bookings WHERE manage_token = ?")) {
+      manageTokenLookups++;
+      const collides = manageTokenLookups <= manageTokenCollisions;
+      return Promise.resolve([collides ? [{ id: 1 }] : []]);
+    }
+    if (sql.includes("INSERT INTO bookings")) {
+      return Promise.resolve([{ insertId: 1 }]);
     }
     throw new Error(`Unexpected query in test: ${sql}`);
   });
@@ -142,6 +169,20 @@ describe("createBooking", () => {
     mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 } });
     await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref", email: "a@b.com", phone: "1" });
     expect(executeTransaction).toHaveBeenCalled();
+  });
+
+  // A prior "none of these times work for me" report (status='requested',
+  // see reportNoSlotAvailable) shares this same table/ref -- once a real
+  // booking for that ref succeeds, the stale request should stop showing up
+  // in the admin's follow-up list.
+  it("clears any prior 'requested' row for the same ref once the booking succeeds", async () => {
+    mockConn = makeConn({ slotRow: { id: 15, resource_id: 1, is_active: 1 } });
+    await createBooking({ resourceId: 1, slotId: 15, externalRef: "ref-42", email: "a@b.com", phone: "1" });
+
+    const resolveCall = mockConn.calls.find((c) => c.sql.includes("AND status = 'requested'"));
+    expect(resolveCall).toBeTruthy();
+    expect(resolveCall.sql).toMatch(/UPDATE bookings SET status = 'cancelled'/);
+    expect(resolveCall.params).toEqual([1, "ref-42"]);
   });
 });
 
@@ -268,5 +309,224 @@ describe("bulkCreateSlots", () => {
     // executeQuery should have been called exactly twice, not three times.
     expect(executeQuery).toHaveBeenCalledTimes(2);
     expect(result).toEqual({ created: 0, skipped: 2, insertedSlots: [] });
+  });
+});
+
+describe("deleteSlot", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("rejects when the slot has an active (non-cancelled) booking", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([{ id: 9 }]); // active booking found
+
+    await expect(deleteSlot(1, 3, 15)).rejects.toMatchObject({ statusCode: 409 });
+    expect(executeQuery).toHaveBeenCalledTimes(2); // never reaches the DELETE
+  });
+
+  it("hard-deletes the row and returns its google_event_id when nothing references it", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([]) // no active booking
+      .mockResolvedValueOnce([{ google_event_id: "evt-1" }]) // fetch google_event_id
+      .mockResolvedValueOnce({ affectedRows: 1 }); // DELETE succeeds
+
+    const result = await deleteSlot(1, 3, 15);
+
+    expect(result).toBe("evt-1");
+    expect(executeQuery.mock.calls[3][0]).toMatch(/DELETE FROM slots/);
+  });
+
+  // A cancelled or superseded (pre-reschedule) booking can leave a row with
+  // slot_id = this slot even though it's not "active" — bookings.slot_id has
+  // no ON DELETE clause (create_tables.sql), so MySQL rejects the DELETE
+  // with ER_ROW_IS_REFERENCED_2. deleteSlot should fall back to deactivating
+  // the slot instead of letting that raw FK error bubble up to the admin.
+  it("falls back to deactivating the slot when history still references it via FK", async () => {
+    const fkError = Object.assign(new Error("Cannot delete or update a parent row"), { code: "ER_ROW_IS_REFERENCED_2" });
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([]) // no active booking
+      .mockResolvedValueOnce([{ google_event_id: "evt-1" }]) // fetch google_event_id
+      .mockRejectedValueOnce(fkError) // DELETE fails on historical FK reference
+      .mockResolvedValueOnce({ affectedRows: 1 }); // fallback UPDATE succeeds
+
+    const result = await deleteSlot(1, 3, 15);
+
+    expect(result).toBe("evt-1");
+    expect(executeQuery.mock.calls[4][0]).toMatch(/UPDATE slots SET is_active = false/);
+  });
+
+  it("re-throws any other DELETE failure instead of masking it", async () => {
+    const otherError = new Error("connection lost");
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ google_event_id: "evt-1" }])
+      .mockRejectedValueOnce(otherError);
+
+    await expect(deleteSlot(1, 3, 15)).rejects.toThrow("connection lost");
+  });
+});
+
+// reportNoSlotAvailable inserts a status='requested' row into the same
+// `bookings` table createBooking uses (see create_tables.sql), reusing
+// generateUniqueManageToken -- so these tests follow the same
+// mockConn/executeTransaction pattern as the createBooking suite above,
+// rather than plain executeQuery mocking.
+describe("reportNoSlotAvailable", () => {
+  beforeEach(() => {
+    generateToken.mockReset();
+  });
+
+  it("generates a manage token and defaults preferredTimes to null when omitted", async () => {
+    generateToken.mockReturnValueOnce("token-1");
+    mockConn = makeNoSlotConn();
+
+    const result = await reportNoSlotAvailable({
+      resourceId: 3, externalRef: "42", email: "a@b.com", phone: "123456", eligibleAfter: "2026-10-01",
+    });
+
+    expect(result).toEqual({ manageToken: "token-1" });
+    const insertCall = mockConn.calls.find((c) => c.sql.includes("INSERT INTO bookings"));
+    expect(insertCall.sql).toMatch(/'requested'/);
+    expect(insertCall.params).toEqual([3, "42", "2026-10-01", "a@b.com", "123456", null, "token-1"]);
+  });
+
+  it("stores the free-text preferred-times note when provided", async () => {
+    generateToken.mockReturnValueOnce("token-2");
+    mockConn = makeNoSlotConn();
+
+    await reportNoSlotAvailable({
+      resourceId: 3, externalRef: "42", email: "a@b.com", phone: "123456", eligibleAfter: "2026-10-01",
+      preferredTimes: "Weekday afternoons after 3pm",
+    });
+
+    const insertCall = mockConn.calls.find((c) => c.sql.includes("INSERT INTO bookings"));
+    expect(insertCall.params[5]).toBe("Weekday afternoons after 3pm");
+  });
+
+  it("regenerates the token on a collision, same pattern as createBooking", async () => {
+    generateToken.mockReturnValueOnce("collides").mockReturnValueOnce("unique-token");
+    mockConn = makeNoSlotConn({ manageTokenCollisions: 1 });
+
+    const result = await reportNoSlotAvailable({
+      resourceId: 3, externalRef: "42", email: "a@b.com", phone: "123456", eligibleAfter: "2026-10-01",
+    });
+
+    expect(result).toEqual({ manageToken: "unique-token" });
+  });
+});
+
+// getActiveManageTokenByRef backs the /book page's "already has an active
+// appointment -- send them to /manage instead" check (see
+// publicController.js's getPublicSlots), so a 'requested' no-slot report for
+// the same ref must NOT count as active here.
+describe("getActiveManageTokenByRef", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  // Now reachable from the admin API too (booking-service exposes it so the
+  // main app can pick manage-vs-book link *before* ever showing the booking
+  // iframe -- see the main app's bookingController.getBookingLink), so it
+  // needs the same tenant-ownership guard every other admin-reachable,
+  // resourceId-scoped function has, not just the trusted internal call from
+  // getPublicSlots (where resourceId was already tenant-resolved).
+  it("rejects when the resource doesn't belong to the tenant", async () => {
+    executeQuery.mockResolvedValueOnce([]); // ownership check finds nothing
+    await expect(getActiveManageTokenByRef(1, 999, "ref-42")).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("returns the manage token when an active booking exists for this ref", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([{ manage_token: "abc123" }]);
+    const result = await getActiveManageTokenByRef(1, 3, "ref-42");
+
+    expect(result).toBe("abc123");
+    const [sql, params] = executeQuery.mock.calls[1];
+    expect(sql).toMatch(/status NOT IN \('cancelled', 'requested'\)/);
+    expect(params).toEqual([3, "ref-42"]);
+  });
+
+  it("returns null when there's no active booking for this ref", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([]);
+    const result = await getActiveManageTokenByRef(1, 3, "ref-42");
+    expect(result).toBeNull();
+  });
+});
+
+// getLatestContactByRef backs the /book page's "don't ask for contact info
+// we already have" prefill (see publicController.js's getPublicSlots) --
+// unlike getActiveManageTokenByRef, it deliberately doesn't filter by
+// status: a cancelled booking's or a 'requested' report's contact info is
+// just as reusable as an active booking's.
+describe("getLatestContactByRef", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("returns the most recent contact info for this ref regardless of status", async () => {
+    executeQuery.mockResolvedValueOnce([{ contact_email: "a@b.com", contact_phone: "123456" }]);
+    const result = await getLatestContactByRef(3, "ref-42");
+
+    expect(result).toEqual({ email: "a@b.com", phone: "123456" });
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).not.toMatch(/status/);
+    expect(params).toEqual([3, "ref-42"]);
+  });
+
+  it("returns null when nothing is on file for this ref", async () => {
+    executeQuery.mockResolvedValueOnce([]);
+    const result = await getLatestContactByRef(3, "ref-42");
+    expect(result).toBeNull();
+  });
+});
+
+// The Fieldwork table (in the main app) needs manage_token to rebuild the
+// same reschedule/cancel link that was actually emailed to an already-booked
+// respondent, instead of always showing the original slot-picker link — see
+// backend/src/controllers/projectController.js's getProjectFieldwork.
+describe("listBookingsForAdmin", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("selects manage_token alongside the existing columns", async () => {
+    executeQuery.mockResolvedValueOnce([{ id: 1, external_ref: "42", status: "booked", manage_token: "tok123" }]);
+
+    await listBookingsForAdmin(1, { resourceId: 3 });
+
+    const [sql] = executeQuery.mock.calls[0];
+    expect(sql).toMatch(/b\.manage_token/);
+  });
+});
+
+describe("listNoSlotReportsForAdmin", () => {
+  beforeEach(() => {
+    executeQuery.mockReset();
+  });
+
+  it("rejects when the resource doesn't belong to the tenant", async () => {
+    executeQuery.mockResolvedValueOnce([]); // assertResourceOwnedByTenant finds nothing
+    await expect(listNoSlotReportsForAdmin(1, 999)).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("returns only this resource's 'requested' rows once ownership is confirmed", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 3 }]) // ownership check passes
+      .mockResolvedValueOnce([{ id: 1, contact_email: "a@b.com" }]);
+
+    const result = await listNoSlotReportsForAdmin(1, 3);
+
+    expect(result).toEqual([{ id: 1, contact_email: "a@b.com" }]);
+    const [sql, params] = executeQuery.mock.calls[1];
+    expect(sql).toMatch(/FROM bookings WHERE resource_id = \? AND status = 'requested'/);
+    expect(params).toEqual([3]);
   });
 });

@@ -20,7 +20,21 @@ links. It has no knowledge of any other project's domain model.
   under a host app's own path with zero configuration.
 - **Reschedule / cancel** via a private manage link, automatically blocked
   inside a configurable cutoff window (24h before the appointment by
-  default).
+  default). Reschedule re-enforces the original booking's eligibility floor
+  (`eligible_after`), so it can't be used to move an appointment earlier
+  than the original signed link allowed.
+- **"None of these times work" fallback** — a respondent who can't find a
+  suitable slot can leave contact info + a free-text note instead of
+  booking. No separate table for this: it's a `bookings` row with
+  `status: 'requested'` and no `slot_id`, sharing the same `manage_token`
+  mechanism — the token's link just redirects into the ordinary
+  slot-picking page rather than a reschedule/cancel UI, and never expires
+  the way the original signed link does. Visible to the tenant via
+  `GET /v1/no-slot-reports`.
+- **Rate-limited public endpoints** — the unauthenticated `/public/*` API
+  is capped (30 req/min per IP by default, see
+  `src/middleware/rateLimiter.js`) since nothing but link/token entropy
+  otherwise gates it.
 - **Capacity-safe booking** — a row lock plus a DB-level uniqueness
   constraint prevent double-booking a slot even under concurrent requests
   (see `src/services/bookingService.test.js` and the schema comment on
@@ -47,6 +61,10 @@ links. It has no knowledge of any other project's domain model.
 - **Slot** — a specific bookable time window on a resource.
 - **Booking** — one reservation against a slot, with a `manage_token` that is
   itself the credential for the respondent-facing reschedule/cancel page.
+  A booking's `status` can also be `requested`: no slot chosen, just
+  contact info + a free-text note (see "None of these times work"
+  fallback above) — the same table and `manage_token` mechanism, just
+  never reschedulable/cancellable since there's no appointment yet.
 
 ## Setup
 
@@ -73,7 +91,11 @@ Then, as the tenant:
    confirmation email, and (if configured) a Google Calendar event, all
    happen without your app being involved again. The confirmation email
    contains a `/manage/<manageToken>` link the respondent can use to
-   reschedule/cancel until one day before the appointment.
+   reschedule/cancel until one day before the appointment. If none of the
+   offered slots work, the respondent can leave contact info + a note
+   instead (see "None of these times work" fallback above) — they get a
+   `/no-slot/<manageToken>` link back by email, good indefinitely, that
+   drops them back onto the slot picker.
 5. Optionally register a webhook (`POST /v1/webhooks`) to be notified of
    `booking.created` / `booking.rescheduled` / `booking.cancelled` events
    instead of polling `GET /v1/bookings`.
@@ -111,16 +133,58 @@ for the shape) and add it to `SUPPORTED_LOCALES`'s source array in
 `emailTranslations.js`. `src/i18n/emailTranslations.test.js` will catch a
 locale that's missing a key the others have.
 
+## Email (SMTP)
+
+Confirmation, reschedule, cancellation, and no-slot-report emails are sent
+via your own SMTP account through `nodemailer` (`src/services/emailService.js`).
+Four `.env` values, all under "Email" in `.env.example`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_16_char_app_password
+SMTP_FROM_NAME=Booking   # optional — display name on the "From" header
+```
+
+Any SMTP provider works, but if using Gmail (the default `SMTP_HOST` above),
+Google will not accept your regular account password here — you need an
+**App Password** instead:
+
+1. Your Google Account must have **2-Step Verification** turned on first
+   (App Passwords are hidden until it is). Enable it at
+   [myaccount.google.com/security](https://myaccount.google.com/security) if
+   it isn't already.
+2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   (or Security → 2-Step Verification → App passwords, at the bottom).
+3. Enter any name for it (e.g. "booking-service") → **Create**.
+4. Google shows a 16-character password (spaces optional, e.g.
+   `abcd efgh ijkl mnop`) — copy it and set it as `SMTP_PASS`. It's only
+   shown once; if you lose it, delete that entry and generate a new one.
+5. Set `SMTP_USER` to the full Gmail address that generated the App
+   Password — the confirmation/reschedule/cancellation emails are sent
+   "from" this address.
+
+To test without sending real emails, set `EMAIL_DRY_RUN=true` — see "Local
+dry-run" under Testing below.
+
 ## Google Calendar sync (optional)
 
 Booking works fully without this configured — Calendar sync is skipped and
 logged if unset. Everything below is free: no billing account or card is
 ever required for the Calendar API.
 
+There are only **two** `.env` values you're working towards here:
+`GOOGLE_SERVICE_ACCOUNT_KEY_PATH` (a file path, set in step 4) and
+`GOOGLE_CALENDAR_ID` (a short string, set in step 7). Everything else below
+(the service account, its email, sharing) is just plumbing to get those two
+values — nothing else gets pasted into `.env`.
+
 1. **Open/create a project.** Go to
-   [console.cloud.google.com](https://console.cloud.google.com). Use the
-   project picker at the top left ("My First Project" is fine, or create a
-   new one) — this just groups the API access together, nothing to pay for.
+   [console.cloud.google.com](https://console.cloud.google.com), signed in
+   with **whichever Google account you want this tied to**. Use the project
+   picker at the top left ("My First Project" is fine, or create a new
+   one) — this just groups the API access together, nothing to pay for.
 
 2. **Enable the Calendar API.** Left menu (☰) → **APIs & Services** →
    **Library**. Search "Google Calendar API", open it, click **Enable**.
@@ -136,30 +200,52 @@ ever required for the Calendar API.
    Google-Cloud-level role is needed, access is granted directly in Google
    Calendar's own sharing UI in step 6. Click **Done**.
 
-4. **Create + download its JSON key.** Click the service account you just
-   created in the list → **Keys** tab → **Add Key** → **Create new key** →
-   choose **JSON** → **Create**. A `.json` file downloads immediately —
-   move it somewhere this server can read, and set
-   `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` to that path.
+4. **Create + download its JSON key, then set `GOOGLE_SERVICE_ACCOUNT_KEY_PATH`.**
+   Click the service account you just created in the list → **Keys** tab →
+   **Add Key** → **Create new key** → choose **JSON** → **Create**. A
+   `.json` file downloads immediately (usually to your Downloads folder) —
+   move it into `booking-service/google-calendar/` (that folder already
+   exists and is git-ignored specifically for these keys — see
+   `.gitignore` — so it's safe to drop it there and it will never be
+   committed). Then in `booking-service/.env`, set
+   `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` to the full path of that file, e.g.
+   `GOOGLE_SERVICE_ACCOUNT_KEY_PATH=/absolute/path/to/booking-service/google-calendar/your-key-file.json`
+   (on Windows, a path like
+   `C:\Users\you\...\booking-service\google-calendar\your-key-file.json`
+   works too — no quotes needed either way). **If you're redoing this
+   step, delete the old `.json` file from that folder first** so you don't
+   end up with two keys and point at the stale one by mistake.
 
-5. **Copy the service account's email.** Still on that service account's
-   page, near the top — it looks like
+5. **Copy the service account's email** — this is *not* an `.env` value,
+   it only exists to paste into step 6 next. Still on that service
+   account's page, near the top — it looks like
    `booking-service-calendar-sync@<your-project-id>.iam.gserviceaccount.com`.
    (It's also inside the downloaded JSON, as `"client_email"`.)
 
 6. **Share a calendar with it.** Go to
    [calendar.google.com](https://calendar.google.com) with whichever Google
    account should own the calendar (a plain personal Gmail account is
-   fine — Workspace is not required). Find the calendar in the left
-   sidebar → ⋮ → **Settings and sharing** → **Share with specific people or
-   groups** → **+ Add people and groups** → paste the service account's
-   email → set permission to **Make changes to events** → **Send**.
+   fine — Workspace is not required; this can be the same account as step 1
+   or a different one). Find the calendar in the left sidebar → ⋮ →
+   **Settings and sharing** → **Share with specific people or groups** →
+   **+ Add people and groups** → paste the service account's email from
+   step 5 → set permission to **Make changes to events** → **Send**.
+   (Forgetting this step is the most common mistake — without it, sync
+   fails silently in the background; see "Verify it worked" below.)
 
-7. **Copy the Calendar ID.** Same settings page, scroll to **Integrate
-   calendar** → copy **Calendar ID** (for your main calendar it's just your
-   email address; for a separate dedicated calendar it looks like
-   `xxxxxxx@group.calendar.google.com`). Set `GOOGLE_CALENDAR_ID` to that
-   value.
+7. **Copy the Calendar ID, then set `GOOGLE_CALENDAR_ID`.** Same settings
+   page, scroll down to **Integrate calendar** → copy **Calendar ID** (for
+   your main calendar it's just your email address; for a separate
+   dedicated calendar it looks like `xxxxxxx@group.calendar.google.com`).
+   Set `GOOGLE_CALENDAR_ID` to that value in `booking-service/.env`.
+
+**Verify it worked:** restart the server (`npm run dev`) so it picks up the
+new `.env` values, then make a test booking through the flow described
+under "Manual end-to-end testing" below. Check `booking-service/logs/` (or
+the terminal output) for a line from `googleCalendarService.js` — an error
+there almost always means step 6 (sharing the calendar) was skipped or used
+the wrong email. If it succeeds, the event shows up on the calendar from
+step 6 within a few seconds.
 
 ## Running mounted inside another process
 
@@ -268,12 +354,24 @@ submit the contact form, confirm the email arrives and (if Google Calendar
 is configured) the event shows up, then open the `/manage/<token>` link
 from that email to exercise reschedule/cancel and the 24h cutoff.
 
+### Local dry-run (no real emails sent)
+
+Set `EMAIL_DRY_RUN=true` in `.env` to exercise the full booking flow locally
+without sending through the real SMTP account. Every confirmation /
+reschedule / cancellation / no-slot email is instead written as an HTML file
+to `logs/dev-emails/` (gitignored) — open the file in a browser to see
+exactly what would have been sent, including the `/manage/<token>` link, so
+you can click through reschedule/cancel the same way a recipient would.
+Everything else (DB writes, Calendar sync if configured, API responses)
+behaves identically to a real run. Leave the flag unset in production.
+
 ### Testing in production
 
-There's no separate "test mode" in the code — the same paths run
-identically regardless of environment; what changes is only which `.env`
-the process was started with (DB, SMTP, Calendar credentials) and, for a
-mounted deployment, the URL prefix. So a production smoke test is the exact
+Aside from the `EMAIL_DRY_RUN` flag above, there's no separate "test mode"
+in the code — the same paths run identically regardless of environment;
+what changes is only which `.env` the process was started with (DB, SMTP,
+Calendar credentials) and, for a mounted deployment, the URL prefix. So a
+production smoke test is the exact
 same recipe as above, pointed at the production URL/DB/API key instead of
 localhost:
 
@@ -298,6 +396,3 @@ localhost:
   deployed in the same timezone as the physical resource being booked.
 - Capacity is always created as 1 (the schema supports more, but nothing
   generates or books multi-capacity slots yet).
-- Rescheduling shows all future open slots for the resource and does not
-  re-enforce whatever minimum-notice rule (`after`) gated the original
-  booking.
