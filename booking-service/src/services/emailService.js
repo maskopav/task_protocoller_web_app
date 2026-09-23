@@ -76,6 +76,21 @@ function formatSlot(locale, startsAt, endsAt, location) {
 // conditional (or per-resource) rather than always shown.
 const locationPhotoUrl = `${process.env.PUBLIC_BASE_URL}/images/CVUT-building.jpg`;
 
+// Partner-org logos + a one-line signature, appended to every outgoing
+// email so it reads as coming from a real institutional team rather than an
+// anonymous automated sender.
+function emailFooter(locale) {
+  const base = process.env.PUBLIC_BASE_URL;
+  return `
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">
+      <img src="${base}/images/logo_CVUT.jpg" alt="ČVUT" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
+      <img src="${base}/images/lf_uk_logo.png" alt="1. LF UK" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
+      <img src="${base}/images/SHARE-ERIC_L_BS.png" alt="SHARE-ERIC" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
+      <p style="color: #999; font-size: 0.85em; margin: 12px 0 0;">${t(locale, "teamSignature")}</p>
+    </div>
+  `;
+}
+
 export async function sendBookingConfirmationEmail({ to, startsAt, endsAt, location, manageLink, locale = "en" }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
@@ -86,6 +101,7 @@ export async function sendBookingConfirmationEmail({ to, startsAt, endsAt, locat
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
         ${t(locale, "manageButton")}
       </a>
+      ${emailFooter(locale)}
     </div>
   `;
   return sendEmail({ to, subject: t(locale, "confirmationSubject"), html });
@@ -99,6 +115,7 @@ export async function sendBookingRescheduledEmail({ to, startsAt, endsAt, locati
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
         ${t(locale, "manageButton")}
       </a>
+      ${emailFooter(locale)}
     </div>
   `;
   return sendEmail({ to, subject: t(locale, "rescheduledSubject"), html });
@@ -121,6 +138,7 @@ export async function sendNoSlotFollowupEmail({ to, selfBookingLink, contactInfo
       ${contactInfo ? `
         <p style="color: #666; font-size: 0.9em;">${t(locale, "questionsLabel")} ${contactInfo}</p>
       ` : ""}
+      ${emailFooter(locale)}
     </div>
   `;
   return sendEmail({ to, subject: t(locale, "noSlotSubject"), html });
@@ -141,6 +159,7 @@ export async function sendBookingCancelledEmail({ to, startsAt, rebookLink, cont
       ${contactInfo ? `
         <p style="color: #666; font-size: 0.9em;">${t(locale, "questionsLabel")} ${contactInfo}</p>
       ` : ""}
+      ${emailFooter(locale)}
     </div>
   `;
   return sendEmail({ to, subject: t(locale, "cancelledSubject"), html });

@@ -24,6 +24,7 @@ const TRANSLATIONS = {
     noSlotHeading: "Thanks for letting us know",
     noSlotBody: "We've noted that none of the currently offered times work for you. We'll be in touch soon to find a suitable time.",
     noSlotLinkButton: "Check available times",
+    teamSignature: "Thank you — Team neuroSHARE, CTU FEL",
   },
   cs: {
     confirmationSubject: "Termín návštěvy potvrzen",
@@ -43,6 +44,7 @@ const TRANSLATIONS = {
     noSlotHeading: "Děkujeme za informaci",
     noSlotBody: "Zaznamenali jsme, že vám nevyhovuje žádný z aktuálně nabízených termínů. Brzy se vám ozveme, abychom našli vhodný termín.",
     noSlotLinkButton: "Zobrazit dostupné termíny",
+    teamSignature: "Děkujeme — tým neuroSHARE, ČVUT FEL",
   },
   de: {
     confirmationSubject: "Termin bestätigt",
@@ -62,6 +64,7 @@ const TRANSLATIONS = {
     noSlotHeading: "Danke für Ihre Rückmeldung",
     noSlotBody: "Wir haben notiert, dass keiner der aktuell angebotenen Termine für Sie passt. Wir melden uns bald, um einen passenden Termin zu finden.",
     noSlotLinkButton: "Verfügbare Termine ansehen",
+    teamSignature: "Vielen Dank — Team neuroSHARE, ČVUT FEL",
   },
 };
 
