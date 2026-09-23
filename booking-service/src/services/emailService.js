@@ -84,8 +84,7 @@ function emailFooter(locale) {
   return `
     <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; text-align: center;">
       <img src="${base}/images/logo_CVUT.jpg" alt="ČVUT" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
-      <img src="${base}/images/lf_uk_logo.png" alt="1. LF UK" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
-      <img src="${base}/images/SHARE-ERIC_L_BS.png" alt="SHARE-ERIC" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
+      <img src="${base}/images/logo_SCAC.png" alt="SC&amp;C" height="32" style="height: 32px; width: auto; margin: 0 8px; vertical-align: middle;" />
       <p style="color: #999; font-size: 0.85em; margin: 12px 0 0;">${t(locale, "teamSignature")}</p>
     </div>
   `;
