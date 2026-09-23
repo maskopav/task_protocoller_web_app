@@ -445,11 +445,26 @@ SELECT
     s.completed AS is_finished_flag,
 
     -- 6. Current Task Name
-    -- If completed, return NULL. Otherwise, get DB category OR fallback to the JSON taskName of the last event.
-    IF(s.id IS NULL OR s.completed = 1, NULL,
-        COALESCE(
-            t.category,
-            JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
+    -- If completed, return NULL -- except for the follow-up booking step,
+    -- which deliberately marks the session `completed` the instant it opens
+    -- (see BookingStep.jsx: booking-service's eligibility gate requires
+    -- completed_at to already be set before the slot link can be minted), so
+    -- a respondent stuck picking/confirming a slot would otherwise show a
+    -- blank Current Step despite still being mid-flow. This view has no
+    -- visibility into booking-service's own DB, so it can only tell "they
+    -- opened the booking step" -- getProjectFieldwork (projectController.js)
+    -- re-nulls this once it has booking-service's status and can see the
+    -- reservation is actually resolved (booked/cancelled).
+    IF(s.id IS NULL, NULL,
+        IF(s.completed = 1 AND NOT (
+                p.enable_followup_booking = 1
+                AND JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName')) = 'followup_booking'
+           ),
+           NULL,
+           COALESCE(
+               t.category,
+               JSON_VALUE(s.progress, CONCAT('$[', JSON_LENGTH(s.progress) - 1, '].taskName'))
+           )
         )
     ) AS last_activity_task_name,
 

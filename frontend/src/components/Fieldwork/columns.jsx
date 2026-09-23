@@ -27,7 +27,13 @@ import {
 const startedText = (r) => formatDateTime(r.session_started_at);
 const lastActivityText = (r) => formatDateTime(r.session_last_activity_at);
 const durationText = (r) => formatDuration(r.total_duration_seconds);
-const currentStepText = (r) => r.last_activity_task_name || "—";
+// last_activity_task_name is the raw internal task type/category (see
+// v_session_summary) -- every value already reads fine as-is except
+// "followup_booking", which this humanizes to match the "Reservation"
+// label used elsewhere (e.g. the Reservation column) for the same step.
+const currentStepLabel = (r) =>
+  r.last_activity_task_name === "followup_booking" ? "reservation" : r.last_activity_task_name;
+const currentStepText = (r) => currentStepLabel(r) || "—";
 const languageCodeText = (r) => r.protocol_language_code || "—";
 const sessionIdText = (r) => (r.session_id ?? "—").toString();
 
@@ -276,8 +282,8 @@ export const COLUMN_DEFS = [
   {
     id: "currentStep",
     label: "Current Step",
-    value: (r) => r.last_activity_task_name || "",
-    sortValue: (r) => (r.last_activity_task_name || "").toLowerCase(),
+    value: (r) => currentStepLabel(r) || "",
+    sortValue: (r) => (currentStepLabel(r) || "").toLowerCase(),
     render: (r) => <span className="fieldwork-current-step">{currentStepText(r)}</span>,
   },
   {

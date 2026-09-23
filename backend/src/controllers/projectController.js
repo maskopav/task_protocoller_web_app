@@ -78,6 +78,21 @@
                         row.reservation_preferred_times = booking.preferred_times || undefined;
                     }
 
+                    // v_session_summary leaves last_activity_task_name as
+                    // 'followup_booking' (instead of nulling it out like it
+                    // does for every other finished session) so a respondent
+                    // stuck on the reservation step still shows up in the
+                    // Fieldwork table's Current Step column -- but that view
+                    // can't see booking-service's own DB, so it can't tell
+                    // once the reservation is actually resolved. Now that we
+                    // have that status, clear it back to null the same way a
+                    // normal finished session reads, instead of permanently
+                    // showing a step the respondent already finished.
+                    if (row.last_activity_task_name === "followup_booking" &&
+                        booking && ["booked", "rescheduled", "cancelled"].includes(booking.status)) {
+                        row.last_activity_task_name = null;
+                    }
+
                     // The link must match whichever one this respondent was
                     // actually emailed. An active appointment ('booked' or
                     // 'rescheduled') was confirmed with a /manage/:manage_token
