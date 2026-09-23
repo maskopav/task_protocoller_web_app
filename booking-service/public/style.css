@@ -3,7 +3,10 @@
   --text: #000000;
   --muted: #575151;
   --border: #d6dfef;
-  --bg: #f9f9fb;
+  /* Matches frontend's --card-bg (Pages.css) -- this page is shown inside
+     the main app's .task-card, so its own background must match that gray
+     exactly, or the iframe edge shows up as a visible seam. */
+  --bg: #ededed;
   --radius: 1rem;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
   --transition: all 0.2s ease;
@@ -26,7 +29,7 @@ body {
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: clamp(20px, 5dvh, 32px) clamp(12px, 3vw, 20px) clamp(40px, 8dvh, 60px);
+  padding: clamp(12px, 3dvh, 20px) clamp(6px, 2vw, 12px) clamp(40px, 8dvh, 60px);
 }
 
 /* Font sizes and button radius below are matched to the main app's task
@@ -90,6 +93,9 @@ input[type="email"], input[type="tel"], textarea {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-family: inherit;
+  /* Matches the rest of the page's body text (labels, notices, etc.) --
+     without this, inputs fall back to the browser's small default size. */
+  font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
 }
 textarea { resize: vertical; }
 

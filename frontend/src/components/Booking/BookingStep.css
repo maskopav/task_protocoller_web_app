@@ -1,7 +1,7 @@
 .booking-step {
   max-width: 720px;
   margin: 0 auto;
-  padding: clamp(10px, 3dvh, 24px) clamp(6px, 2vw, 16px);
+  padding: clamp(6px, 1.5dvh, 12px) clamp(2px, 1vw, 8px);
   text-align: center;
 }
 
@@ -33,7 +33,7 @@
   min-height: 480px;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
-  margin-bottom: 20px;
+  margin-bottom: clamp(6px, 1.5dvh, 12px);
 }
 
 /* Once booking-service reaches its (now single-screen, no-scroll)
@@ -101,8 +101,9 @@
   z-index: 20;
   display: flex;
   justify-content: center;
-  background: var(--bg);
-  border-top: 1px solid #e2e2e2;
+  /* Matches .task-card's background (Pages.css), which is what's actually
+     visible directly above this bar, so there's no seam between the two. */
+  background: var(--card-bg);
   padding: 10px 16px max(env(safe-area-inset-bottom, 0px), 10px);
 }
 
