@@ -1,7 +1,10 @@
 .booking-step {
   max-width: 720px;
   margin: 0 auto;
-  padding: clamp(6px, 1.5dvh, 12px) clamp(2px, 1vw, 8px);
+  /* Near-zero side padding -- the card itself (booking-service's .page)
+     keeps text off its own edges, so there's no need to also inset the
+     card from the screen edges on small phones. */
+  padding: clamp(0.5rem, 2dvh, 1rem) clamp(0px, 1vw, 4px);
   text-align: center;
 }
 

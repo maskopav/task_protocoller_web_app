@@ -3,10 +3,7 @@
   --text: #000000;
   --muted: #575151;
   --border: #d6dfef;
-  /* Matches frontend's --card-bg (Pages.css) -- this page is shown inside
-     the main app's .task-card, so its own background must match that gray
-     exactly, or the iframe edge shows up as a visible seam. */
-  --bg: #ededed;
+  --bg: #f9f9fb;
   --radius: 1rem;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
   --transition: all 0.2s ease;
@@ -29,7 +26,10 @@ body {
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: clamp(12px, 3dvh, 20px) clamp(6px, 2vw, 12px) clamp(40px, 8dvh, 60px);
+  /* Horizontal padding gives text room off the card's own edge now that
+     the wrapping .booking-step (frontend) carries almost no side margin
+     of its own -- the card runs nearly edge-to-edge on phones. */
+  padding: clamp(12px, 3dvh, 20px) clamp(14px, 4vw, 24px) clamp(40px, 8dvh, 60px);
 }
 
 /* Font sizes and button radius below are matched to the main app's task
@@ -62,7 +62,7 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: clamp(0.5rem, 2vw, 1rem);
-  margin-bottom: clamp(0.3rem, 1vw, 0.5rem);
+  margin: clamp(0.2rem, 1vw, 0.5rem);
 }
 
 .day-group { margin-bottom: 20px; }
