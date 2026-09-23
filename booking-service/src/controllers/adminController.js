@@ -56,7 +56,7 @@ export async function bulkCreateSlots(req, res) {
       const resource = await bookingService.getResourceById(req.tenant.id, resourceId);
       Promise.all(insertedSlots.map(async (slot) => {
         const eventId = await upsertSlotEvent({
-          eventId: null, resourceName: resource.name,
+          eventId: null,
           startsAt: slot.starts_at, endsAt: slot.ends_at,
           location: slot.location || resource.default_location, status: "available",
         });

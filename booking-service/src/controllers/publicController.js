@@ -167,7 +167,7 @@ export async function createPublicBooking(req, res) {
     // generated (styled "available") — this flips that same event to
     // "booked" rather than creating a second one for the same time slot.
     upsertSlotEvent({
-      eventId: slotRow.google_event_id, resourceName: resource.name,
+      eventId: slotRow.google_event_id,
       startsAt: slotRow.starts_at, endsAt: slotRow.ends_at, location, status: "booked",
       systemNotes: [`Ref: ${ref}`, `Contact: ${email}, ${phone}`], contactEmail: email,
     })
@@ -247,13 +247,13 @@ export async function rescheduleManageBooking(req, res) {
     // "available" (it's open again), the new slot flips to "booked" — each
     // event belongs to its own time slot and outlives this one booking.
     upsertSlotEvent({
-      eventId: oldSlot.googleEventId, resourceName: booking.resource_name,
+      eventId: oldSlot.googleEventId,
       startsAt: oldSlot.startsAt, endsAt: oldSlot.endsAt,
       location: oldSlot.location || booking.default_location, status: "available",
     }).catch((err) => logToFile("ERROR", "Failed to revert old slot's Calendar event", { bookingId: booking.id, error: err.message }));
 
     upsertSlotEvent({
-      eventId: newSlot.googleEventId, resourceName: booking.resource_name,
+      eventId: newSlot.googleEventId,
       startsAt: newSlot.startsAt, endsAt: newSlot.endsAt, location, status: "booked",
       systemNotes: [`Ref: ${booking.external_ref}`, `Contact: ${booking.contact_email}, ${booking.contact_phone}`],
       contactEmail: booking.contact_email,
@@ -315,7 +315,7 @@ export async function cancelManageBooking(req, res) {
     // The slot itself still exists and is bookable again, so its Calendar
     // event reverts to "available" rather than being deleted.
     upsertSlotEvent({
-      eventId: booking.google_event_id, resourceName: booking.resource_name,
+      eventId: booking.google_event_id,
       startsAt: booking.starts_at, endsAt: booking.ends_at,
       location: booking.location || booking.default_location, status: "available",
     }).catch((err) => logToFile("ERROR", "Failed to revert cancelled slot's Calendar event", { bookingId: booking.id, error: err.message }));
