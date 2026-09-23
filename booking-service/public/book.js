@@ -30,8 +30,10 @@
   const nextBtn = document.getElementById("nextBtn");
   const noSlotConfirmedStep = document.getElementById("noSlotConfirmedStep");
   const resourceLocation = document.getElementById("resourceLocation");
+  const studyIntro = document.getElementById("studyIntro");
 
   document.documentElement.lang = locale;
+  studyIntro.textContent = t("studyIntro");
   loading.textContent = t("loadingSlots");
   emailLabel.textContent = t("emailLabel");
   phoneLabel.textContent = t("phoneLabel");
@@ -309,6 +311,7 @@
           whereRow.classList.add("hidden");
         }
         resourceLocation.classList.add("hidden");
+        studyIntro.classList.add("hidden");
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");
         confirmedStep.classList.remove("hidden");
@@ -325,6 +328,7 @@
         if (!res.ok) throw new Error(window.bookingI18n.tForApiError(data, "noSlotFailed"));
 
         resourceLocation.classList.add("hidden");
+        studyIntro.classList.add("hidden");
         slotStep.classList.add("hidden");
         contactStep.classList.add("hidden");
         noSlotConfirmedStep.classList.remove("hidden");

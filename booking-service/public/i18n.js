@@ -10,6 +10,7 @@
 (function () {
   const TRANSLATIONS = {
     en: {
+      studyIntro: "This visit is the second part of the neuroSHARE study and takes place at ČVUT in Prague-Dejvice.",
       loadingSlots: "Loading available times…",
       noSlots: "No times are available right now — please check back later.",
       invalidLink: "This booking link is invalid or has expired.",
@@ -51,6 +52,7 @@
       missingFields: "Email and phone are required.",
     },
     cs: {
+      studyIntro: "Tato návštěva je druhou částí studie neuroSHARE a proběhne na ČVUT v Praze-Dejvicích.",
       loadingSlots: "Načítání dostupných termínů…",
       noSlots: "Momentálně nejsou k dispozici žádné termíny — zkuste to prosím později.",
       invalidLink: "Tento odkaz na rezervaci je neplatný nebo vypršel.",
@@ -92,6 +94,7 @@
       missingFields: "E-mail a telefon jsou povinné údaje.",
     },
     de: {
+      studyIntro: "Dieser Termin ist der zweite Teil der neuroSHARE-Studie und findet an der ČVUT in Prag-Dejvice statt.",
       loadingSlots: "Verfügbare Termine werden geladen…",
       noSlots: "Derzeit sind keine Termine verfügbar — bitte später erneut versuchen.",
       invalidLink: "Dieser Buchungslink ist ungültig oder abgelaufen.",

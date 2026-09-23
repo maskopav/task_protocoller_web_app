@@ -40,6 +40,7 @@ body {
    page has only one or the other, never both) reads at a consistent size. */
 h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--text); }
 .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem); }
+.study-intro { color: var(--muted); margin-top: 0; margin-bottom: 16px; font-size: clamp(1.2rem, min(4.8vw, 3.8dvh), 1.4rem); line-height: 1.4; }
 
 /* Shared "label: value" row used for the When/Where-style details on both
    the booking confirmation (book.html) and the manage page (manage.html) --
