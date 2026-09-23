@@ -140,7 +140,7 @@ button {
    page reads at the same size, rather than the primary CTA looking like a
    different scale of control from Reschedule/Cancel. */
 button.primary {
-  background: var(--accent);
+  background: var(--primary);
   color: #fff;
 }
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
