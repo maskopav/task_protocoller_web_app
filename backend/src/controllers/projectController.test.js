@@ -54,6 +54,21 @@ describe("getProjectList", () => {
     expect(sql).toMatch(/JOIN user_projects/);
     expect(params).toEqual([7]);
   });
+
+  // The scoping check is "not master", not "is admin" — a survey_agency
+  // user gets the same assigned-projects-only treatment for free.
+  it("scopes to assigned projects for a survey_agency user the same way as any other non-master role", async () => {
+    executeQuery.mockResolvedValueOnce([{ project_id: 5 }]);
+    const req = { admin: { id: 42, role: "survey_agency" }, query: {} };
+    const res = makeRes();
+
+    await getProjectList(req, res);
+
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toMatch(/JOIN user_projects/);
+    expect(params).toEqual([42]);
+    expect(res.body).toEqual([{ project_id: 5 }]);
+  });
 });
 
 describe("getProjectFieldwork", () => {
@@ -89,6 +104,30 @@ describe("getProjectFieldwork", () => {
     const fieldworkCall = executeQuery.mock.calls[1];
     expect(fieldworkCall[0]).toMatch(/FROM v_session_summary WHERE project_id = \?/);
     expect(fieldworkCall[1]).toEqual(["5"]);
+  });
+
+  it("403s a survey_agency user who isn't assigned to the requested project", async () => {
+    executeQuery.mockResolvedValueOnce([]); // user_projects lookup finds nothing
+    const req = { params: { projectId: "5" }, admin: { id: 42, role: "survey_agency" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(res.statusCode).toBe(403);
+    expect(executeQuery).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns fieldwork rows for a survey_agency user who is assigned to the project", async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ 1: 1 }]) // assigned
+      .mockResolvedValueOnce([{ session_id: 1, project_id: 5 }]);
+    const req = { params: { projectId: "5" }, admin: { id: 42, role: "survey_agency" } };
+    const res = makeRes();
+
+    await getProjectFieldwork(req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual([{ session_id: 1, project_id: 5 }]);
   });
 
   it("skips the assignment check entirely for a master admin", async () => {

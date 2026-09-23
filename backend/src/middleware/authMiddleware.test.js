@@ -181,6 +181,31 @@ describe('requireRole', () => {
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
   });
+
+  // The restricted survey_agency role reuses this same allow-list mechanism —
+  // no special-casing needed, just routes naming it (or not) in their
+  // requireRole(...) call.
+  it('allows survey_agency through when it is in the allow-list', () => {
+    const req = { admin: { role: 'survey_agency' } };
+    const res = makeRes();
+    const next = vi.fn();
+
+    requireRole('master', 'admin', 'survey_agency')(req, res, next);
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('rejects survey_agency with 403 from a master/admin-only route', () => {
+    const req = { admin: { role: 'survey_agency' } };
+    const res = makeRes();
+    const next = vi.fn();
+
+    requireRole('master', 'admin')(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
 });
 
 // Local helper: sign a token with a custom (possibly negative) expiry to exercise the expired-token path.
