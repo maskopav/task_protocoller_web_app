@@ -7,7 +7,7 @@ import { importContactEvents } from "../../api/participantProtocols";
 const INITIAL_STATE = { status: "idle", parseErrors: [], result: null, error: "" };
 
 // Lets the admin pick which outreach columns they're uploading this time
-// (respondent ID is always included) and which delimiter their CSV uses,
+// (external ID is always included) and which delimiter their CSV uses,
 // then matches rows against this project's participants by ID. Reports
 // success/failure per row rather than all-or-nothing, since agency CSVs
 // routinely carry a handful of typo'd IDs or malformed dates.
@@ -72,7 +72,7 @@ export default function FieldworkImportModal({ open, onClose, projectId, onImpor
         <div className="fieldwork-import-columns">
           <label className="fieldwork-import-column-option fieldwork-import-column-fixed">
             <input type="checkbox" checked disabled />
-            Respondent ID (always included)
+            External ID (always included)
           </label>
           {IMPORT_COLUMNS.map((col) => (
             <label key={col.key} className="fieldwork-import-column-option">

@@ -53,7 +53,7 @@ const sessionIdText = (r) => (r.session_id ?? "—").toString();
 export const COLUMN_DEFS = [
   {
     id: "participant",
-    label: "Respondent ID",
+    label: "External ID",
     required: true,
     value: (r) => r.participant_name || "",
     sortValue: (r) => (r.participant_name || "").toLowerCase(),
