@@ -139,10 +139,17 @@ Booking works fully without this configured — Calendar sync is skipped and
 logged if unset. Everything below is free: no billing account or card is
 ever required for the Calendar API.
 
+There are only **two** `.env` values you're working towards here:
+`GOOGLE_SERVICE_ACCOUNT_KEY_PATH` (a file path, set in step 4) and
+`GOOGLE_CALENDAR_ID` (a short string, set in step 7). Everything else below
+(the service account, its email, sharing) is just plumbing to get those two
+values — nothing else gets pasted into `.env`.
+
 1. **Open/create a project.** Go to
-   [console.cloud.google.com](https://console.cloud.google.com). Use the
-   project picker at the top left ("My First Project" is fine, or create a
-   new one) — this just groups the API access together, nothing to pay for.
+   [console.cloud.google.com](https://console.cloud.google.com), signed in
+   with **whichever Google account you want this tied to**. Use the project
+   picker at the top left ("My First Project" is fine, or create a new
+   one) — this just groups the API access together, nothing to pay for.
 
 2. **Enable the Calendar API.** Left menu (☰) → **APIs & Services** →
    **Library**. Search "Google Calendar API", open it, click **Enable**.
@@ -158,30 +165,52 @@ ever required for the Calendar API.
    Google-Cloud-level role is needed, access is granted directly in Google
    Calendar's own sharing UI in step 6. Click **Done**.
 
-4. **Create + download its JSON key.** Click the service account you just
-   created in the list → **Keys** tab → **Add Key** → **Create new key** →
-   choose **JSON** → **Create**. A `.json` file downloads immediately —
-   move it somewhere this server can read, and set
-   `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` to that path.
+4. **Create + download its JSON key, then set `GOOGLE_SERVICE_ACCOUNT_KEY_PATH`.**
+   Click the service account you just created in the list → **Keys** tab →
+   **Add Key** → **Create new key** → choose **JSON** → **Create**. A
+   `.json` file downloads immediately (usually to your Downloads folder) —
+   move it into `booking-service/google-calendar/` (that folder already
+   exists and is git-ignored specifically for these keys — see
+   `.gitignore` — so it's safe to drop it there and it will never be
+   committed). Then in `booking-service/.env`, set
+   `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` to the full path of that file, e.g.
+   `GOOGLE_SERVICE_ACCOUNT_KEY_PATH=/absolute/path/to/booking-service/google-calendar/your-key-file.json`
+   (on Windows, a path like
+   `C:\Users\you\...\booking-service\google-calendar\your-key-file.json`
+   works too — no quotes needed either way). **If you're redoing this
+   step, delete the old `.json` file from that folder first** so you don't
+   end up with two keys and point at the stale one by mistake.
 
-5. **Copy the service account's email.** Still on that service account's
-   page, near the top — it looks like
+5. **Copy the service account's email** — this is *not* an `.env` value,
+   it only exists to paste into step 6 next. Still on that service
+   account's page, near the top — it looks like
    `booking-service-calendar-sync@<your-project-id>.iam.gserviceaccount.com`.
    (It's also inside the downloaded JSON, as `"client_email"`.)
 
 6. **Share a calendar with it.** Go to
    [calendar.google.com](https://calendar.google.com) with whichever Google
    account should own the calendar (a plain personal Gmail account is
-   fine — Workspace is not required). Find the calendar in the left
-   sidebar → ⋮ → **Settings and sharing** → **Share with specific people or
-   groups** → **+ Add people and groups** → paste the service account's
-   email → set permission to **Make changes to events** → **Send**.
+   fine — Workspace is not required; this can be the same account as step 1
+   or a different one). Find the calendar in the left sidebar → ⋮ →
+   **Settings and sharing** → **Share with specific people or groups** →
+   **+ Add people and groups** → paste the service account's email from
+   step 5 → set permission to **Make changes to events** → **Send**.
+   (Forgetting this step is the most common mistake — without it, sync
+   fails silently in the background; see "Verify it worked" below.)
 
-7. **Copy the Calendar ID.** Same settings page, scroll to **Integrate
-   calendar** → copy **Calendar ID** (for your main calendar it's just your
-   email address; for a separate dedicated calendar it looks like
-   `xxxxxxx@group.calendar.google.com`). Set `GOOGLE_CALENDAR_ID` to that
-   value.
+7. **Copy the Calendar ID, then set `GOOGLE_CALENDAR_ID`.** Same settings
+   page, scroll down to **Integrate calendar** → copy **Calendar ID** (for
+   your main calendar it's just your email address; for a separate
+   dedicated calendar it looks like `xxxxxxx@group.calendar.google.com`).
+   Set `GOOGLE_CALENDAR_ID` to that value in `booking-service/.env`.
+
+**Verify it worked:** restart the server (`npm run dev`) so it picks up the
+new `.env` values, then make a test booking through the flow described
+under "Manual end-to-end testing" below. Check `booking-service/logs/` (or
+the terminal output) for a line from `googleCalendarService.js` — an error
+there almost always means step 6 (sharing the calendar) was skipped or used
+the wrong email. If it succeeds, the event shows up on the calendar from
+step 6 within a few seconds.
 
 ## Running mounted inside another process
 
