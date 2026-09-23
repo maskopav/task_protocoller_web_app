@@ -57,6 +57,15 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
   text-align: left;
 }
 
+.location-photo {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  margin: 0 0 16px;
+}
+
 .card {
   background: #fff;
   border: 1px solid var(--border);

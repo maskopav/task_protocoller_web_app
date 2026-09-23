@@ -71,11 +71,17 @@ function formatSlot(locale, startsAt, endsAt, location) {
   `;
 }
 
+// Fixed to the CVUT building -- this service is currently single-location.
+// If a second location/tenant is ever added, this needs to become
+// conditional (or per-resource) rather than always shown.
+const locationPhotoUrl = `${process.env.PUBLIC_BASE_URL}/images/CVUT-building.jpg`;
+
 export async function sendBookingConfirmationEmail({ to, startsAt, endsAt, location, manageLink, locale = "en" }) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">
       <h2 style="color: #3764df;">${t(locale, "confirmationHeading")}</h2>
       ${formatSlot(locale, startsAt, endsAt, location)}
+      <img src="${locationPhotoUrl}" alt="ČVUT FEL" width="560" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px; display: block; margin: 12px 0;" />
       <p>${t(locale, "manageNotice")}</p>
       <a href="${manageLink}" style="background:#3764df; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; display:inline-block;">
         ${t(locale, "manageButton")}
