@@ -1,9 +1,12 @@
 :root {
-  --accent: #3764df;
-  --text: #222;
-  --muted: #666;
-  --border: #e2e2e2;
+  --primary: #3764df;
+  --text: #000000;
+  --muted: #575151;
+  --border: #d6dfef;
   --bg: #f9f9fb;
+  --radius: 1rem;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+  --transition: all 0.2s ease;
 }
 
 * { box-sizing: border-box; }
@@ -17,7 +20,7 @@ body {
      sizes) so any plain paragraph -- e.g. #doneMessage, .error -- reads at
      the same size as the labels/inputs/notices that already set 1.1rem
      explicitly, instead of falling back to the browser's smaller default. */
-  font-size: 1.1rem;
+  font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
 }
 
 .page {
@@ -33,13 +36,13 @@ body {
 /* h1 and h2 share the same size so every page's top-level heading (this
    page has only one or the other, never both) reads at a consistent size. */
 h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--text); }
-.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; }
+.subtitle { color: var(--muted); margin-top: 0; margin-bottom: 24px; font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem); }
 
 /* Shared "label: value" row used for the When/Where-style details on both
    the booking confirmation (book.html) and the manage page (manage.html) --
    kept at the same 1.1rem as labels/inputs/notices elsewhere on this page
    so body text reads at one consistent size throughout. */
-.detail-row { margin: 0; font-size: 1.1rem; line-height: 1.5; }
+.detail-row { margin: 0; font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem); line-height: 1.5; }
 .detail-row + .detail-row { margin-top: 8px; }
 .detail-label { font-weight: 600; margin-right: 4px; }
 
@@ -54,13 +57,13 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
 .card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: clamp(12px, 3vw, 20px);
-  margin-bottom: clamp(6px, 2vw, 12px);
+  border-radius: var(--radius);
+  padding: clamp(0.5rem, 2vw, 1rem);
+  margin-bottom: clamp(0.3rem, 1vw, 0.5rem);
 }
 
 .day-group { margin-bottom: 20px; }
-.day-heading { font-weight: 600; margin-bottom: 8px; font-size: 1.2rem; }
+.day-heading { font-weight: 600; margin-bottom: 8px;}
 
 .slot-grid {
   display: grid;
@@ -70,24 +73,22 @@ h1, h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); margin: 0 0 12px; color: var(--t
 
 .slot-btn {
   padding: 12px 8px;
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  border: 1px solid var(--primary);
+  color: var(--primary);
   background: #fff;
-  border-radius: 1rem;
+  border-radius: var(--radius);
   cursor: pointer;
-  font-size: 1.1rem;
 }
 .slot-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .slot-btn:hover { background: #eef1fd; }
-.slot-btn.selected { background: var(--accent); color: #fff; }
+.slot-btn.selected { background: var(--primary); color: #fff; }
 
-label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 1.1rem; }
+label { display: block; font-weight: 600; margin: 12px 0 4px;}
 input[type="email"], input[type="tel"], textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 1.1rem;
+  border-radius: var(--radius);
   font-family: inherit;
 }
 textarea { resize: vertical; }
@@ -96,48 +97,60 @@ textarea { resize: vertical; }
    slot list, separated only by margin, to read as one continuous step
    rather than a boxed-off sub-form. */
 #contactStep { margin-top: 24px; }
-#selectedSlotSummary { font-size: 1.1rem; margin-bottom: 4px; }
+#selectedSlotSummary {  margin-bottom: 4px; }
 
 .centered-btn {
   display: block;
   margin: 16px auto 0;
 }
 
+button {
+  width: 100%;
+  /* iOS Safari otherwise keeps native button chrome (its own background/
+     border) layered under custom styles, which can make solid-color
+     backgrounds render inconsistently there vs. other browsers. */
+  -webkit-appearance: none;
+  appearance: none;
+  /* Noticeably taller on phones, comfortable on laptops */
+  padding: clamp(12px, 2dvh, 16px) clamp(16px, 3dvw, 20px);
+  margin: clamp(3px, 0.7dvh, 6px) 0;
+  /* Font size matches playback controls */
+  font-size: clamp(1.4rem, min(4.5dvw, 3dvh), 1.7rem);
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+}
+
 /* primary/secondary/danger share one font-size so every button on this
    page reads at the same size, rather than the primary CTA looking like a
    different scale of control from Reschedule/Cancel. */
 button.primary {
-  margin-top: 20px;
   background: var(--accent);
   color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 1rem;
-  font-size: 1.2rem;
-  cursor: pointer;
 }
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 button.secondary {
   background: #fff;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  padding: 10px 20px;
-  border-radius: 1rem;
-  font-size: 1.2rem;
-  cursor: pointer;
-  margin-right: 8px;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+
 }
-button.secondary.selected { background: var(--accent); color: #fff; }
+button.secondary.selected { background: var(--primary); color: #fff; }
 
 button.danger {
   background: #fff;
   color: #c0392b;
   border: 1px solid #c0392b;
-  padding: 10px 20px;
-  border-radius: 1rem;
-  font-size: 1.2rem;
-  cursor: pointer;
 }
 
 /* Reschedule/Cancel appointment on manage.html -- full-width, stacked, with

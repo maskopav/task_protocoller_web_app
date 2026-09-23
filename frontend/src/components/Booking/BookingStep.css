@@ -1,7 +1,7 @@
 .booking-step {
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: clamp(10px, 3dvh, 24px) clamp(6px, 2vw, 16px);
   text-align: center;
 }
 
@@ -101,7 +101,7 @@
   z-index: 20;
   display: flex;
   justify-content: center;
-  background: #fff;
+  background: var(--bg);
   border-top: 1px solid #e2e2e2;
   padding: 10px 16px max(env(safe-area-inset-bottom, 0px), 10px);
 }
