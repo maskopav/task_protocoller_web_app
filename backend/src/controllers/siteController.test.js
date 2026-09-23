@@ -333,7 +333,7 @@ describe('getSiteConfig', () => {
     executeQuery.mockReset();
   });
 
-  it('returns the desktop-app config with variants merged and protocols grouped by project', async () => {
+  it('returns the desktop-app config with variants merged and each protocol naming its project', async () => {
     mockConfigQueries({ id: 1, name: 'Paris', config_json: '{"defaultLanguage":"cs","useCalibration":false}', is_active: 1, updated_at: '2026-09-01 10:00:00' });
 
     const res = makeRes();
@@ -351,11 +351,11 @@ describe('getSiteConfig', () => {
       useCalibration: false,
       enableEditor: false,
     });
-    expect(payload.projects.map((p) => p.name)).toEqual(['Project A', 'Project B']);
-    expect(payload.projects[0].protocols).toHaveLength(1); // 10 (en) + 11 (cs) merged
-    expect(payload.projects[1].protocols).toHaveLength(1);
+    expect(payload).not.toHaveProperty('projects');
+    // 10 (en) + 11 (cs) merged under Project A; one protocol under Project B
+    expect(payload.protocols.map((p) => p.project)).toEqual(['Project A', 'Project B']);
 
-    const protocol = payload.projects[0].protocols[0];
+    const protocol = payload.protocols[0];
     expect(protocol.name).toBe('Protocol 10');
     expect(protocol.recordingsFileName).toContain('${taskIndex}');
     expect(protocol.patientFields.map((f) => f.name)).toEqual(['patient_code']); // legacy external_id

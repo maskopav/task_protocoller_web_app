@@ -238,7 +238,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
       ? `${assetBaseUrl.replace(/\/+$/, "")}/audio/illustrations/${key}.wav` : undefined;
   };
 
-  const mapProtocolGroup = (variants) => {
+  const mapProtocolGroup = (variants, projectName) => {
     const byLang = Object.fromEntries(variants.map((v) => [v.protocol.language_code, v]));
     const primary = byLang[defaultLanguage] ?? byLang.en ?? variants[0];
     const gid = primary.protocol.protocol_group_id ?? primary.protocol.id;
@@ -344,7 +344,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
       };
     });
 
-    const out = { name };
+    const out = { name, project: projectName };
     if (primary.protocol.instructions_pdf_url) out.protocolInstructionsPdfUrl = primary.protocol.instructions_pdf_url;
     out.recordingsFileName = primary.protocol.recordings_file_name || DEFAULT_RECORDINGS_FILE_NAME;
     out.patientFields = patientFields;
@@ -352,7 +352,9 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
     return out;
   };
 
-  const outProjects = projects.map((project) => {
+  // Flat protocols[]; a protocol linked to several of the site's projects is
+  // listed once per project, each entry naming its parent in `project`.
+  const outProtocols = projects.flatMap((project) => {
     const groups = new Map();
     const seen = new Set();
     for (const a of project.protocols) {
@@ -362,7 +364,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
       if (!groups.has(gid)) groups.set(gid, []);
       groups.get(gid).push(a);
     }
-    return { name: project.name, protocols: [...groups.values()].map(mapProtocolGroup) };
+    return [...groups.values()].map((variants) => mapProtocolGroup(variants, project.name));
   });
 
   const config = {
@@ -375,7 +377,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
     enableEditor: settings.enableEditor,
     indicatorType: settings.indicatorType,
     useCalibration: settings.useCalibration,
-    projects: outProjects,
+    protocols: outProtocols,
     strings,
   };
   return { config, skipped };

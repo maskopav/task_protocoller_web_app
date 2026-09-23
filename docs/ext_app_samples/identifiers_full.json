@@ -10,104 +10,100 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "projects": [
+  "protocols": [
     {
-      "name": "Identifier Study",
-      "protocols": [
+      "name": "All identifiers",
+      "project": "Identifier Study",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${field.surname}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "All identifiers",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${field.surname}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "current_date",
-              "labelKey": "p70_f_current_date_label",
-              "helpKey": "p70_f_current_date_help",
-              "placeholder": "",
-              "regex": "",
-              "required": true
-            },
-            {
-              "name": "sex",
-              "labelKey": "p70_f_sex_label",
-              "helpKey": "p70_f_sex_help",
-              "placeholder": "",
-              "regex": "",
-              "required": true
-            },
-            {
-              "name": "education",
-              "labelKey": "p70_f_education_label",
-              "helpKey": "p70_f_education_help",
-              "placeholder": "",
-              "regex": "",
-              "required": true
-            },
-            {
-              "name": "patient_code",
-              "labelKey": "p70_f_patient_code_label",
-              "helpKey": "p70_f_patient_code_help",
-              "placeholder": "PD001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            },
-            {
-              "name": "surname",
-              "labelKey": "p70_f_surname_label",
-              "helpKey": "p70_f_surname_help",
-              "placeholder": "",
-              "regex": "",
-              "required": false
-            },
-            {
-              "name": "year_of_birth",
-              "labelKey": "p70_f_year_of_birth_label",
-              "helpKey": "p70_f_year_of_birth_help",
-              "placeholder": "1965",
-              "regex": "\\d{4}",
-              "required": false
-            },
-            {
-              "name": "visit_number",
-              "labelKey": "p70_f_visit_number_label",
-              "helpKey": "p70_f_visit_number_help",
-              "placeholder": "V0",
-              "regex": "V\\d+",
-              "required": true
-            },
-            {
-              "name": "medication_state",
-              "labelKey": "p70_f_medication_state_label",
-              "helpKey": "p70_f_medication_state_help",
-              "placeholder": "ON/OFF",
-              "regex": "",
-              "required": false
-            },
-            {
-              "name": "patient_code",
-              "labelKey": "p70_f_patient_code_label",
-              "helpKey": "p70_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "name": "current_date",
+          "labelKey": "p70_f_current_date_label",
+          "helpKey": "p70_f_current_date_help",
+          "placeholder": "",
+          "regex": "",
+          "required": true
+        },
+        {
+          "name": "sex",
+          "labelKey": "p70_f_sex_label",
+          "helpKey": "p70_f_sex_help",
+          "placeholder": "",
+          "regex": "",
+          "required": true
+        },
+        {
+          "name": "education",
+          "labelKey": "p70_f_education_label",
+          "helpKey": "p70_f_education_help",
+          "placeholder": "",
+          "regex": "",
+          "required": true
+        },
+        {
+          "name": "patient_code",
+          "labelKey": "p70_f_patient_code_label",
+          "helpKey": "p70_f_patient_code_help",
+          "placeholder": "PD001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        },
+        {
+          "name": "surname",
+          "labelKey": "p70_f_surname_label",
+          "helpKey": "p70_f_surname_help",
+          "placeholder": "",
+          "regex": "",
+          "required": false
+        },
+        {
+          "name": "year_of_birth",
+          "labelKey": "p70_f_year_of_birth_label",
+          "helpKey": "p70_f_year_of_birth_help",
+          "placeholder": "1965",
+          "regex": "\\d{4}",
+          "required": false
+        },
+        {
+          "name": "visit_number",
+          "labelKey": "p70_f_visit_number_label",
+          "helpKey": "p70_f_visit_number_help",
+          "placeholder": "V0",
+          "regex": "V\\d+",
+          "required": true
+        },
+        {
+          "name": "medication_state",
+          "labelKey": "p70_f_medication_state_label",
+          "helpKey": "p70_f_medication_state_help",
+          "placeholder": "ON/OFF",
+          "regex": "",
+          "required": false
+        },
+        {
+          "name": "patient_code",
+          "labelKey": "p70_f_patient_code_label",
+          "helpKey": "p70_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p70_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p70_t1_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p70_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p70_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
-            }
-          ]
+          "length": 10,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         }
       ]
     }

@@ -10,96 +10,92 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "projects": [
+  "protocols": [
     {
-      "name": "Czech Clinic Study",
-      "protocols": [
+      "name": "Czech protocol",
+      "project": "Czech Clinic Study",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Czech protocol",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p90_f_patient_code_label",
-              "helpKey": "p90_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "name": "patient_code",
+          "labelKey": "p90_f_patient_code_label",
+          "helpKey": "p90_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p90_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p90_t1_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p90_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p90_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "PATAKA",
-              "titleKey": "p90_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p90_t2_instr1"
-              ],
-              "length": 7,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "READING",
-              "titleKey": "p90_t3_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p90_t3_instr1"
-              ],
-              "length": 150,
-              "showIndicator": false
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "MONOLOGUE",
-              "titleKey": "p90_t4_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p90_t4_instr1",
-                "p90_t4_instr2",
-                "p90_t4_instr3"
-              ],
-              "length": 60,
-              "showIndicator": false
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "RETELLING",
-              "titleKey": "p90_t5_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p90_t5_instr1"
-              ],
-              "length": 90,
-              "showIndicator": false,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
-            }
-          ]
+          "length": 10,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "PATAKA",
+          "titleKey": "p90_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p90_t2_instr1"
+          ],
+          "length": 7,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "READING",
+          "titleKey": "p90_t3_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p90_t3_instr1"
+          ],
+          "length": 150,
+          "showIndicator": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "p90_t4_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p90_t4_instr1",
+            "p90_t4_instr2",
+            "p90_t4_instr3"
+          ],
+          "length": 60,
+          "showIndicator": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "RETELLING",
+          "titleKey": "p90_t5_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p90_t5_instr1"
+          ],
+          "length": 90,
+          "showIndicator": false,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
         }
       ]
     }

@@ -10,69 +10,65 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "projects": [
+  "protocols": [
     {
-      "name": "Legacy Study",
-      "protocols": [
+      "name": "Legacy protocol",
+      "project": "Legacy Study",
+      "recordingsFileName": "${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Legacy protocol",
-          "recordingsFileName": "${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p100_f_patient_code_label",
-              "helpKey": "p100_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            },
-            {
-              "name": "sex",
-              "labelKey": "p100_f_sex_label",
-              "helpKey": "p100_f_sex_help",
-              "placeholder": "",
-              "regex": "",
-              "required": true
-            },
-            {
-              "name": "year_of_birth",
-              "labelKey": "p100_f_year_of_birth_label",
-              "helpKey": "p100_f_year_of_birth_help",
-              "placeholder": "1965",
-              "regex": "\\d{4}",
-              "required": false
-            }
+          "name": "patient_code",
+          "labelKey": "p100_f_patient_code_label",
+          "helpKey": "p100_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        },
+        {
+          "name": "sex",
+          "labelKey": "p100_f_sex_label",
+          "helpKey": "p100_f_sex_help",
+          "placeholder": "",
+          "regex": "",
+          "required": true
+        },
+        {
+          "name": "year_of_birth",
+          "labelKey": "p100_f_year_of_birth_label",
+          "helpKey": "p100_f_year_of_birth_help",
+          "placeholder": "1965",
+          "regex": "\\d{4}",
+          "required": false
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "SYLLABLES",
+          "titleKey": "p100_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p100_t1_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "SYLLABLES",
-              "titleKey": "p100_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p100_t1_instr1"
-              ],
-              "length": 7,
-              "showIndicator": true
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "MONOLOGUE",
-              "titleKey": "p100_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p100_t2_instr1",
-                "p100_t2_instr2",
-                "p100_t2_instr3"
-              ],
-              "length": 60,
-              "showIndicator": false
-            }
-          ]
+          "length": 7,
+          "showIndicator": true
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "p100_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p100_t2_instr1",
+            "p100_t2_instr2",
+            "p100_t2_instr3"
+          ],
+          "length": 60,
+          "showIndicator": false
         }
       ]
     }

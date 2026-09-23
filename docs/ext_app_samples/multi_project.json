@@ -10,274 +10,268 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "projects": [
+  "protocols": [
     {
-      "name": "Project A",
-      "protocols": [
+      "name": "Speech battery",
+      "project": "Project A",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Speech battery",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p10_f_patient_code_label",
-              "helpKey": "p10_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "name": "patient_code",
+          "labelKey": "p10_f_patient_code_label",
+          "helpKey": "p10_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p10_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t1_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p10_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "PATAKA",
-              "titleKey": "p10_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t2_instr1"
-              ],
-              "length": 7,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "READING",
-              "titleKey": "p10_t3_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t3_instr1",
-                "p10_t3_instr2",
-                "p10_t3_instr3",
-                "p10_t3_instr4"
-              ],
-              "length": 150,
-              "showIndicator": false
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "MONOLOGUE",
-              "titleKey": "p10_t4_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t4_instr1",
-                "p10_t4_instr2",
-                "p10_t4_instr3"
-              ],
-              "length": 60,
-              "showIndicator": false
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "RETELLING",
-              "titleKey": "p10_t5_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t5_instr1",
-                "p10_t5_instr2"
-              ],
-              "length": 90,
-              "showIndicator": false,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
-            }
-          ]
+          "length": 10,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         },
         {
-          "name": "Short screening",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p20_f_patient_code_label",
-              "helpKey": "p20_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "type": "VOCAL",
+          "subtype": "PATAKA",
+          "titleKey": "p10_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t2_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p20_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p20_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "SYLLABLES",
-              "titleKey": "p20_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p20_t2_instr1"
-              ],
-              "length": 7,
-              "showIndicator": true
-            }
-          ]
+          "length": 7,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "READING",
+          "titleKey": "p10_t3_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t3_instr1",
+            "p10_t3_instr2",
+            "p10_t3_instr3",
+            "p10_t3_instr4"
+          ],
+          "length": 150,
+          "showIndicator": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "p10_t4_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t4_instr1",
+            "p10_t4_instr2",
+            "p10_t4_instr3"
+          ],
+          "length": 60,
+          "showIndicator": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "RETELLING",
+          "titleKey": "p10_t5_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t5_instr1",
+            "p10_t5_instr2"
+          ],
+          "length": 90,
+          "showIndicator": false,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
         }
       ]
     },
     {
-      "name": "Project B",
-      "protocols": [
+      "name": "Short screening",
+      "project": "Project A",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Speech battery",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p10_f_patient_code_label",
-              "helpKey": "p10_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "name": "patient_code",
+          "labelKey": "p20_f_patient_code_label",
+          "helpKey": "p20_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p20_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p20_t1_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p10_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "PATAKA",
-              "titleKey": "p10_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t2_instr1"
-              ],
-              "length": 7,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "READING",
-              "titleKey": "p10_t3_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t3_instr1",
-                "p10_t3_instr2",
-                "p10_t3_instr3",
-                "p10_t3_instr4"
-              ],
-              "length": 150,
-              "showIndicator": false
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "MONOLOGUE",
-              "titleKey": "p10_t4_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t4_instr1",
-                "p10_t4_instr2",
-                "p10_t4_instr3"
-              ],
-              "length": 60,
-              "showIndicator": false
-            },
-            {
-              "type": "VOCAL",
-              "subtype": "RETELLING",
-              "titleKey": "p10_t5_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p10_t5_instr1",
-                "p10_t5_instr2"
-              ],
-              "length": 90,
-              "showIndicator": false,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
-            }
-          ]
+          "length": 10,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         },
         {
-          "name": "Monologue only",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p30_f_patient_code_label",
-              "helpKey": "p30_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "type": "VOCAL",
+          "subtype": "SYLLABLES",
+          "titleKey": "p20_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p20_t2_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "MONOLOGUE",
-              "titleKey": "p30_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p30_t1_instr1",
-                "p30_t1_instr2",
-                "p30_t1_instr3",
-                "p30_t1_instr4",
-                "p30_t1_instr5",
-                "p30_t1_instr6"
-              ],
-              "length": 60,
-              "showIndicator": false
-            }
-          ]
+          "length": 7,
+          "showIndicator": true
+        }
+      ]
+    },
+    {
+      "name": "Speech battery",
+      "project": "Project B",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
+        {
+          "name": "patient_code",
+          "labelKey": "p10_f_patient_code_label",
+          "helpKey": "p10_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p10_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t1_instr1"
+          ],
+          "length": 10,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "PATAKA",
+          "titleKey": "p10_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t2_instr1"
+          ],
+          "length": 7,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "READING",
+          "titleKey": "p10_t3_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t3_instr1",
+            "p10_t3_instr2",
+            "p10_t3_instr3",
+            "p10_t3_instr4"
+          ],
+          "length": 150,
+          "showIndicator": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "p10_t4_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t4_instr1",
+            "p10_t4_instr2",
+            "p10_t4_instr3"
+          ],
+          "length": 60,
+          "showIndicator": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "RETELLING",
+          "titleKey": "p10_t5_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p10_t5_instr1",
+            "p10_t5_instr2"
+          ],
+          "length": 90,
+          "showIndicator": false,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
+        }
+      ]
+    },
+    {
+      "name": "Monologue only",
+      "project": "Project B",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
+        {
+          "name": "patient_code",
+          "labelKey": "p30_f_patient_code_label",
+          "helpKey": "p30_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "p30_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p30_t1_instr1",
+            "p30_t1_instr2",
+            "p30_t1_instr3",
+            "p30_t1_instr4",
+            "p30_t1_instr5",
+            "p30_t1_instr6"
+          ],
+          "length": 60,
+          "showIndicator": false
         }
       ]
     }

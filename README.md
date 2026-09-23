@@ -21,7 +21,7 @@ The platform is built to define and distribute a wide range of assessments, incl
 ## Key Features
 
 ### For Sites
-* **Config by token**: Each site holds a unique access token; `GET /site-config/:token` returns every protocol the site inherits through its assigned projects, grouped by project, plus the site's free-form `config_json`.
+* **Config by token**: Each site holds a unique access token; `GET /site-config/:token` returns every protocol the site inherits through its assigned projects (each protocol tagged with its `project` name), plus the site's free-form `config_json`.
 * **Multi-project sites**: A site can participate in several projects at once — protocol inheritance is derived from the project links, never stored twice.
 * **Multilingual Protocols**: Language variants (currently EN, CS, DE) are delivered side by side; the site app picks by language code.
 

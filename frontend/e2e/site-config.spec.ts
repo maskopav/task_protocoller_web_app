@@ -20,8 +20,8 @@ async function apiLogin(request: APIRequestContext): Promise<string> {
 }
 
 // The response is the desktop app's config format (docs/ext_app_Task_Configuration_JSON_Spec.md):
-// settings at the top level, protocols grouped by project, all text via strings.<lang>.
-test('a valid site token returns the desktop-app config with inherited protocols grouped by project', async ({ request }) => {
+// settings at the top level, flat protocols[] each naming its project, all text via strings.<lang>.
+test('a valid site token returns the desktop-app config with inherited protocols tagged by project', async ({ request }) => {
   const res = await request.get(`${BACKEND_URL}/site-config/${SITE_TOKEN}`);
   expect(res.ok()).toBeTruthy();
 
@@ -32,13 +32,12 @@ test('a valid site token returns the desktop-app config with inherited protocols
   expect(typeof body.useCalibration).toBe('boolean');
   expect(body).not.toHaveProperty('site');
 
-  expect(body.projects).toHaveLength(1);
-  const project = body.projects[0];
-  expect(project.name).toBe('Test Study 001');
-  expect(project.protocols).toHaveLength(1);
+  expect(body).not.toHaveProperty('projects');
+  expect(body.protocols).toHaveLength(1);
 
-  const protocol = project.protocols[0];
+  const protocol = body.protocols[0];
   expect(protocol.name).toBe('E2E Test Protocol');
+  expect(protocol.project).toBe('Test Study 001');
   expect(protocol.recordingsFileName).toContain('${taskIndex}');
   // syllableRepeating -> VOCAL, sdmt (cognitive) skipped, questionnaire -> QUESTIONNAIRE
   expect(protocol.tasks.map((t: { type: string }) => t.type)).toEqual(['VOCAL', 'QUESTIONNAIRE']);
@@ -66,7 +65,7 @@ test('deactivating a project drops its protocols from site-config and reactivati
 
   try {
     let cfg = await (await request.get(`${BACKEND_URL}/site-config/${SITE_TOKEN}`)).json();
-    expect(cfg.projects).toHaveLength(1);
+    expect(cfg.protocols).toHaveLength(1);
 
     const deactivate = await request.put(`${BACKEND_URL}/projects/update`, {
       headers: authHeaders,
@@ -75,7 +74,7 @@ test('deactivating a project drops its protocols from site-config and reactivati
     expect(deactivate.ok()).toBeTruthy();
 
     cfg = await (await request.get(`${BACKEND_URL}/site-config/${SITE_TOKEN}`)).json();
-    expect(cfg.projects).toHaveLength(0); // project (and its protocol) dropped entirely
+    expect(cfg.protocols).toHaveLength(0); // project's protocol dropped entirely
 
     const sites = await (await request.get(`${BACKEND_URL}/sites`, { headers: authHeaders })).json();
     const site = sites.find((s: { id: number }) => s.id === 3);
@@ -89,8 +88,8 @@ test('deactivating a project drops its protocols from site-config and reactivati
   }
 
   const cfg = await (await request.get(`${BACKEND_URL}/site-config/${SITE_TOKEN}`)).json();
-  expect(cfg.projects).toHaveLength(1);
-  expect(cfg.projects[0].protocols).toHaveLength(1);
+  expect(cfg.protocols).toHaveLength(1);
+  expect(cfg.protocols[0].project).toBe('Test Study 001');
 
   const sites = await (await request.get(`${BACKEND_URL}/sites`, { headers: authHeaders })).json();
   const site = sites.find((s: { id: number }) => s.id === 3);

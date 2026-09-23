@@ -102,16 +102,16 @@ deactivated site, `200` = the **desktop app's config format**
   "defaultLanguage": "cs", "languages": ["cs", "en"],
   "defaultMicName": "", "defaultMicGain": 1, "enableEditor": false,
   "indicatorType": "CIRCLE", "useCalibration": true,
-  "projects": [
-    { "name": "Project A", "protocols": [
-      { "name": "PD-battery",
-        "protocolInstructionsPdfUrl": "https://…/manual.pdf",
-        "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-        "patientFields": [ { "name": "patient_code", "labelKey": "p1_f_patient_code_label", "helpKey": "p1_f_patient_code_help", "placeholder": "HC001", "regex": "[A-Za-z0-9_-]+", "required": true } ],
-        "tasks": [
-          { "type": "VOCAL", "subtype": "SYLLABLES", "titleKey": "p1_t1_title", "instructionKeys": ["p1_t1_instr1"],
-            "length": 3, "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1 }
-        ] } ] }
+  "protocols": [
+    { "name": "PD-battery",
+      "project": "Project A",
+      "protocolInstructionsPdfUrl": "https://…/manual.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [ { "name": "patient_code", "labelKey": "p1_f_patient_code_label", "helpKey": "p1_f_patient_code_help", "placeholder": "HC001", "regex": "[A-Za-z0-9_-]+", "required": true } ],
+      "tasks": [
+        { "type": "VOCAL", "subtype": "SYLLABLES", "titleKey": "p1_t1_title", "instructionKeys": ["p1_t1_instr1"],
+          "length": 3, "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1 }
+      ] }
   ],
   "strings": { "cs": { "p1_t1_title": "…" }, "en": { "p1_t1_title": "…" } }
 }
@@ -132,8 +132,9 @@ Notes:
   (`useCalibration` flag instead).
 - `audioExamplePath` is an absolute URL under `ASSET_BASE_URL` (new env var =
   public origin of the frontend build), only for the example files that exist.
+- `protocols[]` is flat; each protocol names its parent project in `project`.
+  A protocol linked to several of the site's projects appears once per project.
 - Only `is_active` projects and `is_current` protocol versions are returned.
-  A project with no linked protocols is omitted.
 
 ### New: `/sites` (admin, JWT required)
 

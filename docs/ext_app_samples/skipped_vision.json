@@ -10,40 +10,36 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "projects": [
+  "protocols": [
     {
-      "name": "Mixed Study",
-      "protocols": [
+      "name": "Mixed modalities",
+      "project": "Mixed Study",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Mixed modalities",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
-            {
-              "name": "patient_code",
-              "labelKey": "p50_f_patient_code_label",
-              "helpKey": "p50_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
-            }
+          "name": "patient_code",
+          "labelKey": "p50_f_patient_code_label",
+          "helpKey": "p50_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p50_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p50_t1_instr1"
           ],
-          "tasks": [
-            {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p50_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p50_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true,
-              "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
-            }
-          ]
+          "length": 10,
+          "showIndicator": true,
+          "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         }
       ]
     }

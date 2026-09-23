@@ -11,204 +11,200 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": false,
-  "projects": [
+  "protocols": [
     {
-      "name": "Bilingual Study",
-      "protocols": [
+      "name": "Bilingual protocol",
+      "project": "Bilingual Study",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Bilingual protocol",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
+          "name": "patient_code",
+          "labelKey": "p40_f_patient_code_label",
+          "helpKey": "p40_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "VOCAL",
+          "subtype": "PHONATION",
+          "titleKey": "p40_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p40_t1_instr1"
+          ],
+          "length": 10,
+          "showIndicator": true
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "READING",
+          "titleKey": "p40_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p40_t2_instr1"
+          ],
+          "length": 150,
+          "showIndicator": false
+        },
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "p40_t3_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "questions": [
             {
-              "name": "patient_code",
-              "labelKey": "p40_f_patient_code_label",
-              "helpKey": "p40_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t3_q1",
+              "questionTextKey": "p40_t3_q1_text",
+              "questionOptions": [
+                "p40_t3_q1_o1",
+                "p40_t3_q1_o2"
+              ]
+            },
+            {
+              "questionType": "OPEN",
+              "questionKey": "p40_t3_q2",
+              "questionTextKey": "p40_t3_q2_text",
+              "questionRegex": ".*"
             }
           ],
-          "tasks": [
+          "length": 300
+        },
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "p40_t4_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "questions": [
             {
-              "type": "VOCAL",
-              "subtype": "PHONATION",
-              "titleKey": "p40_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p40_t1_instr1"
-              ],
-              "length": 10,
-              "showIndicator": true
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q1",
+              "questionTextKey": "p40_t4_q1_text",
+              "questionOptions": [
+                "p40_t4_q1_o1",
+                "p40_t4_q1_o2"
+              ]
             },
             {
-              "type": "VOCAL",
-              "subtype": "READING",
-              "titleKey": "p40_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "instructionKeys": [
-                "p40_t2_instr1"
-              ],
-              "length": 150,
-              "showIndicator": false
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q2",
+              "questionTextKey": "p40_t4_q2_text",
+              "questionOptions": [
+                "p40_t4_q2_o1",
+                "p40_t4_q2_o2"
+              ]
             },
             {
-              "type": "QUESTIONNAIRE",
-              "titleKey": "p40_t3_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "questions": [
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t3_q1",
-                  "questionTextKey": "p40_t3_q1_text",
-                  "questionOptions": [
-                    "p40_t3_q1_o1",
-                    "p40_t3_q1_o2"
-                  ]
-                },
-                {
-                  "questionType": "OPEN",
-                  "questionKey": "p40_t3_q2",
-                  "questionTextKey": "p40_t3_q2_text",
-                  "questionRegex": ".*"
-                }
-              ],
-              "length": 300
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q3",
+              "questionTextKey": "p40_t4_q3_text",
+              "questionOptions": [
+                "p40_t4_q3_o1",
+                "p40_t4_q3_o2"
+              ]
             },
             {
-              "type": "QUESTIONNAIRE",
-              "titleKey": "p40_t4_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "questions": [
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q1",
-                  "questionTextKey": "p40_t4_q1_text",
-                  "questionOptions": [
-                    "p40_t4_q1_o1",
-                    "p40_t4_q1_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q2",
-                  "questionTextKey": "p40_t4_q2_text",
-                  "questionOptions": [
-                    "p40_t4_q2_o1",
-                    "p40_t4_q2_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q3",
-                  "questionTextKey": "p40_t4_q3_text",
-                  "questionOptions": [
-                    "p40_t4_q3_o1",
-                    "p40_t4_q3_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q4",
-                  "questionTextKey": "p40_t4_q4_text",
-                  "questionOptions": [
-                    "p40_t4_q4_o1",
-                    "p40_t4_q4_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q5",
-                  "questionTextKey": "p40_t4_q5_text",
-                  "questionOptions": [
-                    "p40_t4_q5_o1",
-                    "p40_t4_q5_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q6",
-                  "questionTextKey": "p40_t4_q6_text",
-                  "questionOptions": [
-                    "p40_t4_q6_o1",
-                    "p40_t4_q6_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q7",
-                  "questionTextKey": "p40_t4_q7_text",
-                  "questionOptions": [
-                    "p40_t4_q7_o1",
-                    "p40_t4_q7_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q8",
-                  "questionTextKey": "p40_t4_q8_text",
-                  "questionOptions": [
-                    "p40_t4_q8_o1",
-                    "p40_t4_q8_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q9",
-                  "questionTextKey": "p40_t4_q9_text",
-                  "questionOptions": [
-                    "p40_t4_q9_o1",
-                    "p40_t4_q9_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q10",
-                  "questionTextKey": "p40_t4_q10_text",
-                  "questionOptions": [
-                    "p40_t4_q10_o1",
-                    "p40_t4_q10_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q11",
-                  "questionTextKey": "p40_t4_q11_text",
-                  "questionOptions": [
-                    "p40_t4_q11_o1",
-                    "p40_t4_q11_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q12",
-                  "questionTextKey": "p40_t4_q12_text",
-                  "questionOptions": [
-                    "p40_t4_q12_o1",
-                    "p40_t4_q12_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p40_t4_q13",
-                  "questionTextKey": "p40_t4_q13_text",
-                  "questionOptions": [
-                    "p40_t4_q13_o1",
-                    "p40_t4_q13_o2"
-                  ]
-                }
-              ],
-              "length": 300
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q4",
+              "questionTextKey": "p40_t4_q4_text",
+              "questionOptions": [
+                "p40_t4_q4_o1",
+                "p40_t4_q4_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q5",
+              "questionTextKey": "p40_t4_q5_text",
+              "questionOptions": [
+                "p40_t4_q5_o1",
+                "p40_t4_q5_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q6",
+              "questionTextKey": "p40_t4_q6_text",
+              "questionOptions": [
+                "p40_t4_q6_o1",
+                "p40_t4_q6_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q7",
+              "questionTextKey": "p40_t4_q7_text",
+              "questionOptions": [
+                "p40_t4_q7_o1",
+                "p40_t4_q7_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q8",
+              "questionTextKey": "p40_t4_q8_text",
+              "questionOptions": [
+                "p40_t4_q8_o1",
+                "p40_t4_q8_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q9",
+              "questionTextKey": "p40_t4_q9_text",
+              "questionOptions": [
+                "p40_t4_q9_o1",
+                "p40_t4_q9_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q10",
+              "questionTextKey": "p40_t4_q10_text",
+              "questionOptions": [
+                "p40_t4_q10_o1",
+                "p40_t4_q10_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q11",
+              "questionTextKey": "p40_t4_q11_text",
+              "questionOptions": [
+                "p40_t4_q11_o1",
+                "p40_t4_q11_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q12",
+              "questionTextKey": "p40_t4_q12_text",
+              "questionOptions": [
+                "p40_t4_q12_o1",
+                "p40_t4_q12_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p40_t4_q13",
+              "questionTextKey": "p40_t4_q13_text",
+              "questionOptions": [
+                "p40_t4_q13_o1",
+                "p40_t4_q13_o2"
+              ]
             }
-          ]
+          ],
+          "length": 300
         }
       ]
     }

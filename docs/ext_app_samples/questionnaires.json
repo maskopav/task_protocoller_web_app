@@ -10,327 +10,323 @@
   "enableEditor": false,
   "indicatorType": "CIRCLE",
   "useCalibration": true,
-  "projects": [
+  "protocols": [
     {
-      "name": "Questionnaire Study",
-      "protocols": [
+      "name": "Questionnaire set",
+      "project": "Questionnaire Study",
+      "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
+      "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
+      "patientFields": [
         {
-          "name": "Questionnaire set",
-          "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
-          "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
-          "patientFields": [
+          "name": "patient_code",
+          "labelKey": "p60_f_patient_code_label",
+          "helpKey": "p60_f_patient_code_help",
+          "placeholder": "HC001",
+          "regex": "[A-Za-z0-9_-]+",
+          "required": true
+        }
+      ],
+      "tasks": [
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "p60_t1_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "questions": [
             {
-              "name": "patient_code",
-              "labelKey": "p60_f_patient_code_label",
-              "helpKey": "p60_f_patient_code_help",
-              "placeholder": "HC001",
-              "regex": "[A-Za-z0-9_-]+",
-              "required": true
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q1",
+              "questionTextKey": "p60_t1_q1_text",
+              "questionOptions": [
+                "p60_t1_q1_o1",
+                "p60_t1_q1_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q2",
+              "questionTextKey": "p60_t1_q2_text",
+              "questionOptions": [
+                "p60_t1_q2_o1",
+                "p60_t1_q2_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q3",
+              "questionTextKey": "p60_t1_q3_text",
+              "questionOptions": [
+                "p60_t1_q3_o1",
+                "p60_t1_q3_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q4",
+              "questionTextKey": "p60_t1_q4_text",
+              "questionOptions": [
+                "p60_t1_q4_o1",
+                "p60_t1_q4_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q5",
+              "questionTextKey": "p60_t1_q5_text",
+              "questionOptions": [
+                "p60_t1_q5_o1",
+                "p60_t1_q5_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q6",
+              "questionTextKey": "p60_t1_q6_text",
+              "questionOptions": [
+                "p60_t1_q6_o1",
+                "p60_t1_q6_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q7",
+              "questionTextKey": "p60_t1_q7_text",
+              "questionOptions": [
+                "p60_t1_q7_o1",
+                "p60_t1_q7_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q8",
+              "questionTextKey": "p60_t1_q8_text",
+              "questionOptions": [
+                "p60_t1_q8_o1",
+                "p60_t1_q8_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q9",
+              "questionTextKey": "p60_t1_q9_text",
+              "questionOptions": [
+                "p60_t1_q9_o1",
+                "p60_t1_q9_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q10",
+              "questionTextKey": "p60_t1_q10_text",
+              "questionOptions": [
+                "p60_t1_q10_o1",
+                "p60_t1_q10_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q11",
+              "questionTextKey": "p60_t1_q11_text",
+              "questionOptions": [
+                "p60_t1_q11_o1",
+                "p60_t1_q11_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q12",
+              "questionTextKey": "p60_t1_q12_text",
+              "questionOptions": [
+                "p60_t1_q12_o1",
+                "p60_t1_q12_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t1_q13",
+              "questionTextKey": "p60_t1_q13_text",
+              "questionOptions": [
+                "p60_t1_q13_o1",
+                "p60_t1_q13_o2"
+              ]
             }
           ],
-          "tasks": [
+          "length": 300
+        },
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "p60_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "questions": [
             {
-              "type": "QUESTIONNAIRE",
-              "titleKey": "p60_t1_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "questions": [
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q1",
-                  "questionTextKey": "p60_t1_q1_text",
-                  "questionOptions": [
-                    "p60_t1_q1_o1",
-                    "p60_t1_q1_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q2",
-                  "questionTextKey": "p60_t1_q2_text",
-                  "questionOptions": [
-                    "p60_t1_q2_o1",
-                    "p60_t1_q2_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q3",
-                  "questionTextKey": "p60_t1_q3_text",
-                  "questionOptions": [
-                    "p60_t1_q3_o1",
-                    "p60_t1_q3_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q4",
-                  "questionTextKey": "p60_t1_q4_text",
-                  "questionOptions": [
-                    "p60_t1_q4_o1",
-                    "p60_t1_q4_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q5",
-                  "questionTextKey": "p60_t1_q5_text",
-                  "questionOptions": [
-                    "p60_t1_q5_o1",
-                    "p60_t1_q5_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q6",
-                  "questionTextKey": "p60_t1_q6_text",
-                  "questionOptions": [
-                    "p60_t1_q6_o1",
-                    "p60_t1_q6_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q7",
-                  "questionTextKey": "p60_t1_q7_text",
-                  "questionOptions": [
-                    "p60_t1_q7_o1",
-                    "p60_t1_q7_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q8",
-                  "questionTextKey": "p60_t1_q8_text",
-                  "questionOptions": [
-                    "p60_t1_q8_o1",
-                    "p60_t1_q8_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q9",
-                  "questionTextKey": "p60_t1_q9_text",
-                  "questionOptions": [
-                    "p60_t1_q9_o1",
-                    "p60_t1_q9_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q10",
-                  "questionTextKey": "p60_t1_q10_text",
-                  "questionOptions": [
-                    "p60_t1_q10_o1",
-                    "p60_t1_q10_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q11",
-                  "questionTextKey": "p60_t1_q11_text",
-                  "questionOptions": [
-                    "p60_t1_q11_o1",
-                    "p60_t1_q11_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q12",
-                  "questionTextKey": "p60_t1_q12_text",
-                  "questionOptions": [
-                    "p60_t1_q12_o1",
-                    "p60_t1_q12_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t1_q13",
-                  "questionTextKey": "p60_t1_q13_text",
-                  "questionOptions": [
-                    "p60_t1_q13_o1",
-                    "p60_t1_q13_o2"
-                  ]
-                }
-              ],
-              "length": 300
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q1",
+              "questionTextKey": "p60_t2_q1_text",
+              "questionOptions": [
+                "p60_t2_q1_o1",
+                "p60_t2_q1_o2",
+                "p60_t2_q1_o3"
+              ]
             },
             {
-              "type": "QUESTIONNAIRE",
-              "titleKey": "p60_t2_title",
-              "canRepeat": true,
-              "canSkip": false,
-              "nrepetition": 1,
-              "questions": [
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q1",
-                  "questionTextKey": "p60_t2_q1_text",
-                  "questionOptions": [
-                    "p60_t2_q1_o1",
-                    "p60_t2_q1_o2",
-                    "p60_t2_q1_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q2",
-                  "questionTextKey": "p60_t2_q2_text",
-                  "questionOptions": [
-                    "p60_t2_q2_o1",
-                    "p60_t2_q2_o2",
-                    "p60_t2_q2_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q3",
-                  "questionTextKey": "p60_t2_q3_text",
-                  "questionOptions": [
-                    "p60_t2_q3_o1",
-                    "p60_t2_q3_o2",
-                    "p60_t2_q3_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q4",
-                  "questionTextKey": "p60_t2_q4_text",
-                  "questionOptions": [
-                    "p60_t2_q4_o1",
-                    "p60_t2_q4_o2",
-                    "p60_t2_q4_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q5",
-                  "questionTextKey": "p60_t2_q5_text",
-                  "questionOptions": [
-                    "p60_t2_q5_o1",
-                    "p60_t2_q5_o2",
-                    "p60_t2_q5_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q6",
-                  "questionTextKey": "p60_t2_q6_text",
-                  "questionOptions": [
-                    "p60_t2_q6_o1",
-                    "p60_t2_q6_o2",
-                    "p60_t2_q6_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q7",
-                  "questionTextKey": "p60_t2_q7_text",
-                  "questionOptions": [
-                    "p60_t2_q7_o1",
-                    "p60_t2_q7_o2",
-                    "p60_t2_q7_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q8",
-                  "questionTextKey": "p60_t2_q8_text",
-                  "questionOptions": [
-                    "p60_t2_q8_o1",
-                    "p60_t2_q8_o2",
-                    "p60_t2_q8_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q9",
-                  "questionTextKey": "p60_t2_q9_text",
-                  "questionOptions": [
-                    "p60_t2_q9_o1",
-                    "p60_t2_q9_o2",
-                    "p60_t2_q9_o3"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t2_q10",
-                  "questionTextKey": "p60_t2_q10_text",
-                  "questionOptions": [
-                    "p60_t2_q10_o1",
-                    "p60_t2_q10_o2",
-                    "p60_t2_q10_o3"
-                  ]
-                }
-              ],
-              "length": 300
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q2",
+              "questionTextKey": "p60_t2_q2_text",
+              "questionOptions": [
+                "p60_t2_q2_o1",
+                "p60_t2_q2_o2",
+                "p60_t2_q2_o3"
+              ]
             },
             {
-              "type": "QUESTIONNAIRE",
-              "titleKey": "p60_t3_title",
-              "canRepeat": false,
-              "canSkip": true,
-              "nrepetition": 1,
-              "questions": [
-                {
-                  "questionType": "OPEN",
-                  "questionKey": "p60_t3_q1",
-                  "questionTextKey": "p60_t3_q1_text",
-                  "questionRegex": ".+"
-                },
-                {
-                  "questionType": "OPEN",
-                  "questionKey": "p60_t3_q2",
-                  "questionTextKey": "p60_t3_q2_text",
-                  "questionRegex": ".*"
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t3_q3",
-                  "questionTextKey": "p60_t3_q3_text",
-                  "questionOptions": [
-                    "p60_t3_q3_o1",
-                    "p60_t3_q3_o2",
-                    "p60_t3_q3_o3"
-                  ]
-                },
-                {
-                  "questionType": "MULTIPLE_CHOICE",
-                  "questionKey": "p60_t3_q4",
-                  "questionTextKey": "p60_t3_q4_text",
-                  "questionOptions": [
-                    "p60_t3_q4_o1",
-                    "p60_t3_q4_o2",
-                    "p60_t3_q4_o3",
-                    "p60_t3_q4_o4"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t3_q5",
-                  "questionTextKey": "p60_t3_q5_text",
-                  "questionOptions": [
-                    "p60_t3_q5_o1",
-                    "p60_t3_q5_o2"
-                  ]
-                },
-                {
-                  "questionType": "SINGLE_CHOICE",
-                  "questionKey": "p60_t3_q6",
-                  "questionTextKey": "p60_t3_q6_text",
-                  "questionOptions": [
-                    "rating_1",
-                    "rating_2",
-                    "rating_3",
-                    "rating_4",
-                    "rating_5"
-                  ]
-                }
-              ],
-              "length": 300
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q3",
+              "questionTextKey": "p60_t2_q3_text",
+              "questionOptions": [
+                "p60_t2_q3_o1",
+                "p60_t2_q3_o2",
+                "p60_t2_q3_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q4",
+              "questionTextKey": "p60_t2_q4_text",
+              "questionOptions": [
+                "p60_t2_q4_o1",
+                "p60_t2_q4_o2",
+                "p60_t2_q4_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q5",
+              "questionTextKey": "p60_t2_q5_text",
+              "questionOptions": [
+                "p60_t2_q5_o1",
+                "p60_t2_q5_o2",
+                "p60_t2_q5_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q6",
+              "questionTextKey": "p60_t2_q6_text",
+              "questionOptions": [
+                "p60_t2_q6_o1",
+                "p60_t2_q6_o2",
+                "p60_t2_q6_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q7",
+              "questionTextKey": "p60_t2_q7_text",
+              "questionOptions": [
+                "p60_t2_q7_o1",
+                "p60_t2_q7_o2",
+                "p60_t2_q7_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q8",
+              "questionTextKey": "p60_t2_q8_text",
+              "questionOptions": [
+                "p60_t2_q8_o1",
+                "p60_t2_q8_o2",
+                "p60_t2_q8_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q9",
+              "questionTextKey": "p60_t2_q9_text",
+              "questionOptions": [
+                "p60_t2_q9_o1",
+                "p60_t2_q9_o2",
+                "p60_t2_q9_o3"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t2_q10",
+              "questionTextKey": "p60_t2_q10_text",
+              "questionOptions": [
+                "p60_t2_q10_o1",
+                "p60_t2_q10_o2",
+                "p60_t2_q10_o3"
+              ]
             }
-          ]
+          ],
+          "length": 300
+        },
+        {
+          "type": "QUESTIONNAIRE",
+          "titleKey": "p60_t3_title",
+          "canRepeat": false,
+          "canSkip": true,
+          "nrepetition": 1,
+          "questions": [
+            {
+              "questionType": "OPEN",
+              "questionKey": "p60_t3_q1",
+              "questionTextKey": "p60_t3_q1_text",
+              "questionRegex": ".+"
+            },
+            {
+              "questionType": "OPEN",
+              "questionKey": "p60_t3_q2",
+              "questionTextKey": "p60_t3_q2_text",
+              "questionRegex": ".*"
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t3_q3",
+              "questionTextKey": "p60_t3_q3_text",
+              "questionOptions": [
+                "p60_t3_q3_o1",
+                "p60_t3_q3_o2",
+                "p60_t3_q3_o3"
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "questionKey": "p60_t3_q4",
+              "questionTextKey": "p60_t3_q4_text",
+              "questionOptions": [
+                "p60_t3_q4_o1",
+                "p60_t3_q4_o2",
+                "p60_t3_q4_o3",
+                "p60_t3_q4_o4"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t3_q5",
+              "questionTextKey": "p60_t3_q5_text",
+              "questionOptions": [
+                "p60_t3_q5_o1",
+                "p60_t3_q5_o2"
+              ]
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t3_q6",
+              "questionTextKey": "p60_t3_q6_text",
+              "questionOptions": [
+                "rating_1",
+                "rating_2",
+                "rating_3",
+                "rating_4",
+                "rating_5"
+              ]
+            }
+          ],
+          "length": 300
         }
       ]
     }
