@@ -1,6 +1,7 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/RouteProtection/ProtectedRoute";
+import { ROLES } from "./constants/roles";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminManagementPage from "./pages/AdminManagementPage";
 import ProjectManagementPage from "./pages/ProjectManagementPage";
@@ -19,6 +20,12 @@ import SystemLogsPage from "./pages/SystemLogsPage";
 import SessionDataPage from "./pages/SessionDataPage";
 import BookingSlotsPage from "./pages/BookingSlotsPage";
 import NotFoundPage from "./pages/NotFoundPage";
+
+// survey_agency is restricted to /admin (redirects to their one project's
+// fieldwork page -- see AdminDashboardPage.jsx) and the fieldwork page
+// itself; every other /admin/* route is project-management or
+// account-management and stays master/admin only.
+const STAFF_ROLES = [ROLES.MASTER, ROLES.ADMIN];
 
 export default function App() {
   return (
@@ -46,43 +53,43 @@ export default function App() {
       } />
       
       <Route path="/admin/admin-management" element={
-        <ProtectedRoute><AdminManagementPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><AdminManagementPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/project-management" element={
-        <ProtectedRoute><ProjectManagementPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><ProjectManagementPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/system-logs" element={
-        <ProtectedRoute><SystemLogsPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><SystemLogsPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/session-data" element={
-        <ProtectedRoute><SessionDataPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><SessionDataPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/booking-slots" element={
-        <ProtectedRoute><BookingSlotsPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><BookingSlotsPage /></ProtectedRoute>
       } />
 
       <Route path="/admin/projects/:projectId" element={
-        <ProtectedRoute><ProjectDashboardPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><ProjectDashboardPage /></ProtectedRoute>
       } />
-      
+
       <Route path="/admin/projects/:projectId/fieldwork" element={
         <ProtectedRoute><ProjectFieldworkPage /></ProtectedRoute>
       } />
-      
+
       <Route path="/admin/projects/:projectId/participants" element={
-        <ProtectedRoute><ParticipantDashboardPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><ParticipantDashboardPage /></ProtectedRoute>
       } />
-      
+
       <Route path="/admin/projects/:projectId/protocols" element={
-        <ProtectedRoute><ProtocolDashboardPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><ProtocolDashboardPage /></ProtectedRoute>
       } />
-      
+
       <Route path="/admin/projects/:projectId/protocols/:protocolId" element={
-        <ProtectedRoute><ProtocolEditorPage /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}><ProtocolEditorPage /></ProtectedRoute>
       } />
 
       {/* Interface routes (for testing, so we protect them) */}

@@ -1,6 +1,7 @@
 INSERT INTO roles (`name`, `description`) VALUES
 ('master', 'Full system control — can create, update, and delete all tables, manage projects, admins, and global settings. Only a few users should have this role.'),
-('admin', 'Limited project-based control — can manage only assigned projects, their participants, and related data. Cannot see or modify other projects.');
+('admin', 'Limited project-based control — can manage only assigned projects, their participants, and related data. Cannot see or modify other projects.'),
+('survey_agency', 'Restricted to fieldwork viewing and contact-event import for a single assigned project. Cannot manage protocols, participants, users, or other projects.');
 
 INSERT INTO languages (`code`,`name`, `native_name`) VALUES
 ('en', 'english', 'English'),

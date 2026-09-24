@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { getMappings } from "../api/mappings";
 import { useUser } from "../context/UserContext";
 import { fetchProjectsList } from "../api/projects";
+import { ROLES } from "../constants/roles";
 
 // Shared & Local Components
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
@@ -29,7 +30,16 @@ export default function AdminDashboardPage() {
       // Scoping (master vs. assigned-projects-only) is resolved server-side
       // from the admin's own JWT — see api/projects.js.
       fetchProjectsList()
-        .then(setProjects)
+        .then((list) => {
+          // survey_agency is restricted to exactly one project (see
+          // backend/src/config/roles.js) — skip the dashboard grid/tools
+          // entirely and go straight to the page they're actually here for.
+          if (user.role === ROLES.SURVEY_AGENCY && list.length === 1) {
+            navigate(`/admin/projects/${list[0].project_id}/fieldwork`, { replace: true });
+            return;
+          }
+          setProjects(list);
+        })
         .catch(err => console.error(err))
         .finally(() => setLoading(false));
     }
@@ -58,7 +68,7 @@ export default function AdminDashboardPage() {
         onProjectClick={(id) => navigate(`/admin/projects/${id}`)} 
       />
 
-      {user.role_id === 1 && <MasterTools />}
+      {user.role === ROLES.MASTER && <MasterTools />}
     </div>
   );
 }

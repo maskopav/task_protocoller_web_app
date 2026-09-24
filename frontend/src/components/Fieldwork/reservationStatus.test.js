@@ -50,9 +50,11 @@ describe("reservationState", () => {
   // at least BOOKING_ELIGIBILITY_DAYS out) — so the "haven't booked yet"
   // clock starts at completion, not at whenever the earliest slot opens.
   it("is 'not_booked', not overdue, within the grace period right after completion", () => {
+    const completedDaysAgo = RESERVATION_FOLLOWUP_DAYS - 1;
+    const completedAt = new Date(NOW.getTime() - completedDaysAgo * 24 * 60 * 60 * 1000);
     const state = reservationState({
       enable_followup_booking: 1, protocol_status: "finished",
-      session_completed_at: "2026-09-17 12:00:00", // 3 days ago; grace is RESERVATION_FOLLOWUP_DAYS (5)
+      session_completed_at: completedAt.toISOString().slice(0, 19).replace("T", " "),
     });
     expect(state).toMatchObject({ kind: "not_booked", overdue: false });
   });

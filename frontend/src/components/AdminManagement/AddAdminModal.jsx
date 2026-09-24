@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
 import { createAdminApi } from "../../api/users";
+import { ROLES } from "../../constants/roles";
 import "./AdminManagement.css";
 
 export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
@@ -10,6 +11,7 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
   const [formData, setFormData] = useState({
     email: "",
     full_name: "",
+    role: ROLES.ADMIN,
     project_ids: []
   });
   const [error, setError] = useState("");
@@ -39,9 +41,9 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
         ...formData,
         lang: i18n.language
       });
-      onSuccess(); 
+      onSuccess();
       onClose();
-      setFormData({ email: "", full_name: "", project_ids: [] });
+      setFormData({ email: "", full_name: "", role: ROLES.ADMIN, project_ids: [] });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -85,6 +87,18 @@ export default function AddAdminModal({ open, onClose, projects, onSuccess }) {
           />
         </div>
         
+        <div className="form-group">
+          <label className="form-label">{t("management.table.role")}</label>
+          <select
+            className="participant-input"
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
+            <option value={ROLES.ADMIN}>Admin</option>
+            <option value={ROLES.SURVEY_AGENCY}>Survey Agency</option>
+          </select>
+        </div>
+
         <div className="form-group">
           <label className="form-label">{t("adminDashboard.projectsTitle")}</label>
           <div className="project-selection-grid">
