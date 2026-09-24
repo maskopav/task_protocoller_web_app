@@ -12,15 +12,9 @@ import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
 import csAdmin from "./cs/admin.json";
 
-import deCommon from "./de/common.json";
-import deTasks from "./de/tasks.json";
-import deAdmin from "./de/admin.json";
-
-
 export const LANGUAGES = [
   { code: "en", label: "English" },
   { code: "cs", label: "Čeština" },
-  { code: "de", label: "Deutsch" },
 ];
 
 // Languages offered when choosing a protocol's content language.
@@ -55,11 +49,6 @@ i18n
         common: csCommon,
         tasks: csTasks,
         admin: csAdmin
-      },
-      de: {
-        common: deCommon,
-        tasks: deTasks,
-        admin: deAdmin
       }
     },
     interpolation: {
