@@ -23,6 +23,18 @@ export const LANGUAGES = [
   { code: "de", label: "Deutsch" },
 ];
 
+// Languages offered when choosing a protocol's content language.
+// `implemented: false` languages are shown so people know they're coming,
+// but can't be selected yet — selecting always stays on English until
+// that language's content is actually built out.
+export const PROTOCOL_LANGUAGES = [
+  { code: "en", label: "English", implemented: true },
+  { code: "de", label: "Deutsch", implemented: false },
+  { code: "it", label: "Italiano", implemented: false },
+  { code: "fr", label: "Français", implemented: false },
+  { code: "cs", label: "Čeština", implemented: false },
+];
+
 i18n
   .use(initReactI18next)
   .init({
