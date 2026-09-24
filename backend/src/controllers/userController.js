@@ -3,6 +3,7 @@ import { executeQuery } from "../db/queryHelper.js";
 import bcrypt from "bcrypt";
 import { logToFile } from '../utils/logger.js';
 import { sendAdminWelcomeEmail } from "../utils/emailService.js";
+import { ROLES, CREATABLE_ROLES } from "../config/roles.js";
 
 // Fetch all users for the management table
 export const getAllUsers = async (req, res) => {
@@ -33,19 +34,26 @@ export const toggleUserStatus = async (req, res) => {
 };
 
 export const createAdmin = async (req, res) => {
-    const { email, full_name, project_ids, lang = 'en' } = req.body;
+    const { email, full_name, project_ids, lang = 'en', role = ROLES.ADMIN } = req.body;
+
+    // Never let this endpoint hand out "master" (or any typo'd/unknown role)
+    // — it's reachable by any master, and this is the only gate stopping it
+    // from being a privilege-escalation path to another full-access account.
+    if (!CREATABLE_ROLES.includes(role)) {
+        return res.status(400).json({ error: "Invalid role" });
+    }
 
     try {
         const existingUsers = await executeQuery("SELECT id FROM users WHERE email = ?", [email]);
         if (existingUsers.length > 0) {
-            return res.status(400).json({ 
-                error: "User with this email already exists" 
+            return res.status(400).json({
+                error: "User with this email already exists"
             });
         }
-        // 1. Get the 'admin' role ID
-        const roles = await executeQuery("SELECT id FROM roles WHERE name = 'admin'", []);
-        if (roles.length === 0) return res.status(500).json({ error: "Admin role not found" });
-        const adminRoleId = roles[0].id;
+        // 1. Get the requested role's ID
+        const roles = await executeQuery("SELECT id FROM roles WHERE name = ?", [role]);
+        if (roles.length === 0) return res.status(500).json({ error: "Role not found" });
+        const roleId = roles[0].id;
 
         // 2. Create a temporary random password
         const tempPassword = Math.random().toString(36).slice(-10);
@@ -53,9 +61,9 @@ export const createAdmin = async (req, res) => {
 
         // 3. Insert User (Transactionally if possible, or sequential)
         const userResult = await executeQuery(
-            `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password) 
+            `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password)
              VALUES (?, ?, ?, ?, true)`,
-            [email, passwordHash, full_name, adminRoleId]
+            [email, passwordHash, full_name, roleId]
         );
         const newUserId = userResult.insertId;
 

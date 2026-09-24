@@ -11,32 +11,40 @@ import {
   swapParticipantProtocolLanguage,
   importContactEvents
 } from "../controllers/participantProtocolController.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // -- Admin dashboard actions: require a logged-in admin --
+// activate/deactivate/assign/send-manual-email are protocol-assignment
+// actions, not fieldwork viewing/logging — kept to master/admin so the
+// restricted survey_agency role can't reach them (see
+// backend/src/config/roles.js).
 
 // Assign (activate)
-router.post("/activate", requireAuth, activateParticipantProtocol);
+router.post("/activate", requireAuth, requireRole("master", "admin"), activateParticipantProtocol);
 
 // End assignment (deactivate)
-router.post("/deactivate", requireAuth, deactivateParticipantProtocol);
+router.post("/deactivate", requireAuth, requireRole("master", "admin"), deactivateParticipantProtocol);
 
 // Assign other protocol to existing participant
-router.post("/assign", requireAuth, assignProtocol);
+router.post("/assign", requireAuth, requireRole("master", "admin"), assignProtocol);
 
 // GET /api/participant-protocol?project_id=1,participant_id=1
 /// e.g. http://localhost:3000/participant-protocol?project_id=1
+// Reachable by survey_agency too -- scoped to their assigned project inside
+// getParticipantProtocolView itself (see participantProtocolController.js).
 router.get("/", requireAuth, getParticipantProtocolView);
 
 // POST /api/participant-protocol/send-manual-email
-router.post("/send-manual-email", requireAuth, sendManualEmail);
+router.post("/send-manual-email", requireAuth, requireRole("master", "admin"), sendManualEmail);
 
 // POST /api/participant-protocol/import-contacts
 // body: { project_id, rows: [{ external_id, link_sent_at, call_1_at, call_1_notes, call_2_at, call_2_notes, call_3_at, call_3_notes }] }
 // One row per respondent covers every outreach touchpoint at once: the
 // initial link send, and up to 3 follow-up calls (with notes).
+// Reachable by survey_agency too -- this is the CSV import they're meant to
+// use; scoped to their assigned project inside importContactEvents itself.
 router.post("/import-contacts", requireAuth, importContactEvents);
 
 // -- Participant-facing: gated by the unguessable per-participant token itself, not admin auth --

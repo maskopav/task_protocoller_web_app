@@ -182,8 +182,26 @@ export async function resolveParticipantToken(req, res) {
 export const getParticipantProtocolView = async (req, res) => {
 
   const { project_id, participant_id } = req.query;
+  const { id: userId, role } = req.admin;
 
   try {
+    // Same rule as getProjectFieldwork (projectController.js): master sees
+    // any project, everyone else must be assigned to the one they're asking
+    // for. Without project_id there's nothing to scope by, so a non-master
+    // caller can't be allowed to fall through to the unfiltered query below.
+    if (role !== 'master') {
+      if (!project_id) {
+        return res.status(400).json({ error: "project_id is required" });
+      }
+      const access = await executeQuery(
+        `SELECT 1 FROM user_projects WHERE user_id = ? AND project_id = ?`,
+        [userId, project_id]
+      );
+      if (access.length === 0) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+
     let query = `SELECT * FROM v_participant_protocols WHERE 1=1 AND is_current_protocol = 1`;
     const params = [];
 
@@ -367,9 +385,20 @@ async function resolveParticipantProtocolId(externalId, projectId, protocolId) {
 // forth over email.
 export async function importContactEvents(req, res) {
   const { project_id, rows } = req.body;
+  const { id: userId, role } = req.admin;
 
   if (!project_id || !Array.isArray(rows) || rows.length === 0) {
     return res.status(400).json({ error: "Missing project_id or rows" });
+  }
+
+  if (role !== 'master') {
+    const access = await executeQuery(
+      `SELECT 1 FROM user_projects WHERE user_id = ? AND project_id = ?`,
+      [userId, project_id]
+    );
+    if (access.length === 0) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
   }
 
   const skipped = [];
