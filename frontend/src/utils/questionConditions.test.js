@@ -7,6 +7,7 @@ import {
   clearDanglingShowIf,
   isQuestionVisible,
   pruneHiddenAnswers,
+  expandRepeatedQuestions,
 } from './questionConditions';
 
 const gateQuestion = {
@@ -216,5 +217,50 @@ describe('pruneHiddenAnswers', () => {
     const snapshot = { ...answers };
     pruneHiddenAnswers(questions, answers);
     expect(answers).toEqual(snapshot);
+  });
+});
+
+describe('showIf.unlessLanguage', () => {
+  const langQ = { id: 1, type: 'multiple', options: ['German', 'English', 'Other'] };
+  const ageQ = { id: 2, type: 'single', options: ['Age', "Don't know"], showIf: { questionId: 1, unlessLanguage: { en: 'English', de: 'German' } } };
+
+  it('is hidden until the source is answered', () => {
+    expect(isQuestionVisible(ageQ, {}, 'en')).toBe(false);
+    expect(isQuestionVisible(ageQ, { 1: [] }, 'en')).toBe(false);
+  });
+
+  it('is hidden when the study language was selected, shown otherwise', () => {
+    expect(isQuestionVisible(ageQ, { 1: ['German', 'English'] }, 'en')).toBe(false);
+    expect(isQuestionVisible(ageQ, { 1: ['German'] }, 'en')).toBe(true);
+  });
+
+  it('is shown for a study language missing from the map', () => {
+    expect(isQuestionVisible(ageQ, { 1: ['German'] }, 'cs')).toBe(true);
+  });
+
+  it('is kept by sanitizeShowIf and pruned by pruneHiddenAnswers', () => {
+    expect(sanitizeShowIf(ageQ.showIf, [langQ, ageQ])).toEqual(ageQ.showIf);
+    expect(pruneHiddenAnswers([langQ, ageQ], { 1: ['English'], 2: 'Age' }, 'en')).toEqual({ 1: ['English'] });
+  });
+});
+
+describe('expandRepeatedQuestions', () => {
+  const q1 = { id: 1, type: 'multiple', options: ['German', 'English', 'Other'], freeTextOptions: ['Other'] };
+  const q2 = { id: 2, type: 'multiple', options: ['German', 'English', 'Other'], freeTextOptions: ['Other'] };
+  const q4 = { id: 4, type: 'single', text: 'How often do you speak <language>?', options: ['Daily'], repeatFor: [1, 2] };
+
+  it('repeats once per distinct language, using free text for "Other"', () => {
+    const answers = { 1: ['German', 'Other'], '1__freeText__Other': ' Czech ', 2: ['German', 'English'] };
+    const result = expandRepeatedQuestions([q1, q2, q4], answers);
+    expect(result.slice(2).map((q) => [q.id, q.text])).toEqual([
+      ['4__German', 'How often do you speak German?'],
+      ['4__Czech', 'How often do you speak Czech?'],
+      ['4__English', 'How often do you speak English?'],
+    ]);
+    expect(result[2].repeatFor).toBeUndefined();
+  });
+
+  it('produces no copies when nothing is selected or "Other" text is empty', () => {
+    expect(expandRepeatedQuestions([q1, q2, q4], { 1: ['Other'] })).toEqual([q1, q2]);
   });
 });

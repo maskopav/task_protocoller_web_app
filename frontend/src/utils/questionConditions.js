@@ -32,6 +32,8 @@ export function sanitizeShowIf(showIf, questions) {
   if (!showIf) return null;
   const source = questions.find((q) => q.id === showIf.questionId);
   if (!isConditionSource(source)) return null;
+  // unlessLanguage conditions aren't editable in the modal — keep them as-is
+  if (showIf.unlessLanguage) return showIf;
   const values = (showIf.values || []).filter((v) => source.options.includes(v));
   return values.length > 0 ? { questionId: showIf.questionId, values } : null;
 }
@@ -46,12 +48,44 @@ export function clearDanglingShowIf(questions, removedId) {
 // Whether a question should be shown to the respondent, given the current
 // answers map (as used by the Questionnaire renderer: keyed by question id,
 // with a string value for single/dropdown or an array of strings for multiple).
-export function isQuestionVisible(question, answers) {
+// `showIf.unlessLanguage` ({ <lang code>: <option text> }) flips the check: the
+// question shows once the source is answered, unless the answer includes the
+// option naming the current study language `lang` (e.g. skip "at what age did
+// you learn <language>?" for people who grew up speaking it).
+export function isQuestionVisible(question, answers, lang) {
   if (!question.showIf) return true;
-  const { questionId, values } = question.showIf;
+  const { questionId, values = [], unlessLanguage } = question.showIf;
   const answer = answers[questionId];
-  if (Array.isArray(answer)) return answer.some((v) => values.includes(v));
-  return values.includes(answer);
+  const selected = Array.isArray(answer) ? answer : answer ? [answer] : [];
+  if (unlessLanguage) {
+    return selected.length > 0 && !selected.includes(unlessLanguage[lang]);
+  }
+  return selected.some((v) => values.includes(v));
+}
+
+// Replaces each question with `repeatFor: [sourceIds]` by one copy per distinct
+// value chosen across those source questions (free-text options such as "Other"
+// contribute the typed text instead). Copies get id `${q.id}__${item}` and have
+// "<language>" in their text replaced by the item.
+export function expandRepeatedQuestions(questions, answers) {
+  return questions.flatMap((q) => {
+    if (!q.repeatFor) return [q];
+    const items = new Set();
+    for (const srcId of q.repeatFor) {
+      const src = questions.find((s) => s.id === srcId);
+      const answer = answers[srcId];
+      for (const opt of Array.isArray(answer) ? answer : answer ? [answer] : []) {
+        const item = src?.freeTextOptions?.includes(opt)
+          ? (answers[`${srcId}__freeText__${opt}`] || "").trim()
+          : opt;
+        if (item) items.add(item);
+      }
+    }
+    return [...items].map((item) => {
+      const { repeatFor: _repeatFor, ...rest } = q;
+      return { ...rest, id: `${q.id}__${item}`, text: q.text.replaceAll("<language>", item) };
+    });
+  });
 }
 
 // Removes answers (and any free-text follow-ups) belonging to questions that
@@ -59,14 +93,14 @@ export function isQuestionVisible(question, answers) {
 // changed a gate answer so a previously-shown follow-up question is now
 // hidden again. Returns a new answers object; repeats until stable so a
 // change that hides a gate question also clears anything gated by *it*.
-export function pruneHiddenAnswers(questions, answers) {
+export function pruneHiddenAnswers(questions, answers, lang) {
   let next = { ...answers };
   let mutated = true;
   while (mutated) {
     mutated = false;
     for (const q of questions) {
       if (!q.showIf || !(q.id in next)) continue;
-      if (isQuestionVisible(q, next)) continue;
+      if (isQuestionVisible(q, next, lang)) continue;
       delete next[q.id];
       (q.freeTextOptions || []).forEach((opt) => {
         delete next[`${q.id}__freeText__${opt}`];

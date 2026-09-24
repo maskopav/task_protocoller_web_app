@@ -263,6 +263,11 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                           ))}
                         </select>
 
+                        {q.showIf.unlessLanguage ? (
+                          <div className="qm-condition-values">
+                            Shown unless the answer includes the study language
+                          </div>
+                        ) : (
                         <div className="qm-condition-values">
                           {(selectedSource?.options || []).map((opt) => (
                             <label key={opt} className="qm-condition-value-option">
@@ -275,6 +280,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                             </label>
                           ))}
                         </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -323,6 +329,14 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                             <option key={idx} value={opt}>{opt}</option>
                           ))}
                         </select>
+                        <label>Max selections (empty = no limit)</label>
+                        <input
+                          className="qm-input"
+                          type="number"
+                          min={1}
+                          value={q.maxSelections || ""}
+                          onChange={(e) => updateQuestion(q.id, "maxSelections", Number(e.target.value) || undefined)}
+                        />
                       </div>
                     )}
                 </div>

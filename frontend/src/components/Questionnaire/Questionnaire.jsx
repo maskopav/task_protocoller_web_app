@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
-import { isQuestionVisible, pruneHiddenAnswers } from "../../utils/questionConditions";
+import { isQuestionVisible, pruneHiddenAnswers, expandRepeatedQuestions } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
 // Each language names itself the same way regardless of which language the
@@ -28,7 +28,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
   // --- 1. Handle Input Changes ---
   const handleChange = (questionId, value, type, exclusiveOptionValue = null) => {
     lastInteractedType.current = type;
-    const question = data.questions.find((q) => q.id === questionId);
+    const question = visibleQuestions.find((q) => q.id === questionId);
     setAnswers((prev) => {
       let nextValue;
       if (type === "multiple") {
@@ -51,7 +51,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
       });
       // If this answer hides a follow-up question (e.g. a gate question like
       // "did you have technical problems?" flipped to "No"), drop its stale answer.
-      next = pruneHiddenAnswers(data.questions, next);
+      next = pruneHiddenAnswers(data.questions, next, i18n.language);
       return next;
     });
     if (onLogAnswer) onLogAnswer(questionId, value);
@@ -75,8 +75,12 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
 
   // Questions currently shown to the respondent, in display order. A question
   // with a showIf (e.g. the HHIE-S follow-ups, or the feedback technical-issues
-  // list) only appears once its gate question's answer matches.
-  const visibleQuestions = (data?.questions || []).filter((q) => isQuestionVisible(q, answers));
+  // list) only appears once its gate question's answer matches. Questions with
+  // repeatFor are expanded into one copy per language picked in their sources.
+  const visibleQuestions = expandRepeatedQuestions(
+    (data?.questions || []).filter((q) => isQuestionVisible(q, answers, i18n.language)),
+    answers
+  );
 
   const handleFreeTextChange = (questionId, opt, text) => {
     setAnswers((prev) => ({ ...prev, [`${questionId}__freeText__${opt}`]: text }));
@@ -147,10 +151,16 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
   // --- 5. Submission ---
   const handleSubmit = () => {
     if (!isValid || isUploading) return;
+    // Drop answers to repeated copies whose language was deselected afterwards
+    const visibleIds = new Set(visibleQuestions.map((q) => String(q.id)));
+    const copyPrefixes = data.questions.filter((q) => q.repeatFor).map((q) => `${q.id}__`);
+    const isStaleCopy = (key) =>
+      !visibleIds.has(key) && copyPrefixes.some((p) => key.startsWith(p) && !key.startsWith(`${p}freeText__`));
+    const submitted = Object.fromEntries(Object.entries(answers).filter(([key]) => !isStaleCopy(key)));
     onNextTask({
       taskType: "questionnaire",
       timestamp: new Date().toISOString(),
-      answers,
+      answers: submitted,
     });
   };
 
@@ -238,10 +248,12 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                     {q.options?.map((opt, i) => {
                       const checked = answers[q.id]?.includes(opt) ?? false;
                       const needsFreeText = q.freeTextOptions?.includes(opt);
+                      const atMax = q.maxSelections > 0 && (answers[q.id]?.length || 0) >= q.maxSelections;
                       return (
                         <React.Fragment key={i}>
                           <label className="option-label">
                             <input type="checkbox" name={`q-${q.id}`} value={opt} checked={checked}
+                              disabled={!checked && atMax}
                               onChange={() => handleChange(q.id, opt, "multiple", q.exclusiveOption)} />
                             <span className="option-text">{opt}</span>
                           </label>

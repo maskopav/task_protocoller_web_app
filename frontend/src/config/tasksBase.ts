@@ -181,4 +181,14 @@ export const taskBaseConfig: Record<string, TaskBase> = {
       questions: { default: [] }
     },
   },
+
+  languageQuestionnaire: {
+    type: "questionnaire",
+    recording: { mode: "basicStop" },
+    params: {
+      title: { default: "" },
+      description: { default: "" },
+      questions: { default: [] }
+    },
+  },
 };
