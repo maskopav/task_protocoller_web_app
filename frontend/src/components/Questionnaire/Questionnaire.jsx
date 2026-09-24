@@ -7,7 +7,7 @@ import "./Questionnaire.css";
 
 // Each language names itself the same way regardless of which language the
 // UI is currently in, so a plain autonym map needs no i18n entry of its own.
-const LANGUAGE_NAMES = { en: "English", cs: "čeština", de: "Deutsch" };
+const LANGUAGE_NAMES = { en: "English", cs: "čeština", de: "Deutsch", it: "italiano", fr: "français" };
 
 export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
   const { t, i18n } = useTranslation(["common", "tasks"]);

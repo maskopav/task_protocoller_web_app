@@ -23,7 +23,7 @@ const localesPath = path.join(baseLocalesDir, "{{lng}}/{{ns}}.json");
 await i18next.use(Backend).init({
   initImmediate: false,
   fallbackLng: "en",
-  preload: ["en", "cs", "de"],
+  preload: ["en", "cs"],
   ns: ["common"],
   backend: {
     loadPath: localesPath,
