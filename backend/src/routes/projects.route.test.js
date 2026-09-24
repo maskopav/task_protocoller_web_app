@@ -22,11 +22,15 @@ vi.mock("../middleware/authMiddleware.js", async () => {
   };
 });
 
+const { requireAuth } = await import("../middleware/authMiddleware.js");
 const { default: router } = await import("./projects.js");
 
+// Mirrors server.js's actual mount: app.use("/projects", requireAuth, projectsRouter)
+// -- requireAuth (mocked above) runs before the router, same as production.
 function buildApp() {
   const app = express();
   app.use(express.json());
+  app.use(requireAuth);
   app.use(router);
   return app;
 }

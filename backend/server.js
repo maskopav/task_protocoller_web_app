@@ -80,11 +80,19 @@ app.use("/auth", authRouter);
 app.use("/task-results", taskResultsRouter)
 
 // Admin-only: require a valid admin JWT.
-app.use("/protocols", requireAuth, protocolsRouter);
-app.use("/participants", requireAuth, participantsRouter);
-app.use("/users", requireAuth, usersRouter)
+// protocols/participants/users/user-projects are all project-management or
+// account-management surfaces, not fieldwork viewing/logging -- restricted
+// to master/admin so the survey_agency role (see src/config/roles.js)
+// doesn't inherit access to them just by being authenticated.
+app.use("/protocols", requireAuth, requireRole("master", "admin"), protocolsRouter);
+app.use("/participants", requireAuth, requireRole("master", "admin"), participantsRouter);
+app.use("/users", requireAuth, requireRole("master", "admin"), usersRouter)
+// /projects stays open at the mount level -- projects-list and
+// :projectId/fieldwork must be reachable by survey_agency too, scoped to
+// their assigned project inside the controller; create/update are gated
+// per-route in projects.js instead.
 app.use("/projects", requireAuth, projectsRouter)
-app.use("/user-projects", requireAuth, userProjectsRouter)
+app.use("/user-projects", requireAuth, requireRole("master", "admin"), userProjectsRouter)
 app.post("/logs/frontend", (req, res) => {
   // Pass the entire structured JSON payload to the upgraded logger
   if (req.body && req.body.message) {
@@ -115,8 +123,9 @@ app.use("/session-data", requireAuth, requireRole("master"), sessionDataRouter);
 // reservations list/export) using a server-held API key -- see
 // src/services/bookingServiceClient.js. Same access level as /protocols,
 // not master-only: managing follow-up appointment slots is an operational
-// task, not a sensitive-data export.
-app.use("/admin/booking", requireAuth, adminBookingRouter);
+// task, not a sensitive-data export. Still excludes survey_agency --
+// booking-slot management isn't fieldwork viewing/logging.
+app.use("/admin/booking", requireAuth, requireRole("master", "admin"), adminBookingRouter);
 
 // Optional: run booking-service (../booking-service) as a sub-app of this
 // same process/port instead of its own separate one -- see
