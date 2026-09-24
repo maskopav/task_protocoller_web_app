@@ -84,9 +84,6 @@
       "title": "Medical History Questionnaire",
       "description": "",
       "questions": [
-        { "id": 1789301000000, "text": "Is <language> your native language?", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1789301000001, "text": "At which age did you learn to speak <language> (years)?", "type": "open", "showIf": { "questionId": 1789301000000, "values": ["No"] } },
-        { "id": 1789301000002, "text": "What is your native language?", "type": "open", "showIf": { "questionId": 1789301000000, "values": ["No"] } },
         { "id": 1789301000003, "text": "In the last 10 years, have you ever experienced speech or voice problems which resulted in a visit to a medical specialist?", "type": "single", "options": ["Yes", "No"] },
         { "id": 1789301000004, "text": "Please specify the voice or speech problem (for example: stuttering, dysarthria, …):", "type": "open", "showIf": { "questionId": 1789301000003, "values": ["Yes"] } },
         { "id": 1789301000005, "text": "Have you ever been diagnosed with, or are you currently experiencing, a neurological condition that could affect the results (for example: stroke, Parkinson's disease, epilepsy, multiple sclerosis, or traumatic brain injury)?", "type": "single", "options": ["Yes", "No"] },
@@ -97,6 +94,31 @@
         { "id": 1789301000010, "text": "Please specify the procedure:", "type": "open", "showIf": { "questionId": 1789301000009, "values": ["Yes"] } },
         { "id": 1789301000011, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles (for example: facial paralysis)?", "type": "single", "options": ["Yes", "No"] },
         { "id": 1789301000012, "text": "Please specify the condition:", "type": "open", "showIf": { "questionId": 1789301000011, "values": ["Yes"] } }
+      ]
+    }
+  },
+    "languageQuestionnaire": {
+    "name": "Language Questionnaire",
+    "description": "Languages spoken in childhood and today, how often they are used, and proficiency in the study language. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Questionnaire: {{title}}",
+    "instructions": "Please answer the following questions.",
+    "params": {
+      "title": { "label": "Title" },
+      "description": { "label": "Description" },
+      "questions": { "label": "Questions" }
+    },
+    "defaultContent": {
+      "title": "Language Questionnaire",
+      "description": "",
+      "questions": [
+        { "id": 1789302000000, "text": "Which language(s) did you mainly speak at home as a child? (up to 3)", "type": "multiple", "options": ["German (incl. Swiss German)", "French (incl. Romand patois)", "Italian (incl. Ticinese / Italian-Grisons dialect)", "Romansh", "Serbian / Croatian", "Albanian", "Portuguese", "Spanish", "English", "Other"], "freeTextOptions": ["Other"], "maxSelections": 3 },
+        { "id": 1789302000001, "text": "Which language(s) do you think in and know best today? If you think in several languages and master them very well, please indicate all of them. (up to 3)", "type": "multiple", "options": ["German (incl. Swiss German)", "French (incl. Romand patois)", "Italian (incl. Ticinese / Italian-Grisons dialect)", "Romansh", "Serbian / Croatian", "Albanian", "Portuguese", "Spanish", "English", "Other"], "freeTextOptions": ["Other"], "maxSelections": 3 },
+        { "id": 1789302000002, "text": "At what age did you start learning <language>?", "type": "single", "options": ["Age (years)", "Don't know"], "freeTextOptions": ["Age (years)"], "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "German (incl. Swiss German)", "fr": "French (incl. Romand patois)", "it": "Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "Romansh", "pt": "Portuguese", "es": "Spanish", "en": "English"}} },
+        { "id": 1789302000003, "text": "At what age did you come to live in a <language>-speaking region?", "type": "single", "options": ["Age (years)", "Don't know", "Always lived there"], "freeTextOptions": ["Age (years)"], "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "German (incl. Swiss German)", "fr": "French (incl. Romand patois)", "it": "Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "Romansh", "pt": "Portuguese", "es": "Spanish", "en": "English"}} },
+        { "id": 1789302000004, "text": "How often do you currently speak <language> with family and friends?", "type": "single", "options": ["Daily", "Several times a week", "Weekly", "Rarely", "Never"], "repeatFor": [1789302000000, 1789302000001] },
+        { "id": 1789302000005, "text": "How often do you currently speak <language> at work or in everyday activities outside home?", "type": "single", "options": ["Daily", "Several times a week", "Weekly", "Rarely", "Never"], "repeatFor": [1789302000000, 1789302000001] },
+        { "id": 1789302000006, "text": "How well do you speak <language>?", "type": "single", "options": ["Very well", "Well", "Moderately", "Poorly", "Not at all"] },
+        { "id": 1789302000007, "text": "How well do you understand <language>?", "type": "single", "options": ["Very well", "Well", "Moderately", "Poorly", "Not at all"] }
       ]
     }
   },

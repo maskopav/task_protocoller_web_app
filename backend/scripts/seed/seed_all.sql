@@ -48,6 +48,9 @@ VALUES
 ('medicalHistory',
  (SELECT id FROM task_types WHERE type='questionnaire')
 ),
+('languageQuestionnaire',
+ (SELECT id FROM task_types WHERE type='questionnaire')
+),
 ('d15colour',
  (SELECT id FROM task_types WHERE type='vision')
 ),

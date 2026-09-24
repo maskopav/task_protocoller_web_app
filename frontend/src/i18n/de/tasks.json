@@ -57,6 +57,31 @@
       ]
     }
   },
+  "languageQuestionnaire": {
+    "name": "Language Questionnaire",
+    "description": "[de] Languages spoken in childhood and today, how often they are used, and proficiency in the study language. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Fragebogen: {{title}}",
+    "instructions": "Bitte beantworten Sie die folgenden Fragen.",
+    "params": {
+      "title": { "label": "Titel" },
+      "description": { "label": "Beschreibung" },
+      "questions": { "label": "Fragen" }
+    },
+    "defaultContent": {
+      "title": "[de] Language Questionnaire",
+      "description": "",
+      "questions": [
+        { "id": 1789302000000, "text": "[de] Which language(s) did you mainly speak at home as a child? (up to 3)", "type": "multiple", "options": ["[de] German (incl. Swiss German)", "[de] French (incl. Romand patois)", "[de] Italian (incl. Ticinese / Italian-Grisons dialect)", "[de] Romansh", "[de] Serbian / Croatian", "[de] Albanian", "[de] Portuguese", "[de] Spanish", "[de] English", "[de] Other"], "freeTextOptions": ["[de] Other"], "maxSelections": 3 },
+        { "id": 1789302000001, "text": "[de] Which language(s) do you think in and know best today? If you think in several languages and master them very well, please indicate all of them. (up to 3)", "type": "multiple", "options": ["[de] German (incl. Swiss German)", "[de] French (incl. Romand patois)", "[de] Italian (incl. Ticinese / Italian-Grisons dialect)", "[de] Romansh", "[de] Serbian / Croatian", "[de] Albanian", "[de] Portuguese", "[de] Spanish", "[de] English", "[de] Other"], "freeTextOptions": ["[de] Other"], "maxSelections": 3 },
+        { "id": 1789302000002, "text": "[de] At what age did you start learning <language>?", "type": "single", "options": ["[de] Age (years)", "[de] Don't know"], "freeTextOptions": ["[de] Age (years)"], "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "[de] German (incl. Swiss German)", "fr": "[de] French (incl. Romand patois)", "it": "[de] Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "[de] Romansh", "pt": "[de] Portuguese", "es": "[de] Spanish", "en": "[de] English"}} },
+        { "id": 1789302000003, "text": "[de] At what age did you come to live in a <language>-speaking region?", "type": "single", "options": ["[de] Age (years)", "[de] Don't know", "[de] Always lived there"], "freeTextOptions": ["[de] Age (years)"], "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "[de] German (incl. Swiss German)", "fr": "[de] French (incl. Romand patois)", "it": "[de] Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "[de] Romansh", "pt": "[de] Portuguese", "es": "[de] Spanish", "en": "[de] English"}} },
+        { "id": 1789302000004, "text": "[de] How often do you currently speak <language> with family and friends?", "type": "single", "options": ["[de] Daily", "[de] Several times a week", "[de] Weekly", "[de] Rarely", "[de] Never"], "repeatFor": [1789302000000, 1789302000001] },
+        { "id": 1789302000005, "text": "[de] How often do you currently speak <language> at work or in everyday activities outside home?", "type": "single", "options": ["[de] Daily", "[de] Several times a week", "[de] Weekly", "[de] Rarely", "[de] Never"], "repeatFor": [1789302000000, 1789302000001] },
+        { "id": 1789302000006, "text": "[de] How well do you speak <language>?", "type": "single", "options": ["[de] Very well", "[de] Well", "[de] Moderately", "[de] Poorly", "[de] Not at all"] },
+        { "id": 1789302000007, "text": "[de] How well do you understand <language>?", "type": "single", "options": ["[de] Very well", "[de] Well", "[de] Moderately", "[de] Poorly", "[de] Not at all"] }
+      ]
+    }
+  },
   "phonation": {
     "name": "Lang anhaltende Phonation",
     "description": "Die Teilnehmerin oder der Teilnehmer hält einen einzelnen Vokallaut (z. B. /a/, /e/, /i/, /o/, /u/) für eine festgelegte Zeit, um die Stimmstabilität und -kontrolle zu analysieren. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der eingestellten Dauer. Die Administratorin oder der Administrator sollte den Vokal ('phoneme'), die Anzahl der Wiederholungen ('repeat') und das Zeitintervall, nach dem die STOP-Taste erscheint ('duration'), festlegen.",

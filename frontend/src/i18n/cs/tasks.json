@@ -68,6 +68,31 @@
       ]
     }
   },
+  "languageQuestionnaire": {
+    "name": "Language Questionnaire",
+    "description": "[cs] Languages spoken in childhood and today, how often they are used, and proficiency in the study language. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Dotazník: {{title}}",
+    "instructions": "Prosím zodpovězte na následující otázky.",
+    "params": {
+      "title": { "label": "Název" },
+      "description": { "label": "Popis" },
+      "questions": { "label": "Otázky" }
+    },
+    "defaultContent": {
+      "title": "[cs] Language Questionnaire",
+      "description": "",
+      "questions": [
+        { "id": 1789302000000, "text": "[cs] Which language(s) did you mainly speak at home as a child? (up to 3)", "type": "multiple", "options": ["[cs] German (incl. Swiss German)", "[cs] French (incl. Romand patois)", "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "[cs] Romansh", "[cs] Serbian / Croatian", "[cs] Albanian", "[cs] Portuguese", "[cs] Spanish", "[cs] English", "[cs] Other"], "freeTextOptions": ["[cs] Other"], "maxSelections": 3 },
+        { "id": 1789302000001, "text": "[cs] Which language(s) do you think in and know best today? If you think in several languages and master them very well, please indicate all of them. (up to 3)", "type": "multiple", "options": ["[cs] German (incl. Swiss German)", "[cs] French (incl. Romand patois)", "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "[cs] Romansh", "[cs] Serbian / Croatian", "[cs] Albanian", "[cs] Portuguese", "[cs] Spanish", "[cs] English", "[cs] Other"], "freeTextOptions": ["[cs] Other"], "maxSelections": 3 },
+        { "id": 1789302000002, "text": "[cs] At what age did you start learning <language>?", "type": "single", "options": ["[cs] Age (years)", "[cs] Don't know"], "freeTextOptions": ["[cs] Age (years)"], "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "[cs] German (incl. Swiss German)", "fr": "[cs] French (incl. Romand patois)", "it": "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "[cs] Romansh", "pt": "[cs] Portuguese", "es": "[cs] Spanish", "en": "[cs] English"}} },
+        { "id": 1789302000003, "text": "[cs] At what age did you come to live in a <language>-speaking region?", "type": "single", "options": ["[cs] Age (years)", "[cs] Don't know", "[cs] Always lived there"], "freeTextOptions": ["[cs] Age (years)"], "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "[cs] German (incl. Swiss German)", "fr": "[cs] French (incl. Romand patois)", "it": "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "[cs] Romansh", "pt": "[cs] Portuguese", "es": "[cs] Spanish", "en": "[cs] English"}} },
+        { "id": 1789302000004, "text": "[cs] How often do you currently speak <language> with family and friends?", "type": "single", "options": ["[cs] Daily", "[cs] Several times a week", "[cs] Weekly", "[cs] Rarely", "[cs] Never"], "repeatFor": [1789302000000, 1789302000001] },
+        { "id": 1789302000005, "text": "[cs] How often do you currently speak <language> at work or in everyday activities outside home?", "type": "single", "options": ["[cs] Daily", "[cs] Several times a week", "[cs] Weekly", "[cs] Rarely", "[cs] Never"], "repeatFor": [1789302000000, 1789302000001] },
+        { "id": 1789302000006, "text": "[cs] How well do you speak <language>?", "type": "single", "options": ["[cs] Very well", "[cs] Well", "[cs] Moderately", "[cs] Poorly", "[cs] Not at all"] },
+        { "id": 1789302000007, "text": "[cs] How well do you understand <language>?", "type": "single", "options": ["[cs] Very well", "[cs] Well", "[cs] Moderately", "[cs] Poorly", "[cs] Not at all"] }
+      ]
+    }
+  },
   "phonation": {
     "name": "Prodloužená fonace",
     "description": "Účastník udržuje jeden samohláskový zvuk (např. /a/, /e/, /i/, /o/, /u/) po stanovenou dobu za účelem analýzy stability a kontroly hlasu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastavené doby. Administrátor by měl nastavit samohlásku ('phoneme'), počet opakování ('repeat') a časový interval, po kterém se zobrazí tlačítko STOP ('duration').",
