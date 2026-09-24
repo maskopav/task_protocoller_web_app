@@ -24,9 +24,11 @@ export const LANGUAGES = [
 ];
 
 // Languages offered when choosing a protocol's content language.
-// `implemented: false` languages are shown so people know they're coming,
-// but can't be selected yet — selecting always stays on English until
-// that language's content is actually built out.
+// All of these are selectable and create a real protocol variant.
+// `implemented: false` means that language's task/admin text isn't
+// translated yet, so i18next's fallbackLng ("en") is used and the
+// content shows in English until someone fills in that language's
+// JSON files under src/i18n/<code>/.
 export const PROTOCOL_LANGUAGES = [
   { code: "en", label: "English", implemented: true },
   { code: "de", label: "Deutsch", implemented: false },

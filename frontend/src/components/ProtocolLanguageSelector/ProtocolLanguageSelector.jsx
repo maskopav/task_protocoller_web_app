@@ -45,8 +45,6 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
 
   const toggleLanguage = async (code) => {
     if (disabled) return;
-    // Not-yet-implemented languages can't be selected — stay on English.
-    if (!PROTOCOL_LANGUAGES.find(l => l.code === code)?.implemented) return;
 
     // Trigger confirm dialog if they try to add a new variant in EDIT mode
     if (editingMode && !selectedLangs.includes(code)) {
@@ -118,17 +116,17 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
               {missingLangs.map((lang) => (
                 <label
                   key={lang.code}
-                  className={`protocol-lang-pill small ${disabled || !lang.implemented ? "disabled" : ""}`}
-                  title={!lang.implemented ? t("protocolEditor.comingSoon", "Coming soon") : undefined}
+                  className={`protocol-lang-pill small ${disabled ? "disabled" : ""}`}
+                  title={!lang.implemented ? t("protocolEditor.notTranslatedYet", "Text not translated yet — falls back to English") : undefined}
                 >
                   <input
                     type="checkbox"
                     checked={false}
                     onChange={() => toggleLanguage(lang.code)}
-                    disabled={disabled || !lang.implemented}
+                    disabled={disabled}
                   />
                   {lang.code}
-                  {!lang.implemented && ` (${t("protocolEditor.comingSoon", "coming soon")})`}
+                  {!lang.implemented && " *"}
                 </label>
               ))}
             </div>
@@ -149,25 +147,29 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
       <div className="protocol-field protocol-lang-pill-container">
         {PROTOCOL_LANGUAGES.map((lang) => {
           const isSelected = selectedLangs.includes(lang.code);
-          const isDisabled = disabled || !lang.implemented;
           return (
             <label
               key={lang.code}
-              className={`protocol-lang-pill ${isSelected ? "selected" : ""} ${isDisabled ? "disabled" : ""}`}
-              title={!lang.implemented ? t("protocolEditor.comingSoon", "Coming soon") : undefined}
+              className={`protocol-lang-pill ${isSelected ? "selected" : ""} ${disabled ? "disabled" : ""}`}
+              title={!lang.implemented ? t("protocolEditor.notTranslatedYet", "Text not translated yet — falls back to English") : undefined}
             >
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => toggleLanguage(lang.code)}
-                disabled={isDisabled}
+                disabled={disabled}
               />
               {lang.code}
-              {!lang.implemented && ` (${t("protocolEditor.comingSoon", "coming soon")})`}
+              {!lang.implemented && " *"}
             </label>
           );
         })}
       </div>
+      {PROTOCOL_LANGUAGES.some(l => !l.implemented && selectedLangs.includes(l.code)) && (
+        <p className="protocol-lang-note">
+          * {t("protocolEditor.notTranslatedYet", "Text not translated yet — falls back to English")}
+        </p>
+      )}
 
       <label className={`protocol-multi-select-label ${disabled ? "disabled" : ""}`}>
          <input 

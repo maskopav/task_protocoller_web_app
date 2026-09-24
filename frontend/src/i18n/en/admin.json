@@ -297,7 +297,7 @@
     "smartSyncNote": "Smart Sync is active.",
     "smartSyncWarning": "Structural changes (adding, reordering, deleting tasks) will automatically sync to all other language variants of this protocol. Text changes will only apply to this language.",
     "selectLanguagesToCreate": "Language(s):",
-    "comingSoon": "coming soon",
+    "notTranslatedYet": "Falls back to English",
     "createMultipleLangsHelper": "Select all languages you want to generate this protocol for. You will need to translate the text in the other variants later.",
     "allowMultiSelect": "Allow participant to select language",
     "multiLangTitle": "Enable Multiple Languages?",

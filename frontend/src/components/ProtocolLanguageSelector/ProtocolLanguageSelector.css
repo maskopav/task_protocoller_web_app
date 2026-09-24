@@ -83,6 +83,12 @@
   font-size: 0.85rem;
 }
 
+.protocol-lang-note {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 4px 0 0;
+}
+
 /* Style for the multiple language checkbox */
 .protocol-multi-checkbox-wrapper {
   display: flex;
