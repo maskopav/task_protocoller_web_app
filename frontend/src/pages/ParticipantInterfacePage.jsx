@@ -453,6 +453,19 @@ export default function ParticipantInterfacePage() {
   // Define your tasks and audio hook FIRST
   const rawTask = runtimeTasks[taskIndex];
 
+  // Whether this is the first "vision" task the participant reaches this session —
+  // VisionTaskWrapper uses it to only ask the screen/environment setup checklist once.
+  const isFirstVisionTask = useMemo(() => (
+    !runtimeTasks.slice(0, taskIndex).some((t) => t.type === 'vision')
+  ), [runtimeTasks, taskIndex]);
+
+  // Whether another vision task (e.g. the next D-15 version) still follows this
+  // one — VisionTaskWrapper uses it to show a "well done, one more to go" dialog
+  // instead of silently jumping to the next task.
+  const hasMoreVisionTasks = useMemo(() => (
+    runtimeTasks.slice(taskIndex + 1).some((t) => t.type === 'vision')
+  ), [runtimeTasks, taskIndex]);
+
   // Marking the session completed once every real task is done (before the
   // optional follow-up booking step) is handled inside BookingStep itself,
   // awaited before it fetches its booking link — not here. A sibling effect
@@ -1099,6 +1112,8 @@ export default function ParticipantInterfacePage() {
           onNextTask={handleTaskComplete}
           isUploading={isUploading}
           audioGuideEnabled={useAudioGuide}
+          isFirstVisionTask={isFirstVisionTask}
+          hasMoreVisionTasks={hasMoreVisionTasks}
         />
       );
     }

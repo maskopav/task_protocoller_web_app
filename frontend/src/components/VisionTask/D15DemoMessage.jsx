@@ -6,6 +6,8 @@ import "./D15DemoMessage.css";
 
 // ── DIALOG 1: ADD COLOUR ──────────────────────────────────────────────
 // How to place a cap + the goal (ordered sequence), shown together.
+// Same wording every time — participants see this before every version
+// (demo/saturated/desaturated), not just the first.
 export function D15AddColourMessage() {
   const { t } = useTranslation("tasks");
 
@@ -13,11 +15,11 @@ export function D15AddColourMessage() {
     <div className="d15-demo-container">
 
       <div className="d15-demo-divider" />
-      
+
       <span className="d15-demo-text">
           <Trans t={t} i18nKey="d15colour.addTitle" />
       </span>
-      
+
       <div className="mechanics-section">
         <span className="d15-demo-text">
           <Trans t={t} i18nKey="d15colour.addText" />
@@ -39,7 +41,7 @@ export function D15ModifyColourMessage() {
 
   return (
     <div className="d15-demo-container">
-            
+
       <span className="d15-demo-text">
           <Trans t={t} i18nKey="d15colour.modifyTitle" />
       </span>
@@ -130,6 +132,27 @@ export function D15TrialCompleteMessage() {
       />
       <span className="d15-demo-text">
         {t("d15colour.trialCompleteText")}
+      </span>
+    </div>
+  );
+}
+
+// ── DIALOG: VERSION COMPLETE FEEDBACK ─────────────────────────────────
+// Shown after a full version (demo/saturated/desaturated) is submitted, only
+// when another version still follows — confirms this one's done and eases
+// into the next one, diplomatically (no mention of relative difficulty).
+export function D15VersionCompleteMessage() {
+  const { t } = useTranslation("tasks");
+
+  return (
+    <div className="d15-demo-container">
+      <div
+        className="success-icon-mask"
+        style={{ '--icon-url': `url("${checkIcon}")` }}
+        aria-hidden="true"
+      />
+      <span className="d15-demo-text">
+        {t("d15colour.versionCompleteText")}
       </span>
     </div>
   );
