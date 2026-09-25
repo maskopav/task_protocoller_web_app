@@ -40,6 +40,22 @@ const { create, ConverterType } = LibSampleRateNS.default || LibSampleRateNS;
 // devices already recording at <=44.1 kHz (some iOS configs) are untouched.
 export const TARGET_SAMPLE_RATE = 44100;
 
+// libsamplerate-js's create() instantiates a WASM module with no built-in
+// timeout and no cancellation. pcmAtTargetRate() in finalizeRecording.js
+// already falls back to the native sample rate on any *rejection* from this
+// function -- bounding the WASM load here is what turns a hang (which that
+// existing catch can never see) into that already-handled fallback, instead
+// of leaving audioURL unset and the Next/Repeat buttons disabled forever
+// (see PlaybackSection.jsx's `isProcessing = !audioURL`).
+const CONVERTER_LOAD_TIMEOUT_MS = 15000;
+
+function withTimeout(promise, ms, message) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+    ]);
+}
+
 export function int16ToFloat32(int16Samples) {
     const out = new Float32Array(int16Samples.length);
     for (let i = 0; i < int16Samples.length; i++) {
@@ -74,9 +90,13 @@ export async function resampleTo44100(int16Samples, fromSampleRate) {
 
     let converter = null;
     try {
-        converter = await create(1, fromSampleRate, TARGET_SAMPLE_RATE, {
-            converterType: ConverterType.SRC_SINC_BEST_QUALITY,
-        });
+        converter = await withTimeout(
+            create(1, fromSampleRate, TARGET_SAMPLE_RATE, {
+                converterType: ConverterType.SRC_SINC_BEST_QUALITY,
+            }),
+            CONVERTER_LOAD_TIMEOUT_MS,
+            `libsamplerate WASM load timed out after ${CONVERTER_LOAD_TIMEOUT_MS / 1000}s`
+        );
 
         const floatOut = converter.simple(int16ToFloat32(int16Samples));
 
