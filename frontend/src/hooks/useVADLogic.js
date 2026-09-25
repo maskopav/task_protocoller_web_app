@@ -18,6 +18,26 @@ const VAD_CONFIG = {
     vadFallbackMs: 5000,           // time (ms) before fallback if no speech is detected at start
 };
 
+// window.vad.MicVAD.new() loads the ONNX Runtime WASM binary + Silero model
+// (see vadPreload.js) with no built-in timeout and no cancellation. The
+// existing catch block below already recovers cleanly from a *rejection*
+// here (setVadFailed(true) + setIsVadLoaded(true) unlocks the Start button),
+// but it can never see a hang -- unlike useVideoRecorder.js's equivalent
+// face-model loader (which has the identical risk and is already guarded
+// with its own withTimeout), this one wasn't bounded, so a hang here would
+// leave disableStart=true (Recorder.jsx) forever with just a "loading VAD"
+// message and no way to retry. A budget/weak-CPU device has been observed
+// taking close to a minute for a comparable WASM load stage -- give this
+// real headroom rather than just enough to catch a genuine infinite hang.
+const VAD_LOAD_TIMEOUT_MS = 30000;
+
+function withTimeout(promise, ms, message) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+    ]);
+}
+
 export const useVadLogic = ({
     useVAD,
     vadConfigOverride = {},
@@ -136,95 +156,107 @@ export const useVadLogic = ({
                 isInitializingVad.current = true;
                 setIsVadLoaded(false);
 
-                const basePath = `${import.meta.env.BASE_URL}vad/`; 
+                // performanceNow is on the same clock as coordinates.json's
+                // frame timestamps and Recorder.jsx's "recording_actually_started"
+                // log -- this is what lets a real recording's stalls be checked
+                // against whether VAD was loading at that exact moment, instead
+                // of inferred from a coincidental offset (see
+                // scripts/analyzeCoordinateFps.mjs's periodicity output).
+                logger.info("vad_init_start", { performanceNow: performance.now() });
+
+                const basePath = `${import.meta.env.BASE_URL}vad/`;
                 const activeVadConfig = { ...VAD_CONFIG, ...vadConfigOverride };
                 const vadStream = stream.clone();
 
                 // convert milliseconds to frames (1 frame = ~30ms)
                 const msToFrames = (ms) => Math.ceil(ms / 30);
 
-                const newVadInstance = await window.vad.MicVAD.new({
-                    stream: vadStream,
-                    audioContext: audioContext?.current,
-                    
-                    // 1. Tell ONNX exactly where the WASM and MJS files are
-                    onnxWASMBasePath: basePath,
-                    baseAssetPath: basePath, 
-                    
-                    // 2. Explicitly point to the VAD files
-                    workletURL: basePath + "vad.worklet.bundle.min.js",
-                    modelURL: basePath + "silero_vad_v5.onnx", // Or silero_vad.onnx depending on what you copied
-                    
-                    // 3. The exact path mapping to bypass the SIMD crash
-                    ortConfig: (ort) => {
-                        if (isFirefoxAndroid()) {
-                            logger.warn("Firefox Android detected: Forcing non-SIMD CPU fallback for VAD"); // STRUCTURED: Warn
-                            ort.env.wasm.numThreads = 1; 
-                            
-                            // Nuclear path mapping: Physically hand it the safe basic file
-                            ort.env.wasm.wasmPaths = {
-                                "ort-wasm.wasm": basePath + "ort-wasm.wasm",
-                                "ort-wasm-threaded.wasm": basePath + "ort-wasm.wasm",
-                                "ort-wasm-simd.wasm": basePath + "ort-wasm.wasm",
-                                "ort-wasm-simd-threaded.wasm": basePath + "ort-wasm.wasm" 
-                            };
-                        } else {
-                            // Let all other normal browsers use the default paths
-                            ort.env.wasm.wasmPaths = basePath;
-                        }
-                    },
-                    
-                    positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold,
-                    negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
-                    redemptionFrames: msToFrames(activeVadConfig.redemptionMs),
-                    preSpeechPadFrames: msToFrames(activeVadConfig.preSpeechPadMs),
-                    minSpeechFrames: msToFrames(activeVadConfig.minSpeechMs),
+                const newVadInstance = await withTimeout(
+                    window.vad.MicVAD.new({
+                        stream: vadStream,
+                        audioContext: audioContext?.current,
+                        
+                        // 1. Tell ONNX exactly where the WASM and MJS files are
+                        onnxWASMBasePath: basePath,
+                        baseAssetPath: basePath, 
+                        
+                        // 2. Explicitly point to the VAD files
+                        workletURL: basePath + "vad.worklet.bundle.min.js",
+                        modelURL: basePath + "silero_vad_v5.onnx", // Or silero_vad.onnx depending on what you copied
+                        
+                        // 3. The exact path mapping to bypass the SIMD crash
+                        ortConfig: (ort) => {
+                            if (isFirefoxAndroid()) {
+                                logger.warn("Firefox Android detected: Forcing non-SIMD CPU fallback for VAD"); // STRUCTURED: Warn
+                                ort.env.wasm.numThreads = 1; 
+                                
+                                // Nuclear path mapping: Physically hand it the safe basic file
+                                ort.env.wasm.wasmPaths = {
+                                    "ort-wasm.wasm": basePath + "ort-wasm.wasm",
+                                    "ort-wasm-threaded.wasm": basePath + "ort-wasm.wasm",
+                                    "ort-wasm-simd.wasm": basePath + "ort-wasm.wasm",
+                                    "ort-wasm-simd-threaded.wasm": basePath + "ort-wasm.wasm" 
+                                };
+                            } else {
+                                // Let all other normal browsers use the default paths
+                                ort.env.wasm.wasmPaths = basePath;
+                            }
+                        },
+                        
+                        positiveSpeechThreshold: activeVadConfig.positiveSpeechThreshold,
+                        negativeSpeechThreshold: activeVadConfig.negativeSpeechThreshold,
+                        redemptionFrames: msToFrames(activeVadConfig.redemptionMs),
+                        preSpeechPadFrames: msToFrames(activeVadConfig.preSpeechPadMs),
+                        minSpeechFrames: msToFrames(activeVadConfig.minSpeechMs),
+    
+                        onFrameProcessed: (probs) => {
+                            setSpeechProb(probs.isSpeech);
+                        },
+                        onSpeechStart: () => {
+                            isSpeakingRef.current = true;
+                            hasSpokenRef.current = true;
+                            setIsSpeaking(true);
+                            setHasSpoken(true);
+                            setIsSilentPause(false);
+                            setCanEarlyStop(false);
+                            lastSpeechTimeRef.current = Date.now();
+    
+                            if (statusRef.current === RECORDING_STATES.RECORDING) {
+                                currentSpeechStart.current = Date.now() - activeVadConfig.preSpeechPadMs;
+                            }
+    
+                            if (onVadSpeechStart) onVadSpeechStart();
+                        },
+                        onVADMisfire: () => {
+                            isSpeakingRef.current = false;
+                            setIsSpeaking(false);
+                            setIsSilentPause(false);
+                            setCanEarlyStop(false);
+                            lastSpeechTimeRef.current = Date.now();
+                        },
+                        onSpeechEnd: () => {
+                            isSpeakingRef.current = false;
+                            setIsSpeaking(false);
+                            lastSpeechTimeRef.current = Date.now();
+    
+                            if (statusRef.current === RECORDING_STATES.RECORDING && currentSpeechStart.current) {
+                                const trueEndTime = Date.now() - activeVadConfig.redemptionMs;
+                                
+                                speechSegments.current.push({
+                                    startTime: currentSpeechStart.current,
+                                    endTime: trueEndTime,
+                                    durationMs: trueEndTime - currentSpeechStart.current,
+                                });
+                                currentSpeechStart.current = null;
+                            }
+                            if (onVadSpeechEnd) onVadSpeechEnd();
+                        },
+                    }),
+                    VAD_LOAD_TIMEOUT_MS,
+                    `VAD model load timed out after ${VAD_LOAD_TIMEOUT_MS / 1000}s`
+                );
 
-                    onFrameProcessed: (probs) => {
-                        setSpeechProb(probs.isSpeech);
-                    },
-                    onSpeechStart: () => {
-                        isSpeakingRef.current = true;
-                        hasSpokenRef.current = true;
-                        setIsSpeaking(true);
-                        setHasSpoken(true);
-                        setIsSilentPause(false);
-                        setCanEarlyStop(false);
-                        lastSpeechTimeRef.current = Date.now();
-
-                        if (statusRef.current === RECORDING_STATES.RECORDING) {
-                            currentSpeechStart.current = Date.now() - activeVadConfig.preSpeechPadMs;
-                        }
-
-                        if (onVadSpeechStart) onVadSpeechStart();
-                    },
-                    onVADMisfire: () => {
-                        isSpeakingRef.current = false;
-                        setIsSpeaking(false);
-                        setIsSilentPause(false);
-                        setCanEarlyStop(false);
-                        lastSpeechTimeRef.current = Date.now();
-                    },
-                    onSpeechEnd: () => {
-                        isSpeakingRef.current = false;
-                        setIsSpeaking(false);
-                        lastSpeechTimeRef.current = Date.now();
-
-                        if (statusRef.current === RECORDING_STATES.RECORDING && currentSpeechStart.current) {
-                            const trueEndTime = Date.now() - activeVadConfig.redemptionMs;
-                            
-                            speechSegments.current.push({
-                                startTime: currentSpeechStart.current,
-                                endTime: trueEndTime,
-                                durationMs: trueEndTime - currentSpeechStart.current,
-                            });
-                            currentSpeechStart.current = null;
-                        }
-                        if (onVadSpeechEnd) onVadSpeechEnd();
-                    },
-                });
-
-                // If the user rapidly switched tasks while the AI was loading, 
+                // If the user rapidly switched tasks while the AI was loading,
                 // destroy this incoming instance immediately.
                 if (!isEffectActive) {
                     newVadInstance.pause();
@@ -235,6 +267,7 @@ export const useVadLogic = ({
                 vadInstance.current = newVadInstance;
                 setIsVadLoaded(true);
                 isInitializingVad.current = false;
+                logger.info("vad_init_success", { performanceNow: performance.now() });
 
                 // If the user clicked Record while the model was still loading, start it immediately
                 if (statusRef.current === RECORDING_STATES.RECORDING) {
@@ -242,7 +275,10 @@ export const useVadLogic = ({
                 }
             } catch (error) {
                 console.error("Failed to load VAD model:", error);
-                logger.error("Failed to load VAD model", { error: error.message || error.toString() });
+                logger.error("Failed to load VAD model", {
+                    error: error.message || error.toString(),
+                    performanceNow: performance.now(),
+                });
                 isInitializingVad.current = false;
                 setVadFailed(true);
                 setIsVadLoaded(true); // Unlock the UI Start button even on failure

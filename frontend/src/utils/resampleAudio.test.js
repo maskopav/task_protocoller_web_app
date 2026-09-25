@@ -148,7 +148,7 @@ describe('resampleTo44100', () => {
     const promise = resampleWithHangingConverter(input, 48000);
     const assertion = expect(promise).rejects.toThrow(/timed out/i);
 
-    await vi.advanceTimersByTimeAsync(15_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(30_000 + 1_000);
     await assertion;
 
     vi.doUnmock('@alexanderolsen/libsamplerate-js');

@@ -13,7 +13,9 @@ import { logger } from "../../utils/frontendLogger";
 import { SafeButton } from '../Shared/SafeButton';
 import { fetchWithTimeout } from "../../utils/fetchWithTimeout";
 
-const LOCAL_FETCH_TIMEOUT_MS = 15000;
+// See audioAnalysis.js's DECODE_TIMEOUT_MS comment: a weak-device/slow-network
+// combo has been observed taking close to a minute for a comparable step.
+const LOCAL_FETCH_TIMEOUT_MS = 30000;
 
 // ==========================================
 // 1. CONFIGURATION & CONSTANTS

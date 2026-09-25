@@ -119,7 +119,7 @@ describe('calculateSNR', () => {
     let settled = false;
     promise.then(() => { settled = true; }, () => { settled = true; });
 
-    await vi.advanceTimersByTimeAsync(20_000);
+    await vi.advanceTimersByTimeAsync(31_000);
 
     expect(settled).toBe(true);
   });

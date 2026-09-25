@@ -33,9 +33,12 @@ const LEVEL_FRAME_INTERVAL_MS = 1000 / 25;
 // e.g. backgrounded/throttled on some Android builds -- no setTimeout can
 // fire regardless of where it lives; that failure mode is out of reach from
 // in-page JS entirely.) Generous budget: worst case is the IDB transaction
-// timeout (10s) + resample WASM timeout (15s) + FLAC WASM timeout (15s)
-// running back-to-back, plus real encode time on a slow device.
-const PROCESSING_WATCHDOG_MS = 50000;
+// timeout (20s) + resample WASM timeout (30s) + FLAC WASM timeout (30s)
+// running back-to-back (80s), plus real encode time on a slow device -- a
+// budget/weak-CPU device has been observed taking close to a minute for just
+// one comparable stage, so this needs to clear the sum of the leaf timeouts
+// with real margin left over, not race them.
+const PROCESSING_WATCHDOG_MS = 150000;
 
 function withTimeout(promise, ms, message) {
     return Promise.race([

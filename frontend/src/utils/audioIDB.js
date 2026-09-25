@@ -16,7 +16,12 @@ let memoryTotalSamples = 0;
 // falls back to the in-memory path on any rejection here, so bounding this
 // call is what turns a hang into that existing, already-handled fallback
 // instead of leaving startRecording() stuck awaiting it forever.
-const DB_OPEN_TIMEOUT_MS = 10000;
+// A budget/weak-CPU device has been observed taking close to a minute for a
+// comparable WASM pipeline stage -- these need real headroom to avoid
+// mistaking "just slow" for "stuck". A local IndexedDB op still shouldn't
+// need nearly as long as a network+WASM one, but main-thread contention on a
+// weak device can slow it down too.
+const DB_OPEN_TIMEOUT_MS = 20000;
 
 // Separate from DB_OPEN_TIMEOUT_MS: once the DB is open once, dbPromise is
 // cached and every later call skips straight past openDB() into a fresh
@@ -28,7 +33,7 @@ const DB_OPEN_TIMEOUT_MS = 10000;
 // memory pressure or a tab throttled mid-write, exactly the state a
 // long-running recording task can end up in. Bound the whole operation, not
 // just the open.
-const TRANSACTION_TIMEOUT_MS = 10000;
+const TRANSACTION_TIMEOUT_MS = 20000;
 
 function withTimeout(promise, ms, message) {
     return Promise.race([

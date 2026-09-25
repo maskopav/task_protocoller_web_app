@@ -3,8 +3,13 @@ import { logger } from "./frontendLogger";
 import { fetchWithTimeout } from "./fetchWithTimeout";
 
 const FALLBACK_DURATION_MS = 5000;
-const LOCAL_FETCH_TIMEOUT_MS = 15000;
-const DECODE_TIMEOUT_MS = 15000;
+// Real-world data from a budget Android device (weak CPU, possibly slow
+// mobile network) showed a comparable WASM-decode pipeline legitimately
+// taking close to a minute -- these need real headroom, not just enough to
+// catch a genuine infinite hang. Loosen if slower devices turn out to need
+// more; the important property is just that this settles at all.
+const LOCAL_FETCH_TIMEOUT_MS = 30000;
+const DECODE_TIMEOUT_MS = 30000;
 
 /**
  * Main entry point for SNR calculation

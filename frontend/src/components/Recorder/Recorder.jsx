@@ -620,12 +620,18 @@ export const Recorder = ({
         } else if (phase === 'GENERAL_INFO') {
             baseInstructions = instructionsPreCalibration || instructions;
         } else if (recordingStatus === RECORDING_STATES.RECORDED) {
-            // processingFailed: audioURL will never arrive (finalizeRecording
-            // gave up), so "task completed successfully" would be actively
-            // wrong here -- and Try Again is the only way out (see
-            // PlaybackSection's processingFailed prop).
+            // audioURL is set asynchronously after recording stops (IDB read
+            // -> resample -> encode, see useVoiceRecorder.js's stopRecording).
+            // On a weak/low-end device this has been observed to legitimately
+            // take upward of a minute -- "task completed successfully" is
+            // actively wrong to show before that's actually true, and with no
+            // indication anything is still happening it reads as stuck even
+            // when it isn't. This is the honest, distinct third state between
+            // "still working" and processingFailed's "gave up".
             if (processingFailed) {
                 baseInstructions = t("completion.processingFailedInstructions", { ns: "common" });
+            } else if (!audioURL) {
+                baseInstructions = t("completion.processingInstructions", { ns: "common" });
             } else {
                 // Repeats used up → drop the "you may Try Again" line, the button is gone.
                 baseInstructions = repeatCount >= MAX_REPEATS
@@ -651,7 +657,7 @@ export const Recorder = ({
         instructions, instructionsPreCalibration, instructionsPostCalibration, instructionsActive,
         instructionsTopic, topicRevealed,
         completedInstructions, repeatCount, t, isCalibrationPhase, isVideoEnabled, phase,
-        isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic, processingFailed,
+        isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic, processingFailed, audioURL,
         voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
 
@@ -789,8 +795,11 @@ export const Recorder = ({
         </>
     ) : (!isCalibrationPhase && !isPermissionPhase) ? (
         <>
-            {/* Show the green check icon ONLY when the recording is fully completed */}
-            {recordingStatus === RECORDING_STATES.RECORDED && (
+            {/* Show the green check icon ONLY once processing has actually
+                succeeded -- recordingStatus flips to RECORDED well before
+                audioURL exists (see the processingInstructions branch above),
+                so gating on recordingStatus alone shows success prematurely. */}
+            {recordingStatus === RECORDING_STATES.RECORDED && audioURL && !processingFailed && (
                 <div
                     className="success-icon-mask"
                     style={{ '--icon-url': `url("${checkIcon}")` }}

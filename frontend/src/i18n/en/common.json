@@ -52,6 +52,7 @@
       "taskCompletedInstructions": "Task recorded! <br> Click <strong>Next</strong> to proceed. <br/><br/>Only if there was a disruption, you may Try Again.",
       "taskCompletedInstructionsFinal": "Task recorded! <br> Click <strong>Next</strong> to proceed.",
       "processingFailedInstructions": "We couldn't process your recording. <br/><br/>Please click <strong>Try Again</strong> to record it again.",
+      "processingInstructions": "Processing your recording… <br/><br/>This can take a little while on some devices. Please keep this page open.",
       "doneTitle": "Hooray! You have completed the test.",
       "noInternetTitle": "No Internet Connection",
       "uploadingTitle": "Uploading…",

@@ -108,7 +108,7 @@ describe('audioIDB openDB timeout', () => {
     let settled = false;
     promise.then(() => { settled = true; });
 
-    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(20_000 + 1_000);
     await promise;
 
     expect(settled).toBe(true);
@@ -155,7 +155,7 @@ describe('audioIDB openDB timeout', () => {
     const promise = appendChunkFresh(Int16Array.from([1, 2, 3]).buffer);
     const assertion = expect(promise).rejects.toThrow(/timed out/i);
 
-    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(20_000 + 1_000);
     await assertion;
   });
 });
