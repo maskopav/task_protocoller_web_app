@@ -15,7 +15,7 @@ export interface TaskParamDef {
 }
 
 export interface TaskBase {
-  type: "voice" | "camera" | "motoric" | "questionnaire" | "vision" | "cognitive"; 
+  type: "voice" | "camera" | "motoric" | "questionnaire" | "vision" | "cognitive" | "smell";
   recording: RecordingMode;
   params: Record<string, TaskParamDef>;
   useVAD?: boolean; // Voice Activity Detector (Silero model, React version), defaultly as true - waits for participant to speak for start the timer, stops timer if the pause of participant is more than 4 s
@@ -185,6 +185,21 @@ export const taskBaseConfig: Record<string, TaskBase> = {
   languageQuestionnaire: {
     type: "questionnaire",
     recording: { mode: "basicStop" },
+    params: {
+      title: { default: "" },
+      description: { default: "" },
+      questions: { default: [] }
+    },
+  },
+
+  // Smell test: participant opens an envelope received by post, smells the
+  // paper inside, and picks the matching option. Own type so it gets a static
+  // instructions screen before the (reused) questionnaire engine; the actual
+  // question/options are placeholders until the real test is designed and can
+  // be edited via the same question builder as any other questionnaire.
+  smell: {
+    type: "smell",
+    recording: { mode: "basicStop" }, // Placeholder (not used, but required by type)
     params: {
       title: { default: "" },
       description: { default: "" },

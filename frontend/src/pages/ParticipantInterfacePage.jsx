@@ -18,6 +18,7 @@ import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
 import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import BookingStep from "../components/Booking/BookingStep";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
+import SmellTestTask from "../components/SmellTestTask/SmellTestTask";
 import { trackProgress } from "../api/sessions";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import { ConfirmDialogContext } from "../components/ConfirmDialog/ConfirmDialogContext";
@@ -1112,6 +1113,19 @@ export default function ParticipantInterfacePage() {
           onTaskActiveChange={setIsRecordingActive}
           onAudioEvent={handleRecorderAudioEvent}
           audioGuideEnabled={useAudioGuide}
+        />
+      );
+    }
+
+    // Render Smell Test (static instructions screen + reused questionnaire engine)
+    if (currentTask.type === "smell") {
+      return (
+        <SmellTestTask
+          key={taskIndex}
+          task={currentTask}
+          onNextTask={handleTaskComplete}
+          onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
+          isUploading={isUploading}
         />
       );
     }

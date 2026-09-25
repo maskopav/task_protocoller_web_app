@@ -18,7 +18,8 @@ INSERT INTO task_types (`type`) VALUES
 ('questionnaire'),
 ('hearing'),
 ('vision'),
-('cognitive');
+('cognitive'),
+('smell');
 
 INSERT INTO tasks (`category`, `type_id`)
 VALUES
@@ -62,4 +63,6 @@ VALUES
  (SELECT id FROM task_types WHERE type='cognitive')
 ),
 ('feedback', (SELECT id FROM task_types WHERE type='questionnaire')
+),
+('smell', (SELECT id FROM task_types WHERE type='smell')
 );

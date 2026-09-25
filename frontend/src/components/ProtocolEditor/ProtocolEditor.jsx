@@ -176,8 +176,9 @@ export function ProtocolEditor({
     if (!base) return;
 
     setEditingIndex(null); // New task
-      // In case of questionnaire, the opened modal is different
-    if (base.type === "questionnaire") {
+      // In case of questionnaire (or a type built on top of it, like the
+      // smell test's second screen), the opened modal is different
+    if (base.type === "questionnaire" || base.type === "smell") {
       // Content comes from i18n in the PROTOCOL's language (not the admin UI language)
       const lang = protocolData?.language || "en";
       // getResource does not apply i18next's fallbackLng — fall back to en manually
@@ -218,8 +219,9 @@ export function ProtocolEditor({
     setEditingIndex(index);
     setEditingData(taskToEdit); // Load existing data
 
-    // Keyed off type so standard questionnaires (rbdsq, hhies, ...) route here too
-    if (taskToEdit.type === "questionnaire") {
+    // Keyed off type so standard questionnaires (rbdsq, hhies, ...) and the
+    // smell test (also question-builder-based) route here too
+    if (taskToEdit.type === "questionnaire" || taskToEdit.type === "smell") {
       setShowQuestionnaireModal(true);
     } else {
       setShowTaskModal(true);
@@ -258,11 +260,14 @@ export function ProtocolEditor({
   // Used by QuestionnaireModal to format data before saving
   const handleSaveQuestionnaire = (data) => {
     // Ensure data is flat and has correct type
+    // Standard questionnaires keep their own category (rbdsq, hhies, ...) so the
+    // DB task_id resolves to their row; manual ones stay "questionnaire"
+    const category = editingData?.category || "questionnaire";
     const questionnaireTask = {
-      // Standard questionnaires keep their own category (rbdsq, hhies, ...) so the
-      // DB task_id resolves to their row; manual ones stay "questionnaire"
-      category: editingData?.category || "questionnaire",
-      type: "questionnaire",
+      category,
+      // Type comes from the category's own definition, so non-plain-questionnaire
+      // categories built on this modal (e.g. the smell test) keep their own type
+      type: taskBaseConfig[category]?.type || "questionnaire",
       ...data, // Spread { title, description, questions } flatly
     };
     handleSaveTask(questionnaireTask);

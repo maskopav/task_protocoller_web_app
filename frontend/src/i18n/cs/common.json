@@ -40,7 +40,8 @@
     "taskLabels": {
       "voice": "Řečová úloha",
       "camera": "Kamerová úloha",
-      "questionnaire": "Dotazník"
+      "questionnaire": "Dotazník",
+      "smell": "Čichový test"
     },
     "questionnaire": {
       "selectOption": "Vyberte možnost...",
