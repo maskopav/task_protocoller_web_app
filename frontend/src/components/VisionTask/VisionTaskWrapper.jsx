@@ -184,6 +184,10 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
               src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour") : null}
               playTrigger={`trial-${taskAudioTrigger}`}
               isRecordingActive={false}
+              // Only autoplay the task instructions the first time this session —
+              // on later vision tasks the participant already knows them; the
+              // guide button is still there to replay on demand.
+              autoPlay={isFirstVisionTask}
             />
           }
         />
@@ -200,7 +204,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
               src={audioGuideEnabled ? buildAudioGuidePath(i18n.language, "d15colour") : null}
               playTrigger={`test-${taskAudioTrigger}`}
               isRecordingActive={false}
-              autoPlay={!includeTrial}
+              autoPlay={!includeTrial && isFirstVisionTask}
             />
           }
         />
