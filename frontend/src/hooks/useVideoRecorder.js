@@ -1,9 +1,19 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { classifyMediaError } from '../utils/mediaErrorType';
+import { logger } from '../utils/frontendLogger';
 
 const DEV_MODE = true; // Set to false when deploying
 const FRAME_RATE_MS = 33;
+
+// TEMPORARY: fixed to "CPU" to A/B a specific open question from the FPS
+// investigation -- GPU dispatch/sync overhead can outweigh its benefit on a
+// model this small (see scripts/analyzeCoordinateFps.mjs's per-recording fps
+// numbers), so it's worth checking whether CPU matches or beats GPU's
+// ~40ms/frame on the real test device. This now applies to EVERY
+// participant, not just a test session -- switch back to "GPU" once the
+// comparison recording has been made.
+const FACE_DELEGATE = 'CPU';
 // Neither FilesetResolver nor FaceLandmarker support cancellation, so a
 // stalled (not failed) CDN/model request would otherwise hang
 // isLoadingModel=true forever. Racing against this turns that into a
@@ -98,13 +108,14 @@ export const useVideoRecorder = ({
         setIsLoadingModel(true);
         setModelLoadError(false);
         const load = async () => {
+            logger.info("face_model_delegate", { delegate: FACE_DELEGATE });
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
             );
             faceDetector.current = await FaceLandmarker.createFromOptions(vision, {
                 baseOptions: {
                     modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-                    delegate: "GPU"
+                    delegate: FACE_DELEGATE
                 },
                 outputFaceBlendshapes: false,
                 runningMode: "VIDEO",

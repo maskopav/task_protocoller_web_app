@@ -142,7 +142,7 @@ export const Recorder = ({
     });
 
     const {
-        recordingStatus, permission: audioPermission, stream, audioURL, recordingTime,
+        recordingStatus, permission: audioPermission, stream, audioURL, processingFailed, recordingTime,
         audioLevelsRef, activeInstructions, durationExpired, incompatibleBrowser,
         getMicrophonePermission, startRecording: startAudioRecording, pauseRecording,
         resumeRecording, stopRecording: stopAudioRecording, repeatRecording,
@@ -620,10 +620,18 @@ export const Recorder = ({
         } else if (phase === 'GENERAL_INFO') {
             baseInstructions = instructionsPreCalibration || instructions;
         } else if (recordingStatus === RECORDING_STATES.RECORDED) {
-            // Repeats used up → drop the "you may Try Again" line, the button is gone.
-            baseInstructions = repeatCount >= MAX_REPEATS
-                ? t("completion.taskCompletedInstructionsFinal", { ns: "common" })
-                : completedInstructions;
+            // processingFailed: audioURL will never arrive (finalizeRecording
+            // gave up), so "task completed successfully" would be actively
+            // wrong here -- and Try Again is the only way out (see
+            // PlaybackSection's processingFailed prop).
+            if (processingFailed) {
+                baseInstructions = t("completion.processingFailedInstructions", { ns: "common" });
+            } else {
+                // Repeats used up → drop the "you may Try Again" line, the button is gone.
+                baseInstructions = repeatCount >= MAX_REPEATS
+                    ? t("completion.taskCompletedInstructionsFinal", { ns: "common" })
+                    : completedInstructions;
+            }
         } else if (instructionsTopic && topicRevealed && phase === 'RECORDING' &&
                    recordingStatus === RECORDING_STATES.IDLE) {
             // Split pack screen 2 — the topic. Screen 1 (not yet revealed)
@@ -643,7 +651,7 @@ export const Recorder = ({
         instructions, instructionsPreCalibration, instructionsPostCalibration, instructionsActive,
         instructionsTopic, topicRevealed,
         completedInstructions, repeatCount, t, isCalibrationPhase, isVideoEnabled, phase,
-        isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic,
+        isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic, processingFailed,
         voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
 
@@ -883,6 +891,7 @@ export const Recorder = ({
                     />
                     <PlaybackSection
                         audioURL={audioURL}
+                        processingFailed={processingFailed}
                         recordingStatus={recordingStatus}
                         onRepeat={handleRepeat}
                         onNextTask={handleNextTask}

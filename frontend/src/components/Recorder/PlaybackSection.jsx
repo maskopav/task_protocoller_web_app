@@ -4,9 +4,10 @@ import { NextTaskButton } from "./NextTaskButton";
 import { SafeButton } from '../Shared/SafeButton';
 
 // components/Recorder/PlaybackSection.jsx - Audio playback component
-export const PlaybackSection = ({ 
-    audioURL, 
-    recordingStatus, 
+export const PlaybackSection = ({
+    audioURL,
+    processingFailed = false,
+    recordingStatus,
     onRepeat,
     onNextTask,
     showNextButton = true,
@@ -37,6 +38,11 @@ export const PlaybackSection = ({
     // Show the button group as soon as recording has actually stopped
     if (!isRecorded) return null;
     const isProcessing = !audioURL;
+    // Next always needs a real audioURL to submit. Repeat doesn't -- once
+    // processing has definitively failed, audioURL is never coming, so
+    // gating Repeat on it too would leave the participant with no way out
+    // (see useVoiceRecorder.js's processingFailed state).
+    const canRepeat = audioURL || processingFailed;
 
     const handlePlay = (e) => {
         onPlaybackStart(); // stop any audio guide still playing so it doesn't overlap
@@ -87,7 +93,7 @@ export const PlaybackSection = ({
 
             <div className="button-group">
                 {showRepeatButton && (
-                    <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading || isProcessing}>
+                    <SafeButton onClick={onRepeat} className="btn-repeat" disabled={isUploading || !canRepeat}>
                         {t("buttons.repeat")}
                     </SafeButton>
                 )}

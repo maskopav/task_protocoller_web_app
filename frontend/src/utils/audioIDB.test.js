@@ -118,4 +118,44 @@ describe('audioIDB openDB timeout', () => {
     const samples = await getAllFresh();
     expect(Array.from(samples)).toEqual([7, 8, 9]);
   });
+
+  // Distinct from the open() hang above: once the DB is open once, every
+  // later call skips straight past openDB() into a fresh transaction. A
+  // transaction can hang (never fire oncomplete/onerror/onabort) on its own,
+  // independent of open() ever having succeeded -- this is the gap that was
+  // actually missing initially, and is what stranded a real recording on
+  // the stop-recording path (getAllSamplesInt16, called from
+  // finalizeRecording.js) with zero further log output.
+  it('rejects instead of hanging forever when a transaction never completes (open succeeds fine)', async () => {
+    vi.resetModules();
+    vi.useFakeTimers();
+
+    const fakeStore = {
+      get: () => ({}),
+      put: () => {},
+      getAll: () => ({}),
+    };
+    const fakeDb = {
+      transaction: () => ({
+        objectStore: () => fakeStore,
+        // oncomplete/onerror/onabort are assigned by runTransaction but
+        // deliberately never invoked here -- simulates a stuck transaction.
+      }),
+    };
+    vi.stubGlobal('indexedDB', {
+      open: () => {
+        const req = { result: fakeDb };
+        queueMicrotask(() => req.onsuccess?.());
+        return req;
+      },
+    });
+
+    const { appendChunk: appendChunkFresh } = await import('./audioIDB');
+
+    const promise = appendChunkFresh(Int16Array.from([1, 2, 3]).buffer);
+    const assertion = expect(promise).rejects.toThrow(/timed out/i);
+
+    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await assertion;
+  });
 });

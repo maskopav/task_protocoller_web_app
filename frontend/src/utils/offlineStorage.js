@@ -18,6 +18,20 @@ const TTL_MS = 48 * 60 * 60 * 1000;
 // predictable rejection instead.
 const DB_OPEN_TIMEOUT_MS = 10000;
 
+// Separate from DB_OPEN_TIMEOUT_MS: an IndexedDB transaction can hang (never
+// fire oncomplete/onerror/onabort) independent of open() ever having
+// succeeded -- open() is only the first call each function below makes, not
+// the only one. Every transaction promise is wrapped with this too, not just
+// the open.
+const TRANSACTION_TIMEOUT_MS = 10000;
+
+function withTimeout(promise, ms, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+}
+
 // ─── DB OPEN ─────────────────────────────────────────────────────────────────
 
 function openDB() {
@@ -78,7 +92,7 @@ export async function saveRecordingLocally(id, blob, metadata) {
     .catch(() => {}); // quota API is optional — never throw
 
   const db = await openDB();
-  return new Promise((resolve, reject) => {
+  return withTimeout(new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put({
       id,
@@ -89,7 +103,7 @@ export async function saveRecordingLocally(id, blob, metadata) {
     });
     tx.oncomplete = resolve;
     tx.onerror    = () => reject(tx.error);
-  });
+  }), TRANSACTION_TIMEOUT_MS, `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`);
 }
 
 /**
@@ -106,7 +120,7 @@ export async function saveRecordingLocally(id, blob, metadata) {
  */
 export async function markRecordingStatus(id, status) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
+  return withTimeout(new Promise((resolve, reject) => {
     const tx   = db.transaction(STORE, 'readwrite');
     const store = tx.objectStore(STORE);
     const req   = store.get(id);
@@ -118,7 +132,7 @@ export async function markRecordingStatus(id, status) {
       resolve(); // idempotent — resolves even if record is already gone
     };
     req.onerror = () => reject(req.error);
-  });
+  }), TRANSACTION_TIMEOUT_MS, `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`);
 }
 
 // ─── READ ────────────────────────────────────────────────────────────────────
@@ -132,7 +146,7 @@ export async function markRecordingStatus(id, status) {
  */
 export async function getPendingRecordingsForSession(sessionId) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
+  return withTimeout(new Promise((resolve, reject) => {
     const results = [];
     const tx = db.transaction(STORE, 'readonly');
     tx.objectStore(STORE).openCursor().onsuccess = (e) => {
@@ -152,7 +166,7 @@ export async function getPendingRecordingsForSession(sessionId) {
       }
     };
     tx.onerror = () => reject(tx.error);
-  });
+  }), TRANSACTION_TIMEOUT_MS, `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`);
 }
 
 // Kept for any existing callers in ParticipantInterfacePage.jsx
@@ -166,12 +180,12 @@ export { getPendingRecordingsForSession as getPendingRecordings };
  */
 export async function deleteLocalRecording(id) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
+  return withTimeout(new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).delete(id);
     tx.oncomplete = resolve;
     tx.onerror    = () => reject(tx.error);
-  });
+  }), TRANSACTION_TIMEOUT_MS, `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`);
 }
 
 // ─── STARTUP CLEANUP ─────────────────────────────────────────────────────────
@@ -194,7 +208,7 @@ export async function cleanupExpiredAndUploaded() {
     const cutoff  = Date.now() - TTL_MS;
     const toDelete = [];
 
-    await new Promise((resolve, reject) => {
+    await withTimeout(new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, 'readonly');
       tx.objectStore(STORE).openCursor().onsuccess = (e) => {
         const cursor = e.target.result;
@@ -209,17 +223,17 @@ export async function cleanupExpiredAndUploaded() {
         }
       };
       tx.onerror = () => reject(tx.error);
-    });
+    }), TRANSACTION_TIMEOUT_MS, `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`);
 
     if (toDelete.length === 0) return 0;
 
-    await new Promise((resolve, reject) => {
+    await withTimeout(new Promise((resolve, reject) => {
       const tx    = db.transaction(STORE, 'readwrite');
       const store = tx.objectStore(STORE);
       toDelete.forEach(id => store.delete(id));
       tx.oncomplete = resolve;
       tx.onerror    = () => reject(tx.error);
-    });
+    }), TRANSACTION_TIMEOUT_MS, `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`);
 
     console.log(`[IDB] Startup cleanup removed ${toDelete.length} record(s).`);
     return toDelete.length;

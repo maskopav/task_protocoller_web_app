@@ -18,6 +18,25 @@ let memoryTotalSamples = 0;
 // instead of leaving startRecording() stuck awaiting it forever.
 const DB_OPEN_TIMEOUT_MS = 10000;
 
+// Separate from DB_OPEN_TIMEOUT_MS: once the DB is open once, dbPromise is
+// cached and every later call skips straight past openDB() into a fresh
+// transaction -- so bounding open() alone leaves every appendChunk() (every
+// ~170ms during recording) and the getAllSamplesInt16() read on the
+// stop-recording path completely unguarded. IndexedDB requests/transactions
+// have been observed to hang (never fire onsuccess/oncomplete/onerror/
+// onabort) independent of open() ever having succeeded -- most likely under
+// memory pressure or a tab throttled mid-write, exactly the state a
+// long-running recording task can end up in. Bound the whole operation, not
+// just the open.
+const TRANSACTION_TIMEOUT_MS = 10000;
+
+function withTimeout(promise, ms, message) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+    ]);
+}
+
 function openDB() {
     if (dbPromise) return dbPromise;
 
@@ -56,7 +75,7 @@ function openDB() {
 }
 
 function runTransaction(mode, executor) {
-    return openDB().then((db) => new Promise((resolve, reject) => {
+    const transactionPromise = openDB().then((db) => new Promise((resolve, reject) => {
         const tx = db.transaction(STORE, mode);
         const store = tx.objectStore(STORE);
         let result;
@@ -72,6 +91,12 @@ function runTransaction(mode, executor) {
         tx.onerror = () => reject(tx.error);
         tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'));
     }));
+
+    return withTimeout(
+        transactionPromise,
+        TRANSACTION_TIMEOUT_MS,
+        `IndexedDB transaction timed out after ${TRANSACTION_TIMEOUT_MS / 1000}s`
+    );
 }
 
 function getReq(req) {

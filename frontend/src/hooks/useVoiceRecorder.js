@@ -24,6 +24,26 @@ const RECORDED  = 'recorded';
 const LEVEL_BUCKETS = 12;
 const LEVEL_FRAME_INTERVAL_MS = 1000 / 25;
 
+// Top-level safety net around the ENTIRE post-recording pipeline (IDB read →
+// resample → FLAC/WAV encode), on top of -- not instead of -- the timeouts
+// already inside each of those individual steps. Those only help if we've
+// correctly identified which specific call can hang; this one doesn't care
+// which step it is, including one nobody has found yet, as long as the JS
+// event loop is still running at all. (If the whole tab/engine is frozen --
+// e.g. backgrounded/throttled on some Android builds -- no setTimeout can
+// fire regardless of where it lives; that failure mode is out of reach from
+// in-page JS entirely.) Generous budget: worst case is the IDB transaction
+// timeout (10s) + resample WASM timeout (15s) + FLAC WASM timeout (15s)
+// running back-to-back, plus real encode time on a slow device.
+const PROCESSING_WATCHDOG_MS = 50000;
+
+function withTimeout(promise, ms, message) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+    ]);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AudioWorklet source — inlined as a string so no extra build step or
 // public-folder asset is required.
@@ -139,6 +159,15 @@ export const useVoiceRecorder = (options = {}) => {
     const [remainingTime,  setRemainingTime]  = useState(null);
     const [activeInstructions, setActiveInstructions] = useState(null);
     const [durationExpired, setDurationExpired] = useState(false);
+    // True once finalizeRecording() (IDB read + resample + encode) has
+    // definitively failed after recording stopped. PlaybackSection normally
+    // gates the Repeat button purely on `!audioURL` -- correct while
+    // processing is still in flight, but with no failure state at all, a
+    // real failure here left the participant on the RECORDED screen with
+    // Repeat disabled forever and no way out (audioURL can never arrive).
+    // This is what lets Repeat re-enable once processing has genuinely
+    // given up, instead of only ever waiting for a value that isn't coming.
+    const [processingFailed, setProcessingFailed] = useState(false);
 
     // ── Refs ───────────────────────────────────────────────────────────────────
     const chunkCountRef = useRef(0);
@@ -380,6 +409,7 @@ export const useVoiceRecorder = (options = {}) => {
         }
 
         setDurationExpired(false);
+        setProcessingFailed(false);
         chunkCountRef.current = 0;
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
@@ -559,9 +589,15 @@ export const useVoiceRecorder = (options = {}) => {
         if (chunkCountRef.current > 0 && audioContext.current) {
             const sampleRate = audioContext.current.sampleRate;
 
-            flushPCMChunkBatch()
+            const finalizePipeline = flushPCMChunkBatch()
                 .then(() => pendingWritesRef.current)
-                .then(() => finalizeRecording(sampleRate))
+                .then(() => finalizeRecording(sampleRate));
+
+            withTimeout(
+                finalizePipeline,
+                PROCESSING_WATCHDOG_MS,
+                `Recording processing timed out after ${PROCESSING_WATCHDOG_MS / 1000}s`
+            )
                 .then((audioBlob) => {
                     const url = URL.createObjectURL(audioBlob);
                     audioURLRef.current = url;
@@ -570,6 +606,7 @@ export const useVoiceRecorder = (options = {}) => {
                 })
                 .catch((err) => {
                     logger.error("Failed to build WAV from IDB", err);
+                    setProcessingFailed(true);
                     onError(err);
                 });
         }
@@ -581,6 +618,7 @@ export const useVoiceRecorder = (options = {}) => {
             audioURLRef.current = null;
             setAudioURL(null);
         }
+        setProcessingFailed(false);
 
         const inFlightWrites = pendingWritesRef.current;
 
@@ -723,6 +761,7 @@ export const useVoiceRecorder = (options = {}) => {
         permission,
         stream,
         audioURL,
+        processingFailed,
         recordingTime,
         remainingTime,
         audioLevelsRef,

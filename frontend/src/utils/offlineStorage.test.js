@@ -30,4 +30,31 @@ describe('offlineStorage openDB timeout', () => {
     await vi.advanceTimersByTimeAsync(10_000 + 1_000);
     await assertion;
   });
+
+  // Distinct gap: open() succeeding doesn't guarantee the transaction that
+  // follows it ever completes. A stuck transaction (never fires oncomplete/
+  // onerror/onabort) needs its own timeout, separate from open()'s.
+  it('rejects instead of hanging forever when the transaction itself never completes', async () => {
+    vi.useFakeTimers();
+    const fakeDb = {
+      transaction: () => ({
+        objectStore: () => ({ put: () => {} }),
+        // oncomplete/onerror deliberately never invoked -- simulates a stuck transaction.
+      }),
+    };
+    vi.stubGlobal('indexedDB', {
+      open: () => {
+        const req = { result: fakeDb };
+        queueMicrotask(() => req.onsuccess?.());
+        return req;
+      },
+    });
+    vi.stubGlobal('navigator', { storage: undefined });
+
+    const promise = saveRecordingLocally('sess1_task1', new Blob(['x']), { sessionId: 'sess1' });
+    const assertion = expect(promise).rejects.toThrow(/timed out/i);
+
+    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await assertion;
+  });
 });
