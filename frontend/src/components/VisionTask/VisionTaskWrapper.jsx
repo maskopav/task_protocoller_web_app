@@ -10,10 +10,14 @@ import { D15AddColourMessage, D15ModifyColourMessage, D15TrialCompleteMessage, D
 
 export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled = true, isFirstVisionTask = true, hasMoreVisionTasks = false }) {
   // Steps: "instructions" -> "mechanics" -> "trial" -> "test"
-  // "instructions" (the screen/environment setup checklist) is only asked once per
-  // session, so returning vision tasks start straight at "mechanics".
+  // "instructions" (the screen/environment setup checklist) AND "mechanics" (the
+  // "how it works" add/modify colour dialogs) are only shown once per session —
+  // returning vision tasks skip straight to "trial"/"test".
   const { t, i18n } = useTranslation(["tasks","common"]);
-  const [step, setStep] = useState(isFirstVisionTask ? "instructions" : "mechanics");
+  const includeTrial = task?.params?.demoTrial === "yes";
+  const [step, setStep] = useState(
+    isFirstVisionTask ? "instructions" : (includeTrial ? "trial" : "test")
+  );
   const [environmentData, setEnvironmentData] = useState(null);
   // Bumped every time we (re-)enter the trial/test step so the general
   // task audio guide re-plays, mirroring how it behaves for other tasks.
@@ -36,8 +40,6 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
 
   useScrollToTop(step);
 
-  const includeTrial = task?.params?.demoTrial === "yes";
-
   const handleInstructionsComplete = (data) => {
     setEnvironmentData(data); // Save setup checklist data
     // Start was just clicked. "step" doesn't change until the mechanics dialogs
@@ -47,9 +49,9 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
     setStep("mechanics");
   };
 
-  // Runs once whenever we enter "mechanics": shows the "how it works" dialogs
-  // (add / modify a cap), reminder-worded after the first vision task this
-  // session, then moves on to the trial or real test.
+  // Runs once whenever we enter "mechanics" (only reachable via the checklist,
+  // i.e. the first vision task this session): shows the "how it works" dialogs
+  // (add / modify a cap), then moves on to the trial or real test.
   useEffect(() => {
     if (step !== "mechanics") return;
     let cancelled = false;
@@ -66,7 +68,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
             isRecordingActive={false}
           />
         ),
-        message: <D15AddColourMessage isRepeat={!isFirstVisionTask} />,
+        message: <D15AddColourMessage />,
         infoOnly: true,
         confirmText: t("buttons.ok", { ns: "common" })
       });
@@ -83,7 +85,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
             isRecordingActive={false}
           />
         ),
-        message: <D15ModifyColourMessage isRepeat={!isFirstVisionTask} />,
+        message: <D15ModifyColourMessage />,
         infoOnly: true,
         confirmText: t("buttons.ok", { ns: "common" })
       });
