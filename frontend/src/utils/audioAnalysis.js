@@ -4,6 +4,7 @@ import { fetchWithTimeout } from "./fetchWithTimeout";
 
 const FALLBACK_DURATION_MS = 5000;
 const LOCAL_FETCH_TIMEOUT_MS = 15000;
+const DECODE_TIMEOUT_MS = 15000;
 
 /**
  * Main entry point for SNR calculation
@@ -72,7 +73,26 @@ async function fetchAndDecodeAudio(audioUrl) {
        logger.warn("Audio file is empty. Likely hardware mute or OS-level block.");
        return { error: 'muted', snr: 0, debugData: { byteLength: arrayBuffer.byteLength } };
     }
-    return await audioCtx.decodeAudioData(arrayBuffer);
+    return await decodeWithTimeout(audioCtx, arrayBuffer, DECODE_TIMEOUT_MS);
+}
+
+// decodeAudioData() is a native browser promise with no built-in timeout.
+// Unlike fetch (guarded above via fetchWithTimeout), it has been observed to
+// never resolve or reject on some Android/Firefox devices -- which leaves
+// calculateSNR's own try/catch unable to help, since it only ever sees
+// rejections. Race it against a timer so calculateSNR always settles.
+async function decodeWithTimeout(audioCtx, arrayBuffer, timeoutMs) {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+            reject(new Error(`Audio decoding timed out after ${Math.round(timeoutMs / 1000)}s`));
+        }, timeoutMs);
+    });
+    try {
+        return await Promise.race([audioCtx.decodeAudioData(arrayBuffer), timeout]);
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 function getMaxAmplitude(channelData) {
