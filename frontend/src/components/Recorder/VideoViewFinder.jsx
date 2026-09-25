@@ -50,7 +50,7 @@ export const VideoViewFinder = ({
     
     const {
         attachVideoRef, canvasRef, isSteady, isFaceCorrect, guidance, faceMessage, isLoadingModel,
-        modelLoadError, cameraErrorType, preloadFaceModel
+        modelLoadError, cameraErrorType, preloadFaceModel, startFaceDetection, stopFaceDetection
     } = videoRecorder;
 
     const showWarningBorder = isRecording && (!isSteady || !isFaceCorrect);
@@ -437,9 +437,31 @@ export const VideoViewFinder = ({
 
             {phase === 'CALIBRATE' && calibrationStuck && (
                 <div className="calibration-stuck-hint">
-                    <DeclineVideoLink reason="calibration_timeout">
+                    <button
+                        className="btn-decline-camera"
+                        onClick={async () => {
+                            // Stop calibration inference the instant the user asks to
+                            // bypass, before the confirm dialog even opens — otherwise
+                            // detectForVideo() keeps running on the main thread and the
+                            // dialog can feel unresponsive on slower phones.
+                            stopFaceDetection?.();
+                            const confirmed = await confirm({
+                                title: t('videoCalibration.guide.declineTitle'),
+                                message: t('videoCalibration.guide.declineMessage'),
+                                confirmText: t('videoCalibration.guide.declineConfirm'),
+                                cancelText: t('videoCalibration.guide.declineCancel'),
+                            });
+                            if (confirmed) {
+                                onDeclineVideo('calibration_timeout');
+                            } else {
+                                // User backed out — resume calibration instead of
+                                // leaving it silently stopped.
+                                startFaceDetection?.();
+                            }
+                        }}
+                    >
                         {t('videoCalibration.guide.btnStuck')}
-                    </DeclineVideoLink>
+                    </button>
                 </div>
             )}
 

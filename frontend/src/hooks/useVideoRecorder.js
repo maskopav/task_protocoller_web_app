@@ -1,10 +1,26 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+// @mediapipe/tasks-vision (the FaceLandmarker/FilesetResolver JS wrapper) is
+// loaded dynamically inside preloadFaceModel() below, not statically here --
+// this hook is called unconditionally by every Recorder instance (see
+// Recorder.jsx), including audio-only tasks that never touch video, so a
+// static import would force its ~36KB gzipped wrapper into every task's
+// bundle. Only its JS wrapper lives here; the actual WASM/model binaries are
+// always fetched from a CDN at runtime regardless.
 import { classifyMediaError } from '../utils/mediaErrorType';
 import { logger } from '../utils/frontendLogger';
 
 const DEV_MODE = true; // Set to false when deploying
 const FRAME_RATE_MS = 33;
+// Calibration only drives on-screen guidance (arrows/badges), not the
+// recorded data, so it doesn't need to run at full rAF rate. Unlike
+// captureCoordinates below, the old calibration loop scheduled its next
+// detectForVideo() via requestAnimationFrame with zero throttling, so on a
+// slow/CPU-delegate device each ~40ms+ inference chained directly into the
+// next with no idle gap for the main thread to handle clicks or render
+// dialogs — the phone looked frozen even though it was just busy. Throttling
+// to this interval (same elapsed-aware pattern as the recording loop)
+// guarantees real idle time between frames.
+const CALIBRATION_FRAME_RATE_MS = 100;
 
 // TEMPORARY: fixed to "CPU" to A/B a specific open question from the FPS
 // investigation -- GPU dispatch/sync overhead can outweigh its benefit on a
@@ -109,6 +125,7 @@ export const useVideoRecorder = ({
         setModelLoadError(false);
         const load = async () => {
             logger.info("face_model_delegate", { delegate: FACE_DELEGATE });
+            const { FaceLandmarker, FilesetResolver } = await import("@mediapipe/tasks-vision");
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
             );
@@ -201,7 +218,7 @@ export const useVideoRecorder = ({
 
         const detect = () => {
             if (!videoRef.current || !canvasRef.current || !faceDetector.current) {
-                if (isCalibratingRef.current) requestRef.current = requestAnimationFrame(detect);
+                if (isCalibratingRef.current) requestRef.current = setTimeout(detect, CALIBRATION_FRAME_RATE_MS);
                 return;
             }
 
@@ -315,12 +332,30 @@ export const useVideoRecorder = ({
                 }
             }
 
+            // Throttled via setTimeout (elapsed-aware, same pattern as
+            // captureCoordinates below) rather than requestAnimationFrame, so
+            // there's always real idle time between inferences for the main
+            // thread to handle clicks and render dialogs.
             if (isCalibratingRef.current) {
-                requestRef.current = requestAnimationFrame(detect);
+                const elapsed = performance.now() - now;
+                const nextDelay = Math.max(0, CALIBRATION_FRAME_RATE_MS - elapsed);
+                requestRef.current = setTimeout(detect, nextDelay);
             }
         };
 
-        requestRef.current = requestAnimationFrame(detect);
+        detect();
+    };
+
+    // Lets the UI stop calibration inference immediately (e.g. the moment the
+    // "stuck calibration" bypass link is clicked, before the confirm dialog
+    // even opens) instead of waiting for startRecording()/unmount to tear it
+    // down. Safe to call even if calibration was never started.
+    const stopFaceDetection = () => {
+        isCalibratingRef.current = false;
+        if (requestRef.current) {
+            clearTimeout(requestRef.current);
+            requestRef.current = null;
+        }
     };
 
     const startRecording = () => {
@@ -331,7 +366,8 @@ export const useVideoRecorder = ({
 
         // Clear the canvas so the frozen dots disappear
         if (requestRef.current) {
-            cancelAnimationFrame(requestRef.current);
+            clearTimeout(requestRef.current);
+            requestRef.current = null;
         }
 
         if (canvasRef.current) {
@@ -374,7 +410,10 @@ export const useVideoRecorder = ({
             clearTimeout(recordingLoopRef.current);
         }
         setRecordingStatus("recorded");
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        if (requestRef.current) {
+            clearTimeout(requestRef.current);
+            requestRef.current = null;
+        }
 
         // Save and emit the coordinates
         const finalCoordinates = coordinateTimeline.current;
@@ -389,7 +428,7 @@ export const useVideoRecorder = ({
     return {
         videoRef, attachVideoRef, canvasRef, recordingStatus, isSteady,
         isFaceCorrect, guidance, getMediaPermission, preloadFaceModel,
-        startFaceDetection, startRecording, stopRecording,
+        startFaceDetection, stopFaceDetection, startRecording, stopRecording,
         isLoadingModel, videoData, modelLoadError, cameraErrorType
     };
 
