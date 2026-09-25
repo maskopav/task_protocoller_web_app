@@ -15,8 +15,6 @@ export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploadi
   if (step === "instructions") {
     return (
       <TaskLayout
-        title={task.title}
-        renderTitle
         instructions={task.instructions}
         controls={
           <SafeButton className="btn-next" onClick={() => setStep("questionnaire")}>

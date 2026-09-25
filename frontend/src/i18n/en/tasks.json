@@ -671,7 +671,7 @@
       "name": "Smell Test",
       "description": "Placeholder task: participant opens the envelope received by post, smells the paper inside, and picks the matching smell. Instructions and options are placeholders — edit before use.",
       "title": "{{title}}",
-      "instructions": "Open the envelope you received by post. Take out the paper strip inside and smell it carefully. When you're ready, tap Next to answer the question.",
+      "instructions": "PLACEHOLDER: Open the envelope you received by post. Take out the paper strip inside and smell it carefully. When you're ready, tap Next to answer the question.",
       "params": {
         "title": { "label": "Title" },
         "description": { "label": "Description" },
