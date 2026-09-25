@@ -1,5 +1,5 @@
 // src/pages/ParticipantInterfacePage.jsx
-import React, { useState, useContext, useMemo, useEffect, useRef, useCallback } from "react";
+import React, { useState, useContext, useMemo, useEffect, useRef, useCallback, Suspense, lazy } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePreventNavigation } from "../hooks/usePreventNavigation";
@@ -10,7 +10,6 @@ import { Recorder } from "../components/Recorder/Recorder";
 import Questionnaire from "../components/Questionnaire/Questionnaire";
 import CompletionScreen from "../components/CompletionScreen/CompletionScreen";
 import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/ModuleCompletionOverlay";
-import VisionTaskWrapper from "../components/VisionTask/VisionTaskWrapper";
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
@@ -32,6 +31,10 @@ import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
+
+// Lazy-loaded: pulls in colorjs.io (D-15 colour-vision test), so sessions
+// whose protocol has no vision task never fetch/parse it.
+const VisionTaskWrapper = lazy(() => import("../components/VisionTask/VisionTaskWrapper"));
 
 const TRANSITION_LOCK_MS = 350
 const LOCAL_FETCH_TIMEOUT_MS = 15000
@@ -1106,15 +1109,17 @@ export default function ParticipantInterfacePage() {
     // Render vision task
     if (currentTask.type === "vision") {
       return (
-        <VisionTaskWrapper
-          key={taskIndex}
-          task={currentTask}
-          onNextTask={handleTaskComplete}
-          isUploading={isUploading}
-          audioGuideEnabled={useAudioGuide}
-          isFirstVisionTask={isFirstVisionTask}
-          hasMoreVisionTasks={hasMoreVisionTasks}
-        />
+        <Suspense fallback={null}>
+          <VisionTaskWrapper
+            key={taskIndex}
+            task={currentTask}
+            onNextTask={handleTaskComplete}
+            isUploading={isUploading}
+            audioGuideEnabled={useAudioGuide}
+            isFirstVisionTask={isFirstVisionTask}
+            hasMoreVisionTasks={hasMoreVisionTasks}
+          />
+        </Suspense>
       );
     }
 

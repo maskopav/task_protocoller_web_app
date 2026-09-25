@@ -1,8 +1,14 @@
 // munsellUtils.js
-import Color from "colorjs.io";
+// colorjs.io is loaded dynamically below (not statically imported here) so
+// its ~38KB gzipped only has to be fetched/parsed by sessions that actually
+// run the D-15 colour-vision task, rather than by every task in the app.
 import { fetchWithTimeout } from "./fetchWithTimeout";
 
-const FETCH_TIMEOUT_MS = 15000;
+// A budget/weak-CPU device + slow mobile network combo has been observed
+// taking close to a minute for a comparable fetch+WASM stage elsewhere in
+// this app -- give this real headroom rather than just enough to catch a
+// genuine infinite hang.
+const FETCH_TIMEOUT_MS = 30000;
 
 // The exact order of hues for the D-15 test (Pilot + Caps 1 to 15)
 const D15_HUES = [
@@ -43,7 +49,10 @@ export async function loadAndComputeD15Colors(datFileUrl = "/realColor.dat", tar
       }
     }
 
-    // 3. Compute sRGB colors in the exact Farnsworth sequence
+    // 3. Compute sRGB colors in the exact Farnsworth sequence.
+    // Loaded here (not at module scope) so this ~38KB gzipped dependency is
+    // only fetched once a D-15 session actually needs it.
+    const { default: Color } = await import("colorjs.io");
     const computedColors = D15_HUES.map(hue => {
       const data = parsedData[hue];
       

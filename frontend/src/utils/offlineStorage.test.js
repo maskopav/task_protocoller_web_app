@@ -27,7 +27,7 @@ describe('offlineStorage openDB timeout', () => {
     const promise = saveRecordingLocally('sess1_task0', new Blob(['x']), { sessionId: 'sess1' });
     const assertion = expect(promise).rejects.toThrow(/timed out/i);
 
-    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(20_000 + 1_000);
     await assertion;
   });
 
@@ -54,7 +54,7 @@ describe('offlineStorage openDB timeout', () => {
     const promise = saveRecordingLocally('sess1_task1', new Blob(['x']), { sessionId: 'sess1' });
     const assertion = expect(promise).rejects.toThrow(/timed out/i);
 
-    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(20_000 + 1_000);
     await assertion;
   });
 });

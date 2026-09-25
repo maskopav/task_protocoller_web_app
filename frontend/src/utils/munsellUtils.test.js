@@ -80,7 +80,7 @@ describe('loadAndComputeD15Colors', () => {
     let settled = false;
     promise.then(() => { settled = true; });
 
-    await vi.advanceTimersByTimeAsync(15_000 + 1_000);
+    await vi.advanceTimersByTimeAsync(30_000 + 1_000);
 
     expect(settled).toBe(true);
     expect(await promise).toEqual([]);

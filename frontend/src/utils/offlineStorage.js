@@ -16,14 +16,17 @@ const TTL_MS = 48 * 60 * 60 * 1000;
 // await is still pending, so an unguarded hang here strands the participant
 // on every task type, not just one. Bound it so callers always get a
 // predictable rejection instead.
-const DB_OPEN_TIMEOUT_MS = 10000;
+// A budget/weak-CPU device has been observed taking close to a minute for a
+// comparable WASM pipeline stage -- give this real headroom rather than just
+// enough to catch a genuine infinite hang.
+const DB_OPEN_TIMEOUT_MS = 20000;
 
 // Separate from DB_OPEN_TIMEOUT_MS: an IndexedDB transaction can hang (never
 // fire oncomplete/onerror/onabort) independent of open() ever having
 // succeeded -- open() is only the first call each function below makes, not
 // the only one. Every transaction promise is wrapped with this too, not just
 // the open.
-const TRANSACTION_TIMEOUT_MS = 10000;
+const TRANSACTION_TIMEOUT_MS = 20000;
 
 function withTimeout(promise, ms, message) {
   return Promise.race([
