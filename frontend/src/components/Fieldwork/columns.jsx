@@ -23,6 +23,7 @@ import {
   reservationLink,
   reservationNotes,
 } from "./reservationStatus";
+import { RESERVATIONS_ENABLED } from "../../config/features";
 
 const startedText = (r) => formatDateTime(r.session_started_at);
 const lastActivityText = (r) => formatDateTime(r.session_last_activity_at);
@@ -32,7 +33,9 @@ const durationText = (r) => formatDuration(r.total_duration_seconds);
 // "followup_booking", which this humanizes to match the "Reservation"
 // label used elsewhere (e.g. the Reservation column) for the same step.
 const currentStepLabel = (r) =>
-  r.last_activity_task_name === "followup_booking" ? "reservation" : r.last_activity_task_name;
+  r.last_activity_task_name === "followup_booking"
+    ? (RESERVATIONS_ENABLED ? "reservation" : r.last_activity_task_name)
+    : r.last_activity_task_name;
 const currentStepText = (r) => currentStepLabel(r) || "—";
 const languageCodeText = (r) => r.protocol_language_code || "—";
 const sessionIdText = (r) => (r.session_id ?? "—").toString();
@@ -50,7 +53,9 @@ const sessionIdText = (r) => (r.session_id ?? "—").toString();
 // of `filterOptions` instead of a free-text input. `sortValue` is the
 // comparable primitive used when the column's sort is active (falls back
 // to `value` when omitted).
-export const COLUMN_DEFS = [
+const RESERVATION_COLUMN_IDS = ["reservation", "reservationLink", "reservationNotes"];
+
+const ALL_COLUMN_DEFS = [
   {
     id: "participant",
     label: "External ID",
@@ -315,5 +320,9 @@ export const COLUMN_DEFS = [
     },
   },
 ];
+
+export const COLUMN_DEFS = RESERVATIONS_ENABLED
+  ? ALL_COLUMN_DEFS
+  : ALL_COLUMN_DEFS.filter((c) => !RESERVATION_COLUMN_IDS.includes(c.id));
 
 export const DEFAULT_VISIBLE_COLUMNS = COLUMN_DEFS.filter((c) => c.defaultVisible !== false).map((c) => c.id);

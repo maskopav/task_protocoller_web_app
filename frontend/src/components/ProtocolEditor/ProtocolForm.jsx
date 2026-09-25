@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
 import AdminModal from "./Modal";
 import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
+import { RESERVATIONS_ENABLED } from "../../config/features";
 
 export default function ProtocolForm({
   tasks,
@@ -198,17 +199,19 @@ export default function ProtocolForm({
               </label>
             </div>
 
-            <div className="protocol-field checkbox-field" style={{ marginTop: '10px' }}>
-              <label className="checkbox-option">
-                <input
-                  type="checkbox"
-                  checked={!!(protocolData?.enable_followup_booking ?? false)}
-                  onChange={handleFollowupBookingChange}
-                  disabled={reorderMode}
-                />
-                <span>{t("protocolEditor.enableFollowupBooking", "Follow-up Appointment Booking")}</span>
-              </label>
-            </div>
+            {RESERVATIONS_ENABLED && (
+              <div className="protocol-field checkbox-field" style={{ marginTop: '10px' }}>
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={!!(protocolData?.enable_followup_booking ?? false)}
+                    onChange={handleFollowupBookingChange}
+                    disabled={reorderMode}
+                  />
+                  <span>{t("protocolEditor.enableFollowupBooking", "Follow-up Appointment Booking")}</span>
+                </label>
+              </div>
+            )}
 
             <div className="protocol-pages-row">
               {/* Info Page Logic */}
