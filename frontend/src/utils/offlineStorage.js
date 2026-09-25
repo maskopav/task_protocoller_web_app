@@ -8,10 +8,27 @@ const STORE   = 'pending_recordings';
 // regardless of upload status. 48 h is long enough for any realistic scenario.
 const TTL_MS = 48 * 60 * 60 * 1000;
 
+// indexedDB.open() has no built-in timeout and has been observed to hang
+// (never fire onsuccess/onerror/onblocked) on a stale version lock held by
+// another tab or a corrupted profile. saveRecordingLocally() is awaited
+// directly inside ParticipantInterfacePage's handleTaskComplete, which only
+// resets isUploading in a finally block -- a finally never runs while the
+// await is still pending, so an unguarded hang here strands the participant
+// on every task type, not just one. Bound it so callers always get a
+// predictable rejection instead.
+const DB_OPEN_TIMEOUT_MS = 10000;
+
 // ─── DB OPEN ─────────────────────────────────────────────────────────────────
 
 function openDB() {
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error(`IndexedDB open timed out after ${DB_OPEN_TIMEOUT_MS / 1000}s`));
+    }, DB_OPEN_TIMEOUT_MS);
+
     const req = indexedDB.open(DB_NAME, DB_VER);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
@@ -19,8 +36,18 @@ function openDB() {
         db.createObjectStore(STORE, { keyPath: 'id' });
       }
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror   = () => reject(req.error);
+    req.onsuccess = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(req.result);
+    };
+    req.onerror = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(req.error);
+    };
   });
 }
 

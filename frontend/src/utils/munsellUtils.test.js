@@ -59,4 +59,31 @@ describe('loadAndComputeD15Colors', () => {
     const colors = await loadAndComputeD15Colors('/realColor.dat', 8, 2);
     expect(colors[0]).toBe('#CCCCCC'); // no V=8/C=2 row for 10B
   });
+
+  // D15Test.jsx's initColors() has no try/catch of its own around this call
+  // and only clears isLoading after it resolves -- so if the fetch here
+  // hangs instead of rejecting, the vision task is stuck on its loading
+  // screen forever. This settling-at-all is what closes that gap; the
+  // function's own catch already turns a rejection into `[]` (see the
+  // "fetch fails" test above), D15Test just needs it to reach that catch.
+  it('resolves (via its own catch, to []) instead of hanging forever when the fetch stalls', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', vi.fn((url, options) => new Promise((resolve, reject) => {
+      options.signal.addEventListener('abort', () => {
+        const err = new Error('The operation was aborted.');
+        err.name = 'AbortError';
+        reject(err);
+      });
+    })));
+
+    const promise = loadAndComputeD15Colors();
+    let settled = false;
+    promise.then(() => { settled = true; });
+
+    await vi.advanceTimersByTimeAsync(15_000 + 1_000);
+
+    expect(settled).toBe(true);
+    expect(await promise).toEqual([]);
+    vi.useRealTimers();
+  });
 });

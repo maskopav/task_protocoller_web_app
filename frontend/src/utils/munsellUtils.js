@@ -1,5 +1,8 @@
 // munsellUtils.js
 import Color from "colorjs.io";
+import { fetchWithTimeout } from "./fetchWithTimeout";
+
+const FETCH_TIMEOUT_MS = 15000;
 
 // The exact order of hues for the D-15 test (Pilot + Caps 1 to 15)
 const D15_HUES = [
@@ -10,7 +13,7 @@ const D15_HUES = [
 export async function loadAndComputeD15Colors(datFileUrl = "/realColor.dat", targetValue = 8, targetChroma = 2) {
   try {
     // 1. Fetch the raw text file from the public folder
-    const response = await fetch(datFileUrl);
+    const response = await fetchWithTimeout(datFileUrl, {}, FETCH_TIMEOUT_MS);
     if (!response.ok) throw new Error("Could not load realColor.dat");
     const text = await response.text();
 

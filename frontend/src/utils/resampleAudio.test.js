@@ -127,4 +127,32 @@ describe('resampleTo44100', () => {
     vi.doUnmock('@alexanderolsen/libsamplerate-js');
     vi.resetModules();
   });
+
+  // finalizeRecording.js's pcmAtTargetRate() already falls back to the
+  // native sample rate on any *rejection* from resampleTo44100 -- but only
+  // if it actually settles. Without a timeout around the WASM create() call,
+  // a hang here leaves audioURL unset forever (PlaybackSection.jsx disables
+  // both Next and Repeat until it's set) with that fallback never engaging.
+  it('rejects instead of hanging forever when the WASM converter never loads', async () => {
+    vi.resetModules();
+    vi.useFakeTimers();
+    const hangingLib = {
+      ConverterType: { SRC_SINC_BEST_QUALITY: 0 },
+      create: () => new Promise(() => {}), // never resolves, never rejects
+    };
+    vi.doMock('@alexanderolsen/libsamplerate-js', () => ({ default: hangingLib, ...hangingLib }));
+
+    const { resampleTo44100: resampleWithHangingConverter } = await import('./resampleAudio');
+    const input = generateSineInt16(1000, 48000, 0.1);
+
+    const promise = resampleWithHangingConverter(input, 48000);
+    const assertion = expect(promise).rejects.toThrow(/timed out/i);
+
+    await vi.advanceTimersByTimeAsync(15_000 + 1_000);
+    await assertion;
+
+    vi.doUnmock('@alexanderolsen/libsamplerate-js');
+    vi.resetModules();
+    vi.useRealTimers();
+  });
 });

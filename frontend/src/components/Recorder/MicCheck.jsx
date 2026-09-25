@@ -216,6 +216,13 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   };
 
   const handleNoiseCheckComplete = async (taskData) => {
+    // Must happen before any await: Recorder still shows its generic
+    // "task completed successfully" text for the one render where
+    // recordingStatus is RECORDED but MicCheck hasn't unmounted it yet --
+    // that text is wrong here (nothing has been validated), so this has to
+    // win the race against that render, not just run "soon after".
+    setPhase('analyzing');
+
     let audioBlob;
     let safeAudioUrl;
     try {
@@ -226,7 +233,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       logger.error("Failed to fetch audio blob for MicCheck", err);
     }
 
-    setPhase('analyzing');
     const result = await calculateSNR(safeAudioUrl, taskData.speechSegments, taskData.recordingStartTime);
     const calculatedScore = result.snr ? result.snr.toFixed(1) : 0;
 

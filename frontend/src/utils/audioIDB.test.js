@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { initSession, appendChunk, getAllSamplesInt16, encodeWAV, clearSession } from './audioIDB';
 
 // This test environment has no `indexedDB` global (vitest runs in plain
@@ -79,5 +79,43 @@ describe('audioIDB', () => {
 
     const samples = await getAllSamplesInt16();
     expect(samples.length).toBe(0);
+  });
+});
+
+describe('audioIDB openDB timeout', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    vi.resetModules();
+  });
+
+  // initSession() already falls back to the in-memory path on any
+  // *rejection* from openDB() (see the try/catch there). indexedDB.open()
+  // has been observed to hang instead of firing onsuccess/onerror at all --
+  // this proves that's now bounded, so startRecording() (which awaits
+  // initSession() via useVoiceRecorder.js) can't get stuck on it forever.
+  it('falls back to the in-memory path instead of hanging when indexedDB.open() never settles', async () => {
+    vi.resetModules();
+    vi.useFakeTimers();
+    vi.stubGlobal('indexedDB', {
+      open: () => ({}), // returned request never fires onupgradeneeded/onsuccess/onerror
+    });
+
+    const { initSession: initSessionFresh, appendChunk: appendChunkFresh, getAllSamplesInt16: getAllFresh } =
+      await import('./audioIDB');
+
+    const promise = initSessionFresh();
+    let settled = false;
+    promise.then(() => { settled = true; });
+
+    await vi.advanceTimersByTimeAsync(10_000 + 1_000);
+    await promise;
+
+    expect(settled).toBe(true);
+
+    // and the module is actually usable afterwards, via the memory fallback
+    await appendChunkFresh(Int16Array.from([7, 8, 9]).buffer);
+    const samples = await getAllFresh();
+    expect(Array.from(samples)).toEqual([7, 8, 9]);
   });
 });
