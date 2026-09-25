@@ -1,4 +1,5 @@
 // src/utils/getAudioGuidePath.ts
+import audioGuideManifest from '../generated/audioGuideManifest.json' with { type: 'json' };
 
 interface EnvImportMeta extends ImportMeta {
   env: {
@@ -19,7 +20,15 @@ export function buildAudioGuidePath(
   fileName: string
 ): string {
   const basePath = getBasePath();
-  return `${basePath}audio/guide/${language}/${fileName}.m4a`;
+  const relativeName = `${fileName}.m4a`;
+  // Per-file content hash (see scripts/generateAudioManifest.mjs) so the
+  // browser only re-fetches clips whose content actually changed, instead of
+  // every clip re-fetching on every deploy (a single shared buildId would do
+  // that) or none of them ever re-fetching (a plain static path, the
+  // original bug).
+  const version = (audioGuideManifest as Record<string, string>)[`${language}/${relativeName}`];
+  const query = version ? `?v=${version}` : '';
+  return `${basePath}audio/guide/${language}/${relativeName}${query}`;
 }
 
 // getAudioGuidePath.ts
