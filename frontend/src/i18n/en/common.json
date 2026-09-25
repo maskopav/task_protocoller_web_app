@@ -143,6 +143,8 @@
       "failedMessage": "Please limit the sounds in the background around you.",
       "failedInstructions": "For the best results, please <strong>close any windows, turn off the TV/radio, or move to a quieter room</strong>. <br/><br/>When ready, press Try Again to begin the recording. Then count from 1 to 5.",
       "failedAdditionalInfo": "While sounds in the background is the most likely cause, it can sometimes be due to a microphone issue. <br/><br/> Please try again. If you are still unsuccessful, you can continue anyway.",
+      "failedAgainTitle": "Microphone condition is not ideal, but you can still continue.",
+      "failedAgainInstructions": "Please <strong>stay in this room</strong> until you have finished.",
       "mutedTitle": "No Sound Detected",
       "mutedMessage": "We couldn't hear anything during the audio test.",
       "mutedInstructions": "To fix this, please <strong>make sure your microphone is not muted, unplug any headphones, and verify your device settings</strong>. When ready, try again.",
