@@ -24,6 +24,7 @@ import { IncompatibleBrowser } from './IncompatibleBrowser';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
 import { preloadVadAssets } from '../../utils/vadPreload';
+import { ILLUSTRATION_EXTENSIONS } from '../../utils/getIllustrationPath';
 
 const DEBUG_MODE = false;
 // "Try Again" is allowed twice per task; after that the button disappears.
@@ -446,18 +447,34 @@ export const Recorder = ({
         return () => clearInterval(interval);
     }, [recordingStatus, RECORDING_STATES.RECORDING]);
 
-    const [exampleExists, setExampleExists] = React.useState(false);
+    // `audioExample` is a base path without extension (see getIllustrationPath.ts) —
+    // illustration files on disk aren't consistently encoded (some .wav, some .m4a),
+    // so we probe each candidate extension in order and use whichever exists.
+    const [resolvedAudioExample, setResolvedAudioExample] = React.useState(null);
+    const exampleExists = !!resolvedAudioExample;
     React.useEffect(() => {
-        async function checkExample() {
-            if (!audioExample) return;
-            try {
-                const res = await fetch(audioExample, { method: "HEAD" });
-                setExampleExists(res.ok && (res.headers.get("content-type") || "").includes("audio"));
-            } catch {
-                setExampleExists(false);
+        let cancelled = false;
+        async function resolveExample() {
+            if (!audioExample) {
+                setResolvedAudioExample(null);
+                return;
             }
+            for (const ext of ILLUSTRATION_EXTENSIONS) {
+                const candidate = `${audioExample}.${ext}`;
+                try {
+                    const res = await fetch(candidate, { method: "HEAD" });
+                    if (res.ok && (res.headers.get("content-type") || "").includes("audio")) {
+                        if (!cancelled) setResolvedAudioExample(candidate);
+                        return;
+                    }
+                } catch {
+                    // try next extension
+                }
+            }
+            if (!cancelled) setResolvedAudioExample(null);
         }
-        checkExample();
+        resolveExample();
+        return () => { cancelled = true; };
     }, [audioExample]);
 
     // ── Story/example playback state (owned here, driven into AudioExamplePlayer via props) ──
@@ -634,7 +651,7 @@ export const Recorder = ({
         example: exampleExists ? (
             <AudioExamplePlayer
                 ref={examplePlayerRef}
-                src={audioExample}
+                src={resolvedAudioExample}
                 variant="example"
                 recordingStatus={recordingStatus}
                 onPlayingChange={(playing) => { if (playing) onExamplePlay(); }}
@@ -644,7 +661,7 @@ export const Recorder = ({
         playStory: exampleExists ? (
             <AudioExamplePlayer
                 ref={storyPlayerRef}
-                src={audioExample}
+                src={resolvedAudioExample}
                 variant="story"
                 recordingStatus={recordingStatus}
                 playTrigger={storyAutoPlayTrigger}

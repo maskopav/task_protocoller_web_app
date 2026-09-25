@@ -1,14 +1,23 @@
 // src/utils/getIllustrationPath.ts
 
 /**
- * Builds a predictable illustration path based on task category and its first parameter key/value.
- * Example: phonation -> phoneme "a" => /illustrations/phonation_a.mp3
+ * Builds a predictable illustration path (without extension) based on task
+ * category and its first parameter key/value.
+ * Example: phonation -> phoneme "a" => /illustrations/phonation_a
+ *
+ * No extension is appended because the illustration files on disk aren't
+ * consistently encoded (some are .wav, some are .m4a) — the caller resolves
+ * the real extension at runtime, see ILLUSTRATION_EXTENSIONS below.
  */
 interface EnvImportMeta extends ImportMeta {
   env: {
     BASE_URL: string;
   };
 }
+
+// Tried in order against the resolved base path until one responds; see
+// resolveIllustrationSrc in Recorder.jsx.
+export const ILLUSTRATION_EXTENSIONS = ['m4a', 'wav', 'mp3'];
 
 export function getIllustrationPath(category: string, params: Record<string, any> = {}): string | undefined {
   const keys = Object.keys(params ?? {});
@@ -22,6 +31,6 @@ export function getIllustrationPath(category: string, params: Record<string, any
   const baseName = `${category}_${String(value)}`;
   const basePath = (import.meta as EnvImportMeta).env.BASE_URL || '/';
 
-  // Return just the base path (actual existence check will happen in VoiceRecorder)
-  return `${basePath}audio/illustrations/${baseName}.m4a`;
+  // Return just the base path (extension resolved at runtime in Recorder.jsx)
+  return `${basePath}audio/illustrations/${baseName}`;
 }
