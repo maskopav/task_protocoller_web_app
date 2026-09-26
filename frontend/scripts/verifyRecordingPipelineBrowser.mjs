@@ -2,20 +2,20 @@
 // scripts/verifyRecordingPipelineBrowser.mjs
 //
 // Drives a real Chromium instance against the real Vite dev server and runs
-// the actual, unmodified finalizeRecording() -- the full resample-then-FLAC
-// pipeline used by every voice recording -- end to end.
+// the actual, unmodified finalizeRecording() -- the native-rate FLAC
+// encoding pipeline used by every voice recording -- end to end.
 //
-// This exists because unit tests alone missed a real bug: resampleAudio.js's
-// import of @alexanderolsen/libsamplerate-js worked fine under vitest but
-// threw "Cannot destructure property 'create' of 'LibSampleRate' as it is
-// undefined" the moment it ran in an actual browser via Vite's real
-// dev-server bundling -- vitest's transform handles this package's CJS/ESM
-// shape differently than Vite's browser-targeted esbuild pipeline does. FLAC
-// encoding hit a similar but different bundler-interop bug (see
-// flacEncoder.js's header comment). Neither was visible from Node or from
-// vitest; both only showed up by actually loading the page in a browser.
-// This script is the regression guard for that whole class of bug -- rerun
-// it after touching resampleAudio.js, flacEncoder.js, or finalizeRecording.js.
+// This exists because unit tests alone missed a real bug: FLAC encoding hit
+// a bundler-interop bug (see flacEncoder.js's header comment) that wasn't
+// visible from Node or from vitest, only from actually loading the page in
+// a browser. This script is the regression guard for that class of bug --
+// rerun it after touching flacEncoder.js or finalizeRecording.js.
+//
+// (This used to also guard resampleAudio.js's libsamplerate import, back
+// when finalizeRecording() downsampled to 44.1kHz before encoding. That step
+// was dropped entirely -- see finalizeRecording.js's header comment -- so
+// this now runs FLAC encoding alone, still at the same 48000Hz input used
+// below, just without a resample step first.)
 //
 // Usage: run `npm run dev` in one terminal, then in another:
 //   node scripts/verifyRecordingPipelineBrowser.mjs [devServerUrl]
@@ -58,7 +58,7 @@ async function main() {
     setTimeout(resolve, 15000);
   }));
 
-  console.log('Running the real finalizeRecording() pipeline (resample 48kHz->44.1kHz, then FLAC)...');
+  console.log('Running the real finalizeRecording() pipeline (native-rate FLAC encode)...');
   const result = await page.evaluate(async () => {
     const { finalizeRecording } = await import('/src/utils/finalizeRecording.js');
     const { initSession, appendChunk, clearSession } = await import('/src/utils/audioIDB.js');
@@ -67,9 +67,7 @@ async function main() {
     await clearSession();
     await initSession();
 
-    // 2s @ 48000Hz -- simulates a real Chrome/Android capture rate above the
-    // 44.1kHz target, so this exercises BOTH the resample step and the FLAC
-    // encode step, not just one of them.
+    // 2s @ 48000Hz -- simulates a real Chrome/Android capture rate.
     const nativeRate = 48000;
     const n = nativeRate * 2;
     const int16 = new Int16Array(n);

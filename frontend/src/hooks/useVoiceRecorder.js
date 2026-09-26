@@ -25,20 +25,20 @@ const LEVEL_BUCKETS = 12;
 const LEVEL_FRAME_INTERVAL_MS = 1000 / 25;
 
 // Top-level safety net around the ENTIRE post-recording pipeline (IDB read →
-// resample → FLAC/WAV encode), on top of -- not instead of -- the timeouts
-// already inside each of those individual steps. Those only help if we've
-// correctly identified which specific call can hang; this one doesn't care
-// which step it is, including one nobody has found yet, as long as the JS
-// event loop is still running at all. (If the whole tab/engine is frozen --
-// e.g. backgrounded/throttled on some Android builds -- no setTimeout can
-// fire regardless of where it lives; that failure mode is out of reach from
-// in-page JS entirely.) Generous budget: worst case is the IDB transaction
-// timeout (20s) + resample WASM timeout (30s) + FLAC WASM timeout (30s)
-// running back-to-back (80s), plus real encode time on a slow device -- a
-// budget/weak-CPU device has been observed taking close to a minute for just
-// one comparable stage, so this needs to clear the sum of the leaf timeouts
-// with real margin left over, not race them.
-const PROCESSING_WATCHDOG_MS = 150000;
+// FLAC/WAV encode -- no resample step anymore, see finalizeRecording.js), on
+// top of -- not instead of -- the timeouts already inside each of those
+// individual steps. Those only help if we've correctly identified which
+// specific call can hang; this one doesn't care which step it is, including
+// one nobody has found yet, as long as the JS event loop is still running at
+// all. (If the whole tab/engine is frozen -- e.g. backgrounded/throttled on
+// some Android builds -- no setTimeout can fire regardless of where it
+// lives; that failure mode is out of reach from in-page JS entirely.)
+// Budget: IDB transaction timeout (20s) + FLAC WASM ready timeout (15s)
+// running back-to-back (35s), plus real encode time on a slow device --
+// FLAC encoding itself measured at only ~5% of what resampling used to cost
+// (scripts/benchmarkProcessingPipelineBrowser.mjs), so this no longer needs
+// the much larger margin the old resample-inclusive pipeline did.
+const PROCESSING_WATCHDOG_MS = 60000;
 
 function withTimeout(promise, ms, message) {
     return Promise.race([
@@ -586,9 +586,9 @@ export const useVoiceRecorder = (options = {}) => {
             inputGainRef.current = null;
         }
 
-        // Build the upload Blob: downsample to TARGET_SAMPLE_RATE when the
-        // device's native rate is higher, then encode losslessly as FLAC
-        // (falls back to WAV on either step's failure) -- see finalizeRecording.js.
+        // Build the upload Blob: encode losslessly as FLAC at the device's
+        // native sample rate (falls back to WAV on encode failure) -- see
+        // finalizeRecording.js.
         if (chunkCountRef.current > 0 && audioContext.current) {
             const sampleRate = audioContext.current.sampleRate;
 

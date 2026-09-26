@@ -93,6 +93,23 @@ export function float32ToInt16(float32Samples) {
  * swallowing it — the caller decides the fallback (see finalizeRecording.js),
  * so a resampling bug can never silently ship corrupted audio.
  */
+/**
+ * Fires the ~1.4MB gzipped libsamplerate chunk fetch without waiting on it.
+ * Call this the moment recording STARTS (see useVoiceRecorder.js's
+ * startRecording), not when it needs to actually run -- dynamic import()
+ * results are cached by the module loader, so by the time resampleTo44100()
+ * runs its own `await import(...)` after recording stops, it resolves
+ * instantly from that cache instead of only starting the network fetch at
+ * the exact moment the participant is staring at "processing your
+ * recording." This overlaps the download with the recording's own duration
+ * (which is at least several seconds, often much more) instead of adding it
+ * to the tail end of the wait. Never throws -- a failed/slow preload just
+ * means resampleTo44100's own timeout+fallback handles it as usual later.
+ */
+export function preloadResampler() {
+    import('@alexanderolsen/libsamplerate-js').catch(() => {});
+}
+
 export async function resampleTo44100(int16Samples, fromSampleRate) {
     if (!int16Samples || int16Samples.length === 0 || fromSampleRate <= TARGET_SAMPLE_RATE) {
         return { samples: int16Samples, sampleRate: fromSampleRate };

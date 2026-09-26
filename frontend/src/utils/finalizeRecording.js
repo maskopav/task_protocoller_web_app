@@ -1,46 +1,42 @@
 // utils/finalizeRecording.js
 //
-// Turns the recorded PCM session into the final upload Blob:
-//   1. downsample to TARGET_SAMPLE_RATE if the device recorded above it
-//      (resampleAudio.js), falling back to the native rate if that fails.
-//   2. losslessly encode the result as FLAC (flacEncoder.js) for the upload,
-//      falling back to plain WAV of the same samples if that fails.
-// Both steps degrade independently rather than failing the whole recording --
-// a resampler or encoder bug must never cost the participant's recording.
+// Turns the recorded PCM session into the final upload Blob, always at the
+// device's native sample rate, then losslessly encodes it as FLAC
+// (flacEncoder.js), falling back to plain WAV of the same samples if that
+// fails. Uploading at native rate rather than failing the whole recording --
+// an encoder bug must never cost the participant's recording.
+//
+// Downsampling to TARGET_SAMPLE_RATE (resampleAudio.js's resampleTo44100(),
+// still present and tested, just not called here) was measured to be ~95%
+// of total post-recording processing time on a real device/browser (see
+// scripts/benchmarkProcessingPipelineBrowser.mjs) -- FLAC encoding itself is
+// only ~5%. On a weak/budget CPU that dominated the participant-visible
+// wait after recording (tens of seconds), for a purely cosmetic bandwidth
+// saving (resampling was never a scientific requirement -- see
+// resampleAudio.js's own header comment). Dropped entirely rather than
+// swapped for a cheaper converter type, since native rate removes the cost
+// completely instead of just shrinking it, and also means the ~1.4MB
+// libsamplerate WASM chunk is never fetched at all.
 //
 // Isolated from useVoiceRecorder.js so this decision tree is a plain async
 // function that can be unit tested without mounting the hook's audio graph
 // (AudioContext/AudioWorklet aren't available outside a real browser).
 import { getAllSamplesInt16, encodeWAV } from './audioIDB';
-import { resampleTo44100, TARGET_SAMPLE_RATE } from './resampleAudio';
 import { encodeFlacBlob } from './flacEncoder';
 import { logger } from './frontendLogger';
 
-async function pcmAtTargetRate(nativeSampleRate) {
-    const samples = await getAllSamplesInt16();
-    if (nativeSampleRate <= TARGET_SAMPLE_RATE) {
-        return { samples, sampleRate: nativeSampleRate };
-    }
-    try {
-        return await resampleTo44100(samples, nativeSampleRate);
-    } catch (err) {
-        logger.error('Resampling failed, keeping native sample rate', err);
-        return { samples, sampleRate: nativeSampleRate };
-    }
-}
-
 /**
  * Builds the final audio Blob for a completed recording (FLAC when possible,
- * WAV as the fallback). The Blob's `type` tells the uploader which one it got
- * -- see api/recordings.js.
+ * WAV as the fallback), at the device's native sample rate. The Blob's
+ * `type` tells the uploader which one it got -- see api/recordings.js.
  */
 export async function finalizeRecording(nativeSampleRate) {
-    const { samples, sampleRate } = await pcmAtTargetRate(nativeSampleRate);
+    const samples = await getAllSamplesInt16();
 
     try {
-        return await encodeFlacBlob(samples, sampleRate);
+        return await encodeFlacBlob(samples, nativeSampleRate);
     } catch (err) {
         logger.error('FLAC encoding failed, falling back to WAV', err);
-        return encodeWAV(samples, sampleRate);
+        return encodeWAV(samples, nativeSampleRate);
     }
 }
