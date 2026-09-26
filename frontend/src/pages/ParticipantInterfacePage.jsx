@@ -31,6 +31,7 @@ import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
+import { preloadVadAssets } from '../utils/vadPreload';
 
 // Lazy-loaded: pulls in colorjs.io (D-15 colour-vision test), so sessions
 // whose protocol has no vision task never fetch/parse it.
@@ -308,6 +309,19 @@ export default function ParticipantInterfacePage() {
 
     return finalTasks;
   }, [selectedProtocol, i18n.language]);
+
+  // Warm the VAD model/WASM assets as early as the protocol is known to need
+  // them at all -- as soon as runtimeTasks resolves, not when the participant
+  // actually reaches a VAD task's Recorder. This lets the download overlap
+  // with consent/instructions/mic_check instead of only the current task's
+  // own dead time (see Recorder.jsx's own preloadVadAssets() call, which
+  // still covers the case where the participant jumps straight to a later
+  // task via startingTaskIndex).
+  useEffect(() => {
+    if (runtimeTasks.some((t) => t.useVAD)) {
+      preloadVadAssets();
+    }
+  }, [runtimeTasks]);
 
   const isSessionActive = taskIndex < runtimeTasks.length && !testingMode && !editingMode;
 
