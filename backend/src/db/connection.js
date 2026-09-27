@@ -14,7 +14,13 @@ const pool = await mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   charset: 'utf8mb4',
-  multipleStatements: true,
+  // Off: runSqlFile.js already splits scripts into single statements, so
+  // nothing needs it — and it turns any injection into a stacked-query one.
+  multipleStatements: false,
+  // Without this, an object in req.body bound to `?` expands to `key` = val:
+  // {"token":{"reset_password_token":1}} made the reset lookup match every
+  // pending reset. Objects now bind as their string form instead.
+  stringifyObjects: true,
   dateStrings: true,
   timezone: 'Z'
 });

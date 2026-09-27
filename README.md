@@ -86,6 +86,10 @@ ASSET_BASE_URL=https://your-host/test/dist
 JWT_SECRET=your_random_secret
 JWT_EXPIRES_IN=8h
 
+# Base URL of the admin frontend; password-reset and welcome emails link here.
+# Required — the server refuses to boot without it.
+FRONTEND_BASE_URL=https://localhost:5173
+
 # Browser origins allowed to read API responses (comma-separated). Defaults to
 # https://localhost:5173,https://localhost:5183 (Vite's dev ports) if unset.
 CORS_ORIGIN=https://localhost:5173
@@ -144,6 +148,7 @@ The application will now be live at: `http://localhost:5173`. Ignore the warning
   PORT=3001
   CORS_ORIGIN=https://localhost:5183
   JWT_SECRET=any_long_random_string
+  FRONTEND_BASE_URL=https://localhost:5183
   ```
 
 ---

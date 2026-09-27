@@ -35,5 +35,35 @@ export function createAuthLimiter(overrides = {}) {
   });
 }
 
+// POST /logs/frontend is public (errors can happen before login) and writes to
+// disk, so it is capped per client to keep it from filling the log volume.
+export function createLogLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many log messages." },
+    ...overrides,
+  });
+}
+
+// GET /site-config/:token — the token is the clinic's only credential. Only
+// failed lookups count, so a desktop app polling with a valid token is never
+// throttled while a client guessing tokens is stopped quickly.
+export function createSiteConfigLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    skipSuccessfulRequests: true,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+    ...overrides,
+  });
+}
+
 export const loginLimiter = createLoginLimiter();
 export const authLimiter = createAuthLimiter();
+export const logLimiter = createLogLimiter();
+export const siteConfigLimiter = createSiteConfigLimiter();

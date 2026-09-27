@@ -6,7 +6,7 @@ vi.mock('../db/queryHelper.js', () => ({
 }));
 
 const { executeQuery, executeTransaction } = await import('../db/queryHelper.js');
-const { getProtocolsByProjectId, getProtocolById, saveProtocol } =
+const { getProtocolsByProjectId, getProtocolById, saveProtocol, archiveProtocol, getArchivedProtocols } =
   await import('./protocolController.js');
 
 const makeRes = () => {
@@ -309,5 +309,92 @@ describe('saveProtocol', () => {
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(executeTransaction).not.toHaveBeenCalled();
+  });
+});
+
+describe('archiveProtocol', () => {
+  // Group 5 is linked to projects 7 and 8.
+  const answerWith = (scope) => {
+    const answer = scopeAnswer(scope);
+    return async (sql) => {
+      const scoped = answer(sql);
+      if (scoped) return scoped;
+      if (sql.includes('SELECT protocol_group_id FROM protocols')) return [{ protocol_group_id: 5 }];
+      if (sql.includes('JOIN project_protocols pp')) return [{ project_id: 7 }, { project_id: 8 }];
+      return [];
+    };
+  };
+  const req = (admin) => ({ params: { id: '42' }, admin });
+
+  it('404s for a caller who cannot see any project using the protocol', async () => {
+    executeQuery.mockImplementation(answerWith({ projects: [99] }));
+
+    const res = makeRes();
+    await archiveProtocol(req({ id: 2, role: 'admin' }), res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it('403s when the caller can edit only some of the projects using it', async () => {
+    executeQuery.mockImplementation(answerWith({ projects: [7, 8], editable: [7] }));
+
+    const res = makeRes();
+    await archiveProtocol(req({ id: 2, role: 'admin' }), res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it('403s for read-only access inherited through a clinic', async () => {
+    executeQuery.mockImplementation(answerWith({ projects: [], viaClinics: [7, 8] }));
+
+    const res = makeRes();
+    await archiveProtocol(req({ id: 2, role: 'admin' }), res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it('archives when the caller can edit every project using it', async () => {
+    executeQuery.mockImplementation(answerWith({ projects: [7, 8] }));
+    executeTransaction.mockResolvedValue(undefined);
+
+    const res = makeRes();
+    await archiveProtocol(req({ id: 2, role: 'admin' }), res);
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(executeTransaction).toHaveBeenCalledOnce();
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('lets a master archive without any grant', async () => {
+    executeQuery.mockImplementation(answerWith({}));
+    executeTransaction.mockResolvedValue(undefined);
+
+    const res = makeRes();
+    await archiveProtocol(req({ id: 1, role: 'master' }), res);
+
+    expect(executeTransaction).toHaveBeenCalledOnce();
+  });
+});
+
+describe('getArchivedProtocols', () => {
+  it('limits a non-master to archived protocols they authored', async () => {
+    executeQuery.mockResolvedValueOnce([]);
+
+    await getArchivedProtocols({ admin: { id: 2, role: 'admin' } }, makeRes());
+
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toContain('p.created_by = ?');
+    expect(params).toEqual([2]);
+  });
+
+  it('shows a master every archived protocol', async () => {
+    executeQuery.mockResolvedValueOnce([]);
+
+    await getArchivedProtocols({ admin: { id: 1, role: 'master' } }, makeRes());
+
+    expect(executeQuery.mock.calls[0][0]).not.toContain('created_by = ?');
   });
 });

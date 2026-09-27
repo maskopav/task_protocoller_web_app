@@ -9,8 +9,9 @@ import { requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Any authenticated admin can view the admin list (router already requires auth).
-router.get("/users", getAllUsers);
+// The admin list (emails + permission flags) only feeds the master-only
+// AdminManagementPage, so non-masters have no reason to read it.
+router.get("/users", requireRole("master"), getAllUsers);
 
 // Managing other admin accounts is restricted to the master role.
 router.post("/toggle-status", requireRole("master"), toggleUserStatus);

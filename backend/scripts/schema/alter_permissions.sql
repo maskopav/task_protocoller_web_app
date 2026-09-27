@@ -66,3 +66,11 @@ CREATE TABLE IF NOT EXISTS `user_project_sites` (
   FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE
 );
+
+-- Session invalidation. Every JWT carries the version current at login and
+-- requireAuth rejects older ones, so bumping this on a password change logs
+-- out every session issued under the old password.
+ALTER TABLE `users`
+  ADD COLUMN IF NOT EXISTS `token_version` integer NOT NULL DEFAULT 0
+  COMMENT 'Bumped on every password change, JWTs carrying an older value are rejected'
+;

@@ -24,7 +24,7 @@ export const firstInvalidEmail = (v) =>
 // segment in GET /site-config/:token. Lower bound 16 stops a master setting a
 // guessable credential; upper bound 64 is the column width.
 export const isValidAccessToken = (v) =>
-  /^[A-Za-z0-9_-]{8,64}$/.test(String(v ?? ""));
+  /^[A-Za-z0-9_-]{16,64}$/.test(String(v ?? ""));
 
 // Blank or absent means "leave the stored value alone" — see updateSite.
 export const normalizeToken = (input) => {
@@ -33,7 +33,7 @@ export const normalizeToken = (input) => {
 };
 
 export const TOKEN_FORMAT_ERROR =
-  "Access token must be 8-64 characters: letters, digits, _ or -";
+  "Access token must be 16-64 characters: letters, digits, _ or -";
 
 // --- Desktop-app config fields ------------------------------------------------
 // Mirrors frontend/src/components/Identifiers/IdentifierFields.js.
@@ -86,4 +86,22 @@ export const normalizeSiteSettings = (obj) => {
     value[key] = obj[key];
   }
   return { value };
+};
+
+// --- Passwords ---------------------------------------------------------------
+// Minimum mirrors the frontend (OnboardingPage / ResetPasswordModal). The upper
+// bound is bcrypt's: it silently ignores everything past 72 bytes.
+export const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_BYTES = 72;
+
+// null when acceptable, else the reason.
+export const passwordError = (v) => {
+  if (typeof v !== "string") return "Password is required";
+  if (v.length < PASSWORD_MIN_LENGTH) {
+    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`;
+  }
+  if (Buffer.byteLength(v, "utf8") > PASSWORD_MAX_BYTES) {
+    return `Password must be at most ${PASSWORD_MAX_BYTES} bytes long.`;
+  }
+  return null;
 };

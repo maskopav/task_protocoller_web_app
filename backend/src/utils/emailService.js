@@ -32,12 +32,16 @@ await i18next.use(Backend).init({
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: process.env.SMTP_PORT || 587,
-  secure: false,
+  // 465 is implicit TLS. Anything else must upgrade via STARTTLS: without
+  // requireTLS a stripped STARTTLS offer silently falls back to plaintext.
+  secure: Number(process.env.SMTP_PORT) === 465,
+  requireTLS: Number(process.env.SMTP_PORT) !== 465,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  tls: { rejectUnauthorized: false }
+  // Certificate verification stays on (it was disabled): these mails carry
+  // reset links and temporary passwords, and the SMTP login itself.
 });
 
 /**

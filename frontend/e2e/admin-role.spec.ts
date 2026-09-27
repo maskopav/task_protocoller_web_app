@@ -20,14 +20,16 @@ async function loginAndGetToken(page: Page, email: string, password: string): Pr
   return page.evaluate(() => localStorage.getItem('adminToken'));
 }
 
-test('a non-master admin can log in and view the admin list', async ({ page, request }) => {
+test('a non-master admin cannot list the other admins', async ({ page, request }) => {
+  // The list (emails + permission flags of every admin) only feeds the
+  // master-only AdminManagementPage, so it is master-only on the server too.
   const token = await loginAndGetToken(page, NON_MASTER_EMAIL, NON_MASTER_PASSWORD);
   expect(token).toBeTruthy();
 
   const res = await request.get(`${BACKEND_URL}/users/users`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  expect(res.ok()).toBeTruthy();
+  expect(res.status()).toBe(403);
 });
 
 test('a non-master admin is forbidden from master-only user-management actions', async ({ page, request }) => {

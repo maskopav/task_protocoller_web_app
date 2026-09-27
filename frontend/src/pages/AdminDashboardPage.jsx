@@ -19,7 +19,7 @@ import "./Pages.css";
 export default function AdminDashboardPage() {
   const { t } = useTranslation(["admin", "common"]);
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const [projects, setProjects] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,10 +57,9 @@ export default function AdminDashboardPage() {
       .catch(err => console.error(err));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminUser");
-    navigate("/login");
-  };
+  // UserContext.logout clears the JWT too; removing only adminUser left a
+  // working token in localStorage after "logging out".
+  const handleLogout = logout;
 
   if (loading) return <div className="app-container"><p>{t("loading", {ns: "common"})}...</p></div>;
 

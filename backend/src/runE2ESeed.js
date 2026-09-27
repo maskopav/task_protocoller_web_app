@@ -2,6 +2,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { runSqlFileInTransaction } from './utils/runSqlFile.js';
 import pool from './db/connection.js';
+import { refuseInProduction } from './utils/refuseInProduction.js';
+
+refuseInProduction('runE2ESeed.js');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

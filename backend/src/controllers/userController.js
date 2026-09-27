@@ -1,8 +1,10 @@
 // backend/src/controllers/userController.js
 import { executeQuery } from "../db/queryHelper.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { logToFile } from '../utils/logger.js';
 import { sendAdminWelcomeEmail } from "../utils/emailService.js";
+import { frontendBaseUrl } from "../utils/frontendUrl.js";
 
 // Fetch all users for the management table
 export const getAllUsers = async (req, res) => {
@@ -15,10 +17,26 @@ export const getAllUsers = async (req, res) => {
     }
 };
 
+// Masters are managed outside the app (v_users_management hides them). These
+// endpoints act on regular admins only, so no master can deactivate, re-email
+// or re-flag another master — or lock themselves out.
+async function refuseUnlessAdminTarget(userId) {
+    const rows = await executeQuery(
+        "SELECT r.name AS role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?",
+        [userId]
+    );
+    if (rows.length === 0) return { status: 404, error: "User not found" };
+    if (rows[0].role === "master") return { status: 403, error: "Master accounts cannot be modified here." };
+    return null;
+}
+
 // Simple toggle for user activation
 export const toggleUserStatus = async (req, res) => {
     const { user_id, is_active } = req.body;
     try {
+        const refusal = await refuseUnlessAdminTarget(user_id);
+        if (refusal) return res.status(refusal.status).json({ error: refusal.error });
+
         await executeQuery("UPDATE users SET is_active = ? WHERE id = ?", [is_active, user_id]);
         res.json({ success: true });
     } catch (err) {
@@ -48,7 +66,9 @@ export const createAdmin = async (req, res) => {
         const adminRoleId = roles[0].id;
 
         // 2. Create a temporary random password
-        const tempPassword = Math.random().toString(36).slice(-10);
+        // CSPRNG, fixed length: Math.random() is predictable and its base36
+        // tail was sometimes shorter than 10 characters.
+        const tempPassword = crypto.randomBytes(12).toString("base64url");
         const passwordHash = await bcrypt.hash(tempPassword, 10);
 
         // 3. Insert User (Transactionally if possible, or sequential)
@@ -77,11 +97,8 @@ export const createAdmin = async (req, res) => {
         }
 
         // 5. Send the Welcome Email
-        // Determine Base URL from headers (Matches authController logic)
-        let baseUrl = req.headers.referer || req.headers.origin;
-        if (baseUrl && baseUrl.endsWith('/')) {
-            baseUrl = baseUrl.slice(0, -1);
-        }
+        // Link base from config, not Referer/Origin (see frontendUrl.js).
+        const baseUrl = frontendBaseUrl();
         // We do this asynchronously to not block the response
         sendAdminWelcomeEmail(email, { 
             fullName: full_name, 
@@ -112,6 +129,9 @@ export const updateUser = async (req, res) => {
     const { user_id, email, full_name, can_create_projects, can_create_sites } = req.body;
     const flag = (v) => (v === undefined ? null : (v ? 1 : 0));
     try {
+        const refusal = await refuseUnlessAdminTarget(user_id);
+        if (refusal) return res.status(refusal.status).json({ error: refusal.error });
+
         // IFNULL so a payload that omits a field leaves it alone — that is what
         // lets the admin table toggle one flag without resending the rest.
         await executeQuery(

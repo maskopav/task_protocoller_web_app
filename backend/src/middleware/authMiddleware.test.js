@@ -132,6 +132,41 @@ describe('requireAuth', () => {
     expect(req.admin.role).toBe('master');
   });
 
+  it('rejects with 401 a token issued before the last password change (stale token_version)', async () => {
+    const oldToken = signAdminToken({ id: 1, role: 'master', token_version: 0 });
+    executeQuery.mockResolvedValueOnce([{ is_active: 1, role: 'master', token_version: 1 }]);
+
+    const req = { headers: { authorization: `Bearer ${oldToken}` } };
+    const res = makeRes();
+    const next = vi.fn();
+
+    await requireAuth(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('accepts a token whose token_version matches the account', async () => {
+    const current = signAdminToken({ id: 1, role: 'master', token_version: 3 });
+    executeQuery.mockResolvedValueOnce([{ is_active: 1, role: 'master', token_version: 3 }]);
+
+    const next = vi.fn();
+    await requireAuth({ headers: { authorization: `Bearer ${current}` } }, makeRes(), next);
+
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it('rejects a token signed with a non-HS256 algorithm', async () => {
+    const none = jwt.sign({ id: 1, role: 'master' }, null, { algorithm: 'none' });
+    const res = makeRes();
+    const next = vi.fn();
+
+    await requireAuth({ headers: { authorization: `Bearer ${none}` } }, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
   it('fails closed (401) if the DB check itself errors', async () => {
     executeQuery.mockRejectedValueOnce(new Error('connection lost'));
 

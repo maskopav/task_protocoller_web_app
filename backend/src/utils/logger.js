@@ -50,16 +50,28 @@ export function logToFile(level = 'INFO', message, details = null) {
   }
 }
 
+// Frontend payloads come from an unauthenticated endpoint. Single-line fields
+// are flattened so a crafted value cannot forge extra log entries, and every
+// field is truncated.
+const FRONTEND_LEVELS = new Set(['INFO', 'WARN', 'ERROR', 'FATAL']);
+const oneLine = (v, max) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, max);
+
 // 2. FRONTEND LOGS
 export function logFrontendToFile(payload) {
   try {
-    // Destructure the new structured JSON payload from the frontend
-    const { level = 'INFO', message, userAgent, url, details } = payload;
-    
-    const logString = formatLogEntry('FRONTEND', level.toUpperCase(), message, { 
-      userAgent, 
-      url, 
-      details 
+    const { level, message, userAgent, url, details } = payload;
+    const lvl = String(level ?? '').toUpperCase();
+
+    let detailsString = details == null ? null
+      : typeof details === 'object' ? JSON.stringify(details, null, 2) : String(details);
+    if (detailsString && detailsString.length > 4000) {
+      detailsString = `${detailsString.slice(0, 4000)}\n…[truncated]`;
+    }
+
+    const logString = formatLogEntry('FRONTEND', FRONTEND_LEVELS.has(lvl) ? lvl : 'INFO', oneLine(message, 500), {
+      userAgent: userAgent && oneLine(userAgent, 300),
+      url: url && oneLine(url, 500),
+      details: detailsString
     });
     
     fs.appendFileSync(logPath, `${logString}\n`);

@@ -44,7 +44,8 @@ async function setActive(request: APIRequestContext, masterToken: string, userId
 test('deactivating an admin immediately invalidates their existing token, without waiting for expiry', async ({ page, request }) => {
   // 1. The target admin logs in and gets a token that is valid right now.
   const targetToken = await loginAndGetToken(page, TARGET_EMAIL, TARGET_PASSWORD);
-  const before = await request.get(`${BACKEND_URL}/users/users`, {
+  // Probe with an endpoint any admin may call (/users/users is master-only).
+  const before = await request.get(`${BACKEND_URL}/projects/projects-list`, {
     headers: { Authorization: `Bearer ${targetToken}` },
   });
   expect(before.ok()).toBeTruthy();
@@ -57,7 +58,7 @@ test('deactivating an admin immediately invalidates their existing token, withou
     await setActive(request, masterToken, targetUserId, 0);
 
     // 3. The SAME still-unexpired token the admin already had must now be rejected.
-    const after = await request.get(`${BACKEND_URL}/users/users`, {
+    const after = await request.get(`${BACKEND_URL}/projects/projects-list`, {
       headers: { Authorization: `Bearer ${targetToken}` },
     });
     expect(after.status()).toBe(401);

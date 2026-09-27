@@ -1,5 +1,14 @@
 const API_BASE = import.meta.env.VITE_API_BASE;
 
+// HashRouter puts credentials in the route (/participant/<token>,
+// /admin/reset-password/<token>); logs must not collect them. Any long
+// token-like path segment is replaced, and the query string is dropped.
+const redactedUrl = () => {
+  const { origin, pathname, hash } = window.location;
+  const route = hash.split("?")[0].replace(/\/[A-Za-z0-9_-]{16,}(?=\/|$)/g, "/:redacted");
+  return `${origin}${pathname}${route}`;
+};
+
 /**
  * Sends a structured log message to the backend.
  * @param {string} level - 'INFO', 'WARN', 'ERROR', or 'FATAL'
@@ -13,7 +22,7 @@ const sendLog = async (level, message, details = null) => {
       level,
       message,
       userAgent: navigator.userAgent,
-      url: window.location.href,
+      url: redactedUrl(),
       timestamp: new Date().toISOString(),
       details: null
     };

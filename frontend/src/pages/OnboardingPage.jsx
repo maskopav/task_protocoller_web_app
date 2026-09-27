@@ -36,7 +36,6 @@ export default function OnboardingPage() {
     setLoading(true);
     try {
       const res = await setupProfileApi({
-        userId: user.id,
         fullName: formData.fullName,
         password: formData.password
       });
@@ -44,7 +43,8 @@ export default function OnboardingPage() {
       if (res.success) {
         // Update local context with new name and flag 0
         const updatedUser = { ...user, full_name: formData.fullName, must_change_password: 0 };
-        login(updatedUser); 
+        // Setup retires the login token (password changed), so store the new one.
+        login(updatedUser, res.token);
         navigate("/admin");
       }
     } catch (err) {

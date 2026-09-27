@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { createLoginLimiter, createAuthLimiter } from './rateLimiter.js';
+import { createLoginLimiter, createAuthLimiter, createSiteConfigLimiter } from './rateLimiter.js';
 
 // Each test builds its own tiny Express app around a freshly-constructed
 // limiter instance, so counters never leak between test cases or interact
@@ -47,5 +47,21 @@ describe('createAuthLimiter', () => {
 
     const blocked = await request(app).post('/protected');
     expect(blocked.status).toBe(429);
+  });
+});
+
+describe('createSiteConfigLimiter', () => {
+  it('counts only failed lookups, so a valid token is never throttled', async () => {
+    const app = express();
+    app.get('/cfg/:token', createSiteConfigLimiter({ limit: 2 }), (req, res) =>
+      req.params.token === 'good' ? res.json({ ok: true }) : res.status(404).json({ error: 'Invalid token' })
+    );
+
+    for (let i = 0; i < 5; i++) {
+      expect((await request(app).get('/cfg/good')).status).toBe(200);
+    }
+    expect((await request(app).get('/cfg/bad1')).status).toBe(404);
+    expect((await request(app).get('/cfg/bad2')).status).toBe(404);
+    expect((await request(app).get('/cfg/bad3')).status).toBe(429);
   });
 });

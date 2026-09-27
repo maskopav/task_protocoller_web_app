@@ -1,4 +1,5 @@
 import i18n from "../i18n";
+import { apiFetch } from "./apiClient";
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 
@@ -34,10 +35,10 @@ export async function adminResetPasswordApi(token, password) {
   return json;
 }
 
+  // Authenticated: the server sets up the account the login JWT belongs to.
   export async function setupProfileApi(payload) {
-    const res = await fetch(`${API_BASE}/auth/setup-profile`, {
+    const res = await apiFetch(`/auth/setup-profile`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
     if (!res.ok) {

@@ -25,7 +25,7 @@ const GATED_ROUTES: RouteCheck[] = [
   { method: 'GET', path: '/protocols/1' },
   { method: 'POST', path: '/protocols/save', data: {} },
 
-  // /users — requireAuth at the mount, requireRole('master') added per-route for the mutating ones
+  // /users — requireAuth at the mount, requireRole('master') per-route (the list included)
   { method: 'GET', path: '/users/users' },
   { method: 'POST', path: '/users/toggle-status', data: {} },
   { method: 'POST', path: '/users/create', data: {} },

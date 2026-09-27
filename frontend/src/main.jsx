@@ -6,6 +6,11 @@ import { HashRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { AppProvider } from "./context/AppProvider.jsx";
 import { logger } from "./utils/frontendLogger";
+import { cleanupExpiredAndUploaded } from "./utils/offlineStorage";
+
+// Participant recordings are health data sitting unencrypted in IndexedDB;
+// purge uploaded and expired (48h) ones on every app start. Never throws.
+cleanupExpiredAndUploaded();
 
 // 1. Catch synchronous runtime errors
 window.onerror = function(message, source, lineno, colno, error) {

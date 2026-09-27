@@ -14,10 +14,11 @@ CREATE TABLE `users` (
   `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   `is_active` boolean NOT NULL DEFAULT true,
   `must_change_password` boolean NOT NULL DEFAULT true,
-  `reset_password_token` varchar(255) DEFAULT NULL,
+  `reset_password_token` varchar(255) DEFAULT NULL COMMENT 'sha256 hex of the emailed token, never the token itself',
   `reset_password_expires` TIMESTAMP DEFAULT NULL,
   `can_create_projects` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own projects',
-  `can_create_sites` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own sites'
+  `can_create_sites` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own sites',
+  `token_version` integer NOT NULL DEFAULT 0 COMMENT 'Bumped on every password change, JWTs carrying an older value are rejected'
 ); 
 
 CREATE TABLE `user_projects` (

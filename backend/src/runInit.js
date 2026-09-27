@@ -3,6 +3,9 @@ import { fileURLToPath } from 'url';
 import { runSqlFile, runSqlFileInTransaction } from './utils/runSqlFile.js';
 import { syncViewConstants } from './utils/syncViewConstants.js';
 import pool from './db/connection.js';
+import { refuseInProduction } from './utils/refuseInProduction.js';
+
+refuseInProduction('runInit.js');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

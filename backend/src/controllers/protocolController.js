@@ -397,7 +397,11 @@ export const getProtocolsByProjectId = async (req, res) => {
 // GET /api/protocols/archived — protocols that have been archived (no longer
 // linked to any project). Aggregation mirrors v_project_protocols, minus the
 // project join that archived rows no longer have.
+//
+// Archived rows have no project link left to scope by, so a non-master sees
+// only the ones they authored; everything else stays master-only.
 export const getArchivedProtocols = async (req, res) => {
+  const isMaster = req.admin?.role === 'master';
   try {
     const rows = await executeQuery(
       `SELECT
@@ -414,8 +418,9 @@ export const getArchivedProtocols = async (req, res) => {
          JOIN tasks t ON pt.task_id = t.id
          GROUP BY pt.protocol_id
        ) agg ON agg.protocol_id = p.id
-       WHERE p.is_archived = 1
-       ORDER BY p.updated_at DESC`
+       WHERE p.is_archived = 1${isMaster ? '' : ' AND p.created_by = ?'}
+       ORDER BY p.updated_at DESC`,
+      isMaster ? [] : [req.admin?.id ?? null]
     );
     res.json(rows);
   } catch (err) {
@@ -438,6 +443,31 @@ export const archiveProtocol = async (req, res) => {
     const [protocol] = await executeQuery("SELECT protocol_group_id FROM protocols WHERE id = ?", [id]);
     if (!protocol) {
       return res.status(404).json({ error: 'Protocol not found' });
+    }
+
+    // Archiving pulls the group out of every project that uses it, so a
+    // non-master needs edit rights on all of them — the same explicit grant
+    // saveProtocol requires. Unseen groups get the 404 getProtocolById gives.
+    if (req.admin?.role !== 'master') {
+      const userId = req.admin?.id ?? null;
+      const [visible, editable, linked] = await Promise.all([
+        getVisibleProjectIds(userId),
+        getEditableProjectIds(userId),
+        executeQuery(
+          `SELECT DISTINCT pp.project_id
+           FROM protocols p
+           JOIN project_protocols pp ON pp.protocol_id = p.id
+           WHERE p.protocol_group_id = ?`,
+          [protocol.protocol_group_id]
+        ),
+      ]);
+      const projectIds = linked.map((r) => Number(r.project_id));
+      if (!projectIds.some((pid) => visible.includes(pid))) {
+        return res.status(404).json({ error: 'Protocol not found' });
+      }
+      if (!projectIds.every((pid) => editable.includes(pid))) {
+        return res.status(403).json({ error: 'You do not have edit rights on this project.' });
+      }
     }
 
     await executeTransaction(async (conn) => {

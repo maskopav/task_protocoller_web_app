@@ -8,7 +8,9 @@ import { executeQuery } from "../db/queryHelper.js";
 // (POST /users/toggle-status) must take effect immediately, not after the
 // token's up-to-8h natural expiry, so every authenticated request re-checks
 // the account against the DB and refreshes req.admin.role from the current
-// row rather than trusting the (possibly stale) token claim.
+// row rather than trusting the (possibly stale) token claim. The same check
+// retires tokens issued before the last password change: the token's `tv`
+// must match users.token_version, which every password change bumps.
 export async function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
   const [scheme, token] = header.split(" ");
@@ -26,11 +28,15 @@ export async function requireAuth(req, res, next) {
 
   try {
     const rows = await executeQuery(
-      `SELECT u.is_active, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?`,
+      `SELECT u.is_active, u.token_version, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?`,
       [payload.id]
     );
 
-    if (rows.length === 0 || !rows[0].is_active) {
+    if (
+      rows.length === 0 ||
+      !rows[0].is_active ||
+      Number(payload.tv ?? 0) !== Number(rows[0].token_version ?? 0)
+    ) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
