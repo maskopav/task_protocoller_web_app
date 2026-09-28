@@ -166,7 +166,8 @@
       "errors": {
         "nameRequired": "Site name is required.",
         "invalidToken": "The access token must be 16-64 characters: letters, digits, _ or -.",
-        "invalidEmail": "Not a valid email address: {{email}}"
+        "invalidEmail": "Not a valid email address: {{email}}",
+        "invalidMicGain": "Default microphone gain must be a whole number from 0 to 100."
       }
     },
     "assign": {

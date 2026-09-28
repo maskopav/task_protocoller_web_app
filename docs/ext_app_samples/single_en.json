@@ -6,7 +6,7 @@
     "en"
   ],
   "defaultMicName": "USB audio CODEC",
-  "defaultMicGain": 0.8,
+  "defaultMicGain": 63,
   "enableEditor": true,
   "indicatorType": "CIRCLE",
   "useCalibration": true,

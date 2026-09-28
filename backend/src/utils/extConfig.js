@@ -12,7 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_RECORDINGS_FILE_NAME } from "./fieldValidation.js";
+import { DEFAULT_RECORDINGS_FILE_NAME, isValidMicGain } from "./fieldValidation.js";
 
 export const SCHEMA_VERSION = 1;
 const LANGS = ["en", "cs", "de"];
@@ -64,7 +64,7 @@ const SETTINGS_DEFAULTS = {
   defaultLanguage: "en",
   languages: [],
   defaultMicName: "",
-  defaultMicGain: 1,
+  defaultMicGain: undefined, // integer 0–100; omitted from the config when unset
   enableEditor: false,
   indicatorType: "CIRCLE",
   useCalibration: true,
@@ -110,7 +110,8 @@ const settingsOf = (configJson) => {
   const src = configJson && typeof configJson === "object" ? configJson : {};
   for (const k of Object.keys(SETTINGS_DEFAULTS)) {
     if (src[k] === undefined || src[k] === null) continue;
-    if (typeof SETTINGS_DEFAULTS[k] === "boolean") s[k] = bool(src[k], SETTINGS_DEFAULTS[k]);
+    if (k === "defaultMicGain") s[k] = isValidMicGain(Number(src[k])) ? Number(src[k]) : undefined;
+    else if (typeof SETTINGS_DEFAULTS[k] === "boolean") s[k] = bool(src[k], SETTINGS_DEFAULTS[k]);
     else if (typeof SETTINGS_DEFAULTS[k] === "number") s[k] = num(src[k], SETTINGS_DEFAULTS[k]);
     else if (Array.isArray(SETTINGS_DEFAULTS[k])) s[k] = Array.isArray(src[k]) ? src[k].map(String) : [];
     else s[k] = String(src[k]);
@@ -373,7 +374,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
     defaultLanguage,
     languages,
     defaultMicName: settings.defaultMicName,
-    defaultMicGain: settings.defaultMicGain,
+    ...(settings.defaultMicGain !== undefined && { defaultMicGain: settings.defaultMicGain }),
     enableEditor: settings.enableEditor,
     indicatorType: settings.indicatorType,
     useCalibration: settings.useCalibration,

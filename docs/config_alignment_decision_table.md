@@ -80,7 +80,7 @@ The `projects` level is dropped; `protocols[]` sits at the top level as in the o
 
 ### Row 4 — settings keys
 
-Top level now carries exactly: `defaultLanguage`, `languages`, `defaultMicName`, `defaultMicGain` (number), `enableEditor`, `indicatorType` (`CIRCLE`|`WAVEFORM`), `useCalibration`. As agreed in the note, the ext app simply applies the server values (no local-override tracking required on the web side). All flags are real JSON booleans.
+Top level now carries exactly: `defaultLanguage`, `languages`, `defaultMicName`, `defaultMicGain` (integer 0–100, Windows sound-panel scale; omitted when not set), `enableEditor`, `indicatorType` (`CIRCLE`|`WAVEFORM`), `useCalibration`. As agreed in the note, the ext app simply applies the server values (no local-override tracking required on the web side). All flags are real JSON booleans.
 
 ### Row 5 — no `CALIBRATION` tasks
 

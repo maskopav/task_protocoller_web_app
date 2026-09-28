@@ -88,7 +88,7 @@ const args = (s, projects) => ({ site: s, projects, tasksById, assetBaseUrl: ASS
 export const CASES = {
   // One project, one English protocol, full site settings.
   single_en: () => args(
-    site({ defaultLanguage: "en", languages: ["en"], defaultMicName: "USB audio CODEC", defaultMicGain: 0.8, enableEditor: true, indicatorType: "CIRCLE", useCalibration: true }),
+    site({ defaultLanguage: "en", languages: ["en"], defaultMicName: "USB audio CODEC", defaultMicGain: 63, enableEditor: true, indicatorType: "CIRCLE", useCalibration: true }),
     [{ name: "Speech Study", protocols: [proto({ id: 10, name: "Speech battery", tasks: speechBattery })] }],
   ),
 

@@ -63,13 +63,17 @@ const SITE_SETTING_TYPES = {
   defaultLanguage: "string",
   languages: "string[]",
   defaultMicName: "string",
-  defaultMicGain: "number",
+  defaultMicGain: "gain",
   enableEditor: "boolean",
   indicatorType: "CIRCLE|WAVEFORM",
   useCalibration: "boolean",
 };
 
+// Mic gain is on the Windows sound-panel scale: a whole number 0–100.
+export const isValidMicGain = (v) => Number.isInteger(v) && v >= 0 && v <= 100;
+
 const matchesType = (v, type) => {
+  if (type === "gain") return isValidMicGain(v);
   if (type === "string[]") return Array.isArray(v) && v.every((x) => typeof x === "string");
   if (type.includes("|")) return type.split("|").includes(v);
   return typeof v === type && !(type === "number" && Number.isNaN(v));
@@ -82,7 +86,9 @@ export const normalizeSiteSettings = (obj) => {
   const value = {};
   for (const [key, type] of Object.entries(SITE_SETTING_TYPES)) {
     if (obj[key] === undefined || obj[key] === null) continue;
-    if (!matchesType(obj[key], type)) return { error: `config_json.${key} must be ${type}` };
+    if (!matchesType(obj[key], type)) {
+      return { error: `config_json.${key} must be ${type === "gain" ? "an integer 0-100" : type}` };
+    }
     value[key] = obj[key];
   }
   return { value };
