@@ -30,7 +30,7 @@ The platform is built to define and distribute a wide range of assessments, incl
 * **Site Management**: Create sites, copy their access tokens, assign projects, and edit site-level config JSON (master role).
 * **Project Dashboard**: High-level overview of protocols and participating sites.
 
-Details of the sites-based redesign (schema, API, what was removed) are in [`docs/newshare_changes.md`](docs/newshare_changes.md). The planned desktop-app upload flow is drafted in [`docs/desktop_upload_spec_draft.md`](docs/desktop_upload_spec_draft.md).
+Details of the sites-based redesign (schema, API, what was removed) are in [`docs/newshare_changes.md`](docs/newshare_changes.md). The planned desktop-app upload flow is drafted in [`docs/desktop_upload_spec_draft.md`](docs/desktop_upload_spec_draft.md). Deploying to the test container is covered in [`docs/container_deployment.md`](docs/container_deployment.md).
 
 ---
 
