@@ -100,7 +100,7 @@ deactivated site, `200` = the **desktop app's config format**
   "schemaVersion": 1,
   "configVersion": "2026-09-10.093000",
   "defaultLanguage": "cs", "languages": ["cs", "en"],
-  "defaultMicName": "", "defaultMicGain": 1, "enableEditor": false,
+  "defaultMicName": "", "enableEditor": false,
   "indicatorType": "CIRCLE", "useCalibration": true,
   "protocols": [
     { "name": "PD-battery",

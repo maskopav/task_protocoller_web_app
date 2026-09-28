@@ -16,7 +16,7 @@ const SETTINGS_DEFAULTS = {
   defaultLanguage: "en",
   languages: [],
   defaultMicName: "",
-  defaultMicGain: 1,
+  defaultMicGain: "", // integer 0–100 (Windows sound-panel scale); empty = omitted
   enableEditor: false,
   indicatorType: "CIRCLE",
   useCalibration: true,
@@ -62,12 +62,19 @@ export default function SiteModal({ site, onClose, onSuccess }) {
       return setError(t("management.siteManagement.errors.invalidEmail", { email: badEmail }));
     }
 
+    const { defaultMicGain: rawGain, ...rest } = settings;
+    const gain = String(rawGain).trim() === "" ? null : parseInt(rawGain, 10);
+    if (gain !== null && !(gain >= 0 && gain <= 100)) {
+      return setError(t("management.siteManagement.errors.invalidMicGain"));
+    }
+    const settingsPayload = gain === null ? rest : { ...rest, defaultMicGain: gain };
+
     setIsSubmitting(true);
     try {
       const payload = {
         name: formData.name.trim(),
         description: formData.description,
-        config_json: { ...settings, defaultMicGain: Number(settings.defaultMicGain) || 0 },
+        config_json: settingsPayload,
         access_token: token,
         country: formData.country,
         contact_persons: formData.contact_persons,
@@ -159,7 +166,7 @@ export default function SiteModal({ site, onClose, onSuccess }) {
             </div>
             <div className="form-col">
               <label className="form-label">{s("defaultMicGain")}</label>
-              <input className="participant-input" type="number" step="0.1" min="0" value={settings.defaultMicGain} onChange={(e) => setSetting("defaultMicGain", e.target.value)} />
+              <input className="participant-input" type="number" step="1" min="0" max="100" placeholder="63" value={settings.defaultMicGain} onChange={(e) => setSetting("defaultMicGain", e.target.value)} />
             </div>
           </div>
           <div className="form-grid-2">

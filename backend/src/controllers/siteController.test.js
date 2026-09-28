@@ -427,12 +427,12 @@ describe('createSite', () => {
 
     const res = makeRes();
     await createSite(
-      { body: { name: 'Paris', config_json: { languages: ['en', 'cs'], defaultMicGain: 0.5, indicatorType: 'WAVEFORM' } }, admin: { id: 1, role: 'master' } },
+      { body: { name: 'Paris', config_json: { languages: ['en', 'cs'], defaultMicGain: 50, indicatorType: 'WAVEFORM' } }, admin: { id: 1, role: 'master' } },
       res
     );
 
     expect(res.status).not.toHaveBeenCalled();
-    expect(executeQuery.mock.calls[0][1][3]).toBe('{"languages":["en","cs"],"defaultMicGain":0.5,"indicatorType":"WAVEFORM"}');
+    expect(executeQuery.mock.calls[0][1][3]).toBe('{"languages":["en","cs"],"defaultMicGain":50,"indicatorType":"WAVEFORM"}');
   });
 
   it('rejects invalid config_json without touching the database', async () => {
@@ -449,6 +449,15 @@ describe('createSite', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json.mock.calls[0][0].error).toMatch(/indicatorType/);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+
+  it.each([0.8, 101, -1, '63'])('rejects defaultMicGain %j (must be an integer 0-100)', async (gain) => {
+    const res = makeRes();
+    await createSite({ body: { name: 'Paris', config_json: { defaultMicGain: gain } }, admin: { id: 1, role: 'master' } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json.mock.calls[0][0].error).toMatch(/defaultMicGain must be an integer 0-100/);
     expect(executeQuery).not.toHaveBeenCalled();
   });
 

@@ -27,7 +27,7 @@ describe('buildExtConfig — spec invariants over every fixture', () => {
         expect(config.configVersion).toMatch(/^\d{4}-\d{2}-\d{2}\.\d{6}$/);
         expect(typeof config.enableEditor).toBe('boolean');
         expect(typeof config.useCalibration).toBe('boolean');
-        expect(typeof config.defaultMicGain).toBe('number');
+        if ('defaultMicGain' in config) expect(Number.isInteger(config.defaultMicGain) && config.defaultMicGain >= 0 && config.defaultMicGain <= 100).toBe(true);
         expect(['CIRCLE', 'WAVEFORM']).toContain(config.indicatorType);
         expect(config.languages).toContain(config.defaultLanguage);
         for (const t of config.protocols.flatMap((p) => p.tasks)) {
@@ -66,7 +66,7 @@ describe('buildExtConfig — case specifics', () => {
   it('single_en: subtypes, lengths, audio URL and settings', () => {
     const { config } = all.single_en;
     expect(config.languages).toEqual(['en']);
-    expect(config).toMatchObject({ defaultMicName: 'USB audio CODEC', defaultMicGain: 0.8, enableEditor: true, useCalibration: true });
+    expect(config).toMatchObject({ defaultMicName: 'USB audio CODEC', defaultMicGain: 63, enableEditor: true, useCalibration: true });
     const [protocol] = config.protocols;
     expect(protocol.protocolInstructionsPdfUrl).toMatch(/^https:\/\//);
     expect(protocol.tasks.map((t) => t.subtype)).toEqual(['PHONATION', 'PATAKA', 'READING', 'MONOLOGUE', 'RETELLING']);
@@ -160,7 +160,8 @@ describe('buildExtConfig — case specifics', () => {
 
   it('empty_settings: falls back to defaults and still serves audio for allowlisted examples', () => {
     const { config } = all.empty_settings;
-    expect(config).toMatchObject({ defaultLanguage: 'en', languages: ['en'], defaultMicName: '', defaultMicGain: 1, enableEditor: false, indicatorType: 'CIRCLE', useCalibration: true });
+    expect(config).toMatchObject({ defaultLanguage: 'en', languages: ['en'], defaultMicName: '', enableEditor: false, indicatorType: 'CIRCLE', useCalibration: true });
+    expect(config).not.toHaveProperty('defaultMicGain');
     const [protocol] = config.protocols;
     expect(protocol.tasks[1].audioExamplePath).toMatch(/retelling_redRidingHood\.wav$/);
   });
