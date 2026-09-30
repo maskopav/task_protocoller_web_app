@@ -3,14 +3,12 @@ import { t, SUPPORTED_LOCALES } from "./emailTranslations.js";
 
 describe("t", () => {
   it("resolves a plain-string key in a supported locale", () => {
-    expect(t("cs", "confirmationHeading")).toBe("Vaše schůzka byla potvrzena");
+    expect(t("cs", "confirmationHeading")).toBe("Vaše návštěva byla potvrzena");
   });
 
   it("resolves a function key with interpolated args", () => {
-    expect(t("en", "confirmationSubject", "Room 2B")).toBe("Appointment confirmed — Room 2B");
-    expect(t("cs", "cancelledBody", "Room 2B", "2026-09-14 09:00")).toBe(
-      "Room 2B — původně naplánováno na 2026-09-14 09:00."
-    );
+    expect(t("en", "cancelledBody", "2026-09-14 09:00")).toBe("Originally scheduled for 2026-09-14 09:00.");
+    expect(t("cs", "cancelledBody", "2026-09-14 09:00")).toBe("Původně naplánováno na 2026-09-14 09:00.");
   });
 
   it("falls back to English for an unsupported locale", () => {

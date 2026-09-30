@@ -1,5 +1,5 @@
 // src/components/ParticipantProtocol/ParticipantProtocol.jsx
-import React, { useState } from "react";
+import React from "react";
 import "./ParticipantProtocolTable.css";
 import {
   activateParticipantProtocol,

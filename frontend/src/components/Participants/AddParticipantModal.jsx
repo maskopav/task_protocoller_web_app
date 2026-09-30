@@ -90,7 +90,7 @@ export default function AddParticipantModal({
 
   const handleSubmit = async (actionType = "save") => {
     setSubmitError("");
-    if (!isFormValid) return;
+    if (!isFormValid || isSubmitting) return;
 
     // --- DUPLICATE CHECK (Only for new participants) ---
     if (!isEditMode && !isAssignMode) {
@@ -138,6 +138,7 @@ export default function AddParticipantModal({
         notes: formData.notes || null
     };
 
+    setIsSubmitting(true);
     try {
       let response = null;
       if (isAssignMode) {
@@ -175,6 +176,8 @@ export default function AddParticipantModal({
         onClose();
       } catch (err) {
         setSubmitError(t("participantDashboard.alerts.createError") + ": " + err.message);
+      } finally {
+        setIsSubmitting(false);
       }
   };
 
