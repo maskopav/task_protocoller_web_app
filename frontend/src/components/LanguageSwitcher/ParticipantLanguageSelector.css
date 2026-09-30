@@ -4,13 +4,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* No justify-content: center — when the card is taller than the screen it
+     would overflow above the top edge and become unreachable. The card's
+     auto margins center it instead and collapse to 0 when it overflows. */
   height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background-color: #f3f4f6;
   padding: 20px;
 }
 
 .language-selector-card {
+  margin: auto 0;
+  flex-shrink: 0;
   background-color: white;
   padding: 40px;
   border-radius: var(--radius);
@@ -92,4 +99,27 @@
   background-color: #9ca3af;
   box-shadow: none;
   cursor: not-allowed;
+}
+/* Small phones: tighten spacing so more fits without scrolling */
+@media (max-width: 480px), (max-height: 700px) {
+  .language-selector-overlay {
+    padding: 12px;
+  }
+
+  .language-selector-card {
+    padding: 24px 20px;
+  }
+
+  .language-selector-warning {
+    font-size: 1.15rem;
+  }
+
+  .language-options-list {
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .language-btn {
+    padding: 12px 20px;
+  }
 }
