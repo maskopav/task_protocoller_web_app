@@ -6,6 +6,7 @@ import { buildCsv } from "../utils/csvBuilder.js";
 import { handleError } from "../utils/httpErrors.js";
 import { upsertSlotEvent, deleteCalendarEvent } from "../services/googleCalendarService.js";
 import { logToFile } from "../utils/logger.js";
+import { utcToLocalMysqlDateTime } from "../utils/dateHelpers.js";
 
 export async function createResource(req, res) {
   const { slug, name, defaultDurationMin, defaultLocation, contactInfo } = req.body;
@@ -163,7 +164,7 @@ export async function exportBookingsCsv(req, res) {
     });
     const headers = ["Resource", "Starts At", "Ends At", "Location", "Email", "Phone", "Status", "External Ref", "Booked At"];
     const rows = bookings.map((b) => [
-      b.resource_name, b.starts_at, b.ends_at, b.location || "", b.contact_email, b.contact_phone, b.status, b.external_ref, b.created_at,
+      b.resource_name, b.starts_at, b.ends_at, b.location || "", b.contact_email, b.contact_phone, b.status, b.external_ref, utcToLocalMysqlDateTime(b.created_at),
     ]);
     const csv = buildCsv(headers, rows);
     res.setHeader("Content-Type", "text/csv; charset=utf-8");

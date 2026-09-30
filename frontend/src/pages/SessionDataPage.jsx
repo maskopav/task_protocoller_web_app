@@ -146,6 +146,7 @@ export default function SessionDataPage() {
           task_results.csv (non-questionnaire task output), questionnaire_answers.csv
           (one row per question) and recordings_index.csv. Filter by project, protocol,
           and/or date range, then download everything matching or hand-pick sessions below.
+          Times in the CSVs are local time; audio filenames are UTC (the trailing "Z").
         </p>
       </div>
 

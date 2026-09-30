@@ -23,3 +23,32 @@ return (
     "Z"
 );
 }
+
+// --- Local time, for things admins read (exports, calendar dates) ---
+// "Local" = this Node process's time zone: the host's, or the standard TZ
+// env var (e.g. TZ=Europe/Prague) if the host runs in UTC. That must be the
+// admins' own zone -- the same assumption booking-service's dateHelpers.js
+// already makes for slot times, and both run in one process.
+
+// Date -> "YYYY-MM-DD HH:MM:SS" in local time.
+export function localDateTimeString(date) {
+  return (
+    `${date.getFullYear()}-${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())} ` +
+    `${padTwoDigits(date.getHours())}:${padTwoDigits(date.getMinutes())}:${padTwoDigits(date.getSeconds())}`
+  );
+}
+
+// Today's (or the given instant's) local calendar date, "YYYY-MM-DD" --
+// for DATE columns, which are calendar days as the admin sees them.
+export function localDateString(date = new Date()) {
+  return localDateTimeString(date).slice(0, 10);
+}
+
+// A UTC timestamp string from the DB ("YYYY-MM-DD HH:MM:SS[.fff]") ->
+// the same instant as local "YYYY-MM-DD HH:MM:SS". Empty stays empty;
+// anything unparseable is passed through untouched rather than dropped.
+export function utcDbToLocal(value) {
+  if (!value) return "";
+  const date = new Date(String(value).replace(" ", "T") + "Z");
+  return Number.isNaN(date.getTime()) ? value : localDateTimeString(date);
+}

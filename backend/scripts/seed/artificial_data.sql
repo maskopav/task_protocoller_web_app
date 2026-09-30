@@ -19,6 +19,6 @@ INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_chang
 -- --------------------------
 INSERT INTO projects (id, name, description, start_date, is_active, frequency, country, contact_person, created_by, updated_at, updated_by)
 VALUES
-(1, 'Test Study 001', 'Initial testing project', '2026-01-01', 1, 'weekly', 'Global', 'Admin', 1, CURRENT_TIMESTAMP, 1);
+(1, 'Test Study 001', 'Initial testing project', '2026-01-01', 1, 'weekly', 'Global', 'Admin', 1, UTC_TIMESTAMP(), 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

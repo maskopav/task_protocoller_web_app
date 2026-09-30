@@ -39,6 +39,24 @@ describe("computeEligibilityDate", () => {
     const { computeEligibilityDate } = await import("./bookingServiceClient.js");
     expect(computeEligibilityDate("2026-12-25 10:30:00", 14)).toBe("2027-01-08");
   });
+
+  describe("counts from the local calendar day (TZ=Europe/Prague)", () => {
+    let originalTz;
+    beforeEach(() => { originalTz = process.env.TZ; process.env.TZ = "Europe/Prague"; });
+    afterEach(() => { if (originalTz === undefined) delete process.env.TZ; else process.env.TZ = originalTz; });
+
+    it("a session finished just after local midnight counts from that local day", async () => {
+      const { computeEligibilityDate } = await import("./bookingServiceClient.js");
+      // 22:30 UTC on Sep 1 = 00:30 on Sep 2 in Prague.
+      expect(computeEligibilityDate("2026-09-01 22:30:00", 14)).toBe("2026-09-16");
+    });
+
+    it("an evening session stays on the same local day", async () => {
+      const { computeEligibilityDate } = await import("./bookingServiceClient.js");
+      // 21:30 UTC on Sep 1 = 23:30 on Sep 1 in Prague.
+      expect(computeEligibilityDate("2026-09-01 21:30:00", 14)).toBe("2026-09-15");
+    });
+  });
 });
 
 describe("buildBookingLink", () => {

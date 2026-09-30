@@ -2,6 +2,7 @@
   import { executeQuery } from "../db/queryHelper.js";
   import { getFollowupBookingStatusByRef, buildBookingLink, buildManageLink } from "../services/bookingServiceClient.js";
   import { BOOKING_ELIGIBILITY_DAYS } from "../config/constants.js";
+  import { localDateString } from "../utils/dateFormatter.js";
 
   export const getProjectList = async (req, res) => {
     // req.admin comes from the verified JWT (see authMiddleware.requireAuth),
@@ -144,8 +145,10 @@
     try {
         const result = await executeQuery(
             `INSERT INTO projects (name, description, frequency, country, contact_person, created_by, updated_by, start_date, created_at, updated_at, is_active)
-             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
-            [name, description, frequency, country, contact_person, created_by, created_by]
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
+            // start_date is a DATE -- a calendar day as the admin sees it, so
+            // local, not UTC (which would be "yesterday" just after midnight).
+            [name, description, frequency, country, contact_person, created_by, created_by, localDateString()]
         );
         res.json({ success: true, id: result.insertId });
     } catch (err) {
@@ -171,7 +174,7 @@
                     If activated (1) -> set end_date to NULL. 
                     If metadata update (null/undefined) -> keep current date. */
                  end_date = CASE 
-                    WHEN ? = 0 THEN UTC_DATE() 
+                    WHEN ? = 0 THEN ? 
                     WHEN ? = 1 THEN NULL 
                     ELSE end_date 
                  END,
@@ -186,6 +189,7 @@
                 contact_person, 
                 is_active, 
                 is_active, // Parameter for CASE WHEN 0
+                localDateString(), // end_date (DATE): local calendar day, like start_date
                 is_active, // Parameter for CASE WHEN 1
                 updated_by, 
                 id

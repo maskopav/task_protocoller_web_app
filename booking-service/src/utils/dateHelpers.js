@@ -62,3 +62,13 @@ export function nowAsMysqlDateTime(now = new Date()) {
 export function todayAsLocalDate(now = new Date()) {
   return nowAsMysqlDateTime(now).slice(0, 10);
 }
+
+// A UTC timestamp from the DB (created_at/updated_at, written with
+// UTC_TIMESTAMP()) -> the same instant as local "YYYY-MM-DD HH:MM:SS", for
+// admin-facing output like the bookings CSV. Unlike starts_at/ends_at,
+// which are already local wall-clock time and must NOT go through this.
+export function utcToLocalMysqlDateTime(value) {
+  if (!value) return "";
+  const date = new Date(String(value).replace(" ", "T") + "Z");
+  return Number.isNaN(date.getTime()) ? value : nowAsMysqlDateTime(date);
+}

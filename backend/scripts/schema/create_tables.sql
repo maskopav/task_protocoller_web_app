@@ -10,8 +10,8 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) NOT NULL,
   `full_name` varchar(255),
   `role_id` integer NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
+  `updated_at` timestamp NULL DEFAULT (UTC_TIMESTAMP()),
   `is_active` boolean NOT NULL DEFAULT true,
   `must_change_password` boolean NOT NULL DEFAULT true,
   `reset_password_token` varchar(255) DEFAULT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE `user_projects` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `user_id` integer NOT NULL,
   `project_id` integer NOT NULL,
-  `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP
+  `assigned_at` timestamp NULL DEFAULT (UTC_TIMESTAMP())
 );
 
 CREATE TABLE `projects` (
@@ -35,7 +35,7 @@ CREATE TABLE `projects` (
   `frequency` varchar(255) COMMENT 'e.g. daily, weekly, monthly',
   `country` varchar(255),
   `contact_person` varchar(255),
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   `created_by` integer,
   `updated_at` timestamp,
   `updated_by` integer
@@ -49,9 +49,9 @@ CREATE TABLE `protocols` (
   `description` text,
   `version` integer NOT NULL DEFAULT 1,
   `is_current` boolean NOT NULL DEFAULT true,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   `created_by` integer,
-  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT (UTC_TIMESTAMP()),
   `updated_by` integer,
   `randomization` JSON DEFAULT NULL COMMENT 'Stores { strategy: "global"|"module"|"none", moduleSettings: {...} }',
   `use_audio_guide` BOOLEAN NOT NULL DEFAULT true,
@@ -89,13 +89,13 @@ CREATE TABLE `tasks` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `category` varchar(50) UNIQUE NOT NULL COMMENT 'e.g. monologue, reading, phonation',
   `type_id` integer NOT NULL COMMENT 'id of voice, visual, cognitive, questionnaire',
-  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT (UTC_TIMESTAMP())
 );
 
 CREATE TABLE `task_types` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `type` varchar(255) UNIQUE COMMENT 'voice, visual, cognitive, questionnaire',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `updated_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP())
 );
 
 CREATE TABLE `languages` (
@@ -114,7 +114,7 @@ CREATE TABLE `participants` (
   `contact_email` varchar(255),
   `contact_phone` varchar(255),
   `notes` text,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   `updated_at` timestamp,
   `login_email` varchar(255) UNIQUE DEFAULT NULL,
   `login_password_hash` varchar(255) DEFAULT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE `participant_protocols` (
   `participant_id` integer NOT NULL,
   `project_protocol_id` integer NOT NULL,
   `access_token` char(64) UNIQUE DEFAULT NULL COMMENT 'UUID or hash to reconstruct the URL on the backend',
-  `start_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `start_date` timestamp NULL DEFAULT (UTC_TIMESTAMP()),
   `end_date` timestamp DEFAULT NULL,
   `is_active` BOOLEAN DEFAULT FALSE
 );
@@ -140,14 +140,14 @@ CREATE TABLE `participant_protocol_contacts` (
   `attempt_number` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 for link_sent, 1-3 for call, one row per call attempt',
   `contacted_at` datetime NOT NULL COMMENT 'When the agency actually contacted the participant — distinct from participant_protocols.start_date (link creation time)',
   `notes` text DEFAULT NULL COMMENT 'Agency notes for this touchpoint, e.g. why a call went unanswered',
-  `imported_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this row was recorded via the Fieldwork CSV import',
+  `imported_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()) COMMENT 'When this row was recorded via the Fieldwork CSV import',
   UNIQUE (`participant_protocol_id`, `contact_type`, `attempt_number`)
 );
 
 CREATE TABLE `sessions` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `participant_protocol_id` integer NOT NULL,
-  `session_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `session_date` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   `progress` JSON COMMENT 'Stores completed task IDs and timestamps',
   `completed` boolean DEFAULT false,
   `camera_declined` boolean DEFAULT false COMMENT 'Participant declined camera access mid-session',
@@ -156,7 +156,7 @@ CREATE TABLE `sessions` (
   `identifiers` JSON DEFAULT NULL COMMENT 'Participant identifiers',
   `task_order` JSON DEFAULT NULL COMMENT 'Array of protocol_task_ids in the order they should be executed',
   `current_task_index` integer NOT NULL DEFAULT 1,
-  `last_activity_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_activity_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   `completed_at` timestamp NULL DEFAULT NULL COMMENT 'Set once when completed is first set true. last_activity_at keeps moving after that, so this is the only stable anchor for "N days after finishing" rules (e.g. follow-up booking eligibility).'
 );
 
@@ -166,7 +166,7 @@ CREATE TABLE `session_environments` (
   `ip_address` varchar(45) DEFAULT NULL,
   `user_agent` varchar(512) DEFAULT NULL,
   `device_metadata` JSON DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   FOREIGN KEY (`session_id`) REFERENCES `sessions`(`id`) ON DELETE CASCADE
 );
 
@@ -177,7 +177,7 @@ CREATE TABLE `recordings` (
   `repeat_index` integer NOT NULL DEFAULT 1 COMMENT '1..n repetition count per session/task',
   `recording_url` varchar(255) NOT NULL,
   `duration_seconds` integer,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NULL DEFAULT (UTC_TIMESTAMP())
 );
 
 CREATE TABLE `session_mic_checks` (
@@ -188,7 +188,7 @@ CREATE TABLE `session_mic_checks` (
   `duration_seconds` integer DEFAULT NULL,
   `speech_segments` JSON DEFAULT NULL COMMENT 'Stores arrays of [start_ms, end_ms]',
   `attempt_number` integer DEFAULT 1,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NULL DEFAULT (UTC_TIMESTAMP()),
   FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE
 );
 
@@ -198,7 +198,7 @@ CREATE TABLE `task_results` (
   `protocol_task_id` integer NOT NULL, 
   `repeat_index` integer DEFAULT 1,
   `payload` JSON NOT NULL,            
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NULL DEFAULT (UTC_TIMESTAMP()),
   FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`),
   FOREIGN KEY (`protocol_task_id`) REFERENCES `protocol_tasks` (`id`)
 );

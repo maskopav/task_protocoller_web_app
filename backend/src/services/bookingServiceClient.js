@@ -12,6 +12,7 @@
 // than importing it, since these are two independently deployable services.
 import crypto from "crypto";
 import { logToFile } from "../utils/logger.js";
+import { localDateString } from "../utils/dateFormatter.js";
 
 function env(name, fallback) {
   return process.env[name] || fallback;
@@ -29,11 +30,16 @@ const DEFAULT_LINK_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days — long enough a
 
 // completedAt is a MySQL DATETIME string ("YYYY-MM-DD HH:MM:SS", this app's
 // pool is configured with dateStrings:true) representing when the protocol
-// was finished (sessions.completed_at). Returns "YYYY-MM-DD".
+// was finished (sessions.completed_at, UTC). Returns "YYYY-MM-DD" as a
+// *local* calendar date: booking-service compares it against slot starts_at,
+// which is local wall-clock time, so the day boundary must be local too --
+// finishing at 00:30 local (22:30 UTC the day before) counts from today.
 export function computeEligibilityDate(completedAt, eligibilityDays) {
   const completed = new Date(completedAt.replace(" ", "T") + "Z");
-  completed.setUTCDate(completed.getUTCDate() + eligibilityDays);
-  return completed.toISOString().slice(0, 10);
+  // UTC Date used purely as a calendar calculator on the local date.
+  const day = new Date(localDateString(completed) + "T00:00:00Z");
+  day.setUTCDate(day.getUTCDate() + eligibilityDays);
+  return day.toISOString().slice(0, 10);
 }
 
 function signBookingLink({ tenantId, resourceSlug, ref, after, exp, secret }) {

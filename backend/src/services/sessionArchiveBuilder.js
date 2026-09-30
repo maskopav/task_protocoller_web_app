@@ -9,7 +9,7 @@ import path from "path";
 import { ZipStreamWriter } from "../utils/zipStreamWriter.js";
 import { buildCsv, jsonCellValue } from "../utils/csvBuilder.js";
 import { logToFile } from "../utils/logger.js";
-import { dateInYyyyMmDdHhMmSs } from "../utils/dateFormatter.js";
+import { dateInYyyyMmDdHhMmSs, utcDbToLocal } from "../utils/dateFormatter.js";
 
 const DATA_PATH = process.env.DATA_PATH;
 
@@ -25,6 +25,10 @@ export function sessionArchiveFilename() {
   return `session_data_export_${dateInYyyyMmDdHhMmSs()}.zip`;
 }
 
+// Timestamp columns in every CSV below are converted from the DB's UTC to
+// local time (utcDbToLocal) -- these files are read by people, like the
+// admin UI. The zip's own filename and the recording filenames stay UTC
+// (their "Z" suffix), and so do ISO "...Z" timestamps inside payload JSON.
 function buildSessionsCsv(sessions) {
   const headers = [
     "session_id", "project_name", "protocol_name", "protocol_version",
@@ -33,7 +37,7 @@ function buildSessionsCsv(sessions) {
   ];
   const rows = sessions.map((s) => [
     s.session_id, s.project_name, s.protocol_name, s.protocol_version,
-    s.participant_name, s.session_date, s.last_activity_at,
+    s.participant_name, utcDbToLocal(s.session_date), utcDbToLocal(s.last_activity_at),
     s.completed ? "yes" : "no", s.mic_check_result, s.volume_check_result,
     jsonCellValue(s.identifiers),
   ]);
@@ -60,7 +64,7 @@ function buildTaskResultsCsv(taskResults) {
   const rows = taskResults
     .filter((r) => r.category !== "questionnaire")
     .map((r) => [
-      r.session_id, r.category, r.protocol_task_id, r.repeat_index, r.created_at, jsonCellValue(r.payload),
+      r.session_id, r.category, r.protocol_task_id, r.repeat_index, utcDbToLocal(r.created_at), jsonCellValue(r.payload),
     ]);
   return buildCsv(headers, rows);
 }
@@ -99,7 +103,7 @@ function buildQuestionnaireAnswersCsv(taskResults) {
       const answerText = Array.isArray(value) ? value.join("; ") : String(value ?? "");
       rows.push([
         r.session_id, params.title || "", r.protocol_task_id, r.repeat_index,
-        questionId, question?.text || questionId, answerText, r.created_at,
+        questionId, question?.text || questionId, answerText, utcDbToLocal(r.created_at),
       ]);
     }
   }
@@ -111,10 +115,10 @@ function buildRecordingsIndexCsv(recordings, micChecks) {
   const headers = ["session_id", "type", "task_category", "repeat_index", "filename", "duration_seconds", "created_at"];
   const rows = [
     ...recordings.map((r) => [
-      r.session_id, "task_recording", r.category, r.repeat_index, safeFilename(r.recording_url), r.duration_seconds, r.created_at,
+      r.session_id, "task_recording", r.category, r.repeat_index, safeFilename(r.recording_url), r.duration_seconds, utcDbToLocal(r.created_at),
     ]),
     ...micChecks.map((m) => [
-      m.session_id, "mic_check", "", m.attempt_number, safeFilename(m.recording_url), m.duration_seconds, m.created_at,
+      m.session_id, "mic_check", "", m.attempt_number, safeFilename(m.recording_url), m.duration_seconds, utcDbToLocal(m.created_at),
     ]),
   ];
   return buildCsv(headers, rows);

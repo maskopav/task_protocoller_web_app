@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { iterateDates, weekdayOf, addMinutesToTime, isPastCutoff, pad2, nowAsMysqlDateTime, todayAsLocalDate } from "./dateHelpers.js";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { iterateDates, weekdayOf, addMinutesToTime, isPastCutoff, pad2, nowAsMysqlDateTime, todayAsLocalDate, utcToLocalMysqlDateTime } from "./dateHelpers.js";
 
 describe("pad2", () => {
   it("pads single digits, leaves two digits alone", () => {
@@ -100,5 +100,21 @@ describe("todayAsLocalDate", () => {
   it("returns just the date portion, in local time", () => {
     const local = new Date(2026, 8, 4, 23, 59, 0);
     expect(todayAsLocalDate(local)).toBe("2026-09-04");
+  });
+});
+
+describe("utcToLocalMysqlDateTime (TZ=Europe/Prague)", () => {
+  let originalTz;
+  beforeAll(() => { originalTz = process.env.TZ; process.env.TZ = "Europe/Prague"; });
+  afterAll(() => { if (originalTz === undefined) delete process.env.TZ; else process.env.TZ = originalTz; });
+
+  it("converts a UTC DB timestamp to local time (summer +2h, winter +1h)", () => {
+    expect(utcToLocalMysqlDateTime("2026-08-31 13:38:47")).toBe("2026-08-31 15:38:47");
+    expect(utcToLocalMysqlDateTime("2026-01-05 23:30:00")).toBe("2026-01-06 00:30:00");
+  });
+
+  it("leaves empty values empty and bad values untouched", () => {
+    expect(utcToLocalMysqlDateTime(null)).toBe("");
+    expect(utcToLocalMysqlDateTime("nonsense")).toBe("nonsense");
   });
 });

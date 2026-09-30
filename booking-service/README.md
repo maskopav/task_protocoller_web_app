@@ -65,6 +65,14 @@ links. It has no knowledge of any other project's domain model.
   contact info + a free-text note (see "None of these times work"
   fallback above) — the same table and `manage_token` mechanism, just
   never reschedulable/cancellable since there's no appointment yet.
+- **Timestamps** — `slots.starts_at/ends_at` are naive local wall-clock time
+  (the room's clock). Every other timestamp (`created_at`, `updated_at`) is
+  UTC, written explicitly with `UTC_TIMESTAMP()`. The MySQL session runs in
+  server-local time, so `CURRENT_TIMESTAMP` would *not* be UTC; column
+  defaults are `DEFAULT (UTC_TIMESTAMP())`, and `src/db/utcTimestamps.test.js`
+  guards both. A database created before 2026-09-30 needs
+  `scripts/utils/utc_timestamp_defaults.sql` run once. It changes defaults
+  only, no rows, and is safe to re-run.
 
 ## Setup
 

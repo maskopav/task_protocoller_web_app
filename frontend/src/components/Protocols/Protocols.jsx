@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { getProtocolsByProjectId } from "../../api/protocols";
 import EnrollmentModal from "./EnrollmentModal";
 import "./Protocols.css";
+import { formatUtcDbDate } from "../../utils/dateTime";
 
 export default function Protocols({ onSelectProtocol }) {
   const { t } = useTranslation(["admin", "common"]);
@@ -95,7 +96,7 @@ export default function Protocols({ onSelectProtocol }) {
                   {/* Display Aggregated Counts */}
                   <td>{p.n_tasks}</td>
                   <td>{p.n_quest}</td>
-                  <td>{p.created_at?.slice(0, 10)}</td>
+                  <td>{formatUtcDbDate(p.created_at)}</td>
                   {isHistory && <td>{p.project_name}</td>}
                   <td className="actions">
                     <button

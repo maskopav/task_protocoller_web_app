@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import "./ParticipantTable.css"; 
 import AssignIcon from "../Icons/AssignIcon";
+import { formatCalendarDate } from "../../utils/dateTime";
 
 export default function ParticipantTable({ 
   participants, 
@@ -39,7 +40,7 @@ export default function ParticipantTable({
                   <td className="highlighted">{p.full_name || "—"}</td>
                   <td>{p.external_id || "—"}</td>
                   <td>{p.protocol_name}</td>
-                  <td>{p.birth_date ? new Date(p.birth_date).toLocaleDateString() : "—"}</td>
+                  <td>{formatCalendarDate(p.birth_date) || "—"}</td>
                   <td>{p.sex 
                     ? t(`participantDashboard.modal.gender.${p.sex}`, { defaultValue: p.sex }) 
                     : "—"

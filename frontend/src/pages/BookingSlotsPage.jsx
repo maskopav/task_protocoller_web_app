@@ -5,6 +5,7 @@ import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import { bulkCreateSlots, fetchSlots, deleteSlot, fetchBookings, fetchNoSlotReports, downloadBookingsCsv } from "../api/adminBooking";
 import "./Pages.css";
 import "./BookingSlotsPage.css";
+import { localDateString } from "../utils/dateTime";
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0]; // Mon..Sun, matching Date.getDay()
 
@@ -40,7 +41,9 @@ export default function BookingSlotsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("admin");
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Local, not UTC: slots are local wall-clock dates, and just after
+  // midnight the UTC date would still be yesterday.
+  const today = localDateString();
   const [form, setForm] = useState({
     startDate: today, endDate: today, weekdays: [1, 2, 3, 4, 5],
     startTime: "09:00", endTime: "16:00", durationMin: 45,

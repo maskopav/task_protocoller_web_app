@@ -7,6 +7,7 @@ import {
 } from "../../api/participantProtocols";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
+import { formatUtcDbDate } from "../../utils/dateTime";
 
 const VITE_APP_BASE_PATH = import.meta.env.VITE_APP_BASE_PATH;
 
@@ -97,8 +98,8 @@ export default function ParticipantProtocolTable({ rows, onRefresh, onShowSucces
                     <td>{r.protocol_version}</td>
                     <td>{r.n_tasks}</td>
                     <td>{r.n_quest}</td>
-                    <td>{r.start_date?.slice(0, 10) || "—"}</td>
-                    <td>{r.end_date?.slice(0, 10) || "—"}</td>
+                    <td>{formatUtcDbDate(r.start_date) || "—"}</td>
+                    <td>{formatUtcDbDate(r.end_date) || "—"}</td>
                     <td>
                       {r.is_active
                         ? t("participantProtocol.status.active")

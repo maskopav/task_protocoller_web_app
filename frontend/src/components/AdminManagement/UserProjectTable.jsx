@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import DeleteIcon from "../Icons/DeleteIcon";
 import "./AdminManagement.css";
+import { parseUtcDbDateTime } from "../../utils/dateTime";
 
 export default function UserProjectTable({ assignments, onRemove }) {
   const { t } = useTranslation(["admin", "common"]);
@@ -30,7 +31,7 @@ export default function UserProjectTable({ assignments, onRemove }) {
                 <td className="highlighted">{a.user_name}</td>
                 <td>{a.user_email}</td>
                 <td><span className="project-tag">{a.project_name}</span></td>
-                <td>{a.assigned_at ? new Date(a.assigned_at.replace(" ", "T") + "Z").toLocaleDateString() : "—"}</td>
+                <td>{parseUtcDbDateTime(a.assigned_at)?.toLocaleDateString() || "—"}</td>
                 <td>
                   <div className="actions-cell">
                     <button 

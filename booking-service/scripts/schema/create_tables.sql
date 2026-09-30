@@ -3,7 +3,7 @@ CREATE TABLE `tenants` (
   `name` varchar(255) NOT NULL,
   `api_key_hash` varchar(255) NOT NULL COMMENT 'sha256 hex of the raw API key — raw key is shown to the operator once, at creation time only',
   `link_signing_secret` varchar(255) NOT NULL COMMENT 'HMAC key for signing/verifying public booking links',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP())
 );
 
 CREATE TABLE `resources` (
@@ -14,7 +14,7 @@ CREATE TABLE `resources` (
   `default_duration_min` integer NOT NULL DEFAULT 45,
   `default_location` varchar(255) DEFAULT NULL,
   `contact_info` text DEFAULT NULL COMMENT 'Free-text contact line (email/phone/etc.) shown to respondents when there is no slot to point them at, e.g. in the cancellation email',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   UNIQUE KEY `resources_tenant_slug` (`tenant_id`, `slug`)
     COMMENT 'Backstop for ensureFollowupBookingResource''s list-then-create-if-missing race: under a multi-process/clustered deployment, two processes could both see an empty list and both try to create the same resource. INSERT would then fail for the loser instead of silently duplicating the row.',
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
@@ -29,7 +29,7 @@ CREATE TABLE `slots` (
   `capacity` integer NOT NULL DEFAULT 1,
   `is_active` boolean NOT NULL DEFAULT true,
   `google_event_id` varchar(255) DEFAULT NULL COMMENT 'The event represents the physical time slot, not any one booking of it -- it persists across book/cancel/rebook cycles, flipping between "available" and "booked" styling rather than being recreated. See googleCalendarService.js.',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   FOREIGN KEY (`resource_id`) REFERENCES `resources` (`id`)
 );
 
@@ -49,7 +49,7 @@ CREATE TABLE `bookings` (
   `manage_token` char(32) UNIQUE NOT NULL COMMENT 'durable personal link credential either way — for a real booking it unlocks reschedule/cancel; for status=requested it only ever redirects back into slot-picking, never reschedule/cancel (see publicController.js)',
   `locale` varchar(10) NOT NULL DEFAULT 'en' COMMENT 'Language for this row''s emails, chosen once at creation time — see src/i18n/emailTranslations.js',
   `status` ENUM('requested','booked','rescheduled','cancelled') NOT NULL DEFAULT 'booked',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   `updated_at` timestamp NULL DEFAULT NULL,
   `active_slot_id` integer GENERATED ALWAYS AS (CASE WHEN `status` = 'cancelled' THEN NULL ELSE `slot_id` END) STORED
     COMMENT 'partial-unique-index trick: MySQL has no filtered unique index, so a generated column that is NULL for cancelled rows lets the UNIQUE KEY below enforce "at most one active booking per slot" (capacity is always 1 for now) while still allowing a slot to be rebooked after a cancellation. Always NULL for status=requested too, since slot_id itself is already NULL there',
@@ -63,7 +63,7 @@ CREATE TABLE `webhooks` (
   `tenant_id` integer NOT NULL,
   `url` varchar(500) NOT NULL,
   `secret` varchar(255) NOT NULL COMMENT 'HMAC-signs the outgoing payload so the receiver can verify origin',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT (UTC_TIMESTAMP()),
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
 );
 
