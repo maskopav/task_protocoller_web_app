@@ -15,6 +15,11 @@ import { logger } from "./utils/frontendLogger";
 // here so it always runs before anything renders, regardless of which page
 // loads first.
 import "./i18n";
+// Global styles (:root tokens, body, button, h1...). Same code-splitting
+// issue as i18n above: Pages.css was only pulled in by the pages that import
+// it, so the first screen (admin login, participant language selector) rendered
+// without it until one of those pages had been visited. Load it once here.
+import "./pages/Pages.css";
 
 // 1. Catch synchronous runtime errors
 window.onerror = function(message, source, lineno, colno, error) {
