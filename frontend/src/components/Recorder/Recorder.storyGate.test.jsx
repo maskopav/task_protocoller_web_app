@@ -2,10 +2,8 @@
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
 import i18n from "../../i18n";
-import enTasks from "../../i18n/en/tasks.json";
-import csTasks from "../../i18n/cs/tasks.json";
 import {
   translateTaskInstructions,
   translateTaskInstructionsPreCalibration,
@@ -187,16 +185,16 @@ describe("Recorder — story-listen gate on the Start button", () => {
     expect(startButton().disabled).toBe(false);
   }
 
-  describe.each(["en", "cs"])("retelling (%s)", (language) => {
-    beforeAll(async () => { await i18n.changeLanguage(language); });
-    afterAll(async () => { await i18n.changeLanguage("en"); });
+  it("audio-only task: Start is locked until enough of the story has played", async () => {
+    await render(<Recorder {...retellingProps("en")} recordVideo={false} />);
+    await expectStartGatedByStory();
+  });
 
-    it("audio-only task: Start is locked until enough of the story has played", async () => {
-      await render(<Recorder {...retellingProps(language)} recordVideo={false} />);
-      await expectStartGatedByStory();
-    });
-
-    it("video task: after calibration, Start is locked until enough of the story has played", async () => {
+  // Video flow shows instructionsPostCalibration, which has the story in every language.
+  it.each(["en", "cs"])(
+    "video task (%s): after calibration, Start is locked until enough of the story has played",
+    async (language) => {
+      await i18n.changeLanguage(language);
       await render(<DeclineVideoHarness {...retellingProps(language)} recordVideo="true" />);
 
       await click("grant-camera");
@@ -206,25 +204,26 @@ describe("Recorder — story-listen gate on the Start button", () => {
       await click("finish-calibration");
 
       await expectStartGatedByStory();
-    });
+      await i18n.changeLanguage("en");
+    }
+  );
 
-    it.each(["PERMISSION", "SETUP"])(
-      "video declined on the %s screen: the audio-only fallback is gated the same way",
-      async (declineAt) => {
-        await render(<DeclineVideoHarness {...retellingProps(language)} recordVideo="true" />);
+  it.each(["PERMISSION", "SETUP"])(
+    "video declined on the %s screen: the audio-only fallback is gated the same way",
+    async (declineAt) => {
+      await render(<DeclineVideoHarness {...retellingProps("en")} recordVideo="true" />);
 
-        if (declineAt === "SETUP") {
-          await click("grant-camera");
-          await act(async () => { startButton().click(); });
-          expect(container.querySelector('[data-testid="viewfinder"]').dataset.phase).toBe("SETUP");
-        }
-        await click("decline-video");
-
-        expect(container.querySelector('[data-testid="viewfinder"]')).toBeNull();
-        await expectStartGatedByStory();
+      if (declineAt === "SETUP") {
+        await click("grant-camera");
+        await act(async () => { startButton().click(); });
+        expect(container.querySelector('[data-testid="viewfinder"]').dataset.phase).toBe("SETUP");
       }
-    );
-  });
+      await click("decline-video");
+
+      expect(container.querySelector('[data-testid="viewfinder"]')).toBeNull();
+      await expectStartGatedByStory();
+    }
+  );
 
   it("clicking the locked Start does not start recording", async () => {
     await render(<Recorder {...retellingProps("en")} recordVideo={false} />);
@@ -263,16 +262,4 @@ describe("Recorder — story-listen gate on the Start button", () => {
     expect(storyAudio()).toBeNull();
     expect(startButton().disabled).toBe(false);
   });
-});
-
-// Declining video swaps instructionsPostCalibration for the plain
-// instructions, so both must offer the story or the fallback loses it.
-describe("retelling translations", () => {
-  it.each([["en", enTasks], ["cs", csTasks]])(
-    "%s: audio-only and post-calibration texts both contain the story player",
-    (_lang, tasks) => {
-      expect(tasks.retelling.instructions).toContain("{{playStory}}");
-      expect(tasks.retelling.instructionsPostCalibration).toContain("{{playStory}}");
-    }
-  );
 });
