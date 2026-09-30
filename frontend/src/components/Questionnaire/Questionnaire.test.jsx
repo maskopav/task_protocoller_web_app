@@ -9,6 +9,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 const { default: Questionnaire } = await import("./Questionnaire");
+const { isFreeTextValid } = await import("../../utils/questionConditions");
 
 // Two questions is enough to cover: a required single-choice question (blocks
 // submit while unanswered) and an optional open-text question (doesn't).
@@ -111,5 +112,72 @@ describe("Questionnaire — reload/resume behavior", () => {
     act(() => submitBtn.click());
     expect(onNextTask).toHaveBeenCalledTimes(1);
     expect(onNextTask.mock.calls[0][0].answers).toEqual({ q1: "A" });
+  });
+});
+
+describe("isFreeTextValid", () => {
+  const plain = { id: 1 };
+  const age = { id: 2, numericFreeText: { min: 0, max: 120 } };
+
+  it("accepts any non-blank text for a regular write-in", () => {
+    expect(isFreeTextValid(plain, "about ten")).toBe(true);
+    expect(isFreeTextValid(plain, "   ")).toBe(false);
+  });
+
+  it("accepts only whole numbers within range for a numeric write-in", () => {
+    expect(isFreeTextValid(age, "0")).toBe(true);
+    expect(isFreeTextValid(age, "35")).toBe(true);
+    expect(isFreeTextValid(age, "120")).toBe(true);
+    expect(isFreeTextValid(age, "121")).toBe(false);
+    expect(isFreeTextValid(age, "3.5")).toBe(false);
+    expect(isFreeTextValid(age, "ten")).toBe(false);
+    expect(isFreeTextValid(age, "")).toBe(false);
+  });
+});
+
+describe("Questionnaire — numeric write-in", () => {
+  let container;
+  let root;
+
+  const DATA = {
+    title: "Language",
+    questions: [
+      {
+        id: "age", type: "single", text: "At what age?", options: ["Age (years)", "Don't know"],
+        freeTextOptions: ["Age (years)"], numericFreeText: { min: 0, max: 120 },
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    act(() => {
+      root = createRoot(container);
+      root.render(<Questionnaire data={DATA} onNextTask={vi.fn()} />);
+    });
+    act(() => container.querySelector('input[value="Age (years)"]').click());
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  const input = () => container.querySelector(".answer-input-number");
+  const submit = () => container.querySelector(".btn-submit-questionnaire");
+
+  it("shows a numeric-keypad input and strips non-digits", () => {
+    expect(input().getAttribute("inputmode")).toBe("numeric");
+    act(() => setNativeValue(input(), "4a2"));
+    expect(input().value).toBe("42");
+    expect(submit().disabled).toBe(false);
+  });
+
+  it("blocks submit and shows an error when the number is out of range", () => {
+    act(() => setNativeValue(input(), "150"));
+    expect(submit().disabled).toBe(true);
+    expect(container.querySelector(".answer-input-error")).not.toBeNull();
   });
 });

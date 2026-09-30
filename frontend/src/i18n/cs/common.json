@@ -45,7 +45,9 @@
     },
     "questionnaire": {
       "selectOption": "Vyberte možnost...",
-      "typeAnswer": "Zde napište svou odpověď..."
+      "typeAnswer": "Zde napište svou odpověď...",
+      "enterNumber": "Zadejte číslo",
+      "numberOutOfRange": "Zadejte celé číslo od {{min}} do {{max}}."
     },
     "notFound": {
       "title": "404 – Stránka nenalezena",

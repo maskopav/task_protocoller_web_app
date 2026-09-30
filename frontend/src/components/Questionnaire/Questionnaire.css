@@ -119,6 +119,23 @@
   min-height: 80px;
 }
 
+/* Short numeric write-ins (e.g. age) — a single line, sized for ~3 digits */
+.answer-input-text.answer-input-number {
+  min-height: 0;
+  max-width: 8rem;
+  resize: none;
+}
+
+.answer-input-text.answer-input-number[aria-invalid="true"] {
+  border-color: #d64545;
+}
+
+.answer-input-error {
+  color: #d64545;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
 .answer-select {
   padding: clamp(0.5rem, 1.5dvh, 0.8rem) clamp(0.6rem, 2vw, 0.9rem);
   cursor: pointer;

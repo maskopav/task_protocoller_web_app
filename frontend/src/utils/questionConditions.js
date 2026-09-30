@@ -110,3 +110,15 @@ export function pruneHiddenAnswers(questions, answers, lang) {
   }
   return next;
 }
+
+// A write-in counts as answered once it has text; questions with
+// numericFreeText ({ min, max }) additionally need a whole number in range.
+export function isFreeTextValid(q, text) {
+  const value = (text || "").trim();
+  if (!value) return false;
+  if (!q.numericFreeText) return true;
+  if (!/^\d+$/.test(value)) return false;
+  const n = Number(value);
+  const { min, max } = q.numericFreeText;
+  return (min == null || n >= min) && (max == null || n <= max);
+}

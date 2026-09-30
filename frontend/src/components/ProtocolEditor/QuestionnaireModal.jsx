@@ -315,6 +315,52 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                       + {t("protocolEditor.questionnaire.addOption")}
                     </button>
 
+                    {/* Restrict write-ins to whole numbers (e.g. "Age (years)") */}
+                    {q.freeTextOptions?.length > 0 && (
+                      <div className="qm-option-row" style={{ marginTop: "0.5rem" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                          <input
+                            type="checkbox"
+                            checked={!!q.numericFreeText}
+                            onChange={(e) =>
+                              updateQuestion(q.id, "numericFreeText", e.target.checked ? { min: 0, max: 120 } : undefined)
+                            }
+                          />
+                          Write-in accepts numbers only
+                        </label>
+                        {q.numericFreeText && (
+                          <>
+                            <label>Min</label>
+                            <input
+                              className="qm-input"
+                              type="number"
+                              style={{ maxWidth: "6rem" }}
+                              value={q.numericFreeText.min ?? ""}
+                              onChange={(e) =>
+                                updateQuestion(q.id, "numericFreeText", {
+                                  ...q.numericFreeText,
+                                  min: e.target.value === "" ? undefined : Number(e.target.value),
+                                })
+                              }
+                            />
+                            <label>Max</label>
+                            <input
+                              className="qm-input"
+                              type="number"
+                              style={{ maxWidth: "6rem" }}
+                              value={q.numericFreeText.max ?? ""}
+                              onChange={(e) =>
+                                updateQuestion(q.id, "numericFreeText", {
+                                  ...q.numericFreeText,
+                                  max: e.target.value === "" ? undefined : Number(e.target.value),
+                                })
+                              }
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     {/*  Dropdown to select the exclusive option */}
                     {q.type === "multiple" && q.options.length > 0 && (
                       <div className="qm-input-group" style={{ marginTop: "1rem" }}>

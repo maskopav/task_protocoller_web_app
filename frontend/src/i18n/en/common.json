@@ -88,6 +88,8 @@
       "selectOption": "Select an option...",
       "typeAnswer": "Type your answer here...",
       "pleaseSpecify": "Please specify",
+      "enterNumber": "Enter a number",
+      "numberOutOfRange": "Please enter a whole number between {{min}} and {{max}}.",
       "rating": {
         "veryBad": "Very bad",
         "bad": "Bad",
@@ -228,14 +230,13 @@
         "declineConfirm": "Continue without camera access",
         "declineCancel": "Go back",
         "stepsModelLoadFailed": "• Check your internet connection.<br/>• Try refreshing the page.<br/>• If this keeps happening, continue without camera access below.",
+        "stepsHardware": "Close any other app (video call, camera app) that might be using the camera.",
         "steps": {
           "android": {
-            "systemAndBrowser": "1. Open Android <strong>Settings</strong>, search for your browser (e.g., Chrome), and set Camera to <strong>Allow</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup.",
-            "hardware": "• Close any other app (video call, camera app) that might be using the camera.<br/>• If you use an external/USB camera, check it is properly connected."
+            "systemAndBrowser": "1. Open Android <strong>Settings</strong>, search for your browser (e.g., Chrome), and set Camera to <strong>Allow</strong>.<br/>2. Return here, tap <strong>Try Again</strong> or refresh the page, and tap <strong>Allow</strong> on the popup."
           },
           "ios": {
-            "systemAndBrowser": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Camera switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the camera.",
-            "hardware": "• Close any other app (video call, camera app) that might be using the camera.<br/>• If you use an external camera, check it is properly connected."
+            "systemAndBrowser": "1. Open iPhone <strong>Settings</strong>, scroll down to your browser (e.g., Safari), and turn the Camera switch <strong>ON</strong>.<br/>2. Return here, tap the <strong>aA icon</strong> in the address bar, select <strong>Website Settings</strong>, and Allow the camera."
           }
         }
       }

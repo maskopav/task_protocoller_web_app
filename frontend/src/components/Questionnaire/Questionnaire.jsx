@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
-import { isQuestionVisible, pruneHiddenAnswers, expandRepeatedQuestions } from "../../utils/questionConditions";
+import { isQuestionVisible, pruneHiddenAnswers, expandRepeatedQuestions, isFreeTextValid } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
 // Each language names itself the same way regardless of which language the
@@ -68,7 +68,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
       const selected = q.freeTextOptions.filter((opt) =>
         q.type === "multiple" ? val.includes(opt) : val === opt
       );
-      return selected.every((opt) => (answers[`${q.id}__freeText__${opt}`] || "").trim().length > 0);
+      return selected.every((opt) => isFreeTextValid(q, answers[`${q.id}__freeText__${opt}`]));
     }
     return true;
   };
@@ -87,16 +87,47 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
     if (onLogAnswer) onLogAnswer(`${questionId}__freeText__${opt}`, text);
   };
 
-  const renderFreeText = (q, opt, selected) =>
-    q.freeTextOptions?.includes(opt) && selected && (
+  // Numeric write-ins (e.g. "Age (years)") use a text input restricted to digits
+  // rather than type="number": it opens the numeric keypad on phones but avoids
+  // the spinner, scroll-wheel changes and "e"/"-" that type="number" accepts.
+  const renderFreeText = (q, opt, selected) => {
+    if (!q.freeTextOptions?.includes(opt) || !selected) return null;
+    const key = `${q.id}__freeText__${opt}`;
+    const value = answers[key] || "";
+    if (q.numericFreeText) {
+      const { min, max } = q.numericFreeText;
+      const outOfRange = value !== "" && !isFreeTextValid(q, value);
+      return (
+        <>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={String(max ?? 999).length}
+            className="answer-input-text answer-input-number"
+            placeholder={t("questionnaire.enterNumber", { ns: "common" })}
+            value={value}
+            aria-invalid={outOfRange}
+            onChange={(e) => handleFreeTextChange(q.id, opt, e.target.value.replace(/\D/g, ""))}
+          />
+          {outOfRange && (
+            <div className="answer-input-error">
+              {t("questionnaire.numberOutOfRange", { ns: "common", min, max })}
+            </div>
+          )}
+        </>
+      );
+    }
+    return (
       <input
         type="text"
         className="answer-input-text"
         placeholder={t("questionnaire.pleaseSpecify", { ns: "common" })}
-        value={answers[`${q.id}__freeText__${opt}`] || ""}
+        value={value}
         onChange={(e) => handleFreeTextChange(q.id, opt, e.target.value)}
       />
     );
+  };
 
   // --- 3. Validation ---
   useEffect(() => {
