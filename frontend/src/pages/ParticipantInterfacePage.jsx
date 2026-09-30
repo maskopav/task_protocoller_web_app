@@ -1,5 +1,5 @@
 // src/pages/ParticipantInterfacePage.jsx
-import React, { useState, useContext, useMemo, useEffect, useRef, useCallback, Suspense, lazy } from "react";
+import React, { useState, useContext, useMemo, useEffect, useLayoutEffect, useRef, useCallback, Suspense, lazy } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePreventNavigation } from "../hooks/usePreventNavigation";
@@ -23,7 +23,7 @@ import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progres
 import { ConfirmDialogContext } from "../components/ConfirmDialog/ConfirmDialogContext";
 import { useWakeLock } from "../hooks/useWakeLock";
 import "./Pages.css";
-import { logger } from "../utils/frontendLogger";
+import { logger, setLogContext } from "../utils/frontendLogger";
 import { saveRecordingLocally, getPendingRecordingsForSession } from '../utils/offlineStorage';
 import { uploadInBackground, flushPendingRecordings } from '../utils/recordingUploadQueue';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
@@ -432,6 +432,22 @@ export default function ParticipantInterfacePage() {
       lastLoggedIndex.current = taskIndex;
     }
   }, [taskIndex, runtimeTasks]);
+
+  // Tag every frontend log entry with the session and current task, so a
+  // system_log.txt line can be matched to its recording. A layout effect, not
+  // a plain effect: child effects run before parent effects, so with useEffect
+  // the new task's mount logs (e.g. Recorder's "recorder_mounted") would still
+  // carry the previous task's context. All layout effects finish before any
+  // passive effect runs.
+  useLayoutEffect(() => {
+    const currentTask = runtimeTasks[taskIndex];
+    setLogContext({
+      sessionId,
+      taskIndex: taskIndex + 1, // same 1-based numbering as trackProgress
+      taskType: currentTask?.type,
+      protocolTaskId: currentTask?.isSystemTask ? undefined : currentTask?.protocolTaskId,
+    });
+  }, [sessionId, taskIndex, runtimeTasks]);
 
   // --- Handle missing state (Refresh fallback) ---
   // --- Stale State / Refresh Detection ---
@@ -1129,10 +1145,10 @@ export default function ParticipantInterfacePage() {
             task={currentTask}
             onNextTask={handleTaskComplete}
             // Goes to both sessions.progress (per-session) and the frontend
-            // log view (which isn't keyed by session, hence the sessionId).
+            // log view (session/task come from setLogContext above).
             onLogEvent={(action, extra) => {
               logInteraction(action, extra);
-              logger.info(action, { sessionId, taskIndex: taskIndex + 1, ...extra });
+              logger.info(action, extra);
             }}
             isUploading={isUploading}
             audioGuideEnabled={useAudioGuide}

@@ -8,7 +8,7 @@ import { fetchParticipantProtocol } from "../api/participantProtocols";
 import { randomizeTasks } from '../utils/randomizer';
 import { initSession } from "../api/sessions";
 import { saveTaskResult } from "../api/taskResults"
-import { logger } from "../utils/frontendLogger";
+import { logger, setLogContext } from "../utils/frontendLogger";
 import ParticipantLanguageSelector from "../components/LanguageSwitcher/ParticipantLanguageSelector";
 
 // ─── NEW IMPORTS ──────────────────────────────────────────────────────────────
@@ -116,6 +116,7 @@ export default function ParticipantInterfaceLoader() {
       try {
         const sessionData = await initSession({ token, taskOrder });
         sessionId = sessionData.sessionId;
+        setLogContext({ sessionId });
         isResumed = sessionData.resumed || false;
 
         // If resuming, restore the EXACT order from the database
@@ -137,7 +138,7 @@ export default function ParticipantInterfaceLoader() {
             : `New session started: ${sessionId}`
         );
       } catch (err) {
-        logger.error(`Warning: Could not init session, proceeding anyway: ${err.message}`);
+        logger.error(`Could not init session, proceeding anyway: ${err.message}`);
         console.error("Warning: Could not init session, proceeding anyway", err);
       }
 

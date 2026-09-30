@@ -26,7 +26,7 @@ export async function calculateSNR(audioUrl, speechSegments, recordingStartTime,
     // 2. Check for dead mic (hardware mute)
     const maxAmplitude = getMaxAmplitude(channelData);
     if (maxAmplitude < 0.001) {
-      logger.warn("Audio is completely silent (Max Amplitude:", maxAmplitude, ")");
+      logger.warn("Audio is completely silent", { maxAmplitude });
       return { snr: 0, error: 'muted', debugData: { maxAmplitude } };
     }
 

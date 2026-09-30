@@ -433,20 +433,6 @@ export const Recorder = ({
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
 
-    // A heartbeat while actively recording: if two consecutive heartbeats end
-    // up more than ~1s later than the 5s interval implies, the WHOLE page
-    // froze (main thread blocked), not just detectForVideo/MicVAD -- which
-    // narrows a future mid-recording stall down to "page-wide freeze" vs.
-    // "specific to face/VAD inference" without needing to guess.
-    React.useEffect(() => {
-        if (recordingStatus !== RECORDING_STATES.RECORDING) return;
-
-        const beat = () => logger.info("recording_heartbeat", { performanceNow: performance.now() });
-        beat();
-        const interval = setInterval(beat, 5000);
-        return () => clearInterval(interval);
-    }, [recordingStatus, RECORDING_STATES.RECORDING]);
-
     // `audioExample` is a base path without extension (see getIllustrationPath.ts) —
     // illustration files on disk aren't consistently encoded (some .wav, some .m4a),
     // so we probe each candidate extension in order and use whichever exists.

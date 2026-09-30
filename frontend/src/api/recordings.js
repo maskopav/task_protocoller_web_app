@@ -61,16 +61,10 @@ export async function uploadRecording(blob, metadata) {
   formData.append("repeatIndex", metadata.repeatIndex);
   formData.append("timeStamp", metadata.timeStamp);
 
-  console.log("Audio blob size:", (blob.size / 1024 / 1024).toFixed(2), "MB");
-  if (coordsBlob) {
-    console.log("Coordinates blob size:", (coordsBlob.size / 1024).toFixed(1), "KB", "encoding:", encoding);
-  }
-
   let totalSize = 0;
   for (const pair of formData.entries()) {
     if (pair[1] instanceof Blob) totalSize += pair[1].size;
   }
-  console.log("Total FormData payload:", (totalSize / 1024 / 1024).toFixed(2), "MB");
 
   const res = await fetchWithTimeout(`${API_BASE}/recordings/upload`, {
     method: "POST",

@@ -25,6 +25,9 @@ function formatLogEntry(source, level, message, metadata = {}) {
   // Append metadata (like URL or UserAgent) if provided
   if (metadata.url) logString += `\n  URL: ${metadata.url}`;
   if (metadata.userAgent) logString += `\n  User-Agent: ${metadata.userAgent}`;
+  // sessionId / current task sent by the frontend's setLogContext() -- one
+  // line so it's greppable (e.g. search "sessionId":452 in the log viewer).
+  if (metadata.context) logString += `\n  Context: ${JSON.stringify(metadata.context)}`;
 
   // Append details or extracted error stacks
   if (metadata.details) {
@@ -54,11 +57,12 @@ export function logToFile(level = 'INFO', message, details = null) {
 export function logFrontendToFile(payload) {
   try {
     // Destructure the new structured JSON payload from the frontend
-    const { level = 'INFO', message, userAgent, url, details } = payload;
+    const { level = 'INFO', message, userAgent, url, context, details } = payload;
 
     const logString = formatLogEntry('FRONTEND', level.toUpperCase(), message, {
       userAgent,
       url,
+      context,
       details
     });
 

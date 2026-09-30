@@ -168,7 +168,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       try {
         const result = await navigator.permissions.query({ name: 'microphone' });
         if (result.state === 'denied') {
-          logger.warn("MicCheck Error: Permission explicitly denied by browser/OS on load, result:", result);
+          logger.warn("MicCheck Error: Permission explicitly denied by browser/OS on load", { state: result.state });
           setErrorType(ERR.DENIED);
           setPhase('warning');
         } else if (result.state === 'prompt') {

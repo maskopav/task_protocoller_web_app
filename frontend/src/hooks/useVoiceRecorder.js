@@ -40,6 +40,23 @@ const LEVEL_FRAME_INTERVAL_MS = 1000 / 25;
 // the much larger margin the old resample-inclusive pipeline did.
 const PROCESSING_WATCHDOG_MS = 60000;
 
+// MediaTrackSettings keys worth logging per recording. deviceId/groupId are
+// left out (opaque per-origin IDs, no diagnostic value) and so is the device
+// label (can contain a person's name, e.g. Bluetooth headset names).
+const LOGGED_TRACK_SETTINGS = [
+    'sampleRate', 'sampleSize', 'channelCount', 'latency',
+    'autoGainControl', 'echoCancellation', 'noiseSuppression',
+];
+
+const pickTrackSettings = (stream) => {
+    const settings = stream?.getAudioTracks()[0]?.getSettings?.() || {};
+    const picked = {};
+    for (const key of LOGGED_TRACK_SETTINGS) {
+        if (settings[key] !== undefined) picked[key] = settings[key];
+    }
+    return picked;
+};
+
 function withTimeout(promise, ms, message) {
     return Promise.race([
         promise,
@@ -174,6 +191,8 @@ export const useVoiceRecorder = (options = {}) => {
 
     // ── Refs ───────────────────────────────────────────────────────────────────
     const chunkCountRef = useRef(0);
+    const sampleCountRef = useRef(0);          // PCM samples received this take
+    const trackSettingsRef = useRef(null);     // mic track settings at start
     const pendingWritesRef = useRef(Promise.resolve());
     const pcmBatchRef = useRef([]);
     const audioContext      = useRef(null);
@@ -291,8 +310,8 @@ export const useVoiceRecorder = (options = {}) => {
                 AbortError:            'Request aborted',
                 SecurityError:         'Blocked by browser security policy',
             };
-            logger.error("Microphone access denied", err, { 
-                diagnosis: diagnosisMap[err.name] || 'Unknown error' 
+            logger.error("Microphone access denied", err, {
+                diagnosis: diagnosisMap[err.name] || 'Unknown error'
             });
             setPermission(false);
             onError(err);
@@ -378,6 +397,7 @@ export const useVoiceRecorder = (options = {}) => {
 
     const enqueuePCMChunk = useCallback((buffer) => {
         const chunk = new Int16Array(buffer);
+        sampleCountRef.current += chunk.length;
         pcmBatchRef.current.push(chunk);
 
         // 16 worklet quanta = 2048 samples; small RAM footprint, far fewer IDB writes.
@@ -414,6 +434,8 @@ export const useVoiceRecorder = (options = {}) => {
         setDurationExpired(false);
         setProcessingFailed(false);
         chunkCountRef.current = 0;
+        sampleCountRef.current = 0;
+        trackSettingsRef.current = pickTrackSettings(activeStream);
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
         await initSession();
@@ -591,6 +613,16 @@ export const useVoiceRecorder = (options = {}) => {
         // finalizeRecording.js.
         if (chunkCountRef.current > 0 && audioContext.current) {
             const sampleRate = audioContext.current.sampleRate;
+            // Everything that determines what the saved file actually is --
+            // the file is written at the AudioContext rate, which the browser
+            // picks from the output device and can differ from the mic's own
+            // rate (micSettings.sampleRate, where the browser reports it).
+            const recordingInfo = {
+                sampleRate,
+                micSettings: trackSettingsRef.current,
+                samples: sampleCountRef.current,
+                durationSec: Math.round((sampleCountRef.current / sampleRate) * 100) / 100,
+            };
 
             const finalizePipeline = flushPCMChunkBatch()
                 .then(() => pendingWritesRef.current)
@@ -602,13 +634,18 @@ export const useVoiceRecorder = (options = {}) => {
                 `Recording processing timed out after ${PROCESSING_WATCHDOG_MS / 1000}s`
             )
                 .then((audioBlob) => {
+                    logger.info("recording_finalized", {
+                        ...recordingInfo,
+                        format: audioBlob.type,
+                        sizeBytes: audioBlob.size,
+                    });
                     const url = URL.createObjectURL(audioBlob);
                     audioURLRef.current = url;
                     setAudioURL(url);
                     onRecordingComplete(audioBlob, url);
                 })
                 .catch((err) => {
-                    logger.error("Failed to build WAV from IDB", err);
+                    logger.error("Failed to finalize recording", err, recordingInfo);
                     setProcessingFailed(true);
                     onError(err);
                 });
@@ -626,6 +663,7 @@ export const useVoiceRecorder = (options = {}) => {
         const inFlightWrites = pendingWritesRef.current;
 
         chunkCountRef.current = 0;
+        sampleCountRef.current = 0;
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
         firstChunkTimeRef.current = null;
