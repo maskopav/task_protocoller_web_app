@@ -22,7 +22,8 @@ const STORY_LISTEN_THRESHOLD_FRACTION = 2 / 3
  * recordingStatus  string          Forwarded to AudioExampleButton (disables while recording).
  * playTrigger      any             Changing this triggers autoplay (e.g. right after the guide ends).
  * resetTrigger     any             Changing this fully resets playback to 0 (e.g. on repeat/retry).
- * onThresholdReached func          (story only) Called once when a third of the clip has played.
+ * onThresholdReached func          (story only) Called once STORY_LISTEN_THRESHOLD_FRACTION
+ *                                  of the clip has played; Recorder unlocks Start on it.
  * onPlayingChange  func            Reports isPlaying up to the parent (e.g. so it can skip
  *                                  auto-play if the participant already started it manually).
  * onLogEvent       func

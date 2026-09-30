@@ -17,7 +17,6 @@ import { VideoViewFinder } from './VideoViewFinder.jsx';
 import AudioGuidePlayer from '../AudioGuidePlayer/AudioGuidePlayer';
 import { getCameraCalibrationAudioPath } from '../../utils/getAudioGuidePath';
 import FormattedText from "../FormattedText/FormattedText";
-import { useConfirm } from '../ConfirmDialog/ConfirmDialogContext';
 import { logger } from '../../utils/frontendLogger';
 import { interpolateInstructions } from '../../utils/instructionParser';
 import { IncompatibleBrowser } from './IncompatibleBrowser';
@@ -30,6 +29,8 @@ const DEBUG_MODE = false;
 // "Try Again" is allowed twice per task; after that the button disappears.
 // Recorder is keyed by taskIndex in ParticipantInterfacePage, so this resets per task.
 const MAX_REPEATS = 2;
+// Placeholder in instruction texts where the story player is rendered.
+const PLAY_STORY_SLOT = '{{playStory}}';
 
 export const Recorder = ({
     title = "🎙️ Task Recorder",
@@ -143,7 +144,7 @@ export const Recorder = ({
 
     const {
         recordingStatus, permission: audioPermission, stream, audioURL, processingFailed, recordingTime,
-        audioLevelsRef, activeInstructions, durationExpired, incompatibleBrowser,
+        audioLevelsRef, durationExpired, incompatibleBrowser,
         getMicrophonePermission, startRecording: startAudioRecording, pauseRecording,
         resumeRecording, stopRecording: stopAudioRecording, repeatRecording,
         RECORDING_STATES
@@ -197,7 +198,7 @@ export const Recorder = ({
     const {
         isVadLoaded, vadFailed, activeUseVAD, isSpeaking, isSilentPause,
         canEarlyStop, hasSpoken, speechProb, speechSegments,
-        resetSpeechTrackers, resetSilenceClock, clearSilenceState, clearSpeechSegments
+        resetSpeechTrackers, clearSpeechSegments
     } = VADmodel;
 
     useEffect(() => { vadHelpersRef.current = VADmodel; }, [VADmodel]);
@@ -469,12 +470,6 @@ export const Recorder = ({
     const [isStoryPlaying, setIsStoryPlaying] = useState(false);
     const [storyAutoPlayTrigger, setStoryAutoPlayTrigger] = useState(0);
 
-    // Only relevant for video (camera-calibration) tasks with a story clip: block
-    // the Start-Calibration button until the participant has actually heard
-    // enough of the story, so they can't skip straight to camera setup by accident.
-    const storyListenGateActive = isVideoEnabled && exampleExists;
-    const blockStartForStory = storyListenGateActive && !hasListenedThreshold;
-
     // ── Auto-play the story once the parent's audio guide finishes ──────────
     const prevAutoPlayStoryTriggerRef = useRef(autoPlayStoryTrigger);
     
@@ -646,6 +641,18 @@ export const Recorder = ({
         isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic, processingFailed, audioURL,
         voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
     ]);
+
+    // ── Story-listen gate ─────────────────────────────────────────────────
+    // Whenever the story player is on screen, Start stays disabled until the
+    // participant has heard enough of the story (see AudioExamplePlayer's
+    // STORY_LISTEN_THRESHOLD_FRACTION). Independent of video: an audio-only
+    // retelling — including a video task after the participant declined the
+    // camera — is gated the same way. Keyed on the {{playStory}} slot rather
+    // than the clip alone, because tasks using the {{example}} slot resolve
+    // the same kind of clip but must never be blocked by it.
+    const isStoryShown = exampleExists &&
+        typeof parsedInstructions === 'string' && parsedInstructions.includes(PLAY_STORY_SLOT);
+    const blockStartForStory = isStoryShown && !hasListenedThreshold;
 
     const slots = {
         example: exampleExists ? (
