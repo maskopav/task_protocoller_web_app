@@ -21,12 +21,17 @@ const BOARD_BACKGROUNDS = {
   white:     "#ffffff",
 };
 
-export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, audioGuideEnabled = true }) {
+export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, onLogEvent, audioGuideEnabled = true }) {
   const { t } = useTranslation("tasks", "common");
   const { confirm } = useContext(ConfirmDialogContext);
 
   const [d15Colors, setD15Colors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Colour data (realColor.dat + colorjs.io chunk) failed to load — the board
+  // is empty, so offer a retry and let Next submit an explicit "load_failed".
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [showFillHint, setShowFillHint] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [events, setEvents] = useState([]);
@@ -79,6 +84,14 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
         );
       }
 
+      if (!colors?.length) {
+        onLogEvent?.("d15_colors_load_failed", { version, attempt: loadAttempt + 1 });
+        setLoadError(true);
+        setIsLoading(false);
+        return;
+      }
+
+      setLoadError(false);
       setD15Colors(colors);
 
       const initialTray = Array(colors.length).fill(null);
@@ -91,8 +104,10 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
       setIsLoading(false);
       setStartTime(Date.now());
     }
+    setIsLoading(true);
     initColors();
-  }, [version, randomize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version, randomize, loadAttempt]);
 
   // ── Auto-scroll so the first empty tray slot stays visible ──────────
   useEffect(() => {
@@ -201,6 +216,29 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   };
 
   const handleDone = () => {
+    if (loadError) {
+      clearTimeout(timeoutRef.current);
+      onNextTask({
+        result: [],
+        events: [],
+        completionStatus: "load_failed",
+        metrics: { totalDurationMs: 0, totalMoves: 0, totalUndos: 0, totalResets: 0 },
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    // Styled disabled but still clickable, so the tap can explain itself.
+    if (!isTrayFull) {
+      setShowFillHint(true);
+      onLogEvent?.("d15_next_blocked", {
+        version,
+        filledSlots: tray.filter(Boolean).length,
+        totalSlots: tray.length,
+      });
+      return;
+    }
+
     if (onStopAudio) {
       onStopAudio(); 
     }
@@ -227,7 +265,8 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   };
 
   // ── Derived display values ───────────────────────────────────────────
-  const isTrayFull     = !tray.includes(null);
+  // An empty tray (still loading / failed load) is NOT full.
+  const isTrayFull     = tray.length > 0 && !tray.includes(null);
 
   // Next flips from disabled to enabled the instant the last cap lands —
   // guard against the same tap landing on it.
@@ -263,7 +302,14 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
   //   </div>;
 
   // ── Slot content ─────────────────────────────────────────────────────
-  const boardContent = (
+  const boardContent = loadError ? (
+    <div className="d15-load-error">
+      <p>{t("d15colour.loadError")}</p>
+      <SafeButton className="btn-secondary" onClick={() => setLoadAttempt((n) => n + 1)}>
+        {t("d15colour.retry")}
+      </SafeButton>
+    </div>
+  ) : (
     <div className="d15-board" style={{ backgroundColor: boardBackground }}>
       <div className="d15-tray-section">
         <div className="d15-tray-container" ref={trayRef}>
@@ -319,10 +365,14 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, au
           {t("buttons.reset", { ns: "common" })}
         </SafeButton>
       )} */}
+      {showFillHint && !isTrayFull && !loadError && (
+        <div className="d15-hint">{t("d15colour.fillAllFirst")}</div>
+      )}
       <SafeButton
-          className="btn-next"
+          className={`btn-next ${isTrayFull || loadError ? "" : "is-disabled"}`}
+          aria-disabled={!isTrayFull && !loadError}
           onClick={handleDone}
-          disabled={!isTrayFull || justFilled}
+          disabled={isLoading || justFilled}
       >
           {t("buttons.next", { ns: "common" })}
       </SafeButton>

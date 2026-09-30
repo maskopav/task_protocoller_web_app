@@ -246,7 +246,7 @@ button {
   gap: 0.5em;
 }
 
-button:hover:not(:disabled) {
+button:hover:not(:disabled):not(.is-disabled) {
   filter: brightness(0.9);
   transform: translateY(-1px);
 }
@@ -254,7 +254,10 @@ button:active {
   transform: translateY(1px);
 }
 
-button:disabled:not(.btn-loading) {
+/* .is-disabled: looks disabled but stays clickable, so a tap can explain
+   why the participant can't continue yet (e.g. a hint above the button). */
+button:disabled:not(.btn-loading),
+button.is-disabled {
   color: var(--text);
   background: #dee1e491;
   cursor: not-allowed;

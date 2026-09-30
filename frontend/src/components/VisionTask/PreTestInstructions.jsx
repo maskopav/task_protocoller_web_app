@@ -10,7 +10,7 @@ import {
   settingsIcon 
 } from "../../assets/visionIcons/visionAssets";
 
-export default function PreTestInstructions({ onComplete, audioPlayer }) {
+export default function PreTestInstructions({ onComplete, onBlockedNext, audioPlayer }) {
   const { t } = useTranslation(["tasks", "common"]);
   const [answers, setAnswers] = useState({});
   const [showHint, setShowHint] = useState(false);
@@ -61,6 +61,7 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
   const handleStart = () => {
     if (!allAnswered) {
       setShowHint(true);
+      onBlockedNext?.(answers);
       return;
     }
     onComplete(answers);
@@ -77,8 +78,8 @@ export default function PreTestInstructions({ onComplete, audioPlayer }) {
         </div>
       )}
       <SafeButton
-        className={`btn-next`}
-        disabled={!allAnswered}
+        className={`btn-next ${allAnswered ? "" : "is-disabled"}`}
+        aria-disabled={!allAnswered}
         onClick={handleStart}
       >
         {t("buttons.next", { ns: "common" })}

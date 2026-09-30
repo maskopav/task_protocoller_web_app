@@ -8,7 +8,7 @@ import AudioGuidePlayer from "../AudioGuidePlayer/AudioGuidePlayer";
 import { getAudioGuidePath, buildAudioGuidePath } from "../../utils/getAudioGuidePath";
 import { D15AddColourMessage, D15ModifyColourMessage, D15TrialCompleteMessage, D15VersionCompleteMessage } from "./D15DemoMessage";
 
-export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled = true, isFirstVisionTask = true, hasMoreVisionTasks = false }) {
+export default function VisionTaskWrapper({ task, onNextTask, onLogEvent, audioGuideEnabled = true, isFirstVisionTask = true, hasMoreVisionTasks = false }) {
   // Steps: "instructions" -> "mechanics" -> "trial" -> "test"
   // "instructions" (the screen/environment setup checklist) AND "mechanics" (the
   // "how it works" add/modify colour dialogs) are only shown once per session —
@@ -19,6 +19,8 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
     isFirstVisionTask ? "instructions" : (includeTrial ? "trial" : "test")
   );
   const [environmentData, setEnvironmentData] = useState(null);
+  // Demo-trial result, saved alongside the real test's payload.
+  const [trialData, setTrialData] = useState(null);
   // Bumped every time we (re-)enter the trial/test step so the general
   // task audio guide re-plays, mirroring how it behaves for other tasks.
   const [taskAudioTrigger, setTaskAudioTrigger] = useState(0);
@@ -39,6 +41,27 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
   const { confirm } = useContext(ConfirmDialogContext);
 
   useScrollToTop(step);
+
+  const version = task?.params?.version || "desaturated";
+
+  // Every vision event carries the version + screen geometry, so a stuck
+  // participant's logs show which screen they were on and how it was laid out
+  // (e.g. a phone in the browser's "desktop site" mode reports ~980px width).
+  const logVision = (action, extra = {}) => {
+    onLogEvent?.(action, {
+      version,
+      step,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      devicePixelRatio: window.devicePixelRatio,
+      orientation: window.screen?.orientation?.type || null,
+      ...extra,
+    });
+  };
+
+  useEffect(() => {
+    logVision("vision_step", { step });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const handleInstructionsComplete = (data) => {
     setEnvironmentData(data); // Save setup checklist data
@@ -73,6 +96,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
         confirmText: t("buttons.ok", { ns: "common" })
       });
       addGuideRef.current?.stop();
+      logVision("vision_dialog_dismissed", { dialog: "add_colour" });
 
       // 2. Modify colour (mechanics + colour-vision note)
       await confirm({
@@ -90,6 +114,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
         confirmText: t("buttons.ok", { ns: "common" })
       });
       modifyGuideRef.current?.stop();
+      logVision("vision_dialog_dismissed", { dialog: "modify_colour" });
 
       if (cancelled) return;
       setStep(includeTrial ? "trial" : "test");
@@ -101,7 +126,20 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
-  const handleTrialComplete = async () => {
+  const handleTrialComplete = async (trialResults) => {
+    const trial = {
+      completionStatus: trialResults?.completionStatus || "completed",
+      metrics: trialResults?.metrics,
+      events: trialResults?.events,
+      resultIndices: trialResults?.result,
+      timestamp: trialResults?.timestamp,
+    };
+    setTrialData(trial);
+    logVision("vision_trial_completed", {
+      completionStatus: trial.completionStatus,
+      resultIndices: trial.resultIndices,
+      durationMs: trial.metrics?.totalDurationMs,
+    });
     await confirm({
       title: t("d15colour.trialCompleteTitle", { ns: "tasks" }),
       headerRight: (
@@ -124,15 +162,20 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
 
   const handleTestComplete = async (testResults) => {
     const finalData = {
-      version: task?.params?.version || "desaturated",
+      version,
       background: task?.params?.background || "grey",
       environmentSettings: environmentData,
+      trial: trialData,
       completionStatus:    testResults.completionStatus || "completed",
       metrics: testResults.metrics,
       events: testResults.events,
       resultIndices: testResults.result,
       timestamp: testResults.timestamp
     };
+    logVision("vision_test_completed", {
+      completionStatus: finalData.completionStatus,
+      durationMs: finalData.metrics?.totalDurationMs,
+    });
 
     // Another version (e.g. saturated -> desaturated) still follows this one —
     // confirm this version is done before handing off to the next task.
@@ -162,6 +205,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
       {step === "instructions" && (
         <PreTestInstructions 
           onComplete={handleInstructionsComplete} 
+          onBlockedNext={(answers) => logVision("vision_checklist_next_blocked", { answers })}
           audioPlayer={
             <AudioGuidePlayer
               ref={instructionsGuideRef}
@@ -178,6 +222,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
           task={{ params: { version: "demo", randomize: true, showNumbers: "never", background: task?.params?.background } }}
           onNextTask={handleTrialComplete}
           onStopAudio={() => trialTaskGuideRef.current?.stop()}
+          onLogEvent={logVision}
           audioPlayer={
             <AudioGuidePlayer
               ref={trialTaskGuideRef}
@@ -198,6 +243,7 @@ export default function VisionTaskWrapper({ task, onNextTask, audioGuideEnabled 
           task={task}
           onNextTask={handleTestComplete}
           onStopAudio={() => testTaskGuideRef.current?.stop()}
+          onLogEvent={logVision}
           audioPlayer={
             <AudioGuidePlayer
               ref={testTaskGuideRef}

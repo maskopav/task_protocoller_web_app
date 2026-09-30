@@ -1128,6 +1128,12 @@ export default function ParticipantInterfacePage() {
             key={taskIndex}
             task={currentTask}
             onNextTask={handleTaskComplete}
+            // Goes to both sessions.progress (per-session) and the frontend
+            // log view (which isn't keyed by session, hence the sessionId).
+            onLogEvent={(action, extra) => {
+              logInteraction(action, extra);
+              logger.info(action, { sessionId, taskIndex: taskIndex + 1, ...extra });
+            }}
             isUploading={isUploading}
             audioGuideEnabled={useAudioGuide}
             isFirstVisionTask={isFirstVisionTask}

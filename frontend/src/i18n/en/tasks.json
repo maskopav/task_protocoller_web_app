@@ -370,6 +370,9 @@
       "timeoutText": "It's okay to stop here. Would you like to submit your current sequence?",
       "timeoutSubmit": "Submit",
       "timeoutContinue": "Keep going",
+      "fillAllFirst": "Please fill all empty spaces in the top row first.",
+      "loadError": "The colors could not be loaded. Please check your internet connection and try again.",
+      "retry": "Try again",
       "controls": {
         "addTabLabel": "Add color",
         "modifyTabLabel": "Modify sequence"
