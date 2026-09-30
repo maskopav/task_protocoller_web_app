@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "configVersion": "2026-09-10.093000",
+  "siteName": "Sample Site",
   "defaultLanguage": "en",
   "languages": [
     "en"
@@ -12,6 +13,7 @@
   "protocols": [
     {
       "name": "All identifiers",
+      "version": 1,
       "project": "Identifier Study",
       "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
       "recordingsFileName": "${field.patient_code}_${field.surname}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",

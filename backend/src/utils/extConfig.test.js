@@ -25,6 +25,8 @@ describe('buildExtConfig — spec invariants over every fixture', () => {
       it('has the ext envelope with real booleans', () => {
         expect(config.schemaVersion).toBe(1);
         expect(config.configVersion).toMatch(/^\d{4}-\d{2}-\d{2}\.\d{6}$/);
+        expect(config.siteName).toBe('Sample Site');
+        for (const p of config.protocols) expect(Number.isInteger(p.version) && p.version >= 1).toBe(true);
         expect(typeof config.enableEditor).toBe('boolean');
         expect(typeof config.useCalibration).toBe('boolean');
         if ('defaultMicGain' in config) expect(Number.isInteger(config.defaultMicGain) && config.defaultMicGain >= 0 && config.defaultMicGain <= 100).toBe(true);

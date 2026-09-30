@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "configVersion": "2026-09-10.093000",
+  "siteName": "Sample Site",
   "defaultLanguage": "en",
   "languages": [
     "en"
@@ -12,6 +13,7 @@
   "protocols": [
     {
       "name": "Speech battery",
+      "version": 1,
       "project": "Project A",
       "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
       "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
@@ -104,6 +106,7 @@
     },
     {
       "name": "Short screening",
+      "version": 1,
       "project": "Project A",
       "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
       "patientFields": [
@@ -148,6 +151,7 @@
     },
     {
       "name": "Speech battery",
+      "version": 1,
       "project": "Project B",
       "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
       "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
@@ -240,6 +244,7 @@
     },
     {
       "name": "Monologue only",
+      "version": 1,
       "project": "Project B",
       "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
       "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",

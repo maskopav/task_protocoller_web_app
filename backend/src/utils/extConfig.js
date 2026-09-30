@@ -345,7 +345,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
       };
     });
 
-    const out = { name, project: projectName };
+    const out = { name, version: num(primary.protocol.version, 1), project: projectName };
     if (primary.protocol.instructions_pdf_url) out.protocolInstructionsPdfUrl = primary.protocol.instructions_pdf_url;
     out.recordingsFileName = primary.protocol.recordings_file_name || DEFAULT_RECORDINGS_FILE_NAME;
     out.patientFields = patientFields;
@@ -371,6 +371,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
   const config = {
     schemaVersion: SCHEMA_VERSION,
     configVersion,
+    siteName: site?.name ?? "",
     defaultLanguage,
     languages,
     defaultMicName: settings.defaultMicName,

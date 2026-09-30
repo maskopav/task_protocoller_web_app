@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "configVersion": "2026-09-10.093000",
+  "siteName": "Sample Site",
   "defaultLanguage": "cs",
   "languages": [
     "cs",
@@ -13,6 +14,7 @@
   "protocols": [
     {
       "name": "Bilingual protocol",
+      "version": 1,
       "project": "Bilingual Study",
       "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
       "recordingsFileName": "${field.patient_code}_${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}",
