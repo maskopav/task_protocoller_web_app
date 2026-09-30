@@ -2,8 +2,11 @@
 function padTwoDigits(num) {
     return num.toString().padStart(2, "0");
   }
-  
-// Added default value "new Date()" to the argument
+
+// Filename-safe UTC timestamp, e.g. "2026-08-31_13-38-47Z". The trailing
+// "Z" marks it as UTC so nobody has to guess when browsing files on disk --
+// every stored/machine-facing timestamp in this app is UTC; only the UI
+// converts to local time for display.
 export function dateInYyyyMmDdHhMmSs(date = new Date(), dateDivider = "-") {
 return (
     [
@@ -16,6 +19,7 @@ return (
     padTwoDigits(date.getUTCHours()),
     padTwoDigits(date.getUTCMinutes()),
     padTwoDigits(date.getUTCSeconds()),
-    ].join("-") // Changed colon to dash for safer filenames
+    ].join("-") + // Changed colon to dash for safer filenames
+    "Z"
 );
 }

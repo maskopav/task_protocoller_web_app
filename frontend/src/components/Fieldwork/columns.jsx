@@ -5,8 +5,10 @@
 import {
   getInitials,
   formatDateTime,
+  formatWallClockDateTime,
   formatDuration,
   csvDateTime,
+  csvUtcDateTime,
   csvDuration,
   formatMicCheck,
   statusValue,
@@ -221,7 +223,7 @@ const ALL_COLUMN_DEFS = [
     // link — set via the Fieldwork CSV import, distinct from "Started".
     value: (r) => csvDateTime(r.link_sent_at),
     sortValue: (r) => r.link_sent_at || "",
-    render: (r) => formatDateTime(r.link_sent_at),
+    render: (r) => formatWallClockDateTime(r.link_sent_at),
   },
   // Up to 3 follow-up calls the agency logs when a respondent is stuck —
   // one date + one notes column per call attempt, all hidden by default
@@ -233,7 +235,7 @@ const ALL_COLUMN_DEFS = [
       defaultVisible: false,
       value: (r) => csvDateTime(r[`call_${n}_at`]),
       sortValue: (r) => r[`call_${n}_at`] || "",
-      render: (r) => formatDateTime(r[`call_${n}_at`]),
+      render: (r) => formatWallClockDateTime(r[`call_${n}_at`]),
     },
     {
       id: `call${n}Notes`,
@@ -247,7 +249,7 @@ const ALL_COLUMN_DEFS = [
   {
     id: "started",
     label: "Started",
-    value: (r) => csvDateTime(r.session_started_at),
+    value: (r) => csvUtcDateTime(r.session_started_at),
     sortValue: (r) => r.session_started_at || "",
     render: startedText,
   },
@@ -255,7 +257,7 @@ const ALL_COLUMN_DEFS = [
     id: "lastActivity",
     label: "Last Activity",
     defaultVisible: false,
-    value: (r) => csvDateTime(r.session_last_activity_at),
+    value: (r) => csvUtcDateTime(r.session_last_activity_at),
     sortValue: (r) => r.session_last_activity_at || "",
     render: lastActivityText,
   },
@@ -263,7 +265,7 @@ const ALL_COLUMN_DEFS = [
     id: "resumableUntil",
     label: "Resumable Until",
     defaultVisible: false,
-    value: (r) => (isResumeRelevant(r) ? csvDateTime(r.resumable_until) : ""),
+    value: (r) => (isResumeRelevant(r) ? csvUtcDateTime(r.resumable_until) : ""),
     sortValue: (r) => r.resumable_until || "",
     render: (r) => {
       if (!isResumeRelevant(r)) return "—";

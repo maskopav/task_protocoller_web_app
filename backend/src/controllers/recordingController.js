@@ -56,8 +56,8 @@ export const uploadRecording = async (req, res) => {
     // Notice we do NOT insert the coordinates into the DB. The DB stays clean!
     await connection.query(
       `INSERT INTO recordings 
-      (session_id, protocol_task_id, recording_url, duration_seconds, repeat_index) 
-      VALUES (?, ?, ?, ?, ?)
+      (session_id, protocol_task_id, recording_url, duration_seconds, repeat_index, created_at) 
+      VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())
       ON DUPLICATE KEY UPDATE 
       recording_url = VALUES(recording_url), 
       duration_seconds = VALUES(duration_seconds),
@@ -119,8 +119,8 @@ export const uploadMicCheck = async (req, res) => {
     // Insert into the new session_mic_checks table
     await connection.query(
       `INSERT INTO session_mic_checks 
-      (session_id, recording_url, snr_score, duration_seconds, speech_segments, attempt_number) 
-      VALUES (?, ?, ?, ?, ?, ?)`,
+      (session_id, recording_url, snr_score, duration_seconds, speech_segments, attempt_number, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
       [
         sessionId, 
         finalFilename, 

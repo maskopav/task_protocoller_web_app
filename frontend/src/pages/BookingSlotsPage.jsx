@@ -25,10 +25,11 @@ function formatLocalDateTime(value) {
   return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
 }
 
-// bookings.created_at is a real UTC instant (DB default CURRENT_TIMESTAMP
-// under booking-service's UTC session timezone) — unlike starts_at/ends_at,
-// this one does need converting to the viewer's own local time to display
-// correctly.
+// bookings.created_at is a real UTC instant (written explicitly with
+// UTC_TIMESTAMP() — the DB session itself runs in server-local time, so the
+// column DEFAULT would not be UTC) — unlike starts_at/ends_at, this one does
+// need converting to the viewer's own local time to display correctly.
+// Rows created before 2026-09-30 came from that DEFAULT and show ~1-2h late.
 function formatUtcDateTime(value) {
   if (!value) return "—";
   const d = new Date(`${String(value).replace(" ", "T")}Z`);

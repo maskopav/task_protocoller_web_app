@@ -61,8 +61,8 @@ export const createAdmin = async (req, res) => {
 
         // 3. Insert User (Transactionally if possible, or sequential)
         const userResult = await executeQuery(
-            `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password)
-             VALUES (?, ?, ?, ?, true)`,
+            `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password, created_at, updated_at)
+             VALUES (?, ?, ?, ?, true, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
             [email, passwordHash, full_name, roleId]
         );
         const newUserId = userResult.insertId;
@@ -70,7 +70,7 @@ export const createAdmin = async (req, res) => {
         // 4. Assign Projects if any
         if (project_ids && project_ids.length > 0) {
             for (const pid of project_ids) {
-                await executeQuery("INSERT INTO user_projects (user_id, project_id) VALUES (?, ?)", [newUserId, pid]);
+                await executeQuery("INSERT INTO user_projects (user_id, project_id, assigned_at) VALUES (?, ?, UTC_TIMESTAMP())", [newUserId, pid]);
             }
         }
 

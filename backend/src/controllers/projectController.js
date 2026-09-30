@@ -143,8 +143,8 @@
 
     try {
         const result = await executeQuery(
-            `INSERT INTO projects (name, description, frequency, country, contact_person, created_by, updated_by, start_date, updated_at, is_active)
-             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
+            `INSERT INTO projects (name, description, frequency, country, contact_person, created_by, updated_by, start_date, created_at, updated_at, is_active)
+             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
             [name, description, frequency, country, contact_person, created_by, created_by]
         );
         res.json({ success: true, id: result.insertId });

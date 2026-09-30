@@ -93,3 +93,8 @@
   border-left-color: var(--danger);
   background: #fdecea;
 }
+
+.log-entry-local-time {
+  font-weight: 600;
+  color: var(--muted);
+}

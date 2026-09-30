@@ -28,6 +28,15 @@ function levelClassFor(entry) {
   return LEVEL_CLASS[match?.[1]] || "log-entry-info";
 }
 
+// The file stays in UTC (unambiguous, sorts correctly across DST changes);
+// this just adds the viewer's own local time on top for readability.
+function localTimeFor(entry) {
+  const iso = entry.match(/^\[(\d{4}-\d{2}-\d{2}T[\d:.]+Z)\]/)?.[1];
+  if (!iso) return null;
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleString();
+}
+
 export default function SystemLogsPage() {
   const navigate = useNavigate();
 
@@ -72,8 +81,9 @@ export default function SystemLogsPage() {
         <h1 className="page-title">System Logs</h1>
         <p className="project-description">
           Reads backend/logs/system_log.txt directly -- both frontend and backend
-          entries land here. Times below are UTC to match the file; the since/until
-          pickers accept your local time and convert automatically.
+          entries land here. The file itself is in UTC (the "Z" timestamps); each
+          entry also shows your local time above it, and the since/until pickers
+          accept your local time and convert automatically.
         </p>
       </div>
 
@@ -120,9 +130,16 @@ export default function SystemLogsPage() {
         {!loading && entries.length === 0 && !error && (
           <p className="log-empty">No entries match these filters.</p>
         )}
-        {entries.map((entry, i) => (
-          <pre key={i} className={`log-entry ${levelClassFor(entry)}`}>{entry}</pre>
-        ))}
+        {entries.map((entry, i) => {
+          const localTime = localTimeFor(entry);
+          return (
+            <pre key={i} className={`log-entry ${levelClassFor(entry)}`}>
+              {localTime && <span className="log-entry-local-time">{localTime} (your time)</span>}
+              {localTime && "\n"}
+              {entry}
+            </pre>
+          );
+        })}
       </div>
     </div>
   );

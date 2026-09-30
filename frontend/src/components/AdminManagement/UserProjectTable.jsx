@@ -30,7 +30,7 @@ export default function UserProjectTable({ assignments, onRemove }) {
                 <td className="highlighted">{a.user_name}</td>
                 <td>{a.user_email}</td>
                 <td><span className="project-tag">{a.project_name}</span></td>
-                <td>{new Date(a.assigned_at).toLocaleDateString()}</td>
+                <td>{a.assigned_at ? new Date(a.assigned_at.replace(" ", "T") + "Z").toLocaleDateString() : "—"}</td>
                 <td>
                   <div className="actions-cell">
                     <button 

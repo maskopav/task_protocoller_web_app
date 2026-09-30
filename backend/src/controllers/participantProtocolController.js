@@ -440,8 +440,8 @@ export async function importContactEvents(req, res) {
       try {
         await executeQuery(
           `INSERT INTO participant_protocol_contacts
-             (participant_protocol_id, contact_type, attempt_number, contacted_at, notes)
-           VALUES (?, ?, ?, ?, ?)
+             (participant_protocol_id, contact_type, attempt_number, contacted_at, notes, imported_at)
+           VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())
            ON DUPLICATE KEY UPDATE contacted_at = VALUES(contacted_at), notes = VALUES(notes)`,
           [participantProtocolId, field.contactType, field.attemptNumber, contactedAt, notes]
         );

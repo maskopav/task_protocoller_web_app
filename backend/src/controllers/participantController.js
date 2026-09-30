@@ -53,8 +53,8 @@ export const createParticipant = async (req, res) => {
       // 1. Insert Participant
       const [pResult] = await conn.query(
         // Added 'contact_phone' and 'creation_source' columns
-        `INSERT INTO participants (full_name, external_id, birth_date, sex, contact_email, contact_phone, notes, creation_source)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO participants (full_name, external_id, birth_date, sex, contact_email, contact_phone, notes, creation_source, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
         [full_name, external_id || null, birth_date, sex, contact_email, contact_phone || null, notes, 'admin']
       );
       const newParticipantId = pResult.insertId;
@@ -80,7 +80,7 @@ async function findOrCreateParticipant(conn, externalId) {
   if (existing.length > 0) return existing[0].id;
 
   const [inserted] = await conn.query(
-    `INSERT INTO participants (external_id, creation_source) VALUES (?, 'admin')`,
+    `INSERT INTO participants (external_id, creation_source, created_at) VALUES (?, 'admin', UTC_TIMESTAMP())`,
     [externalId]
   );
   return inserted.insertId;

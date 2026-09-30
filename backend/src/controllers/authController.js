@@ -60,8 +60,8 @@ export const participantSignup = async (req, res) => {
       }
 
       const [resIns] = await conn.query(
-        `INSERT INTO participants (external_id, full_name, birth_date, sex, contact_email, contact_phone, login_email, login_password_hash, creation_source)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO participants (external_id, full_name, birth_date, sex, contact_email, contact_phone, login_email, login_password_hash, creation_source, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
         [externalId, full_name, birth_date, sex, email, contact_phone, email, hash, 'signup']
       );
       

@@ -16,7 +16,7 @@ import { executeQuery } from "../db/queryHelper.js";
     const { user_id, project_id } = req.body;
     try {
       await executeQuery(
-        "INSERT INTO user_projects (user_id, project_id) VALUES (?, ?)",
+        "INSERT INTO user_projects (user_id, project_id, assigned_at) VALUES (?, ?, UTC_TIMESTAMP())",
         [user_id, project_id]
       );
       res.json({ success: true });

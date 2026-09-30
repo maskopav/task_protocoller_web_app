@@ -4,6 +4,7 @@
 import { executeQuery, executeTransaction } from "../db/queryHelper.js";
 import { generateApiKey, hashApiKey } from "../utils/apiKey.js";
 import crypto from "crypto";
+import mysql from "mysql2/promise";
 import { generateToken } from "../utils/tokenGenerator.js";
 import { iterateDates, weekdayOf, addMinutesToTime } from "../utils/dateHelpers.js";
 import { SUPPORTED_LOCALES } from "../i18n/emailTranslations.js";
@@ -15,7 +16,7 @@ export async function createTenant(name) {
   const linkSigningSecret = crypto.randomBytes(32).toString("hex");
 
   const result = await executeQuery(
-    `INSERT INTO tenants (name, api_key_hash, link_signing_secret) VALUES (?, ?, ?)`,
+    `INSERT INTO tenants (name, api_key_hash, link_signing_secret, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())`,
     [name, hashApiKey(rawApiKey), linkSigningSecret]
   );
 
@@ -33,8 +34,8 @@ export async function getTenantById(tenantId) {
 
 export async function createResource(tenantId, { slug, name, defaultDurationMin, defaultLocation, contactInfo }) {
   const result = await executeQuery(
-    `INSERT INTO resources (tenant_id, slug, name, default_duration_min, default_location, contact_info)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO resources (tenant_id, slug, name, default_duration_min, default_location, contact_info, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
     [tenantId, slug, name, defaultDurationMin || 45, defaultLocation || null, contactInfo || null]
   );
   return { id: result.insertId, tenantId, slug, name };
@@ -88,6 +89,9 @@ export async function bulkCreateSlots(tenantId, resourceId, {
 
   const weekdaySet = new Set(weekdays);
   const rows = [];
+  // Explicit rather than the column DEFAULT: CURRENT_TIMESTAMP is session
+  // local time, and every stored timestamp here must be UTC.
+  const createdAt = mysql.raw("UTC_TIMESTAMP()");
 
   for (const date of iterateDates(startDate, endDate)) {
     if (!weekdaySet.has(weekdayOf(date))) continue;
@@ -96,7 +100,7 @@ export async function bulkCreateSlots(tenantId, resourceId, {
     while (true) {
       const slotEnd = addMinutesToTime(cursor, durationMin);
       if (!slotEnd || slotEnd > endTime) break;
-      rows.push([resourceId, `${date} ${cursor}:00`, `${date} ${slotEnd}:00`, location || null]);
+      rows.push([resourceId, `${date} ${cursor}:00`, `${date} ${slotEnd}:00`, location || null, createdAt]);
       cursor = slotEnd;
     }
   }
@@ -113,7 +117,7 @@ export async function bulkCreateSlots(tenantId, resourceId, {
   // (duplicates skipped by the UNIQUE constraint don't count), so the
   // created/skipped split below still comes out right in a single call.
   const result = await executeQuery(
-    `INSERT IGNORE INTO slots (resource_id, starts_at, ends_at, location) VALUES ?`,
+    `INSERT IGNORE INTO slots (resource_id, starts_at, ends_at, location, created_at) VALUES ?`,
     [rows]
   );
   const created = result.affectedRows;
@@ -262,8 +266,8 @@ export async function createBooking({ resourceId, slotId, externalRef, email, ph
     const manageToken = await generateUniqueManageToken(conn);
 
     const [result] = await conn.query(
-      `INSERT INTO bookings (resource_id, slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'booked')`,
+      `INSERT INTO bookings (resource_id, slot_id, external_ref, eligible_after, contact_email, contact_phone, manage_token, locale, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'booked', UTC_TIMESTAMP())`,
       [resourceId, slotId, externalRef, eligibleAfter, email, phone, manageToken, safeLocale]
     );
 
@@ -450,8 +454,8 @@ export async function reportNoSlotAvailable({ resourceId, externalRef, email, ph
   return executeTransaction(async (conn) => {
     const manageToken = await generateUniqueManageToken(conn);
     await conn.query(
-      `INSERT INTO bookings (resource_id, external_ref, eligible_after, contact_email, contact_phone, preferred_times, manage_token, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'requested')`,
+      `INSERT INTO bookings (resource_id, external_ref, eligible_after, contact_email, contact_phone, preferred_times, manage_token, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'requested', UTC_TIMESTAMP())`,
       [resourceId, externalRef, eligibleAfter, email, phone, preferredTimes || null, manageToken]
     );
     return { manageToken };
@@ -472,7 +476,7 @@ export async function listNoSlotReportsForAdmin(tenantId, resourceId) {
 export async function registerWebhook(tenantId, url) {
   const secret = crypto.randomBytes(24).toString("hex");
   const result = await executeQuery(
-    `INSERT INTO webhooks (tenant_id, url, secret) VALUES (?, ?, ?)`,
+    `INSERT INTO webhooks (tenant_id, url, secret, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())`,
     [tenantId, url, secret]
   );
   return { id: result.insertId, url, secret };

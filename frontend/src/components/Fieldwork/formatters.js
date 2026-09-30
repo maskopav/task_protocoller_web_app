@@ -8,16 +8,40 @@ export function getInitials(name) {
   return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
 }
 
+const pad2 = (n) => String(n).padStart(2, "0");
+
+const DISPLAY_OPTIONS = {
+  day: "2-digit",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+};
+
+// Two kinds of DB datetime reach this table, and they must not be mixed up:
+//  - UTC instants (session_started_at, session_last_activity_at,
+//    resumable_until, ...) -- every timestamp the app itself stores.
+//    Converted to the viewer's local time for display.
+//  - Wall-clock times (link_sent_at, call_N_at = participant_protocol_contacts
+//    .contacted_at) -- typed in by the agency in their own local time via the
+//    CSV import and stored as-is. Shown exactly as entered.
+function parseUtc(value) {
+  return new Date(value.replace(" ", "T") + "Z");
+}
+
 export function formatDateTime(value) {
   if (!value) return "—";
-  const d = new Date(value.replace(" ", "T") + "Z");
+  const d = parseUtc(value);
   if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleString(undefined, {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return d.toLocaleString(undefined, DISPLAY_OPTIONS);
+}
+
+export function formatWallClockDateTime(value) {
+  if (!value) return "—";
+  // No "Z": parsed as local, then displayed as local -- the wall-clock
+  // digits come out unchanged, just in the same display format as above.
+  const d = new Date(value.replace(" ", "T"));
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString(undefined, DISPLAY_OPTIONS);
 }
 
 export function formatDuration(seconds) {
@@ -33,12 +57,24 @@ export function formatDuration(seconds) {
 
 // --- CSV-specific formatters: Excel-friendly rather than human-friendly.
 // Empty cells stay truly empty (no "—" placeholder — Excel can't sort/filter
-// a dash as blank), timestamps are passed through as the DB's own
-// "YYYY-MM-DD HH:MM:SS" (unambiguous, Excel parses it as a real date/time
-// natively), and duration is H:MM:SS (Excel recognizes it as a time value —
-// sortable, usable in SUM — instead of the "1h 17m" text).
+// a dash as blank), timestamps are "YYYY-MM-DD HH:MM:SS" (Excel parses it
+// as a real date/time natively), and duration is H:MM:SS (Excel recognizes
+// it as a time value — sortable, usable in SUM — instead of the "1h 17m"
+// text). Every CSV timestamp comes out in the exporter's local time, same as
+// on screen, so the columns are comparable with each other.
+
+// Wall-clock values (link_sent_at, call_N_at) — already local, passed
+// through untouched so they round-trip through the CSV import unchanged.
 export function csvDateTime(value) {
   return value || "";
+}
+
+// UTC instants — converted to the exporter's local time.
+export function csvUtcDateTime(value) {
+  if (!value) return "";
+  const d = parseUtc(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 
 export function csvDuration(seconds) {
@@ -51,11 +87,10 @@ export function csvDuration(seconds) {
   return `${h}:${pad(m)}:${pad(s)}`;
 }
 
-// e.g. "2026-08-31_1432" — filesystem-safe, sorts chronologically, local time
-export function timestampForFilename() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+// e.g. "2026-08-31_14-32-05Z" — filesystem-safe, sorts chronologically,
+// UTC (the trailing "Z"), same format as the backend's filenames.
+export function timestampForFilename(d = new Date()) {
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}_${pad2(d.getUTCHours())}-${pad2(d.getUTCMinutes())}-${pad2(d.getUTCSeconds())}Z`;
 }
 
 const ORDINALS = ["1st", "2nd", "3rd"];
