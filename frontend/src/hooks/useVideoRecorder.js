@@ -174,12 +174,14 @@ export const useVideoRecorder = ({
         // A model-load failure here is a separate concern from the camera
         // permission above (tracked via modelLoadError, set inside
         // preloadFaceModel itself) — don't relabel it as a camera error.
+        // Returning false here would make VideoViewFinder show "Camera Access
+        // Denied"; instead report success and let the CALIBRATE phase show
+        // the model-load retry screen (startFaceDetection waits for the model).
         try {
             await preloadFaceModel();
         } catch (err) {
             console.error(err);
             onError(err);
-            return false;
         }
 
         return true;

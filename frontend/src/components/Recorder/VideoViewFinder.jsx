@@ -268,22 +268,33 @@ export const VideoViewFinder = ({
         // The Permissions API only ever reports 'denied' (no err.name to
         // classify), so a null cameraErrorType means a real permission
         // denial — only a caught getUserMedia() failure can name a more
-        // specific hardware issue.
+        // specific hardware issue. Hardware issues have no OS-specific
+        // "go to Settings" remedy, so they use the tab-less 'error' variant;
+        // only 'generic' adds a hint (busy/missing descs already say it all).
         const errConfig = {
-            missing: { title: 'titleHardware', desc: 'descMissing', stepsKey: 'hardware', showImage: false },
-            busy:    { title: 'titleHardware', desc: 'descBusy',    stepsKey: 'hardware', showImage: false },
-            generic: { title: 'titleGeneric',  desc: 'descGeneric', stepsKey: 'hardware', showImage: false },
-        }[cameraErrorType] || { title: 'titleDenied', desc: 'descDenied', stepsKey: 'systemAndBrowser', showImage: true };
+            missing: { title: 'titleHardware', desc: 'descMissing' },
+            busy:    { title: 'titleHardware', desc: 'descBusy' },
+            generic: { title: 'titleGeneric',  desc: 'descGeneric', hint: 'stepsHardware' },
+        }[cameraErrorType];
+        const isHardwareError = !!errConfig;
 
         return (
             <MediaPermissionContent
                 type="camera"
-                variant="denied"
-                title={t(`videoCalibration.guide.${errConfig.title}`)}
-                deniedText={<Trans i18nKey={`videoCalibration.guide.${errConfig.desc}`} />}
-                showImage={errConfig.showImage}
+                variant={isHardwareError ? 'error' : 'denied'}
+                title={t(`videoCalibration.guide.${isHardwareError ? errConfig.title : 'titleDenied'}`)}
+                deniedText={isHardwareError ? (
+                    <>
+                        <Trans i18nKey={`videoCalibration.guide.${errConfig.desc}`} />
+                        {errConfig.hint && (
+                            <><br /><br /><Trans i18nKey={`videoCalibration.guide.${errConfig.hint}`} /></>
+                        )}
+                    </>
+                ) : (
+                    <Trans i18nKey="videoCalibration.guide.descDenied" />
+                )}
                 customSteps={(osTab) => (
-                    <Trans i18nKey={`videoCalibration.guide.steps.${osTab}.${errConfig.stepsKey}`} />
+                    <Trans i18nKey={`videoCalibration.guide.steps.${osTab}.systemAndBrowser`} />
                 )}
                 btnText={t('videoCalibration.guide.btnRetry')}
                 onBtnClick={() => {
