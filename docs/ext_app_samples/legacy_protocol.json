@@ -54,7 +54,8 @@
             "p100_t1_instr1"
           ],
           "length": 7,
-          "showIndicator": true
+          "showIndicator": true,
+          "recordVideo": true
         },
         {
           "type": "VOCAL",
@@ -69,7 +70,8 @@
             "p100_t2_instr3"
           ],
           "length": 60,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": true
         }
       ]
     }

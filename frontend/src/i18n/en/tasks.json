@@ -86,6 +86,7 @@
         "canRepeat": { "label": "Allow repeat" },
         "canSkip": { "label": "Allow skip" },
         "showIndicator": { "label": "Show level indicator" },
+        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
         "phoneme": {
           "label": "Phoneme",
           "values": {
@@ -119,6 +120,7 @@
         "canRepeat": { "label": "Allow repeat" },
         "canSkip": { "label": "Allow skip" },
         "showIndicator": { "label": "Show level indicator" },
+        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
         "syllable": {
           "label": "Syllable",
           "values": {
@@ -151,6 +153,7 @@
         "canRepeat": { "label": "Allow repeat" },
         "canSkip": { "label": "Allow skip" },
         "showIndicator": { "label": "Show level indicator" },
+        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
         "fairytale": {
           "label": "Fairytale",
           "values": {
@@ -184,6 +187,7 @@
         "canRepeat": { "label": "Allow repeat" },
         "canSkip": { "label": "Allow skip" },
         "showIndicator": { "label": "Show level indicator" },
+        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
         "topic": {
           "label":"Text topic",
           "values": {
@@ -225,6 +229,7 @@
         "canRepeat": { "label": "Allow repeat" },
         "canSkip": { "label": "Allow skip" },
         "showIndicator": { "label": "Show level indicator" },
+        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
         "topic": {
           "label":"Monologue topic",
           "values": {
@@ -260,6 +265,7 @@
         "canRepeat": { "label": "Allow repeat" },
         "canSkip": { "label": "Allow skip" },
         "showIndicator": { "label": "Show level indicator" },
+        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
         "topics": {
           "label": "Select multiple topics",
           "values": {

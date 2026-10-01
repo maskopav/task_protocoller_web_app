@@ -37,6 +37,9 @@ describe('buildExtConfig — spec invariants over every fixture', () => {
           expect(typeof t.canSkip).toBe('boolean');
           expect(Number.isInteger(t.nrepetition) && t.nrepetition >= 1).toBe(true);
           if (t.type === 'VOCAL') expect(typeof t.showIndicator).toBe('boolean');
+          // recordVideo: a real boolean on every VOCAL task, never on other types
+          if (t.type === 'VOCAL') expect(typeof t.recordVideo).toBe('boolean');
+          else expect(t).not.toHaveProperty('recordVideo');
         }
       });
 
@@ -79,6 +82,8 @@ describe('buildExtConfig — case specifics', () => {
     // reading text is appended as the last paragraph
     const lastKey = protocol.tasks[2].instructionKeys.at(-1);
     expect(config.strings.en[lastKey]).toMatch(/North Wind/);
+    // only the monologue is filmed
+    expect(protocol.tasks.map((t) => t.recordVideo)).toEqual([false, false, false, true, false]);
     expect(protocol.patientFields).toEqual([
       { name: 'patient_code', labelKey: 'p10_f_patient_code_label', helpKey: 'p10_f_patient_code_help', placeholder: 'HC001', regex: '[A-Za-z0-9_-]+', required: true },
     ]);
@@ -184,6 +189,8 @@ describe('buildExtConfig — case specifics', () => {
     expect(protocol.patientFields[2]).toMatchObject({ regex: '\\d{4}', required: false });
     expect(protocol.tasks[0].subtype).toBe('SYLLABLES');
     expect(protocol.tasks[0].audioExamplePath).toBeUndefined();
+    // stored "true" and tinyint 1 both become a real boolean
+    expect(protocol.tasks.map((t) => t.recordVideo)).toEqual([true, true]);
   });
 
   it('serves a site with no protocols as an empty but valid config', () => {

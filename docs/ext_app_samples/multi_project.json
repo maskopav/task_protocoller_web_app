@@ -40,6 +40,7 @@
           ],
           "length": 10,
           "showIndicator": true,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         },
         {
@@ -54,6 +55,7 @@
           ],
           "length": 7,
           "showIndicator": true,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
         },
         {
@@ -70,7 +72,8 @@
             "p10_t3_instr4"
           ],
           "length": 150,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": false
         },
         {
           "type": "VOCAL",
@@ -85,7 +88,8 @@
             "p10_t4_instr3"
           ],
           "length": 60,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": true
         },
         {
           "type": "VOCAL",
@@ -100,6 +104,7 @@
           ],
           "length": 90,
           "showIndicator": false,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
         }
       ]
@@ -132,6 +137,7 @@
           ],
           "length": 10,
           "showIndicator": true,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         },
         {
@@ -145,7 +151,8 @@
             "p20_t2_instr1"
           ],
           "length": 7,
-          "showIndicator": true
+          "showIndicator": true,
+          "recordVideo": false
         }
       ]
     },
@@ -178,6 +185,7 @@
           ],
           "length": 10,
           "showIndicator": true,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         },
         {
@@ -192,6 +200,7 @@
           ],
           "length": 7,
           "showIndicator": true,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav"
         },
         {
@@ -208,7 +217,8 @@
             "p10_t3_instr4"
           ],
           "length": 150,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": false
         },
         {
           "type": "VOCAL",
@@ -223,7 +233,8 @@
             "p10_t4_instr3"
           ],
           "length": 60,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": true
         },
         {
           "type": "VOCAL",
@@ -238,6 +249,7 @@
           ],
           "length": 90,
           "showIndicator": false,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_pussInBoots.wav"
         }
       ]
@@ -275,7 +287,8 @@
             "p30_t1_instr6"
           ],
           "length": 60,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": false
         }
       ]
     }

@@ -11,7 +11,6 @@ export interface TaskParamDef {
   values?: string[];
   // Tells the UI to allow multiple values selections
   multiple?: boolean;
-  recordVideo?: boolean;
 }
 
 export interface TaskBase {
@@ -23,8 +22,9 @@ export interface TaskBase {
   illustration?: string;
 }
 
-// canRepeat / canSkip / showIndicator are desktop-app (SHARE) flow flags,
-// emitted into the site config by backend/src/utils/extConfig.js. Booleans
+// canRepeat / canSkip / showIndicator / recordVideo are desktop-app (SHARE) flow flags,
+// emitted into the site config by backend/src/utils/extConfig.js. Every "voice"
+// task (-> ext VOCAL) should carry recordVideo (default false). Booleans
 // render as checkboxes in TaskModal. Kept inline (no helper) because
 // scripts/sync-tasks.js eval()s this object literal on its own.
 

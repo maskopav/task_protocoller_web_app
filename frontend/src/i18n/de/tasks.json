@@ -70,6 +70,7 @@
       "canRepeat": { "label": "Wiederholen erlauben" },
       "canSkip": { "label": "Überspringen erlauben" },
       "showIndicator": { "label": "Pegelanzeige anzeigen" },
+      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
       "phoneme": {
         "label": "Vokal",
         "values": {
@@ -95,6 +96,7 @@
       "canRepeat": { "label": "Wiederholen erlauben" },
       "canSkip": { "label": "Überspringen erlauben" },
       "showIndicator": { "label": "Pegelanzeige anzeigen" },
+      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
       "syllable": {
         "label": "Silbe",
         "values": {
@@ -120,6 +122,7 @@
       "canRepeat": { "label": "Wiederholen erlauben" },
       "canSkip": { "label": "Überspringen erlauben" },
       "showIndicator": { "label": "Pegelanzeige anzeigen" },
+      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
       "fairytale": {
         "label": "Märchen",
         "values": {
@@ -142,6 +145,7 @@
       "canRepeat": { "label": "Wiederholen erlauben" },
       "canSkip": { "label": "Überspringen erlauben" },
       "showIndicator": { "label": "Pegelanzeige anzeigen" },
+      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
       "topic": {
         "label": "Thema des Textes",
         "values": {
@@ -175,6 +179,7 @@
       "canRepeat": { "label": "Wiederholen erlauben" },
       "canSkip": { "label": "Überspringen erlauben" },
       "showIndicator": { "label": "Pegelanzeige anzeigen" },
+      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
       "topic": {
         "label": "Thema des Monologs",
         "values": {

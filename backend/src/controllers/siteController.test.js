@@ -360,7 +360,7 @@ describe('getSiteConfig', () => {
     expect(protocol.recordingsFileName).toContain('${taskIndex}');
     expect(protocol.patientFields.map((f) => f.name)).toEqual(['patient_code']); // legacy external_id
     expect(protocol.tasks).toEqual([
-      expect.objectContaining({ type: 'VOCAL', subtype: 'SYLLABLES', titleKey: 'p1_t1_title', length: 3, nrepetition: 1, canRepeat: true, canSkip: false, showIndicator: true }),
+      expect.objectContaining({ type: 'VOCAL', subtype: 'SYLLABLES', titleKey: 'p1_t1_title', length: 3, nrepetition: 1, canRepeat: true, canSkip: false, showIndicator: true, recordVideo: false }),
     ]);
     for (const lang of ['cs', 'en']) {
       expect(payload.strings[lang]).toHaveProperty('p1_t1_title');

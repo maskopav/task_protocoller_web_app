@@ -40,7 +40,8 @@
             "p40_t1_instr1"
           ],
           "length": 10,
-          "showIndicator": true
+          "showIndicator": true,
+          "recordVideo": false
         },
         {
           "type": "VOCAL",
@@ -53,7 +54,8 @@
             "p40_t2_instr1"
           ],
           "length": 150,
-          "showIndicator": false
+          "showIndicator": false,
+          "recordVideo": false
         },
         {
           "type": "QUESTIONNAIRE",

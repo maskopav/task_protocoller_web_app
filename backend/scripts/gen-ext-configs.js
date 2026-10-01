@@ -79,8 +79,9 @@ export function proto({ id, gid = id, name, lang = "en", identifiers = [cat("pat
   };
 }
 
+// The monologue is also filmed (recordVideo -> VOCAL.recordVideo: true).
 const speechBattery = [
-  task("phonation"), task("syllableRepeating"), task("reading"), task("monologue"), task("retelling"),
+  task("phonation"), task("syllableRepeating"), task("reading"), task("monologue", { recordVideo: true }), task("retelling"),
 ];
 
 const args = (s, projects) => ({ site: s, projects, tasksById, assetBaseUrl: ASSETS, now: NOW });
@@ -166,11 +167,12 @@ export const CASES = {
     [{ name: "Czech Clinic Study", protocols: [proto({ id: 90, gid: 90, name: "Czech protocol", lang: "en", tasks: speechBattery }), proto({ id: 91, gid: 90, name: "Czech protocol", lang: "cs", tasks: speechBattery })] }],
   ),
 
-  // Protocol saved before the desktop-app fields existed: NULL template, string identifiers.
+  // Protocol saved before the desktop-app fields existed: NULL template, string identifiers,
+  // string / tinyint recordVideo.
   legacy_protocol: () => args(
     site({ defaultLanguage: "en" }),
     [{ name: "Legacy Study", protocols: [proto({ id: 100, name: "Legacy protocol", fileName: null, pdf: null, identifiers: ["external_id", "gender", "birth_year", "first_name"],
-      tasks: [task("syllableRepeating", { syllable: "ta", recordVideo: "true" }), task("monologue")] })] }],
+      tasks: [task("syllableRepeating", { syllable: "ta", recordVideo: "true" }), task("monologue", { recordVideo: 1 })] })] }],
   ),
 };
 

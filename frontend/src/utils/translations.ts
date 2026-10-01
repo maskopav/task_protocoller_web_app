@@ -55,6 +55,11 @@ export function translateParamName(category: string, param: string): string {
   return param;
 }
 
+// Optional help text shown under a param in TaskModal ("" when none).
+export function translateParamHelp(category: string, param: string): string {
+  return i18next.t(`${category}.params.${param}.help`, { ...i18nOptions, defaultValue: "" }) as string;
+}
+
 export function translateParamValue(category: string, param: string, value: string): string {
   const key = `${category}.params.${param}.values.${value}`;
 
@@ -105,6 +110,7 @@ export function getAllParams(category: string): Record<string, any> {
           {
             key: paramKey,
             label: translateParamName(category, paramKey),
+            help: translateParamHelp(category, paramKey),
             values,
             type: isMultiple ? "multiselect" : "enum",
           },
@@ -121,6 +127,7 @@ export function getAllParams(category: string): Record<string, any> {
         {
           key: paramKey,
           label: translateParamName(category, paramKey),
+          help: translateParamHelp(category, paramKey),
           values: [], // no enum list
           type,
           default: defaultValue,

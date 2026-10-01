@@ -99,9 +99,10 @@ export function loadLocales(baseDir) {
 // Small helpers
 // ---------------------------------------------------------------------------
 
+// Real JSON boolean from a stored boolean, tinyint (0/1) or legacy string ("true"/"1").
 const bool = (v, dflt) => {
   if (v === undefined || v === null || v === "") return dflt;
-  return typeof v === "string" ? v === "true" : Boolean(v);
+  return typeof v === "string" ? v === "true" || v === "1" : Boolean(v);
 };
 const num = (v, dflt) => (v === undefined || v === null || v === "" || Number.isNaN(Number(v)) ? dflt : Number(v));
 
@@ -312,6 +313,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
         instructionKeys: Array.from({ length: n }, (_, i) => `${P}_instr${i + 1}`),
         length: num(params.duration, num(params.minDuration, 0) || num(params.maxDuration, 0)),
         showIndicator: bool(params.showIndicator, SHOW_INDICATOR_DEFAULT[category] ?? false),
+        recordVideo: bool(params.recordVideo, false),
       };
       const audio = audioUrl(category, params);
       if (audio) vocal.audioExamplePath = audio;

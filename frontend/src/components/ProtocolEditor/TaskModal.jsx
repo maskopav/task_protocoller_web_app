@@ -136,6 +136,7 @@ export default function TaskModal({
                   }
                 />
               )}
+              {paramInfo.help && <small className="param-help">{paramInfo.help}</small>}
             </div>
           );
         })}

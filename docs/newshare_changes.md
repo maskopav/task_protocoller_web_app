@@ -110,7 +110,7 @@ deactivated site, `200` = the **desktop app's config format**
       "patientFields": [ { "name": "patient_code", "labelKey": "p1_f_patient_code_label", "helpKey": "p1_f_patient_code_help", "placeholder": "HC001", "regex": "[A-Za-z0-9_-]+", "required": true } ],
       "tasks": [
         { "type": "VOCAL", "subtype": "SYLLABLES", "titleKey": "p1_t1_title", "instructionKeys": ["p1_t1_instr1"],
-          "length": 3, "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1 }
+          "length": 3, "showIndicator": true, "canRepeat": true, "canSkip": false, "nrepetition": 1, "recordVideo": false }
       ] }
   ],
   "strings": { "cs": { "p1_t1_title": "…" }, "en": { "p1_t1_title": "…" } }
@@ -130,6 +130,9 @@ Notes:
 - Vision/cognitive tasks are skipped (logged as WARN); voice → `VOCAL`
   (+subtype), questionnaires → `QUESTIONNAIRE`. `CALIBRATION` is never emitted
   (`useCalibration` flag instead).
+- Every `VOCAL` task carries `recordVideo` (real boolean; the voice task's
+  "Also record video" checkbox, default off) so the app also films each take.
+  It is never emitted on other task types.
 - `audioExamplePath` is an absolute URL under `ASSET_BASE_URL` (new env var =
   public origin of the frontend build), only for the example files that exist.
 - `protocols[]` is flat; each protocol names its parent project in `project`.

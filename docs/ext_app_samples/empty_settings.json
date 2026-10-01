@@ -39,6 +39,7 @@
           ],
           "length": 10,
           "showIndicator": true,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/phonation_a.wav"
         },
         {
@@ -54,6 +55,7 @@
           ],
           "length": 90,
           "showIndicator": false,
+          "recordVideo": false,
           "audioExamplePath": "https://example.org/test/dist/audio/illustrations/retelling_redRidingHood.wav"
         }
       ]

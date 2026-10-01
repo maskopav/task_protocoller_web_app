@@ -83,6 +83,7 @@
       "canRepeat": { "label": "Povolit opakování" },
       "canSkip": { "label": "Povolit přeskočení" },
       "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
+      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
       "phoneme": {
         "label": "Samohláska",
         "values": {
@@ -108,6 +109,7 @@
       "canRepeat": { "label": "Povolit opakování" },
       "canSkip": { "label": "Povolit přeskočení" },
       "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
+      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
       "syllable": {
         "label": "Slabika",
         "values": {
@@ -133,6 +135,7 @@
       "canRepeat": { "label": "Povolit opakování" },
       "canSkip": { "label": "Povolit přeskočení" },
       "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
+      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
       "fairytale": {
         "label": "Pohádka",
         "values": {
@@ -155,6 +158,7 @@
       "canRepeat": { "label": "Povolit opakování" },
       "canSkip": { "label": "Povolit přeskočení" },
       "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
+      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
       "topic": {
         "label": "Téma textu",
         "values": {
@@ -188,6 +192,7 @@
       "canRepeat": { "label": "Povolit opakování" },
       "canSkip": { "label": "Povolit přeskočení" },
       "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
+      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
       "topic": {
         "label": "Téma monologu",
         "values": {
