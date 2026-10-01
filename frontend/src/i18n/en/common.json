@@ -59,7 +59,7 @@
       "safeToClose": "Thank you for taking part in this study! <br/><br/> You may now close this window.",
       "uploading": "Uploading your responses — please keep this page open.",
       "offlineModalInfo": "Connect to internet",
-      "offlineBrief": "Your data will upload automatically once you're back online.",
+      "offlineBrief": "Your responses will upload automatically once you're back online.",
       "finished": "completed!",
       "praises": [
         "Great job!",
@@ -113,7 +113,7 @@
     },
     "notFound": {
       "title": "404 – Page not found",
-      "message": "Please check the URL link or contact your administrator."
+      "message": "Please check the URL link."
     },
     "inactive": {
       "title": "Protocol Inactive",
@@ -121,7 +121,7 @@
     },
     "invalidToken": {
       "title": "Invalid token",
-      "message": "The token is invalid. Please check the URL link or contact your administrator."
+      "message": "The token is invalid. Please check the URL link."
     },
     "resumedSession": {
       "title": "Welcome back!",

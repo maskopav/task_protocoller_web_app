@@ -360,7 +360,7 @@
       "mainInstructionsText": "Arrange the colors into a smooth, gradual sequence in the top row. <br/><br/> If you have trouble telling colours apart, that's OK - just choose what looks closest to you.",
 
       "mechanicsTitle": "Instructions",
-      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colors.<br/><br/><strong>• Add a cap:</strong> Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
+      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colors.<br/><br/><strong>• Add a cap:</strong> Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.",
       "demoInstructions": "How to add color: Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
       "trialCompleteTitle": "Well done!",
       "trialCompleteText": "Trial completed. Now the test will be more challenging.",
