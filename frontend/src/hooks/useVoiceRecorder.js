@@ -48,6 +48,28 @@ const LOGGED_TRACK_SETTINGS = [
     'autoGainControl', 'echoCancellation', 'noiseSuppression',
 ];
 
+// Creates the recording AudioContext at the microphone's own sample rate, so
+// the browser never resamples the recorded signal. A default AudioContext runs
+// at the OUTPUT device's rate, and whenever the mic runs at a different rate
+// the browser resamples it with its own, browser-specific algorithm. With the
+// context at the mic rate only playback to the speakers is resampled, which
+// never reaches the file. Firefox doesn't report the track's sampleRate, so it
+// (and any browser that rejects the rate) falls back to the default context.
+const createAudioContext = (stream) => {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const micRate = stream?.getAudioTracks()[0]?.getSettings?.().sampleRate;
+    if (micRate) {
+        try {
+            return new AudioContextClass({ sampleRate: micRate });
+        } catch (err) {
+            logger.warn("AudioContext at mic sample rate failed, using browser default", {
+                micRate, error: err.message,
+            });
+        }
+    }
+    return new AudioContextClass();
+};
+
 const pickTrackSettings = (stream) => {
     const settings = stream?.getAudioTracks()[0]?.getSettings?.() || {};
     const picked = {};
@@ -117,9 +139,11 @@ class RecorderWorklet extends AudioWorkletProcessor {
         const float = input[0];
         
         for (let i = 0; i < float.length; i++) {
-            // Encode Float32 → Int16 PCM here, on the audio thread.
+            // Encode Float32 → Int16 PCM here, on the audio thread. Rounded:
+            // assigning a float to an Int16Array truncates toward zero, which
+            // has 4x the error power (+6 dB) of rounding and a dead zone at 0.
             const s = float[i] < -1 ? -1 : float[i] > 1 ? 1 : float[i];
-            this.buffer[this.offset++] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            this.buffer[this.offset++] = Math.round(s < 0 ? s * 0x8000 : s * 0x7FFF);
             
             // Send to main thread only when our batch is full
             if (this.offset >= this.batchSize) {
@@ -286,8 +310,7 @@ export const useVoiceRecorder = (options = {}) => {
 
             // Create the AudioContext here so the VAD can share it.
             if (!audioContext.current) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioContext.current = new AudioContextClass();
+                audioContext.current = createAudioContext(streamData);
             }
 
             setPermission(true);
@@ -452,8 +475,7 @@ export const useVoiceRecorder = (options = {}) => {
         // AudioContext is normally created in getMicrophonePermission so the VAD
         // can share it.  This branch fires only after repeatRecording() closes it.
         if (!audioContext.current) {
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            audioContext.current = new AudioContextClass();
+            audioContext.current = createAudioContext(activeStream);
         }
 
         // iOS Safari: AudioContext must be resumed inside a user-gesture handler.
@@ -614,9 +636,10 @@ export const useVoiceRecorder = (options = {}) => {
         if (chunkCountRef.current > 0 && audioContext.current) {
             const sampleRate = audioContext.current.sampleRate;
             // Everything that determines what the saved file actually is --
-            // the file is written at the AudioContext rate, which the browser
-            // picks from the output device and can differ from the mic's own
-            // rate (micSettings.sampleRate, where the browser reports it).
+            // the file is written at the AudioContext rate. It matches the
+            // mic's own rate (micSettings.sampleRate) unless the browser
+            // doesn't report it (Firefox) or the mic changed after the context
+            // was created; a mismatch here means the browser resampled.
             const recordingInfo = {
                 sampleRate,
                 micSettings: trackSettingsRef.current,
@@ -633,9 +656,10 @@ export const useVoiceRecorder = (options = {}) => {
                 PROCESSING_WATCHDOG_MS,
                 `Recording processing timed out after ${PROCESSING_WATCHDOG_MS / 1000}s`
             )
-                .then((audioBlob) => {
+                .then(({ blob: audioBlob, levels }) => {
                     logger.info("recording_finalized", {
                         ...recordingInfo,
+                        levels,
                         format: audioBlob.type,
                         sizeBytes: audioBlob.size,
                     });

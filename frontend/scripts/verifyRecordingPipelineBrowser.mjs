@@ -77,7 +77,7 @@ async function main() {
     }
     await appendChunk(int16.buffer);
 
-    const blob = await finalizeRecording(nativeRate);
+    const { blob } = await finalizeRecording(nativeRate);
     const bytes = new Uint8Array(await blob.arrayBuffer());
     const magic = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
 

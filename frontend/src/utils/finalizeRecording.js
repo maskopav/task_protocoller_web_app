@@ -23,20 +23,29 @@
 // (AudioContext/AudioWorklet aren't available outside a real browser).
 import { getAllSamplesInt16, encodeWAV } from './audioIDB';
 import { encodeFlacBlob } from './flacEncoder';
+import { measureLevels } from './audioLevels';
 import { logger } from './frontendLogger';
 
 /**
  * Builds the final audio Blob for a completed recording (FLAC when possible,
- * WAV as the fallback), at the device's native sample rate. The Blob's
- * `type` tells the uploader which one it got -- see api/recordings.js.
+ * WAV as the fallback), at the device's native sample rate, and measures its
+ * signal levels (audioLevels.js) while all samples are in memory anyway.
+ * The Blob's `type` tells the uploader which format it got -- see
+ * api/recordings.js.
+ *
+ * @returns {Promise<{ blob: Blob, levels: object }>}
  */
 export async function finalizeRecording(nativeSampleRate) {
     const samples = await getAllSamplesInt16();
+    const levels = measureLevels(samples, nativeSampleRate);
+    return { blob: await encode(samples, nativeSampleRate), levels };
+}
 
+async function encode(samples, sampleRate) {
     try {
-        return await encodeFlacBlob(samples, nativeSampleRate);
+        return await encodeFlacBlob(samples, sampleRate);
     } catch (err) {
         logger.error('FLAC encoding failed, falling back to WAV', err);
-        return encodeWAV(samples, nativeSampleRate);
+        return encodeWAV(samples, sampleRate);
     }
 }

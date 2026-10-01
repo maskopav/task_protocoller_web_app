@@ -46,13 +46,22 @@ describe('finalizeRecording', () => {
   it('FLAC-encodes at the native rate, unchanged', async () => {
     await appendChunk(chunkOf([1, 2, 3, 4]));
 
-    const blob = await finalizeRecording(44100);
+    const { blob } = await finalizeRecording(44100);
 
     expect(encodeFlacBlob).toHaveBeenCalledTimes(1);
     const [samplesArg, rateArg] = encodeFlacBlob.mock.calls[0];
     expect(Array.from(samplesArg)).toEqual([1, 2, 3, 4]);
     expect(rateArg).toBe(44100);
     expect(blob.type).toBe('audio/flac');
+  });
+
+  it('returns the signal levels of the recorded samples', async () => {
+    await appendChunk(chunkOf([0, 16384, -32768, 3]));
+
+    const { levels } = await finalizeRecording(44100);
+
+    expect(levels.peakDbfs).toBe(0);
+    expect(levels.fullScaleSamples).toBe(1);
   });
 
   it('never downsamples, even at a native rate above the old 44.1kHz target', async () => {
@@ -66,7 +75,7 @@ describe('finalizeRecording', () => {
     }
     await appendChunk(values.buffer);
 
-    const blob = await finalizeRecording(48000);
+    const { blob } = await finalizeRecording(48000);
 
     const [samplesArg, rateArg] = encodeFlacBlob.mock.calls[0];
     expect(rateArg).toBe(48000);
@@ -78,7 +87,7 @@ describe('finalizeRecording', () => {
     await appendChunk(chunkOf([10, 20, 30, 40, 50]));
     encodeFlacBlob.mockRejectedValueOnce(new Error('FLAC WASM engine unavailable'));
 
-    const blob = await finalizeRecording(44100);
+    const { blob } = await finalizeRecording(44100);
     const wav = await parseWav(blob);
 
     expect(wav.sampleRate).toBe(44100);
@@ -89,7 +98,7 @@ describe('finalizeRecording', () => {
   it('falls back cleanly on an empty recording when FLAC encoding throws', async () => {
     encodeFlacBlob.mockRejectedValueOnce(new Error('FLAC WASM engine unavailable'));
 
-    const blob = await finalizeRecording(48000);
+    const { blob } = await finalizeRecording(48000);
     expect(blob.size).toBe(0);
     expect(logger.error).toHaveBeenCalled();
   });
