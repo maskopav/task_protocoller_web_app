@@ -23,7 +23,7 @@
 // (AudioContext/AudioWorklet aren't available outside a real browser).
 import { getAllSamplesInt16, encodeWAV } from './audioIDB';
 import { encodeFlacBlob } from './flacEncoder';
-import { measureLevels } from './audioLevels';
+import { computeFrames, summarizeLevels } from './audioLevels';
 import { logger } from './frontendLogger';
 
 /**
@@ -33,12 +33,13 @@ import { logger } from './frontendLogger';
  * The Blob's `type` tells the uploader which format it got -- see
  * api/recordings.js.
  *
- * @returns {Promise<{ blob: Blob, levels: object }>}
+ * @returns {Promise<{ blob: Blob, levels: object, frames: object }>}
+ *   levels: summary for the log; frames: per-frame rms for the mic check.
  */
 export async function finalizeRecording(nativeSampleRate) {
     const samples = await getAllSamplesInt16();
-    const levels = measureLevels(samples, nativeSampleRate);
-    return { blob: await encode(samples, nativeSampleRate), levels };
+    const frames = computeFrames(samples, nativeSampleRate);
+    return { blob: await encode(samples, nativeSampleRate), levels: summarizeLevels(frames), frames };
 }
 
 async function encode(samples, sampleRate) {

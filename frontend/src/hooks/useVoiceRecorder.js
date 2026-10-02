@@ -234,6 +234,7 @@ export const useVoiceRecorder = (options = {}) => {
     const statusRef = useRef(IDLE);
     const audioURLRef       = useRef(null);
     const firstChunkTimeRef = useRef(null);
+    const levelFramesRef    = useRef(null);  // per-frame rms of the last take (audioLevels.js)
 
     // track the stream in a ref so the unmount cleanup can always reach
     // the latest value.  The cleanup useEffect closes over the initial render
@@ -520,7 +521,12 @@ export const useVoiceRecorder = (options = {}) => {
             if (statusRef.current !== RECORDING) return;
 
             if (chunkCountRef.current === 0) {
-                firstChunkTimeRef.current = Date.now();
+                // The first chunk arrives once it is full (4096 samples, ~85 ms
+                // at 48 kHz): back-date to when its first sample was recorded,
+                // so sample times line up with Date.now()-based events
+                // (VAD segments, MicCheck's silence prompt).
+                const chunkMs = (event.data.buffer.byteLength / 2 / audioContext.current.sampleRate) * 1000;
+                firstChunkTimeRef.current = Date.now() - chunkMs;
             }
 
             chunkCountRef.current += 1;
@@ -656,13 +662,14 @@ export const useVoiceRecorder = (options = {}) => {
                 PROCESSING_WATCHDOG_MS,
                 `Recording processing timed out after ${PROCESSING_WATCHDOG_MS / 1000}s`
             )
-                .then(({ blob: audioBlob, levels }) => {
+                .then(({ blob: audioBlob, levels, frames }) => {
                     logger.info("recording_finalized", {
                         ...recordingInfo,
                         levels,
                         format: audioBlob.type,
                         sizeBytes: audioBlob.size,
                     });
+                    levelFramesRef.current = frames;  // set before audioURL, which triggers autoSubmit
                     const url = URL.createObjectURL(audioBlob);
                     audioURLRef.current = url;
                     setAudioURL(url);
@@ -691,6 +698,7 @@ export const useVoiceRecorder = (options = {}) => {
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
         firstChunkTimeRef.current = null;
+        levelFramesRef.current = null;
 
         // clear stale node refs so nothing accidentally reaches them between
         // repeatRecording() and the next startRecording() call.
@@ -836,6 +844,7 @@ export const useVoiceRecorder = (options = {}) => {
         incompatibleBrowser,
         audioContext,
         firstChunkTimeRef,
+        levelFramesRef,
 
         // Actions
         getMicrophonePermission,

@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { measureLevels } from './audioLevels';
+import { computeFrames, summarizeLevels } from './audioLevels';
 
 const RATE = 8000;
 const FRAME = RATE * 0.05; // 50 ms
+
+const measureLevels = (samples, rate) => summarizeLevels(computeFrames(samples, rate));
 
 function sine(amplitude, n) {
   return Array.from({ length: n }, (_, i) => Math.round(amplitude * Math.sin((2 * Math.PI * 200 * i) / RATE)));
@@ -13,7 +15,18 @@ function squareNoise(a, n, offset = 0) {
   return Array.from({ length: n }, (_, i) => offset + (i % 2 ? a : -a));
 }
 
-describe('measureLevels', () => {
+describe('computeFrames', () => {
+  it('returns the dc-free rms of every whole frame, in time order', () => {
+    const samples = Int16Array.from([...squareNoise(2, FRAME, 100), ...squareNoise(7, FRAME), 1, 2, 3]);
+    const frames = computeFrames(samples, RATE);
+
+    expect(frames.frameSec).toBe(0.05);
+    expect(Array.from(frames.rms)).toEqual([2, 7]); // the 3-sample tail is dropped
+    expect(frames.peak).toBe(102);
+  });
+});
+
+describe('summarizeLevels', () => {
   it('measures peak and speech level in dB relative to full scale', () => {
     const levels = measureLevels(Int16Array.from(sine(16384, RATE)), RATE);
 

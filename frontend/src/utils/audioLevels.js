@@ -26,32 +26,30 @@ const SPEECH_PERCENTILE = 0.9;  // loudest 10% of frames = speech level
 
 const round = (x, decimals) => Math.round(x * 10 ** decimals) / 10 ** decimals;
 const toDbfs = (amplitude) => (amplitude > 0 ? round(20 * Math.log10(amplitude / FULL_SCALE), 1) : null);
-const percentile = (sorted, p) => sorted[Math.floor(p * (sorted.length - 1))];
+export const percentile = (sorted, p) => sorted[Math.floor(p * (sorted.length - 1))];
 
 // rms around the frame's mean: removes DC offset, which would otherwise count as noise.
 const acRms = (sum, sumSq, n) => Math.sqrt(Math.max(0, sumSq / n - (sum / n) ** 2));
 
 /**
+ * One pass over the samples: the rms of every frame, in time order, plus the
+ * sample-level peak. Small (20 values per second) -- this is what both the
+ * summary below and the mic check analysis (audioAnalysis.js) work on.
+ *
  * @param {Int16Array} samples - mono PCM of the whole recording
  * @param {number} sampleRate
- * @returns {{ peakDbfs, fullScaleSamples, speechLevelDbfs, noiseFloorDbfs, noiseFloorLsb, snrDb }}
- *
- * The noise floor needs pauses: a recording with phonation from the first
- * sample has no background-only frames, so its noise floor errs high (and
- * its SNR low) -- the safe direction for screening.
+ * @returns {{ frameSec: number, rms: Float32Array, peak: number, fullScaleSamples: number }}
+ *   rms[k] covers [k * frameSec, (k + 1) * frameSec) seconds from the start.
  */
-export function measureLevels(samples, sampleRate) {
-    if (!samples?.length) {
-        return { peakDbfs: null, fullScaleSamples: 0, speechLevelDbfs: null, noiseFloorDbfs: null, noiseFloorLsb: null, snrDb: null };
-    }
-
+export function computeFrames(samples, sampleRate) {
+    const n = samples?.length || 0;
     // A recording shorter than one frame is measured as a single frame.
-    const frameLen = Math.min(samples.length, Math.max(1, Math.round(sampleRate * FRAME_SEC)));
-    const frameRms = [];
+    const frameLen = Math.min(n, Math.max(1, Math.round(sampleRate * FRAME_SEC)));
+    const rms = new Float32Array(frameLen ? Math.floor(n / frameLen) : 0);
     let peak = 0, fullScaleSamples = 0;
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0, sumSq = 0, count = 0, frame = 0;
 
-    for (let i = 0; i < samples.length; i++) {
+    for (let i = 0; i < n; i++) {
         const s = samples[i];
         peak = Math.max(peak, Math.abs(s));
         if (s === 32767 || s === -32768) fullScaleSamples++;
@@ -59,14 +57,31 @@ export function measureLevels(samples, sampleRate) {
         sum += s;
         sumSq += s * s;
         if (++count === frameLen) {  // a trailing partial frame is dropped
-            frameRms.push(acRms(sum, sumSq, frameLen));
+            rms[frame++] = acRms(sum, sumSq, frameLen);
             sum = sumSq = count = 0;
         }
     }
 
-    frameRms.sort((a, b) => a - b);
-    const noise = percentile(frameRms, NOISE_PERCENTILE);
-    const speech = percentile(frameRms, SPEECH_PERCENTILE);
+    return { frameSec: frameLen / sampleRate, rms, peak, fullScaleSamples };
+}
+
+/**
+ * Summary levels of a recording, from computeFrames()'s output.
+ *
+ * @returns {{ peakDbfs, fullScaleSamples, speechLevelDbfs, noiseFloorDbfs, noiseFloorLsb, snrDb }}
+ *
+ * The noise floor needs pauses: a recording with phonation from the first
+ * sample has no background-only frames, so its noise floor errs high (and
+ * its SNR low) -- the safe direction for screening.
+ */
+export function summarizeLevels({ rms, peak, fullScaleSamples }) {
+    if (!rms.length) {
+        return { peakDbfs: null, fullScaleSamples: 0, speechLevelDbfs: null, noiseFloorDbfs: null, noiseFloorLsb: null, snrDb: null };
+    }
+
+    const sorted = Float32Array.from(rms).sort();
+    const noise = percentile(sorted, NOISE_PERCENTILE);
+    const speech = percentile(sorted, SPEECH_PERCENTILE);
 
     return {
         peakDbfs: toDbfs(peak),

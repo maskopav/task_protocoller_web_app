@@ -100,11 +100,9 @@ test('participant completes a full protocol run: consent, mic check, voice task,
   await page.waitForTimeout(500);
 
   // 2. Consent (use_audio_guide=0 and no info/instructions content seeded,
-  // so this is the very next screen). Both i18n keys involved are missing
-  // translations in common.json and render as literal key strings, so this
-  // deliberately does not select by visible text.
-  await page.locator('#consent-check').check();
-  await page.locator('.btn-primary').click();
+  // so this is the very next screen): the seeded consent text and a Next button.
+  await expect(page.getByText('E2E test consent text')).toBeVisible();
+  await page.locator('.btn-next').click();
 
   // 3. Mic check (auto-injected because the protocol has a voice task).
   await passMicCheck(page);
@@ -118,7 +116,10 @@ test('participant completes a full protocol run: consent, mic check, voice task,
   // 6. Questionnaire — one required single-choice question.
   await completeQuestionnaire(page);
 
-  // 7. Completion screen — only reached once every recording/result has
-  // actually finished uploading to the backend (polled via IndexedDB).
-  await expect(page.getByText(/Responses saved successfully/i)).toBeVisible({ timeout: 30_000 });
+  // 7. Completion screen, then every recording/result actually uploaded: the
+  // page drops the stored participant token only once IndexedDB has nothing
+  // pending for the session (ParticipantInterfacePage.jsx's completion poll).
+  await expect(page.getByText('You have completed the test')).toBeVisible({ timeout: 15_000 });
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('neuroSHARE_tokenId')), { timeout: 30_000 })
+    .toBeNull();
 });

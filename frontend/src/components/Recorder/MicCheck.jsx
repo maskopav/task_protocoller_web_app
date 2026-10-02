@@ -13,8 +13,8 @@ import { logger } from "../../utils/frontendLogger";
 import { SafeButton } from '../Shared/SafeButton';
 import { fetchWithTimeout } from "../../utils/fetchWithTimeout";
 
-// See audioAnalysis.js's DECODE_TIMEOUT_MS comment: a weak-device/slow-network
-// combo has been observed taking close to a minute for a comparable step.
+// A weak-device/slow-network combo has been observed taking close to a
+// minute for a comparable local fetch+decode step -- give it real headroom.
 const LOCAL_FETCH_TIMEOUT_MS = 30000;
 
 // ==========================================
@@ -56,6 +56,14 @@ function useMicCheckInstructions() {
   const fallbackTimeoutRef = useRef(null);
   const silenceWindowRef   = useRef(null);  
   const actualStartTimeRef = useRef(null);
+  // When the "stay silent" prompt appeared: the noise reference for the SNR
+  // (see audioAnalysis.js). Kept after recording stops, reset on the next take.
+  const silenceStartTimeRef = useRef(null);
+
+  useEffect(() => {
+    if (promptPhase === 'silence') silenceStartTimeRef.current = Date.now();
+    else if (promptPhase === 'counting') silenceStartTimeRef.current = null;
+  }, [promptPhase]);
 
   useEffect(() => {
     return () => {
@@ -129,6 +137,7 @@ function useMicCheckInstructions() {
   return { 
     currentInstructions: getInstructionsText(), 
     forceTimerActive,
+    silenceStartTimeRef,
     handleRecordingStateChange, 
     handleVadSpeechStart,
     handleVadSpeechEnd
@@ -150,7 +159,7 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
   const attemptsRef = useRef(0);
 
   const { 
-    currentInstructions, forceTimerActive, handleRecordingStateChange, 
+    currentInstructions, forceTimerActive, silenceStartTimeRef, handleRecordingStateChange, 
     handleVadSpeechStart, handleVadSpeechEnd 
   } = useMicCheckInstructions();
 
@@ -225,17 +234,19 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
     // win the race against that render, not just run "soon after".
     setPhase('analyzing');
 
+    // The FLAC blob is only needed for saving the attempt -- the SNR is
+    // computed from the frame levels measured while the recording was finalized.
     let audioBlob;
-    let safeAudioUrl;
     try {
       const response = await fetchWithTimeout(taskData.audioURL, {}, LOCAL_FETCH_TIMEOUT_MS);
       audioBlob = await response.blob();
-      safeAudioUrl = URL.createObjectURL(audioBlob);
     } catch (err) {
       logger.error("Failed to fetch audio blob for MicCheck", err);
     }
 
-    const result = await calculateSNR(safeAudioUrl, taskData.speechSegments, taskData.recordingStartTime);
+    const result = calculateSNR(
+      taskData.levelFrames, taskData.speechSegments, taskData.recordingStartTime, silenceStartTimeRef.current
+    );
     const calculatedScore = result.snr ? result.snr.toFixed(1) : 0;
 
     let evaluatedError = result.error;
@@ -262,10 +273,6 @@ export default function MicCheck({ onNext, onSaveAttempt, sessionId, token, onLo
       if (onSaveAttempt) onSaveAttempt(attemptData);
     } else {
       setFinalMicData(attemptData);
-    }
-
-    if (safeAudioUrl) {
-      URL.revokeObjectURL(safeAudioUrl);
     }
 
     let nextPhase = evaluatedError ? 'noise-failed' : 'noise-success';

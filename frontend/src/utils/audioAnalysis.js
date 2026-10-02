@@ -1,170 +1,93 @@
 // src/utils/audioAnalysis.js
+//
+// SNR of the mic check recording, computed from the per-frame rms that
+// finalizeRecording() already measured (audioLevels.js's computeFrames) --
+// no re-fetching or re-decoding of the recorded file.
+//
+// The mic check asks the participant to count aloud, then shows a "stay
+// silent" prompt (MicCheck.jsx). So:
+//   noise  = median frame rms of the silence phase (from the prompt plus a
+//            reaction margin), excluding frames VAD marked as speech.
+//   speech = 90th-percentile frame rms of the VAD speech segments -- or of
+//            the counting phase (before the silence prompt) when VAD found
+//            no speech, so the result doesn't depend on VAD working.
+// Median/percentile instead of mean power: one knock, cough or screen tap
+// can't dominate the noise, and pauses between counted numbers don't dilute
+// the speech level.
 import { logger } from "./frontendLogger";
-import { fetchWithTimeout } from "./fetchWithTimeout";
+import { percentile } from "./audioLevels";
 
-const FALLBACK_DURATION_MS = 5000;
-// Real-world data from a budget Android device (weak CPU, possibly slow
-// mobile network) showed a comparable WASM-decode pipeline legitimately
-// taking close to a minute -- these need real headroom, not just enough to
-// catch a genuine infinite hang. Loosen if slower devices turn out to need
-// more; the important property is just that this settles at all.
-const LOCAL_FETCH_TIMEOUT_MS = 30000;
-const DECODE_TIMEOUT_MS = 30000;
+const SILENCE_REACTION_MS = 500;      // the participant may still finish a word after the prompt
+const FALLBACK_SPEECH_MS = 5000;      // no VAD speech and no silence prompt: assume the first 5 s are speech
+const SPEECH_PERCENTILE = 0.9;
+const NOISE_PERCENTILE = 0.5;         // median
+const MUTED_PEAK_LSB = 0.001 * 32768; // peak below 0.001 of full scale (-60 dBFS) = muted mic
+
+const sortedPercentile = (values, p) => percentile(Float32Array.from(values).sort(), p);
 
 /**
- * Main entry point for SNR calculation
+ * Splits the frames into speech and noise by time (all times Date.now() ms).
+ * @returns {{ speech: number[], noise: number[], usedVad: boolean, usedSilencePhase: boolean }}
  */
-export async function calculateSNR(audioUrl, speechSegments, recordingStartTime, fallbackDurationMs = FALLBACK_DURATION_MS) {
+export function classifyFrames({ rms, frameSec }, speechSegments, recordingStartTime, silenceStartTime) {
+  const toFrame = (time) => Math.max(0, Math.floor((time - recordingStartTime) / 1000 / frameSec));
+
+  const vadSpeech = new Uint8Array(rms.length);
+  for (const { startTime, endTime } of speechSegments || []) {
+    vadSpeech.fill(1, toFrame(startTime), toFrame(endTime) + 1);
+  }
+  const usedVad = vadSpeech.includes(1);
+
+  // Without VAD, speech is the counting phase: everything before the silence prompt.
+  const countingEnd = toFrame(silenceStartTime ?? recordingStartTime + FALLBACK_SPEECH_MS);
+  const silenceStart = silenceStartTime ? toFrame(silenceStartTime + SILENCE_REACTION_MS) : 0;
+
+  const speech = [], silence = [], other = [];
+  for (let k = 0; k < rms.length; k++) {
+    if (usedVad ? vadSpeech[k] : k < countingEnd) speech.push(rms[k]);
+    else if (k >= silenceStart) silence.push(rms[k]);
+    else other.push(rms[k]);  // between counting and silence phase (the reaction margin)
+  }
+
+  // No usable silence phase (e.g. stopped early): fall back to every non-speech frame.
+  return {
+    speech,
+    noise: silence.length ? silence : other,
+    usedVad,
+    usedSilencePhase: !!silenceStartTime && silence.length > 0,
+  };
+}
+
+/**
+ * @param {{ frameSec: number, rms: Float32Array, peak: number }} levelFrames - from computeFrames()
+ * @param {Array<{ startTime: number, endTime: number }>} speechSegments - VAD segments (Date.now() ms)
+ * @param {number} recordingStartTime - Date.now() ms of the recording's first sample
+ * @param {number|null} silenceStartTime - Date.now() ms when the "stay silent" prompt appeared
+ * @returns {{ snr: number, error: string|null, debugData: object|null }}
+ */
+export function calculateSNR(levelFrames, speechSegments, recordingStartTime, silenceStartTime) {
   try {
-    // 1. Fetch and decode the audio
-    const audioBuffer = await fetchAndDecodeAudio(audioUrl);
-    if (audioBuffer.error) return audioBuffer; // Return early if file is completely empty
-
-    const channelData = audioBuffer.getChannelData(0);
-    const sampleRate = audioBuffer.sampleRate;
-
-    // 2. Check for dead mic (hardware mute)
-    const maxAmplitude = getMaxAmplitude(channelData);
-    if (maxAmplitude < 0.001) {
-      logger.warn("Audio is completely silent", { maxAmplitude });
-      return { snr: 0, error: 'muted', debugData: { maxAmplitude } };
+    if (!levelFrames?.rms.length || levelFrames.peak < MUTED_PEAK_LSB) {
+      return { snr: 0, error: 'muted', debugData: { peak: levelFrames?.peak ?? null } };
     }
 
-    // 3. Determine if we use VAD segments or the manual fallback (based on instructions)
-    const { activeSegments, usedFallback } = determineSpeechSegments(speechSegments, recordingStartTime, fallbackDurationMs);
+    const { speech, noise, usedVad, usedSilencePhase } =
+      classifyFrames(levelFrames, speechSegments, recordingStartTime, silenceStartTime);
 
-    // 4. Convert time segments into audio array indices
-    const speechIndices = convertSegmentsToIndices(activeSegments, recordingStartTime, sampleRate);
-
-    // 5. Run the actual math
-    const metrics = computeSNRMetrics(channelData, speechIndices);
-
-    // 6. Compile debug data
+    const noiseRms = noise.length ? sortedPercentile(noise, NOISE_PERCENTILE) : 0;
+    const signalRms = sortedPercentile(speech.length ? speech : levelFrames.rms, SPEECH_PERCENTILE);
     const debugData = {
-      sampleRate,
-      totalDurationSec: channelData.length / sampleRate,
-      maxAmplitude,
-      speechSegmentsExtracted: speechSegments ? speechSegments.length : 0,
-      usedFallback,
-      speechIndices,
-      ...metrics
+      frameSec: levelFrames.frameSec, frames: levelFrames.rms.length, peak: levelFrames.peak,
+      usedFallback: !usedVad, usedSilencePhase,
+      speechFrames: speech.length, noiseFrames: noise.length,
+      signalRms, noiseRms,
     };
 
-    // 7. Handle final math errors (e.g., pure silence during "noise" phase)
-    if (metrics.error) {
-        return { snr: metrics.snr || 0, error: metrics.error, debugData };
-    }
-
-    const snrDb = 20 * Math.log10(metrics.signalRms / metrics.noiseRms);
-    return { snr: snrDb, error: null, debugData };
+    if (noiseRms === 0) return { snr: 100, error: 'no-noise', debugData };
+    return { snr: 20 * Math.log10(signalRms / noiseRms), error: null, debugData };
 
   } catch (error) {
     logger.error("Error analyzing audio SNR:", error);
-    if (error.name === 'EncodingError' || String(error).includes('decode')) {
-       return { snr: 0, error: 'muted', debugData: null };
-    }
     return { snr: 0, error: 'processing-error', debugData: null };
   }
-}
-
-// --- HELPER FUNCTIONS ---
-
-async function fetchAndDecodeAudio(audioUrl) {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const response = await fetchWithTimeout(audioUrl, {}, LOCAL_FETCH_TIMEOUT_MS);
-    const arrayBuffer = await response.arrayBuffer();
-    
-    if (arrayBuffer.byteLength < 500) {
-       logger.warn("Audio file is empty. Likely hardware mute or OS-level block.");
-       return { error: 'muted', snr: 0, debugData: { byteLength: arrayBuffer.byteLength } };
-    }
-    return await decodeWithTimeout(audioCtx, arrayBuffer, DECODE_TIMEOUT_MS);
-}
-
-// decodeAudioData() is a native browser promise with no built-in timeout.
-// Unlike fetch (guarded above via fetchWithTimeout), it has been observed to
-// never resolve or reject on some Android/Firefox devices -- which leaves
-// calculateSNR's own try/catch unable to help, since it only ever sees
-// rejections. Race it against a timer so calculateSNR always settles.
-async function decodeWithTimeout(audioCtx, arrayBuffer, timeoutMs) {
-    let timer;
-    const timeout = new Promise((_, reject) => {
-        timer = setTimeout(() => {
-            reject(new Error(`Audio decoding timed out after ${Math.round(timeoutMs / 1000)}s`));
-        }, timeoutMs);
-    });
-    try {
-        return await Promise.race([audioCtx.decodeAudioData(arrayBuffer), timeout]);
-    } finally {
-        clearTimeout(timer);
-    }
-}
-
-function getMaxAmplitude(channelData) {
-    let max = 0;
-    for (let i = 0; i < channelData.length; i++) {
-        const absValue = Math.abs(channelData[i]);
-        if (absValue > max) max = absValue;
-    }
-    return max;
-}
-
-function determineSpeechSegments(speechSegments, recordingStartTime, fallbackDurationMs) {
-    if (!speechSegments || speechSegments.length === 0) {
-        logger.info("VAD missed speech or failed. Applying manual fallback rule.");
-        return {
-            usedFallback: true,
-            activeSegments: [{
-                startTime: recordingStartTime,
-                endTime: recordingStartTime + fallbackDurationMs
-            }]
-        };
-    }
-    return { usedFallback: false, activeSegments: speechSegments };
-}
-
-function convertSegmentsToIndices(segments, recordingStartTime, sampleRate) {
-    return segments.map(seg => {
-        const startMs = Math.max(0, seg.startTime - recordingStartTime);
-        const endMs = Math.max(0, seg.endTime - recordingStartTime);
-        return {
-            startIdx: Math.floor((startMs / 1000) * sampleRate),
-            endIdx: Math.floor((endMs / 1000) * sampleRate),
-            startSec: (startMs / 1000).toFixed(2),
-            endSec: (endMs / 1000).toFixed(2)
-        };
-    });
-}
-
-function computeSNRMetrics(channelData, speechIndices) {
-    // Flat boolean lookup in one pass — avoids calling .some() on every one of the samples
-    const isSpeechSample = new Uint8Array(channelData.length);
-    for (const { startIdx, endIdx } of speechIndices) {
-        const lo = Math.max(0, startIdx);
-        const hi = Math.min(endIdx, channelData.length - 1);
-        for (let i = lo; i <= hi; i++) isSpeechSample[i] = 1;
-    }
-
-    let signalSum = 0, signalCount = 0;
-    let noiseSum = 0,  noiseCount = 0;
-
-    for (let i = 0; i < channelData.length; i++) {
-        const power = channelData[i] * channelData[i];
-        if (isSpeechSample[i]) {
-            signalSum += power;
-            signalCount++;
-        } else {
-            noiseSum += power;
-            noiseCount++;
-        }
-    }
-
-    if (noiseCount === 0 || noiseSum === 0) return { error: 'no-noise', snr: 100 };
-
-    return {
-        signalSum, signalCount,
-        noiseSum, noiseCount,
-        signalRms: Math.sqrt(signalSum / signalCount),
-        noiseRms: Math.sqrt(noiseSum / noiseCount)
-    };
 }

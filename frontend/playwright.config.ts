@@ -10,7 +10,9 @@ const BACKEND_DIR = path.resolve(__dirname, '../backend');
 // A real, clear speech sample (existing task-illustration asset) fed to
 // getUserMedia in place of a live microphone, so MicCheck's SNR calculation
 // sees genuine speech instead of Chromium's default synthetic tone.
-const FAKE_AUDIO_FILE = path.resolve(__dirname, 'public/audio/illustrations/syllableRepeating_pataka.wav');
+// Must be a WAV (Chromium's fake capture only reads WAV) -- this is the only
+// speech asset in public/ stored as one.
+const FAKE_AUDIO_FILE = path.resolve(__dirname, 'public/audio/illustrations/retelling_redRidingHood.wav');
 
 export default defineConfig({
   testDir: './e2e',
