@@ -382,6 +382,7 @@ export default function ParticipantInterfacePage() {
             try {
               await trackProgress(sessionId, null, true);
               completionAckedRef.current = true;
+              logger.info("[Completion] All recordings uploaded, session marked complete");
             } catch (err) {
               logger.error(`[Completion] Failed to mark session complete, will retry: ${err.message}`);
             } finally {

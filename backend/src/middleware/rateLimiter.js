@@ -7,10 +7,14 @@ import rateLimit from "express-rate-limit";
 
 // The credential-guessing target: participant and admin login. Tighter limit,
 // since this is exactly what a brute-force script would hammer.
+// LOGIN_RATE_LIMIT overrides it only where many legitimate logins come from
+// one address in one window -- the E2E suite (see frontend/playwright.config.ts).
+const DEFAULT_LOGIN_LIMIT = 10;
+
 export function createLoginLimiter(overrides = {}) {
   return rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 10,
+    limit: Number(process.env.LOGIN_RATE_LIMIT) || DEFAULT_LOGIN_LIMIT,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many login attempts. Please try again later." },

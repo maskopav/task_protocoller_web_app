@@ -49,6 +49,11 @@ export default defineConfig({
       command: 'npm run db:test:reset && npm run start:test',
       cwd: BACKEND_DIR,
       url: `${BACKEND_URL}/test`,
+      // The whole suite logs in from one address within the login limiter's
+      // 15-minute window, more often than the production limit of 10 allows
+      // (backend/src/middleware/rateLimiter.js). admin-rate-limit.spec.ts
+      // still proves limiting works, on the separately limited auth routes.
+      env: { LOGIN_RATE_LIMIT: '1000' },
       reuseExistingServer: false,
       timeout: 60_000,
       stdout: 'pipe',

@@ -5,13 +5,12 @@ import { test, expect } from '@playwright/test';
 // (that's covered by backend/src/middleware/rateLimiter.test.js).
 //
 // Uses /auth/admin/forgot-password specifically because no other e2e spec
-// calls it — every other spec logs in via /auth/admin/login, which shares
-// the same loginLimiter budget across the whole suite run (one backend
-// process = one shared in-memory counter for its ~40s lifetime). Exhausting
-// that here would make unrelated specs start failing with 429 depending on
-// run order. authLimiter (30/15min) on this untouched route sidesteps that
-// entirely, and forgotPassword for a nonexistent email returns immediately
-// without side effects, so hammering it is fast and safe.
+// calls it — every other spec logs in via /auth/admin/login, whose
+// loginLimiter is raised for the E2E backend (LOGIN_RATE_LIMIT in
+// playwright.config.ts) so the suite's own logins never hit it. authLimiter
+// (30/15min) on this untouched route keeps its production limit, and
+// forgotPassword for a nonexistent email returns immediately without side
+// effects, so hammering it is fast and safe.
 const BACKEND_URL = 'http://localhost:3001';
 
 test('authLimiter is enforced on a real /auth/* route after the configured number of requests', async ({ request }) => {

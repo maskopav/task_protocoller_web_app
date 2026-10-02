@@ -53,6 +53,9 @@ test.describe('protocol manager', () => {
 
   test('project dashboard does not repeatedly refetch the project list', async ({ page }) => {
     await loginAsMaster(page);
+    // Login lands on the admin dashboard, which fetches the same list --
+    // let it finish so only the project dashboard's requests are counted.
+    await page.waitForLoadState('networkidle');
 
     let projectsListRequests = 0;
     page.on('request', (req) => {
