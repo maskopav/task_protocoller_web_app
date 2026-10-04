@@ -460,7 +460,7 @@
       "name": "Symbol Digit Modalities Test",
       "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
       "title": "Symbols",
-      "instructions": "On the next screen, tap the corresponding keypad number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong> for the task.",
+      "instructions": "On the next screen, tap the corresponding keypad number. Note that it is very important that you use only <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong> for the task.",
       "instructionsActive": "Match the symbol to the number.",
       "demoTitle": "Symbol matching task",
       "demoText": "Match the appeared symbol to the corresponding number using the keypad.",
@@ -535,7 +535,7 @@
           },
           {
             "id": 1786019770005,
-            "text": "Did you have any motor difficulty completing the tasks?",
+            "text": "Did you have any motor difficulties (e.g., holding the smartphone, tapping the screen) while completing the tasks?",
             "type": "single",
             "options": [
               "No",
