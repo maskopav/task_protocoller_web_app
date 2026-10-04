@@ -388,7 +388,7 @@ export default function D15Test({ task, onNextTask, audioPlayer, onStopAudio, on
         <div className="d15-header-tools">
           {audioPlayer}
           <InfoTooltip
-            title={t("d15colour.demoTitle", "How it works")}
+            title={t("d15colour.demoTitle")}
             text={<D15MechanicsMessage />}
           />
         </div>

@@ -73,8 +73,8 @@ export function D15MechanicsMessage({ activeTab: initialTab = "add", onTabChange
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const tabs = [
-    { key: "add",    label: t("d15colour.controls.addTabLabel") },
-    { key: "modify", label: t("d15colour.controls.modifyTabLabel") },
+    { key: "add",    label: t("d15colour.addGifAlt") },
+    { key: "modify", label: t("d15colour.modifyGifAlt") },
   ];
 
   const handleTabClick = (key) => {

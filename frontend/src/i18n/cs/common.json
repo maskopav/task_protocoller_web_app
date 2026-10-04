@@ -6,6 +6,7 @@
       "pause": "POZASTAVIT",
       "resume": "POKRAČOVAT",
       "stop": "Stop",
+      "earlyStop": "Ukončit dříve",
       "permission": "Povolit mikrofon",
       "cancel": "Zrušit",
       "save": "Uložit",
