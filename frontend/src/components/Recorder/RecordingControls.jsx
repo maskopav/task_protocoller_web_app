@@ -13,6 +13,7 @@ export const RecordingControls = ({
     onPermission,
     disableControls = false,
     disableStop,
+    isEarlyStop = false, // delayedStop: Stop is allowed but the desired duration isn't reached yet
     disableStart = false,
     showPause = true, // Pause button is shown by default
     RECORDING_STATES,
@@ -25,6 +26,8 @@ export const RecordingControls = ({
 }) => {
     const { t } = useTranslation();
     const { IDLE, RECORDING, PAUSED } = RECORDING_STATES;
+    const stopLabel = isEarlyStop ? t("buttons.earlyStop") : t("buttons.stop");
+    const stopClass = `btn-stop ${isEarlyStop ? 'btn-early-stop' : ''} ${disableStop ? 'disabled' : ''}`;
 
     return (
     <div className={`controls ${className}`}>
@@ -74,8 +77,8 @@ export const RecordingControls = ({
                 </SafeButton>
                 )}
 
-                <SafeButton onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
-                {t("buttons.stop")}
+                <SafeButton onClick={onStop} className={stopClass} disabled={disableStop}>
+                {stopLabel}
                 </SafeButton>
                 </div>
             )}
@@ -86,8 +89,8 @@ export const RecordingControls = ({
                 {t("buttons.resume")}
                 </SafeButton>
 
-                <SafeButton onClick={onStop} className={`btn-stop ${disableStop ? 'disabled' : ''}`} disabled={disableStop}>
-                {t("buttons.stop")}
+                <SafeButton onClick={onStop} className={stopClass} disabled={disableStop}>
+                {stopLabel}
                 </SafeButton>
                 </div>
             )}

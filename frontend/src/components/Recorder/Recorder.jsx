@@ -886,6 +886,7 @@ export const Recorder = ({
                         onStop={handleStop}
                         onPermission={getMicrophonePermission}
                         disableStop={!isReadyToStop}
+                        isEarlyStop={mode === 'delayedStop' && !durationExpired}
                         showPause={false}
                         RECORDING_STATES={RECORDING_STATES}
                         isVideoEnabled={isVideoEnabled}

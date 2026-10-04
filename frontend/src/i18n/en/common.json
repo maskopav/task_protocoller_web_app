@@ -9,6 +9,7 @@
       "pause": "Pause",
       "resume": "Resume",
       "stop": "Stop",
+      "earlyStop": "Early stop",
       "preparing": "Setting up…",
       "playExample": "Play example",
       "stopExample": "Stop example",
