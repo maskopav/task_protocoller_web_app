@@ -11,6 +11,7 @@ import enIntro from "./en/intro.json";
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
 import csAdmin from "./cs/admin.json";
+import csIntro from "./cs/intro.json";
 
 export const LANGUAGES = [
   { code: "en", label: "English" },
@@ -48,7 +49,8 @@ i18n
       cs: {
         common: csCommon,
         tasks: csTasks,
-        admin: csAdmin
+        admin: csAdmin,
+        intro: csIntro
       }
     },
     interpolation: {

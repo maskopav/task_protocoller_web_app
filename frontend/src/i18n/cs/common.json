@@ -1,92 +1,211 @@
 {
-    "buttons": {
-      "next": "Další",
-      "repeat": "Zkusit znovu",
-      "start": "Start",
-      "pause": "POZASTAVIT",
-      "resume": "POKRAČOVAT",
-      "stop": "Stop",
-      "earlyStop": "Ukončit dříve",
-      "permission": "Povolit mikrofon",
-      "cancel": "Zrušit",
-      "save": "Uložit",
-      "done": "Hotovo",
-      "skip": "Přeskočit",
-      "back": "Zpět",
-      "confirm": "Potvrdit",
-      "seeTopic": "Zobrazit téma"
-    },
-    "micCheck": {
-      "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."
-    },
-    "status": {
-      "ready": "⚪ Připraveno",
-      "recording": "🔴 Nahrávání...",
-      "paused": "⏸️ Pozastaveno",
-      "recorded": "✅ Nahráno"
-    },
-    "languageSelector": {
-      "title": "neuroSHARE test",
-      "languageWarning": "Vyberte si prosím jazyk, kterým mluvíte nejplynuleji, ideálně svůj mateřský jazyk. Jakmile úkoly začnou, tuto volbu již nebudete moci změnit."
-    },
-    "completion": {
-      "praises": [
-        "🌟 Skvělá práce!",
-        "🎯 Výborně!",
-        "👏 Dobrá práce!",
-        "✨ Excelentní!",
-        "🎉 Skvěle zvládnuto!"
-      ]
-    },
-    "taskLabels": {
-      "voice": "Řečová úloha",
-      "camera": "Kamerová úloha",
-      "questionnaire": "Dotazník",
-      "smell": "Čichový test"
-    },
-    "questionnaire": {
-      "selectOption": "Vyberte možnost...",
-      "typeAnswer": "Zde napište svou odpověď...",
-      "enterNumber": "Zadejte číslo",
-      "numberOutOfRange": "Zadejte celé číslo od {{min}} do {{max}}."
-    },
-    "notFound": {
-      "title": "404 – Stránka nenalezena",
-      "message": "Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
-    },
-    "inactive": {
-      "title": "Protokol není aktivní",
-      "message": "Váš protokol nyní není aktivní, jeho platnost vypršela."
-    },
-    "invalidToken": {
-      "title": "Nevalidní token",
-      "message": "Token není validní. Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
-    },
-    "auth": {
-      "email": "Email",
-      "password": "Heslo",
-      "fullName": "Celé jméno",
-      "birthDate": "Datum narození",
-      "sex": "Pohlaví",
-      "male": "Muž",
-      "female": "Žena",
-      "phone": "Telefonní číslo (volitelné)",
-      "btnSignup": "Spustit protokol",
-      "btnLogin": "Přihlásit se",
-      "tabSignup": "Registrace",
-      "tabLogin": "Přihlášení",
-      "processing": "Zpracovávám...",
-      "welcomeTitle": "TaskProtocoller",
-      "welcomeSubtitle": "Prosím zaregistrujte se nebo přihlašte pro vyplnění testu. <br/><strong>Registrovaní uživatelé:</strong> použijte Váš unikátní link nebo přihlašovací údaje poslané emailem. <br/><strong>Noví uživatelé:</strong> vaše přístupové údaje Vám budou poslány emailem po registraci.",
-      "forgotPasswordLink": "Zapomenuté heslo?"
-    },
-    "booking": {
-      "heading": "Termín osobní návštěvy",
-      "loading": "Načítání stránky pro rezervaci termínu…",
-      "errorLoading": "Stránku pro rezervaci termínu se nepodařilo načíst. Můžete pokračovat — ozveme se vám e-mailem.",
-      "continueButton": "Pokračovat",
-      "testingPreviewBadge": "Náhled",
-      "testingPreviewLabel": "Ve skutečném sezení se zde zobrazí živý rezervační kalendář. V náhledu se žádná rezervace neprovádí."
+  "buttons": {
+    "next": "Další",
+    "repeat": "Zkusit znovu",
+    "reset": "Začít znovu",
+    "start": "Start",
+    "sending": "Ukládání...",
+    "processing": "Zpracování…",
+    "stop": "Stop",
+    "earlyStop": "Ukončit dříve",
+    "preparing": "Připravuje se...",
+    "playExample": "Přehrát ukázku",
+    "stopExample": "Zastavit ukázku",
+    "playStory": "Přehrát příběh",
+    "stopStory": "Zastavit příběh",
+    "disabledWhileRecording": "Během nahrávání nedostupné",
+    "permission": "Povolit mikrofon",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "done": "Hotovo",
+    "back": "Zpět",
+    "ok": "OK",
+    "confirm": "Potvrdit",
+    "startCalibration": "K nastavení kamery",
+    "seeTopic": "Zobrazit téma",
+    "switchTopic": "Změnit téma",
+    "cannot": "Nemohu / Nevím jak na to",
+    "yes": "Ano",
+    "no": "Ne",
+    "dontKnow": "Nevím"
+  },
+  "languageSelector": {
+    "title": "neuroSHARE",
+    "languageWarning": "Vyberte prosím jazyk, kterým mluvíte nejplynuleji – ideálně svůj mateřský jazyk."
+  },
+  "vad": {
+    "loading": "Načítáme detektor řeči...",
+    "durationExpired": "Pokud už nemáte co dodat, můžete úkol ukončit tlačítkem Stop.",
+    "speakLonger": "Prosíme, pokuste se mluvit ještě chvíli."
+  },
+  "completion": {
+    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Jen pokud vás něco vyrušilo, můžete zvolit Zkusit znovu.",
+    "processingFailedInstructions": "Nahrávku se nepodařilo zpracovat. <br/><br/>Klikněte prosím na <strong>Zkusit znovu</strong> a nahrajte ji znovu.",
+    "processingInstructions": "Zpracováváme vaši nahrávku… <br/><br/>Na některých zařízeních to může chvíli trvat. Nechte prosím tuto stránku otevřenou.",
+    "doneTitle": "Hurá! Test máte za sebou.",
+    "noInternetTitle": "Chybí připojení k internetu",
+    "uploadingTitle": "Odesílání…",
+    "safeToClose": "Děkujeme za účast ve studii! <br/><br/> Nyní můžete toto okno zavřít.",
+    "uploading": "Odesíláme vaše odpovědi – nechte prosím tuto stránku otevřenou.",
+    "offlineModalInfo": "Připojte se k internetu",
+    "offlineBrief": "Jakmile budete znovu online, odpovědi se automaticky odešlou.",
+    "finished": "– hotovo!",
+    "praises": [
+      "Skvělá práce!",
+      "Perfektní!",
+      "Výborně!",
+      "Vynikající!",
+      "Velmi dobře!"
+    ]
+  },
+  "taskLabels": {
+    "task": "Úloha",
+    "milestone_25": "Přes 25 %",
+    "milestone_50": "Jste v polovině! Přes 50 %",
+    "milestone_75": "Skoro hotovo! Přes 75 %"
+  },
+  "repetition": {
+    "notice": "Proveďte prosím úkol ještě jednou. <br/><br/>"
+  },
+  "questionnaire": {
+    "selectOption": "Vyberte možnost...",
+    "typeAnswer": "Sem napište svou odpověď...",
+    "pleaseSpecify": "Prosím upřesněte",
+    "enterNumber": "Zadejte číslo",
+    "numberOutOfRange": "Zadejte prosím celé číslo od {{min}} do {{max}}."
+  },
+  "identifiers": {
+    "description": "Vyplňte prosím následující údaje.",
+    "firstName": "Jméno",
+    "birthYear": "Rok narození",
+    "gender": "Pohlaví",
+    "yearPlaceholder": "např. 1965",
+    "fillAllFields": "Pro pokračování prosím vyplňte všechna povinná pole.",
+    "saveError": "Při ukládání údajů došlo k chybě. Zkuste to prosím znovu.",
+    "invalidYear": "Zadejte prosím platný rok mezi {{min}} a {{max}}.",
+    "selectOption": "Vyberte možnost..."
+  },
+  "notFound": {
+    "title": "404 – Stránka nenalezena",
+    "message": "Zkontrolujte prosím URL odkaz."
+  },
+  "inactive": {
+    "title": "Protokol není aktivní",
+    "message": "Toto zadání momentálně není aktivní nebo již vypršelo."
+  },
+  "invalidToken": {
+    "title": "Neplatný token",
+    "message": "Token je neplatný. Zkontrolujte prosím odkaz."
+  },
+  "resumedSession": {
+    "title": "Vítejte zpět!",
+    "message": "Váš postup byl uložen. Pro co nejlepší výsledky prosím zůstaňte ve <strong>stejném klidném prostředí</strong> jako předtím a zkuste zbývající úkoly dokončit najednou.",
+    "continue": "Pokračovat"
+  },
+  "permissions": {
+    "tabAndroid": "Android",
+    "tabIos": "iPhone",
+    "howToFix": "Řešení"
+  },
+  "micCheck": {
+    "permissionWarning": "V dalších úlohách budeme nahrávat váš hlas. Prohlížeč vás požádá o přístup k mikrofonu.",
+    "permissionInstruction": "Stiskněte tlačítko <strong>Povolit mikrofon</strong> níže. <br><br/> Ve vyskakovacím okně zvolte <strong>Povolit</strong>, abychom mohli nahrávat váš hlas.",
+    "btnUnderstand": "Povolit mikrofon",
+    "noiseTitle": "Test mikrofonu",
+    "noiseInstructions": "Nejprve vyzkoušíme nahrávání z Vašeho mikrofonu. <br><br/> Stisknutím tlačítka Start spustíte nahrávání. Poté počítejte od 1 do 5.",
+    "noiseInstructionsCounting": "<strong>Počítejte pomalu a nahlas</strong> od 1 do 5.",
+    "noiseInstructionsSilence": "Nyní <strong>zůstaňte potichu</strong>.",
+    "analyzing": "Kontrolujeme zvuk...",
+    "failedTitle": "Neslyšíme vás dostatečně zřetelně",
+    "failedMessage": "Omezte prosím zvuky ve svém okolí.",
+    "failedInstructions": "Pro nejlepší výsledky prosím <strong>zavřete okna, vypněte televizi či rádio, nebo se přesuňte do tiššího místa</strong>. <br/><br/>Až budete připraveni, stiskněte Zkusit znovu a spustí se nahrávání. Poté počítejte od 1 do 5.",
+    "failedAgainTitle": "Podmínky nahrávání nejsou ideální, ale i tak můžete pokračovat.",
+    "failedAgainInstructions": "Prosím <strong>zůstaňte v této místnosti</strong> až do konce.",
+    "mutedTitle": "Nezachytili jsme žádný zvuk",
+    "mutedMessage": "Během testu mikrofonu jsme nic neslyšeli.",
+    "mutedInstructions": "Zkontrolujte prosím, že <strong>mikrofon není ztlumený, odpojte sluchátka a ověřte nastavení v zařízení</strong>. Poté to zkuste znovu.",
+    "mutedAdditionalInfo": "Pokud potíže přetrvávají, podívejte se do návodu k řešení problémů nebo kontaktujte podporu. <br/><br/> Dále bohužel pokračovat nelze.",
+    "mutedModalMessage": "Je nám líto, ale mikrofon se nepodařilo správně nastavit. Většinu úkolů v této studii proto nebudete moci dokončit. <br/><br/>Omlouváme se za komplikace a děkujeme vám za váš čas a ochotu se zúčastnit. <br/><br/>Nyní můžete toto okno zavřít.",
+    "btnTryAgain": "Zkusit znovu",
+    "successMessage": "Vše vypadá v pořádku!",
+    "successInstructions": "Prosím <strong>zůstaňte v této místnosti</strong> až do konce.",
+    "btnProceed": "Další",
+    "guide": {
+      "descDenied": "Zařízení nebo prohlížeč blokuje mikrofon. Pro pokračování musí přístup povolit obojí.",
+      "descBusy": "Mikrofon právě používá jiná aplikace (např. telefonní hovor nebo Zoom). Zavřete ji prosím.",
+      "descMissing": "Nenašli jsme žádný mikrofon. Zkontrolujte prosím připojení nebo zkuste jiné zařízení.",
+      "descGeneric": "Pro pokračování v tomto úkolu je potřeba přístup k mikrofonu.",
+      "btnRetry": "Zkusit znovu",
+      "steps": {
+        "android": {
+          "systemAndBrowser": "1. Otevřete v Androidu <strong>Nastavení</strong>, vyhledejte svůj prohlížeč (např. Chrome) a u položky Mikrofon zvolte <strong>Povolit</strong>.<br/>2. Vraťte se sem, klepněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klepněte na <strong>Povolit</strong>.",
+          "hardware": "• Ukončete probíhající hovory (Telefon, WhatsApp) nebo jiné aplikace, které nahrávají zvuk.<br/>• Zkontrolujte nastavení Bluetooth a odpojte bezdrátová sluchátka, která by mohla mikrofon používat.<br/>"
+        },
+        "ios": {
+          "systemAndBrowser": "1. Otevřete v iPhonu <strong>Nastavení</strong>, sjeďte dolů ke svému prohlížeči (např. Safari) a <strong>zapněte</strong> přepínač Mikrofon.<br/>2. Vraťte se sem, v adresním řádku klepněte na <strong>ikonu aA</strong>, zvolte <strong>Nastavení webové stránky</strong> a povolte mikrofon.",
+          "hardware": "• Ukončete probíhající hovory (Telefon, FaceTime) nebo jiné aplikace, které nahrávají zvuk.<br/>• Zkontrolujte nastavení Bluetooth a odpojte bezdrátová sluchátka, která by mohla mikrofon používat.<br/>"
+        }
+      }
     }
+  },
+  "volumeCheck": {
+    "instructions": "Prosím <strong>nastavte hlasitost</strong> tak, abyste zřetelně slyšeli hlasovou zprávu. Poté vyberte číslo, které uslyšíte."
+  },
+  "audioGuideIntro": {
+    "title": "Hlasový průvodce",
+    "instructions": "<strong>Hlasový průvodce</strong> <br/><br/> Celým testováním vás bude provázet hlasový průvodce, kterého byste měli právě teď slyšet. <br><br/> Průvodce můžete pozastavit ikonou v pravém horním rohu obrazovky. <br><br/> Chcete-li si ho pustit znovu, stačí na ikonu kliknout ještě jednou."
+  },
+  "videoCalibration": {
+    "step1": "<strong>Opřete ruku o stůl</strong> a držte telefon tak, jak je znázorněno na obrázku.",
+    "calibrationGuideMessage": "Nastavte svůj obličej tak, aby kruh zezelenal.",
+    "viewInstructions": "Zobrazit pokyny",
+    "btnReady": "Můžu začít",
+    "btnShowInstructions": "Zobrazit pokyny a začít",
+    "btnContinueReady": "Poloha je správná → pokračovat",
+    "btnContinueWait": "Čekáme na správnou polohu obličeje...",
+    "warningHoldSteady": "Držte telefon v klidu.",
+    "warningAdjustFace": "Upravte polohu obličeje.",
+    "closer": "Blíž",
+    "loadingAI": "Načítáme model pro rozpoznání obličeje...",
+    "further": "Dál",
+    "turnLeft": "Podívejte se doleva",
+    "turnRight": "Podívejte se doprava",
+    "permissionWarning": "V tomto úkolu budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
+    "permissionInstruction": "Prosím klikněte na tlačítko a v následujícím vyskakovacím okně zvolte <strong>Povolit</strong>.",
+    "waitingForPermission": "Čekáme na povolení kamery...",
+    "btnUnderstand": "Rozumím, pokračovat",
+    "guide": {
+      "titleDenied": "Přístup ke kameře byl zamítnut",
+      "descDenied": "Zařízení nebo prohlížeč blokuje kameru. Pro pokračování musí přístup povolit obojí.",
+      "descBusy": "Kameru právě používá jiná aplikace. Zavřete ji prosím.",
+      "descMissing": "Nenašli jsme žádnou kameru. Zkontrolujte prosím připojení nebo zkuste jiné zařízení.",
+      "descGeneric": "Pro pokračování v tomto úkolu je potřeba přístup ke kameře.",
+      "descModelLoadFailed": "Nepodařilo se načíst rozpoznávání obličeje, které je pro tento úkol potřeba. Příčinou bývá pomalé nebo přerušené připojení.",
+      "btnRetry": "Zkusit znovu",
+      "btnDecline": "Nechci povolit přístup",
+      "btnStuck": "Nedaří se kalibrace? Pokračovat bez kamery",
+      "declineTitle": "Ještě to prosím zvažte",
+      "declineMessage": "Nenahrává se žádné video – pouze sada anonymizovaných souřadnic obličeje. Bez přístupu ke kameře budou výsledky méně přesné.",
+      "declineConfirm": "Pokračovat bez povolení kamery",
+      "declineCancel": "Zpět",
+      "stepsModelLoadFailed": "• Zkontrolujte připojení k internetu.<br/>• Zkuste obnovit stránku.<br/>• Pokud se toto opakuje, pokračujte níže bez kamery.",
+      "stepsHardware": "Zavřete ostatní aplikace (videohovor, fotoaparát), které by mohly kameru používat.",
+      "steps": {
+        "android": {
+          "systemAndBrowser": "1. Otevřete v Androidu <strong>Nastavení</strong>, vyhledejte svůj prohlížeč (např. Chrome) a u položky Fotoaparát zvolte <strong>Povolit</strong>.<br/>2. Vraťte se sem, klepněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klepněte na <strong>Povolit</strong>."
+        },
+        "ios": {
+          "systemAndBrowser": "1. Otevřete v iPhonu <strong>Nastavení</strong>, sjeďte dolů ke svému prohlížeči (např. Safari) a <strong>zapněte</strong> přepínač Fotoaparát.<br/>2. Vraťte se sem, v adresním řádku klepněte na <strong>ikonu aA</strong>, zvolte <strong>Nastavení webové stránky</strong> a povolte kameru."
+        }
+      }
+    }
+  },
+  "incompatibleBrowser": {
+    "title": "Prohlížeč není podporován",
+    "description": "nepodporuje přístup k mikrofonu, který je pro tento úkol potřeba.",
+    "instruction": "Zkopírujte odkaz níže a otevřete ho v jednom z těchto prohlížečů:",
+    "fallbackPrompt": "Zkopírujte tento odkaz a otevřete ho v prohlížeči Chrome, Safari, Opera nebo Edge:",
+    "copied": "Zkopírováno!",
+    "copyBtn": "Kopírovat odkaz"
   }
-  
+}

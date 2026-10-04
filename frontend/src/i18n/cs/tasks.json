@@ -1,245 +1,848 @@
 {
   "questionnaire": {
-    "name": "Dotazník",
-    "description": "Upravitelný formulář otázek a odpovědí.",
-    "title": "Dotazník: {{title}}",
-    "instructions": "Prosím zodpovězte na následující otázky.",
-    "params": {
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
-    }
+    "instructions": "Odpovězte prosím na následující otázky.",
+    "pleaseAnswerAll": "Pro pokračování prosím odpovězte na všechny povinné otázky.",
+    "optionalLabel": "(nepovinné)"
   },
   "rbdsq": {
-    "name": "RBD-SQ",
-    "description": "[cs] REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
-    "title": "Dotazník: {{title}}",
-    "instructions": "Prosím zodpovězte na následující otázky.",
-    "params": {
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
-    },
     "defaultContent": {
-      "title": "RBD-SQ",
-      "description": "",
       "questions": [
-        { "id": 1782905076296, "text": "[cs] I sometimes have very vivid dreams.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905161794, "text": "[cs] My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905166057, "text": "[cs] The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905170074, "text": "[cs] I know that my arms or legs move when I sleep.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905174710, "text": "[cs] It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905182339, "text": "[cs] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905259308, "text": "[cs] I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076583590, "text": "[cs] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076590512, "text": "[cs] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076636726, "text": "[cs] It happens that my movements awake me.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076672712, "text": "[cs] After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076688838, "text": "[cs] My sleep is frequently disturbed.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076704506, "text": "[cs] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["[cs] Yes", "[cs] No"] }
+        {
+          "id": 1782905076296,
+          "text": "Někdy mívám velmi živé sny.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1782905161794,
+          "text": "Mé sny často mívají agresivní náboj nebo obsahují živý děj.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1782905166057,
+          "text": "Obsah snu většinou odráží mé chování ve spánku.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1782905170074,
+          "text": "Jsem si vědom/a toho, že ve spánku pohybuji končetinami",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1782905174710,
+          "text": "Stalo se už, že jsem (téměř) zranil/a mého spolunocležníka nebo sám/sama sebe.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1782905182339,
+          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): mluvil/a, křičel/a, nadával/a, hlasitě se smál/a",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1782905259308,
+          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): pohyboval/a prudce (až bojovně) končetinami",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783076583590,
+          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): prováděl/a bezúčelná gesta a složité pohyby jako např.: mávání, salutování, odhánění komárů, pád z lůžka, apod.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783076590512,
+          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): shodil/a předměty nacházejí se v okolí lůžka, např.: stolní lampu, knihu, brýle, apod.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783076636726,
+          "text": "Stává se, že mě tyto pohyby probudí.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783076672712,
+          "text": "Po probuzení si většinou dobře pamatuji obsah snu.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783076688838,
+          "text": "Můj spánek bývá často narušený.",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783076704506,
+          "text": "Léčil/a jsem se/léčím se pro onemocnění nervového systému (např. cévní mozková příhoda, úraz hlavy, Parkinsonova nemoc, syndrom neklidných nohou, narkolepsie, deprese, epilepsie, zánětlivé onemocnění mozku).",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        }
       ]
     }
   },
   "hhies": {
-    "name": "HHIE-S",
-    "description": "[cs] Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
-    "title": "Dotazník: {{title}}",
-    "instructions": "Prosím zodpovězte na následující otázky.",
-    "params": {
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
-    },
     "defaultContent": {
-      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
-      "description": "",
       "questions": [
-        { "id": 1783259600000, "text": "Jak byste celkově ohodnotil(a) svůj sluch?", "type": "single", "options": ["Výborný", "Dobrý", "Průměrný", "Špatný", "Velmi špatný"] },
-        { "id": 1783259602375, "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259610834, "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259617267, "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259622208, "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259626876, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259632940, "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259643040, "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259656707, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259672641, "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } },
-        { "id": 1783259681028, "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?", "type": "single", "options": ["Ano", "Občas", "Ne"], "showIf": { "questionId": 1783259600000, "values": ["Průměrný", "Špatný", "Velmi špatný"] } }
+        {
+          "id": 1783259600000,
+          "text": "Jak byste ohodnotili svůj sluch (s naslouchadlem, pokud ho používáte)?",
+          "type": "single",
+          "options": [
+            "Výborný",
+            "Velmi dobrý",
+            "Dobrý",
+            "Ucházející",
+            "Špatný"
+          ]
+        },
+        {
+          "id": 1783259602375,
+          "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259610834,
+          "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259617267,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259622208,
+          "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259626876,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259632940,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259643040,
+          "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259656707,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259672641,
+          "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        },
+        {
+          "id": 1783259681028,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ],
+          "showIf": {
+            "questionId": 1783259600000,
+            "values": [
+              "Ucházející",
+              "Špatný"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "medicalHistory": {
+    "defaultContent": {
+      "questions": [
+        {
+          "id": 1789301000003,
+          "text": "Měli jste v posledních 10ti letech potíže s řečí nebo hlasem, kvůli kterým jste navštívili lékaře?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1789301000004,
+          "text": "Upřesněte prosím potíže s hlasem nebo řečí (např. koktavost, dysartrie, …):",
+          "type": "open",
+          "showIf": {
+            "questionId": 1789301000003,
+            "values": [
+              "Ano"
+            ]
+          }
+        },
+        {
+          "id": 1789301000005,
+          "text": "Bylo Vám někdy diagnostikováno neurologické onemocnění, nebo máte v současnosti potíže, které by mohly ovlivnit výsledky (např. cévní mozková příhoda, Parkinsonova nemoc, epilepsie, roztroušená skleróza nebo úrazové poranění mozku)?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1789301000006,
+          "text": "Upřesněte prosím onemocnění:",
+          "type": "open",
+          "showIf": {
+            "questionId": 1789301000005,
+            "values": [
+              "Ano"
+            ]
+          }
+        },
+        {
+          "id": 1789301000007,
+          "text": "Byla Vám někdy diagnostikována porucha barevného vidění, nebo máte podezření, že ji máte (např. červeno-zelená nebo modro-žlutá barvoslepost)?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1789301000008,
+          "text": "Upřesněte prosím poruchu:",
+          "type": "open",
+          "showIf": {
+            "questionId": 1789301000007,
+            "values": [
+              "Ano"
+            ]
+          }
+        },
+        {
+          "id": 1789301000009,
+          "text": "Podstoupili jste někdy kosmetický zákrok, který by mohl ovlivnit funkci obličejových svalů (např. injekce botulotoxinu – Botox)?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1789301000010,
+          "text": "Upřesněte prosím zákrok:",
+          "type": "open",
+          "showIf": {
+            "questionId": 1789301000009,
+            "values": [
+              "Ano"
+            ]
+          }
+        },
+        {
+          "id": 1789301000011,
+          "text": "Bylo Vám někdy diagnostikováno onemocnění ovlivňující pohyb obličejových svalů (např. ochrnutí obličeje)?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1789301000012,
+          "text": "Upřesněte prosím onemocnění:",
+          "type": "open",
+          "showIf": {
+            "questionId": 1789301000011,
+            "values": [
+              "Ano"
+            ]
+          }
+        }
       ]
     }
   },
   "languageQuestionnaire": {
-    "name": "Language Questionnaire",
-    "description": "[cs] Languages spoken in childhood and today, how often they are used, and proficiency in the study language. Added pre-filled; the questions can still be adjusted before saving.",
-    "title": "Dotazník: {{title}}",
-    "instructions": "Prosím zodpovězte na následující otázky.",
-    "params": {
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
-    },
     "defaultContent": {
-      "title": "[cs] Language Questionnaire",
-      "description": "",
       "questions": [
-        { "id": 1789302000000, "text": "[cs] Which language(s) did you mainly speak at home as a child? (up to 3)", "type": "multiple", "options": ["[cs] German (incl. Swiss German)", "[cs] French (incl. Romand patois)", "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "[cs] Romansh", "[cs] Serbian / Croatian", "[cs] Albanian", "[cs] Portuguese", "[cs] Spanish", "[cs] English", "[cs] Other"], "freeTextOptions": ["[cs] Other"], "maxSelections": 3 },
-        { "id": 1789302000001, "text": "[cs] Which language(s) do you think in and know best today? If you think in several languages and master them very well, please indicate all of them. (up to 3)", "type": "multiple", "options": ["[cs] German (incl. Swiss German)", "[cs] French (incl. Romand patois)", "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "[cs] Romansh", "[cs] Serbian / Croatian", "[cs] Albanian", "[cs] Portuguese", "[cs] Spanish", "[cs] English", "[cs] Other"], "freeTextOptions": ["[cs] Other"], "maxSelections": 3 },
-        { "id": 1789302000002, "text": "[cs] At what age did you start learning <language>?", "type": "single", "options": ["[cs] Age (years)", "[cs] Don't know"], "freeTextOptions": ["[cs] Age (years)"], "numericFreeText": {"min": 0, "max": 120}, "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "[cs] German (incl. Swiss German)", "fr": "[cs] French (incl. Romand patois)", "it": "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "[cs] Romansh", "pt": "[cs] Portuguese", "es": "[cs] Spanish", "en": "[cs] English"}} },
-        { "id": 1789302000003, "text": "[cs] At what age did you come to live in a <language>-speaking region?", "type": "single", "options": ["[cs] Age (years)", "[cs] Don't know", "[cs] Always lived there"], "freeTextOptions": ["[cs] Age (years)"], "numericFreeText": {"min": 0, "max": 120}, "showIf": {"questionId": 1789302000000, "unlessLanguage": {"de": "[cs] German (incl. Swiss German)", "fr": "[cs] French (incl. Romand patois)", "it": "[cs] Italian (incl. Ticinese / Italian-Grisons dialect)", "rm": "[cs] Romansh", "pt": "[cs] Portuguese", "es": "[cs] Spanish", "en": "[cs] English"}} },
-        { "id": 1789302000004, "text": "[cs] How often do you currently speak <language> with family and friends?", "type": "single", "options": ["[cs] Daily", "[cs] Several times a week", "[cs] Weekly", "[cs] Rarely", "[cs] Never"], "repeatFor": [1789302000000, 1789302000001] },
-        { "id": 1789302000005, "text": "[cs] How often do you currently speak <language> at work or in everyday activities outside home?", "type": "single", "options": ["[cs] Daily", "[cs] Several times a week", "[cs] Weekly", "[cs] Rarely", "[cs] Never"], "repeatFor": [1789302000000, 1789302000001] },
-        { "id": 1789302000006, "text": "[cs] How well do you speak <language>?", "type": "single", "options": ["[cs] Very well", "[cs] Well", "[cs] Moderately", "[cs] Poorly", "[cs] Not at all"] },
-        { "id": 1789302000007, "text": "[cs] How well do you understand <language>?", "type": "single", "options": ["[cs] Very well", "[cs] Well", "[cs] Moderately", "[cs] Poorly", "[cs] Not at all"] }
+        {
+          "id": 1789302000000,
+          "text": "Jakým jazykem (jazyky) jste jako dítě doma převážně mluvili? (max. 3)",
+          "type": "multiple",
+          "options": [
+            "Němčina (vč. švýcarské němčiny)",
+            "Francouzština (vč. románských nářečí – patois)",
+            "Italština (vč. tessinského / graubündenského nářečí)",
+            "Rétorománština",
+            "Srbština / chorvatština",
+            "Albánština",
+            "Portugalština",
+            "Španělština",
+            "Angličtina",
+            "Jiný"
+          ],
+          "freeTextOptions": [
+            "Jiný"
+          ],
+          "maxSelections": 3
+        },
+        {
+          "id": 1789302000001,
+          "text": "V jakém jazyce (jazycích) dnes myslíte a který ovládáte nejlépe? Pokud myslíte ve více jazycích a všechny velmi dobře ovládáte, uveďte je všechny. (max. 3)",
+          "type": "multiple",
+          "options": [
+            "Němčina (vč. švýcarské němčiny)",
+            "Francouzština (vč. románských nářečí – patois)",
+            "Italština (vč. tessinského / graubündenského nářečí)",
+            "Rétorománština",
+            "Srbština / chorvatština",
+            "Albánština",
+            "Portugalština",
+            "Španělština",
+            "Angličtina",
+            "Jiný"
+          ],
+          "freeTextOptions": [
+            "Jiný"
+          ],
+          "maxSelections": 3
+        },
+        {
+          "id": 1789302000002,
+          "text": "V kolika letech jste se začali učit tento jazyk: <language>?",
+          "type": "single",
+          "options": [
+            "Věk (roky)",
+            "Nevím"
+          ],
+          "freeTextOptions": [
+            "Věk (roky)"
+          ],
+          "numericFreeText": {
+            "min": 0,
+            "max": 120
+          },
+          "showIf": {
+            "questionId": 1789302000000,
+            "unlessLanguage": {
+              "de": "Němčina (vč. švýcarské němčiny)",
+              "fr": "Francouzština (vč. románských nářečí – patois)",
+              "it": "Italština (vč. tessinského / graubündenského nářečí)",
+              "rm": "Rétorománština",
+              "pt": "Portugalština",
+              "es": "Španělština",
+              "en": "Angličtina"
+            }
+          }
+        },
+        {
+          "id": 1789302000003,
+          "text": "V kolika letech jste se přestěhovali do oblasti, kde se mluví tímto jazykem: <language>?",
+          "type": "single",
+          "options": [
+            "Věk (roky)",
+            "Nevím",
+            "Žiji tam odjakživa"
+          ],
+          "freeTextOptions": [
+            "Věk (roky)"
+          ],
+          "numericFreeText": {
+            "min": 0,
+            "max": 120
+          },
+          "showIf": {
+            "questionId": 1789302000000,
+            "unlessLanguage": {
+              "de": "Němčina (vč. švýcarské němčiny)",
+              "fr": "Francouzština (vč. románských nářečí – patois)",
+              "it": "Italština (vč. tessinského / graubündenského nářečí)",
+              "rm": "Rétorománština",
+              "pt": "Portugalština",
+              "es": "Španělština",
+              "en": "Angličtina"
+            }
+          }
+        },
+        {
+          "id": 1789302000004,
+          "text": "Jak často v současnosti mluvíte s rodinou a přáteli tímto jazykem: <language>?",
+          "type": "single",
+          "options": [
+            "Denně",
+            "Několikrát týdně",
+            "Jednou týdně",
+            "Zřídka",
+            "Nikdy"
+          ],
+          "repeatFor": [
+            1789302000000,
+            1789302000001
+          ]
+        },
+        {
+          "id": 1789302000005,
+          "text": "Jak často v současnosti mluvíte v práci nebo při běžných činnostech mimo domov tímto jazykem: <language>?",
+          "type": "single",
+          "options": [
+            "Denně",
+            "Několikrát týdně",
+            "Jednou týdně",
+            "Zřídka",
+            "Nikdy"
+          ],
+          "repeatFor": [
+            1789302000000,
+            1789302000001
+          ]
+        },
+        {
+          "id": 1789302000006,
+          "text": "Jak dobře mluvíte tímto jazykem: <language>?",
+          "type": "single",
+          "options": [
+            "Velmi dobře",
+            "Dobře",
+            "Středně",
+            "Špatně",
+            "Vůbec"
+          ]
+        },
+        {
+          "id": 1789302000007,
+          "text": "Jak dobře rozumíte tomuto jazyku: <language>?",
+          "type": "single",
+          "options": [
+            "Velmi dobře",
+            "Dobře",
+            "Středně",
+            "Špatně",
+            "Vůbec"
+          ]
+        }
       ]
     }
   },
   "phonation": {
-    "name": "Prodloužená fonace",
-    "description": "Účastník udržuje jeden samohláskový zvuk (např. /a/, /e/, /i/, /o/, /u/) po stanovenou dobu za účelem analýzy stability a kontroly hlasu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastavené doby. Administrátor by měl nastavit samohlásku ('phoneme'), počet opakování ('repeat') a časový interval, po kterém se zobrazí tlačítko STOP ('duration').",
-    "title": "Prodloužená fonace /{{phoneme}}/",
-    "instructions": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /{{phoneme}}/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň {{duration}} sekund. Jakmile se vám dojde dech, stiskněte STOP.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "params": {
-      "phoneme": {
-        "label": "Samohláska",
-        "values": {
-          "a": "aaa",
-          "e": "eee",
-          "i": "iii",
-          "o": "ooo",
-          "u": "uuu"
-        }
-      },
-      "repeat": { "label": "Opakování" },
-      "duration": { "label": "Délka trvání" }
-    }
+    "instructions": "<strong>Zhluboka se nadechněte</strong> a vyslovte /{{phoneme}}/ <strong>co nejrovnoměrněji a co nejdéle</strong> na jeden nádech. {{example}} Snažte se vydržet alespoň {{minDuration}} sekund. Stisknutím tlačítka Start spustíte nahrávání. Jakmile vám dojde dech, stiskněte Stop.",
+    "instructionsActive": "Držte /{{phoneme}}/, dokud vám nedojde dech."
   },
-
   "syllableRepeating": {
-    "name": "Opakování slabik",
-    "description": "Účastník opakuje zadané slabiky (např. 'pa-ta-ka', 'ta', 'ka') co nejrychleji a nejzřetelněji, aby se posoudila rychlost a přesnost artikulace. Záznam probíhá v režimu *odpočtu* — po uplynutí stanoveného času se automaticky zastaví. Administrátor by měl nastavit sled slabik ('syllable'), celkovou dobu záznamu ('duration') a počet opakování ('repeat'), pokud se úloha opakuje.",
-    "title": "Opakování {{syllable}}",
-    "instructions": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /{{syllable}}/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "params": {
-      "syllable": {
-        "label": "Slabika",
-        "values": {
-          "pataka": "pa-ta-ka",
-          "ta": "ta-ta-ta",
-          "ka": "ka-ka-ka"
-        }
-      },
-      "duration": { "label": "Délka trvání" },
-      "repeat": { "label": "Opakování" }
-    }
+    "instructions": "<strong>Zhluboka se nadechněte</strong> a opakujte slabiky <br/>/{{syllable}}-{{syllable}}/<br/> co nejrychleji a nejpřesněji. {{example}} Úkol se po {{duration}} sekundách automaticky ukončí. <br/><br/>Stisknutím tlačítka Start spustíte nahrávání.",
+    "instructionsActive": "Opakujte slabiky /{{syllable}}-{{syllable}}/."
   },
-
   "retelling": {
-    "name": "Vyprávění pohádky",
-    "description": "Účastník převypráví známou pohádku zpaměti (např. Sněhurka, Jeníček a Mařenka), aby se zhodnotila plynulost, propojenost řeči a bohatost slovní zásoby. Záznam probíhá v režimu *manuálního zastavení* — administrátor nebo účastník ho zastaví po dokončení. Administrátor by měl zvolit pohádku ('fairytale') a počet opakování ('repeat').",
-    "title": "Vyprávění: {{fairytale}}",
-    "instructions": "Stiskněte START a převyprávějte pohádku: {{fairytale}}. Po dokončení stiskněte STOP.",
-    "instructionsPreCalibration": "V následující úloze si poslechnete namluvený příběh a poté ho převyprávíte vlastními slovy. <br/><br/>Během vašeho vyprávění budeme měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "instructionsPostCalibration": "Stisknutím tlačítka Přehrát pohádku si poslechněte namluvený příběh. {{playStory}} Po poslechu příběhu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Mluvte souvisle — nezáleží na tom, zda je převyprávěný příběh správný nebo úplný.",
-    "instructionsActive": "Nyní prosím převyprávějte příběh vlastními slovy během {{duration}} sekund.",
-    "params": {
-      "fairytale": {
-        "label": "Pohádka",
-        "values": {
-          "hanselAndGretel": "Jeníček a Mařenka",
-          "snowWhite": "Sněhurka"
-        }
-      },
-      "repeat": { "label": "Opakování" }
-    }
+    "instructionsPreCalibration": "V dalším úkolu si poslechnete namluvený příběh a poté ho převyprávíte vlastními slovy. <br/><br/>Během mluvy budeme měřit Vaše pohyby v obličeji. <br/><br/>Nejprve je proto potřeba nastavit Vaší kameru.",
+    "instructionsPostCalibration": "Držte prosím telefon ve zkalibrované poloze. <br/><br/>Stiskněte Přehrát příběh a poslechněte si namluvený příběh. {{playStory}} Po poslechu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Cíl je souvisle mluvit, čili nezáleží jestli je převyprávěný děj správně nebo je pohádka dovyprávěna celá.",
+    "instructionsActive": "Převyprávějte prosím příběh vlastními slovy během {{duration}} sekund."
   },
-
   "reading": {
-    "name": "Čtení textu",
-    "description": "Účastník čte krátký text zobrazený na obrazovce nahlas, aby se posoudila plynulost, artikulace a prozodie řeči. Záznam probíhá v režimu *manuálního zastavení* — spustí se po stisknutí START a ukončí po stisknutí STOP účastníkem nebo administrátorem. Administrátor by měl zvolit téma textu ('topic') a počet opakování ('repeat').",
-    "title": "Čtení: {{topic}}",
-    "instructions": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "instructionsActive": "{{text}}",
-    "params": {
-      "topic": {
-        "label": "Téma textu",
-        "values": {
-          "seedling": {
-            "label": "Sazenička",
-            "text": "Když člověk po prvé vsadí do země sazeničku, chodí se na ni dívat třikrát denně: tak co, povyrostla už nebo ne? I tají dech, naklání se nad ní, přitlačí trochu půdu u jejích kořínků, načechrává jí lístky a vůbec ji obtěžuje různým konáním, které považuje za užitečnou péči. A když se sazenička přesto ujme a roste jako z vody, tu člověk žasne nad tímto divem přírody, má pocit čehosi jako zázraku a považuje to vůbec za jeden ze svých největších osobních úspěchů"
-          },
-          "dog": {
-            "label": "Pes",
-            "text": "Mám psa a rád si s ním hraji..."
-          },
-          "raining": {
-            "label": "Déšť",
-            "text": "Je listopad..."
-          }
-        }
-      },
-      "repeat": { "label": "Opakování" }
-    }
+    "instructions": "Stiskněte Start a přečtěte následný text na obrazovce <strong>nahlas</strong>. <br/><br/>Možná bude zapotřebí <strong>posunout stránku dolů</strong>, abyste text dočetli až do konce. <br/><br/>Až skončíte, stiskněte Stop."
   },
-
-  "monologue": {
-    "name": "Monolog na téma",
-    "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
-    "title": "Monolog na téma: {{topic}}",
-    "instructions": "Ukážeme vám téma a požádáme vás, abyste o něm volně hovořil/a po dobu <strong>{{duration}} sekund</strong>.",
-    "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraven/a, stiskněte Start.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
+  "dynamic_monologue": {
+    "instructions": "Ukážeme Vám dané téma a požádáme Vás, abyste o něm souvisle mluvili po dobu <strong>{{duration}} sekund</strong>. <br/><br/> Pokud by Vám již došly slova, budete moci přepnout na jiné téma, které vám pomůže pokračovat.",
+    "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraveni, stiskněte Start a spustí se nahrávání.",
     "params": {
-      "topic": {
-        "label": "Téma monologu",
+      "topics": {
         "values": {
+          "everyday": {
+            "topicDescription": "Jak u Vás vypadá průběh běžného dne od chvíle, kdy se probudíte? Zkuste zahrnout i podrobnosti, například ranní rutinu a co obvykle děláte během dne."
+          },
           "hobbies": {
-            "label": "Koníčky",
-            "topicDescription": "koníčky (sport, hudba, čtení, zahradničení, domácí mazlíčci apod.)"
+            "topicDescription": "Jak nejraději trávíte volný čas? Můžete popsat činnost, která vás baví, jak jste se k ní dostali a čím je pro vás zajímavá."
           },
-          "yesterday": {
-            "label": "Průběh Vašeho včerejšího dne, týdne nebo měsíce",
-            "topicDescription": "Průběh Vašeho včerejšího dne, týdne nebo měsíce. Snažte se zahrnout i detaily, například co jste měl/a k snídani, co zajímavého jste zažil/a nebo s kým se setkal/a."
+          "eating": {
+            "topicDescription": "Vaříte raději doma, nebo chodíte jíst ven? Můžete popsat jídla, která máte rádi, nebo restauraci, kam rádi chodíte."
           },
-          "family": {
-            "label": "Rodina",
-            "topicDescription": "rodina"
+          "travel": {
+            "topicDescription": "Jak se obvykle dostáváte z místa na místo? Můžete popsat svou běžnou cestu do práce, oblíbený způsob cestování, nebo vyprávět o výletě či místě, které vás zaujalo."
           }
-        }
-      },
-      "repeat": { "label": "Opakování" },
-      "duration": { "label": "Délka trvání" }
-    }
-  },
-
-  "farnsworthD15": {
-    "name": "Farnsworth D-15 Color Test",
-    "description": "Test barevného vidění, kde účastník řadí 15 barevných terčíků do řady.",
-    "title": "Seřazení barev",
-    "instructions": "Podívejte se na poslední barvu v řadě. Vyberte ze spodní nabídky tu barvu, která je jí nejpodobnější. Klepnutím ji přesuňte. Pokračujte, dokud nebudou všechny barvy v řadě.",
-    "controls": {
-      "reset": "Restartovat",
-      "submit": "Odeslat výsledek",
-      "undo": "Klepnutím na barvu v řadě ji vrátíte zpět"
-    },
-    "params": {
-      "randomize": { 
-        "label": "Randomize caps" 
-      },
-      "repeat": { 
-        "label": "Repetitions" 
-      },
-      "showNumbers": {
-        "label": "Show cap numbers",
-        "values": {
-          "never": "Never (Standard)",
-          "after": "After completion",
-          "always": "Always (Debug/Demo)"
         }
       }
+    }
+  },
+  "d15colour": {
+    "addTitle": "<strong>Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly.</strong>",
+    "addText": "• Klikněte na barvu ve <strong>spodní nabídce barev</strong>.<br/>• Přidá se na <strong>další volné místo</strong> v horní řadě.",
+    "addGifAlt": "Přidání barvy",
+    "modifyTitle": "<strong>Úprava sledu barev</strong>",
+    "modifyText": "• Klikněte na barvu v <strong>horní řadě</strong>.<br/>• Barva se odebere a můžete místo ní vybrat jinou.",
+    "modifyGifAlt": "Úprava barev",
+    "demoTitle": "Jak to funguje",
+    "mainInstructionsText": "Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly. <br/><br/> Je v pořádku, pokud je pro Vás těžké barvy rozlišit – vyberte tu, která se vám zdá nejpodobnější.",
+    "trialCompleteTitle": "Výborně!",
+    "trialCompleteText": "Zkušební kolo je hotové. Teď bude test o něco náročnější.",
+    "versionCompleteTitle": "Výborně!",
+    "versionCompleteText": "Tuto část testu barev máte za sebou. Poslední část bude ještě o něco náročnější.",
+    "timeoutTitle": "Chcete test přeskočit?",
+    "timeoutText": "Klidně můžete skončit. Chcete odeslat aktuální uspořádání barev?",
+    "timeoutSubmit": "Odeslat",
+    "timeoutContinue": "Ne, chci pokračovat",
+    "fillAllFirst": "Nejprve prosím zaplňte všechna volná místa v horní řadě.",
+    "loadError": "Barvy se nepodařilo načíst. Zkontrolujte prosím připojení k internetu a zkuste to znovu.",
+    "retry": "Zkusit znovu"
+  },
+  "preTestChecklist": {
+    "title": "Příprava na test zraku",
+    "subtitle": "Nyní budeme testovat Vaše barevné vidění. Zkuste prosím nastavit svou obrazovku:",
+    "subtitleBelow": "Pokud nevíte, jak na to, pokračujte dále. <br><br> Pro nápovědu klepněte na ikonku informací.",
+    "selectFirstHint": "Nejprve prosím zvolte stav u tlačítek výše.",
+    "items": {
+      "brightness": {
+        "label": "Nastavte jas na maximum.",
+        "helpText": "Otevřete rychlé nastavení telefonu (přejeďte prstem od horního okraje obrazovky dolů, nebo od spodního okraje nahoru).<br><br>Najděte <strong>posuvník jasu</strong> (obvykle ikona slunce <imgA/>) a posuňte ho úplně na maximum.<br><br><em>Poznámka</em>: Pokud telefon jas sám znovu snižuje, najděte poblíž tlačítko <strong>Automaticky</strong> nebo <strong>Adaptivní jas</strong>, případně v Nastavení telefonu <imgB/> > Displej, a vypněte ho.<br><br>Příklad: <imgSlider/>"
+      },
+      "colourFilters": {
+        "label": "Vypněte barevné filtry obrazovky (žluté světlo, noční režim apod.).",
+        "helpText": "Filtry mění přirozené barvy obrazovky – ta pak často vypadá nažloutle nebo teple. <br><br><strong>Jak je vypnout:</strong><br>1. Otevřete Nastavení <imgA/>.<br>2. Klepněte na Displej (nebo ho vyhledejte).<br>3. Vypněte <em>True Tone</em>, <em>Night Shift</em>, <em>Ochranu zraku</em> (Eye Comfort Shield), <em>Režim čtení</em> nebo jakýkoli jiný režim, který upravuje barvy obrazovky."
+      }
+    }
+  },
+  "sdmt": {
+    "name": "Test symbolů a číslic (SDMT)",
+    "title": "Symboly",
+    "instructions": "Na další obrazovce klepněte na odpovídající číslo na klávesnici. Je velmi důležité, abyste používali pouze <strong>jeden prst</strong>. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
+    "instructionsActive": "Přiřaďte symbol k číslu.",
+    "demoTitle": "Úloha na přiřazování symbolů",
+    "demoText": "Pomocí klávesnice přiřaďte zobrazený symbol ke správnému číslu.",
+    "taskComplete": "Úkol dokončen!",
+    "resultsSaved": "Vaše výsledky byly bezpečně uloženy.",
+    "start": "Start"
+  },
+  "feedback": {
+    "defaultContent": {
+      "questions": [
+        {
+          "id": 1786019770001,
+          "text": "Jak snadné pro Vás bylo splnit úlohy?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770002,
+          "text": "Jak uživatelsky přívětivé bylo celkově plnění úloh?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770003,
+          "text": "Jak srozumitelné byly pokyny k úlohám?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770004,
+          "text": "Jak užitečný byl hlasový průvodce?",
+          "type": "rating",
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770005,
+          "text": "Měli jste při plnění úloh problémy s koordinací pohybů (např. ovládání obrazovky)?",
+          "type": "single",
+          "options": [
+            "Ne",
+            "Ano, drobné potíže",
+            "Ano, výrazné potíže",
+            "Ano, úkoly nešlo správně dokončit"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770006,
+          "text": "Měli jste potíže slyšet zvuk (průvodce, pohádku nebo ukázky)?",
+          "type": "single",
+          "options": [
+            "Ne, vše bylo zřetelně slyšet.",
+            "Ano, drobné potíže.",
+            "Ano, výrazné potíže.",
+            "Zvuk vůbec nefungoval."
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770007,
+          "text": "Rušil vás při plnění úkolů hluk v okolí nebo něco jiného?",
+          "type": "single",
+          "options": [
+            "Ne",
+            "Trochu",
+            "Ano",
+            "Nevím jistě"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770008,
+          "text": "Setkali jste se při plnění úkolů s technickými potížemi?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770009,
+          "text": "S jakými technickými potížemi jste se setkali?",
+          "type": "multiple",
+          "options": [
+            "Potíže s povolením přístupu k mikrofonu nebo kameře",
+            "Potíže s rozpoznáním obličeje kamerou",
+            "Potíže s udržením polohy kamery během mluvení",
+            "Dlouhé prodlevy nebo čekání mezi úkoly",
+            "Zvukový průvodce byl příliš tichý nebo se nečekaně ztišil",
+            "Nechtěné opuštění úkolu nebo odchod ze stránky",
+            "Potíže s nastavením obrazovky pro test zraku",
+            "Aplikace zamrzla, spadla nebo přestala reagovat",
+            "Nahrávání se zřejmě správně nespustilo nebo nezastavilo",
+            "Výpadek internetového připojení během vyplňování",
+            "Jiné:"
+          ],
+          "optional": false,
+          "freeTextOptions": [
+            "Jiné:"
+          ],
+          "showIf": {
+            "questionId": 1786019770008,
+            "values": [
+              "Ano"
+            ]
+          }
+        },
+        {
+          "id": 1786019770010,
+          "text": "Byla pro Vás některá úloha frustrující?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770011,
+          "text": "Které úlohy byly nejvíce frustrující?",
+          "type": "multiple",
+          "options": [
+            "Dlouhé /aaa/",
+            "Opakování /pa-ta-ka/",
+            "Čtení textu",
+            "Převyprávění pohádky",
+            "Monolog",
+            "Přiřazování symbolů",
+            "Test zraku (řazení barev)",
+            "Čichový test",
+            "Dotazníky"
+          ],
+          "optional": false,
+          "showIf": {
+            "questionId": 1786019770010,
+            "values": [
+              "Ano"
+            ]
+          },
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770012,
+          "text": "Které úlohy vás nejvíce bavily?",
+          "type": "multiple",
+          "options": [
+            "Dlouhé /aaa/",
+            "Opakování /pa-ta-ka/",
+            "Čtení textu",
+            "Převyprávění pohádky",
+            "Monolog",
+            "Přiřazování symbolů",
+            "Test zraku (řazení barev)",
+            "Čichový test",
+            "Dotazníky",
+            "Žádný"
+          ],
+          "optional": false,
+          "exclusiveOption": [
+            "None"
+          ],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019770013,
+          "text": "Je ještě něco, co byste nám chtěli sdělit?",
+          "type": "open",
+          "options": [],
+          "optional": true,
+          "freeTextOptions": []
+        }
+      ]
     }
   }
 }

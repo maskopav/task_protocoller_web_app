@@ -42,13 +42,11 @@ const editorModules = {
 const TemplateSelector = ({ templateType, currentLanguage, onSelect, i18n }) => {
   let templates = {};
   
-  // 1. Get the raw JSON bundle for the protocol's language, fallback to 'en'
-  const bundle = i18n.getResourceBundle(currentLanguage, "intro") || i18n.getResourceBundle("en", "intro");
-  
+  // 1. Get the templates of this type in the protocol's language, falling back
+  //    to 'en' per type (a language may translate only some templates, e.g. cs has no consent)
   // 2. Safely traverse the JSON object without relying on i18next dot-notation parsing
-  if (bundle && bundle.templates && bundle.templates[templateType]) {
-    templates = bundle.templates[templateType];
-  }
+  const templatesOf = (lang) => i18n.getResourceBundle(lang, "intro")?.templates?.[templateType];
+  templates = templatesOf(currentLanguage) || templatesOf("en") || {};
 
   return (
     <div className="template-selector" style={{ marginBottom: '10px' }}>
