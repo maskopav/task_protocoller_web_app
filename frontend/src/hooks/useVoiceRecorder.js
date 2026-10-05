@@ -79,6 +79,24 @@ const pickTrackSettings = (stream) => {
     return picked;
 };
 
+// How long stopRecording waits for the worklet to post the last, partially
+// filled buffer (<= 4096 samples, ~85 ms of audio) before finalizing anyway.
+// The round trip normally takes a few ms; this only bounds a lost message.
+const WORKLET_TAIL_TIMEOUT_MS = 300;
+
+// Resolves once the worklet confirms (via { done: true }) that the tail of the
+// recording has been posted, or after WORKLET_TAIL_TIMEOUT_MS. Never rejects.
+const waitForWorkletTail = (workletNode) => new Promise((resolve) => {
+    const finish = () => {
+        clearTimeout(timer);
+        workletNode.port.removeEventListener('message', onMessage);
+        resolve();
+    };
+    const onMessage = (event) => { if (event.data?.done) finish(); };
+    const timer = setTimeout(finish, WORKLET_TAIL_TIMEOUT_MS);
+    workletNode.port.addEventListener('message', onMessage);
+});
+
 function withTimeout(promise, ms, message) {
     return Promise.race([
         promise,
@@ -112,6 +130,9 @@ class RecorderWorklet extends AudioWorkletProcessor {
             } else if (e.data.command === 'stop') {
                 this.isRecording = false;
                 this.flush(); // Catch the final tail of the recording
+                // Final stop: confirm the tail (if any) has been posted, so the
+                // main thread knows it can finalize the file.
+                if (e.data.final) this.port.postMessage({ done: true });
             }
         };
     }
@@ -520,10 +541,13 @@ export const useVoiceRecorder = (options = {}) => {
         workletNodeRef.current = workletNode;
 
         workletNode.port.onmessage = (event) => {
-            // PAUSED is accepted too: pauseRecording sets the status before the
-            // worklet's 'stop' flush (the tail of the partial buffer) arrives.
-            // The worklet sends nothing else while paused.
-            if (statusRef.current !== RECORDING && statusRef.current !== PAUSED) return;
+            if (!event.data.buffer) return; // { done: true } - see waitForWorkletTail
+            // PAUSED / RECORDED are accepted too: pause/stopRecording set the
+            // status before the worklet's 'stop' flush (the tail of the partial
+            // buffer) arrives. The worklet sends nothing else once stopped, and
+            // stopRecording detaches this handler after the tail.
+            if (statusRef.current !== RECORDING && statusRef.current !== PAUSED &&
+                statusRef.current !== RECORDED) return;
 
             if (chunkCountRef.current === 0) {
                 // The first chunk arrives once it is full (4096 samples, ~85 ms
@@ -625,10 +649,17 @@ export const useVoiceRecorder = (options = {}) => {
 
         if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
 
-        if (workletNodeRef.current) {
-            workletNodeRef.current.port.postMessage({ command: 'stop' });
-            workletNodeRef.current.disconnect();
-            workletNodeRef.current.port.onmessage = null;
+        // The worklet holds up to ~85 ms of not-yet-posted audio. Ask it to post
+        // that tail and keep the chunk handler attached until it has arrived.
+        // Disconnecting right away is fine: the tail is already buffered.
+        const workletNode = workletNodeRef.current;
+        let tailFlushed = Promise.resolve();
+        if (workletNode) {
+            tailFlushed = waitForWorkletTail(workletNode).then(() => {
+                workletNode.port.onmessage = null;
+            });
+            workletNode.port.postMessage({ command: 'stop', final: true });
+            workletNode.disconnect();
         }
         if (sourceNodeRef.current) {
             sourceNodeRef.current.disconnect();
@@ -654,11 +685,15 @@ export const useVoiceRecorder = (options = {}) => {
             const recordingInfo = {
                 sampleRate,
                 micSettings: trackSettingsRef.current,
-                samples: sampleCountRef.current,
-                durationSec: Math.round((sampleCountRef.current / sampleRate) * 100) / 100,
             };
 
-            const finalizePipeline = flushPCMChunkBatch()
+            const finalizePipeline = tailFlushed
+                .then(() => {
+                    // Counted only now, so the tail chunk is included.
+                    recordingInfo.samples = sampleCountRef.current;
+                    recordingInfo.durationSec = Math.round((sampleCountRef.current / sampleRate) * 100) / 100;
+                    return flushPCMChunkBatch();
+                })
                 .then(() => pendingWritesRef.current)
                 .then(() => finalizeRecording(sampleRate));
 
