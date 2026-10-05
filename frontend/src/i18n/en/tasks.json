@@ -591,7 +591,6 @@
               "Long waiting between tasks",
               "Setting up the screen for the vision task",
               "The app froze or stopped responding",
-              "Lost internet connection",
               "Other:"
             ],
             "optional": false,
