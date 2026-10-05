@@ -31,6 +31,23 @@ window.addEventListener('unhandledrejection', event => {
   logger.fatal('Unhandled Promise Rejection', event.reason);
 });
 
+// 3. Log connection outages. A log sent while offline is lost, so remember
+// when the connection dropped and report it once it's back.
+let offlineAt = null;
+window.addEventListener('offline', () => {
+  offlineAt = new Date();
+});
+window.addEventListener('online', () => {
+  if (!offlineAt) return;
+  const onlineAt = new Date();
+  logger.warn('[Network] Connection lost', {
+    offlineAt: offlineAt.toISOString(),
+    onlineAt: onlineAt.toISOString(),
+    durationMs: onlineAt - offlineAt,
+  });
+  offlineAt = null;
+});
+
 createRoot(document.getElementById("root")).render(
   <StrictMode> 
     <HashRouter> 
