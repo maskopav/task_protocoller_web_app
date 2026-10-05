@@ -18,13 +18,26 @@ export function translateTaskDescription(category: string): string {
   return i18next.t(`${category}.description`, { ...i18nOptions,defaultValue: "" });
 }
 
+// Standard questionnaires (rbdsq, hhies, …) share the generic questionnaire's
+// title/instructions. If the current language doesn't translate a type's own
+// copy, use the generic questionnaire text in that language before i18next
+// falls back to the English copy of the type.
+function questionnaireAwareKey(category: string, field: string): string {
+  const ownKey = `${category}.${field}`;
+  if (category === "questionnaire" || taskBaseConfig[category]?.type !== "questionnaire") return ownKey;
+  const lng = i18next.language;
+  if (i18next.getResource(lng, "tasks", ownKey) !== undefined) return ownKey;
+  const genericKey = `questionnaire.${field}`;
+  return i18next.getResource(lng, "tasks", genericKey) !== undefined ? genericKey : ownKey;
+}
+
 export function translateTaskTitle(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.title`, { ...i18nOptions,...params, defaultValue: category });
+  return i18next.t(questionnaireAwareKey(category, "title"), { ...i18nOptions,...params, defaultValue: category });
 }
 
 
 export function translateTaskInstructions(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructions`, { ...i18nOptions,...params, defaultValue: "" });
+  return i18next.t(questionnaireAwareKey(category, "instructions"), { ...i18nOptions,...params, defaultValue: "" });
 }
 
 export function translateTaskInstructionsActive(category: string, params: Record<string, any> = {}): string {
@@ -222,6 +235,10 @@ export function getDefaultParams(category: string): Record<string, any> {
           // If it's a single select, fallback to the first available option
           defaultValue = possibleValues[0];
         }
+      } else if (!def.multiple && possibleValues.length > 0 && !possibleValues.includes(defaultValue)) {
+        // The configured default isn't offered in this language (e.g. reading's
+        // "northWind" in cs, which only has "seedling"): use the first option.
+        defaultValue = possibleValues[0];
       }
       return [key, defaultValue];
     })

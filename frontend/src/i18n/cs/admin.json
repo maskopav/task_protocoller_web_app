@@ -91,6 +91,7 @@
   },
   "protocolEditor": {
     "title": "Editor úloh protokolu",
+    "unavailableOption": "{{value}} (v tomto jazyce není k dispozici)",
     "availableTasks": "Dostupné úlohy:",
     "currentProtocol": "Aktuální protokol:",
     "noTasks": "Zatím nebyly přidány žádné úlohy.",

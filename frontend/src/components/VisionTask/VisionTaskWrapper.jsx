@@ -82,7 +82,7 @@ export default function VisionTaskWrapper({ task, onNextTask, onLogEvent, audioG
     (async () => {
       // 1. Add colour (mechanics + goal)
       await confirm({
-        title: t("d15colour.goalText", { ns: "tasks" }),
+        title: t("d15colour.addGifAlt", { ns: "tasks" }),
         headerRight: (
           <AudioGuidePlayer
             ref={addGuideRef}

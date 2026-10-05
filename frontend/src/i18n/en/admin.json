@@ -262,6 +262,7 @@
   },
   "protocolEditor": {
     "title": "Protocol Task Editor",
+    "unavailableOption": "{{value}} (not available in this language)",
     "availableTasks": "Available Tasks:",
     "currentProtocol": "Current Protocol:",
     "noTasks": "No tasks added yet.",

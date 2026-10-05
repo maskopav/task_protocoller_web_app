@@ -11,8 +11,8 @@
     "preparing": "Připravuje se...",
     "playExample": "Přehrát ukázku",
     "stopExample": "Zastavit ukázku",
-    "playStory": "Přehrát příběh",
-    "stopStory": "Zastavit příběh",
+    "playStory": "Přehrát pohádku",
+    "stopStory": "Zastavit pohádku",
     "disabledWhileRecording": "Během nahrávání nedostupné",
     "permission": "Povolit mikrofon",
     "cancel": "Zrušit",
@@ -24,7 +24,7 @@
     "startCalibration": "K nastavení kamery",
     "seeTopic": "Zobrazit téma",
     "switchTopic": "Změnit téma",
-    "cannot": "Nemohu / Nevím jak na to",
+    "cannot": "Nemohu / Nevím, jak na to",
     "yes": "Ano",
     "no": "Ne",
     "dontKnow": "Nevím"
@@ -35,11 +35,11 @@
   },
   "vad": {
     "loading": "Načítáme detektor řeči...",
-    "durationExpired": "Pokud už nemáte co dodat, můžete úkol ukončit tlačítkem Stop.",
+    "durationExpired": "Pokud už nemáte co dodat, můžete úlohu ukončit tlačítkem Stop.",
     "speakLonger": "Prosíme, pokuste se mluvit ještě chvíli."
   },
   "completion": {
-    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Jen pokud vás něco vyrušilo, můžete zvolit Zkusit znovu.",
+    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Pokud vás něco vyrušilo, můžete zvolit Zkusit znovu.",
     "processingFailedInstructions": "Nahrávku se nepodařilo zpracovat. <br/><br/>Klikněte prosím na <strong>Zkusit znovu</strong> a nahrajte ji znovu.",
     "processingInstructions": "Zpracováváme vaši nahrávku… <br/><br/>Na některých zařízeních to může chvíli trvat. Nechte prosím tuto stránku otevřenou.",
     "doneTitle": "Hurá! Test máte za sebou.",
@@ -65,7 +65,7 @@
     "milestone_75": "Skoro hotovo! Přes 75 %"
   },
   "repetition": {
-    "notice": "Proveďte prosím úkol ještě jednou. <br/><br/>"
+    "notice": "Proveďte prosím úlohu ještě jednou. <br/><br/>"
   },
   "questionnaire": {
     "selectOption": "Vyberte možnost...",
@@ -101,7 +101,7 @@
   },
   "resumedSession": {
     "title": "Vítejte zpět!",
-    "message": "Váš postup byl uložen. Pro co nejlepší výsledky prosím zůstaňte ve <strong>stejném klidném prostředí</strong> jako předtím a zkuste zbývající úkoly dokončit najednou.",
+    "message": "Váš postup byl uložen. Pro co nejlepší výsledky prosím zůstaňte ve <strong>stejném klidném prostředí</strong> jako předtím a zkuste zbývající úlohy dokončit najednou.",
     "continue": "Pokračovat"
   },
   "permissions": {
@@ -127,7 +127,7 @@
     "mutedMessage": "Během testu mikrofonu jsme nic neslyšeli.",
     "mutedInstructions": "Zkontrolujte prosím, že <strong>mikrofon není ztlumený, odpojte sluchátka a ověřte nastavení v zařízení</strong>. Poté to zkuste znovu.",
     "mutedAdditionalInfo": "Pokud potíže přetrvávají, podívejte se do návodu k řešení problémů nebo kontaktujte podporu. <br/><br/> Dále bohužel pokračovat nelze.",
-    "mutedModalMessage": "Je nám líto, ale mikrofon se nepodařilo správně nastavit. Většinu úkolů v této studii proto nebudete moci dokončit. <br/><br/>Omlouváme se za komplikace a děkujeme vám za váš čas a ochotu se zúčastnit. <br/><br/>Nyní můžete toto okno zavřít.",
+    "mutedModalMessage": "Je nám líto, ale mikrofon se nepodařilo správně nastavit. Většinu úloh v této studii proto nebudete moci dokončit. <br/><br/>Omlouváme se za komplikace a děkujeme vám za váš čas a ochotu se zúčastnit. <br/><br/>Nyní můžete toto okno zavřít.",
     "btnTryAgain": "Zkusit znovu",
     "successMessage": "Vše vypadá v pořádku!",
     "successInstructions": "Prosím <strong>zůstaňte v této místnosti</strong> až do konce.",
@@ -136,7 +136,7 @@
       "descDenied": "Zařízení nebo prohlížeč blokuje mikrofon. Pro pokračování musí přístup povolit obojí.",
       "descBusy": "Mikrofon právě používá jiná aplikace (např. telefonní hovor nebo Zoom). Zavřete ji prosím.",
       "descMissing": "Nenašli jsme žádný mikrofon. Zkontrolujte prosím připojení nebo zkuste jiné zařízení.",
-      "descGeneric": "Pro pokračování v tomto úkolu je potřeba přístup k mikrofonu.",
+      "descGeneric": "Pro pokračování v této úloze je potřeba přístup k mikrofonu.",
       "btnRetry": "Zkusit znovu",
       "steps": {
         "android": {
@@ -151,7 +151,7 @@
     }
   },
   "volumeCheck": {
-    "instructions": "Prosím <strong>nastavte hlasitost</strong> tak, abyste zřetelně slyšeli hlasovou zprávu. Poté vyberte číslo, které uslyšíte."
+    "instructions": "Prosím <strong>nastavte hlasitost</strong> tak, abyste zřetelně slyšeli zvukovou nahrávku. Poté vyberte číslo, které uslyšíte."
   },
   "audioGuideIntro": {
     "title": "Hlasový průvodce",
@@ -172,7 +172,7 @@
     "further": "Dál",
     "turnLeft": "Podívejte se doleva",
     "turnRight": "Podívejte se doprava",
-    "permissionWarning": "V tomto úkolu budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
+    "permissionWarning": "V této úloze budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
     "permissionInstruction": "Prosím klikněte na tlačítko a v následujícím vyskakovacím okně zvolte <strong>Povolit</strong>.",
     "waitingForPermission": "Čekáme na povolení kamery...",
     "btnUnderstand": "Rozumím, pokračovat",
@@ -181,8 +181,8 @@
       "descDenied": "Zařízení nebo prohlížeč blokuje kameru. Pro pokračování musí přístup povolit obojí.",
       "descBusy": "Kameru právě používá jiná aplikace. Zavřete ji prosím.",
       "descMissing": "Nenašli jsme žádnou kameru. Zkontrolujte prosím připojení nebo zkuste jiné zařízení.",
-      "descGeneric": "Pro pokračování v tomto úkolu je potřeba přístup ke kameře.",
-      "descModelLoadFailed": "Nepodařilo se načíst rozpoznávání obličeje, které je pro tento úkol potřeba. Příčinou bývá pomalé nebo přerušené připojení.",
+      "descGeneric": "Pro pokračování v této úloze je potřeba přístup ke kameře.",
+      "descModelLoadFailed": "Nepodařilo se načíst rozpoznávání obličeje, které je pro tuto úlohu potřeba. Příčinou bývá pomalé nebo přerušené připojení.",
       "btnRetry": "Zkusit znovu",
       "btnDecline": "Nechci povolit přístup",
       "btnStuck": "Nedaří se kalibrace? Pokračovat bez kamery",
@@ -204,7 +204,7 @@
   },
   "incompatibleBrowser": {
     "title": "Prohlížeč není podporován",
-    "description": "nepodporuje přístup k mikrofonu, který je pro tento úkol potřeba.",
+    "description": "nepodporuje přístup k mikrofonu, který je pro tuto úlohu potřeba.",
     "instruction": "Zkopírujte odkaz níže a otevřete ho v jednom z těchto prohlížečů:",
     "fallbackPrompt": "Zkopírujte tento odkaz a otevřete ho v prohlížeči Chrome, Safari, Opera nebo Edge:",
     "copied": "Zkopírováno!",

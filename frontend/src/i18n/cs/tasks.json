@@ -1,5 +1,6 @@
 {
   "questionnaire": {
+    "title": "Dotazník: {{title}}",
     "instructions": "Odpovězte prosím na následující otázky.",
     "pleaseAnswerAll": "Pro pokračování prosím odpovězte na všechny povinné otázky.",
     "optionalLabel": "(nepovinné)"
@@ -584,23 +585,75 @@
   },
   "phonation": {
     "instructions": "<strong>Zhluboka se nadechněte</strong> a vyslovte /{{phoneme}}/ <strong>co nejrovnoměrněji a co nejdéle</strong> na jeden nádech. {{example}} Snažte se vydržet alespoň {{minDuration}} sekund. Stisknutím tlačítka Start spustíte nahrávání. Jakmile vám dojde dech, stiskněte Stop.",
-    "instructionsActive": "Držte /{{phoneme}}/, dokud vám nedojde dech."
+    "instructionsActive": "Držte /{{phoneme}}/, dokud vám nedojde dech.",
+    "params": {
+      "phoneme": {
+        "label": "Hláska",
+        "values": {
+          "a": "aaa",
+          "e": "eee",
+          "i": "iii",
+          "o": "ooo",
+          "u": "uuu"
+        }
+      },
+      "repeat": {
+        "label": "Opakování"
+      },
+      "minDuration": {
+        "label": "Min. délka (s)"
+      },
+      "maxDuration": {
+        "label": "Max. délka (s)"
+      }
+    }
   },
   "syllableRepeating": {
-    "instructions": "<strong>Zhluboka se nadechněte</strong> a opakujte slabiky <br/>/{{syllable}}-{{syllable}}/<br/> co nejrychleji a nejpřesněji. {{example}} Úkol se po {{duration}} sekundách automaticky ukončí. <br/><br/>Stisknutím tlačítka Start spustíte nahrávání.",
-    "instructionsActive": "Opakujte slabiky /{{syllable}}-{{syllable}}/."
+    "instructions": "<strong>Zhluboka se nadechněte</strong> a opakujte slabiky <br/>/{{syllable}}-{{syllable}}/<br/> co nejrychleji a nejpřesněji. {{example}} Úloha se po {{duration}} sekundách automaticky ukončí. <br/><br/>Stisknutím tlačítka Start spustíte nahrávání.",
+    "instructionsActive": "Opakujte slabiky /{{syllable}}-{{syllable}}/.",
+    "params": {
+      "syllable": {
+        "label": "Slabika",
+        "values": {
+          "pataka": "pa-ta-ka",
+          "ta": "ta-ta-ta",
+          "ka": "ka-ka-ka"
+        }
+      },
+      "duration": {
+        "label": "Požadovaná délka (s)"
+      },
+      "maxDuration": {
+        "label": "Max. délka (s)"
+      },
+      "repeat": {
+        "label": "Opakování"
+      }
+    }
   },
   "retelling": {
-    "instructionsPreCalibration": "V dalším úkolu si poslechnete namluvený příběh a poté ho převyprávíte vlastními slovy. <br/><br/>Během mluvy budeme měřit Vaše pohyby v obličeji. <br/><br/>Nejprve je proto potřeba nastavit Vaší kameru.",
-    "instructionsPostCalibration": "Držte prosím telefon ve zkalibrované poloze. <br/><br/>Stiskněte Přehrát příběh a poslechněte si namluvený příběh. {{playStory}} Po poslechu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Cíl je souvisle mluvit, čili nezáleží jestli je převyprávěný děj správně nebo je pohádka dovyprávěna celá.",
-    "instructionsActive": "Převyprávějte prosím příběh vlastními slovy během {{duration}} sekund."
+    "instructionsPreCalibration": "V další úloze si poslechnete namluvenou pohádku a poté ji převyprávíte vlastními slovy. <br/><br/>Během mluvy budeme měřit Vaše pohyby v obličeji. <br/><br/>Nejprve je proto potřeba nastavit Vaši kameru.",
+    "instructionsPostCalibration": "Držte prosím telefon ve zkalibrované poloze. <br/><br/>Stiskněte Přehrát pohádku a poslechněte si namluvenou pohádku. {{playStory}} Po poslechu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Cíl je souvisle mluvit, čili nezáleží jestli je převyprávěný děj správně nebo je pohádka dovyprávěna celá.",
+    "instructionsActive": "Převyprávějte prosím pohádku vlastními slovy během {{duration}} sekund."
   },
   "reading": {
-    "instructions": "Stiskněte Start a přečtěte následný text na obrazovce <strong>nahlas</strong>. <br/><br/>Možná bude zapotřebí <strong>posunout stránku dolů</strong>, abyste text dočetli až do konce. <br/><br/>Až skončíte, stiskněte Stop."
+    "instructions": "Stiskněte Start a přečtěte následný text na obrazovce <strong>nahlas</strong>. <br/><br/>Možná bude zapotřebí <strong>posunout stránku dolů</strong>, abyste text dočetli až do konce. <br/><br/>Až skončíte, stiskněte Stop.",
+    "params": {
+        "topic": {
+          "label":"Text topic",
+          "values": {
+            "seedling": {
+              "label": "Sazenička",
+              "text": "Když člověk poprvé vsadí do země sazeničku, chodí se na ni dívat třikrát denně: tak co, povyrostla už nebo ne? I tají dech, naklání se nad ní, přitlačí trochu půdu u jejích kořínků, načechrává jí lístky a vůbec ji obtěžuje různým konáním, které považuje za užitečnou péči. A když se sazenička přesto ujme a roste jako z vody, tu člověk žasne nad tímto divem přírody, má pocit čehosi jako zázraku a považuje to za jeden ze svých největších osobních úspěchů."
+            }
+          }
+        }
+    }
   },
   "dynamic_monologue": {
     "instructions": "Ukážeme Vám dané téma a požádáme Vás, abyste o něm souvisle mluvili po dobu <strong>{{duration}} sekund</strong>. <br/><br/> Pokud by Vám již došly slova, budete moci přepnout na jiné téma, které vám pomůže pokračovat.",
     "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraveni, stiskněte Start a spustí se nahrávání.",
+    "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
     "topicSwitch": {
       "title": "Je k dispozici další téma",
       "message": "Chcete přepnout na další téma?",
@@ -611,15 +664,19 @@
       "topics": {
         "values": {
           "everyday": {
+            "label": "Běžný den",
             "topicDescription": "Jak u Vás vypadá průběh běžného dne od chvíle, kdy se probudíte? Zkuste zahrnout i podrobnosti, například ranní rutinu a co obvykle děláte během dne."
           },
           "hobbies": {
+            "label": "Koníčky",
             "topicDescription": "Jak nejraději trávíte volný čas? Můžete popsat činnost, která vás baví, jak jste se k ní dostali a čím je pro vás zajímavá."
           },
           "eating": {
+            "label": "Jídlo",
             "topicDescription": "Vaříte raději doma, nebo chodíte jíst ven? Můžete popsat jídla, která máte rádi, nebo restauraci, kam rádi chodíte."
           },
           "travel": {
+            "label": "Cestování",
             "topicDescription": "Jak se obvykle dostáváte z místa na místo? Můžete popsat svou běžnou cestu do práce, oblíbený způsob cestování, nebo vyprávět o výletě či místě, které vás zaujalo."
           }
         }
@@ -630,7 +687,7 @@
     "addTitle": "<strong>Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly.</strong>",
     "addText": "• Klikněte na barvu ve <strong>spodní nabídce barev</strong>.<br/>• Přidá se na <strong>další volné místo</strong> v horní řadě.",
     "addGifAlt": "Přidání barvy",
-    "modifyTitle": "<strong>Úprava sledu barev</strong>",
+    "modifyTitle": "<strong>Úprava barev</strong>",
     "modifyText": "• Klikněte na barvu v <strong>horní řadě</strong>.<br/>• Barva se odebere a můžete místo ní vybrat jinou.",
     "modifyGifAlt": "Úprava barev",
     "demoTitle": "Jak to funguje",
@@ -659,7 +716,7 @@
       },
       "colourFilters": {
         "label": "Vypněte barevné filtry obrazovky (žluté světlo, noční režim apod.).",
-        "helpText": "Filtry mění přirozené barvy obrazovky – ta pak často vypadá nažloutle nebo teple. <br><br><strong>Jak je vypnout:</strong><br>1. Otevřete Nastavení <imgA/>.<br>2. Klepněte na Displej (nebo ho vyhledejte).<br>3. Vypněte <em>True Tone</em>, <em>Night Shift</em>, <em>Ochranu zraku</em> (Eye Comfort Shield), <em>Režim čtení</em> nebo jakýkoli jiný režim, který upravuje barvy obrazovky."
+        "helpText": "Filtry mění přirozené barvy obrazovky – ta pak často vypadá nažloutle nebo teple. <br><br><strong>Jak je vypnout:</strong><br>1. Otevřete Nastavení <imgA/>.<br>2. Klepněte na <em>Displej</em> (na iPhonu <em>Zobrazení a jas</em>), případně tuto položku vyhledejte.<br>3. Vypněte <em>True Tone</em> a <em>Night Shift</em> (iPhone), <em>Pohodlí pro oči</em> (Samsung), <em>Noční režim</em> (Google Pixel), <em>Režim čtení</em> (Xiaomi) nebo jakýkoli jiný režim, který upravuje barvy obrazovky."
       }
     }
   },
@@ -668,9 +725,9 @@
     "title": "Symboly",
     "instructions": "Na další obrazovce klepněte na odpovídající číslo na klávesnici. Je velmi důležité, abyste používali pouze <strong>jeden prst</strong>. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
     "instructionsActive": "Přiřaďte symbol k číslu.",
-    "demoTitle": "Úloha na přiřazování symbolů",
+    "demoTitle": "Přiřazování symbolů",
     "demoText": "Pomocí klávesnice přiřaďte zobrazený symbol ke správnému číslu.",
-    "taskComplete": "Úkol dokončen!",
+    "taskComplete": "Úloha dokončena!",
     "resultsSaved": "Vaše výsledky byly bezpečně uloženy.",
     "start": "Start"
   },
@@ -713,7 +770,7 @@
             "Ne",
             "Ano, drobné potíže",
             "Ano, výrazné potíže",
-            "Ano, úkoly nešlo správně dokončit"
+            "Ano, úlohy nešlo správně dokončit"
           ],
           "optional": false,
           "freeTextOptions": []
@@ -733,7 +790,7 @@
         },
         {
           "id": 1786019770007,
-          "text": "Rušil vás při plnění úkolů hluk v okolí nebo něco jiného?",
+          "text": "Rušil vás při plnění úloh hluk v okolí nebo něco jiného?",
           "type": "single",
           "options": [
             "Ne",
@@ -746,7 +803,7 @@
         },
         {
           "id": 1786019770008,
-          "text": "Setkali jste se při plnění úkolů s technickými potížemi?",
+          "text": "Setkali jste se při plnění úloh s technickými potížemi?",
           "type": "single",
           "options": [
             "Ano",
@@ -763,7 +820,7 @@
             "Povolení přístupu k mikrofonu nebo kameře",
             "Rozpoznání obličeje kamerou",
             "Udržení polohy kamery během mluvení",
-            "Dlouhé čekání mezi úkoly",
+            "Dlouhé čekání mezi úlohami",
             "Nastavení obrazovky pro test zraku",
             "Aplikace zamrzla nebo přestala reagovat",
             "Výpadek internetového připojení",

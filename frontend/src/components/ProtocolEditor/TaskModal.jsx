@@ -106,6 +106,16 @@ export default function TaskModal({
                     }))
                   }
                 >
+                  {/* A saved value this language doesn't offer (e.g. reading topic
+                      "northWind" when cs only has "seedling"): list it, so the
+                      select shows what is actually stored and picking another
+                      option is a real change. Without it the browser displays the
+                      first option, and choosing that fires no onChange. */}
+                  {!paramInfo.values.some((v) => v.key === value) && (
+                    <option value={value} disabled>
+                      {t("protocolEditor.unavailableOption", { value })}
+                    </option>
+                  )}
                   {paramInfo.values.map((v) => (
                     <option key={v.key} value={v.key}>
                       {v.label}
