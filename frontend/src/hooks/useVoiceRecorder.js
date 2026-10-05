@@ -516,9 +516,14 @@ export const useVoiceRecorder = (options = {}) => {
         const workletNode = new AudioWorkletNode(audioContext.current, 'recorder-worklet', {
             numberOfOutputs: 0,
         });
+        // Needed by pause/resume (to re-wire a re-acquired mic stream) and stop.
+        workletNodeRef.current = workletNode;
 
         workletNode.port.onmessage = (event) => {
-            if (statusRef.current !== RECORDING) return;
+            // PAUSED is accepted too: pauseRecording sets the status before the
+            // worklet's 'stop' flush (the tail of the partial buffer) arrives.
+            // The worklet sends nothing else while paused.
+            if (statusRef.current !== RECORDING && statusRef.current !== PAUSED) return;
 
             if (chunkCountRef.current === 0) {
                 // The first chunk arrives once it is full (4096 samples, ~85 ms
