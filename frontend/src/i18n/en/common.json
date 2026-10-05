@@ -106,6 +106,8 @@
       "birthYear": "Year of Birth",
       "externalId": "External ID",
       "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
       "yearPlaceholder": "e.g. 1965",
       "fillAllFields": "Please fill in all required fields to continue.",
       "saveError": "There was an error saving your information. Please try again.",

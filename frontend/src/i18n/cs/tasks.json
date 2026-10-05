@@ -601,6 +601,12 @@
   "dynamic_monologue": {
     "instructions": "Ukážeme Vám dané téma a požádáme Vás, abyste o něm souvisle mluvili po dobu <strong>{{duration}} sekund</strong>. <br/><br/> Pokud by Vám již došly slova, budete moci přepnout na jiné téma, které vám pomůže pokračovat.",
     "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraveni, stiskněte Start a spustí se nahrávání.",
+    "topicSwitch": {
+      "title": "Je k dispozici další téma",
+      "message": "Chcete přepnout na další téma?",
+      "confirm": "Ano, přepnout",
+      "cancel": "Ne, pokračovat"
+    },
     "params": {
       "topics": {
         "values": {
@@ -754,16 +760,13 @@
           "text": "S jakými technickými potížemi jste se setkali?",
           "type": "multiple",
           "options": [
-            "Potíže s povolením přístupu k mikrofonu nebo kameře",
-            "Potíže s rozpoznáním obličeje kamerou",
-            "Potíže s udržením polohy kamery během mluvení",
-            "Dlouhé prodlevy nebo čekání mezi úkoly",
-            "Zvukový průvodce byl příliš tichý nebo se nečekaně ztišil",
-            "Nechtěné opuštění úkolu nebo odchod ze stránky",
-            "Potíže s nastavením obrazovky pro test zraku",
-            "Aplikace zamrzla, spadla nebo přestala reagovat",
-            "Nahrávání se zřejmě správně nespustilo nebo nezastavilo",
-            "Výpadek internetového připojení během vyplňování",
+            "Povolení přístupu k mikrofonu nebo kameře",
+            "Rozpoznání obličeje kamerou",
+            "Udržení polohy kamery během mluvení",
+            "Dlouhé čekání mezi úkoly",
+            "Nastavení obrazovky pro test zraku",
+            "Aplikace zamrzla nebo přestala reagovat",
+            "Výpadek internetového připojení",
             "Jiné:"
           ],
           "optional": false,

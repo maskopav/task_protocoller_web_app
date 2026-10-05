@@ -40,8 +40,8 @@ export const IDENTIFIER_FIELDS = [
     tKey: 'identifiers.gender',
     type: 'select',
     options: [
-      { value: 'male',   tKey: 'common.male',   label: 'Male'   },
-      { value: 'female', tKey: 'common.female', label: 'Female' },
+      { value: 'male',   tKey: 'identifiers.male',   label: 'Male'   },
+      { value: 'female', tKey: 'identifiers.female', label: 'Female' },
     ],
   },
 ];

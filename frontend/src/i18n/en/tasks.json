@@ -287,6 +287,12 @@
       "instructionsTopic": "<strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>When ready, press Start to begin the recording.",
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
+      "topicSwitch": {
+        "title": "Another topic is available",
+        "message": "Would you like to switch to the next topic?",
+        "confirm": "Yes, switch",
+        "cancel": "No, continue"
+      },
       "params": {
         "topics": {
           "label": "Select multiple topics",
@@ -579,16 +585,13 @@
             "text": "Which technical issues you experienced?",
             "type": "multiple",
             "options": [
-              "Difficulty allowing microphone or camera access",
-              "Difficulty getting the camera to recognize my face",
-              "Difficulties maintaining camera position while speaking",
-              "Long delays or waiting time between tasks",
-              "Audio guide volume was too low or decreased unexpectedly",
-              "Accidentally exited or navigated away from a task",
-              "Troubles setting your screen for vision task",
-              "The app froze, crashed, or became unresponsive",
-              "A recording didn't seem to start or stop properly",
-              "Lost internet connection during the session",
+              "Allowing microphone or camera access",
+              "Getting the camera to recognize my face",
+              "Maintaining camera position while speaking",
+              "Long waiting between tasks",
+              "Setting up the screen for the vision task",
+              "The app froze or stopped responding",
+              "Lost internet connection",
               "Other:"
             ],
             "optional": false,

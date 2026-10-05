@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useConfirm } from '../components/ConfirmDialog/ConfirmDialogContext';
 import { logger } from '../utils/frontendLogger';
 
@@ -18,6 +19,7 @@ export const useTaskTopics = ({
     const [topicStartMark, setTopicStartMark] = useState(0);
 
     const confirm = useConfirm();
+    const { t } = useTranslation('tasks');
 
     // Capture the current recording time whenever the topic index changes
     useEffect(() => {
@@ -64,10 +66,10 @@ export const useTaskTopics = ({
     useEffect(() => {
         if (promptTopicSwitch) {
             confirm({
-                title: "Another topic is available",
-                message: "Would you like to switch to the next topic?",
-                confirmText: "Yes, switch",
-                cancelText: "No, continue"
+                title: t("dynamic_monologue.topicSwitch.title"),
+                message: t("dynamic_monologue.topicSwitch.message"),
+                confirmText: t("dynamic_monologue.topicSwitch.confirm"),
+                cancelText: t("dynamic_monologue.topicSwitch.cancel")
             }).then((isConfirmed) => {
                 if (isConfirmed) {
                     handleAcceptTopicSwitch();
