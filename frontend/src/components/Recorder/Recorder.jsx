@@ -224,14 +224,15 @@ export const Recorder = ({
                               (isDynamicTask && dynamicIndex >= dynamicArray.length - 1);
     const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning;
 
-    let visualPhase = 'orange';
-    if (!isReadyToStop) {
-        visualPhase = 'red';
-    } else if (durationExpired || (mode === 'basicStop' && isMinimalReached)) {
-        visualPhase = 'green';
-    } else if (isMinimalReached) {
-        visualPhase = 'orange';
-    }
+    // Recorder ring is red until the task's required duration has elapsed,
+    // then green. Stop becoming available does not change the colour.
+    //   delayedStop → `duration` (story, monologues)
+    //   basicStop   → `minDuration`, if set (phonation; reading has none)
+    //   countDown   → always red
+    const isTargetReached = mode === 'delayedStop'
+        ? durationExpired
+        : mode === 'basicStop' && minimalDurationMs > 0 && isMinimalReached;
+    const visualPhase = isTargetReached ? 'green' : 'red';
 
     useEffect(() => {
         if (onRecordingStateChange) {
@@ -625,6 +626,10 @@ export const Recorder = ({
             // Split pack screen 2 — the topic. Screen 1 (not yet revealed)
             // falls through to the plain `instructions` below.
             baseInstructions = instructionsTopic;
+        } else if (instructionsTopic && awaitingNextTopic) {
+            // Switched to the next topic, waiting for Start — reuse the topic
+            // screen so it also carries the "press Start when ready" line.
+            baseInstructions = instructionsTopic;
         } else if (isDynamicTask && dynamicIndex > 0) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
         } else if (instructionsActive && isActiveOrPreparing && !awaitingNextTopic) {
@@ -719,7 +724,6 @@ export const Recorder = ({
                 status={displayRecordingStatus}
                 audioLevelsRef={audioLevelsRef}
                 showVisualizer={showVisualizer}
-                isReadyToStop={isReadyToStop}
                 mode={mode}
                 showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
                 visualPhase={visualPhase}
