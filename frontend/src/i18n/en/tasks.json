@@ -122,6 +122,24 @@
       ]
     }
   },
+    "contactConsent": {
+    "name": "Contact Consent",
+    "description": "A single yes/no question asking whether the participant agrees to be contacted later. The answer appears in the Fieldwork table's Contact Consent column. Keep exactly one question; its FIRST option must mean \"agrees\". The wording can be adjusted before saving.",
+    "title": "Questionnaire: {{title}}",
+    "instructions": "Please answer the following questions.",
+    "params": {
+      "title": { "label": "Title" },
+      "description": { "label": "Description" },
+      "questions": { "label": "Questions" }
+    },
+    "defaultContent": {
+      "title": "Contact Consent",
+      "description": "",
+      "questions": [
+        { "id": 1789303000000, "text": "Do you agree to be contacted with an offer to take part in a follow-up test? Consent is voluntary, does not oblige you to take part, and can be withdrawn at any time.", "type": "single", "options": ["Yes, I agree.", "No, I do not agree."], "optional": false }
+      ]
+    }
+  },
     "phonation": {
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",

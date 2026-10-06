@@ -192,6 +192,19 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     },
   },
 
+  // Single yes/no question whose answer is surfaced in the admin Fieldwork
+  // table's Contact Consent column (v_session_summary.contact_consent). By
+  // convention the FIRST option of the FIRST question means "agrees".
+  contactConsent: {
+    type: "questionnaire",
+    recording: { mode: "basicStop" },
+    params: {
+      title: { default: "" },
+      description: { default: "" },
+      questions: { default: [] }
+    },
+  },
+
   // Smell test: participant opens an envelope received by post, smells the
   // paper inside, and picks the matching option. Own type so it gets a static
   // instructions screen before the (reused) questionnaire engine; the actual

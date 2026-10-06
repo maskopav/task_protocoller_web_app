@@ -39,7 +39,7 @@
     "speakLonger": "Prosíme, pokuste se mluvit ještě chvíli."
   },
   "completion": {
-    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Pokud vás něco vyrušilo, můžete zvolit Zkusit znovu.",
+    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Pokud Vás něco vyrušilo, můžete zvolit Zkusit znovu.",
     "processingFailedInstructions": "Nahrávku se nepodařilo zpracovat. <br/><br/>Klikněte prosím na <strong>Zkusit znovu</strong> a nahrajte ji znovu.",
     "processingInstructions": "Zpracováváme vaši nahrávku… <br/><br/>Na některých zařízeních to může chvíli trvat. Nechte prosím tuto stránku otevřenou.",
     "doneTitle": "Hurá! Test máte za sebou.",
@@ -110,7 +110,7 @@
     "howToFix": "Řešení"
   },
   "micCheck": {
-    "permissionWarning": "V dalších úlohách budeme nahrávat váš hlas. Prohlížeč vás požádá o přístup k mikrofonu.",
+    "permissionWarning": "V dalších úlohách budeme nahrávat váš hlas. Prohlížeč Vás požádá o přístup k mikrofonu.",
     "permissionInstruction": "Stiskněte tlačítko <strong>Povolit mikrofon</strong> níže. <br><br/> Ve vyskakovacím okně zvolte <strong>Povolit</strong>, abychom mohli nahrávat váš hlas.",
     "btnUnderstand": "Povolit mikrofon",
     "noiseTitle": "Test mikrofonu",
@@ -118,7 +118,7 @@
     "noiseInstructionsCounting": "<strong>Počítejte pomalu a nahlas</strong> od 1 do 5.",
     "noiseInstructionsSilence": "Nyní <strong>zůstaňte potichu</strong>.",
     "analyzing": "Kontrolujeme zvuk...",
-    "failedTitle": "Neslyšíme vás dostatečně zřetelně",
+    "failedTitle": "Neslyšíme Vás dostatečně zřetelně",
     "failedMessage": "Omezte prosím zvuky ve svém okolí.",
     "failedInstructions": "Pro nejlepší výsledky prosím <strong>zavřete okna, vypněte televizi či rádio, nebo se přesuňte do tiššího místa</strong>. <br/><br/>Až budete připraveni, stiskněte Zkusit znovu a spustí se nahrávání. Poté počítejte od 1 do 5.",
     "failedAgainTitle": "Podmínky nahrávání nejsou ideální, ale i tak můžete pokračovat.",
@@ -127,7 +127,7 @@
     "mutedMessage": "Během testu mikrofonu jsme nic neslyšeli.",
     "mutedInstructions": "Zkontrolujte prosím, že <strong>mikrofon není ztlumený, odpojte sluchátka a ověřte nastavení v zařízení</strong>. Poté to zkuste znovu.",
     "mutedAdditionalInfo": "Pokud potíže přetrvávají, podívejte se do návodu k řešení problémů nebo kontaktujte podporu. <br/><br/> Dále bohužel pokračovat nelze.",
-    "mutedModalMessage": "Je nám líto, ale mikrofon se nepodařilo správně nastavit. Většinu úloh v této studii proto nebudete moci dokončit. <br/><br/>Omlouváme se za komplikace a děkujeme vám za váš čas a ochotu se zúčastnit. <br/><br/>Nyní můžete toto okno zavřít.",
+    "mutedModalMessage": "Je nám líto, ale mikrofon se nepodařilo správně nastavit. Většinu úloh v této studii proto nebudete moci dokončit. <br/><br/>Omlouváme se za komplikace a děkujeme Vám za váš čas a ochotu se zúčastnit. <br/><br/>Nyní můžete toto okno zavřít.",
     "btnTryAgain": "Zkusit znovu",
     "successMessage": "Vše vypadá v pořádku!",
     "successInstructions": "Prosím <strong>zůstaňte v této místnosti</strong> až do konce.",
@@ -155,7 +155,7 @@
   },
   "audioGuideIntro": {
     "title": "Hlasový průvodce",
-    "instructions": "<strong>Hlasový průvodce</strong> <br/><br/> Celým testováním vás bude provázet hlasový průvodce, kterého byste měli právě teď slyšet. <br><br/> Průvodce můžete pozastavit ikonou v pravém horním rohu obrazovky. <br><br/> Chcete-li si ho pustit znovu, stačí na ikonu kliknout ještě jednou."
+    "instructions": "<strong>Hlasový průvodce</strong> <br/><br/> Celým testováním Vás bude provázet hlasový průvodce, kterého byste měli právě teď slyšet. <br><br/> Průvodce můžete pozastavit ikonou v pravém horním rohu obrazovky. <br><br/> Chcete-li si ho pustit znovu, stačí na ikonu kliknout ještě jednou."
   },
   "videoCalibration": {
     "step1": "<strong>Opřete ruku o stůl</strong> a držte telefon tak, jak je znázorněno na obrázku.",

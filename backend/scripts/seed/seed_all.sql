@@ -64,5 +64,7 @@ VALUES
 ),
 ('feedback', (SELECT id FROM task_types WHERE type='questionnaire')
 ),
+('contactConsent', (SELECT id FROM task_types WHERE type='questionnaire')
+),
 ('smell', (SELECT id FROM task_types WHERE type='smell')
 );

@@ -145,6 +145,10 @@
   flex-direction: column;
   gap: 0.3rem;
   min-width: 180px;
+  /* The page itself never scrolls (fixed to 100dvh), so a long column list
+     would otherwise run off the bottom of the viewport unreachable. */
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
   padding: 0.6rem;
   background: #ffffff;
   border: 1px solid var(--border);

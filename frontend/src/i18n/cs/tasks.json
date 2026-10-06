@@ -583,9 +583,26 @@
       ]
     }
   },
+  "contactConsent": {
+    "defaultContent": {
+      "title": "Souhlas s kontaktováním",
+      "questions": [
+        {
+          "id": 1789303000000,
+          "text": "Souhlasíte, abychom Vás kontaktovali s nabídkou navazujícího testu? Souhlas je dobrovolný, nezavazuje Vás k účasti a můžete ho kdykoli odvolat.",
+          "type": "single",
+          "options": [
+            "Ano, souhlasím.",
+            "Ne, nesouhlasím."
+          ],
+          "optional": false
+        }
+      ]
+    }
+  },
   "phonation": {
-    "instructions": "<strong>Zhluboka se nadechněte</strong> a vyslovte /{{phoneme}}/ <strong>co nejrovnoměrněji a co nejdéle</strong> na jeden nádech. {{example}} Snažte se vydržet alespoň {{minDuration}} sekund. Stisknutím tlačítka Start spustíte nahrávání. Jakmile vám dojde dech, stiskněte Stop.",
-    "instructionsActive": "Držte /{{phoneme}}/, dokud vám nedojde dech.",
+    "instructions": "<strong>Zhluboka se nadechněte</strong> a vyslovte /{{phoneme}}/ <strong>co nejrovnoměrněji a co nejdéle</strong> na jeden nádech. {{example}} Snažte se vydržet alespoň {{minDuration}} sekund. Stisknutím tlačítka Start spustíte nahrávání. Jakmile Vám dojde dech, stiskněte Stop.",
+    "instructionsActive": "Držte /{{phoneme}}/, dokud Vám nedojde dech.",
     "params": {
       "phoneme": {
         "label": "Hláska",
@@ -637,7 +654,7 @@
     "instructionsActive": "Převyprávějte prosím pohádku vlastními slovy během {{duration}} sekund."
   },
   "reading": {
-    "instructions": "Stiskněte Start a přečtěte následný text na obrazovce <strong>nahlas</strong>. <br/><br/>Možná bude zapotřebí <strong>posunout stránku dolů</strong>, abyste text dočetli až do konce. <br/><br/>Až skončíte, stiskněte Stop.",
+    "instructions": "Stiskněte Start a přečtěte <strong>nahlas</strong> text, který uvidíte na obrazovce. <br/><br/>Možná bude zapotřebí <strong>posunout stránku dolů</strong>, abyste text dočetli až do konce. <br/><br/>Až skončíte, stiskněte Stop.",
     "params": {
         "topic": {
           "label":"Text topic",
@@ -651,7 +668,7 @@
     }
   },
   "dynamic_monologue": {
-    "instructions": "Ukážeme Vám dané téma a požádáme Vás, abyste o něm souvisle mluvili po dobu <strong>{{duration}} sekund</strong>. <br/><br/> Pokud by Vám již došly slova, budete moci přepnout na jiné téma, které vám pomůže pokračovat.",
+    "instructions": "V této úloze budete <strong>{{duration}} sekund</strong> souvisle mluvit na zadané téma. <br/><br/>Pokud Vám dojdou slova, můžete přepnout na jiné téma.",
     "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraveni, stiskněte Start a spustí se nahrávání.",
     "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
     "topicSwitch": {
@@ -669,7 +686,7 @@
           },
           "hobbies": {
             "label": "Koníčky",
-            "topicDescription": "Jak nejraději trávíte volný čas? Můžete popsat činnost, která vás baví, jak jste se k ní dostali a čím je pro vás zajímavá."
+            "topicDescription": "Jak nejraději trávíte volný čas? Můžete popsat činnost, která Vás baví, jak jste se k ní dostali a čím je pro Vás zajímavá."
           },
           "eating": {
             "label": "Jídlo",
@@ -677,7 +694,7 @@
           },
           "travel": {
             "label": "Cestování",
-            "topicDescription": "Jak se obvykle dostáváte z místa na místo? Můžete popsat svou běžnou cestu do práce, oblíbený způsob cestování, nebo vyprávět o výletě či místě, které vás zaujalo."
+            "topicDescription": "Jak se obvykle dostáváte z místa na místo? Můžete popsat svou běžnou cestu do práce, oblíbený způsob cestování, nebo vyprávět o výletě či místě, které Vás zaujalo."
           }
         }
       }
@@ -691,7 +708,7 @@
     "modifyText": "• Klikněte na barvu v <strong>horní řadě</strong>.<br/>• Barva se odebere a můžete místo ní vybrat jinou.",
     "modifyGifAlt": "Úprava barev",
     "demoTitle": "Jak to funguje",
-    "mainInstructionsText": "Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly. <br/><br/> Je v pořádku, pokud je pro Vás těžké barvy rozlišit – vyberte tu, která se vám zdá nejpodobnější.",
+    "mainInstructionsText": "Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly. <br/><br/> Je v pořádku, pokud je pro Vás těžké barvy rozlišit – vyberte tu, která se Vám zdá nejpodobnější.",
     "trialCompleteTitle": "Výborně!",
     "trialCompleteText": "Zkušební kolo je hotové. Teď bude test o něco náročnější.",
     "versionCompleteTitle": "Výborně!",
@@ -723,7 +740,7 @@
   "sdmt": {
     "name": "Test symbolů a číslic (SDMT)",
     "title": "Symboly",
-    "instructions": "Na další obrazovce klepněte na odpovídající číslo na klávesnici. Je velmi důležité, abyste používali pouze <strong>jeden prst</strong>. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
+    "instructions": "Po stisknutí Start se zobrazí symbol – klepněte na klávesnici na číslo, které k němu patří. Používejte pouze <strong>jeden prst</strong>, je to velmi důležité. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
     "instructionsActive": "Přiřaďte symbol k číslu.",
     "demoTitle": "Přiřazování symbolů",
     "demoText": "Pomocí klávesnice přiřaďte zobrazený symbol ke správnému číslu.",
@@ -790,7 +807,7 @@
         },
         {
           "id": 1786019770007,
-          "text": "Rušil vás při plnění úloh hluk v okolí nebo něco jiného?",
+          "text": "Rušil Vás při plnění úloh hluk v okolí nebo něco jiného?",
           "type": "single",
           "options": [
             "Ne",
@@ -873,7 +890,7 @@
         },
         {
           "id": 1786019770012,
-          "text": "Které úlohy vás nejvíce bavily?",
+          "text": "Které úlohy Vás nejvíce bavily?",
           "type": "multiple",
           "options": [
             "Dlouhé /aaa/",

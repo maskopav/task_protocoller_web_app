@@ -499,7 +499,19 @@ SELECT
 
     -- 9. Resume deadline — the exact moment an 'in_progress' session flips to
     -- 'incomplete' (last activity + the same resume window used above).
-    IF(s.id IS NULL, NULL, DATE_ADD(s.last_activity_at, INTERVAL 72 HOUR)) AS resumable_until
+    IF(s.id IS NULL, NULL, DATE_ADD(s.last_activity_at, INTERVAL 72 HOUR)) AS resumable_until,
+
+    -- 10. Contact consent — answer to the `contactConsent` questionnaire
+    -- (see the `consent` join below): 'yes' when the participant picked the
+    -- question's FIRST option (by convention the "agree" one), 'no' for any
+    -- other answer, NULL if the protocol has no such task or they haven't
+    -- answered it yet. Compared against the option text in the same task's
+    -- own params, so it works for every protocol language.
+    CASE
+        WHEN consent.answer IS NULL THEN NULL
+        WHEN consent.answer = consent.agree_option THEN 'yes'
+        ELSE 'no'
+    END AS contact_consent
 
 FROM participant_protocols pp
 JOIN v_participant_protocols vpp ON pp.id = vpp.participant_protocol_id
@@ -597,6 +609,26 @@ LEFT JOIN (
     ) numbered
     GROUP BY numbered.session_id
 ) mic ON mic.session_id = s.id
+
+-- Latest saved `contactConsent` result per session, for contact_consent
+-- above. Payload shape is { answers: { <questionId>: <value> } } (see
+-- sessionArchiveBuilder.js); the task holds a single question, so its first
+-- question id is the one to read. ROW_NUMBER keeps exactly one row per
+-- session even if the result was saved more than once.
+LEFT JOIN (
+    SELECT session_id, answer, agree_option
+    FROM (
+        SELECT
+            tr.session_id,
+            JSON_VALUE(tr.payload, CONCAT('$.answers."', JSON_VALUE(cpt.params, '$.questions[0].id'), '"')) AS answer,
+            JSON_VALUE(cpt.params, '$.questions[0].options[0]') AS agree_option,
+            ROW_NUMBER() OVER (PARTITION BY tr.session_id ORDER BY tr.id DESC) AS rn
+        FROM task_results tr
+        JOIN protocol_tasks cpt ON cpt.id = tr.protocol_task_id
+        JOIN tasks ct ON ct.id = cpt.task_id AND ct.category = 'contactConsent'
+    ) ranked
+    WHERE ranked.rn = 1
+) consent ON consent.session_id = s.id
 
 -- Dynamically join to find the task category using the protocolTaskId of the LAST event in the JSON
 LEFT JOIN protocol_tasks pt

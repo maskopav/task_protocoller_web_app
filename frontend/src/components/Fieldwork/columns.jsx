@@ -1,7 +1,4 @@
 // src/components/Fieldwork/columns.jsx
-// Column config module (not a component) — exports data alongside JSX
-// render helpers, which fast-refresh's single-export-type rule disallows.
-/* eslint-disable react-refresh/only-export-components */
 import {
   getInitials,
   formatDateTime,
@@ -41,6 +38,7 @@ const currentStepLabel = (r) =>
 const currentStepText = (r) => currentStepLabel(r) || "—";
 const languageCodeText = (r) => r.protocol_language_code || "—";
 const sessionIdText = (r) => (r.session_id ?? "—").toString();
+const CONTACT_CONSENT_LABELS = { yes: "Yes", no: "No" };
 
 // Every column pulls straight from `v_session_summary` fields. `required`
 // columns can't be hidden (need at least identity + status); the rest are
@@ -172,6 +170,22 @@ const ALL_COLUMN_DEFS = [
         </span>
       );
     },
+  },
+  {
+    id: "contactConsent",
+    label: "Contact Consent",
+    // Answer to the protocol's Contact Consent questionnaire ('yes'/'no',
+    // see v_session_summary.contact_consent). Blank for protocols without
+    // that task or participants who haven't reached it yet.
+    value: (r) => CONTACT_CONSENT_LABELS[r.contact_consent] || "",
+    filterType: "select",
+    filterValue: (r) => r.contact_consent || "",
+    filterOptions: [
+      { value: "yes", label: CONTACT_CONSENT_LABELS.yes },
+      { value: "no", label: CONTACT_CONSENT_LABELS.no },
+    ],
+    sortValue: (r) => r.contact_consent || "",
+    render: (r) => CONTACT_CONSENT_LABELS[r.contact_consent] || "—",
   },
   {
     id: "reservationLink",
@@ -326,5 +340,3 @@ const ALL_COLUMN_DEFS = [
 export const COLUMN_DEFS = RESERVATIONS_ENABLED
   ? ALL_COLUMN_DEFS
   : ALL_COLUMN_DEFS.filter((c) => !RESERVATION_COLUMN_IDS.includes(c.id));
-
-export const DEFAULT_VISIBLE_COLUMNS = COLUMN_DEFS.filter((c) => c.defaultVisible !== false).map((c) => c.id);
