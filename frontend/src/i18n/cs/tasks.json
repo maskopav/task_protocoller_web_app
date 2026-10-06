@@ -601,7 +601,7 @@
     }
   },
   "phonation": {
-    "instructions": "<strong>Zhluboka se nadechněte</strong> a vyslovte /{{phoneme}}/ <strong>co nejrovnoměrněji a co nejdéle</strong> na jeden nádech. {{example}} Snažte se vydržet alespoň {{minDuration}} sekund. Stisknutím tlačítka Start spustíte nahrávání. Jakmile Vám dojde dech, stiskněte Stop.",
+    "instructions": "V první úloze se <strong>zhluboka nadechněte</strong> a vyslovte hlásku /{{phoneme}}/ <strong>co nejrovnoměrněji a co nejdéle</strong> na jeden nádech. {{example}} Snažte se vydržet alespoň {{minDuration}} sekund. Stisknutím tlačítka Start spustíte nahrávání. Jakmile Vám dojde dech, stiskněte Stop.",
     "instructionsActive": "Držte /{{phoneme}}/, dokud Vám nedojde dech.",
     "params": {
       "phoneme": {
@@ -626,7 +626,7 @@
     }
   },
   "syllableRepeating": {
-    "instructions": "<strong>Zhluboka se nadechněte</strong> a opakujte slabiky <br/>/{{syllable}}-{{syllable}}/<br/> co nejrychleji a nejpřesněji. {{example}} Úloha se po {{duration}} sekundách automaticky ukončí. <br/><br/>Stisknutím tlačítka Start spustíte nahrávání.",
+    "instructions": "<strong>Zhluboka se nadechněte</strong> a opakujte slabiky <br/>/{{syllable}}-{{syllable}}/<br/> <strong> co nejrychleji a nejpřesněji</strong>. {{example}} Úloha se po {{duration}} sekundách automaticky ukončí. <br/><br/>Stisknutím tlačítka Start spustíte nahrávání.",
     "instructionsActive": "Opakujte slabiky /{{syllable}}-{{syllable}}/.",
     "params": {
       "syllable": {
@@ -704,7 +704,7 @@
     "addTitle": "<strong>Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly.</strong>",
     "addText": "• Klikněte na barvu ve <strong>spodní nabídce barev</strong>.<br/>• Přidá se na <strong>další volné místo</strong> v horní řadě.",
     "addGifAlt": "Přidání barvy",
-    "modifyTitle": "<strong>Úprava barev</strong>",
+    "modifyTitle": "<strong>Úprava sledu barev</strong>",
     "modifyText": "• Klikněte na barvu v <strong>horní řadě</strong>.<br/>• Barva se odebere a můžete místo ní vybrat jinou.",
     "modifyGifAlt": "Úprava barev",
     "demoTitle": "Jak to funguje",
@@ -724,7 +724,7 @@
   "preTestChecklist": {
     "title": "Příprava na test zraku",
     "subtitle": "Nyní budeme testovat Vaše barevné vidění. Zkuste prosím nastavit svou obrazovku:",
-    "subtitleBelow": "Pokud nevíte, jak na to, pokračujte dále. <br><br> Pro nápovědu klepněte na ikonku informací.",
+    "subtitleBelow": "Pokud nevíte, jak na to, pokračujte dále. <br><br> Pro nápovědu klikněte na ikonku informací.",
     "selectFirstHint": "Nejprve prosím zvolte stav u tlačítek výše.",
     "items": {
       "brightness": {
@@ -733,14 +733,14 @@
       },
       "colourFilters": {
         "label": "Vypněte barevné filtry obrazovky (žluté světlo, noční režim apod.).",
-        "helpText": "Filtry mění přirozené barvy obrazovky – ta pak často vypadá nažloutle nebo teple. <br><br><strong>Jak je vypnout:</strong><br>1. Otevřete Nastavení <imgA/>.<br>2. Klepněte na <em>Displej</em> (na iPhonu <em>Zobrazení a jas</em>), případně tuto položku vyhledejte.<br>3. Vypněte <em>True Tone</em> a <em>Night Shift</em> (iPhone), <em>Pohodlí pro oči</em> (Samsung), <em>Noční režim</em> (Google Pixel), <em>Režim čtení</em> (Xiaomi) nebo jakýkoli jiný režim, který upravuje barvy obrazovky."
+        "helpText": "Filtry mění přirozené barvy obrazovky – ta pak často vypadá nažloutle nebo teple. <br><br><strong>Jak je vypnout:</strong><br>1. Otevřete Nastavení <imgA/>.<br>2. Klikněte na Displej (nebo ho vyhledejte).<br>3. Vypněte <em>True Tone</em>, <em>Night Shift</em>, <em>Ochranu zraku</em> (Eye Comfort Shield), <em>Režim čtení</em> nebo jakýkoli jiný režim, který upravuje barvy obrazovky."
       }
     }
   },
   "sdmt": {
     "name": "Test symbolů a číslic (SDMT)",
     "title": "Symboly",
-    "instructions": "Po stisknutí Start se zobrazí symbol – klepněte na klávesnici na číslo, které k němu patří. Používejte pouze <strong>jeden prst</strong>, je to velmi důležité. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
+    "instructions": "Na další obrazovce klikejte na klávesnici na číslo, které patří k zobrazenému symbolu. Je velmi důležité používat při úloze pouze <strong>jeden prst</strong>. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
     "instructionsActive": "Přiřaďte symbol k číslu.",
     "demoTitle": "Přiřazování symbolů",
     "demoText": "Pomocí klávesnice přiřaďte zobrazený symbol ke správnému číslu.",

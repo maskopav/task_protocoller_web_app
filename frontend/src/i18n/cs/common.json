@@ -39,7 +39,7 @@
     "speakLonger": "Prosíme, pokuste se mluvit ještě chvíli."
   },
   "completion": {
-    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Pokud Vás něco vyrušilo, můžete zvolit Zkusit znovu.",
+    "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Pouze pokud Vás něco vyrušilo, můžete zvolit Zkusit znovu.",
     "processingFailedInstructions": "Nahrávku se nepodařilo zpracovat. <br/><br/>Klikněte prosím na <strong>Zkusit znovu</strong> a nahrajte ji znovu.",
     "processingInstructions": "Zpracováváme vaši nahrávku… <br/><br/>Na některých zařízeních to může chvíli trvat. Nechte prosím tuto stránku otevřenou.",
     "doneTitle": "Hurá! Test máte za sebou.",
@@ -65,7 +65,7 @@
     "milestone_75": "Skoro hotovo! Přes 75 %"
   },
   "repetition": {
-    "notice": "Proveďte prosím úlohu ještě jednou. <br/><br/>"
+    "notice": "Nyní prosím proveďte úlohu ještě jednou. <br/><br/>"
   },
   "questionnaire": {
     "selectOption": "Vyberte možnost...",
@@ -133,29 +133,29 @@
     "successInstructions": "Prosím <strong>zůstaňte v této místnosti</strong> až do konce.",
     "btnProceed": "Další",
     "guide": {
-      "descDenied": "Zařízení nebo prohlížeč blokuje mikrofon. Pro pokračování musí přístup povolit obojí.",
+      "descDenied": "Zařízení nebo prohlížeč blokuje mikrofon. Pro pokračování musí být přístup povolen.",
       "descBusy": "Mikrofon právě používá jiná aplikace (např. telefonní hovor nebo Zoom). Zavřete ji prosím.",
       "descMissing": "Nenašli jsme žádný mikrofon. Zkontrolujte prosím připojení nebo zkuste jiné zařízení.",
       "descGeneric": "Pro pokračování v této úloze je potřeba přístup k mikrofonu.",
       "btnRetry": "Zkusit znovu",
       "steps": {
         "android": {
-          "systemAndBrowser": "1. Otevřete v Androidu <strong>Nastavení</strong>, vyhledejte svůj prohlížeč (např. Chrome) a u položky Mikrofon zvolte <strong>Povolit</strong>.<br/>2. Vraťte se sem, klepněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klepněte na <strong>Povolit</strong>.",
+          "systemAndBrowser": "1. Otevřete v Androidu <strong>Nastavení</strong>, vyhledejte svůj prohlížeč (např. Chrome) a u položky Mikrofon zvolte <strong>Povolit</strong>.<br/>2. Vraťte se sem, klikněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klikněte na <strong>Povolit</strong>.",
           "hardware": "• Ukončete probíhající hovory (Telefon, WhatsApp) nebo jiné aplikace, které nahrávají zvuk.<br/>• Zkontrolujte nastavení Bluetooth a odpojte bezdrátová sluchátka, která by mohla mikrofon používat.<br/>"
         },
         "ios": {
-          "systemAndBrowser": "1. Otevřete v iPhonu <strong>Nastavení</strong>, sjeďte dolů ke svému prohlížeči (např. Safari) a <strong>zapněte</strong> přepínač Mikrofon.<br/>2. Vraťte se sem, v adresním řádku klepněte na <strong>ikonu aA</strong>, zvolte <strong>Nastavení webové stránky</strong> a povolte mikrofon.",
+          "systemAndBrowser": "1. Otevřete v iPhonu <strong>Nastavení</strong>, sjeďte dolů ke svému prohlížeči (např. Safari) a <strong>zapněte</strong> přepínač Mikrofon.<br/>2. Vraťte se sem, v adresním řádku klikněte na <strong>ikonu aA</strong>, zvolte <strong>Nastavení webové stránky</strong> a povolte mikrofon.",
           "hardware": "• Ukončete probíhající hovory (Telefon, FaceTime) nebo jiné aplikace, které nahrávají zvuk.<br/>• Zkontrolujte nastavení Bluetooth a odpojte bezdrátová sluchátka, která by mohla mikrofon používat.<br/>"
         }
       }
     }
   },
   "volumeCheck": {
-    "instructions": "Prosím <strong>nastavte hlasitost</strong> tak, abyste zřetelně slyšeli zvukovou nahrávku. Poté vyberte číslo, které uslyšíte."
+    "instructions": "Prosíme <strong>nastavte hlasitost</strong> tak, abyste zřetelně slyšeli zvukovou nahrávku. Poté vyberte číslo, které uslyšíte."
   },
   "audioGuideIntro": {
     "title": "Hlasový průvodce",
-    "instructions": "<strong>Hlasový průvodce</strong> <br/><br/> Celým testováním Vás bude provázet hlasový průvodce, kterého byste měli právě teď slyšet. <br><br/> Průvodce můžete pozastavit ikonou v pravém horním rohu obrazovky. <br><br/> Chcete-li si ho pustit znovu, stačí na ikonu kliknout ještě jednou."
+    "instructions": "<strong>Hlasový průvodce</strong> <br/><br/> Celou studií Vás bude provázet hlasový průvodce, kterého byste měli právě teď slyšet. <br><br/> Průvodce můžete pozastavit ikonou v pravém horním rohu obrazovky. <br><br/> Chcete-li si ho pustit znovu, stačí na ikonu kliknout ještě jednou."
   },
   "videoCalibration": {
     "step1": "<strong>Opřete ruku o stůl</strong> a držte telefon tak, jak je znázorněno na obrázku.",
@@ -172,7 +172,7 @@
     "further": "Dál",
     "turnLeft": "Podívejte se doleva",
     "turnRight": "Podívejte se doprava",
-    "permissionWarning": "V této úloze budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
+    "permissionWarning": "V tomto úkolu budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
     "permissionInstruction": "Prosím klikněte na tlačítko a v následujícím vyskakovacím okně zvolte <strong>Povolit</strong>.",
     "waitingForPermission": "Čekáme na povolení kamery...",
     "btnUnderstand": "Rozumím, pokračovat",
@@ -194,10 +194,10 @@
       "stepsHardware": "Zavřete ostatní aplikace (videohovor, fotoaparát), které by mohly kameru používat.",
       "steps": {
         "android": {
-          "systemAndBrowser": "1. Otevřete v Androidu <strong>Nastavení</strong>, vyhledejte svůj prohlížeč (např. Chrome) a u položky Fotoaparát zvolte <strong>Povolit</strong>.<br/>2. Vraťte se sem, klepněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klepněte na <strong>Povolit</strong>."
+          "systemAndBrowser": "1. Otevřete v Androidu <strong>Nastavení</strong>, vyhledejte svůj prohlížeč (např. Chrome) a u položky Fotoaparát zvolte <strong>Povolit</strong>.<br/>2. Vraťte se sem, klikněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klikněte na <strong>Povolit</strong>."
         },
         "ios": {
-          "systemAndBrowser": "1. Otevřete v iPhonu <strong>Nastavení</strong>, sjeďte dolů ke svému prohlížeči (např. Safari) a <strong>zapněte</strong> přepínač Fotoaparát.<br/>2. Vraťte se sem, v adresním řádku klepněte na <strong>ikonu aA</strong>, zvolte <strong>Nastavení webové stránky</strong> a povolte kameru."
+          "systemAndBrowser": "1. Otevřete v iPhonu <strong>Nastavení</strong>, sjeďte dolů ke svému prohlížeči (např. Safari) a <strong>zapněte</strong> přepínač Fotoaparát.<br/>2. Vraťte se sem, v adresním řádku klikněte na <strong>ikonu aA</strong>, zvolte <strong>Nastavení webové stránky</strong> a povolte kameru."
         }
       }
     }

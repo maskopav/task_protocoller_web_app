@@ -3,13 +3,13 @@
     "info": {
       "standard": {
         "label": "neuroSHARE Standard Intro",
-        "content": "<h1>Vítejte ve studii neuroSHARE</h1><p>Vyplnění vám zabere přibližně <strong>20–25 minut</strong>.</p><p>Čekají vás úkoly zaměřené na:</p><ul><li>řeč a hlas</li><li>spánek</li><li>čich</li><li>barevné vidění</li><li>sluch</li><li>soustředění</li></ul>Odpovídejte prosím upřímně a přirozeně."
+        "content": "<h1>Vítejte ve studii neuroSHARE</h1><p>Vyplnění Vám zabere přibližně <strong>20–25 minut</strong>.</p><p>Čekají Vás úlohy zaměřené na:</p><ul><li>řeč a hlas</li><li>spánek</li><li>čich</li><li>barevné vidění</li><li>sluch</li><li>soustředění</li></ul>Odpovídejte prosím upřímně a přirozeně."
       }
     },
     "instructions": {
       "standard": {
         "label": "neuroSHARE Standard Instructions",
-        "content": "<h1>Než začnete</h1><p><img src='/assets/sittingInstructions/sitting-instructions-general.png' alt='Setup Environment Guide' style='display: block;' /></p><ul><li><strong>Najděte si klidné místo:</strong> Posaďte se ke stolu v místnosti, kde vás nikdo nebude rušit. Zavřete okna a vypněte televizi.</li><li><strong>Odpojte sluchátka:</strong> Používejte mikrofon a reproduktor telefonu.</li><li><strong>Zkontrolujte stav baterie a připojení k internetu:</strong> Zajistěte si stabilní internet a dostatečně nabitou baterii.</li></ul>"
+        "content": "<h1>Než začnete</h1><p><img src='/assets/sittingInstructions/sitting-instructions-general.png' alt='Setup Environment Guide' style='display: block;' /></p><ul><li><strong>Najděte si klidné místo:</strong> Posaďte se ke stolu v místnosti, kde Vás nikdo nebude rušit. Zavřete okna a vypněte televizi.</li><li><strong>Odpojte sluchátka:</strong> Používejte mikrofon a reproduktor telefonu.</li><li><strong>Zkontrolujte stav baterie a připojení k internetu:</strong> Zajistěte si stabilní internet a dostatečně nabitou baterii.</li></ul>"
       }
     }
   }
