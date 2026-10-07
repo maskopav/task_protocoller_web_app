@@ -15,6 +15,7 @@ export default function TaskModal({
   editingData,
   setEditingData,
   tasks,
+  protocolLanguage,
   onClose,
   onSave,
 }) {
@@ -36,7 +37,8 @@ export default function TaskModal({
 
   if (!category) return null;
 
-  const params = getAllParams(category);
+  // Options (e.g. reading texts) in the protocol's language, not the admin UI's
+  const params = getAllParams(category, protocolLanguage);
   const translatedName = translateTaskName(category);
   const description = translateTaskDescription(category);
 
@@ -106,8 +108,8 @@ export default function TaskModal({
                     }))
                   }
                 >
-                  {/* A saved value this language doesn't offer (e.g. reading topic
-                      "northWind" when cs only has "seedling"): list it, so the
+                  {/* A saved value this language doesn't offer (e.g. a topic
+                      kept after switching the protocol language): list it, so the
                       select shows what is actually stored and picking another
                       option is a real change. Without it the browser displays the
                       first option, and choosing that fires no onChange. */}

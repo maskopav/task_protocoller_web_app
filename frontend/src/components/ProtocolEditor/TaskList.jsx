@@ -5,7 +5,7 @@ import { taskBaseConfig } from "../../config/tasksBase";
 import { translateTaskName, translateTaskDescription, getAllParams, getDefaultParams } from "../../utils/translations";
 import InfoTooltip from "../InfoToolTip/InfoToolTip";
 
-export default function TaskList({ onCreate }) {
+export default function TaskList({ onCreate, protocolLanguage }) {
   const { t } = useTranslation(["admin", "tasks", "common"]);
 
   // Calculate groups first (so we can use keys for state)
@@ -55,8 +55,8 @@ export default function TaskList({ onCreate }) {
               //{Object.keys(taskBaseConfig).map((cat) => {
                 const translatedName = translateTaskName(category);
                 const description = translateTaskDescription(category);
-                const params = getAllParams(category);
-                const defaults = getDefaultParams(category);
+                const params = getAllParams(category, protocolLanguage);
+                const defaults = getDefaultParams(category, protocolLanguage);
 
                 return (
                   <li key={category} className="task-option" onClick={() => onCreate(category)}>

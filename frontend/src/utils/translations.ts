@@ -68,11 +68,14 @@ export function translateParamName(category: string, param: string): string {
   return param;
 }
 
-export function translateParamValue(category: string, param: string, value: string): string {
+// `lng` overrides the UI language, so the protocol editor can show option
+// labels in the protocol's language (e.g. Czech reading texts while the admin
+// UI is in English). Omitted → current i18next language.
+export function translateParamValue(category: string, param: string, value: string, lng?: string): string {
   const key = `${category}.params.${param}.values.${value}`;
 
   // Use returnObjects:true so i18next can return nested structures when needed
-  const translated = i18next.t(key, { ...i18nOptions,defaultValue: value, returnObjects: true });
+  const translated = i18next.t(key, { ...i18nOptions, lng, defaultValue: value, returnObjects: true });
 
   if (typeof translated === "object" && translated !== null) {
     // Case: structured translation (like reading/monologue)
@@ -89,13 +92,15 @@ export function translateParamValue(category: string, param: string, value: stri
   return translated as string;
 }
 
-// Returns all params with translated labels and values - detailed structure for Admin UI lists
-export function getAllParams(category: string): Record<string, any> {
+// Returns all params with translated labels and values - detailed structure for Admin UI lists.
+// Param labels stay in the UI language; the offered values (texts, topics, …)
+// come from `lng` — the protocol's language — when given.
+export function getAllParams(category: string, lng?: string): Record<string, any> {
   const params = taskBaseConfig[category]?.params;
   if (!params) return {};
 
   // load translations for this category
-  const translationTree = i18next.t(category, { ...i18nOptions,returnObjects: true }) as Record<string, any>;
+  const translationTree = i18next.t(category, { ...i18nOptions, lng, returnObjects: true }) as Record<string, any>;
 
   return Object.fromEntries(
     Object.entries(params).map(([paramKey, paramDef]) => {
@@ -110,7 +115,7 @@ export function getAllParams(category: string): Record<string, any> {
         const isMultiple = paramDef.multiple === true;
         const values = Object.keys(translatedValues).map((vKey) => ({
           key: vKey,
-          label: translateParamValue(category, paramKey, vKey),
+          label: translateParamValue(category, paramKey, vKey, lng),
         }));
 
         return [
@@ -148,9 +153,9 @@ export function getAllParams(category: string): Record<string, any> {
  * including nested definitions like label + topicDescription
  * from the translation JSON (not just base config).
  */
-export function getResolvedParams(category: string, actualParams: Record<string, any> = {}): Record<string, any> {
+export function getResolvedParams(category: string, actualParams: Record<string, any> = {}, lng?: string): Record<string, any> {
   // Translation tree for the given task (from en.json or loaded i18n)
-  const translationTree = i18next.t(category, { ...i18nOptions,returnObjects: true }) as Record<string, any>;
+  const translationTree = i18next.t(category, { ...i18nOptions, lng, returnObjects: true }) as Record<string, any>;
 
   if (!translationTree || typeof translationTree !== "object" || !translationTree.params) {
     console.warn(`⚠️ No translation structure found for category: ${category}`);
@@ -218,9 +223,9 @@ export function getResolvedParams(category: string, actualParams: Record<string,
 }
 
 // Returns default params
-export function getDefaultParams(category: string): Record<string, any> {
+export function getDefaultParams(category: string, lng?: string): Record<string, any> {
   const params = taskBaseConfig[category]?.params || {};
-  const translationTree = i18next.t(category, { ...i18nOptions,returnObjects: true }) as Record<string, any>;
+  const translationTree = i18next.t(category, { ...i18nOptions, lng, returnObjects: true }) as Record<string, any>;
 
   return Object.fromEntries(
     Object.entries(params).map(([key, def]) => {
@@ -236,8 +241,8 @@ export function getDefaultParams(category: string): Record<string, any> {
           defaultValue = possibleValues[0];
         }
       } else if (!def.multiple && possibleValues.length > 0 && !possibleValues.includes(defaultValue)) {
-        // The configured default isn't offered in this language (e.g. reading's
-        // "northWind" in cs, which only has "seedling"): use the first option.
+        // The configured default isn't offered in this language (it lacks
+        // that translation): use the first option.
         defaultValue = possibleValues[0];
       }
       return [key, defaultValue];

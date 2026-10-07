@@ -197,7 +197,7 @@ export function ProtocolEditor({
       type: base.type,
       category,
       recording: base.recording,
-      ...getDefaultParams(category),
+      ...getDefaultParams(category, protocolData?.language || "en"),
     };
 
     setEditingData(newTaskDefaults);
@@ -438,7 +438,7 @@ export function ProtocolEditor({
       <h2>{t("protocolEditor.title")}</h2>
 
       <div className="admin-grid">
-        <TaskList onCreate={handleCreateTask} />
+        <TaskList onCreate={handleCreateTask} protocolLanguage={protocolData?.language || "en"} />
 
         <ProtocolForm
           tasks={tasks}
@@ -597,6 +597,7 @@ export function ProtocolEditor({
         editingData={editingData}
         tasks={tasks}
         setEditingData={setEditingData}
+        protocolLanguage={protocolData?.language || "en"}
         onClose={closeModals}
         onSave={handleSaveTask}
       />

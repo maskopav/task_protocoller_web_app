@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest";
 import i18n from "../i18n";
-import { getDefaultParams, getResolvedParams, translateTaskInstructions, translateTaskTitle } from "./translations";
+import { getAllParams, getDefaultParams, getResolvedParams, translateTaskInstructions, translateTaskTitle } from "./translations";
 
 describe("getDefaultParams", () => {
   afterAll(() => i18n.changeLanguage("cs"));
@@ -10,9 +10,9 @@ describe("getDefaultParams", () => {
     expect(getDefaultParams("reading").topic).toBe("northWind");
   });
 
-  it("falls back to the first offered option when the default isn't available (cs reading)", async () => {
+  it("offers the same reading topic key in cs as in en", async () => {
     await i18n.changeLanguage("cs");
-    expect(getDefaultParams("reading").topic).toBe("seedling");
+    expect(getDefaultParams("reading").topic).toBe("northWind");
   });
 
   it("leaves params without translated options untouched", async () => {
@@ -45,5 +45,23 @@ describe("getResolvedParams (cs)", () => {
     await i18n.changeLanguage("cs");
     expect(getResolvedParams("phonation", { phoneme: "a" }).phoneme).toBe("aaa");
     expect(getResolvedParams("syllableRepeating", { syllable: "pataka" }).syllable).toBe("pa-ta-ka");
+  });
+});
+
+// Protocol editor: admin UI in one language, protocol content in another
+describe("explicit protocol language (lng)", () => {
+  afterAll(() => i18n.changeLanguage("cs"));
+
+  it("lists option values in the protocol language, labels in the UI language", async () => {
+    await i18n.changeLanguage("en");
+    const topic = getAllParams("reading", "cs").topic;
+    expect(topic.values.find((v: any) => v.key === "northWind").label).toBe("Slunce a vítr");
+    expect(topic.label).toBe(getAllParams("reading").topic.label);
+  });
+
+  it("resolves the reading text in the protocol language", async () => {
+    await i18n.changeLanguage("en");
+    expect(getResolvedParams("reading", { topic: "northWind" }, "cs").text).toMatch(/^Jednou se slunce a vítr/);
+    expect(getResolvedParams("reading", { topic: "northWind" }).text).not.toMatch(/^Jednou/);
   });
 });

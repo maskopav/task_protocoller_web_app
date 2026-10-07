@@ -399,8 +399,8 @@ export default function ProtocolForm({
           </li>
         ) : (
           tasks.map((task, idx) => {
-            const params = getAllParams(task.category);
-            const resolved = getResolvedParams(task.category, task);
+            const params = getAllParams(task.category, protocolData?.language || "en");
+            const resolved = getResolvedParams(task.category, task, protocolData?.language || "en");
 
             return (
               <li
