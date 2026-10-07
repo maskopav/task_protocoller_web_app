@@ -37,7 +37,7 @@
         },
         {
           "id": 1782905170074,
-          "text": "Jsem si vědom/a toho, že ve spánku pohybuji končetinami",
+          "text": "Jsem si vědom/a toho, že ve spánku pohybuji končetinami.",
           "type": "single",
           "options": [
             "Ano",
@@ -55,7 +55,7 @@
         },
         {
           "id": 1782905182339,
-          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): mluvil/a, křičel/a, nadával/a, hlasitě se smál/a",
+          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): mluvil/a, křičel/a, nadával/a, hlasitě se smál/a.",
           "type": "single",
           "options": [
             "Ano",
@@ -64,7 +64,7 @@
         },
         {
           "id": 1782905259308,
-          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): pohyboval/a prudce (až bojovně) končetinami",
+          "text": "Stává se/stalo se, že jsem ve spánku (ze sna): pohyboval/a prudce (až bojovně) končetinami.",
           "type": "single",
           "options": [
             "Ano",
@@ -704,7 +704,7 @@
     "addTitle": "<strong>Seřaďte barvy v horní řadě tak, aby na sebe plynule navazovaly.</strong>",
     "addText": "• Klikněte na barvu ve <strong>spodní nabídce barev</strong>.<br/>• Přidá se na <strong>další volné místo</strong> v horní řadě.",
     "addGifAlt": "Přidání barvy",
-    "modifyTitle": "<strong>Úprava sledu barev</strong>",
+    "modifyTitle": "<strong>Úprava barev</strong>",
     "modifyText": "• Klikněte na barvu v <strong>horní řadě</strong>.<br/>• Barva se odebere a můžete místo ní vybrat jinou.",
     "modifyGifAlt": "Úprava barev",
     "demoTitle": "Jak to funguje",
@@ -746,7 +746,9 @@
     "demoText": "Pomocí klávesnice přiřaďte zobrazený symbol ke správnému číslu.",
     "taskComplete": "Úloha dokončena!",
     "resultsSaved": "Vaše výsledky byly bezpečně uloženy.",
-    "start": "Start"
+    "start": "Start",
+    "loadingSymbols": "Načítání…",
+    "retryLoading": "Zkusit znovu načíst"
   },
   "feedback": {
     "defaultContent": {

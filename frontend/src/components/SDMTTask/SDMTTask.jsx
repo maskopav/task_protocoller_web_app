@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useLayoutEffect, useContext, useRef } from 'react';
+import React, { useMemo, useEffect, useLayoutEffect, useContext, useRef, useState } from 'react';
 import { useSDMTLogic } from '../../hooks/useSDMTLogic';
 import { useTranslation, Trans } from "react-i18next";
 import { NextTaskButton } from '../Recorder/NextTaskButton';
@@ -12,12 +12,27 @@ import { SafeButton } from '../Shared/SafeButton';
 import { useActionCooldown } from '../../hooks/useActionCooldown';
 import './SDMTTask.css';
 
+const SYMBOL_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const symbolSrc = (id) => `${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${id}.svg`;
+
+// Resolves once the image is downloaded and decoded, so it paints instantly when shown.
+const preloadImage = (src) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(resolve);
+    img.onerror = reject;
+    img.src = src;
+});
+
 const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onAudioEvent, audioGuideEnabled = true }) => {
     const { t, i18n } = useTranslation("tasks", "common");
     const { confirm } = useContext(ConfirmDialogContext);
     const [justFinished, triggerFinishCooldown] = useActionCooldown(500);
     const demoShownRef = useRef(false);
     const audioCtxRef = useRef(null);
+    // 'loading' | 'ready' | 'error' — Start (and with it the timer + recording)
+    // stays blocked until every symbol image is available.
+    const [assetsStatus, setAssetsStatus] = useState('loading');
+    const [preloadAttempt, setPreloadAttempt] = useState(0);
 
     const rawDuration  = Array.isArray(taskParams?.duration)       ? taskParams.duration[0]       : taskParams?.duration;
     const rawKeypad    = Array.isArray(taskParams?.showKeypad)      ? taskParams.showKeypad[0]     : taskParams?.showKeypad;
@@ -62,6 +77,17 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
             }
         }
     }, [gameState, onTaskActiveChange, onAudioEvent]);
+
+    // ── Preload all symbol images (key table + displayed symbol use the same set)
+    useEffect(() => {
+        let cancelled = false;
+        setAssetsStatus('loading');
+        Promise.all(SYMBOL_IDS.map((id) => preloadImage(symbolSrc(id)))).then(
+            () => { if (!cancelled) setAssetsStatus('ready'); },
+            () => { if (!cancelled) setAssetsStatus('error'); }
+        );
+        return () => { cancelled = true; };
+    }, [preloadAttempt]);
 
     // ── Show demo dialog once on mount ────────────────────────────────
     useLayoutEffect(() => {
@@ -130,7 +156,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                 return (
                     <div key={`key-${digit}`} className="sdmt-key-item">
                         <img
-                            src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${symbolId}.svg`}
+                            src={symbolSrc(symbolId)}
                             alt={`Symbol ${symbolId}`}
                             className="sdmt-key-img"
                         />
@@ -171,7 +197,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                     <div className="sdmt-active-symbol-container">
                         {isSymbolVisible && currentSymbol ? (
                             <img
-                                src={`${import.meta.env.VITE_APP_BASE_PATH}assets/sdmt/sdmt${currentSymbol}.svg`}
+                                src={symbolSrc(currentSymbol)}
                                 alt="Current Symbol"
                                 className="sdmt-active-symbol fade-scale-in"
                             />
@@ -188,9 +214,16 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
 
     const controlsContent = (
         <>
-            {gameState === 'instructions' && (
+            {gameState === 'instructions' && assetsStatus === 'error' && (
+                <SafeButton className="btn-start" onClick={() => setPreloadAttempt((n) => n + 1)}>
+                    {t("sdmt.retryLoading")}
+                </SafeButton>
+            )}
+
+            {gameState === 'instructions' && assetsStatus !== 'error' && (
                 <SafeButton 
                     className="btn-start" 
+                    disabled={assetsStatus !== 'ready'}
                     onClick={() => {
                         // Initialize AND actively resume audio context to unlock it on iOS/Safari
                         if (!audioCtxRef.current) {
@@ -202,7 +235,7 @@ const SDMTTask = ({ taskParams, onComplete, isUploading, onTaskActiveChange, onA
                         startGame();
                     }}
                 >
-                    {t("sdmt.start")}
+                    {assetsStatus === 'ready' ? t("sdmt.start") : t("sdmt.loadingSymbols")}
                 </SafeButton>
             )}
 
