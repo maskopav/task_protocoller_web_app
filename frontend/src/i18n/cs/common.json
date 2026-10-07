@@ -150,6 +150,9 @@
       }
     }
   },
+  "welcome": {
+    "title": "Vítejte v neuroSHARE Remote"
+  },
   "volumeCheck": {
     "instructions": "Prosíme <strong>nastavte hlasitost</strong> tak, abyste zřetelně slyšeli zvukovou nahrávku. Poté vyberte číslo, které uslyšíte."
   },

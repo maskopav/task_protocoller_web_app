@@ -13,6 +13,7 @@ import { ModuleCompletionOverlay } from "../components/ModuleCompletionOverlay/M
 import { InfoPage, ConsentPage } from "../components/IntroComponents/IntroComponents";
 import Identifiers from "../components/Identifiers/Identifiers";
 import MicCheck from "../components/Recorder/MicCheck";
+import WelcomeScreen from "../components/WelcomeScreen/WelcomeScreen";
 import VolumeCheck from "../components/VolumeCheck/VolumeCheck";
 import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import BookingStep from "../components/Booking/BookingStep";
@@ -212,6 +213,20 @@ export default function ParticipantInterfacePage() {
     const VOLUME_SENSITIVE_CATEGORIES = ["retelling", "syllableRepeating", "phonation"];
     const needsVolumeCheck = audioGuideEnabled ||
       (selectedProtocol.tasks ?? []).some(t => VOLUME_SENSITIVE_CATEGORIES.includes(t.category));
+
+    // Add Welcome screen — only when there's no language selector before the
+    // Volume Check. Its "Next" tap is what lets the browser autoplay the
+    // Volume Check audio (autoplay is blocked until the user interacts).
+    // Based on the protocol (not on whether the selector was actually shown),
+    // so the step list stays identical when a session is resumed.
+    const hasLanguageSelector = (selectedProtocol.available_languages?.length ?? 0) > 1;
+    if (audioGuideEnabled && !hasLanguageSelector) {
+      introSteps.push({
+        type: "welcome",
+        category: "welcome",
+        isSystemTask: true
+      });
+    }
 
     // Add Volume Check — first thing shown, right after the language switcher
     if (needsVolumeCheck) {
@@ -521,7 +536,7 @@ export default function ParticipantInterfacePage() {
     let isReading = false;
     let isRetelling = false;
 
-    if (rawTask && !['info', 'instructions', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro', 'followup_booking'].includes(rawTask.type)) {
+    if (rawTask && !['welcome', 'info', 'instructions', 'consent', 'mic_check', 'identifiers', 'volume_check', 'audio_guide_intro', 'followup_booking'].includes(rawTask.type)) {
        task = resolveTask(rawTask, t);
        isReading = task?.category === 'reading';
        isRetelling = task?.category === 'retelling';
@@ -547,6 +562,9 @@ export default function ParticipantInterfacePage() {
     // the setup / trial / test sub-steps. Keep the page-level general guide
     // silent so it doesn't play on top of the wrapper's own clips.
     if (rawTask.type === 'vision') return null;
+
+    // Welcome screen has no guide clip — it exists to collect the first tap.
+    if (rawTask.type === 'welcome') return null;
 
     // All questionnaire categories (generic + standard ones like rbdsq/hhies)
     // share the same audio guide clip, since their content
@@ -852,7 +870,7 @@ export default function ParticipantInterfacePage() {
     }
     try {
       const currentTaskObj = runtimeTasks[taskIndex];
-      const isSystemTask = ['info', 'instructions', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro', 'followup_booking'].includes(currentTaskObj.type);
+      const isSystemTask = ['welcome', 'info', 'instructions', 'consent', 'identifiers', 'volume_check', 'audio_guide_intro', 'followup_booking'].includes(currentTaskObj.type);
       const isMicCheck = currentTaskObj.type === 'mic_check';
     
       if (testingMode || editingMode || !sessionId) {
@@ -998,6 +1016,13 @@ export default function ParticipantInterfacePage() {
     if (rawTask.type === "followup_booking") {
       return (
         <BookingStep sessionId={sessionId} testingMode={testingMode} onComplete={() => handleTaskComplete({})} />
+      );
+    }
+
+    // Render Welcome screen
+    if (rawTask.type === "welcome") {
+      return (
+        <WelcomeScreen onComplete={(data) => handleTaskComplete(data)} />
       );
     }
 

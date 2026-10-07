@@ -183,6 +183,9 @@
         }
       }
     },
+    "welcome": {
+      "title": "Welcome to neuroSHARE Remote"
+    },
     "volumeCheck": {
       "title": "Audio Volume Setup",
       "instructions": "Please <strong>adjust your device's volume</strong> until you can hear the message clearly. Then, select the number you hear."
