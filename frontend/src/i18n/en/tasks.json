@@ -484,6 +484,8 @@
       "taskComplete": "Task Complete!",
       "resultsSaved": "Your results have been saved securely.",
       "start": "Start",
+      "loadingSymbols": "Loading…",
+      "retryLoading": "Retry loading",
       "stop": "Stop",
       "timeLeft": "Time Left:",
       "params": {

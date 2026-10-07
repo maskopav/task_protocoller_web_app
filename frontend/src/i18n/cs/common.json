@@ -172,7 +172,7 @@
     "further": "Dál",
     "turnLeft": "Podívejte se doleva",
     "turnRight": "Podívejte se doprava",
-    "permissionWarning": "V tomto úkolu budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
+    "permissionWarning": "V této úloze budeme během mluvení měřit pohyby Vašeho obličeje. <br/><br/> Nenahrává se žádné video – pouze anonymizované souřadnice. <br/><br/> Prohlížeč Vás proto požádá o přístup ke kameře.",
     "permissionInstruction": "Prosím klikněte na tlačítko a v následujícím vyskakovacím okně zvolte <strong>Povolit</strong>.",
     "waitingForPermission": "Čekáme na povolení kamery...",
     "btnUnderstand": "Rozumím, pokračovat",

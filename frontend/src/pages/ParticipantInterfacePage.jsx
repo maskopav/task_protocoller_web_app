@@ -88,6 +88,16 @@ export default function ParticipantInterfacePage() {
   // For dynamic tasks (dynamic_monologue, everyday, etc.): which topic is
   // currently active, reported up by Recorder via onTopicChange.
   const [topicState, setTopicState] = useState({ index: 0, topic: null });
+  // Only a Recorder ever clears topicState, so a non-Recorder task (SDMT,
+  // questionnaire, ...) following a dynamic one would inherit its topic — and
+  // once its general clip ended, hand off to a nonexistent `${category}_${topic}`
+  // clip whose load error hides the guide icon. Reset during render (not in an
+  // effect) so it lands before the new Recorder's own onTopicChange effect.
+  const [topicTaskIndex, setTopicTaskIndex] = useState(taskIndex);
+  if (topicTaskIndex !== taskIndex) {
+    setTopicTaskIndex(taskIndex);
+    setTopicState({ index: 0, topic: null });
+  }
   // 'general' = the task-level instructions clip plays; 'topic' = we've moved
   // on to per-topic clips and the general one should no longer show/play.
   const [guideStage, setGuideStage] = useState('general');

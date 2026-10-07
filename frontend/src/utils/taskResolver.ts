@@ -1,7 +1,7 @@
 // src/utils/taskResolver.ts
 import i18next from "i18next";
 import type { TaskInstance } from "../tasks.js";
-import { getIllustrationPath } from "./getIllustrationPath.js";
+import { getIllustrationPaths } from "./getIllustrationPath.js";
 
 import {
     translateTaskTitle,
@@ -38,8 +38,8 @@ export function resolveTasks(tasks: TaskInstance[]) {
     const resolvedParams = getResolvedParams(task.category, task.params);
     const titleBase = translateTaskTitle(task.category, resolvedParams);
 
-    // Build static illustration path
-    const illustration = getIllustrationPath(task.category, task.params);
+    // Build candidate illustration paths (language folder first, then shared)
+    const illustration = getIllustrationPaths(task.category, task.params, i18next.language);
 
     let baseInstructions = translateTaskInstructions(task.category, resolvedParams);
     const repeatIndex = task._repeatIndex ?? 1;

@@ -46,13 +46,31 @@ class FakeAudioContext {
   resume() {}
 }
 
+// jsdom never fetches images, so onload/onerror would never fire. This fake
+// settles each preload per `imageOutcome` ("load" | "error" | "pending").
+let imageOutcome = "load";
+const OriginalImage = window.Image;
+class FakeImage {
+  set src(value) {
+    this._src = value;
+    if (imageOutcome === "load") this.onload?.();
+    if (imageOutcome === "error") this.onerror?.(new Error("failed"));
+  }
+  get src() {
+    return this._src;
+  }
+}
+
 describe("SDMTTask — reload/resume behavior", () => {
   beforeEach(() => {
     window.AudioContext = FakeAudioContext;
+    window.Image = FakeImage;
+    imageOutcome = "load";
     confirm.mockClear().mockResolvedValue(true);
   });
 
   afterEach(() => {
+    window.Image = OriginalImage;
     vi.restoreAllMocks();
   });
 
@@ -92,5 +110,64 @@ describe("SDMTTask — reload/resume behavior", () => {
     expect(t2.container.querySelector(".sdmt-timer")).toBeFalsy();
 
     t2.unmount();
+  });
+});
+
+describe("SDMTTask — symbol preloading gate", () => {
+  beforeEach(() => {
+    window.AudioContext = FakeAudioContext;
+    window.Image = FakeImage;
+    confirm.mockClear().mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    window.Image = OriginalImage;
+  });
+
+  it("keeps Start disabled (no timer, no recording) until all symbol images have loaded", async () => {
+    imageOutcome = "pending";
+    const onTaskActiveChange = vi.fn();
+    const t = renderTask({ onTaskActiveChange });
+    await t.mount();
+
+    const start = t.container.querySelector(".btn-start");
+    expect(start.disabled).toBe(true);
+    expect(start.textContent).toBe("sdmt.loadingSymbols");
+
+    act(() => start.click());
+    expect(t.container.querySelector(".sdmt-timer")).toBeFalsy();
+    expect(onTaskActiveChange).not.toHaveBeenCalledWith(true);
+
+    t.unmount();
+  });
+
+  it("enables Start once images are loaded", async () => {
+    imageOutcome = "load";
+    const t = renderTask();
+    await t.mount();
+
+    const start = t.container.querySelector(".btn-start");
+    expect(start.disabled).toBe(false);
+    expect(start.textContent).toBe("sdmt.start");
+
+    t.unmount();
+  });
+
+  it("offers a retry when an image fails, and enables Start after a successful retry", async () => {
+    imageOutcome = "error";
+    const t = renderTask();
+    await t.mount();
+
+    const retry = t.container.querySelector(".btn-start");
+    expect(retry.textContent).toBe("sdmt.retryLoading");
+
+    imageOutcome = "load";
+    await act(async () => retry.click());
+
+    const start = t.container.querySelector(".btn-start");
+    expect(start.disabled).toBe(false);
+    expect(start.textContent).toBe("sdmt.start");
+
+    t.unmount();
   });
 });

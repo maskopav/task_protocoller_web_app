@@ -12,7 +12,7 @@ const BACKEND_DIR = path.resolve(__dirname, '../backend');
 // sees genuine speech instead of Chromium's default synthetic tone.
 // Must be a WAV (Chromium's fake capture only reads WAV) -- this is the only
 // speech asset in public/ stored as one.
-const FAKE_AUDIO_FILE = path.resolve(__dirname, 'public/audio/illustrations/retelling_redRidingHood.wav');
+const FAKE_AUDIO_FILE = path.resolve(__dirname, 'public/audio/illustrations/en/retelling_redRidingHood.wav');
 
 export default defineConfig({
   testDir: './e2e',

@@ -45,10 +45,6 @@
   z-index: 0;
 }
 
-.intensity-circle.ready-to-stop {
-  background: rgba(76, 175, 80, 0.35);
-}
-
 .timer-circle {
   box-sizing: border-box;
   width: clamp(65px, min(30vw, 20dvh), 180px);
@@ -65,15 +61,12 @@
   z-index: 1;
 }
 
-.phase-red    .timer-circle  { border-color: var(--danger);  }
-.phase-orange .timer-circle  { border-color: var(--warning); }
-.phase-green  .timer-circle  { border-color: var(--success); }
+/* Two colours only: red until the required duration, then green. */
+.phase-red   .timer-circle  { border-color: var(--danger);  }
+.phase-green .timer-circle  { border-color: var(--success); }
 
-.phase-red    .intensity-circle { background: var(--danger);  }
-.phase-orange .intensity-circle { background: var(--warning); }
-.phase-green  .intensity-circle { background: var(--success); }
-
-.timer-circle.paused { border-color: var(--warning) !important; }
+.phase-red   .intensity-circle { background: var(--danger);  }
+.phase-green .intensity-circle { background: var(--success); }
 
 .timer-display {
   font-size: clamp(1.6rem, min(9.1dvw, 10dvh), 2.3rem);

@@ -224,14 +224,15 @@ export const Recorder = ({
                               (isDynamicTask && dynamicIndex >= dynamicArray.length - 1);
     const showSilenceWarning = VADmodel.isSilentPause && !suppressSilenceWarning;
 
-    let visualPhase = 'orange';
-    if (!isReadyToStop) {
-        visualPhase = 'red';
-    } else if (durationExpired || (mode === 'basicStop' && isMinimalReached)) {
-        visualPhase = 'green';
-    } else if (isMinimalReached) {
-        visualPhase = 'orange';
-    }
+    // Recorder ring is red until the task's required duration has elapsed,
+    // then green. Stop becoming available does not change the colour.
+    //   delayedStop → `duration` (story, monologues)
+    //   basicStop   → `minDuration`, if set (phonation; reading has none)
+    //   countDown   → always red
+    const isTargetReached = mode === 'delayedStop'
+        ? durationExpired
+        : mode === 'basicStop' && minimalDurationMs > 0 && isMinimalReached;
+    const visualPhase = isTargetReached ? 'green' : 'red';
 
     useEffect(() => {
         if (onRecordingStateChange) {
@@ -434,35 +435,36 @@ export const Recorder = ({
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
 
-    // `audioExample` is a base path without extension (see getIllustrationPath.ts) —
-    // illustration files on disk aren't consistently encoded (some .wav, some .m4a),
-    // so we probe each candidate extension in order and use whichever exists.
+    // `audioExample` is a base path without extension, or a list of them in
+    // priority order (language folder first, then shared — see getIllustrationPath.ts).
+    // Illustration files on disk aren't consistently encoded (some .wav, some .m4a),
+    // so we probe each path × extension in order and use the first that exists.
+    // Joined into a string so the effect only re-runs when the paths actually change.
+    const audioExampleBases = [].concat(audioExample ?? []).join("|");
     const [resolvedAudioExample, setResolvedAudioExample] = React.useState(null);
     const exampleExists = !!resolvedAudioExample;
     React.useEffect(() => {
         let cancelled = false;
         async function resolveExample() {
-            if (!audioExample) {
-                setResolvedAudioExample(null);
-                return;
-            }
-            for (const ext of ILLUSTRATION_EXTENSIONS) {
-                const candidate = `${audioExample}.${ext}`;
-                try {
-                    const res = await fetch(candidate, { method: "HEAD" });
-                    if (res.ok && (res.headers.get("content-type") || "").includes("audio")) {
-                        if (!cancelled) setResolvedAudioExample(candidate);
-                        return;
+            for (const base of audioExampleBases ? audioExampleBases.split("|") : []) {
+                for (const ext of ILLUSTRATION_EXTENSIONS) {
+                    const candidate = `${base}.${ext}`;
+                    try {
+                        const res = await fetch(candidate, { method: "HEAD" });
+                        if (res.ok && (res.headers.get("content-type") || "").includes("audio")) {
+                            if (!cancelled) setResolvedAudioExample(candidate);
+                            return;
+                        }
+                    } catch {
+                        // try next candidate
                     }
-                } catch {
-                    // try next extension
                 }
             }
             if (!cancelled) setResolvedAudioExample(null);
         }
         resolveExample();
         return () => { cancelled = true; };
-    }, [audioExample]);
+    }, [audioExampleBases]);
 
     // ── Story/example playback state (owned here, driven into AudioExamplePlayer via props) ──
     const [exampleResetTrigger, setExampleResetTrigger] = useState(0);
@@ -625,6 +627,10 @@ export const Recorder = ({
             // Split pack screen 2 — the topic. Screen 1 (not yet revealed)
             // falls through to the plain `instructions` below.
             baseInstructions = instructionsTopic;
+        } else if (instructionsTopic && awaitingNextTopic) {
+            // Switched to the next topic, waiting for Start — reuse the topic
+            // screen so it also carries the "press Start when ready" line.
+            baseInstructions = instructionsTopic;
         } else if (isDynamicTask && dynamicIndex > 0) {
             baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
         } else if (instructionsActive && isActiveOrPreparing && !awaitingNextTopic) {
@@ -719,7 +725,6 @@ export const Recorder = ({
                 status={displayRecordingStatus}
                 audioLevelsRef={audioLevelsRef}
                 showVisualizer={showVisualizer}
-                isReadyToStop={isReadyToStop}
                 mode={mode}
                 showMicIcon={showMicIcon !== undefined ? showMicIcon : (mode === 'countDown')}
                 visualPhase={visualPhase}

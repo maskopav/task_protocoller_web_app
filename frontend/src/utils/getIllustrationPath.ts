@@ -1,9 +1,15 @@
 // src/utils/getIllustrationPath.ts
 
 /**
- * Builds a predictable illustration path (without extension) based on task
- * category and its first parameter key/value.
- * Example: phonation -> phoneme "a" => /illustrations/phonation_a
+ * Builds the candidate illustration paths (without extension) based on task
+ * category and its first parameter key/value, most specific first:
+ *   1. per-language folder, for spoken content (e.g. a retold fairytale)
+ *   2. shared root folder, for language-neutral content (phonation, pataka, ...)
+ * Example: phonation -> phoneme "a", cs =>
+ *   ["/audio/illustrations/cs/phonation_a", "/audio/illustrations/phonation_a"]
+ *
+ * Which one exists is resolved at runtime in Recorder.jsx, so placing a file
+ * in audio/illustrations/<lang>/ is all it takes to make it language-specific.
  *
  * No extension is appended because the illustration files on disk aren't
  * consistently encoded (some are .wav, some are .m4a) — the caller resolves
@@ -15,11 +21,15 @@ interface EnvImportMeta extends ImportMeta {
   };
 }
 
-// Tried in order against the resolved base path until one responds; see
-// resolveIllustrationSrc in Recorder.jsx.
+// Tried in order against each candidate path until one responds; see
+// resolveExample in Recorder.jsx.
 export const ILLUSTRATION_EXTENSIONS = ['m4a', 'wav', 'mp3'];
 
-export function getIllustrationPath(category: string, params: Record<string, any> = {}): string | undefined {
+export function getIllustrationPaths(
+  category: string,
+  params: Record<string, any> = {},
+  language?: string
+): string[] | undefined {
   const keys = Object.keys(params ?? {});
   if (keys.length === 0) return undefined;
 
@@ -29,8 +39,10 @@ export function getIllustrationPath(category: string, params: Record<string, any
 
   // Construct a base filename, e.g. "phonation_a"
   const baseName = `${category}_${String(value)}`;
-  const basePath = (import.meta as EnvImportMeta).env.BASE_URL || '/';
+  const dir = `${(import.meta as EnvImportMeta).env.BASE_URL || '/'}audio/illustrations/`;
 
-  // Return just the base path (extension resolved at runtime in Recorder.jsx)
-  return `${basePath}audio/illustrations/${baseName}`;
+  // Return just the base paths (extension resolved at runtime in Recorder.jsx)
+  return language
+    ? [`${dir}${language}/${baseName}`, `${dir}${baseName}`]
+    : [`${dir}${baseName}`];
 }

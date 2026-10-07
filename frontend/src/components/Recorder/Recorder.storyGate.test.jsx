@@ -80,7 +80,7 @@ vi.mock("./VideoViewFinder.jsx", () => ({
   ),
 }));
 
-const STORY_BASE = "/audio/illustrations/retelling_pussInBoots";
+const STORY_BASE = "/audio/illustrations/en/retelling_pussInBoots";
 const STORY_DURATION_S = 90;
 
 /** HEAD probe used by Recorder to resolve the clip's file extension. */

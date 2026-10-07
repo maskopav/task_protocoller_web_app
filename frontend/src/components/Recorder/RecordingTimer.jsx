@@ -18,7 +18,6 @@ export const RecordingTimer = ({
     status,
     audioLevelsRef,
     showVisualizer = true,
-    isReadyToStop = false,
     showMicIcon = false,
     visualPhase
 }) => {
@@ -27,9 +26,6 @@ export const RecordingTimer = ({
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
-
-    // This class determines if the timer (and now the mic) should turn green
-    const readyClass = isReadyToStop ? "ready-to-stop" : "";
 
     // ── DOM node written to directly, bypassing React reconciliation ────────
     const intensityCircleRef = useRef(null);
@@ -110,12 +106,12 @@ export const RecordingTimer = ({
                 {status === 'recording' && showVisualizer && (
                     <div
                         ref={intensityCircleRef}
-                        className={`intensity-circle ${readyClass}`}
+                        className="intensity-circle"
                     />
                 )}
 
                 {/* Timer circle */}
-                <div className={`timer-circle ${status} ${readyClass}`}>
+                <div className={`timer-circle ${status}`}>
                     <div className={`timer-display ${status === 'recording' ? 'recording' : ''}`}>
                         {showMicIcon ? (
                             <img src={micIcon} className="mic-icon-display" alt="Microphone Indicator" />

@@ -49,7 +49,7 @@ function installFakeMic({ source, noiseRms, burstRms }: { source: 'bursts' | 'sp
 
     let speech: AudioBuffer;
     if (source === 'speech') {
-      const res = await fetch('/audio/illustrations/retelling_redRidingHood.wav');
+      const res = await fetch('/audio/illustrations/en/retelling_redRidingHood.wav');
       speech = await ctx.decodeAudioData(await res.arrayBuffer());
     } else {
       // 0.3 s 220 Hz bursts every 0.7 s
