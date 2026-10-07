@@ -12,9 +12,7 @@ export default function WelcomeScreen({ onComplete }) {
 
   return (
     <TaskLayout
-      title={t('welcome.title')}
-      renderTitle
-      showSpacer={false}
+      instructions={t('welcome.title')}
       controls={
         <SafeButton
           className="btn-next"
