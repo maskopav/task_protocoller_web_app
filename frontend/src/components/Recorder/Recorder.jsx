@@ -435,35 +435,36 @@ export const Recorder = ({
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
 
-    // `audioExample` is a base path without extension (see getIllustrationPath.ts) —
-    // illustration files on disk aren't consistently encoded (some .wav, some .m4a),
-    // so we probe each candidate extension in order and use whichever exists.
+    // `audioExample` is a base path without extension, or a list of them in
+    // priority order (language folder first, then shared — see getIllustrationPath.ts).
+    // Illustration files on disk aren't consistently encoded (some .wav, some .m4a),
+    // so we probe each path × extension in order and use the first that exists.
+    // Joined into a string so the effect only re-runs when the paths actually change.
+    const audioExampleBases = [].concat(audioExample ?? []).join("|");
     const [resolvedAudioExample, setResolvedAudioExample] = React.useState(null);
     const exampleExists = !!resolvedAudioExample;
     React.useEffect(() => {
         let cancelled = false;
         async function resolveExample() {
-            if (!audioExample) {
-                setResolvedAudioExample(null);
-                return;
-            }
-            for (const ext of ILLUSTRATION_EXTENSIONS) {
-                const candidate = `${audioExample}.${ext}`;
-                try {
-                    const res = await fetch(candidate, { method: "HEAD" });
-                    if (res.ok && (res.headers.get("content-type") || "").includes("audio")) {
-                        if (!cancelled) setResolvedAudioExample(candidate);
-                        return;
+            for (const base of audioExampleBases ? audioExampleBases.split("|") : []) {
+                for (const ext of ILLUSTRATION_EXTENSIONS) {
+                    const candidate = `${base}.${ext}`;
+                    try {
+                        const res = await fetch(candidate, { method: "HEAD" });
+                        if (res.ok && (res.headers.get("content-type") || "").includes("audio")) {
+                            if (!cancelled) setResolvedAudioExample(candidate);
+                            return;
+                        }
+                    } catch {
+                        // try next candidate
                     }
-                } catch {
-                    // try next extension
                 }
             }
             if (!cancelled) setResolvedAudioExample(null);
         }
         resolveExample();
         return () => { cancelled = true; };
-    }, [audioExample]);
+    }, [audioExampleBases]);
 
     // ── Story/example playback state (owned here, driven into AudioExamplePlayer via props) ──
     const [exampleResetTrigger, setExampleResetTrigger] = useState(0);
