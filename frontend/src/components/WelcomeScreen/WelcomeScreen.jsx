@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import TaskLayout from '../TaskLayout/TaskLayout';
 import { SafeButton } from '../Shared/SafeButton';
+import './WelcomeScreen.css';
 
 // First screen for protocols without a language selector. Its only job is the
 // "Next" tap: browsers block audio autoplay until the user has interacted with
@@ -12,6 +13,8 @@ export default function WelcomeScreen({ onComplete }) {
 
   return (
     <TaskLayout
+      className="welcome-container"
+      showSpacer
       instructions={t('welcome.title')}
       controls={
         <SafeButton

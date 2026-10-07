@@ -1,0 +1,6 @@
+/* components/WelcomeScreen/WelcomeScreen.css */
+
+/* Roomier card than the default instruction card, since it holds a single line */
+.welcome-container .instruction-card {
+  padding: 1em 0.8em;
+}
