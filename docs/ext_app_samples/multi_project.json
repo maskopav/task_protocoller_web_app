@@ -36,7 +36,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p10_t1_instr1"
+            "p10_t1_instr1",
+            "p10_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -51,7 +52,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p10_t2_instr1"
+            "p10_t2_instr1",
+            "p10_t2_instr2"
           ],
           "length": 7,
           "showIndicator": true,
@@ -67,9 +69,7 @@
           "nrepetition": 1,
           "instructionKeys": [
             "p10_t3_instr1",
-            "p10_t3_instr2",
-            "p10_t3_instr3",
-            "p10_t3_instr4"
+            "p10_t3_instr2"
           ],
           "length": 150,
           "showIndicator": false,
@@ -84,10 +84,9 @@
           "nrepetition": 1,
           "instructionKeys": [
             "p10_t4_instr1",
-            "p10_t4_instr2",
-            "p10_t4_instr3"
+            "p10_t4_instr2"
           ],
-          "length": 60,
+          "length": 90,
           "showIndicator": false,
           "recordVideo": true
         },
@@ -133,7 +132,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p20_t1_instr1"
+            "p20_t1_instr1",
+            "p20_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -148,7 +148,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p20_t2_instr1"
+            "p20_t2_instr1",
+            "p20_t2_instr2"
           ],
           "length": 7,
           "showIndicator": true,
@@ -181,7 +182,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p10_t1_instr1"
+            "p10_t1_instr1",
+            "p10_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -196,7 +198,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p10_t2_instr1"
+            "p10_t2_instr1",
+            "p10_t2_instr2"
           ],
           "length": 7,
           "showIndicator": true,
@@ -212,9 +215,7 @@
           "nrepetition": 1,
           "instructionKeys": [
             "p10_t3_instr1",
-            "p10_t3_instr2",
-            "p10_t3_instr3",
-            "p10_t3_instr4"
+            "p10_t3_instr2"
           ],
           "length": 150,
           "showIndicator": false,
@@ -229,10 +230,9 @@
           "nrepetition": 1,
           "instructionKeys": [
             "p10_t4_instr1",
-            "p10_t4_instr2",
-            "p10_t4_instr3"
+            "p10_t4_instr2"
           ],
-          "length": 60,
+          "length": 90,
           "showIndicator": false,
           "recordVideo": true
         },
@@ -255,7 +255,7 @@
       ]
     },
     {
-      "name": "Monologue only",
+      "name": "Picture description",
       "version": 1,
       "project": "Project B",
       "protocolInstructionsPdfUrl": "https://example.org/manuals/protocol_manual_2026.pdf",
@@ -273,20 +273,31 @@
       "tasks": [
         {
           "type": "VOCAL",
-          "subtype": "MONOLOGUE",
+          "subtype": "PICTURE_DESCRIPTION",
           "titleKey": "p30_t1_title",
           "canRepeat": true,
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
             "p30_t1_instr1",
-            "p30_t1_instr2",
-            "p30_t1_instr3",
-            "p30_t1_instr4",
-            "p30_t1_instr5",
-            "p30_t1_instr6"
+            "p30_t1_instr2"
           ],
-          "length": 60,
+          "length": 90,
+          "showIndicator": false,
+          "recordVideo": false
+        },
+        {
+          "type": "VOCAL",
+          "subtype": "MONOLOGUE",
+          "titleKey": "p30_t2_title",
+          "canRepeat": true,
+          "canSkip": false,
+          "nrepetition": 1,
+          "instructionKeys": [
+            "p30_t2_instr1",
+            "p30_t2_instr2"
+          ],
+          "length": 90,
           "showIndicator": false,
           "recordVideo": false
         }
@@ -295,37 +306,37 @@
   ],
   "strings": {
     "en": {
-      "p10_t1_title": "Prolonged phonation /aaa/",
-      "p10_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
-      "p10_t2_title": "pa-ta-ka repetition",
-      "p10_t2_instr1": "<bold>Draw a deep breath</bold> and repeat the syllables\n/pa-ta-ka-pa-ta-ka/\nas quickly and accurately as possible until the task finishes automatically after 7 seconds. Press Start to begin.",
-      "p10_t3_title": "Reading The North Wind and the Sun",
-      "p10_t3_instr1": "Press Start and read the text on the screen <bold>out loud</bold>.",
-      "p10_t3_instr2": "You might need to <bold>scroll down</bold> to reach the end.",
-      "p10_t3_instr3": "Press Stop when you are finished.",
-      "p10_t3_instr4": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.",
-      "p10_t4_title": "Monologue",
-      "p10_t4_instr1": "We will show you a topic and ask you to talk about it continously for <bold>60 seconds</bold>.",
-      "p10_t4_instr2": "<bold>Topic:</bold>\nPlease try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the Start button and begin speaking.",
-      "p10_t4_instr3": "Press Start when you are ready.",
-      "p10_t5_title": "Retelling fairytale",
-      "p10_t5_instr1": "Press Play story to listen to a spoken fairytale. After listening to the story, press button to calibrate your camera. Then <bold>retell the tale in your own words</bold> in 90 seconds.",
-      "p10_t5_instr2": "Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "p10_t1_title": "Prolonged phonation - /aaa/",
+      "p10_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p10_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+      "p10_t2_title": "PATAKA",
+      "p10_t2_instr1": "<bold>Please repeat the following syllables after me: /pa/-/ta/-/ka/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p10_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 12 triplets of /pa-ta-ka/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
+      "p10_t3_title": "Reading - The North Wind and the Sun",
+      "p10_t3_instr1": "<bold>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</bold>\n\n<italic>Give the participant the READING TEXT - The North Wind and the Sun.\nOffer the participant a text with a suitable font size.</italic>",
+      "p10_t3_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</italic>",
+      "p10_t4_title": "Monologue - Free narration",
+      "p10_t4_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least 90 seconds. The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work.</bold>\n\n<italic>The required length of the recorded monologue is at least 90 seconds.</italic>",
+      "p10_t4_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least 90 seconds.</italic>",
+      "p10_t5_title": "Retelling",
+      "p10_t5_instr1": "<bold>I will now play you an audio recording of a fairy tale. Your task is to remember it and then retell it in your own words.</bold>\n\n<bold>The retelling should last 90 seconds. The goal is to speak continuously; it does not matter whether the tale is retold correctly or completely.</bold>\n\n<italic>Press PLAY EXAMPLE to start the story playback.</italic>",
+      "p10_t5_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until 90 seconds have passed on the stopwatch, then press the STOP button to end the recording.</italic>",
       "p10_f_patient_code_label": "Participant code",
       "p10_f_patient_code_help": "Study code of the participant, e.g. HC001.",
-      "p20_t1_title": "Prolonged phonation /aaa/",
-      "p20_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
-      "p20_t2_title": "ta-ta-ta repetition",
-      "p20_t2_instr1": "<bold>Draw a deep breath</bold> and repeat the syllables\n/ta-ta-ta-ta-ta-ta/\nas quickly and accurately as possible until the task finishes automatically after 7 seconds. Press Start to begin.",
+      "p20_t1_title": "Prolonged phonation - /aaa/",
+      "p20_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p20_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+      "p20_t2_title": "TA",
+      "p20_t2_instr1": "<bold>Please repeat the following syllables after me: /ta/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p20_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 25× /ta/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
       "p20_f_patient_code_label": "Participant code",
       "p20_f_patient_code_help": "Study code of the participant, e.g. HC001.",
-      "p30_t1_title": "Monologue",
-      "p30_t1_instr1": "We will show you a topic and ask you to talk about it continuously for <bold>60 seconds</bold>.",
-      "p30_t1_instr2": "If you run out of things to say, you will have the option to switch to a new topic to help you keep talking.",
-      "p30_t1_instr3": "<bold>Topic:</bold>\nHow do you like to spend your free time? You can describe an activity you enjoy, how you got into it, and what makes it interesting for you.",
-      "p30_t1_instr4": "Press Start when you are ready.",
-      "p30_t1_instr5": "<bold>Topic:</bold>\nHow do you usually get from place to place? You can describe your usual commute or a favorite way of travelling and talk about a trip or a place you have found interesting.",
-      "p30_t1_instr6": "Press Start when you are ready.",
+      "p30_t1_title": "Picture description - A",
+      "p30_t1_instr1": "<bold>Describe to me the situations you see in the picture. How do you think the people in the pictures feel, and how do you judge their behaviour?</bold>\n\n<italic>Give the participant the PICTURE FOR DESCRIPTION - A.</italic>",
+      "p30_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant has described the picture for at least 90 seconds, then press STOP button to end the recording.</italic>",
+      "p30_t2_title": "Monologue - Hobbies",
+      "p30_t2_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least 90 seconds. Tell me about your hobbies, for example sports, music, reading, gardening or pets.</bold>\n\n<italic>The required length of the recorded monologue is at least 90 seconds.</italic>",
+      "p30_t2_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least 90 seconds.</italic>",
       "p30_f_patient_code_label": "Participant code",
       "p30_f_patient_code_help": "Study code of the participant, e.g. HC001."
     }

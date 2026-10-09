@@ -36,7 +36,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p90_t1_instr1"
+            "p90_t1_instr1",
+            "p90_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -51,7 +52,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p90_t2_instr1"
+            "p90_t2_instr1",
+            "p90_t2_instr2"
           ],
           "length": 7,
           "showIndicator": true,
@@ -66,7 +68,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p90_t3_instr1"
+            "p90_t3_instr1",
+            "p90_t3_instr2"
           ],
           "length": 150,
           "showIndicator": false,
@@ -81,10 +84,9 @@
           "nrepetition": 1,
           "instructionKeys": [
             "p90_t4_instr1",
-            "p90_t4_instr2",
-            "p90_t4_instr3"
+            "p90_t4_instr2"
           ],
-          "length": 60,
+          "length": 90,
           "showIndicator": false,
           "recordVideo": true
         },
@@ -96,7 +98,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p90_t5_instr1"
+            "p90_t5_instr1",
+            "p90_t5_instr2"
           ],
           "length": 90,
           "showIndicator": false,
@@ -108,18 +111,21 @@
   ],
   "strings": {
     "cs": {
-      "p90_t1_title": "Prodloužená fonace /aaa/",
-      "p90_t1_instr1": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /aaa/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň sekund. Jakmile se vám dojde dech, stiskněte STOP.",
-      "p90_t2_title": "Opakování pa-ta-ka",
-      "p90_t2_instr1": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /pa-ta-ka/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
-      "p90_t3_title": "Čtení: northWind",
-      "p90_t3_instr1": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
-      "p90_t4_title": "Monolog na téma: dayDescription",
-      "p90_t4_instr1": "Ukážeme vám téma a požádáme vás, abyste o něm volně hovořil/a po dobu <bold>60 sekund</bold>.",
-      "p90_t4_instr2": "<bold>Téma:</bold>",
-      "p90_t4_instr3": "Až budete připraven/a, stiskněte Start.",
-      "p90_t5_title": "Vyprávění: pussInBoots",
-      "p90_t5_instr1": "Stiskněte START a převyprávějte pohádku: pussInBoots. Po dokončení stiskněte STOP.",
+      "p90_t1_title": "Prodloužená fonace - /aaa/",
+      "p90_t1_instr1": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /aaa/. Měl/a byste vydržet alespoň 10 sekund.\nNyní Vám přehraji ukázku.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+      "p90_t1_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než 10 sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</italic>",
+      "p90_t2_title": "PATAKA",
+      "p90_t2_instr1": "<bold>Nyní po mně zopakujte následující slabiky: /pa/-/ta/-/ka/.</bold>\n\n<italic>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:</italic>\n\n<bold>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+      "p90_t2_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň 12 trojic /pa-ta-ka/. Poté stiskněte tlačítko STOP pro ukončení nahrávání.\nRychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).</italic>",
+      "p90_t3_title": "Čtený text - The North Wind and the Sun",
+      "p90_t3_instr1": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>\n\n<italic>Dejte účastníkovi TEXT KE ČTENÍ - The North Wind and the Sun.\nÚčastníkovi nabídněte text s vhodnou velikostí písma.</italic>",
+      "p90_t3_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.</italic>",
+      "p90_t4_title": "Monolog - Volné vyprávění",
+      "p90_t4_instr1": "<bold>Nyní Vás požádám, abyste mi souvisle alespoň 90 sekund o něčem vyprávěl/a. Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci.</bold>\n\n<italic>Požadovaná délka nahrávaného monologu je alespoň 90 sekund.</italic>",
+      "p90_t4_instr2": "<bold>Můžete začít hned jak se Vám bude chtít.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání a na konci úlohy tlačítko STOP pro ukončení nahrávání.\nČas monologu měřte. Pokud je monolog krátký nebo obsahově chudý, pokuste se rozvést téma doplňujícími otázkami nebo navrhněte téma nové. V nejhorších případech je možnost přejít k tzv. řízené diskuzi. V případě řízené diskuze se snažte pokládat otevřené otázky, vyžadující dlouhou odpověď. Čistý čas monologu, bez dlouhých pauz a otázek vyšetřujícího, by měl být minimálně 90 sekund.</italic>",
+      "p90_t5_title": "Retelling",
+      "p90_t5_instr1": "<bold>Nyní Vám pustím audioukázku s převyprávěným dějem pohádky. Vaším úkolem bude si ji zapamatovat a poté ji převyprávět vlastními slovy.</bold>\n\n<bold>Požadovaná délka převyprávění je 90 sekund. Cílem je souvisle mluvit, nezáleží, jestli bude pohádka převyprávěna správně, nebo bude celá.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání pohádky.",
+      "p90_t5_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne 90 sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.</italic>",
       "p90_f_patient_code_label": "Kód účastníka",
       "p90_f_patient_code_help": "Studijní kód účastníka, např. HC001."
     }

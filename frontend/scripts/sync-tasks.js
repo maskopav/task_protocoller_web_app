@@ -93,6 +93,16 @@ async function sync() {
                 continue;
             }
 
+            // 0. Voice tasks carry the desktop app's two instruction cards
+            if (config.type === 'voice') {
+                ['instructions1', 'instructions2'].forEach(k => {
+                    if (!trans[category][k]) {
+                        console.error(`  ❌ [${lang}] Missing "${k}"`);
+                        hasErrors = true;
+                    }
+                });
+            }
+
             // 1. Check if the parameter itself exists in translation
             requiredParams.forEach(pKey => {
                 const transParam = trans[category].params?.[pKey];
@@ -144,10 +154,6 @@ async function sync() {
     if (!config) {
         console.error("❌ Task not found.");
     } else {
-        // Prepare data strings
-        const recordingMode = config.recording ? JSON.stringify(config.recording) : "NULL";
-        const paramsList = JSON.stringify(Object.keys(config.params || {}));
-
         console.log(`\n${colors.magenta}${colors.bright}STEP 1: Check Task Type${colors.reset}`);
         console.log(`${colors.gray}Run this to ensure the '${config.type}' type exists and get its ID:${colors.reset}`);
         console.log(`${colors.bright}  SELECT id FROM task_types WHERE type = '${config.type}';${colors.reset}`);
@@ -160,19 +166,13 @@ async function sync() {
         console.log(`${colors.gray}Copy and run this command in your MySQL terminal:${colors.reset}`);
         
         console.log(`\n${colors.cyan}┌${"─".repeat(78)}┐${colors.reset}`);
+        // The tasks table holds only category + type (create_tables.sql);
+        // recording mode and params live in tasksBase.ts, not the DB.
         const sqlLines = [
-            `INSERT INTO tasks (category, type_id, recording_mode, params, updated_at)`,
-            `VALUES (`,
-            `  '${category}',`,
-            `  ${typeId},`,
-            `  ${recordingMode !== "NULL" ? `'${recordingMode}'` : "NULL"},`,
-            `  '${paramsList}',`,
-            `  NOW()`,
-            `)`,
+            `INSERT INTO tasks (category, type_id, updated_at)`,
+            `VALUES ('${category}', ${typeId}, NOW())`,
             `ON DUPLICATE KEY UPDATE`,
             `  type_id = VALUES(type_id),`,
-            `  recording_mode = VALUES(recording_mode),`,
-            `  params = VALUES(params),`,
             `  updated_at = NOW();`
         ];
 

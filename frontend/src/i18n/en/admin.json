@@ -342,6 +342,7 @@
     "noTasks": "No tasks added yet.",
     "editTask": "Edit Task: {{category}}",
     "addTask": "Add Task: {{category}}",
+    "instructionsPreview": "Instructions sent to the app",
     "editorLanguage": "🌍 Editor language:",
     "protocolLanguage": "🌍 Protocol language:",
     "addQuestionnaire": "Add Questionnaire",

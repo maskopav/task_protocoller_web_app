@@ -86,6 +86,7 @@
     "noTasks": "Zatím nebyly přidány žádné úlohy.",
     "editTask": "Upravit úlohu: {{category}}",
     "addTask": "Přidat úlohu: {{category}}",
+    "instructionsPreview": "Instrukce odesílané do aplikace",
     "editorLanguage": "🌍 Jazyk editoru:",
     "protocolLanguage": "🌍 Jazyk protokolu:",
     "addQuestionnaire": "Přidat dotazník",

@@ -652,18 +652,6 @@ export default function ParticipantInterfacePage() {
     }
   }, []);
 
-  // Split instruction pack (monologue tasks): the participant pressed
-  // "See the topic" — hand the audio guide off to the per-topic clip.
-  const handleTopicReveal = useCallback(() => {
-    stopAudioGuides(); // cut the screen-1 clip mid-word if still playing
-    if (topicState.topic == null && rawTask?.params?.topic) {
-      // monologue: single topic, Recorder never reports one — use the raw id string
-      setTopicState({ index: 0, topic: rawTask.params.topic });
-    }
-    setGuideStage('topic');
-    setTopicPlayTrigger(t => t + 1);
-  }, [rawTask, topicState.topic, stopAudioGuides]);
-
   // Per-topic guide clip for the currently active topic, e.g. dynamic_monologue_family.m4a
   const topicAudioSrc = useMemo(() => {
     if (!rawTask || !useAudioGuide || topicState.topic == null) return null;
@@ -698,9 +686,7 @@ export default function ParticipantInterfacePage() {
     }
 
     // Only hand off to the per-topic clip if there's actually a topic to play.
-    // Split-pack tasks (instructionsTopic) are excluded: their topic clip must
-    // wait for the "See the topic" button (handleTopicReveal), never auto-play.
-    if (guideStage === 'general' && topicState.topic != null && !currentTask?.instructionsTopic) {
+    if (guideStage === 'general' && topicState.topic != null) {
       setGuideStage('topic');
       setTopicPlayTrigger(t => t + 1);
       return;
@@ -986,11 +972,6 @@ export default function ParticipantInterfacePage() {
           key={`${taskIndex}-${videoDeclined}`}
           title={currentTask.title}
           instructions={currentTask.instructions}
-          instructionsPreCalibration={currentTask.instructionsPreCalibration}
-          instructionsPostCalibration={currentTask.instructionsPostCalibration}
-          instructionsActive={currentTask.instructionsActive}
-          instructionsTopic={currentTask.instructionsTopic}
-          onTopicReveal={handleTopicReveal}
           completedInstructions={t("completion.taskCompletedInstructions", { ns: "common" })}
           audioExample={currentTask.illustration}
           mode={currentTask.recording.mode}

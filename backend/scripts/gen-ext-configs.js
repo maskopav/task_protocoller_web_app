@@ -20,7 +20,7 @@ const OUT_DIR = path.join(__dirname, "../../docs/ext_app_samples");
 const TASKS = {
   phonation: [1, "voice"], syllableRepeating: [2, "voice"], retelling: [3, "voice"], reading: [4, "voice"],
   monologue: [5, "voice"], questionnaire: [6, "questionnaire"], rbdsq: [7, "questionnaire"], hhies: [8, "questionnaire"],
-  d15colour: [9, "vision"], dynamic_monologue: [10, "voice"],
+  d15colour: [9, "vision"], pictureDescription: [10, "voice"],
 };
 export const tasksById = Object.fromEntries(Object.entries(TASKS).map(([category, [id, type]]) => [id, { category, type }]));
 const LANG_ID = { en: 1, cs: 2, de: 3 };
@@ -35,8 +35,8 @@ const DEFAULTS = {
   syllableRepeating: { syllable: "pataka", repeat: 1, duration: 7, recordVideo: false },
   retelling: { fairytale: "pussInBoots", repeat: 1, duration: 90, minDuration: 30, maxDuration: 120, recordVideo: false },
   reading: { topic: "northWind", repeat: 1, minDuration: 0, maxDuration: 150, recordVideo: false },
-  monologue: { topic: "dayDescription", repeat: 1, duration: 60, minDuration: 30, maxDuration: 120, recordVideo: false },
-  dynamic_monologue: { topics: ["everyday", "hobbies", "travel", "eating"], duration: 60, minDuration: 30, maxDuration: 120, recordVideo: false },
+  monologue: { topic: "free", repeat: 1, duration: 90, minDuration: 30, maxDuration: 120, recordVideo: false },
+  pictureDescription: { picture: "A", repeat: 1, duration: 90, recordVideo: false },
   d15colour: { randomize: true, repeat: 1, version: "desaturated", demoTrial: "no", showNumbers: "never", maxDuration: 180 },
 };
 const task = (category, over = {}) => [category, { ...DEFAULTS[category], ...over }];
@@ -98,7 +98,7 @@ export const CASES = {
     site({ defaultLanguage: "en" }),
     [
       { name: "Project A", protocols: [proto({ id: 10, name: "Speech battery", tasks: speechBattery }), proto({ id: 20, gid: 20, name: "Short screening", tasks: [task("phonation"), task("syllableRepeating", { syllable: "ta" })], pdf: null })] },
-      { name: "Project B", protocols: [proto({ id: 10, name: "Speech battery", tasks: speechBattery }), proto({ id: 30, gid: 30, name: "Monologue only", tasks: [task("dynamic_monologue", { topics: ["hobbies", "travel"] })] })] },
+      { name: "Project B", protocols: [proto({ id: 10, name: "Speech battery", tasks: speechBattery }), proto({ id: 30, gid: 30, name: "Picture description", tasks: [task("pictureDescription"), task("monologue", { topic: "hobbies" })] })] },
     ],
   ),
 

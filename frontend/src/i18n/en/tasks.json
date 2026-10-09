@@ -78,15 +78,23 @@
     "phonation": {
       "name": "Sustained phonation",
       "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",
-      "title": "Prolonged phonation /{{phoneme}}/",
-      "instructions": "<strong>Draw a deep breath</strong>, and say /{{phoneme}}/ <strong>as steadily and for as long</strong> as possible in one breath. {{example}} Try to sustain it for at least {{minDuration}} seconds. Press Start to begin and Stop once you run out of breath.",
-      "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsActive": "Sustain /{{phoneme}}/ until out of breath.",
+      "title": "Prolonged phonation - /{{phoneme}}/",
+      "instructions1": "<strong>Take a deep breath and sustain the vowel /{{phoneme}}/ in one breath as long and as steadily as possible. The phonation should least {{minDuration}} seconds.<br/>I will now play you an example.</strong><br/><br/><em>Press PLAY EXAMPLE to play the example.</em>",
+      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.<br/>Do not stop the participant; let them phonate as long as possible.<br/>If the phonation is shorter than {{minDuration}} seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</em>",
       "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "showIndicator": { "label": "Show level indicator" },
-        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
+        "canRepeat": {
+          "label": "Allow repeat"
+        },
+        "canSkip": {
+          "label": "Allow skip"
+        },
+        "showIndicator": {
+          "label": "Show level indicator"
+        },
+        "recordVideo": {
+          "label": "Also record video",
+          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+        },
         "phoneme": {
           "label": "Phoneme",
           "values": {
@@ -100,39 +108,59 @@
         "repeat": {
           "label": "Repetitions"
         },
-          "minDuration": {
+        "minDuration": {
           "label": "Min Duration (s)"
         },
-          "maxDuration": {
+        "maxDuration": {
           "label": "Max Duration (s)"
         }
       }
     },
-  
+
     "syllableRepeating": {
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
-      "title": "{{syllable}} repetition",
-      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables <br/>/{{syllable}}-{{syllable}}/<br/> as quickly and accurately as possible until the task finishes automatically after {{duration}} seconds. {{example}} Press Start to begin.",
-      "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsActive": "Repeat /{{syllable}}-{{syllable}}/ syllables.",
+      "title": "{{syllable}}",
+      "instructions1": "<strong>Please repeat the following syllables after me: {{syllables}}.</strong><br/><br/><em>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</em><br/><br/><strong>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</strong><br/><br/><em>Press PLAY EXAMPLE to play the example.</em>",
+      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. The required number of repetitions is at least {{target}}. Then press STOP button to end the recording.<br/>The repetition rate should keep the individual syllables intelligible (no mumbling!).</em>",
       "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "showIndicator": { "label": "Show level indicator" },
-        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
+        "canRepeat": {
+          "label": "Allow repeat"
+        },
+        "canSkip": {
+          "label": "Allow skip"
+        },
+        "showIndicator": {
+          "label": "Show level indicator"
+        },
+        "recordVideo": {
+          "label": "Also record video",
+          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+        },
         "syllable": {
           "label": "Syllable",
           "values": {
-            "pataka": "pa-ta-ka",
-            "ta": "ta-ta-ta",
-            "ka": "ka-ka-ka"
+            "pataka": {
+              "label": "PATAKA",
+              "syllables": "/pa/-/ta/-/ka/",
+              "target": "12 triplets of /pa-ta-ka/"
+            },
+            "ta": {
+              "label": "TA",
+              "syllables": "/ta/",
+              "target": "25× /ta/"
+            },
+            "ka": {
+              "label": "KA",
+              "syllables": "/ka/",
+              "target": "25× /ka/"
+            }
           }
         },
         "duration": {
           "label": "Required Duration (s)"
         },
-          "maxDuration": {
+        "maxDuration": {
           "label": "Max Duration (s)"
         },
         "repeat": {
@@ -140,20 +168,27 @@
         }
       }
     },
-  
+
     "retelling": {
       "name": "Fairytale retelling",
       "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
-      "title": "Retelling fairytale",
-      "instructions": "Press Play story to listen to a spoken fairytale. {{playStory}} After listening to the story, press button to calibrate your camera. Then <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
-      "instructionsPreCalibration": "In the next task, you will listen to a spoken story and then retell it in your own words. <br/><br/>While you are speaking, we will measure your facial movements. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsPostCalibration": "Please hold your phone in the calibrated position. <br/><br/>Press Play story to listen to a spoken story. {{playStory}} After listening to the story, press START and <strong>retell the tale in your own words</strong> in {{duration}} seconds. <br/><br/>Speak continuously, it doesn't matter if the retold tale is correct or complete.",
-      "instructionsActive": "Please retell the story in your own words in {{duration}} seconds.",
+      "title": "Retelling",
+      "instructions1": "<strong>I will now play you an audio recording of a fairy tale. Your task is to remember it and then retell it in your own words.</strong><br/><br/><strong>The retelling should last {{duration}} seconds. The goal is to speak continuously; it does not matter whether the tale is retold correctly or completely.</strong><br/><br/><em>Press PLAY EXAMPLE to start the story playback.</em>",
+      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until {{duration}} seconds have passed on the stopwatch, then press the STOP button to end the recording.</em>",
       "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "showIndicator": { "label": "Show level indicator" },
-        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
+        "canRepeat": {
+          "label": "Allow repeat"
+        },
+        "canSkip": {
+          "label": "Allow skip"
+        },
+        "showIndicator": {
+          "label": "Show level indicator"
+        },
+        "recordVideo": {
+          "label": "Also record video",
+          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+        },
         "fairytale": {
           "label": "Fairytale",
           "values": {
@@ -167,11 +202,14 @@
         "repeat": {
           "label": "Repetitions"
         },
-          "minDuration": {
+        "minDuration": {
           "label": "Min Duration (s)"
         },
-          "maxDuration": {
+        "maxDuration": {
           "label": "Max Duration (s)"
+        },
+        "duration": {
+          "label": "Required Duration (s)"
         }
       }
     },
@@ -179,28 +217,36 @@
     "reading": {
       "name": "Reading text",
       "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
-      "title": "Reading {{topic}}",
-      "instructions": "Press Start and read the text on the screen <strong>out loud</strong>. <br/><br/>You might need to <strong>scroll down</strong> to reach the end. <br/><br/>Press Stop when you are finished.",
-      "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsActive": "{{text}}",
+      "title": "Reading - {{topic}}",
+      "instructions1": "<strong>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</strong><br/><br/><em>Give the participant the READING TEXT - {{topic}}.<br/>Offer the participant a text with a suitable font size.</em>",
+      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</em>",
       "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "showIndicator": { "label": "Show level indicator" },
-        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
+        "canRepeat": {
+          "label": "Allow repeat"
+        },
+        "canSkip": {
+          "label": "Allow skip"
+        },
+        "showIndicator": {
+          "label": "Show level indicator"
+        },
+        "recordVideo": {
+          "label": "Also record video",
+          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+        },
         "topic": {
-          "label":"Text topic",
+          "label": "Text topic",
           "values": {
             "northWind": {
-              "label":"The North Wind and the Sun",
+              "label": "The North Wind and the Sun",
               "text": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
             },
             "grandfather": {
-              "label":"The Grandfather",
+              "label": "The Grandfather",
               "text": "You wished to know all about my grandfather. Well, he is nearly ninety-three years old; he dresses himself in an ancient black frock coat, usually minus several buttons; yet he still thinks as swiftly as ever. A long, flowing beard clings to his chin, giving those who observe him a pronounced feeling of the utmost respect. When he speaks, his voice is just a bit cracked and quivers a trifle. Twice each day he plays skilfully and with zest upon our small organ. Except in the winter when the ooze or snow or ice prevents, he slowly takes a short walk in the open air each day. We have often urged him to walk more and smoke less, but he always answers, “Banana oil!” Grandfather likes to be modern in his language."
             },
             "rainbow": {
-              "label":"The Rainbow",
+              "label": "The Rainbow",
               "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
             }
           }
@@ -208,34 +254,53 @@
         "repeat": {
           "label": "Repetitions"
         },
-          "minDuration": {
+        "minDuration": {
           "label": "Min Duration (s)"
         },
-          "maxDuration": {
+        "maxDuration": {
           "label": "Max Duration (s)"
         }
       }
     },
-  
+
     "monologue": {
       "name": "Monologue on topic",
       "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
-      "title": "Monologue",
-      "instructions": "We will show you a topic and ask you to talk about it continously for <strong>{{duration}} seconds</strong>.",
-      "instructionsTopic": "<strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press Start when you are ready.",
-      "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
+      "title": "Monologue - {{topic}}",
+      "instructions1": "<strong>Now I will ask you to talk to me continuously about something for at least {{duration}} seconds. {{topicDescription}}</strong><br/><br/><em>The required length of the recorded monologue is at least {{duration}} seconds.</em>",
+      "instructions2": "<strong>You can start whenever you are ready.</strong><br/><br/><em>Press the START button to begin recording and the STOP button at the end of the task to end the recording.<br/>Note the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least {{duration}} seconds.</em>",
       "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "showIndicator": { "label": "Show level indicator" },
-        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
+        "canRepeat": {
+          "label": "Allow repeat"
+        },
+        "canSkip": {
+          "label": "Allow skip"
+        },
+        "showIndicator": {
+          "label": "Show level indicator"
+        },
+        "recordVideo": {
+          "label": "Also record video",
+          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+        },
         "topic": {
-          "label":"Monologue topic",
+          "label": "Monologue topic",
           "values": {
-            "dayDescription": {
-              "label":"Day description",
-              "topicDescription": "Please try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the Start button and begin speaking."
+            "free": {
+              "label": "Free narration",
+              "topicDescription": "The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work."
+            },
+            "hobbies": {
+              "label": "Hobbies",
+              "topicDescription": "Tell me about your hobbies, for example sports, music, reading, gardening or pets."
+            },
+            "yesterday": {
+              "label": "Your yesterday, last week or last month",
+              "topicDescription": "Describe how your yesterday, past week or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced or who you met."
+            },
+            "family": {
+              "label": "Family",
+              "topicDescription": "Tell me about your family."
             }
           }
         },
@@ -245,79 +310,51 @@
         "duration": {
           "label": "Required Duration (s)"
         },
-          "minDuration": {
+        "minDuration": {
           "label": "Min Duration (s)"
         },
-          "maxDuration": {
+        "maxDuration": {
           "label": "Max Duration (s)"
         }
       }
     },
-    "dynamic_monologue": {
-      "name": "Monologue",
-      "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
-      "title": "Monologue",
-      "instructions": "We will show you a topic and ask you to talk about it continuously for <strong>{{duration}} seconds</strong>. <br/><br/> If you run out of things to say, you will have the option to switch to a new topic to help you keep talking.",
-      "instructionsTopic": "<strong>Topic:</strong><br/>{{topicDescription}} <br/><br/>Press Start when you are ready.",
-      "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
-      "instructionsActive": "<strong>Topic:</strong><br/>{{topicDescription}}",
+
+    "pictureDescription": {
+      "name": "Picture description",
+      "description": "The participant describes the situations in a printed picture handed over by the examiner. The administrator selects the picture ('picture') and the target length of the description ('duration').",
+      "title": "Picture description - {{picture}}",
+      "instructions1": "<strong>Describe to me the situations you see in the picture. How do you think the people in the pictures feel, and how do you judge their behaviour?</strong><br/><br/><em>Give the participant the PICTURE FOR DESCRIPTION - {{picture}}.</em>",
+      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant has described the picture for at least {{duration}} seconds, then press STOP button to end the recording.</em>",
       "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "showIndicator": { "label": "Show level indicator" },
-        "recordVideo": { "label": "Also record video", "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only." },
-        "topics": {
-          "label": "Select multiple topics",
+        "canRepeat": {
+          "label": "Allow repeat"
+        },
+        "canSkip": {
+          "label": "Allow skip"
+        },
+        "showIndicator": {
+          "label": "Show level indicator"
+        },
+        "recordVideo": {
+          "label": "Also record video",
+          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+        },
+        "picture": {
+          "label": "Picture",
           "values": {
-            "everyday": {
-              "label": "Daily Routine",
-              "topicDescription": "What does a typical day look like for you from the moment you wake up? Try to include some details, such as morning routine, breakfast, and what you usually do later in the day."
-            },
-            "entertainment": {
-              "label": "Movies, Books, and Media",
-              "topicDescription": "What is your favourite movie, book, or TV show? You can describe what it is about, and whether you would recommend it to others."
-            },
-            "hobbies": {
-              "label": "Free Time & Interests",
-              "topicDescription": "How do you like to spend your free time? You can describe an activity you enjoy, how you got into it, and what makes it interesting for you."
-            },
-            "eating": {
-              "label": "Food & Cooking",
-              "topicDescription": "Do you prefer cooking at home or eating out? You can describe meals you enjoy or a restaurant you like to visit."
-            },
-            "typicalWeekend": {
-              "label": "Typical Weekend",
-              "topicDescription": "What does a normal weekend look like for you? You can describe what you usually do on Saturdays or Sundays, and how do these days differ from your work week?"
-            },
-            "work": {
-              "label": "Work",
-              "topicDescription": "What kind of work do you do, or have you done in the past? You might describe your profession and what your typical daily tasks look or looked like."
-            },
-            "travel": {
-              "label": "Travel and Transport",
-              "topicDescription": "How do you usually get from place to place? You can describe your usual commute or a favorite way of travelling and talk about a trip or a place you have found interesting."
-            },
-            "neighborhood": {
-              "label": "Neighborhood",
-              "topicDescription": "What is the place and neighborhood where you live like? You can describe its characteristics, and some places which you visit often."
-            },
-            "shopping": {
-              "label": "Grocery Shopping",
-              "topicDescription": "How do you usually go grocery shopping? You can describe the process from making a list to moving through the store, and how you feel about shopping in-person versus online."
-            }
+            "A": "A",
+            "B": "B"
           }
+        },
+        "repeat": {
+          "label": "Repetitions"
         },
         "duration": {
           "label": "Required Duration (s)"
-        },
-          "minDuration": {
-          "label": "Min Duration (s)"
-        },
-          "maxDuration": {
-          "label": "Max Duration (s)"
         }
       }
     },
+
     "d15colour": {
       "name": "D-15 Color Test",
       "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",

@@ -79,9 +79,12 @@ describe('buildExtConfig — case specifics', () => {
     expect(protocol.tasks[1]).toMatchObject({ length: 7, audioExamplePath: 'https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav' });
     expect(protocol.tasks[2].audioExamplePath).toBeUndefined(); // reading has no example
     expect(protocol.tasks[2].length).toBe(150); // minDuration 0 -> maxDuration
-    // reading text is appended as the last paragraph
-    const lastKey = protocol.tasks[2].instructionKeys.at(-1);
-    expect(config.strings.en[lastKey]).toMatch(/North Wind/);
+    // every VOCAL task has exactly the two instruction cards; the reading passage is on paper, not in the config
+    for (const t of protocol.tasks) expect(t.instructionKeys).toEqual([`${t.titleKey.replace(/_title$/, '')}_instr1`, `${t.titleKey.replace(/_title$/, '')}_instr2`]);
+    expect(JSON.stringify(config.strings.en)).not.toMatch(/North Wind and the Sun were/);
+    expect(config.strings.en[protocol.tasks[2].titleKey]).toBe('Reading - The North Wind and the Sun');
+    // a card keeps its bold/italic paragraphs inside one string
+    expect(config.strings.en[protocol.tasks[0].instructionKeys[1]]).toMatch(/^<bold>Start now\.<\/bold>\n\n<italic>Press the START button/);
     // only the monologue is filmed
     expect(protocol.tasks.map((t) => t.recordVideo)).toEqual([false, false, false, true, false]);
     expect(protocol.patientFields).toEqual([
@@ -97,14 +100,16 @@ describe('buildExtConfig — case specifics', () => {
       ['Project A', 'Speech battery'],
       ['Project A', 'Short screening'],
       ['Project B', 'Speech battery'],
-      ['Project B', 'Monologue only'],
+      ['Project B', 'Picture description'],
     ]);
     expect(config.protocols[1].tasks[1].subtype).toBe('SYLLABLES');
     expect(config.protocols[1].protocolInstructionsPdfUrl).toBeUndefined();
-    // dynamic monologue: one topic paragraph per selected topic after the base instructions
-    const dyn = config.protocols[3].tasks[0];
-    expect(dyn.subtype).toBe('MONOLOGUE');
-    expect(dyn.instructionKeys.length).toBeGreaterThanOrEqual(3);
+    // picture description has its own subtype; the monologue topic resolves into card 1
+    const [picture, monologue] = config.protocols[3].tasks;
+    expect(picture).toMatchObject({ subtype: 'PICTURE_DESCRIPTION', length: 90 });
+    expect(picture.instructionKeys).toHaveLength(2);
+    expect(config.strings.en[picture.titleKey]).toBe('Picture description - A');
+    expect(config.strings.en[monologue.instructionKeys[0]]).toMatch(/at least 90 seconds\. Tell me about your hobbies/);
   });
 
   it('variants_en_cs: merges variants into one protocol with per-language strings', () => {
@@ -124,7 +129,8 @@ describe('buildExtConfig — case specifics', () => {
     expect(q.questions[1]).toMatchObject({ questionType: 'OPEN', questionRegex: '.*' });
     // phonation title resolved per language with the phoneme placeholder
     expect(config.strings.en[protocol.tasks[0].titleKey]).toContain('/eee/');
-    expect(config.strings.cs[protocol.tasks[0].titleKey]).toBeTruthy();
+    expect(config.strings.cs[protocol.tasks[0].titleKey]).toBe('Prodloužená fonace - /eee/');
+    expect(config.strings.cs[protocol.tasks[0].instructionKeys[1]]).toMatch(/^<bold>Začněte teď\.<\/bold>\n\n<italic>Stiskněte tlačítko START/);
   });
 
   it('skipped_vision: serves the protocol without the unsupported task', () => {

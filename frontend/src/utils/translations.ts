@@ -23,29 +23,20 @@ export function translateTaskTitle(category: string, params: Record<string, any>
 }
 
 
+// One instruction card (`instructions1` / `instructions2`) of a voice task, as
+// the desktop app shows it. "" when the task has no such key.
+export function translateTaskInstructionCard(category: string, n: 1 | 2, params: Record<string, any> = {}): string {
+  return i18next.t(`${category}.instructions${n}`, { ...i18nOptions, ...params, defaultValue: "" });
+}
+
+// Web preview text. Voice tasks: card 1, the {{example}} play button, card 2
+// (the desktop app's layout), plus the reading passage when the params carry
+// one. Other tasks: their single `instructions` key.
 export function translateTaskInstructions(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructions`, { ...i18nOptions,...params, defaultValue: "" });
-}
-
-export function translateTaskInstructionsActive(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructionsActive`, { ...i18nOptions,...params, defaultValue: "" });
-}
-
-// Second screen of the split instruction pack (monologue tasks): reveals the
-// topic after the static intro screen. Empty for tasks without the key.
-export function translateTaskInstructionsTopic(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructionsTopic`, { ...i18nOptions,...params, defaultValue: "" });
-}
-
-// Pre-calibration info screen of video (recordVideo) tasks.
-export function translateTaskInstructionsPreCalibration(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructionsPreCalibration`, { ...i18nOptions,...params, defaultValue: "" });
-}
-
-// Post-calibration instructions screen of video (recordVideo) tasks.
-// Falls back to the plain instructions when a task has no dedicated copy.
-export function translateTaskInstructionsPostCalibration(category: string, params: Record<string, any> = {}): string {
-  return i18next.t(`${category}.instructionsPostCalibration`, { ...i18nOptions,...params, defaultValue: "" });
+  const card1 = translateTaskInstructionCard(category, 1, params);
+  if (!card1) return i18next.t(`${category}.instructions`, { ...i18nOptions, ...params, defaultValue: "" });
+  return [card1, "{{example}}", translateTaskInstructionCard(category, 2, params), params.text]
+    .filter(Boolean).join("<br/><br/>");
 }
 
 export function translateParamName(category: string, param: string): string {

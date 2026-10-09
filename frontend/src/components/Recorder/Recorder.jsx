@@ -27,11 +27,6 @@ const DEBUG_MODE = false;
 export const Recorder = ({
     title = "🎙️ Task Recorder",
     instructions = "Record, pause, resume, and save your audio with real-time visualization",
-    instructionsPreCalibration,
-    instructionsPostCalibration,
-    instructionsActive,
-    instructionsTopic = '',
-    onTopicReveal = () => {},
     completedInstructions = "The task was completed successfully. You can proceed to the next task, try again if you are not satisfied, or listen to your recording below.",
     audioExample,
     mode,
@@ -82,9 +77,6 @@ export const Recorder = ({
     // Tracks whether the user has completed calibration at least once this session.
     // Prevents the PiP viewfinder from appearing before calibration has happened.
     const [videoCalibrated, setVideoCalibrated] = useState(false);
-    // Split instruction pack (monologue tasks): the topic stays hidden behind a
-    // "See the topic" button until the participant reveals it.
-    const [topicRevealed, setTopicRevealed] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const isUploadingRef = useRef(false);
     const RECORDING_START_DELAY_MS = 800;
@@ -127,13 +119,13 @@ export const Recorder = ({
 
     // ── Voice recorder hook ──────────────────────────────────────────────
     const voiceRecorder = useVoiceRecorder({
-        onRecordingComplete, onError, instructions, instructionsActive,
+        onRecordingComplete, onError, instructions,
         audioExample, mode, duration, maxDuration, isTimerActive
     });
 
     const {
         recordingStatus, permission: audioPermission, stream, audioURL, recordingTime,
-        audioLevelsRef, activeInstructions, durationExpired, incompatibleBrowser,
+        audioLevelsRef, durationExpired, incompatibleBrowser,
         getMicrophonePermission, startRecording: startAudioRecording, pauseRecording,
         resumeRecording, stopRecording: stopAudioRecording, repeatRecording,
         RECORDING_STATES
@@ -285,14 +277,6 @@ export const Recorder = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoStart, audioPermission, recordingStatus]);
 
-    // Split pack screen 1 → screen 2: reveal the topic and let the parent
-    // switch the audio guide to the per-topic clip.
-    const handleRevealTopic = () => {
-        onLogEvent("button_see_topic");
-        setTopicRevealed(true);
-        onTopicReveal();
-    };
-
     // GENERAL_INFO screen → camera calibration.
     const handleGoToCalibration = () => {
         onLogEvent("button_to_calibration");
@@ -317,7 +301,6 @@ export const Recorder = ({
         clearSpeechSegments();
         resetSpeechTrackers();
         setExampleResetTrigger(t => t + 1); // Story/example starts over on a fresh attempt
-        setTopicRevealed(false); // Retry replays the whole split instruction pack
         repeatRecording();
         if (isVideoEnabled) {
             // Reset calibration and restart the whole flow from the
@@ -511,35 +494,17 @@ export const Recorder = ({
     const parsedInstructions = useMemo(() => {
         let baseInstructions = instructions;
 
-        const isActiveOrPreparing = recordingStatus !== RECORDING_STATES.IDLE;
-
         if (isCalibrationPhase) {
             baseInstructions = "To ensure accurate results, please rest your arm on a table to hold the phone completely steady. Follow instructions during the calibration and try to position your face within the frame. <strong>It is very important</strong> that you do not move the phone once the calibration is complete.";
-        } else if (phase === 'GENERAL_INFO') {
-            baseInstructions = instructionsPreCalibration || instructions;
         } else if (recordingStatus === RECORDING_STATES.RECORDED) {
             baseInstructions = completedInstructions;
-        } else if (instructionsTopic && topicRevealed && phase === 'RECORDING' &&
-                   recordingStatus === RECORDING_STATES.IDLE) {
-            // Split pack screen 2 — the topic. Screen 1 (not yet revealed)
-            // falls through to the plain `instructions` below.
-            baseInstructions = instructionsTopic;
-        } else if (isDynamicTask && dynamicIndex > 0) {
-            baseInstructions = voiceRecorder.activeInstructions || instructionsActive || instructions;
-        } else if (instructionsActive && isActiveOrPreparing && !awaitingNextTopic) {
-            baseInstructions = voiceRecorder.activeInstructions || instructionsActive;
-        } else if (isVideoEnabled && instructionsPostCalibration) {
-            baseInstructions = instructionsPostCalibration;
         }
 
         const currentItem = isDynamicTask ? dynamicArray[dynamicIndex] : null;
         return interpolateInstructions(baseInstructions, isDynamicTask, currentItem, taskParams, dynamicArray);
     }, [
-        instructions, instructionsPreCalibration, instructionsPostCalibration, instructionsActive,
-        instructionsTopic, topicRevealed,
-        completedInstructions, isCalibrationPhase, isVideoEnabled, phase,
-        isDynamicTask, dynamicIndex, recordingStatus, awaitingNextTopic,
-        voiceRecorder.activeInstructions, dynamicArray, taskParams, RECORDING_STATES
+        instructions, completedInstructions, isCalibrationPhase,
+        isDynamicTask, dynamicIndex, recordingStatus, dynamicArray, taskParams, RECORDING_STATES
     ]);
 
     const slots = {
@@ -746,8 +711,6 @@ export const Recorder = ({
                 <div style={{ display: 'contents', visibility: promptTopicSwitch ? 'hidden' : 'visible' }}>
                     <RecordingControls
                         recordingStatus={recordingStatus}
-                        showRevealTopic={!!instructionsTopic && !topicRevealed && !(isVideoEnabled && !videoCalibrated)}
-                        onRevealTopic={handleRevealTopic}
                         disableControls={mode === 'countDown'}
                         disableStart={(activeUseVAD && !isVadLoaded && !!stream) || blockStartForStory || isPreparingToRecord || disableStart}
                         permission={audioPermission}
@@ -788,7 +751,7 @@ export const Recorder = ({
 
             showSpacer={!(hideTitle && isActivelyRecording)}
             instructions={instructionsContent}
-            instructionsKey={`${isDynamicTask ? dynamicIndex : 'static'}-${topicRevealed}`}
+            instructionsKey={`${isDynamicTask ? dynamicIndex : 'static'}`}
             instructionsClassName={`${!(hideTitle && isActivelyRecording) ? 'with-title' : 'no-title'} ${shouldShiftTimer ? 'is-shifted-instructions' : ''}`}
 
             mainClassName={recordingStatus === RECORDING_STATES.RECORDED ? 'is-recorded' : ''}

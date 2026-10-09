@@ -6,6 +6,7 @@
     "noTasks": "No tasks added yet.",
     "editTask": "Edit Task: {{category}}",
     "addTask": "Add Task: {{category}}",
+    "instructionsPreview": "An die App gesendete Anweisungen",
     "editorLanguage": "🌍 Editor language:",
     "protocolLanguage": "🌍 Protocol language:",
     "addQuestionnaire": "Add Questionnaire",

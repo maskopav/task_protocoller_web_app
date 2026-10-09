@@ -63,14 +63,23 @@
   "phonation": {
     "name": "Lang anhaltende Phonation",
     "description": "Die Teilnehmerin oder der Teilnehmer hält einen einzelnen Vokallaut (z. B. /a/, /e/, /i/, /o/, /u/) für eine festgelegte Zeit, um die Stimmstabilität und -kontrolle zu analysieren. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der eingestellten Dauer. Die Administratorin oder der Administrator sollte den Vokal ('phoneme'), die Anzahl der Wiederholungen ('repeat') und das Zeitintervall, nach dem die STOP-Taste erscheint ('duration'), festlegen.",
-    "title": "Verlängerte Phonation /{{phoneme}}/",
-    "instructions": "Drücken Sie START und halten Sie /{{phoneme}}/ mindestens {{duration}} Sekunden lang, bis Sie STOP drücken können.",
-    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
+    "title": "Verlängerte Phonation - /{{phoneme}}/",
+    "instructions1": "<strong>Atmen Sie tief ein und versuchen Sie, den Vokal /{{phoneme}}/ in einem Atemzug so lange und so gleichmäßig wie möglich zu halten. Sie sollten mindestens {{minDuration}} Sekunden durchhalten.<br/>Ich spiele Ihnen jetzt ein Beispiel vor.</strong><br/><br/><em>Drücken Sie BEISPIEL ABSPIELEN, um das Beispiel abzuspielen.</em>",
+    "instructions2": "<strong>Beginnen Sie jetzt.</strong><br/><br/><em>Drücken Sie START, um die Aufnahme zu beginnen. Warten Sie, bis die teilnehmende Person die Aufgabe beendet hat, und drücken Sie dann STOP, um die Aufnahme zu beenden.<br/>Unterbrechen Sie die teilnehmende Person nicht, lassen Sie sie so lange wie möglich phonieren.<br/>Ist die Phonation kürzer als {{minDuration}} Sekunden, motivieren Sie zur Verlängerung. Oft hilft eine Änderung der Tonhöhe oder eine geringere Lautstärke der Phonation.</em>",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "showIndicator": { "label": "Pegelanzeige anzeigen" },
-      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "showIndicator": {
+        "label": "Pegelanzeige anzeigen"
+      },
+      "recordVideo": {
+        "label": "Zusätzlich Video aufnehmen",
+        "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf."
+      },
       "phoneme": {
         "label": "Vokal",
         "values": {
@@ -81,71 +90,132 @@
           "u": "uuu"
         }
       },
-      "repeat": { "label": "Wiederholungen" },
-      "duration": { "label": "Dauer" }
+      "repeat": {
+        "label": "Wiederholungen"
+      },
+      "minDuration": {
+        "label": "Mindestdauer (s)"
+      },
+      "maxDuration": {
+        "label": "Höchstdauer (s)"
+      }
     }
   },
 
   "syllableRepeating": {
     "name": "Silbenwiederholung",
     "description": "Die Teilnehmerin oder der Teilnehmer wiederholt vorgegebene Silben (z. B. 'pa-ta-ka', 'ta', 'ka') so schnell und deutlich wie möglich, um Artikulationsgeschwindigkeit und Präzision zu bewerten. Die Aufnahme erfolgt im *Countdown-Modus* – sie stoppt automatisch nach Ablauf der angegebenen Dauer. Die Administratorin oder der Administrator sollte die Silbenfolge ('syllable'), die Gesamtdauer ('duration') und die Anzahl der Wiederholungen ('repeat') festlegen.",
-    "title": "{{syllable}}-Wiederholung",
-    "instructions": "Drücken Sie START und wiederholen Sie /{{syllable}}/ so schnell und präzise wie möglich, bis der Timer automatisch stoppt.",
-    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
+    "title": "{{syllable}}",
+    "instructions1": "<strong>Sprechen Sie mir jetzt die folgenden Silben nach: {{syllables}}.</strong><br/><br/><em>Sprechen Sie die Silben langsam, deutlich und mit klaren Pausen vor. Sobald die teilnehmende Person die Silben richtig wiederholt, fahren Sie mit der nächsten Anweisung fort:</em><br/><br/><strong>Atmen Sie vor der Aufgabe tief ein und wiederholen Sie dann diese Silben so schnell und so genau wie möglich, bis ich Sie stoppe. Ich spiele Ihnen die Aufgabe jetzt vor.</strong><br/><br/><em>Drücken Sie BEISPIEL ABSPIELEN, um das Beispiel abzuspielen.</em>",
+    "instructions2": "<strong>Beginnen Sie jetzt.</strong><br/><br/><em>Drücken Sie START, um die Aufnahme zu beginnen. Die erforderliche Anzahl an Wiederholungen beträgt mindestens {{target}}. Drücken Sie dann STOP, um die Aufnahme zu beenden.<br/>Das Tempo sollte so sein, dass die einzelnen Silben noch verständlich sind (nicht nuscheln!).</em>",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "showIndicator": { "label": "Pegelanzeige anzeigen" },
-      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "showIndicator": {
+        "label": "Pegelanzeige anzeigen"
+      },
+      "recordVideo": {
+        "label": "Zusätzlich Video aufnehmen",
+        "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf."
+      },
       "syllable": {
         "label": "Silbe",
         "values": {
-          "pataka": "pa-ta-ka",
-          "ta": "ta-ta-ta",
-          "ka": "ka-ka-ka"
+          "pataka": {
+            "label": "PATAKA",
+            "syllables": "/pa/-/ta/-/ka/",
+            "target": "12 Dreiergruppen /pa-ta-ka/"
+          },
+          "ta": {
+            "label": "TA",
+            "syllables": "/ta/",
+            "target": "25× /ta/"
+          },
+          "ka": {
+            "label": "KA",
+            "syllables": "/ka/",
+            "target": "25× /ka/"
+          }
         }
       },
-      "duration": { "label": "Dauer" },
-      "repeat": { "label": "Wiederholungen" }
+      "duration": {
+        "label": "Dauer"
+      },
+      "repeat": {
+        "label": "Wiederholungen"
+      }
     }
   },
 
   "retelling": {
     "name": "Nacherzählung eines Märchens",
     "description": "Die Teilnehmerin oder der Teilnehmer erzählt ein bekanntes Märchen aus dem Gedächtnis (z. B. Schneewittchen, Hänsel und Gretel), um zusammenhängende Spontansprache, Flüssigkeit und Wortschatzreichtum zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie wird manuell beendet, wenn die Erzählung abgeschlossen ist. Die Administratorin oder der Administrator sollte das Märchen ('fairytale') und die Anzahl der Wiederholungen ('repeat') auswählen.",
-    "title": "Nacherzählung: {{fairytale}}",
-    "instructions": "Drücken Sie START und erzählen Sie das Märchen {{fairytale}} nach. Drücken Sie STOP, wenn Sie fertig sind.",
-    "instructionsPreCalibration": "In der nächsten Aufgabe hören Sie eine gesprochene Geschichte und erzählen sie anschließend in Ihren eigenen Worten nach. <br/><br/>Während Sie sprechen, messen wir Ihre Gesichtsbewegungen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
-    "instructionsPostCalibration": "Drücken Sie Geschichte abspielen, um sich eine gesprochene Geschichte anzuhören. {{playStory}} Drücken Sie nach dem Anhören START und <strong>erzählen Sie die Geschichte in Ihren eigenen Worten</strong> in {{duration}} Sekunden nach. <br/><br/>Sprechen Sie fortlaufend — es spielt keine Rolle, ob die nacherzählte Geschichte korrekt oder vollständig ist.",
-    "instructionsActive": "Bitte erzählen Sie die Geschichte in {{duration}} Sekunden in Ihren eigenen Worten nach.",
+    "title": "Nacherzählung",
+    "instructions1": "<strong>Ich spiele Ihnen jetzt eine Audioaufnahme mit einem nacherzählten Märchen vor. Ihre Aufgabe ist es, sich das Märchen zu merken und es anschließend in Ihren eigenen Worten nachzuerzählen.</strong><br/><br/><strong>Die Nacherzählung soll {{duration}} Sekunden dauern. Ziel ist es, zusammenhängend zu sprechen; es spielt keine Rolle, ob das Märchen richtig oder vollständig nacherzählt wird.</strong>",
+    "instructions2": "<strong>Beginnen Sie jetzt.</strong><br/><br/><em>Drücken Sie START, um die Aufnahme zu beginnen. Warten Sie, bis auf der Stoppuhr {{duration}} Sekunden vergangen sind, und drücken Sie dann STOP, um die Aufnahme zu beenden.</em>",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "showIndicator": { "label": "Pegelanzeige anzeigen" },
-      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "showIndicator": {
+        "label": "Pegelanzeige anzeigen"
+      },
+      "recordVideo": {
+        "label": "Zusätzlich Video aufnehmen",
+        "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf."
+      },
       "fairytale": {
         "label": "Märchen",
         "values": {
+          "pussInBoots": "Der gestiefelte Kater",
           "hanselAndGretel": "Hänsel und Gretel",
-          "snowWhite": "Schneewittchen"
+          "snowWhite": "Schneewittchen",
+          "cinderella": "Aschenputtel",
+          "redRidingHood": "Rotkäppchen"
         }
       },
-      "repeat": { "label": "Wiederholungen" }
+      "repeat": {
+        "label": "Wiederholungen"
+      },
+      "duration": {
+        "label": "Dauer (s)"
+      },
+      "minDuration": {
+        "label": "Mindestdauer (s)"
+      },
+      "maxDuration": {
+        "label": "Höchstdauer (s)"
+      }
     }
   },
 
   "reading": {
     "name": "Textlesen",
     "description": "Die Teilnehmerin oder der Teilnehmer liest einen kurzen Text laut von der Anzeige, um Leseflüssigkeit, Artikulation und Prosodie zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie startet mit START und endet, wenn die Teilnehmerin oder der Teilnehmer oder die Administratorin bzw. der Administrator STOP drückt. Das Thema des Textes ('topic') und die Anzahl der Wiederholungen ('repeat') sollten festgelegt werden.",
-    "title": "Lesen: {{topic}}",
-    "instructions": "Drücken Sie START und lesen Sie den Text in einem angenehmen Tempo. Drücken Sie STOP am Ende.",
-    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
-    "instructionsActive": "{{text}}",
+    "title": "Lesetext - {{topic}}",
+    "instructions1": "<strong>Ich bitte Sie nun, einen kurzen Textabschnitt vorzulesen. Wenn Sie eine Brille benutzen, setzen Sie sie bitte jetzt auf.</strong><br/><br/><em>Geben Sie der teilnehmenden Person den LESETEXT - {{topic}}.<br/>Bieten Sie einen Text mit passender Schriftgröße an.</em>",
+    "instructions2": "<strong>Beginnen Sie jetzt.</strong><br/><br/><em>Drücken Sie START, um die Aufnahme zu beginnen. Warten Sie, bis die teilnehmende Person die Aufgabe beendet hat, und drücken Sie dann STOP, um die Aufnahme zu beenden.</em>",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "showIndicator": { "label": "Pegelanzeige anzeigen" },
-      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "showIndicator": {
+        "label": "Pegelanzeige anzeigen"
+      },
+      "recordVideo": {
+        "label": "Zusätzlich Video aufnehmen",
+        "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf."
+      },
       "topic": {
         "label": "Thema des Textes",
         "values": {
@@ -163,42 +233,106 @@
           }
         }
       },
-      "repeat": { "label": "Wiederholungen" }
+      "repeat": {
+        "label": "Wiederholungen"
+      },
+      "minDuration": {
+        "label": "Mindestdauer (s)"
+      },
+      "maxDuration": {
+        "label": "Höchstdauer (s)"
+      }
     }
   },
 
   "monologue": {
     "name": "Monolog zu einem Thema",
     "description": "Die Teilnehmerin oder der Teilnehmer spricht frei über ein bestimmtes Thema (z. B. Hobbys, Familie oder ein beliebiges anderes Thema), um Sprachflüssigkeit und Kohärenz zu beurteilen. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der festgelegten Zeit. Die Administratorin oder der Administrator sollte das Thema ('topic'), die Anzahl der Wiederholungen ('repeat') und die Dauer bis zur Anzeige der STOP-Taste ('duration') festlegen.",
-    "title": "Monolog über: {{topic}}",
-    "instructions": "Wir zeigen Ihnen ein Thema und bitten Sie, <strong>{{duration}} Sekunden</strong> lang frei darüber zu sprechen.",
-    "instructionsTopic": "<strong>Thema:</strong><br/>{{topicDescription}} <br/><br/>Drücken Sie Start, wenn Sie bereit sind.",
-    "instructionsPreCalibration": "In der nächsten Aufgabe messen wir Ihre Gesichtsbewegungen, während Sie sprechen. <br/><br/>Dazu müssen wir zunächst Ihre Kamera kalibrieren.",
-    "instructionsActive": "<strong>Thema:</strong><br/>{{topicDescription}}",
+    "title": "Monolog - {{topic}}",
+    "instructions1": "<strong>Ich bitte Sie nun, mir mindestens {{duration}} Sekunden lang zusammenhängend etwas zu erzählen. {{topicDescription}}</strong><br/><br/><em>Die erforderliche Länge des aufgenommenen Monologs beträgt mindestens {{duration}} Sekunden.</em>",
+    "instructions2": "<strong>Sie können beginnen, sobald Sie möchten.</strong><br/><br/><em>Drücken Sie START, um die Aufnahme zu beginnen, und am Ende der Aufgabe STOP, um die Aufnahme zu beenden.<br/>Messen Sie die Zeit des Monologs. Ist der Monolog kurz oder inhaltsarm, versuchen Sie, das Thema mit ergänzenden Fragen zu vertiefen oder ein neues Thema vorzuschlagen. Im schlimmsten Fall können Sie zu einem sogenannten gelenkten Gespräch übergehen. Stellen Sie dabei offene Fragen, die eine lange Antwort erfordern. Die reine Monologzeit ohne lange Pausen und Fragen der untersuchenden Person sollte mindestens {{duration}} Sekunden betragen.</em>",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "showIndicator": { "label": "Pegelanzeige anzeigen" },
-      "recordVideo": { "label": "Zusätzlich Video aufnehmen", "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf." },
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "showIndicator": {
+        "label": "Pegelanzeige anzeigen"
+      },
+      "recordVideo": {
+        "label": "Zusätzlich Video aufnehmen",
+        "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf."
+      },
       "topic": {
         "label": "Thema des Monologs",
         "values": {
+          "free": {
+            "label": "Freies Erzählen",
+            "topicDescription": "Die Wahl des Themas liegt ganz bei Ihnen. Sie können zum Beispiel über Ihre Interessen, Ihre Familie oder Ihre Arbeit sprechen."
+          },
           "hobbies": {
             "label": "Hobbys",
-            "topicDescription": "Hobbys (Sport, Musik, Lesen, Gartenarbeit, Haustiere usw.)"
+            "topicDescription": "Erzählen Sie mir von Ihren Hobbys, zum Beispiel Sport, Musik, Lesen, Gartenarbeit oder Haustiere."
           },
-          "any": {
-            "label": "Beliebiges Thema",
-            "topicDescription": "alles, was Ihnen in den Sinn kommt"
+          "yesterday": {
+            "label": "Ihr gestriger Tag, Ihre letzte Woche oder Ihr letzter Monat",
+            "topicDescription": "Beschreiben Sie, wie Ihr gestriger Tag, Ihre letzte Woche oder Ihr letzter Monat verlaufen ist. Versuchen Sie, auch Details einzubeziehen, zum Beispiel was Sie gefrühstückt haben, was Sie Interessantes erlebt haben oder wen Sie getroffen haben."
           },
           "family": {
             "label": "Familie",
-            "topicDescription": "Familie"
+            "topicDescription": "Erzählen Sie mir von Ihrer Familie."
           }
         }
       },
-      "repeat": { "label": "Wiederholungen" },
-      "duration": { "label": "Dauer" }
+      "repeat": {
+        "label": "Wiederholungen"
+      },
+      "duration": {
+        "label": "Dauer (s)"
+      },
+      "minDuration": {
+        "label": "Mindestdauer (s)"
+      },
+      "maxDuration": {
+        "label": "Höchstdauer (s)"
+      }
+    }
+  },
+
+  "pictureDescription": {
+    "name": "Bildbeschreibung",
+    "description": "Die teilnehmende Person beschreibt die Situationen auf einem ausgedruckten Bild, das ihr die untersuchende Person vorlegt. Die Administratorin oder der Administrator wählt das Bild ('picture') und die Zieldauer der Beschreibung ('duration').",
+    "title": "Bildbeschreibung - {{picture}}",
+    "instructions1": "<strong>Beschreiben Sie mir die Situationen, die Sie auf dem Bild sehen. Wie fühlen sich die Menschen auf den Bildern Ihrer Meinung nach, und wie bewerten Sie ihr Verhalten?</strong><br/><br/><em>Geben Sie der teilnehmenden Person das BILD ZUR BESCHREIBUNG - {{picture}}.</em>",
+    "instructions2": "<strong>Beginnen Sie jetzt.</strong><br/><br/><em>Drücken Sie START, um die Aufnahme zu beginnen. Warten Sie, bis die teilnehmende Person das Bild mindestens {{duration}} Sekunden lang beschrieben hat, und drücken Sie dann STOP, um die Aufnahme zu beenden.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "showIndicator": {
+        "label": "Pegelanzeige anzeigen"
+      },
+      "recordVideo": {
+        "label": "Zusätzlich Video aufnehmen",
+        "help": "Die Kamera filmt jeden Durchgang zusätzlich zum Ton. Ist keine Kamera verfügbar, nimmt die Aufgabe nur Ton auf."
+      },
+      "picture": {
+        "label": "Bild",
+        "values": {
+          "A": "A"
+        }
+      },
+      "repeat": {
+        "label": "Wiederholungen"
+      },
+      "duration": {
+        "label": "Dauer (s)"
+      }
     }
   }
 }

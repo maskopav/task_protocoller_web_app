@@ -36,7 +36,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p50_t1_instr1"
+            "p50_t1_instr1",
+            "p50_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -48,8 +49,9 @@
   ],
   "strings": {
     "en": {
-      "p50_t1_title": "Prolonged phonation /aaa/",
-      "p50_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
+      "p50_t1_title": "Prolonged phonation - /aaa/",
+      "p50_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p50_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
       "p50_f_patient_code_label": "Participant code",
       "p50_f_patient_code_help": "Study code of the participant, e.g. HC001."
     }

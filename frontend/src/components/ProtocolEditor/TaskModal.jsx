@@ -6,6 +6,9 @@ import {
   getAllParams,
   translateTaskName,
   translateTaskDescription,
+  translateTaskInstructionCard,
+  getResolvedParams,
+  getDefaultParams,
 } from "../../utils/translations";
 
 export default function TaskModal({
@@ -39,6 +42,13 @@ export default function TaskModal({
   const params = getAllParams(category);
   const translatedName = translateTaskName(category);
   const description = translateTaskDescription(category);
+
+  // Live preview of the two instruction cards the desktop app shows (voice
+  // tasks only), resolved against the params currently in the form.
+  const resolved = getResolvedParams(category, Object.fromEntries(
+    Object.entries(getDefaultParams(category)).map(([k, d]) => [k, editingData?.[k] ?? d])
+  ));
+  const cards = [1, 2].map((n) => translateTaskInstructionCard(category, n, resolved)).filter(Boolean);
 
   const handleSave = () => {
     onSave(editingData);
@@ -141,6 +151,16 @@ export default function TaskModal({
           );
         })}
       </div>
+
+      {cards.length > 0 && (
+        <div className="instructions-preview">
+          <label>{t("protocolEditor.instructionsPreview")}</label>
+          {/* Source is our own tasks.json translations, not user input. */}
+          {cards.map((html, i) => (
+            <div key={i} className="instructions-preview-card" dangerouslySetInnerHTML={{ __html: html }} />
+          ))}
+        </div>
+      )}
     </Modal>
   );
 }

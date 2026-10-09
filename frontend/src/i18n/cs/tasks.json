@@ -76,14 +76,23 @@
   "phonation": {
     "name": "Prodloužená fonace",
     "description": "Účastník udržuje jeden samohláskový zvuk (např. /a/, /e/, /i/, /o/, /u/) po stanovenou dobu za účelem analýzy stability a kontroly hlasu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastavené doby. Administrátor by měl nastavit samohlásku ('phoneme'), počet opakování ('repeat') a časový interval, po kterém se zobrazí tlačítko STOP ('duration').",
-    "title": "Prodloužená fonace /{{phoneme}}/",
-    "instructions": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /{{phoneme}}/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň {{duration}} sekund. Jakmile se vám dojde dech, stiskněte STOP.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
+    "title": "Prodloužená fonace - /{{phoneme}}/",
+    "instructions1": "<strong>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /{{phoneme}}/. Měl/a byste vydržet alespoň {{minDuration}} sekund.<br/>Nyní Vám přehraji ukázku.</strong><br/><br/><em>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</em>",
+    "instructions2": "<strong>Začněte teď.</strong><br/><br/><em>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.<br/>Účastníka nezastavujte, nechte ho fonovat co nejdéle.<br/>V případě, že čas je kratší než {{minDuration}} sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</em>",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
-      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "showIndicator": {
+        "label": "Zobrazit indikátor hlasitosti"
+      },
+      "recordVideo": {
+        "label": "Nahrávat také video",
+        "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk."
+      },
       "phoneme": {
         "label": "Samohláska",
         "values": {
@@ -94,76 +103,137 @@
           "u": "uuu"
         }
       },
-      "repeat": { "label": "Opakování" },
-      "duration": { "label": "Délka trvání" }
+      "repeat": {
+        "label": "Opakování"
+      },
+      "minDuration": {
+        "label": "Minimální délka (s)"
+      },
+      "maxDuration": {
+        "label": "Maximální délka (s)"
+      }
     }
   },
 
   "syllableRepeating": {
     "name": "Opakování slabik",
     "description": "Účastník opakuje zadané slabiky (např. 'pa-ta-ka', 'ta', 'ka') co nejrychleji a nejzřetelněji, aby se posoudila rychlost a přesnost artikulace. Záznam probíhá v režimu *odpočtu* — po uplynutí stanoveného času se automaticky zastaví. Administrátor by měl nastavit sled slabik ('syllable'), celkovou dobu záznamu ('duration') a počet opakování ('repeat'), pokud se úloha opakuje.",
-    "title": "Opakování {{syllable}}",
-    "instructions": "Stiskněte START pro zahájení úkolu. Zhluboka se nadechněte a opakujte slabiky /{{syllable}}/ co nejrychleji a nejpřesněji, dokud nevyprší časovač.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
+    "title": "{{syllable}}",
+    "instructions1": "<strong>Nyní po mně zopakujte následující slabiky: {{syllables}}.</strong><br/><br/><em>Pomalu předříkejte slabiky, důrazně a s výraznými pauzami. Poté, co účastník slabiky správně řekne, pokračujte další instrukcí:</em><br/><br/><strong>Před úlohou se zhluboka nadechněte a poté začnete tyto slabiky co nejrychleji a nejpřesněji opakovat, dokud Vás nezastavím. Úlohu Vám nyní přehraji.</strong><br/><br/><em>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</em>",
+    "instructions2": "<strong>Začněte teď.</strong><br/><br/><em>Stiskněte tlačítko START pro zahájení nahrávání. Požadovaný počet opakování je alespoň {{target}}. Poté stiskněte tlačítko STOP pro ukončení nahrávání.<br/>Rychlost opakování by měla být taková, aby jednotlivé slabiky byly ještě srozumitelné (nedrmolit!).</em>",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
-      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "showIndicator": {
+        "label": "Zobrazit indikátor hlasitosti"
+      },
+      "recordVideo": {
+        "label": "Nahrávat také video",
+        "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk."
+      },
       "syllable": {
         "label": "Slabika",
         "values": {
-          "pataka": "pa-ta-ka",
-          "ta": "ta-ta-ta",
-          "ka": "ka-ka-ka"
+          "pataka": {
+            "label": "PATAKA",
+            "syllables": "/pa/-/ta/-/ka/",
+            "target": "12 trojic /pa-ta-ka/"
+          },
+          "ta": {
+            "label": "TA",
+            "syllables": "/ta/",
+            "target": "25× /ta/"
+          },
+          "ka": {
+            "label": "KA",
+            "syllables": "/ka/",
+            "target": "25× /ka/"
+          }
         }
       },
-      "duration": { "label": "Délka trvání" },
-      "repeat": { "label": "Opakování" }
+      "duration": {
+        "label": "Délka trvání"
+      },
+      "repeat": {
+        "label": "Opakování"
+      }
     }
   },
 
   "retelling": {
     "name": "Vyprávění pohádky",
     "description": "Účastník převypráví známou pohádku zpaměti (např. Sněhurka, Jeníček a Mařenka), aby se zhodnotila plynulost, propojenost řeči a bohatost slovní zásoby. Záznam probíhá v režimu *manuálního zastavení* — administrátor nebo účastník ho zastaví po dokončení. Administrátor by měl zvolit pohádku ('fairytale') a počet opakování ('repeat').",
-    "title": "Vyprávění: {{fairytale}}",
-    "instructions": "Stiskněte START a převyprávějte pohádku: {{fairytale}}. Po dokončení stiskněte STOP.",
-    "instructionsPreCalibration": "V následující úloze si poslechnete namluvený příběh a poté ho převyprávíte vlastními slovy. <br/><br/>Během vašeho vyprávění budeme měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "instructionsPostCalibration": "Stisknutím tlačítka Přehrát pohádku si poslechněte namluvený příběh. {{playStory}} Po poslechu příběhu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Mluvte souvisle — nezáleží na tom, zda je převyprávěný příběh správný nebo úplný.",
-    "instructionsActive": "Nyní prosím převyprávějte příběh vlastními slovy během {{duration}} sekund.",
+    "title": "Retelling",
+    "instructions1": "<strong>Nyní Vám pustím audioukázku s převyprávěným dějem pohádky. Vaším úkolem bude si ji zapamatovat a poté ji převyprávět vlastními slovy.</strong><br/><br/><strong>Požadovaná délka převyprávění je {{duration}} sekund. Cílem je souvisle mluvit, nezáleží, jestli bude pohádka převyprávěna správně, nebo bude celá.</strong><br/><br/><em>Stiskněte PŘEHRÁT UKÁZKU pro přehrání pohádky.",
+    "instructions2": "<strong>Začněte teď.</strong><br/><br/><em>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud na stopkách neuplyne {{duration}} sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.</em>",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
-      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "showIndicator": {
+        "label": "Zobrazit indikátor hlasitosti"
+      },
+      "recordVideo": {
+        "label": "Nahrávat také video",
+        "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk."
+      },
       "fairytale": {
         "label": "Pohádka",
         "values": {
+          "pussInBoots": "Kocour v botách",
           "hanselAndGretel": "Jeníček a Mařenka",
-          "snowWhite": "Sněhurka"
+          "snowWhite": "Sněhurka",
+          "cinderella": "Popelka",
+          "redRidingHood": "Červená Karkulka"
         }
       },
-      "repeat": { "label": "Opakování" }
+      "repeat": {
+        "label": "Opakování"
+      },
+      "duration": {
+        "label": "Délka trvání (s)"
+      },
+      "minDuration": {
+        "label": "Minimální délka (s)"
+      },
+      "maxDuration": {
+        "label": "Maximální délka (s)"
+      }
     }
   },
 
   "reading": {
     "name": "Čtení textu",
     "description": "Účastník čte krátký text zobrazený na obrazovce nahlas, aby se posoudila plynulost, artikulace a prozodie řeči. Záznam probíhá v režimu *manuálního zastavení* — spustí se po stisknutí START a ukončí po stisknutí STOP účastníkem nebo administrátorem. Administrátor by měl zvolit téma textu ('topic') a počet opakování ('repeat').",
-    "title": "Čtení: {{topic}}",
-    "instructions": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "instructionsActive": "{{text}}",
+    "title": "Čtený text - {{topic}}",
+    "instructions1": "<strong>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</strong><br/><br/><em>Dejte účastníkovi TEXT KE ČTENÍ - {{topic}}.<br/>Účastníkovi nabídněte text s vhodnou velikostí písma.</em>",
+    "instructions2": "<strong>Začněte teď.</strong><br/><br/><em>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.</em>",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
-      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "showIndicator": {
+        "label": "Zobrazit indikátor hlasitosti"
+      },
+      "recordVideo": {
+        "label": "Nahrávat také video",
+        "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk."
+      },
       "topic": {
         "label": "Téma textu",
         "values": {
           "seedling": {
-            "label": "Sazenička",
+            "label": "ZAHRADNÍK",
             "text": "Když člověk po prvé vsadí do země sazeničku, chodí se na ni dívat třikrát denně: tak co, povyrostla už nebo ne? I tají dech, naklání se nad ní, přitlačí trochu půdu u jejích kořínků, načechrává jí lístky a vůbec ji obtěžuje různým konáním, které považuje za užitečnou péči. A když se sazenička přesto ujme a roste jako z vody, tu člověk žasne nad tímto divem přírody, má pocit čehosi jako zázraku a považuje to vůbec za jeden ze svých největších osobních úspěchů"
           },
           "dog": {
@@ -176,42 +246,106 @@
           }
         }
       },
-      "repeat": { "label": "Opakování" }
+      "repeat": {
+        "label": "Opakování"
+      },
+      "minDuration": {
+        "label": "Minimální délka (s)"
+      },
+      "maxDuration": {
+        "label": "Maximální délka (s)"
+      }
     }
   },
 
   "monologue": {
     "name": "Monolog na téma",
     "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
-    "title": "Monolog na téma: {{topic}}",
-    "instructions": "Ukážeme vám téma a požádáme vás, abyste o něm volně hovořil/a po dobu <strong>{{duration}} sekund</strong>.",
-    "instructionsTopic": "<strong>Téma:</strong><br/>{{topicDescription}} <br/><br/>Až budete připraven/a, stiskněte Start.",
-    "instructionsPreCalibration": "V následující úloze budeme během vašeho mluvení měřit pohyby vašeho obličeje. <br/><br/>K tomu je nejprve potřeba zkalibrovat vaši kameru.",
-    "instructionsActive": "<strong>Téma:</strong><br/>{{topicDescription}}",
+    "title": "Monolog - {{topic}}",
+    "instructions1": "<strong>Nyní Vás požádám, abyste mi souvisle alespoň {{duration}} sekund o něčem vyprávěl/a. {{topicDescription}}</strong><br/><br/><em>Požadovaná délka nahrávaného monologu je alespoň {{duration}} sekund.</em>",
+    "instructions2": "<strong>Můžete začít hned jak se Vám bude chtít.</strong><br/><br/><em>Stiskněte tlačítko START pro zahájení nahrávání a na konci úlohy tlačítko STOP pro ukončení nahrávání.<br/>Čas monologu měřte. Pokud je monolog krátký nebo obsahově chudý, pokuste se rozvést téma doplňujícími otázkami nebo navrhněte téma nové. V nejhorších případech je možnost přejít k tzv. řízené diskuzi. V případě řízené diskuze se snažte pokládat otevřené otázky, vyžadující dlouhou odpověď. Čistý čas monologu, bez dlouhých pauz a otázek vyšetřujícího, by měl být minimálně {{duration}} sekund.</em>",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "showIndicator": { "label": "Zobrazit indikátor hlasitosti" },
-      "recordVideo": { "label": "Nahrávat také video", "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk." },
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "showIndicator": {
+        "label": "Zobrazit indikátor hlasitosti"
+      },
+      "recordVideo": {
+        "label": "Nahrávat také video",
+        "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk."
+      },
       "topic": {
         "label": "Téma monologu",
         "values": {
+          "free": {
+            "label": "Volné vyprávění",
+            "topicDescription": "Volba tématu je zcela na Vás. Můžete mluvit například o Vašich zájmech, rodině nebo třeba práci."
+          },
           "hobbies": {
             "label": "Koníčky",
-            "topicDescription": "koníčky (sport, hudba, čtení, zahradničení, domácí mazlíčci apod.)"
+            "topicDescription": "Vyprávějte mi o Vašich koníčcích, například o sportu, hudbě, čtení, zahradničení nebo domácích mazlíčcích."
           },
           "yesterday": {
             "label": "Průběh Vašeho včerejšího dne, týdne nebo měsíce",
-            "topicDescription": "Průběh Vašeho včerejšího dne, týdne nebo měsíce. Snažte se zahrnout i detaily, například co jste měl/a k snídani, co zajímavého jste zažil/a nebo s kým se setkal/a."
+            "topicDescription": "Popište mi průběh Vašeho včerejšího dne, týdne nebo měsíce. Snažte se zahrnout i detaily, například co jste měl/a k snídani, co zajímavého jste zažil/a nebo s kým jste se setkal/a."
           },
           "family": {
             "label": "Rodina",
-            "topicDescription": "rodina"
+            "topicDescription": "Vyprávějte mi o Vaší rodině."
           }
         }
       },
-      "repeat": { "label": "Opakování" },
-      "duration": { "label": "Délka trvání" }
+      "repeat": {
+        "label": "Opakování"
+      },
+      "duration": {
+        "label": "Délka trvání (s)"
+      },
+      "minDuration": {
+        "label": "Minimální délka (s)"
+      },
+      "maxDuration": {
+        "label": "Maximální délka (s)"
+      }
+    }
+  },
+
+  "pictureDescription": {
+    "name": "Popis obrázku",
+    "description": "Účastník popisuje situace na vytištěném obrázku, který mu examinátor předloží. Administrátor zvolí obrázek ('picture') a cílovou délku popisu ('duration').",
+    "title": "Popis obrázku - {{picture}}",
+    "instructions1": "<strong>Popište mi situace, které vidíte na obrázku. Jak si myslíte, že se lidé na obrázcích cítí a jak hodnotíte jejich chování?</strong><br/><br/><em>Dejte účastníkovi OBRÁZEK K POPISU - {{picture}}.</em>",
+    "instructions2": "<strong>Začněte teď.</strong><br/><br/><em>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nebude popisovat obrázek alespoň {{duration}} sekund a poté stiskněte tlačítko STOP pro ukončení nahrávání.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "showIndicator": {
+        "label": "Zobrazit indikátor hlasitosti"
+      },
+      "recordVideo": {
+        "label": "Nahrávat také video",
+        "help": "Kamera natáčí každý pokus současně se zvukem. Pokud kamera není k dispozici, úloha nahrává pouze zvuk."
+      },
+      "picture": {
+        "label": "Obrázek",
+        "values": {
+          "A": "A"
+        }
+      },
+      "repeat": {
+        "label": "Opakování"
+      },
+      "duration": {
+        "label": "Délka trvání (s)"
+      }
     }
   },
 

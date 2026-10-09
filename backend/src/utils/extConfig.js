@@ -42,7 +42,7 @@ const VOCAL_SUBTYPE = {
   retelling: () => "RETELLING",
   reading: () => "READING",
   monologue: () => "MONOLOGUE",
-  dynamic_monologue: () => "MONOLOGUE",
+  pictureDescription: () => "PICTURE_DESCRIPTION",
 };
 const SHOW_INDICATOR_DEFAULT = { phonation: true, syllableRepeating: true };
 
@@ -144,15 +144,18 @@ export function htmlToParagraphs(html) {
 // tasks.json node for a category in `lang`, with per-key fallback to `en`.
 const catText = (locales, lang, category, key) =>
   locales[lang]?.tasks?.[category]?.[key] ?? locales.en?.tasks?.[category]?.[key] ?? "";
-const paramValues = (locales, lang, category, param) =>
-  locales[lang]?.tasks?.[category]?.params?.[param]?.values ?? locales.en?.tasks?.[category]?.params?.[param]?.values;
+// Per-value fallback: a value missing in `lang` (e.g. an en-only reading topic) uses the en entry.
+const paramValues = (locales, lang, category, param) => ({
+  ...locales.en?.tasks?.[category]?.params?.[param]?.values,
+  ...locales[lang]?.tasks?.[category]?.params?.[param]?.values,
+});
 
 // Resolves {{placeholder}} tokens the way the frontend does (translations.ts):
 // a param whose translated value is a string -> that string; an object -> its
 // label, with its other fields (text, topicDescription) available as further
 // placeholders. Numbers/literals -> String(). UI widgets and unknowns -> "".
-export function resolveText(tpl, params, category, lang, locales, extraScope = {}) {
-  const scope = { ...extraScope };
+export function resolveText(tpl, params, category, lang, locales) {
+  const scope = {};
   for (const [k, v] of Object.entries(params || {})) {
     if (Array.isArray(v) || (v && typeof v === "object")) continue;
     const entry = paramValues(locales, lang, category, k)?.[v];
@@ -167,25 +170,15 @@ export function resolveText(tpl, params, category, lang, locales, extraScope = {
   ).replace(/ {2,}/g, " ");
 }
 
-// Title + instruction paragraphs of one task in one language.
+// Title + instruction cards of one task in one language. Voice tasks carry
+// two cards (tasks.json `instructions1`/`instructions2`), one instruction key
+// each; a card's inner paragraphs are joined with "\n\n" (spec §6). Tasks
+// without them fall back to splitting `instructions` into paragraphs.
 function taskTexts(category, params, lang, locales) {
-  const text = (key, scope) => resolveText(catText(locales, lang, category, key), params, category, lang, locales, scope);
+  const text = (key) => resolveText(catText(locales, lang, category, key), params, category, lang, locales);
   const title = text("title").trim() || catText(locales, lang, category, "name") || category;
-  let paragraphs = htmlToParagraphs(text("instructions"));
-
-  if (category === "monologue") {
-    paragraphs = paragraphs.concat(htmlToParagraphs(text("instructionsTopic")));
-  } else if (category === "dynamic_monologue") {
-    const values = paramValues(locales, lang, category, "topics") || {};
-    for (const topic of Array.isArray(params?.topics) ? params.topics : []) {
-      const entry = values[topic];
-      if (entry) paragraphs = paragraphs.concat(htmlToParagraphs(text("instructionsTopic", { ...entry, topics: entry.label })));
-    }
-  } else if (category === "reading") {
-    const entry = paramValues(locales, lang, category, "topic")?.[params?.topic];
-    if (entry?.text) paragraphs.push(entry.text);
-  }
-  return { title, paragraphs };
+  const cards = ["instructions1", "instructions2"].map((k) => htmlToParagraphs(text(k)).join("\n\n")).filter(Boolean);
+  return { title, paragraphs: cards.length ? cards : htmlToParagraphs(text("instructions")) };
 }
 
 const QUESTION_TYPE = { open: "OPEN", single: "SINGLE_CHOICE", dropdown: "SINGLE_CHOICE", rating: "SINGLE_CHOICE", multiple: "MULTIPLE_CHOICE" };

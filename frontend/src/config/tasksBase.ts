@@ -108,9 +108,9 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     type: "voice",
     recording: { mode: "delayedStop", duration: 60 },
     params: {
-      topic: { default: "hobbies" },
+      topic: { default: "free" },
       repeat: { default: 1 },
-      duration: { default: 60 },
+      duration: { default: 90 },
       minDuration: { default: 30 },
       maxDuration: { default: 120 },
       recordVideo: { default: false },
@@ -120,15 +120,14 @@ export const taskBaseConfig: Record<string, TaskBase> = {
     },
   },
 
-  dynamic_monologue: {
+  // Picture handed out on paper; `picture` names the sheet (A, ...).
+  pictureDescription: {
     type: "voice",
-    recording: { mode: "delayedStop", duration: 60 }, // Example: 60 seconds total task duration
-    useVAD: true,
+    recording: { mode: "basicStop" },
     params: {
-      topics: { default: ["everyday", "hobbies", "travel", "eating"], multiple: true }, // Default selected array
-      duration: { default: 60 },
-      minDuration: { default: 30 },
-      maxDuration: { default: 120 },
+      picture: { default: "A" },
+      repeat: { default: 1 },
+      duration: { default: 90 },
       recordVideo: { default: false },
       canRepeat: { default: true },
       canSkip: { default: false },

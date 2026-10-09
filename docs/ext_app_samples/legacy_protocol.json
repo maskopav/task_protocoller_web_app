@@ -51,7 +51,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p100_t1_instr1"
+            "p100_t1_instr1",
+            "p100_t1_instr2"
           ],
           "length": 7,
           "showIndicator": true,
@@ -66,10 +67,9 @@
           "nrepetition": 1,
           "instructionKeys": [
             "p100_t2_instr1",
-            "p100_t2_instr2",
-            "p100_t2_instr3"
+            "p100_t2_instr2"
           ],
-          "length": 60,
+          "length": 90,
           "showIndicator": false,
           "recordVideo": true
         }
@@ -78,12 +78,12 @@
   ],
   "strings": {
     "en": {
-      "p100_t1_title": "ta-ta-ta repetition",
-      "p100_t1_instr1": "<bold>Draw a deep breath</bold> and repeat the syllables\n/ta-ta-ta-ta-ta-ta/\nas quickly and accurately as possible until the task finishes automatically after 7 seconds. Press Start to begin.",
-      "p100_t2_title": "Monologue",
-      "p100_t2_instr1": "We will show you a topic and ask you to talk about it continously for <bold>60 seconds</bold>.",
-      "p100_t2_instr2": "<bold>Topic:</bold>\nPlease try to describe in as much detail as possible how your yesterday, past week, or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced, or who you met. The ideal length is two minutes. When you are ready, press the Start button and begin speaking.",
-      "p100_t2_instr3": "Press Start when you are ready.",
+      "p100_t1_title": "TA",
+      "p100_t1_instr1": "<bold>Please repeat the following syllables after me: /ta/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p100_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 25× /ta/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
+      "p100_t2_title": "Monologue - Free narration",
+      "p100_t2_instr1": "<bold>Now I will ask you to talk to me continuously about something for at least 90 seconds. The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work.</bold>\n\n<italic>The required length of the recorded monologue is at least 90 seconds.</italic>",
+      "p100_t2_instr2": "<bold>You can start whenever you are ready.</bold>\n\n<italic>Press the START button to begin recording and the STOP button at the end of the task to end the recording.\nNote the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least 90 seconds.</italic>",
       "p100_f_patient_code_label": "Participant code",
       "p100_f_patient_code_help": "Study code of the participant, e.g. HC001.",
       "p100_f_sex_label": "Sex",

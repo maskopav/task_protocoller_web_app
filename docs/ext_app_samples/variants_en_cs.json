@@ -37,7 +37,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p40_t1_instr1"
+            "p40_t1_instr1",
+            "p40_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -51,7 +52,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p40_t2_instr1"
+            "p40_t2_instr1",
+            "p40_t2_instr2"
           ],
           "length": 150,
           "showIndicator": false,
@@ -214,10 +216,12 @@
   ],
   "strings": {
     "cs": {
-      "p40_t1_title": "Prodloužená fonace /eee/",
-      "p40_t1_instr1": "Stiskněte tlačítko START pro zahájení úkolu. Zhluboka se nadechněte a vyslovte prodlouženě hlásku /eee/ co nejdéle a nejrovnoměrněji. Snažte se vydržet alespoň sekund. Jakmile se vám dojde dech, stiskněte STOP.",
-      "p40_t2_title": "Čtení: rainbow",
-      "p40_t2_instr1": "Stiskněte tlačítko START a poté v přirozené hlasitosti a tempu přečtěte text, který se zobrazí na obrazovce. Na konci stiskněte tlačítko STOP.",
+      "p40_t1_title": "Prodloužená fonace - /eee/",
+      "p40_t1_instr1": "<bold>Zhluboka se nadechněte a pokuste se na jeden nádech provést co nejdelší a nejstabilnější fonaci hlásky /eee/. Měl/a byste vydržet alespoň 10 sekund.\nNyní Vám přehraji ukázku.</bold>\n\n<italic>Stiskněte PŘEHRÁT UKÁZKU pro přehrání ukázky.</italic>",
+      "p40_t1_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START pro zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.\nÚčastníka nezastavujte, nechte ho fonovat co nejdéle.\nV případě, že čas je kratší než 10 sekund, snažte se motivovat k prodloužení. Často pomůže změna výšky hlasu, nebo snížení hlasitosti fonace.</italic>",
+      "p40_t2_title": "Čtený text - The Rainbow",
+      "p40_t2_instr1": "<bold>Nyní Vás poprosím o přečtení krátkého úryvku textu. Pokud používáte brýle, tak si je nyní vezměte.</bold>\n\n<italic>Dejte účastníkovi TEXT KE ČTENÍ - The Rainbow.\nÚčastníkovi nabídněte text s vhodnou velikostí písma.</italic>",
+      "p40_t2_instr2": "<bold>Začněte teď.</bold>\n\n<italic>Stiskněte tlačítko START k zahájení nahrávání. Počkejte, dokud účastník nedokončí úlohu a poté stiskněte tlačítko STOP pro ukončení nahrávání.</italic>",
       "p40_t3_title": "Dotazník spokojenosti",
       "p40_t3_q1_text": "Jak se dnes cítíte?",
       "p40_t3_q1_o1": "Dobře",
@@ -267,10 +271,12 @@
       "p40_f_patient_code_help": "Studijní kód účastníka, např. HC001."
     },
     "en": {
-      "p40_t1_title": "Prolonged phonation /eee/",
-      "p40_t1_instr1": "<bold>Draw a deep breath</bold>, and say /eee/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
-      "p40_t2_title": "Reading The Rainbow",
-      "p40_t2_instr1": "Press Start and read the text on the screen <bold>out loud</bold>.",
+      "p40_t1_title": "Prolonged phonation - /eee/",
+      "p40_t1_instr1": "<bold>Take a deep breath and sustain the vowel /eee/ in one breath as long and as steadily as possible. The phonation should least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p40_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+      "p40_t2_title": "Reading - The Rainbow",
+      "p40_t2_instr1": "<bold>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</bold>\n\n<italic>Give the participant the READING TEXT - The Rainbow.\nOffer the participant a text with a suitable font size.</italic>",
+      "p40_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</italic>",
       "p40_t3_title": "Satisfaction questionnaire",
       "p40_t3_q1_text": "How do you feel today?",
       "p40_t3_q1_o1": "Good",

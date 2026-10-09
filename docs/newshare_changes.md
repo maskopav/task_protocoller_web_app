@@ -306,3 +306,16 @@ bypassing the per-user `user_projects` scoping in `getProjectList`.
 
 **Migration note:** same as above — no incremental migrations, so a plain
 `node src/runInit.js` rebuilds and reseeds.
+
+## Voice-task instructions: two cards (2026-10-09)
+
+Voice tasks in `tasks.json` now carry exactly `instructions1` and `instructions2`,
+one per desktop-app instruction card (`<strong>` = read to the participant,
+`<em>` = examiner note). `instructionsActive` / `instructionsTopic` /
+`instructionsPreCalibration` / `instructionsPostCalibration` are gone, along with
+the web preview's topic-reveal button. `extConfig.js` emits one instruction key
+per card, inner paragraphs joined with `\n\n`. The reading passage is no longer
+emitted (it is handed out on paper); it stays in `tasks.json` for the web
+preview. `dynamic_monologue` was removed and `pictureDescription` (VOCAL /
+`PICTURE_DESCRIPTION`) added in its seed slot (id 10). The protocol editor's task modal
+previews both cards. Questionnaires, sdmt and d15colour are unchanged.

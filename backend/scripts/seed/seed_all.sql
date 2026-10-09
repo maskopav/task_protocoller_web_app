@@ -48,7 +48,7 @@ VALUES
 ('d15colour',
  (SELECT id FROM task_types WHERE type='vision')
 ),
-('dynamic_monologue',
+('pictureDescription',
  (SELECT id FROM task_types WHERE type='voice')
 ),
 ('sdmt',

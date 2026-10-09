@@ -5,7 +5,6 @@ export interface TaskInstance {
   category: string;
   type: string;
   title?: string;
-  instructionsActive?: string;
   recording: RecordingMode;
   params: Record<string, any>;
   useVAD?: boolean;
@@ -32,13 +31,12 @@ export function createTask(category: string, overrides: Record<string, any> = {}
     }
 
   // Extract known non-param overrides
-  const { title, instructionsActive, illustration} = overrides;
+  const { title, illustration} = overrides;
 
   return {
     category,
     type: def.type,
     title,
-    instructionsActive,
     recording: recording,
     params,
     useVAD: overrides.useVAD ?? def.useVAD ?? true,

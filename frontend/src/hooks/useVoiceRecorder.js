@@ -120,7 +120,6 @@ export const useVoiceRecorder = (options = {}) => {
         onRecordingComplete = () => {},
         onError             = () => {},
         instructions,               // shown before recording starts
-        instructionsActive,         // shown after START
         audioExample,               // optional example audio URL
         mode         = 'basicStop', // 'basicStop' | 'countDown' | 'delayedStop'
         duration,                   // task duration in seconds
@@ -137,7 +136,6 @@ export const useVoiceRecorder = (options = {}) => {
     const [audioURL,    setAudioURL]    = useState(null);
     const [recordingTime,  setRecordingTime]  = useState(0);
     const [remainingTime,  setRemainingTime]  = useState(null);
-    const [activeInstructions, setActiveInstructions] = useState(null);
     const [durationExpired, setDurationExpired] = useState(false);
 
     // ── Refs ───────────────────────────────────────────────────────────────────
@@ -391,8 +389,6 @@ export const useVoiceRecorder = (options = {}) => {
             setRecordingTime(0);
             setRemainingTime(null);
         }
-
-        if (instructionsActive) setActiveInstructions(instructionsActive);
 
         // AudioContext is normally created in getMicrophonePermission so the VAD
         // can share it.  This branch fires only after repeatRecording() closes it.
@@ -727,7 +723,6 @@ export const useVoiceRecorder = (options = {}) => {
         remainingTime,
         audioLevelsRef,
         subscribeToAudioLevels,
-        activeInstructions,
         durationExpired,
         incompatibleBrowser,
         audioContext,

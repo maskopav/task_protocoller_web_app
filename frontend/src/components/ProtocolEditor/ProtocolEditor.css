@@ -546,6 +546,19 @@
     color: var(--muted);
   }
 
+  /* --- Instruction cards preview (TaskModal) --- */
+  .instructions-preview {
+    margin-top: 1rem;
+  }
+
+  .instructions-preview-card {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: #ece6ee;
+    font-size: 0.9rem;
+  }
+
   /* =========================================================
      INFO TOOLTIP
      ========================================================= */

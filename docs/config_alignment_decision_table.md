@@ -121,7 +121,8 @@ Stored values go to `participant.json` under `name`. Labels/help are resolved th
 | `syllableRepeating` with any other syllable (`ta`, `ka`, …) | `VOCAL` / `SYLLABLES` |
 | `retelling` | `VOCAL` / `RETELLING` |
 | `reading` | `VOCAL` / `READING` (the text to read is the last instruction paragraph) |
-| `monologue`, `dynamic_monologue` | `VOCAL` / `MONOLOGUE` |
+| `monologue` | `VOCAL` / `MONOLOGUE` |
+| `pictureDescription` | `VOCAL` / `PICTURE_DESCRIPTION` |
 | any other voice task added to the web later | `VOCAL` / **`CUSTOM`** |
 | `questionnaire`, `rbdsq`, `hhies`, `feedback` | `QUESTIONNAIRE` |
 | `d15colour` (vision), `sdmt` (cognitive) | **skipped** (logged on the server; the protocol is still served) |

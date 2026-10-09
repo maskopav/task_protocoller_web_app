@@ -35,7 +35,8 @@
           "canSkip": false,
           "nrepetition": 1,
           "instructionKeys": [
-            "p80_t1_instr1"
+            "p80_t1_instr1",
+            "p80_t1_instr2"
           ],
           "length": 10,
           "showIndicator": true,
@@ -63,11 +64,12 @@
   ],
   "strings": {
     "en": {
-      "p80_t1_title": "Prolonged phonation /aaa/",
-      "p80_t1_instr1": "<bold>Draw a deep breath</bold>, and say /aaa/ <bold>as steadily and for as long</bold> as possible in one breath. Try to sustain it for at least 10 seconds. Press Start to begin and Stop once you run out of breath.",
-      "p80_t2_title": "Retelling fairytale",
-      "p80_t2_instr1": "Press Play story to listen to a spoken fairytale. After listening to the story, press button to calibrate your camera. Then <bold>retell the tale in your own words</bold> in 90 seconds.",
-      "p80_t2_instr2": "Speak continuously, so it doesn't matter if the retold tale is correct or complete.",
+      "p80_t1_title": "Prolonged phonation - /aaa/",
+      "p80_t1_instr1": "<bold>Take a deep breath and sustain the vowel /aaa/ in one breath as long and as steadily as possible. The phonation should least 10 seconds.\nI will now play you an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+      "p80_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.\nDo not stop the participant; let them phonate as long as possible.\nIf the phonation is shorter than 10 seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</italic>",
+      "p80_t2_title": "Retelling",
+      "p80_t2_instr1": "<bold>I will now play you an audio recording of a fairy tale. Your task is to remember it and then retell it in your own words.</bold>\n\n<bold>The retelling should last 90 seconds. The goal is to speak continuously; it does not matter whether the tale is retold correctly or completely.</bold>\n\n<italic>Press PLAY EXAMPLE to start the story playback.</italic>",
+      "p80_t2_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. Wait until 90 seconds have passed on the stopwatch, then press the STOP button to end the recording.</italic>",
       "p80_f_patient_code_label": "Participant code",
       "p80_f_patient_code_help": "Study code of the participant, e.g. HC001."
     }
