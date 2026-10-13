@@ -9,7 +9,7 @@ The rest covers first-time setup, resetting the database and troubleshooting.
 | | |
 |---|---|
 | SSH | `ssh share_web` (`~/.ssh/config`: `HostName 192.168.122.183`, `Port 10000`, `User root`, `IdentityFile ~/.ssh/id_ed25519`) |
-| Public URL | `http://192.168.122.183:10001` (VM port 10001 → container port 80) |
+| Public URL | `http://192.168.122.183:10001` (VM port 10001 → container port 80), also reverse-proxied at `https://malenia.feld.cvut.cz/koubic/` (prefix stripped; `CORS_ORIGIN` must list both origins) |
 | OS | Ubuntu 26.04 LXC container (systemd), x86_64 |
 | App root | `/opt/task-protocoller/` — `backend/`, `frontend/` (built SPA), `locales/` (i18n JSON) |
 | Backend | systemd unit `task-protocoller` — `node server.js` on port 3000, user `taskprot`, `NODE_ENV=production` |
@@ -54,7 +54,9 @@ Run from the repo root on your machine. This keeps the database and `.env`.
 (cd backend && npm ci && npx vitest run)
 
 # 2. Build the frontend. `vite build` reads frontend/.env.production
-#    (VITE_API_BASE=/api, VITE_APP_BASE_PATH=/), which is what nginx expects.
+#    (VITE_API_BASE=./api, VITE_APP_BASE_PATH=./). The paths are relative so the
+#    same build works directly on :10001 and behind the reverse proxy at
+#    https://malenia.feld.cvut.cz/koubic/.
 (cd frontend && npm ci && npm run build)
 
 # 3. Upload. Keep these excludes: they protect the server's .env, logs and
