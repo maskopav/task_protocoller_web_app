@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Upload Monitoring Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .doc { max-width: 1100px; }
+  .doc h2 { margin: 0; font-size: 1.25rem; }
+  .doc p, .doc li { font-size: 0.95rem; color: var(--muted); max-width: 75ch; }
+  .doc ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .screens { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+  .screen { display: flex; flex-direction: column; gap: 0.35rem; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; text-decoration: none; color: inherit; transition: var(--transition); }
+  .screen:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .screen .route { font-family: var(--mono); font-size: 0.78rem; color: var(--dark-gray); }
+  .screen h3 { margin: 0; color: var(--primary); font-size: 1.1rem; }
+  .screen p { margin: 0; font-size: 0.88rem; }
+  .model { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+  .flow { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .flow .arrow { color: var(--dark-gray); }
+  .src td:first-child { font-weight: 600; }
+  .src td { white-space: normal; vertical-align: top; }
+</style>
+</head>
+<body>
+<div class="dashboard-page doc" id="app"></div>
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM;
+  U.previewBar("index.html");
+  document.getElementById("app").innerHTML = `
+    <div class="page-header" style="margin-top:1rem">
+      <h1 class="page-title">Upload Monitoring</h1>
+      <p class="page-desc">Design previews for the phase-B screens that show what clinics upload from the desktop app. They use the live TaskProtocoller styling and realistic mock data for 3 sites, 6 devices and 34 sessions.</p>
+    </div>
+
+    <section class="dash-section">
+      <h2>Screens</h2>
+      <div class="screens">
+        <a class="screen" href="dashboard.html"><span class="route">/admin</span><h3>1 · Dashboard entry</h3><p>New “Uploads” card with an attention count; site cards show their last upload.</p></a>
+        <a class="screen" href="uploads.html"><span class="route">/admin/uploads</span><h3>2 · Uploads</h3><p>Cross-site list: summary filters, search, site/project/protocol/date/status filters, flags, sortable paged table, CSV.</p></a>
+        <a class="screen" href="session.html"><span class="route">/admin/uploads/:sessionId</span><h3>3 · Session detail</h3><p>Metadata, recording timeline, tasks with clip playback, server checks, upload history, review and comments, participant fields.</p></a>
+        <a class="screen" href="devices.html"><span class="route">/admin/uploads/devices</span><h3>4 · Devices ${U.PB("device check-in")}</h3><p>Health of each clinic computer and sessions still waiting on it.</p></a>
+        <a class="screen" href="site.html"><span class="route">/admin/sites/:siteId</span><h3>5 · Site dashboard</h3><p>Existing site page with upload statistics, latest uploads and the site's devices.</p></a>
+      </div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Two separate statuses</h2>
+      <p>Every session carries two independent states. Keeping them apart answers two different questions: “did the data arrive intact?” and “is it usable for analysis?”.</p>
+      <div class="model">
+        <div class="panel">
+          <h3 class="section-title">Server check (automatic)</h3>
+          <div class="flow"><span class="pill info"><span class="dot"></span>Validating</span><span class="arrow">→</span><span class="pill ok"><span class="dot"></span>Valid</span><span class="muted">or</span><span class="pill bad"><span class="dot"></span>Invalid</span></div>
+          <ul>
+            <li>ZIP SHA-256 equals the <span class="mono">zipSha256</span> form field</li>
+            <li>Every file matches its hash in <span class="mono">manifest.json</span></li>
+            <li><span class="mono">sessionId</span> and <span class="mono">configVersion</span> agree across form, manifest and <span class="mono">examination.json</span></li>
+            <li>The device belongs to a site; unknown devices go to quarantine</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3 class="section-title">Review (people)</h3>
+          <div class="flow">${Object.values(U.QC).map((m) => `<span class="pill ${m.cls}">${m.icon} ${m.label}</span>`).join("")}</div>
+          <ul>
+            <li>Set on the session page; every change is written to the comment thread</li>
+            <li>Comments are for the site team: what to fix or re-record</li>
+            <li>“Excluded” sessions stay downloadable but drop out of exports by default</li>
+          </ul>
+        </div>
+      </div>
+      <p><b>Flags</b> are derived from the archive and need no one to set them: ${Object.values(U.ISSUES).map((m) => `<span class="tag ${m.cls}" title="${U.esc(m.hint)}">${m.label}</span>`).join(" ")}. “Needs attention” = Invalid, or Needs review, or Recovered, or Mic interrupted.</p>
+    </section>
+
+    <section class="dash-section">
+      <h2>Where each field comes from</h2>
+      <div class="table-wrap"><table class="table src">
+        <thead><tr><th>Source</th><th>Fields shown</th></tr></thead>
+        <tbody>
+          <tr><td>Upload request</td><td>installationId, sessionId, zipSha256, received time, size, every attempt (incl. 400 / 409)</td></tr>
+          <tr><td>examination.json</td><td>protocol + project, configVersion, start / end, tasks (type, subtype, repetition, takes, skipped, clip and video files, questionnaire answers), recovered, interruptions, timeline used, audio format</td></tr>
+          <tr><td>participant.json</td><td>patient code, visit and every other field the protocol asks for (masked by default)</td></tr>
+          <tr><td>manifest.json</td><td>per-file hashes for the server check</td></tr>
+          <tr><td>Server</td><td>site (via device), review status, comments, audit of reveals and downloads</td></tr>
+          <tr><td>Phase B ${U.PB("extended contract")}</td><td>site token and app version on the upload; device check-in with last seen and local waiting / failed counts</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Decisions for the backend</h2>
+      <ul>
+        <li><b>Duplicate uploads.</b> The app treats any non-2xx reply as a retryable failure. A repeat of an already received session with the same checksum should get <span class="mono">200</span> with the original receipt, and be logged as “Re-sent”. A repeat with a different checksum stays <span class="mono">409</span>.</li>
+        <li><b>Who sees what.</b> The same scope as sites: master sees everything, an admin sees sites assigned directly or through a project grant. Download and reveal are allowed to anyone who can see the session and are audit-logged.</li>
+        <li><b>Personal data.</b> participant.json can hold surnames and birth years. Only the patient code and visit are visible by default.</li>
+        <li><b>Purple markers</b> (<span class="pb" style="cursor:default">phase B</span>) and purple notes mark what needs the extended desktop contract. Toggle them off in the top bar to see the plain product.</li>
+      </ul>
+    </section>
+  `;
+})();
+</script>
+</body>
+</html>

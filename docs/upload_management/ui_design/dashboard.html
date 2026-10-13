@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard · TaskProtocoller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="dashboard-page" id="app"></div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM, D = U.D;
+  U.previewBar("dashboard.html");
+  const app = document.getElementById("app");
+
+  const att = D.sessions.filter(U.needsAttention).length;
+  const week = D.sessions.filter((s) => (D.NOW - new Date(s.receivedAt)) / 864e5 <= 7).length;
+
+  const siteCard = (s) => {
+    const ss = D.sessions.filter((x) => x.site === s.id).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+    const a = ss.filter(U.needsAttention).length;
+    return `<a class="site-card" href="site.html#${s.id}">
+      <h3>${U.esc(s.name)}</h3><span class="pill ok">Active</span>
+      <span class="sc-link">${s.projects.length} Assigned Projects</span>
+      <span class="sc-up"><span>📤 Last upload ${U.rel(ss[0].receivedAt)}</span>${a ? `<span class="pill warn">${a} need attention</span>` : '<span class="pill ok">All clear</span>'}</span>
+    </a>`;
+  };
+  const projCard = (name, country, desc) => `<a class="site-card" href="#"><h3>${name}</h3><span class="pill ok">Active</span><span class="sc-link">${country}</span><span class="muted" style="font-size:.85rem">${desc}</span></a>`;
+
+  app.innerHTML = `
+    ${U.topbar({ back: null })}
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-desc">Select a project to manage its protocols. Select a site to assign projects, configure settings and follow its uploads.</p>
+    </div>
+
+    <section class="dash-section">
+      <h2>Monitoring</h2>
+      <div class="actions-grid">
+        <a class="action-card new" href="uploads.html">
+          <span class="new-flag">New</span>
+          <span class="ac-icon">📤</span>
+          <span><h3>Uploads</h3><p>Sessions uploaded from your ${D.sites.length} sites: arrival checks, review and downloads.</p>
+            <span class="ac-badges"><span class="pill info">${week} this week</span><span class="pill warn">${att} need attention</span></span></span>
+        </a>
+        <a class="action-card" href="devices.html">
+          <span class="ac-icon violet">🖥</span>
+          <span><h3>Devices ${U.PB("device check-in")}</h3><p>Clinic computers running the desktop app and sessions still waiting on them.</p>
+            <span class="ac-badges"><span class="pill warn">${D.devices.reduce((a, d) => a + d.localPending, 0)} waiting</span><span class="pill bad">${D.devices.filter((d) => U.deviceHealth(d).cls === "bad").length} silent</span></span></span>
+        </a>
+      </div>
+    </section>
+    <p class="annot"><b>Placement.</b> The Uploads card sits above the site grid for every role: admins see it as soon as they have at least one site in scope, masters always. The attention count is the same number as the “Needs attention” filter on the Uploads page, so the badge and the list never disagree.</p>
+
+    <section class="dash-section">
+      <h2>Your Assigned Sites</h2>
+      <div class="site-grid">${D.sites.map(siteCard).join("")}</div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Your Assigned Projects</h2>
+      <div class="site-grid">
+        ${projCard("Test Study 001", "France, United Kingdom", "Initial testing project")}
+        ${projCard("Test Study 002", "Czechia", "Second testing project")}
+        ${projCard("Czech Clinic Study", "Czechia", "Desktop-app sample project")}
+      </div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Master Administrative Tools</h2>
+      <div class="actions-grid">
+        <a class="action-card" href="#"><span class="ac-icon">👤</span><span><h3>Admin User Management</h3><p>Manage administrator accounts, assign project permissions, and reset credentials.</p></span></a>
+        <a class="action-card" href="#"><span class="ac-icon green">📂</span><span><h3>Project Management</h3><p>View and manage all system projects, activate or deactivate projects.</p></span></a>
+        <a class="action-card" href="#"><span class="ac-icon grey">🏥</span><span><h3>Site Management</h3><p>Manage clinical sites, their access tokens, assigned projects and site-level config.</p></span></a>
+      </div>
+    </section>
+  `;
+})();
+</script>
+</body>
+</html>

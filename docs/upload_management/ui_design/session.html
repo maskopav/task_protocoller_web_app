@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Session detail · TaskProtocoller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="dashboard-page" id="app"></div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM, D = U.D;
+  U.previewBar("session.html");
+
+  const wanted = (location.hash || "").slice(1);
+  const s = D.sessions.find((x) => x.id === wanted) || D.sessions[9];
+  const site = U.site(s.site), dev = U.device(s.deviceId), p = s.participant;
+  const app = document.getElementById("app");
+
+  // ---------- derived ----------
+  const clipName = (t) => `${p.patient_code}_${s.deviceId}_${t.taskIndex}_${t.subtype || t.type}_Rep${t.repetition}`.replace(/[^A-Za-z0-9_-]/g, "");
+  const outdated = s.configVersion !== D.CURRENT_CONFIG;
+  const appOld = s.appVersion !== D.CURRENT_APP;
+  const delayH = (new Date(s.receivedAt) - new Date(s.endedAt)) / 3600e3;
+
+  const checks = [
+    s.status === "invalid" && s.invalidReason === "checksum"
+      ? { r: "bad", t: "ZIP checksum", why: "Computed SHA-256 differs from the zipSha256 the device declared. The file was damaged in transit; the device can re-send it." }
+      : s.status === "validating" ? { r: "skip", t: "ZIP checksum", why: "Running…" } : { r: "ok", t: "ZIP checksum", why: "SHA-256 matches the value declared by the device" },
+    s.status === "invalid" && s.invalidReason === "manifest"
+      ? { r: "bad", t: "Manifest file hashes", why: "clips/…_4_READING_Rep1.wav does not match manifest.json. The archive was modified after it was built." }
+      : s.status === "validating" ? { r: "skip", t: "Manifest file hashes", why: "Waiting for the checksum step" } : { r: "ok", t: "Manifest file hashes", why: `${s.audioClips + s.videoClips + 5} of ${s.audioClips + s.videoClips + 5} files verified` },
+    { r: s.status === "validating" ? "skip" : "ok", t: "IDs consistent", why: "sessionId and configVersion match across form, manifest and examination.json" },
+    s.status === "invalid" && s.invalidReason === "unknown_device"
+      ? { r: "bad", t: "Device registered", why: "This installation ID has never fetched a config with a valid site token. The upload is held in quarantine until a master assigns it." }
+      : { r: "ok", t: "Device registered", why: `${dev.label} belongs to ${site.name}` },
+    outdated ? { r: "warn", t: "Config version", why: `Recorded with ${s.configVersion}; current is ${D.CURRENT_CONFIG}. Tasks may differ from today's protocol.` } : { r: "ok", t: "Config version", why: `Current (${s.configVersion})` },
+    s.recovered ? { r: "warn", t: "Session complete", why: "Rebuilt after an app crash. The last tasks have no recording." } : { r: "ok", t: "Session complete", why: "Processing finished normally" },
+  ];
+  const icon = { ok: "✓", bad: "✕", warn: "!", skip: "…" };
+
+  // timeline geometry
+  let cursor = 30, segs = [];
+  s.tasks.forEach((t, i) => {
+    const w = t.skipped || t.missing ? 6 : t.len * t.takes + 10;
+    segs.push({ t, x: cursor, w });
+    cursor += w + 18;
+    if (s.interruptions && i === 2) { segs.push({ gap: true, x: cursor, w: 40 }); cursor += 58; }
+  });
+  const total = cursor;
+  const mm = (sec) => { const m = Math.floor(sec / 60); return `${m}:${String(Math.round(sec % 60)).padStart(2, "0")}`; };
+  const pct = (v) => (v / total * 100).toFixed(2) + "%";
+
+  const wave = (seedN) => {
+    let r = seedN * 9301 + 49297; const bars = [];
+    for (let i = 0; i < 36; i++) { r = (r * 9301 + 49297) % 233280; const h = 3 + (r / 233280) * 17; bars.push(`<rect x="${i * 3}" y="${11 - h / 2}" width="2" height="${h}" rx="1"/>`); }
+    return `<svg class="wave" viewBox="0 0 108 22" aria-hidden="true">${bars.join("")}</svg>`;
+  };
+  const QA = {
+    "VHI-10": [["I find it difficult to be understood by others", "Sometimes"], ["My voice makes it hard to hear me in a noisy room", "Almost always"], ["People ask, “What's wrong with your voice?”", "Never"], ["I feel left out of conversations", "Rarely"], ["Total score", "17"]],
+    "PHQ-9": [["Little interest or pleasure in doing things", "Several days"], ["Feeling down, depressed, or hopeless", "Not at all"], ["Trouble falling or staying asleep", "More than half the days"], ["Total score", "6"]],
+    "GAD-7": [["Feeling nervous, anxious or on edge", "Several days"], ["Not being able to stop worrying", "Not at all"], ["Total score", "4"]],
+  };
+
+  const taskRows = s.tasks.map((t, i) => {
+    const state = t.missing ? '<span class="pill bad">Missing</span>' : t.skipped ? '<span class="pill warn">Skipped</span>' : '<span class="pill ok">Done</span>';
+    let media = '<span class="muted">—</span>';
+    if (t.type === "VOCAL" && !t.skipped && !t.missing) {
+      media = `<span class="player"><button class="play" type="button" aria-label="Play audio clip">▶</button>${wave(i + 3)}<span class="cell-sub num">0:${String(t.len).padStart(2, "0")}</span>` +
+        (t.video ? `<button class="play video" type="button" aria-label="Play video clip" title="Play video">🎥</button>` : "") + `</span>`;
+    }
+    if (t.type === "QUESTIONNAIRE" && !t.skipped && !t.missing) media = `<button class="linklike" type="button" data-qa="${i}">Show answers (${QA[t.subtype].length - 1})</button>`;
+    const interrupted = s.interruptions && i === 2;
+    return `<tr${t.missing ? ' class="row-bad"' : t.skipped ? ' class="row-warn"' : ""}>
+      <td class="num">${t.taskIndex}</td>
+      <td><div class="stack"><span>${t.subtype ? U.esc(t.subtype.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase())) : "Information screen"}</span><span class="cell-sub">${t.type}</span></div></td>
+      <td class="c num">${t.repetition}</td>
+      <td class="c num">${t.takes || "—"}${t.takes > 1 ? ' <span class="tag" title="Only the last take is exported">last kept</span>' : ""}${interrupted ? ' <span class="tag bad" title="Microphone lost during this task">mic lost</span>' : ""}</td>
+      <td>${state}</td>
+      <td>${media}</td>
+      <td class="mono cell-sub"><span style="display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle" title="${t.type === "VOCAL" && !t.skipped && !t.missing ? U.esc(clipName(t)) + ".wav" : ""}">${t.type === "VOCAL" && !t.skipped && !t.missing ? U.esc(clipName(t)) + ".wav" : ""}</span></td>
+    </tr>${t.type === "QUESTIONNAIRE" && QA[t.subtype] ? `<tr class="sub-row" data-qa-row="${i}" hidden><td></td><td colspan="6"><dl class="qa">${QA[t.subtype].map(([q, a]) => `<dt>${U.esc(q)}</dt><dd>${U.esc(a)}</dd>`).join("")}</dl></td></tr>` : ""}`;
+  }).join("");
+
+  const comments = s.comments.length ? s.comments : [];
+  const people = D.people;
+  const commentHtml = (c) => `<div class="comment"><span class="avatar">${c.who}</span><div><div class="who">${U.esc(people[c.who])}<span class="when">${U.fmtDT(c.at)}</span></div>${c.system ? `<div class="sys">${U.esc(c.text)}</div>` : `<div class="body">${U.esc(c.text)}</div>`}</div></div>`;
+
+  const done = s.tasks.filter((t) => !t.skipped && !t.missing).length;
+
+  app.innerHTML = `
+    ${U.topbar({ back: "uploads.html" })}
+    <div class="page-header">
+      <div class="page-title-row">
+        <h1 class="page-title">${U.esc(p.patient_code)} <span class="muted" style="font-weight:500">· ${U.esc(p.visit_number)}</span></h1>
+        ${U.statusPill(s, true)} ${U.qcPill(s.qc, true)}
+        <div class="page-actions">
+          <button class="btn btn-ghost" type="button">◀ Previous</button>
+          <button class="btn btn-ghost" type="button">Next ▶</button>
+          <button class="btn btn-primary" type="button" ${s.status === "validating" ? "disabled" : ""}>⬇ Download ZIP · ${U.fmtBytes(s.bytes)}</button>
+        </div>
+      </div>
+      <p class="page-desc" style="font-size:1rem">${U.esc(s.protocol)} · ${U.esc(s.project)} · recorded at <a href="site.html#${site.id}">${U.esc(site.name)}</a> on ${U.fmtDate(s.endedAt)}</p>
+      ${s.issues.length ? `<div style="margin-top:.35rem">${U.issueTags(s)}</div>` : ""}
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-main">
+
+        <section class="panel">
+          <h2 class="section-title">Session</h2>
+          <div class="meta-grid">
+            <div class="meta-item"><span class="m-label">Session ID</span><span class="m-value"><span class="mono">${s.id.slice(0, 16)}…</span><button class="copy" type="button" data-copy="${s.id}">Copy</button></span></div>
+            <div class="meta-item"><span class="m-label">Site</span><span class="m-value">📍 ${U.esc(site.name)}${U.PB("site token sent with upload")}</span></div>
+            <div class="meta-item"><span class="m-label">Device</span><span class="m-value">🖥 <a href="devices.html">${U.esc(dev.label)}</a></span><span class="cell-sub mono">${U.esc(s.deviceId)}</span></div>
+            <div class="meta-item"><span class="m-label">App version</span><span class="m-value">${s.appVersion}${appOld ? ' <span class="tag warn">update available</span>' : ""}${U.PB("appVersion sent with upload")}</span></div>
+            <div class="meta-item"><span class="m-label">Config version</span><span class="m-value mono">${s.configVersion}${outdated ? ' <span class="tag warn">old</span>' : ""}</span></div>
+            <div class="meta-item"><span class="m-label">Started → ended</span><span class="m-value num">${U.fmtTime(s.startedAt)} → ${U.fmtTime(s.endedAt)} <span class="muted" style="font-weight:400">${U.fmtDate(s.endedAt)}</span></span></div>
+            <div class="meta-item"><span class="m-label">Length</span><span class="m-value num">${U.fmtDur(s.durationS)}</span></div>
+            <div class="meta-item"><span class="m-label">Received</span><span class="m-value num">${U.fmtDT(s.receivedAt)}</span><span class="cell-sub">${delayH > 72 ? "⚠ " : ""}${U.lagText(s)} after the session ended</span></div>
+            <div class="meta-item"><span class="m-label">Audio</span><span class="m-value">${s.captureFormat ? `${s.captureFormat.sampleRate / 1000} kHz · ${s.captureFormat.bits}-bit · mono` : "No audio in this protocol"}</span></div>
+            <div class="meta-item"><span class="m-label">Tasks</span><span class="m-value num">${done} of ${s.tasks.length} recorded</span></div>
+            <div class="meta-item"><span class="m-label">Timeline used</span><span class="m-value">${s.timelineUsed === "edited" ? "Edited in waveform editor" : "Original"}</span></div>
+            <div class="meta-item"><span class="m-label">ZIP SHA-256</span><span class="m-value"><span class="mono">${s.zipSha256.slice(0, 12)}…</span><button class="copy" type="button" data-copy="${s.zipSha256}">Copy</button></span></div>
+          </div>
+        </section>
+
+        ${s.hasAudio ? `<section class="panel">
+          <div class="section-head"><h2 class="section-title">Recording timeline</h2><span class="section-sub">Master recording, ${U.fmtDur(s.durationS)}</span></div>
+          <div class="tl">
+            <div class="tl-track" role="img" aria-label="Task segments along the master recording">
+              ${segs.map((g) => g.gap
+                ? `<span class="tl-gap" style="left:${pct(g.x)};width:${pct(g.w)}" title="Microphone lost: recording resumed on a new part file"></span>`
+                : `<span class="tl-seg ${g.t.skipped || g.t.missing ? "sk" : g.t.type === "QUESTIONNAIRE" || g.t.type === "INFO" ? "q" : g.t.video ? "v" : ""}" style="left:${pct(g.x)};width:${pct(g.w)}" title="Task ${g.t.taskIndex}: ${g.t.subtype || g.t.type}${g.t.skipped ? " (skipped)" : ""}"></span>`).join("")}
+            </div>
+            <div class="tl-axis"><span>0:00</span><span>${mm(s.durationS / 4)}</span><span>${mm(s.durationS / 2)}</span><span>${mm(s.durationS * 3 / 4)}</span><span>${mm(s.durationS)}</span></div>
+            <div class="legend"><span><i style="background:var(--info-dot)"></i>Audio task</span><span><i style="background:var(--primary)"></i>Audio + video</span><span><i style="background:var(--purple);opacity:.55"></i>Questionnaire / info</span><span><i style="background:repeating-linear-gradient(45deg,var(--warn-dot) 0 3px,var(--warn-bg) 3px 6px)"></i>Skipped</span>${s.interruptions ? '<span><i style="background:repeating-linear-gradient(-45deg,var(--bad-dot) 0 2px,transparent 2px 5px)"></i>Mic lost</span>' : ""}</div>
+          </div>
+        </section>` : ""}
+
+        <section class="panel">
+          <div class="section-head"><h2 class="section-title">Tasks</h2><span class="section-sub">From examination.json. Clips are played from the server copy; nothing is downloaded.</span></div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>#</th><th>Task</th><th class="c">Rep.</th><th class="c">Takes</th><th>Result</th><th>Clip</th><th>File</th></tr></thead>
+              <tbody>${taskRows}</tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head"><h2 class="section-title">Upload history</h2><span class="section-sub">Every request the server received for this session ID</span></div>
+          <ul class="attempts">
+            ${s.attempts.map((a) => `<li class="${a.code === 200 ? "" : a.code === 409 ? "info" : a.code === 0 ? "warn" : "bad"}"><div><strong>${a.code ? "HTTP " + a.code : "Device report"}</strong> · ${U.esc(a.outcome)}${a.deviceReported ? U.PB("device check-in") : ""}<div class="a-when num">${U.fmtDT(a.at)} · ${U.esc(dev.label)}</div></div></li>`).join("")}
+          </ul>
+          ${s.attempts.some((a) => a.code === 409) ? `<p class="annot"><b>Why “answered as success”.</b> The desktop app treats every non-2xx as a retryable server error, so a plain 409 would leave the session marked as failed on the device forever. The server should reply 200 with the original receipt when the checksum matches, and the dashboard counts it as “Re-sent”.</p>` : ""}
+        </section>
+      </div>
+
+      <aside class="detail-side">
+        <section class="panel">
+          <h2 class="section-title">Review</h2>
+          <div class="qc-options" role="group" aria-label="Review status">
+            ${Object.entries(U.QC).map(([k, m]) => `<button type="button" class="qc-opt" data-qc="${k}" aria-pressed="${s.qc === k}"><span class="pill ${m.cls}">${m.icon}</span>${m.label}</button>`).join("")}
+          </div>
+          <div class="thread" id="thread">${comments.map(commentHtml).join("") || '<p class="section-sub">No comments yet.</p>'}</div>
+          <label for="newc" class="section-sub">Add a comment for the site team</label>
+          <textarea id="newc" class="input" placeholder="e.g. Phonation take 2 clipped, please re-record at next visit"></textarea>
+          <div><button class="btn btn-primary btn-sm" type="button" id="post">Post comment</button></div>
+        </section>
+
+        <section class="panel">
+          <h2 class="section-title">Server checks</h2>
+          <ul class="checklist">${checks.map((c) => `<li><span class="ic ${c.r}" aria-hidden="true">${icon[c.r]}</span><span>${c.t}<span class="why">${U.esc(c.why)}</span></span></li>`).join("")}</ul>
+        </section>
+
+        <section class="panel">
+          <div class="section-head"><h2 class="section-title">Participant</h2><button class="btn btn-ghost btn-sm" type="button" id="reveal">👁 Show values</button></div>
+          <div class="meta-grid" style="grid-template-columns:1fr 1fr" id="pfields">
+            ${Object.entries(p).map(([k, v]) => `<div class="meta-item"><span class="m-label">${U.esc(k.replace(/_/g, " "))}</span><span class="m-value"><span class="${k === "patient_code" || k === "visit_number" ? "" : "masked"}">${U.esc(v)}</span></span></div>`).join("")}
+          </div>
+          <p class="pii-note">From participant.json, exactly as typed at the clinic. Fields other than the patient code and visit are hidden until you choose to show them. Each reveal is recorded in the audit log.</p>
+        </section>
+      </aside>
+    </div>
+  `;
+
+  // ---------- interactions ----------
+  app.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.copy) return U.copyText(b, b.dataset.copy);
+    if (b.dataset.qa) { const r = app.querySelector(`[data-qa-row="${b.dataset.qa}"]`); r.hidden = !r.hidden; b.textContent = r.hidden ? b.textContent.replace("Hide", "Show") : b.textContent.replace("Show", "Hide"); return; }
+    if (b.dataset.qc) {
+      app.querySelectorAll("[data-qc]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      const th = app.querySelector("#thread"); if (th.querySelector("p")) th.innerHTML = "";
+      th.insertAdjacentHTML("beforeend", commentHtml({ who: "MS", at: D.NOW.toISOString(), system: true, text: "set review to " + U.QC[b.dataset.qc].label }));
+      return;
+    }
+    if (b.id === "reveal") { const on = b.dataset.on !== "1"; b.dataset.on = on ? "1" : "0"; app.querySelectorAll("#pfields .m-value > span").forEach((x, i) => { const k = Object.keys(p)[i]; if (k !== "patient_code" && k !== "visit_number") x.classList.toggle("masked", !on); }); b.textContent = on ? "🙈 Hide values" : "👁 Show values"; return; }
+    if (b.id === "post") { const ta = app.querySelector("#newc"); if (!ta.value.trim()) { ta.focus(); return; } const th = app.querySelector("#thread"); if (th.querySelector("p")) th.innerHTML = ""; th.insertAdjacentHTML("beforeend", commentHtml({ who: "MS", at: D.NOW.toISOString(), text: ta.value.trim() })); ta.value = ""; return; }
+    if (b.classList.contains("play")) { const was = b.textContent; b.textContent = "❚❚"; setTimeout(() => (b.textContent = was), 1500); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Uploads · TaskProtocoller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="dashboard-page" id="app"></div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM, D = U.D;
+  U.previewBar("uploads.html");
+
+  // ---------- state ----------
+  const st = {
+    q: "", sites: new Set(), project: "", protocol: "", dateField: "received", from: "", to: "",
+    status: "", qc: "", issues: new Set(), kpi: "", sort: { key: "receivedAt", dir: -1 }, page: 1, per: 25,
+  };
+  const hash = (location.hash || "").slice(1);
+  if (D.sites.some((s) => s.id === hash)) st.sites.add(hash);
+  if (hash === "attention") st.kpi = "attention";
+
+  const app = document.getElementById("app");
+  const projects = [...new Set(D.sessions.map((s) => s.project))].sort();
+  const protocolNames = Object.keys(D.protocols);
+
+  app.innerHTML = `
+    ${U.topbar()}
+    <div class="page-header">
+      <div class="page-title-row">
+        <h1 class="page-title">Uploads</h1>
+        <div class="page-actions">
+          <a class="btn btn-ghost" href="devices.html">🖥 Devices <span class="pill warn" style="margin-left:2px">${D.devices.filter((d) => U.deviceHealth(d).cls !== "ok").length}</span></a>
+          <button class="btn btn-ghost" type="button" id="csv">⬇ Export CSV</button>
+        </div>
+      </div>
+      <p class="page-desc">Sessions uploaded by the desktop app at your sites. Each upload is checked on arrival; review the ones that need attention and mark them for analysis.</p>
+    </div>
+
+    <p class="annot"><b>Scope.</b> Master sees every site. An admin sees only sites assigned to them directly (<span class="mono">user_sites</span>) or through a project grant (<span class="mono">accessScope.js</span>). The Site filter lists only those sites, and is hidden when the user has just one.</p>
+
+    <div class="kpis" id="kpis"></div>
+
+    <section class="card">
+      <div class="filters">
+        <div class="filter-row">
+          <label class="field grow search"><span>Search</span>
+            <input id="f-q" type="search" placeholder="Patient code, session ID or device">
+          </label>
+          <label class="field"><span>Project</span>
+            <select id="f-project"><option value="">All projects</option>${projects.map((p) => `<option>${U.esc(p)}</option>`).join("")}</select>
+          </label>
+          <label class="field"><span>Protocol</span>
+            <select id="f-protocol"><option value="">All protocols</option>${protocolNames.map((p) => `<option>${U.esc(p)}</option>`).join("")}</select>
+          </label>
+          <div class="field"><span>Date</span>
+            <div class="seg" role="group" aria-label="Date refers to">
+              <button type="button" data-df="received" aria-pressed="true">Received</button>
+              <button type="button" data-df="recorded" aria-pressed="false">Recorded</button>
+            </div>
+          </div>
+          <label class="field"><span>From</span><input id="f-from" type="date"></label>
+          <label class="field"><span>To</span><input id="f-to" type="date"></label>
+          <label class="field"><span>Server check</span>
+            <select id="f-status"><option value="">Any</option><option value="valid">Valid</option><option value="validating">Validating</option><option value="invalid">Invalid</option></select>
+          </label>
+          <label class="field"><span>Review</span>
+            <select id="f-qc"><option value="">Any</option>${Object.entries(U.QC).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join("")}</select>
+          </label>
+        </div>
+        <div class="chips" id="site-chips"><span class="chips-label">Sites</span></div>
+        <div class="chips" id="issue-chips"><span class="chips-label">Flags</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="section-title">Sessions</h2>
+        <div class="active-filters" id="summary"></div>
+      </div>
+      <div class="table-wrap tall">
+        <table class="table" id="tbl">
+          <thead><tr>
+            <th class="sortable" data-k="receivedAt">Received</th>
+            <th class="sortable" data-k="site">Site · device</th>
+            <th class="sortable" data-k="patient">Patient</th>
+            <th class="sortable" data-k="protocol">Protocol</th>
+            <th class="sortable" data-k="endedAt">Recorded</th>
+            <th class="sortable r" data-k="durationS">Length</th>
+            <th>Tasks</th>
+            <th class="c">Clips</th>
+            <th class="sortable r" data-k="bytes">Size</th>
+            <th class="sortable" data-k="status">Server check</th>
+            <th class="sortable" data-k="qc">Review</th>
+            <th>Flags</th>
+            <th><span class="visually-hidden">Actions</span></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="table-foot">
+        <span id="count"></span>
+        <div class="pager" id="pager"></div>
+      </div>
+    </section>
+
+    <p class="annot"><b>Row colour stripe:</b> red = failed server check, amber = needs review or crash/mic loss. <b>Recorded</b> is when the session ended at the clinic (examination.json → endedAt); the small line under it is the delay until upload. Paging, sorting and filtering run server-side in the real page (<span class="mono">GET /uploads?site=&amp;status=&amp;…&amp;page=</span>).</p>
+  `;
+
+  // ---------- chips ----------
+  const siteChips = app.querySelector("#site-chips");
+  D.sites.forEach((s) => {
+    const n = D.sessions.filter((x) => x.site === s.id).length;
+    siteChips.insertAdjacentHTML("beforeend", `<button class="chip" type="button" data-site="${s.id}" aria-pressed="${st.sites.has(s.id)}">${U.esc(s.name)}<span class="c">${n}</span></button>`);
+  });
+  const issueChips = app.querySelector("#issue-chips");
+  Object.entries(U.ISSUES).forEach(([k, m]) => {
+    const n = D.sessions.filter((x) => x.issues.includes(k)).length;
+    issueChips.insertAdjacentHTML("beforeend", `<button class="chip" type="button" data-issue="${k}" title="${U.esc(m.hint)}" aria-pressed="false">${m.label}<span class="c">${n}</span></button>`);
+  });
+  issueChips.insertAdjacentHTML("beforeend", `<button class="chip" type="button" data-issue="video" aria-pressed="false">Has video<span class="c">${D.sessions.filter((x) => x.videoClips).length}</span></button>`);
+
+  // ---------- KPIs ----------
+  const week = (s) => (D.NOW - new Date(s.receivedAt)) / 864e5 <= 7;
+  const KPI = [
+    { k: "week", cls: "", label: "Received · 7 days", f: week, hint: "all sites in scope" },
+    { k: "valid", cls: "ok", label: "Valid", f: (s) => s.status === "valid", hint: "checksums verified" },
+    { k: "invalid", cls: "bad", label: "Invalid", f: (s) => s.status === "invalid", hint: "failed a server check" },
+    { k: "attention", cls: "warn", label: "Needs attention", f: U.needsAttention, hint: "invalid, flagged, crash or mic loss" },
+    { k: "unreviewed", cls: "off", label: "Unreviewed", f: (s) => s.qc === "unreviewed", hint: "no one has looked yet" },
+  ];
+  const kpis = app.querySelector("#kpis");
+  function renderKpis() {
+    kpis.innerHTML = KPI.map((x) => `<button type="button" class="kpi ${x.cls}" data-kpi="${x.k}" aria-pressed="${st.kpi === x.k}">
+      <span class="k-label">${x.label}</span><span class="k-value">${D.sessions.filter(x.f).length}</span><span class="k-hint">${x.hint}</span></button>`).join("") +
+      `<a class="kpi pbk" href="devices.html" style="text-decoration:none"><span class="k-label">Device backlog ${U.PB("device check-in")}</span>
+      <span class="k-value">${D.devices.reduce((a, d) => a + d.localPending + d.localFailed, 0)}</span><span class="k-hint">sessions on ${D.devices.filter((d) => d.localPending + d.localFailed).length} devices →</span></a>`;
+  }
+
+  // ---------- filter + sort ----------
+  function filtered() {
+    const q = st.q.trim().toLowerCase();
+    return D.sessions.filter((s) => {
+      if (q && !(s.participant.patient_code.toLowerCase().includes(q) || s.id.includes(q) || s.deviceId.toLowerCase().includes(q) || (U.device(s.deviceId).label || "").toLowerCase().includes(q))) return false;
+      if (st.sites.size && !st.sites.has(s.site)) return false;
+      if (st.project && s.project !== st.project) return false;
+      if (st.protocol && s.protocol !== st.protocol) return false;
+      if (st.status && s.status !== st.status) return false;
+      if (st.qc && s.qc !== st.qc) return false;
+      const dv = (st.dateField === "received" ? s.receivedAt : s.endedAt).slice(0, 10);
+      if (st.from && dv < st.from) return false;
+      if (st.to && dv > st.to) return false;
+      for (const i of st.issues) { if (i === "video" ? !s.videoClips : !s.issues.includes(i)) return false; }
+      if (st.kpi) { const k = KPI.find((x) => x.k === st.kpi); if (k && !k.f(s)) return false; }
+      return true;
+    });
+  }
+  const sortVal = (s, k) => k === "site" ? U.site(s.site).name : k === "patient" ? s.participant.patient_code : k === "qc" ? ["review", "unreviewed", "ok", "excluded"].indexOf(s.qc) : k === "status" ? ["invalid", "validating", "valid"].indexOf(s.status) : s[k];
+
+  function row(s) {
+    const dev = U.device(s.deviceId);
+    const t = s.tasks, total = t.length, done = t.filter((x) => !x.skipped && !x.missing).length, sk = t.filter((x) => x.skipped).length;
+    const stripe = s.status === "invalid" ? "row-bad" : U.needsAttention(s) ? "row-warn" : "";
+    return `<tr class="clickable ${stripe}" data-id="${s.id}" tabindex="0">
+      <td><div class="stack"><span class="num">${U.fmtDate(s.receivedAt)}</span><span class="cell-sub num">${U.fmtTime(s.receivedAt)} · ${U.rel(s.receivedAt)}</span></div></td>
+      <td><div class="stack"><span>${U.esc(U.site(s.site).name)}</span><span class="cell-sub">${U.esc(dev.label)}</span></div></td>
+      <td><div class="stack"><span class="cell-main">${U.esc(s.participant.patient_code)}</span><span class="cell-sub">${s.participant.visit_number} · <span class="mono">${s.id.slice(0, 8)}</span></span></div></td>
+      <td><div class="stack"><span>${U.esc(s.protocol)}</span><span class="cell-sub">${U.esc(s.project)}</span></div></td>
+      <td><div class="stack"><span class="num">${U.fmtDT(s.endedAt)}</span><span class="cell-sub">+${U.lagText(s)} to upload</span></div></td>
+      <td class="r num">${U.fmtDurShort(s.durationS)}</td>
+      <td><div class="stack" title="${done} done, ${sk} skipped, ${total - done - sk} missing of ${total}">
+        <span class="num">${done}/${total}${sk ? ` <span class="cell-sub">· ${sk} skipped</span>` : ""}</span>
+        <span class="taskbar"><i class="d" style="width:${done / total * 100}%"></i><i class="s" style="width:${sk / total * 100}%"></i></span></div></td>
+      <td class="c num">${s.hasAudio ? `🎙 ${s.audioClips}` : '<span class="muted">—</span>'}${s.videoClips ? ` · 🎥 ${s.videoClips}` : ""}</td>
+      <td class="r num">${U.fmtBytes(s.bytes)}</td>
+      <td><div class="stack">${U.statusPill(s)}${s.status === "invalid" ? `<span class="cell-sub" style="color:var(--bad-fg)">${U.INVALID_REASON[s.invalidReason]}</span>` : ""}</div></td>
+      <td>${U.qcPill(s.qc)}${s.comments.filter((c) => !c.system).length ? ` <span class="cell-sub" title="Comments">💬 ${s.comments.filter((c) => !c.system).length}</span>` : ""}</td>
+      <td class="flags">${U.issueTags(s)}</td>
+      <td><div class="actions-cell">
+        <a class="btn-mgmt-icon" href="session.html#${s.id}" title="Open session" aria-label="Open session">🔍</a>
+        <button class="btn-mgmt-icon light" type="button" title="Download ZIP" aria-label="Download ZIP" ${s.status === "validating" ? "disabled" : ""}>⬇</button>
+      </div></td>
+    </tr>`;
+  }
+
+  const tbody = app.querySelector("#tbl tbody");
+  function render() {
+    renderKpis();
+    let rows = filtered();
+    const { key, dir } = st.sort;
+    rows.sort((a, b) => { const x = sortVal(a, key), y = sortVal(b, key); return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+    const pages = Math.max(1, Math.ceil(rows.length / st.per));
+    st.page = Math.min(st.page, pages);
+    const slice = rows.slice((st.page - 1) * st.per, st.page * st.per);
+    tbody.innerHTML = slice.length ? slice.map(row).join("") :
+      `<tr class="empty-row"><td colspan="13"><strong>No sessions match these filters.</strong><br>Try a wider date range, or <button class="linklike" type="button" data-clear>clear all filters</button>.</td></tr>`;
+    app.querySelectorAll("#tbl thead th[data-k]").forEach((th) => th.setAttribute("aria-sort", th.dataset.k === key ? (dir > 0 ? "ascending" : "descending") : "none"));
+    app.querySelector("#count").textContent = `Showing ${slice.length ? (st.page - 1) * st.per + 1 : 0}–${(st.page - 1) * st.per + slice.length} of ${rows.length} sessions`;
+    app.querySelector("#pager").innerHTML =
+      `<label class="muted" style="font-size:.8rem">Rows <select id="per">${[10, 25, 50, 100].map((n) => `<option ${n === st.per ? "selected" : ""}>${n}</option>`).join("")}</select></label>` +
+      `<button type="button" data-pg="${st.page - 1}" ${st.page === 1 ? "disabled" : ""} aria-label="Previous page">‹</button>` +
+      Array.from({ length: pages }, (_, i) => `<button type="button" data-pg="${i + 1}" ${i + 1 === st.page ? 'aria-current="page"' : ""}>${i + 1}</button>`).join("") +
+      `<button type="button" data-pg="${st.page + 1}" ${st.page === pages ? "disabled" : ""} aria-label="Next page">›</button>`;
+    const active = [];
+    if (st.kpi) active.push(KPI.find((x) => x.k === st.kpi).label);
+    st.sites.forEach((s) => active.push(U.site(s).name));
+    st.issues.forEach((i) => active.push(i === "video" ? "Has video" : U.ISSUES[i].label));
+    ["project", "protocol"].forEach((k) => st[k] && active.push(st[k]));
+    if (st.status) active.push(U.STATUS[st.status].label);
+    if (st.qc) active.push(U.QC[st.qc].label);
+    if (st.q) active.push(`“${st.q}”`);
+    if (st.from || st.to) active.push(`${st.dateField} ${st.from || "…"} → ${st.to || "…"}`);
+    app.querySelector("#summary").innerHTML = active.length ? `Filtered by ${active.map(U.esc).join(", ")} · <button class="linklike" type="button" data-clear>Clear filters</button>` : "";
+  }
+
+  // ---------- events ----------
+  app.addEventListener("click", (e) => {
+    const t = e.target.closest("button, a, tr.clickable");
+    if (!t) return;
+    if (t.dataset.kpi) { st.kpi = st.kpi === t.dataset.kpi ? "" : t.dataset.kpi; st.page = 1; return render(); }
+    if (t.dataset.site) { st.sites.has(t.dataset.site) ? st.sites.delete(t.dataset.site) : st.sites.add(t.dataset.site); t.setAttribute("aria-pressed", st.sites.has(t.dataset.site)); st.page = 1; return render(); }
+    if (t.dataset.issue) { st.issues.has(t.dataset.issue) ? st.issues.delete(t.dataset.issue) : st.issues.add(t.dataset.issue); t.setAttribute("aria-pressed", st.issues.has(t.dataset.issue)); st.page = 1; return render(); }
+    if (t.dataset.df) { st.dateField = t.dataset.df; app.querySelectorAll("[data-df]").forEach((b) => b.setAttribute("aria-pressed", b === t)); return render(); }
+    if (t.dataset.pg) { st.page = +t.dataset.pg; return render(); }
+    if (t.hasAttribute("data-clear")) {
+      Object.assign(st, { q: "", project: "", protocol: "", from: "", to: "", status: "", qc: "", kpi: "", page: 1 }); st.sites.clear(); st.issues.clear();
+      app.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
+      ["f-q", "f-project", "f-protocol", "f-from", "f-to", "f-status", "f-qc"].forEach((id) => (app.querySelector("#" + id).value = ""));
+      return render();
+    }
+    if (t.matches("th")) return;
+    if (t.id === "csv") { t.textContent = "✓ CSV prepared"; setTimeout(() => (t.textContent = "⬇ Export CSV"), 1400); return; }
+    if (t.tagName === "TR" && !e.target.closest(".actions-cell")) location.href = "session.html#" + t.dataset.id;
+  });
+  app.querySelector("#tbl thead").addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-k]"); if (!th) return;
+    st.sort = { key: th.dataset.k, dir: st.sort.key === th.dataset.k ? -st.sort.dir : -1 }; render();
+  });
+  tbody.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.dataset.id) location.href = "session.html#" + e.target.dataset.id; });
+  const bind = (id, k) => app.querySelector("#" + id).addEventListener("input", (e) => { st[k] = e.target.value; st.page = 1; render(); });
+  bind("f-q", "q"); bind("f-project", "project"); bind("f-protocol", "protocol"); bind("f-from", "from"); bind("f-to", "to"); bind("f-status", "status"); bind("f-qc", "qc");
+  app.addEventListener("change", (e) => { if (e.target.id === "per") { st.per = +e.target.value; st.page = 1; render(); } });
+
+  render();
+})();
+</script>
+<style>.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style>
+</body>
+</html>

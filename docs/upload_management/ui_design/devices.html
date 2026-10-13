@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Devices · TaskProtocoller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="dashboard-page" id="app"></div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM, D = U.D;
+  U.previewBar("devices.html");
+  const app = document.getElementById("app");
+
+  const devs = D.devices.map((d) => ({ ...d, h: U.deviceHealth(d) })).sort((a, b) => a.h.rank - b.h.rank || a.label.localeCompare(b.label));
+  const count = (f) => devs.filter(f).length;
+
+  const row = (d) => `<tr class="${d.h.cls === "bad" ? "row-bad" : d.h.cls === "warn" ? "row-warn" : ""}">
+    <td><div class="stack"><span class="cell-main">${U.esc(d.label)}</span><span class="cell-sub mono">${U.esc(d.id)}</span></div></td>
+    <td>${U.esc(U.site(d.site).name)}</td>
+    <td><span class="pill ${d.h.cls}"><span class="dot"></span>${d.h.label}</span></td>
+    <td><div class="stack"><span>${U.rel(d.lastSeen)}</span><span class="cell-sub num">${U.fmtDT(d.lastSeen)}</span></div></td>
+    <td><div class="stack"><span>${U.rel(d.lastUpload)}</span>${d.lastUpload ? `<span class="cell-sub num">${U.fmtDT(d.lastUpload)}</span>` : ""}</div></td>
+    <td class="r num">${d.uploads30}</td>
+    <td class="r num">${d.localPending ? `<strong style="color:var(--warn-fg)">${d.localPending}</strong>` : "0"}</td>
+    <td class="r num">${d.localFailed ? `<strong style="color:var(--bad-fg)">${d.localFailed}</strong>` : "0"}</td>
+    <td>${d.appVersion}${d.appVersion !== D.CURRENT_APP ? ' <span class="tag warn">old</span>' : ""}</td>
+    <td><div class="stack"><span>${U.rel(d.lastConfig)}</span><span class="cell-sub mono">${d.appVersion === "1.3.0" ? "2026-09-10.093000" : D.CURRENT_CONFIG}</span></div></td>
+    <td><div class="actions-cell">
+      <a class="btn-mgmt-icon" href="uploads.html#${d.site}" title="Show this site's uploads" aria-label="Show uploads">📤</a>
+      <button class="btn-mgmt-icon light" type="button" title="Rename device" aria-label="Rename device">✏️</button>
+    </div></td>
+  </tr>`;
+
+  app.innerHTML = `
+    ${U.topbar({ back: "uploads.html" })}
+    <div class="page-header">
+      <div class="page-title-row"><h1 class="page-title">Devices</h1></div>
+      <p class="page-desc">Every computer running the desktop app at your sites. Use this page to spot sessions that were recorded but have not reached the server yet.</p>
+    </div>
+
+    <p class="annot"><b>Phase B.</b> This page needs two small additions to the desktop app: (1) send <span class="mono">installationId</span> and <span class="mono">appVersion</span> with the config request, and (2) a check-in after each config fetch and upload batch carrying the counts of local sessions not yet uploaded and failed (<span class="mono">POST /device-checkin {installationId, appVersion, pending, failed}</span>). Without it the server only knows a device once it uploads. Device labels are set by a master; new devices appear with their ID.</p>
+
+    <section class="card">
+      <h2 class="stats-title">Device health</h2>
+      <div class="stats">
+        <div class="stat"><span class="s-value">${devs.length}</span><span class="s-label">Devices</span></div>
+        <div class="stat"><span class="s-value" style="color:var(--success)">${count((d) => d.h.cls === "ok")}</span><span class="s-label">Healthy</span></div>
+        <div class="stat"><span class="s-value warn">${devs.reduce((a, d) => a + d.localPending, 0)}</span><span class="s-label">Waiting to upload</span></div>
+        <div class="stat"><span class="s-value bad">${devs.reduce((a, d) => a + d.localFailed, 0)}</span><span class="s-label">Failed on device</span></div>
+        <div class="stat"><span class="s-value bad">${count((d) => d.h.cls === "bad")}</span><span class="s-label">Silent > 7 days</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="section-title">All devices</h2>
+        <div class="chips" id="site-chips"><span class="chips-label">Site</span>
+          <button class="chip" type="button" data-s="" aria-pressed="true">All</button>
+          ${D.sites.map((s) => `<button class="chip" type="button" data-s="${s.id}" aria-pressed="false">${U.esc(s.name)}</button>`).join("")}
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr>
+            <th>Device</th><th>Site</th><th>Health</th><th>Last check-in</th><th>Last upload</th>
+            <th class="r">Uploads (30 d)</th><th class="r">Waiting</th><th class="r">Failed</th><th>App</th><th>Last config fetch</th><th></th>
+          </tr></thead>
+          <tbody id="rows">${devs.map(row).join("")}</tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span><span class="pill ok"><span class="dot"></span>Healthy</span> checked in within 7 days, nothing waiting</span>
+        <span><span class="pill warn"><span class="dot"></span>Backlog</span> sessions recorded but not uploaded, or failed</span>
+        <span><span class="pill bad"><span class="dot"></span>Silent</span> no contact for over 7 days</span>
+        <span><span class="pill off"><span class="dot"></span>No uploads yet</span> fetched a config, never uploaded</span>
+      </div>
+    </section>
+  `;
+
+  app.querySelector("#site-chips").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-s]"); if (!b) return;
+    app.querySelectorAll("[data-s]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    app.querySelector("#rows").innerHTML = devs.filter((d) => !b.dataset.s || d.site === b.dataset.s).map(row).join("");
+  });
+})();
+</script>
+</body>
+</html>
