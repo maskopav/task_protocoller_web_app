@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 
-vi.mock("../utils/logger.js", () => ({ logToFile: vi.fn() }));
+vi.mock("../utils/logger.js", () => ({ logToFile: vi.fn(), SYSTEM_LOG_PATH: "/nonexistent/system_log.txt" }));
 
-import { buildQuestionnaireAnswersCsv, buildTaskResultsCsv } from "./sessionArchiveBuilder.js";
+import {
+  buildQuestionnaireAnswersCsv, buildTaskResultsCsv, buildSessionLogText, earliestSessionStartIso,
+} from "./sessionArchiveBuilder.js";
 
 // CSV text -> array of rows (every cell is quoted by buildCsv; no embedded
 // newlines in these fixtures, so a line split is enough).
@@ -91,5 +93,35 @@ describe("buildTaskResultsCsv", () => {
 
     expect(data).toHaveLength(1);
     expect(data[0][1]).toBe("sdmt");
+  });
+});
+
+describe("earliestSessionStartIso", () => {
+  it("returns the earliest UTC session_date minus a one-hour margin", () => {
+    const iso = earliestSessionStartIso([
+      { session_date: "2026-10-09 15:00:00" },
+      { session_date: "2026-10-08 12:30:00" },
+    ]);
+    expect(iso).toBe("2026-10-08T11:30:00.000Z");
+  });
+
+  it("returns null (read the whole log) when any start is unknown", () => {
+    expect(earliestSessionStartIso([{ session_date: "2026-10-09 15:00:00" }, { session_date: null }])).toBeNull();
+    expect(earliestSessionStartIso([])).toBeNull();
+  });
+});
+
+describe("buildSessionLogText", () => {
+  it("writes a UTC header and the entries separated by blank lines", () => {
+    const text = buildSessionLogText(7, { entries: ["[a] one", "[b] two"], truncated: false });
+    expect(text).toContain("# System log entries for session 7");
+    expect(text).toContain("UTC");
+    expect(text).toContain("[a] one\n\n[b] two\n");
+    expect(text).not.toContain("TRUNCATED");
+  });
+
+  it("says so when there are no entries or they were truncated", () => {
+    expect(buildSessionLogText(7, { entries: [], truncated: false })).toContain("no log entries found");
+    expect(buildSessionLogText(7, { entries: ["[a]"], truncated: true })).toContain("TRUNCATED");
   });
 });

@@ -144,9 +144,10 @@ export default function SessionDataPage() {
           Download recordings, mic checks and task results for study sessions as a zip:
           a flat data/ folder with the audio files, plus sessions_summary.csv,
           task_results.csv (non-questionnaire task output), questionnaire_answers.csv
-          (one row per question) and recordings_index.csv. Filter by project, protocol,
+          (one row per question), recordings_index.csv and a logs/ folder with each
+          session's system log entries. Filter by project, protocol,
           and/or date range, then download everything matching or hand-pick sessions below.
-          Times in the CSVs are local time; audio filenames are UTC (the trailing "Z").
+          Times in the CSVs are local time; audio filenames and log entries are UTC (the trailing "Z").
         </p>
       </div>
 

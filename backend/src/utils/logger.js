@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 // Define log folder and file
 const logDir = path.resolve(__dirname, "../../logs");
 const logPath = path.join(logDir, "system_log.txt");
+export const SYSTEM_LOG_PATH = logPath;
 
 // Ensure folder exists
 if (!fs.existsSync(logDir)) {
