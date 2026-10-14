@@ -101,7 +101,7 @@
   },
   "resumedSession": {
     "title": "Vítejte zpět!",
-    "message": "Váš postup byl uložen. Pro co nejlepší výsledky prosím zůstaňte ve <strong>stejném klidném prostředí</strong> jako předtím a zkuste zbývající úlohy dokončit najednou.",
+    "message": "Vítejte zpět. Pro co nejlepší výsledky prosím zůstaňte ve <strong>stejném klidném prostředí</strong> jako předtím a zkuste zbývající úlohy dokončit najednou.",
     "continue": "Pokračovat"
   },
   "permissions": {
@@ -125,7 +125,7 @@
     "failedAgainInstructions": "Prosím <strong>zůstaňte v této místnosti</strong> až do konce.",
     "mutedTitle": "Nezachytili jsme žádný zvuk",
     "mutedMessage": "Během testu mikrofonu jsme nic neslyšeli.",
-    "mutedInstructions": "Zkontrolujte prosím, že <strong>mikrofon není ztlumený, odpojte sluchátka a ověřte nastavení v zařízení</strong>. Poté to zkuste znovu.",
+    "mutedInstructions": "Zkontrolujte prosím, že <strong>mikrofon není ztlumený, odpojte sluchátka a vypněte Bluetooth</strong>. Poté to zkuste znovu.",
     "mutedAdditionalInfo": "Pokud potíže přetrvávají, podívejte se do návodu k řešení problémů nebo kontaktujte podporu. <br/><br/> Dále bohužel pokračovat nelze.",
     "mutedModalMessage": "Je nám líto, ale mikrofon se nepodařilo správně nastavit. Většinu úloh v této studii proto nebudete moci dokončit. <br/><br/>Omlouváme se za komplikace a děkujeme Vám za váš čas a ochotu se zúčastnit. <br/><br/>Nyní můžete toto okno zavřít.",
     "btnTryAgain": "Zkusit znovu",
@@ -181,7 +181,7 @@
     "btnUnderstand": "Rozumím, pokračovat",
     "guide": {
       "titleDenied": "Přístup ke kameře byl zamítnut",
-      "descDenied": "Zařízení nebo prohlížeč blokuje kameru. Pro pokračování musí přístup povolit obojí.",
+      "descDenied": "Zařízení nebo prohlížeč blokuje kameru. Pro pokračování musí být k obojímu povolen přístup.",
       "descBusy": "Kameru právě používá jiná aplikace. Zavřete ji prosím.",
       "descMissing": "Nenašli jsme žádnou kameru. Zkontrolujte prosím připojení nebo zkuste jiné zařízení.",
       "descGeneric": "Pro pokračování v této úloze je potřeba přístup ke kameře.",

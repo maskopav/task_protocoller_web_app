@@ -174,7 +174,7 @@
       "name": "Syllable repetition",
       "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
       "title": "{{syllable}} repetition",
-      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables <br/>/{{syllable}}-{{syllable}}/<br/> as quickly and accurately as possible. {{example}} The task finishes automatically after {{duration}} seconds. <br/><br/>Press Start to begin the recording.",
+      "instructions": "<strong>Draw a deep breath</strong> and repeat the syllables <br/>/{{syllable}}-{{syllable}}/<br/> <strong>as quickly and accurately as possible</strong>. {{example}} The task finishes automatically after {{duration}} seconds. <br/><br/>Press Start to begin the recording.",
       "instructionsPreCalibration": "In the next task, we will measure your facial movements while you speak. <br/><br/>To do this, we first need to calibrate your camera.",
       "instructionsActive": "Repeat /{{syllable}}-{{syllable}}/ syllables.",
       "params": {
@@ -371,11 +371,11 @@
 
       "addTitle": "<strong>Arrange the colors into a smooth, gradual sequence in the top row.</strong>",
       "addText": "• Tap a color in the <strong>bottom row of colors</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
-      "addGifAlt": "Adding color",
+      "addGifAlt": "Add colors",
 
-      "modifyTitle": "<strong>Modifying colors</strong>",
+      "modifyTitle": "<strong>Modify colors</strong>",
       "modifyText": "• Tap a color in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different color instead.",
-      "modifyGifAlt": "Modifying colors",
+      "modifyGifAlt": "Modify colors",
       "disclaimerText": "",
       "demoTitle": "How it works",
 
@@ -386,8 +386,8 @@
       "versionCompleteTitle": "Well done!",
       "versionCompleteText": "You've completed this part of the color test. Now the last part will be even more challenging.",
       
-      "timeoutTitle": "Ready to move on?",
-      "timeoutText": "It's okay to stop here. Would you like to submit your current sequence?",
+      "timeoutTitle": "Finish the test?",
+      "timeoutText": "You can submit your current order now, or keep arranging.",
       "timeoutSubmit": "Submit",
       "timeoutContinue": "Keep going",
       "fillAllFirst": "Please fill all empty spaces in the top row first.",
@@ -602,7 +602,7 @@
           },
           {
             "id": 1786019770009,
-            "text": "Which technical issues you experienced?",
+            "text": "Which technical issues did you experience?",
             "type": "multiple",
             "options": [
               "Allowing microphone or camera access",

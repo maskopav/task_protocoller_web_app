@@ -646,7 +646,7 @@
     }
   },
   "retelling": {
-    "instructionsPreCalibration": "V další úloze si poslechnete namluvenou pohádku a poté ji převyprávíte vlastními slovy. <br/><br/>Během mluvy budeme měřit Vaše pohyby v obličeji. <br/><br/>Nejprve je proto potřeba nastavit Vaši kameru.",
+    "instructionsPreCalibration": "V další úloze si poslechnete namluvenou pohádku a poté ji převyprávíte vlastními slovy. <br/><br/>Během mluvení budeme měřit Vaše pohyby v obličeji. <br/><br/>Nejprve je proto potřeba nastavit Vaši kameru.",
     "instructionsPostCalibration": "Držte prosím telefon ve zkalibrované poloze. <br/><br/>Stiskněte Přehrát pohádku a poslechněte si namluvenou pohádku. {{playStory}} Po poslechu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Cíl je souvisle mluvit, čili nezáleží jestli je převyprávěný děj správně nebo je pohádka dovyprávěna celá.",
     "instructionsActive": "Převyprávějte prosím pohádku vlastními slovy během {{duration}} sekund."
   },
@@ -714,10 +714,10 @@
     "trialCompleteText": "Zkušební kolo je hotové. Teď bude test o něco náročnější.",
     "versionCompleteTitle": "Výborně!",
     "versionCompleteText": "Tuto část testu barev máte za sebou. Poslední část bude ještě o něco náročnější.",
-    "timeoutTitle": "Chcete test přeskočit?",
-    "timeoutText": "Klidně můžete skončit. Chcete odeslat aktuální uspořádání barev?",
-    "timeoutSubmit": "Odeslat",
-    "timeoutContinue": "Ne, chci pokračovat",
+    "timeoutTitle": "Ukončit test?",
+    "timeoutText": "Můžete odeslat aktuální pořadí barev, nebo pokračovat v testu.",
+    "timeoutSubmit": "Ukončit a odeslat",
+    "timeoutContinue": "Pokračovat v testu",
     "fillAllFirst": "Nejprve prosím zaplňte všechna volná místa v horní řadě.",
     "loadError": "Barvy se nepodařilo načíst. Zkontrolujte prosím připojení k internetu a zkuste to znovu.",
     "retry": "Zkusit znovu"
@@ -739,7 +739,7 @@
     }
   },
   "sdmt": {
-    "name": "Test symbolů a číslic (SDMT)",
+    "name": "Test symbolů a číslic",
     "title": "Symboly",
     "instructions": "Na další obrazovce klikejte na klávesnici na číslo, které patří k zobrazenému symbolu. Je velmi důležité používat při úloze pouze <strong>jeden prst</strong>. <br><br>Pracujte co nejrychleji, ale bez chyb. Na úlohu máte <strong>{{duration}} sekund</strong>.",
     "instructionsActive": "Přiřaďte symbol k číslu.",
