@@ -32,6 +32,13 @@ export const PROTOCOL_LANGUAGES = [
   { code: "cs", label: "Čeština", implemented: false },
 ];
 
+// Keep <html lang> matching the UI language. A wrong lang (e.g. "en" on a
+// Czech page) makes browsers offer machine translation, which mutates the
+// DOM under React -- see the note in index.html.
+i18n.on("languageChanged", (lng) => {
+  if (typeof document !== "undefined") document.documentElement.lang = lng;
+});
+
 i18n
   .use(initReactI18next)
   .init({

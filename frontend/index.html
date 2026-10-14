@@ -1,7 +1,11 @@
 <!doctype html>
-<html lang="en">
+<!-- translate="no": browser auto-translation (e.g. Chrome iOS) rewrites
+     the text nodes React owns, crashing React (removeChild NotFoundError)
+     and garbling task prompts. lang is kept in sync by src/i18n/index.js. -->
+<html lang="cs" translate="no">
   <head>
     <meta charset="UTF-8" />
+    <meta name="google" content="notranslate" />
     <link rel="icon" type="image/svg+xml" href="/task-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -9,7 +13,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <title>TaskProtocoller</title>
+    <title>neuroSHARE</title>
+    <meta name="application-name" content="neuroSHARE" />
+    <meta property="og:title" content="neuroSHARE" />
+    <meta property="og:site_name" content="neuroSHARE" />
+    <meta property="og:type" content="website" />
     <script src="/vad/ort.wasm.min.js"></script>
     <script src="/vad/bundle.min.js"></script>
     <script>window.FLAC_SCRIPT_LOCATION = '/flac/';</script>
