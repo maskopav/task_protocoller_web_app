@@ -110,11 +110,15 @@ export async function getSessionExportBundle(sessionIds) {
   // (params.questions[].id/.text -- see v_quest_definitions in
   // create_views.sql) so the archive builder can label each answer with its
   // actual question text instead of just its raw id, without a second query.
+  // task_type ('questionnaire', 'cognitive', ...) is what marks a questionnaire
+  // -- t.category is the specific questionnaire's own name (rbdsq, hhies, ...).
   const taskResults = await executeQuery(
-    `SELECT tr.session_id, tr.protocol_task_id, tr.repeat_index, tr.payload, tr.created_at, t.category, pt.params
+    `SELECT tr.session_id, tr.protocol_task_id, tr.repeat_index, tr.payload, tr.created_at, t.category,
+            tt.type AS task_type, pt.params
      FROM task_results tr
      LEFT JOIN protocol_tasks pt ON pt.id = tr.protocol_task_id
      LEFT JOIN tasks t ON t.id = pt.task_id
+     LEFT JOIN task_types tt ON tt.id = t.type_id
      WHERE tr.session_id IN (${placeholders})`,
     sessionIds
   );

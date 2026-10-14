@@ -56,13 +56,22 @@ function parseJsonMaybe(value) {
   }
 }
 
+// A questionnaire is identified by its task type, not its category -- the
+// category is the questionnaire's own name (rbdsq, hhies, feedback, ...).
+// The payload's own taskType marker is the fallback for a row whose
+// protocol task/type couldn't be joined.
+function isQuestionnaire(r) {
+  if (r.task_type) return r.task_type === "questionnaire";
+  return parseJsonMaybe(r.payload)?.taskType === "questionnaire";
+}
+
 // Non-questionnaire task results (visual/cognitive tasks etc.) -- shape
 // varies per task type, so the payload stays a single raw JSON cell.
 // Questionnaire rows are excluded here; see buildQuestionnaireAnswersCsv.
-function buildTaskResultsCsv(taskResults) {
+export function buildTaskResultsCsv(taskResults) {
   const headers = ["session_id", "task_category", "protocol_task_id", "repeat_index", "created_at", "payload"];
   const rows = taskResults
-    .filter((r) => r.category !== "questionnaire")
+    .filter((r) => !isQuestionnaire(r))
     .map((r) => [
       r.session_id, r.category, r.protocol_task_id, r.repeat_index, utcDbToLocal(r.created_at), jsonCellValue(r.payload),
     ]);
@@ -77,7 +86,23 @@ function buildTaskResultsCsv(taskResults) {
 // comes from the protocol_task's own params.questions (params.title for the
 // questionnaire name) -- the exact wording the participant actually saw for
 // that protocol version, not a generic label.
-function buildQuestionnaireAnswersCsv(taskResults) {
+//
+// Answer keys are "<questionId>", "<questionId>__<language>" (a question
+// repeated once per selected language -- repeatFor in Questionnaire.jsx) or
+// "<questionId>__freeText__<option>" (a "please specify" entry); the suffix
+// is appended to the base question's text so every row stays labelled.
+function questionLabel(questionById, key) {
+  const question = questionById.get(key);
+  if (question) return question.text || key;
+
+  const [baseId, ...rest] = key.split("__");
+  const base = questionById.get(baseId);
+  if (!base?.text) return key;
+  if (rest[0] === "freeText") return `${base.text} [free text: ${rest.slice(1).join("__")}]`;
+  return `${base.text} [${rest.join("__")}]`;
+}
+
+export function buildQuestionnaireAnswersCsv(taskResults) {
   const headers = [
     "session_id", "questionnaire", "protocol_task_id", "repeat_index",
     "question_id", "question_text", "answer", "created_at",
@@ -85,7 +110,7 @@ function buildQuestionnaireAnswersCsv(taskResults) {
   const rows = [];
 
   for (const r of taskResults) {
-    if (r.category !== "questionnaire") continue;
+    if (!isQuestionnaire(r)) continue;
 
     const payload = parseJsonMaybe(r.payload);
     const answers = payload && typeof payload.answers === "object" ? payload.answers : null;
@@ -96,14 +121,10 @@ function buildQuestionnaireAnswersCsv(taskResults) {
     const questionById = new Map(questions.map((q) => [String(q.id), q]));
 
     for (const [questionId, value] of Object.entries(answers)) {
-      // Free-text "please specify" entries are logged under a synthetic key
-      // ("<questionId>__freeText__<option>"), not a real question id -- fall
-      // back to the raw key as the label since there's no definition for it.
-      const question = questionById.get(questionId);
       const answerText = Array.isArray(value) ? value.join("; ") : String(value ?? "");
       rows.push([
-        r.session_id, params.title || "", r.protocol_task_id, r.repeat_index,
-        questionId, question?.text || questionId, answerText, utcDbToLocal(r.created_at),
+        r.session_id, params.title || r.category || "", r.protocol_task_id, r.repeat_index,
+        questionId, questionLabel(questionById, questionId), answerText, utcDbToLocal(r.created_at),
       ]);
     }
   }
