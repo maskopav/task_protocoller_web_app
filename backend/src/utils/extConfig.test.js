@@ -190,7 +190,7 @@ describe('buildExtConfig — case specifics', () => {
   it('legacy_protocol: default template, mapped legacy identifiers, string booleans', () => {
     const { config } = all.legacy_protocol;
     const [protocol] = config.protocols;
-    expect(protocol.recordingsFileName).toBe('${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}');
+    expect(protocol.recordingsFileName).toBe('${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}');
     expect(protocol.patientFields.map((f) => f.name)).toEqual(['patient_code', 'sex', 'year_of_birth']);
     expect(protocol.patientFields[2]).toMatchObject({ regex: '\\d{4}', required: false });
     expect(protocol.tasks[0].subtype).toBe('SYLLABLES');

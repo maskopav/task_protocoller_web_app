@@ -340,7 +340,15 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
       };
     });
 
+    // Description is per variant (language); fall back to the primary's text for languages without one.
+    const descriptionKey = `p${gid}_description`;
+    const hasDescription = variants.some((v) => v.protocol.description?.trim());
+    if (hasDescription) {
+      for (const lang of languages) put(lang, descriptionKey, (byLang[lang] ?? primary).protocol.description?.trim() || primary.protocol.description?.trim() || "");
+    }
+
     const out = { name, version: num(primary.protocol.version, 1), project: projectName };
+    if (hasDescription) out.descriptionKey = descriptionKey;
     if (primary.protocol.instructions_pdf_url) out.protocolInstructionsPdfUrl = primary.protocol.instructions_pdf_url;
     out.recordingsFileName = primary.protocol.recordings_file_name || DEFAULT_RECORDINGS_FILE_NAME;
     out.patientFields = patientFields;

@@ -47,7 +47,7 @@ export const SITE_NAME_FORMAT_ERROR =
 // Mirrors frontend/src/components/Identifiers/IdentifierFields.js.
 
 export const DEFAULT_RECORDINGS_FILE_NAME =
-  "${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}";
+  "${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}";
 
 // null when valid, else the reason. `fieldNames` are the identifier names
 // defined on the protocol; every ${field.x} must reference one of them.

@@ -12,18 +12,18 @@ export const FIELD_NAME_RE = /^[a-z][a-z0-9_]*$/;
 
 // Safe fallback (no identifier variables) used when a protocol has no template.
 export const DEFAULT_RECORDINGS_FILE_NAME =
-  '${installationId}_${taskIndex}_${task.subtype}_Rep${repetition}';
+  '${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}';
 // Prefill for NEW protocols, paired with a prefilled patient_code identifier.
 export const NEW_PROTOCOL_FILE_NAME = '${field.patient_code}_' + DEFAULT_RECORDINGS_FILE_NAME;
 
 // Tokens the desktop app substitutes in the template, with the sample value
 // used in the admin's preview. `key` points at admin.json fileName.vars.<key>.
 export const FILE_NAME_TOKENS = [
-  { token: '${installationId}', key: 'installationId', sample: 'fdc4-qw7w-sA54' },
   { token: '${siteName}',       key: 'siteName',       sample: 'CLINIC-01' },
   { token: '${taskIndex}',      key: 'taskIndex',      sample: '03' },
   { token: '${task.subtype}',   key: 'subtype',        sample: 'PHONATION' },
   { token: '${repetition}',     key: 'repetition',     sample: '1' },
+  { token: '${installationId}', key: 'installationId', sample: 'fdc4-qw7w-sA54' },
 ];
 
 export const fieldToken = (name) => '${field.' + name + '}';
