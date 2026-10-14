@@ -430,15 +430,13 @@
           "text": "Jakým jazykem (jazyky) jste jako dítě doma převážně mluvili? (max. 3)",
           "type": "multiple",
           "options": [
-            "Němčina (vč. švýcarské němčiny)",
-            "Francouzština (vč. románských nářečí – patois)",
-            "Italština (vč. tessinského / graubündenského nářečí)",
-            "Rétorománština",
-            "Srbština / chorvatština",
-            "Albánština",
-            "Portugalština",
-            "Španělština",
-            "Angličtina",
+            "Čeština",
+            "Slovenština",
+            "Polština",
+            "Ukrajinština",
+            "Ruština",
+            "Vietnamština",
+            "Němčina",
             "Jiný"
           ],
           "freeTextOptions": [
@@ -451,15 +449,13 @@
           "text": "V jakém jazyce (jazycích) dnes myslíte a který ovládáte nejlépe? Pokud myslíte ve více jazycích a všechny velmi dobře ovládáte, uveďte je všechny. (max. 3)",
           "type": "multiple",
           "options": [
-            "Němčina (vč. švýcarské němčiny)",
-            "Francouzština (vč. románských nářečí – patois)",
-            "Italština (vč. tessinského / graubündenského nářečí)",
-            "Rétorománština",
-            "Srbština / chorvatština",
-            "Albánština",
-            "Portugalština",
-            "Španělština",
-            "Angličtina",
+            "Čeština",
+            "Slovenština",
+            "Polština",
+            "Ukrajinština",
+            "Ruština",
+            "Vietnamština",
+            "Němčina",
             "Jiný"
           ],
           "freeTextOptions": [
@@ -473,7 +469,8 @@
           "type": "single",
           "options": [
             "Věk (roky)",
-            "Nevím"
+            "Nevím",
+            "Od narození"
           ],
           "freeTextOptions": [
             "Věk (roky)"
@@ -485,13 +482,13 @@
           "showIf": {
             "questionId": 1789302000000,
             "unlessLanguage": {
-              "de": "Němčina (vč. švýcarské němčiny)",
-              "fr": "Francouzština (vč. románských nářečí – patois)",
-              "it": "Italština (vč. tessinského / graubündenského nářečí)",
-              "rm": "Rétorománština",
-              "pt": "Portugalština",
-              "es": "Španělština",
-              "en": "Angličtina"
+              "cs": "Čeština",
+              "sk": "Slovenština",
+              "pl": "Polština",
+              "uk": "Ukrajinština",
+              "ru": "Ruština",
+              "vi": "Vietnamština",
+              "de": "Němčina"
             }
           }
         },
@@ -514,13 +511,13 @@
           "showIf": {
             "questionId": 1789302000000,
             "unlessLanguage": {
-              "de": "Němčina (vč. švýcarské němčiny)",
-              "fr": "Francouzština (vč. románských nářečí – patois)",
-              "it": "Italština (vč. tessinského / graubündenského nářečí)",
-              "rm": "Rétorománština",
-              "pt": "Portugalština",
-              "es": "Španělština",
-              "en": "Angličtina"
+              "cs": "Čeština",
+              "sk": "Slovenština",
+              "pl": "Polština",
+              "uk": "Ukrajinština",
+              "ru": "Ruština",
+              "vi": "Vietnamština",
+              "de": "Němčina"
             }
           }
         },
@@ -912,7 +909,7 @@
           ],
           "optional": false,
           "exclusiveOption": [
-            "None"
+            "Žádný"
           ],
           "freeTextOptions": []
         },
