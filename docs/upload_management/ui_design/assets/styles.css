@@ -150,6 +150,7 @@ a { color: var(--primary); }
 .btn-ghost:hover { border-color: var(--primary); }
 .btn-danger { background: var(--white); color: var(--danger); border-color: #f5c6c0; }
 .btn-sm { font-size: 0.8rem; padding: 0.25rem 0.7rem; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
 .btn-mgmt-icon {
   width: 32px; height: 32px; border-radius: 6px; border: 0; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
@@ -354,6 +355,8 @@ body.hide-pb .pb { display: none; }
 .qc-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
 .qc-opt { font: inherit; font-size: 0.85rem; text-align: left; padding: 0.45rem 0.6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; gap: 0.4rem; }
 .qc-opt[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; background: var(--row-hover); }
+.qc-opt:disabled { cursor: default; color: inherit; }
+.qc-opt:disabled:not([aria-pressed="true"]) { opacity: 0.45; }
 .thread { display: flex; flex-direction: column; gap: 0.6rem; }
 .comment { display: grid; grid-template-columns: 30px 1fr; gap: 0.5rem; }
 .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--info-bg); color: var(--info-fg); font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }

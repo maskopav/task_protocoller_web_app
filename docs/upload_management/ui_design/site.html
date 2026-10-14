@@ -43,7 +43,7 @@
     ${U.topbar()}
     <div class="page-header">
       <div class="page-title-row"><h1 class="page-title">${U.esc(site.name)}</h1><span class="pill ok lg">Active</span>
-        <div class="page-actions"><button class="btn btn-primary" type="button"${master ? "" : ' disabled title="Only a master (or the site\'s creator) can edit a site"'}>Edit</button></div></div>
+        ${master ? '<div class="page-actions"><button class="btn btn-primary" type="button">Edit</button></div>' : ""}</div>
       <div class="meta-grid" style="margin-top:.5rem">
         <div class="meta-item"><span class="m-label">Country</span><span class="m-value">📍 ${U.esc(site.country)}</span></div>
         <div class="meta-item"><span class="m-label">Contact person(s)</span><span class="m-value">👤 ${U.esc(site.contact)}</span></div>

@@ -195,8 +195,8 @@
                 about: "user_projects: Test Study 001 (can_edit). Sees that project at all of its clinics, not the other projects at those clinics." },
     site:     { name: "Clinic Admin", role: "Admin", initials: "CA", projects: [], sites: ["prague"],
                 about: "user_sites: Prague. Sees and works on every Prague session (review, comment, download, participant fields); the projects reached through the clinic stay read-only." },
-    narrowed: { name: "Reviewer", role: "Admin", initials: "RV", projects: [{ project: "Test Study 002", canEdit: false, onlySites: ["paris"] }], sites: [],
-                about: "user_projects: Test Study 002 (read-only), user_project_sites: Paris. Sees Test Study 002 at Paris only." },
+    narrowed: { name: "Reviewer", role: "Admin", initials: "RV", projects: [{ project: "Test Study 002", canEdit: false }], sites: [],
+                about: "user_projects: Test Study 002 (read-only), no site grants. Sees that project's sessions at all of its clinics, view only." },
   };
   Object.values(personas).forEach((p) => (people[p.initials] = p.name));
 
