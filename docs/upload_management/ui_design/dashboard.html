@@ -22,16 +22,22 @@
   const att = D.sessions.filter(U.needsAttention).length;
   const week = D.sessions.filter((s) => (D.NOW - new Date(s.receivedAt)) / 864e5 <= 7).length;
 
-  const siteCard = (s) => {
-    const ss = D.sessions.filter((x) => x.site === s.id).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+  const uploadLine = (ss) => {
+    ss = ss.slice().sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
     const a = ss.filter(U.needsAttention).length;
-    return `<a class="site-card" href="site.html#${s.id}">
+    return `<span class="sc-up"><span>📤 Last upload ${U.rel(ss[0] && ss[0].receivedAt)}</span>${a ? `<span class="pill warn">${a} need attention</span>` : '<span class="pill ok">All clear</span>'}</span>`;
+  };
+  const siteCard = (s) => `<a class="site-card" href="site.html#${s.id}">
       <h3>${U.esc(s.name)}</h3><span class="pill ok">Active</span>
       <span class="sc-link">${s.projects.length} Assigned Projects</span>
-      <span class="sc-up"><span>📤 Last upload ${U.rel(ss[0].receivedAt)}</span>${a ? `<span class="pill warn">${a} need attention</span>` : '<span class="pill ok">All clear</span>'}</span>
+      ${uploadLine(D.sessions.filter((x) => x.site === s.id))}
     </a>`;
+  const projCard = (p) => {
+    const countries = [...new Set(D.sites.filter((s) => s.projects.includes(p.name)).map((s) => s.country))].join(", ");
+    return `<a class="site-card" href="project.html#${p.id}"><h3>${U.esc(p.name)}</h3><span class="pill ok">Active</span>
+      <span class="sc-link">${U.esc(countries || "—")}</span><span class="muted" style="font-size:.85rem">${U.esc(p.description)}</span>
+      ${uploadLine(D.sessions.filter((x) => x.project === p.name))}</a>`;
   };
-  const projCard = (name, country, desc) => `<a class="site-card" href="#"><h3>${name}</h3><span class="pill ok">Active</span><span class="sc-link">${country}</span><span class="muted" style="font-size:.85rem">${desc}</span></a>`;
 
   app.innerHTML = `
     ${U.topbar({ back: null })}
@@ -56,7 +62,7 @@
         </a>
       </div>
     </section>
-    <p class="annot"><b>Placement.</b> The Uploads card sits above the site grid for every role: admins see it as soon as they have at least one site in scope, masters always. The attention count is the same number as the “Needs attention” filter on the Uploads page, so the badge and the list never disagree.</p>
+    <p class="annot"><b>Placement and scope.</b> The Uploads card sits above the site grid for every role: admins see it as soon as they have at least one site in scope, masters always. All counts on this page (cards, badges, “last upload”) are computed over the sessions the user may see, which is the same set and the same number as the Uploads page, so a badge and its list never disagree. A site card counts only the projects the user sees at that site. Switch “View as” in the top bar to compare.</p>
 
     <section class="dash-section">
       <h2>Your Assigned Sites</h2>
@@ -65,21 +71,17 @@
 
     <section class="dash-section">
       <h2>Your Assigned Projects</h2>
-      <div class="site-grid">
-        ${projCard("Test Study 001", "France, United Kingdom", "Initial testing project")}
-        ${projCard("Test Study 002", "Czechia", "Second testing project")}
-        ${projCard("Czech Clinic Study", "Czechia", "Desktop-app sample project")}
-      </div>
+      <div class="site-grid">${D.projects.map(projCard).join("")}</div>
     </section>
 
-    <section class="dash-section">
+    ${U.SC.P.master ? `<section class="dash-section">
       <h2>Master Administrative Tools</h2>
       <div class="actions-grid">
         <a class="action-card" href="#"><span class="ac-icon">👤</span><span><h3>Admin User Management</h3><p>Manage administrator accounts, assign project permissions, and reset credentials.</p></span></a>
         <a class="action-card" href="#"><span class="ac-icon green">📂</span><span><h3>Project Management</h3><p>View and manage all system projects, activate or deactivate projects.</p></span></a>
         <a class="action-card" href="#"><span class="ac-icon grey">🏥</span><span><h3>Site Management</h3><p>Manage clinical sites, their access tokens, assigned projects and site-level config.</p></span></a>
       </div>
-    </section>
+    </section>` : ""}
   `;
 })();
 </script>

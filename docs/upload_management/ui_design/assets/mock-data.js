@@ -180,5 +180,25 @@
     d.uploads30 = sessions.filter((x) => x.deviceId === d.id).length;
   });
 
-  window.UM_DATA = { NOW, CURRENT_CONFIG, CURRENT_APP, sites, protocols, devices, sessions, people };
+  const projects = [
+    { id: "ts1", name: "Test Study 001", description: "Initial testing project", contact: "Alice Martin", start: "2026-03-01" },
+    { id: "ts2", name: "Test Study 002", description: "Second testing project", contact: "Jana Dvořáková", start: "2026-05-15" },
+    { id: "czech", name: "Czech Clinic Study", description: "Desktop-app sample project", contact: "Petr Novák", start: "2026-08-01" },
+  ];
+
+  // "View as" personas, written as the grant rows the backend stores
+  // (accessScope.js): projects = user_projects (+ can_edit, + optional
+  // user_project_sites whitelist), sites = user_sites.
+  const personas = {
+    master:   { name: "System Master", role: "Master", initials: "MS", master: true, about: "Sees and does everything, including quarantined uploads from unknown devices." },
+    project:  { name: "Project Admin", role: "Admin", initials: "PA", projects: [{ project: "Test Study 001", canEdit: true }], sites: [],
+                about: "user_projects: Test Study 001 (can_edit). Sees that project at all of its clinics, not the other projects at those clinics." },
+    site:     { name: "Clinic Admin", role: "Admin", initials: "CA", projects: [], sites: ["prague"],
+                about: "user_sites: Prague. Sees and works on every Prague session (review, comment, download, participant fields); the projects reached through the clinic stay read-only." },
+    narrowed: { name: "Reviewer", role: "Admin", initials: "RV", projects: [{ project: "Test Study 002", canEdit: false, onlySites: ["paris"] }], sites: [],
+                about: "user_projects: Test Study 002 (read-only), user_project_sites: Paris. Sees Test Study 002 at Paris only." },
+  };
+  Object.values(personas).forEach((p) => (people[p.initials] = p.name));
+
+  window.UM_DATA = { NOW, CURRENT_CONFIG, CURRENT_APP, sites, projects, protocols, devices, sessions, people, personas };
 })();

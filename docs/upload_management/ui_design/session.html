@@ -19,9 +19,11 @@
   U.previewBar("session.html");
 
   const wanted = (location.hash || "").slice(1);
-  const s = D.sessions.find((x) => x.id === wanted) || D.sessions[9];
-  const site = U.site(s.site), dev = U.device(s.deviceId), p = s.participant;
   const app = document.getElementById("app");
+  const s = wanted ? D.sessions.find((x) => x.id === wanted) : D.sessions.find((x) => x.id === D.ALL.sessions[9].id) || D.sessions[0];
+  if (!s) { app.innerHTML = U.topbar({ back: "uploads.html" }) + U.notFound("session"); return; }
+  const site = U.site(s.site), dev = U.device(s.deviceId), p = s.participant;
+  const edit = U.SC.canEdit(s), me = U.SC.P.initials;
 
   // ---------- derived ----------
   const clipName = (t) => `${p.patient_code}_${s.deviceId}_${t.taskIndex}_${t.subtype || t.type}_Rep${t.repetition}`.replace(/[^A-Za-z0-9_-]/g, "");
@@ -103,7 +105,7 @@
         <div class="page-actions">
           <button class="btn btn-ghost" type="button">◀ Previous</button>
           <button class="btn btn-ghost" type="button">Next ▶</button>
-          <button class="btn btn-primary" type="button" ${s.status === "validating" ? "disabled" : ""}>⬇ Download ZIP · ${U.fmtBytes(s.bytes)}</button>
+          ${edit ? `<button class="btn btn-primary" type="button" ${s.status === "validating" ? "disabled" : ""}>⬇ Download ZIP · ${U.fmtBytes(s.bytes)}</button>` : '<span class="pill off lg" title="Your access to this project is read-only">👁 View only</span>'}
         </div>
       </div>
       <p class="page-desc" style="font-size:1rem">${U.esc(s.protocol)} · ${U.esc(s.project)} · recorded at <a href="site.html#${site.id}">${U.esc(site.name)}</a> on ${U.fmtDate(s.endedAt)}</p>
@@ -167,13 +169,14 @@
         <section class="panel">
           <h2 class="section-title">Review</h2>
           <div class="qc-options" role="group" aria-label="Review status">
-            ${Object.entries(U.QC).map(([k, m]) => `<button type="button" class="qc-opt" data-qc="${k}" aria-pressed="${s.qc === k}"><span class="pill ${m.cls}">${m.icon}</span>${m.label}</button>`).join("")}
+            ${Object.entries(U.QC).map(([k, m]) => `<button type="button" class="qc-opt" data-qc="${k}" aria-pressed="${s.qc === k}"${edit ? "" : " disabled"}><span class="pill ${m.cls}">${m.icon}</span>${m.label}</button>`).join("")}
           </div>
           <div class="thread" id="thread">${comments.map(commentHtml).join("") || '<p class="section-sub">No comments yet.</p>'}</div>
-          <label for="newc" class="section-sub">Add a comment for the site team</label>
+          ${edit ? `<label for="newc" class="section-sub">Add a comment for the site team</label>
           <textarea id="newc" class="input" placeholder="e.g. Phonation take 2 clipped, please re-record at next visit"></textarea>
-          <div><button class="btn btn-primary btn-sm" type="button" id="post">Post comment</button></div>
+          <div><button class="btn btn-primary btn-sm" type="button" id="post">Post comment</button></div>` : ""}
         </section>
+        ${edit ? "" : `<p class="annot"><b>View only.</b> This session is visible to you through a read-only project assignment (<span class="mono">can_edit = 0</span>). Download, revealing participant fields, changing the review status and commenting need either a site assignment for <b>${U.esc(site.name)}</b> or edit rights on <b>${U.esc(s.project)}</b>. The server enforces the same rule on each endpoint, not just in the UI.</p>`}
 
         <section class="panel">
           <h2 class="section-title">Server checks</h2>
@@ -181,7 +184,7 @@
         </section>
 
         <section class="panel">
-          <div class="section-head"><h2 class="section-title">Participant</h2><button class="btn btn-ghost btn-sm" type="button" id="reveal">👁 Show values</button></div>
+          <div class="section-head"><h2 class="section-title">Participant</h2>${edit ? '<button class="btn btn-ghost btn-sm" type="button" id="reveal">👁 Show values</button>' : ""}</div>
           <div class="meta-grid" style="grid-template-columns:1fr 1fr" id="pfields">
             ${Object.entries(p).map(([k, v]) => `<div class="meta-item"><span class="m-label">${U.esc(k.replace(/_/g, " "))}</span><span class="m-value"><span class="${k === "patient_code" || k === "visit_number" ? "" : "masked"}">${U.esc(v)}</span></span></div>`).join("")}
           </div>
@@ -199,11 +202,11 @@
     if (b.dataset.qc) {
       app.querySelectorAll("[data-qc]").forEach((x) => x.setAttribute("aria-pressed", x === b));
       const th = app.querySelector("#thread"); if (th.querySelector("p")) th.innerHTML = "";
-      th.insertAdjacentHTML("beforeend", commentHtml({ who: "MS", at: D.NOW.toISOString(), system: true, text: "set review to " + U.QC[b.dataset.qc].label }));
+      th.insertAdjacentHTML("beforeend", commentHtml({ who: me, at: D.NOW.toISOString(), system: true, text: "set review to " + U.QC[b.dataset.qc].label }));
       return;
     }
     if (b.id === "reveal") { const on = b.dataset.on !== "1"; b.dataset.on = on ? "1" : "0"; app.querySelectorAll("#pfields .m-value > span").forEach((x, i) => { const k = Object.keys(p)[i]; if (k !== "patient_code" && k !== "visit_number") x.classList.toggle("masked", !on); }); b.textContent = on ? "🙈 Hide values" : "👁 Show values"; return; }
-    if (b.id === "post") { const ta = app.querySelector("#newc"); if (!ta.value.trim()) { ta.focus(); return; } const th = app.querySelector("#thread"); if (th.querySelector("p")) th.innerHTML = ""; th.insertAdjacentHTML("beforeend", commentHtml({ who: "MS", at: D.NOW.toISOString(), text: ta.value.trim() })); ta.value = ""; return; }
+    if (b.id === "post") { const ta = app.querySelector("#newc"); if (!ta.value.trim()) { ta.focus(); return; } const th = app.querySelector("#thread"); if (th.querySelector("p")) th.innerHTML = ""; th.insertAdjacentHTML("beforeend", commentHtml({ who: me, at: D.NOW.toISOString(), text: ta.value.trim() })); ta.value = ""; return; }
     if (b.classList.contains("play")) { const was = b.textContent; b.textContent = "❚❚"; setTimeout(() => (b.textContent = was), 1500); }
   });
 })();

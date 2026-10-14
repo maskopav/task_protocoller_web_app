@@ -26,6 +26,7 @@
   const hash = (location.hash || "").slice(1);
   if (D.sites.some((s) => s.id === hash)) st.sites.add(hash);
   if (hash === "attention") st.kpi = "attention";
+  if (hash.startsWith("project=")) { const p = U.project(decodeURIComponent(hash.slice(8))); if (p) st.project = p.name; }
 
   const app = document.getElementById("app");
   const projects = [...new Set(D.sessions.map((s) => s.project))].sort();
@@ -44,7 +45,7 @@
       <p class="page-desc">Sessions uploaded by the desktop app at your sites. Each upload is checked on arrival; review the ones that need attention and mark them for analysis.</p>
     </div>
 
-    <p class="annot"><b>Scope.</b> Master sees every site. An admin sees only sites assigned to them directly (<span class="mono">user_sites</span>) or through a project grant (<span class="mono">accessScope.js</span>). The Site filter lists only those sites, and is hidden when the user has just one.</p>
+    <p class="annot"><b>Scope (per site + project pair).</b> Master sees every session, including quarantined uploads from unregistered devices. An admin sees a session when its <b>site</b> is assigned to them (<span class="mono">user_sites</span>), or when its <b>project</b> is assigned to them (<span class="mono">user_projects</span>) and the site is one of that project's clinics allowed to them (<span class="mono">user_project_sites</span> whitelist, else all of them). A project grant never shows other projects' sessions at the same clinic. The server applies this in <span class="mono">GET /uploads</span> before filtering, paging and counting, so every KPI, chip count and filter option below covers only the user's scope. The Site chips are hidden when the user sees one site. <b>Download</b> needs master, a site assignment for the session's clinic, or <span class="mono">can_edit</span> on its project; rows seen only through a read-only project grant show no download button.</p>
 
     <div class="kpis" id="kpis"></div>
 
@@ -75,7 +76,7 @@
             <select id="f-qc"><option value="">Any</option>${Object.entries(U.QC).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join("")}</select>
           </label>
         </div>
-        <div class="chips" id="site-chips"><span class="chips-label">Sites</span></div>
+        <div class="chips" id="site-chips"${D.sites.length > 1 ? "" : " hidden"}><span class="chips-label">Sites</span></div>
         <div class="chips" id="issue-chips"><span class="chips-label">Flags</span></div>
       </div>
     </section>
@@ -140,8 +141,8 @@
   function renderKpis() {
     kpis.innerHTML = KPI.map((x) => `<button type="button" class="kpi ${x.cls}" data-kpi="${x.k}" aria-pressed="${st.kpi === x.k}">
       <span class="k-label">${x.label}</span><span class="k-value">${D.sessions.filter(x.f).length}</span><span class="k-hint">${x.hint}</span></button>`).join("") +
-      `<a class="kpi pbk" href="devices.html" style="text-decoration:none"><span class="k-label">Device backlog ${U.PB("device check-in")}</span>
-      <span class="k-value">${D.devices.reduce((a, d) => a + d.localPending + d.localFailed, 0)}</span><span class="k-hint">sessions on ${D.devices.filter((d) => d.localPending + d.localFailed).length} devices →</span></a>`;
+      (D.devices.every((d) => d.backlogHidden) ? "" : `<a class="kpi pbk" href="devices.html" style="text-decoration:none"><span class="k-label">Device backlog ${U.PB("device check-in")}</span>
+      <span class="k-value">${D.devices.reduce((a, d) => a + d.localPending + d.localFailed, 0)}</span><span class="k-hint">sessions on ${D.devices.filter((d) => d.localPending + d.localFailed).length} devices →</span></a>`);
   }
 
   // ---------- filter + sort ----------
@@ -185,7 +186,7 @@
       <td class="flags">${U.issueTags(s)}</td>
       <td><div class="actions-cell">
         <a class="btn-mgmt-icon" href="session.html#${s.id}" title="Open session" aria-label="Open session">🔍</a>
-        <button class="btn-mgmt-icon light" type="button" title="Download ZIP" aria-label="Download ZIP" ${s.status === "validating" ? "disabled" : ""}>⬇</button>
+        ${U.SC.canEdit(s) ? `<button class="btn-mgmt-icon light" type="button" title="Download ZIP" aria-label="Download ZIP" ${s.status === "validating" ? "disabled" : ""}>⬇</button>` : ""}
       </div></td>
     </tr>`;
   }
@@ -248,6 +249,7 @@
   bind("f-q", "q"); bind("f-project", "project"); bind("f-protocol", "protocol"); bind("f-from", "from"); bind("f-to", "to"); bind("f-status", "status"); bind("f-qc", "qc");
   app.addEventListener("change", (e) => { if (e.target.id === "per") { st.per = +e.target.value; st.page = 1; render(); } });
 
+  app.querySelector("#f-project").value = st.project;
   render();
 })();
 </script>

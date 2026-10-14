@@ -31,7 +31,7 @@
 <script src="assets/ui.js"></script>
 <script>
 (function () {
-  const U = window.UM;
+  const U = window.UM, D = U.D;
   U.previewBar("index.html");
   document.getElementById("app").innerHTML = `
     <div class="page-header" style="margin-top:1rem">
@@ -47,7 +47,32 @@
         <a class="screen" href="session.html"><span class="route">/admin/uploads/:sessionId</span><h3>3 · Session detail</h3><p>Metadata, recording timeline, tasks with clip playback, server checks, upload history, review and comments, participant fields.</p></a>
         <a class="screen" href="devices.html"><span class="route">/admin/uploads/devices</span><h3>4 · Devices ${U.PB("device check-in")}</h3><p>Health of each clinic computer and sessions still waiting on it.</p></a>
         <a class="screen" href="site.html"><span class="route">/admin/sites/:siteId</span><h3>5 · Site dashboard</h3><p>Existing site page with upload statistics, latest uploads and the site's devices.</p></a>
+        <a class="screen" href="project.html"><span class="route">/admin/projects/:projectId</span><h3>6 · Project dashboard</h3><p>Existing project page with upload statistics, latest uploads, per-protocol counts and per-site progress.</p></a>
       </div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Access: who sees what</h2>
+      <p>Uploads follow the grants that already scope projects and sites (<span class="mono">accessScope.js</span>), applied to each session's <b>(site, project) pair</b>:</p>
+      <ul>
+        <li><b>Visible</b> if the site is assigned to the user (<span class="mono">user_sites</span>), <i>or</i> the project is assigned (<span class="mono">user_projects</span>) and the site is one of its clinics allowed to the user (<span class="mono">user_project_sites</span> whitelist, else all). A project grant never shows another project's sessions at a shared clinic.</li>
+        <li><b>Editable</b> (download ZIP, reveal participant fields, set review, comment) with a <b>site assignment</b> for the session's clinic, because clinic staff know their patients and correct their own recordings, or with <span class="mono">can_edit</span> on the session's project. A read-only project grant is <b>view only</b>. Editing the project itself and its protocols still needs <span class="mono">can_edit</span> on the project; a clinic grant never gives that (the “read-only” tag below).</li>
+        <li><b>Master</b> sees and does everything, and alone sees quarantined uploads from unregistered devices.</li>
+        <li><b>Device backlog</b> (waiting / failed counts from check-in) spans all projects on the computer, so it needs master or a site assignment.</li>
+        <li>Out-of-scope IDs answer <span class="mono">404</span>, the same as missing ones. Lists, KPIs, filter options and counts are all computed server-side after scoping.</li>
+      </ul>
+      <p>Use <b>View as</b> in the top bar to walk every screen as each user below. The table is computed from the same rules as the previews.</p>
+      <div class="table-wrap"><table class="table src">
+        <thead><tr><th>User</th><th>Grants</th><th>Sites</th><th>Projects</th><th class="r">Sessions visible</th><th class="r">Editable</th><th>Device backlog</th></tr></thead>
+        <tbody>${Object.values(D.personas).map((P) => {
+          const sc = U.scopeFor(P), seen = D.ALL.sessions.filter(sc.canSee);
+          return `<tr><td>${U.esc(P.name)} <span class="role-badge">${P.role}</span></td><td>${U.esc(P.about)}</td>
+            <td>${sc.siteIds.map((id) => U.esc(D.ALL.sites.find((s) => s.id === id).name)).join(", ")}</td>
+            <td>${sc.projectNames.map((n) => U.esc(n) + (sc.canEditProject(n) ? "" : ' <span class="tag">read-only</span>')).join("<br>")}</td>
+            <td class="r num">${seen.length} / ${D.ALL.sessions.length}</td><td class="r num">${seen.filter(sc.canEdit).length}</td>
+            <td>${P.master ? "all" : P.sites.length ? P.sites.map((id) => D.ALL.sites.find((s) => s.id === id).name).join(", ") : "hidden"}</td></tr>`;
+        }).join("")}</tbody>
+      </table></div>
     </section>
 
     <section class="dash-section">
@@ -96,7 +121,7 @@
       <h2>Decisions for the backend</h2>
       <ul>
         <li><b>Duplicate uploads.</b> The app treats any non-2xx reply as a retryable failure. A repeat of an already received session with the same checksum should get <span class="mono">200</span> with the original receipt, and be logged as “Re-sent”. A repeat with a different checksum stays <span class="mono">409</span>.</li>
-        <li><b>Who sees what.</b> The same scope as sites: master sees everything, an admin sees sites assigned directly or through a project grant. Download and reveal are allowed to anyone who can see the session and are audit-logged.</li>
+        <li><b>Who sees what.</b> See “Access” above. Put one shared <span class="mono">canSeeSession</span> / <span class="mono">canEditSession</span> helper beside <span class="mono">accessScope.js</span> and use it in every upload endpoint: list, detail, download, clip playback, reveal, review and comments. Downloads and reveals are audit-logged.</li>
         <li><b>Personal data.</b> participant.json can hold surnames and birth years. Only the patient code and visit are visible by default.</li>
         <li><b>Purple markers</b> (<span class="pb" style="cursor:default">phase B</span>) and purple notes mark what needs the extended desktop contract. Toggle them off in the top bar to see the plain product.</li>
       </ul>

@@ -18,7 +18,11 @@
   const U = window.UM, D = U.D;
   U.previewBar("site.html");
   const app = document.getElementById("app");
-  const site = U.site((location.hash || "").slice(1)) || D.sites[0];
+  const wanted = (location.hash || "").slice(1);
+  const site = wanted ? U.site(wanted) : D.sites[0];
+  if (!site) { app.innerHTML = U.topbar() + U.notFound("site"); return; }
+  const master = U.SC.P.master;
+  const protoCount = Object.values(D.protocols).filter((p) => site.projects.includes(p.project)).length;
 
   const ss = D.sessions.filter((s) => s.site === site.id).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
   const devs = D.devices.filter((d) => d.site === site.id).map((d) => ({ ...d, h: U.deviceHealth(d) }));
@@ -39,7 +43,7 @@
     ${U.topbar()}
     <div class="page-header">
       <div class="page-title-row"><h1 class="page-title">${U.esc(site.name)}</h1><span class="pill ok lg">Active</span>
-        <div class="page-actions"><button class="btn btn-primary" type="button">Edit</button></div></div>
+        <div class="page-actions"><button class="btn btn-primary" type="button"${master ? "" : ' disabled title="Only a master (or the site\'s creator) can edit a site"'}>Edit</button></div></div>
       <div class="meta-grid" style="margin-top:.5rem">
         <div class="meta-item"><span class="m-label">Country</span><span class="m-value">📍 ${U.esc(site.country)}</span></div>
         <div class="meta-item"><span class="m-label">Contact person(s)</span><span class="m-value">👤 ${U.esc(site.contact)}</span></div>
@@ -51,7 +55,7 @@
       <h2 class="stats-title">Overall statistics</h2>
       <div class="stats">
         <div class="stat"><span class="s-value">${site.projects.length}</span><span class="s-label">Assigned Projects</span></div>
-        <div class="stat"><span class="s-value">${site.projects.length + 1}</span><span class="s-label">Inherited Protocols</span></div>
+        <div class="stat"><span class="s-value">${protoCount}</span><span class="s-label">Inherited Protocols</span></div>
         <div class="stat"><span class="s-value">${in30}</span><span class="s-label">Uploads · 30 days</span></div>
         <div class="stat"><span class="s-value bad">${invalid}</span><span class="s-label">Invalid</span></div>
         <div class="stat"><span class="s-value warn">${review}</span><span class="s-label">Needs review</span></div>
@@ -96,14 +100,15 @@
     </section>
 
     <section>
-      <div class="section-head" style="margin-bottom:.5rem"><h2 class="section-title plain">Assigned Projects</h2><button class="btn btn-primary" type="button">Manage Projects</button></div>
+      <div class="section-head" style="margin-bottom:.5rem"><h2 class="section-title plain">Assigned Projects</h2>${master ? '<button class="btn btn-primary" type="button">Manage Projects</button>' : ""}</div>
       <div class="card">
         <div class="table-wrap"><table class="table"><thead><tr><th>Project Name</th><th>Status</th><th>Date Assigned</th></tr></thead>
-        <tbody>${site.projects.map((p) => `<tr><td class="cell-main">${U.esc(p)}</td><td>Active</td><td class="num">28. 9. 2026</td></tr>`).join("")}</tbody></table></div>
+        <tbody>${site.projects.map((p) => `<tr class="clickable" onclick="location.href='project.html#${U.project(p).id}'"><td class="cell-main">${U.esc(p)}</td><td>Active</td><td class="num">28. 9. 2026</td></tr>`).join("")}</tbody></table></div>
       </div>
     </section>
 
     <p class="annot"><b>Site dashboard.</b> The existing page (<span class="mono">SiteDashboardPage</span>) keeps its header and statistics card; three upload numbers join the statistics, and a new Uploads card shows the 8 latest sessions plus the site's devices. “View all” opens the Uploads page already filtered to this site.</p>
+    <p class="annot"><b>Scope.</b> The page opens only for a site in the user's scope; any other ID gets the same 404 as a missing one. Everything on it is narrowed to the projects the user sees <i>at this site</i>: someone with only a project grant sees that project's sessions here and nothing else from the clinic, so the statistics, the latest uploads, the chart and the Assigned Projects table all count the same subset. Device backlog numbers appear only with a site assignment (see Devices).</p>
   `;
 })();
 </script>

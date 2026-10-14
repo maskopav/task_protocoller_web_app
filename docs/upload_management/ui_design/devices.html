@@ -29,13 +29,14 @@
     <td><div class="stack"><span>${U.rel(d.lastSeen)}</span><span class="cell-sub num">${U.fmtDT(d.lastSeen)}</span></div></td>
     <td><div class="stack"><span>${U.rel(d.lastUpload)}</span>${d.lastUpload ? `<span class="cell-sub num">${U.fmtDT(d.lastUpload)}</span>` : ""}</div></td>
     <td class="r num">${d.uploads30}</td>
+    ${d.backlogHidden ? '<td class="r muted" colspan="2" title="Device counts span all projects at this site; shown only with a site assignment">hidden</td>' : `
     <td class="r num">${d.localPending ? `<strong style="color:var(--warn-fg)">${d.localPending}</strong>` : "0"}</td>
-    <td class="r num">${d.localFailed ? `<strong style="color:var(--bad-fg)">${d.localFailed}</strong>` : "0"}</td>
+    <td class="r num">${d.localFailed ? `<strong style="color:var(--bad-fg)">${d.localFailed}</strong>` : "0"}</td>`}
     <td>${d.appVersion}${d.appVersion !== D.CURRENT_APP ? ' <span class="tag warn">old</span>' : ""}</td>
     <td><div class="stack"><span>${U.rel(d.lastConfig)}</span><span class="cell-sub mono">${d.appVersion === "1.3.0" ? "2026-09-10.093000" : D.CURRENT_CONFIG}</span></div></td>
     <td><div class="actions-cell">
       <a class="btn-mgmt-icon" href="uploads.html#${d.site}" title="Show this site's uploads" aria-label="Show uploads">📤</a>
-      <button class="btn-mgmt-icon light" type="button" title="Rename device" aria-label="Rename device">✏️</button>
+      ${U.SC.P.master ? '<button class="btn-mgmt-icon light" type="button" title="Rename device" aria-label="Rename device">✏️</button>' : ""}
     </div></td>
   </tr>`;
 
@@ -47,6 +48,7 @@
     </div>
 
     <p class="annot"><b>Phase B.</b> This page needs two small additions to the desktop app: (1) send <span class="mono">installationId</span> and <span class="mono">appVersion</span> with the config request, and (2) a check-in after each config fetch and upload batch carrying the counts of local sessions not yet uploaded and failed (<span class="mono">POST /device-checkin {installationId, appVersion, pending, failed}</span>). Without it the server only knows a device once it uploads. Device labels are set by a master; new devices appear with their ID.</p>
+    <p class="annot"><b>Scope.</b> A device belongs to one site, so it is listed when its site is in the user's scope. <i>Last upload</i> and <i>Uploads (30 d)</i> count only sessions the user may see. The check-in counts (<i>Waiting</i>, <i>Failed</i>) cover every project recorded on that computer and cannot be split by project, so they are shown only to master and to users with the site itself assigned (<span class="mono">user_sites</span>). Someone who reaches the site only through a project grant sees “hidden”. Renaming a device stays master-only.</p>
 
     <section class="card">
       <h2 class="stats-title">Device health</h2>
@@ -62,7 +64,7 @@
     <section class="card">
       <div class="section-head">
         <h2 class="section-title">All devices</h2>
-        <div class="chips" id="site-chips"><span class="chips-label">Site</span>
+        <div class="chips" id="site-chips"${D.sites.length > 1 ? "" : " hidden"}><span class="chips-label">Site</span>
           <button class="chip" type="button" data-s="" aria-pressed="true">All</button>
           ${D.sites.map((s) => `<button class="chip" type="button" data-s="${s.id}" aria-pressed="false">${U.esc(s.name)}</button>`).join("")}
         </div>

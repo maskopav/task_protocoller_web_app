@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Project dashboard · TaskProtocoller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="dashboard-page" id="app"></div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM, D = U.D;
+  U.previewBar("project.html");
+  const app = document.getElementById("app");
+  const wanted = (location.hash || "").slice(1);
+  const proj = wanted ? U.project(wanted) : D.projects[0];
+  if (!proj) { app.innerHTML = U.topbar() + U.notFound("project"); return; }
+
+  const canEdit = U.SC.canEditProject(proj.name);
+  const ss = D.sessions.filter((s) => s.project === proj.name).sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+  const sites = D.sites.filter((s) => s.projects.includes(proj.name));
+  const protos = Object.entries(D.protocols).filter(([, p]) => p.project === proj.name).map(([name]) => name);
+  const in30 = ss.filter((s) => (D.NOW - new Date(s.receivedAt)) / 864e5 <= 30).length;
+  const invalid = ss.filter((s) => s.status === "invalid").length;
+  const review = ss.filter((s) => s.qc === "review").length;
+  const countries = [...new Set(sites.map((s) => s.country))].join(", ");
+
+  // uploads per day, last 21 days
+  const days = Array.from({ length: 21 }, (_, i) => new Date(D.NOW.getTime() - (20 - i) * 864e5).toISOString().slice(0, 10));
+  const perDay = days.map((d) => ss.filter((s) => s.receivedAt.slice(0, 10) === d));
+  const max = Math.max(2, ...perDay.map((x) => x.length));
+  const bars = perDay.map((list, i) => {
+    const h = list.length / max * 56, bad = list.some((s) => s.status === "invalid");
+    return `<rect x="${i * 14 + 2}" y="${62 - h}" width="10" height="${h}" rx="2" fill="${bad ? "var(--danger)" : "var(--primary)"}"><title>${days[i]}: ${list.length} upload(s)</title></rect>`;
+  }).join("");
+  const label = 'style="font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)"';
+
+  const siteRow = (s) => {
+    const mine = ss.filter((x) => x.site === s.id), att = mine.filter(U.needsAttention).length;
+    return `<tr class="clickable" onclick="location.href='site.html#${s.id}'">
+      <td class="cell-main">${U.esc(s.name)}</td><td>${U.esc(s.country)}</td>
+      <td class="r num">${mine.length}</td>
+      <td><div class="stack"><span>${U.rel(mine[0] && mine[0].receivedAt)}</span>${mine[0] ? `<span class="cell-sub num">${U.fmtDT(mine[0].receivedAt)}</span>` : ""}</div></td>
+      <td>${att ? `<span class="pill warn">${att} need attention</span>` : '<span class="pill ok">All clear</span>'}</td></tr>`;
+  };
+
+  app.innerHTML = `
+    ${U.topbar()}
+    <div class="page-header">
+      <div class="page-title-row"><h1 class="page-title">${U.esc(proj.name)}</h1><span class="pill ok lg">Active</span>
+        ${canEdit ? "" : '<span class="pill warn lg" title="Archived, or reached only through a clinic or a read-only grant">⚠ View only</span>'}
+        <div class="page-actions"><button class="btn btn-primary" type="button"${canEdit ? "" : " disabled"}>Edit</button></div></div>
+      <div class="meta-grid" style="margin-top:.5rem">
+        <div class="meta-item"><span class="m-label">Description</span><span class="m-value">${U.esc(proj.description)}</span></div>
+        <div class="meta-item"><span class="m-label">Countries</span><span class="m-value">📍 ${U.esc(countries || "—")}</span></div>
+        <div class="meta-item"><span class="m-label">Contact person(s)</span><span class="m-value">👤 ${U.esc(proj.contact)}</span></div>
+        <div class="meta-item"><span class="m-label">Start date</span><span class="m-value num">${U.fmtDate(proj.start + "T00:00:00Z")}</span></div>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2 class="stats-title">Overall statistics</h2>
+      <div class="stats">
+        <div class="stat"><span class="s-value">${sites.length}</span><span class="s-label">Sites</span></div>
+        <div class="stat"><span class="s-value">${protos.length}</span><span class="s-label">Protocols</span></div>
+        <div class="stat"><span class="s-value">${in30}</span><span class="s-label">Uploads · 30 days</span></div>
+        <div class="stat"><span class="s-value bad">${invalid}</span><span class="s-label">Invalid</span></div>
+        <div class="stat"><span class="s-value warn">${review}</span><span class="s-label">Needs review</span></div>
+      </div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Actions</h2>
+      <div class="actions-grid">
+        <a class="action-card" href="#"><span class="ac-icon green">📋</span><span><h3>Protocols</h3><p>${canEdit ? "Create and edit" : "View"} the ${protos.length} protocol(s) this project's sites run.</p></span></a>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="section-title">Uploads</h2>
+        <a class="btn btn-primary btn-sm" href="uploads.html#project=${proj.id}">View all ${ss.length} →</a>
+      </div>
+      <div class="detail-grid" style="grid-template-columns:minmax(0,1fr) 320px">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Received</th><th>Site</th><th>Patient</th><th>Protocol</th><th>Server check</th><th>Review</th><th>Flags</th></tr></thead>
+            <tbody>${ss.length ? ss.slice(0, 8).map((s) => `<tr class="clickable ${s.status === "invalid" ? "row-bad" : U.needsAttention(s) ? "row-warn" : ""}" onclick="location.href='session.html#${s.id}'">
+              <td><div class="stack"><span class="num">${U.fmtDT(s.receivedAt)}</span><span class="cell-sub">${U.rel(s.receivedAt)}</span></div></td>
+              <td>${U.esc(U.site(s.site).name)}</td>
+              <td class="cell-main">${U.esc(s.participant.patient_code)}</td>
+              <td>${U.esc(s.protocol)}</td>
+              <td>${U.statusPill(s)}</td><td>${U.qcPill(s.qc)}</td><td class="flags">${U.issueTags(s)}</td></tr>`).join("")
+              : '<tr class="empty-row"><td colspan="7">No uploads yet.</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.75rem;min-width:0">
+          <div class="panel">
+            <span class="m-label" ${label}>Uploads per day · last 21 days</span>
+            <svg viewBox="0 0 296 76" role="img" aria-label="Uploads per day" style="width:100%;height:auto">
+              <line x1="0" y1="62.5" x2="296" y2="62.5" stroke="var(--row-border)"/>
+              ${bars}
+              <text x="0" y="74" font-size="8" fill="var(--dark-gray)">${U.fmtDate(days[0] + "T00:00:00Z")}</text>
+              <text x="296" y="74" font-size="8" fill="var(--dark-gray)" text-anchor="end">today</text>
+            </svg>
+          </div>
+          <div class="panel">
+            <span class="m-label" ${label}>By protocol</span>
+            ${protos.map((name) => { const n = ss.filter((s) => s.protocol === name).length; return `<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.86rem"><span>${U.esc(name)}</span><strong class="num">${n}</strong></div>`; }).join("")}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head" style="margin-bottom:.5rem"><h2 class="section-title plain">Sites</h2></div>
+      <div class="card">
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th>Site</th><th>Country</th><th class="r">Sessions</th><th>Last upload</th><th>Attention</th></tr></thead>
+          <tbody>${sites.map(siteRow).join("")}</tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <p class="annot"><b>Project dashboard.</b> The existing page (<span class="mono">ProjectDashboardPage</span>, <span class="mono">/admin/projects/:projectId</span>) keeps its header, statistics, actions and sites table. It gains the same upload block as the site dashboard: three upload numbers in the statistics, the 8 latest sessions, uploads per day and a per-protocol breakdown. The sites table gets per-site session counts, last upload and attention, so a project lead can see which clinic is behind. “View all” opens Uploads filtered to this project.</p>
+    <p class="annot"><b>Scope.</b> The page opens only for a project in the user's scope; any other ID gets a 404. The site list and every number cover only the (site, project) pairs the user may see. A grant narrowed by <span class="mono">user_project_sites</span> shows just those clinics. A project reached only through a clinic shows just that clinic. Its sessions can be worked on (the clinic grant allows that), but the project itself is view only: Edit and protocol changes need <span class="mono">can_edit</span> on this project.</p>
+  `;
+})();
+</script>
+</body>
+</html>
