@@ -35,6 +35,14 @@ export const normalizeToken = (input) => {
 export const TOKEN_FORMAT_ERROR =
   "Access token must be 16-64 characters: letters, digits, _ or -";
 
+// The site name can be substituted into recording file names (${siteName}), so
+// it is limited to filename-safe ASCII. Enforced on create only: existing sites
+// ("Prague General Hospital") keep their names until someone renames them.
+export const isValidSiteName = (v) => /^[A-Za-z0-9_-]{1,32}$/.test(String(v ?? ""));
+
+export const SITE_NAME_FORMAT_ERROR =
+  "Site name must be 1-32 characters: letters, digits, _ or - (no spaces or dots)";
+
 // --- Desktop-app config fields ------------------------------------------------
 // Mirrors frontend/src/components/Identifiers/IdentifierFields.js.
 

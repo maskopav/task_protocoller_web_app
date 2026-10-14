@@ -4,6 +4,8 @@ import { generateAccessToken } from "../utils/tokenGenerator.js";
 import {
   firstInvalidEmail,
   isValidAccessToken,
+  isValidSiteName,
+  SITE_NAME_FORMAT_ERROR,
   normalizeToken,
   normalizeSiteSettings,
   TOKEN_FORMAT_ERROR,
@@ -206,6 +208,9 @@ export const createSite = async (req, res) => {
   } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: "Site name is required" });
+  }
+  if (!isValidSiteName(name.trim())) {
+    return res.status(400).json({ error: SITE_NAME_FORMAT_ERROR });
   }
 
   const { value: configToStore, error: configError } = normalizeConfigJson(config_json);

@@ -19,7 +19,8 @@ export const NEW_PROTOCOL_FILE_NAME = '${field.patient_code}_' + DEFAULT_RECORDI
 // Tokens the desktop app substitutes in the template, with the sample value
 // used in the admin's preview. `key` points at admin.json fileName.vars.<key>.
 export const FILE_NAME_TOKENS = [
-  { token: '${installationId}', key: 'installationId', sample: 'CLINIC-01' },
+  { token: '${installationId}', key: 'installationId', sample: 'fdc4-qw7w-sA54' },
+  { token: '${siteName}',       key: 'siteName',       sample: 'CLINIC-01' },
   { token: '${taskIndex}',      key: 'taskIndex',      sample: '03' },
   { token: '${task.subtype}',   key: 'subtype',        sample: 'PHONATION' },
   { token: '${repetition}',     key: 'repetition',     sample: '1' },

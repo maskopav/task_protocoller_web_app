@@ -9,6 +9,8 @@ import { validate } from "../../utils/validation";
 // Mirrors isValidAccessToken in backend/src/utils/fieldValidation.js. The
 // backend re-checks it — this is UX only.
 const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
+// Mirrors isValidSiteName (create only; the name can end up in file names).
+const SITE_NAME_RE = /^[A-Za-z0-9_-]{1,32}$/;
 
 // Desktop-app settings stored in sites.config_json (exact keys the app reads).
 // Mirrors normalizeSiteSettings in backend/src/utils/fieldValidation.js.
@@ -51,6 +53,9 @@ export default function SiteModal({ site, onClose, onSuccess }) {
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) return setError(t("management.siteManagement.errors.nameRequired"));
+    if (!isEdit && !SITE_NAME_RE.test(formData.name.trim())) {
+      return setError(t("management.siteManagement.errors.invalidName"));
+    }
     // Blank is allowed: on create the backend generates one, on edit it keeps
     // the stored value (access_token = IFNULL(?, access_token)).
     const token = formData.access_token.trim();

@@ -165,6 +165,7 @@
       },
       "errors": {
         "nameRequired": "Site name is required.",
+        "invalidName": "The site name must be 1-32 characters: letters, digits, _ or - (no spaces or dots), because it can be used in file names.",
         "invalidToken": "The access token must be 16-64 characters: letters, digits, _ or -.",
         "invalidEmail": "Not a valid email address: {{email}}",
         "invalidMicGain": "Default microphone gain must be a whole number from 0 to 100."
@@ -423,7 +424,8 @@
       "templateLabel": "File name template",
       "example": "Example",
       "vars": {
-        "installationId": "Identifier of the desktop installation (clinic).",
+        "installationId": "Identifier of the desktop installation (computer).",
+        "siteName": "Name of the site (clinic).",
         "taskIndex": "Position of the task in the protocol (required).",
         "subtype": "Kind of task, e.g. PHONATION.",
         "repetition": "Number of the take within the task."
