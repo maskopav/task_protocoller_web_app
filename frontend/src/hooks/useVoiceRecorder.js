@@ -1,6 +1,7 @@
 // hooks/useVoiceRecorder.js
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { logger } from '../utils/frontendLogger';
+import { createZeroRunTracker } from '../utils/zeroRunTracker';
 import { initSession, appendChunk, clearSession } from '../utils/audioIDB';
 import { finalizeRecording } from '../utils/finalizeRecording';
 
@@ -237,6 +238,7 @@ export const useVoiceRecorder = (options = {}) => {
     // ── Refs ───────────────────────────────────────────────────────────────────
     const chunkCountRef = useRef(0);
     const sampleCountRef = useRef(0);          // PCM samples received this take
+    const zeroRunsRef    = useRef(null);       // digital-silence gaps in this take (logging only)
     const trackSettingsRef = useRef(null);     // mic track settings at start
     const pendingWritesRef = useRef(Promise.resolve());
     const pcmBatchRef = useRef([]);
@@ -447,6 +449,7 @@ export const useVoiceRecorder = (options = {}) => {
     const enqueuePCMChunk = useCallback((buffer) => {
         const chunk = new Int16Array(buffer);
         sampleCountRef.current += chunk.length;
+        zeroRunsRef.current?.push(chunk);
         pcmBatchRef.current.push(chunk);
 
         // 16 worklet quanta = 2048 samples; small RAM footprint, far fewer IDB writes.
@@ -484,6 +487,7 @@ export const useVoiceRecorder = (options = {}) => {
         setProcessingFailed(false);
         chunkCountRef.current = 0;
         sampleCountRef.current = 0;
+        zeroRunsRef.current = createZeroRunTracker();
         trackSettingsRef.current = pickTrackSettings(activeStream);
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
@@ -689,6 +693,13 @@ export const useVoiceRecorder = (options = {}) => {
             const recordingInfo = {
                 sampleRate,
                 micSettings: trackSettingsRef.current,
+                // The browser's own audio buffering (s). On the Android phone
+                // whose recordings had 40 ms silence gaps the mic reported
+                // latency 0.04; these show whether output runs in the same steps.
+                audioContextLatency: {
+                    base:   audioContext.current.baseLatency,
+                    output: audioContext.current.outputLatency,
+                },
             };
 
             const finalizePipeline = tailFlushed
@@ -696,6 +707,7 @@ export const useVoiceRecorder = (options = {}) => {
                     // Counted only now, so the tail chunk is included.
                     recordingInfo.samples = sampleCountRef.current;
                     recordingInfo.durationSec = Math.round((sampleCountRef.current / sampleRate) * 100) / 100;
+                    recordingInfo.zeroGaps = zeroRunsRef.current?.summary(sampleRate) ?? null;
                     return flushPCMChunkBatch();
                 })
                 .then(() => pendingWritesRef.current)
@@ -713,6 +725,15 @@ export const useVoiceRecorder = (options = {}) => {
                         format: audioBlob.type,
                         sizeBytes: audioBlob.size,
                     });
+                    // Separate WARN so affected recordings stand out in the logs.
+                    if (recordingInfo.zeroGaps?.count > 0) {
+                        logger.warn("recording_silence_gaps", {
+                            ...recordingInfo.zeroGaps,
+                            durationSec: recordingInfo.durationSec,
+                            micLatency: recordingInfo.micSettings?.latency,
+                            audioContextLatency: recordingInfo.audioContextLatency,
+                        });
+                    }
                     levelFramesRef.current = frames;  // set before audioURL, which triggers autoSubmit
                     audioDurationRef.current = recordingInfo.durationSec;
                     const url = URL.createObjectURL(audioBlob);
