@@ -33,12 +33,14 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
       let nextValue;
       if (type === "multiple") {
         const current = prev[questionId] || [];
-        if (value === exclusiveOptionValue && exclusiveOptionValue !== null) {
+        // The editor stores a single string; translation JSONs use an array.
+        const exclusive = [].concat(exclusiveOptionValue ?? []).filter(Boolean);
+        if (exclusive.includes(value)) {
           nextValue = current.includes(value) ? [] : [value];
         } else if (current.includes(value)) {
           nextValue = current.filter((v) => v !== value);
         } else {
-          nextValue = [...current.filter((v) => v !== exclusiveOptionValue), value];
+          nextValue = [...current.filter((v) => !exclusive.includes(v)), value];
         }
       } else {
         nextValue = value;
