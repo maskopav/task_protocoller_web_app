@@ -507,6 +507,7 @@ export const Recorder = ({
         setIsUploading(true);
         const taskData = {
             audioURL, recordingTime,
+            audioDuration:      voiceRecorder.audioDurationRef.current,
             timestamp:          new Date().toISOString(),
             recordingStartTime: voiceRecorder.firstChunkTimeRef.current,
             levelFrames:        voiceRecorder.levelFramesRef.current,

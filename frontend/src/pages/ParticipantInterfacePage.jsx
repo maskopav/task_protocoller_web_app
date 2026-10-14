@@ -901,7 +901,9 @@ export default function ParticipantInterfacePage() {
         protocolTaskId: currentTaskObj.protocolTaskId ?? null,
         taskCategory: currentTaskObj.category,
         taskOrder: taskIndex + 1,
-        duration: data?.recordingTime || data?.duration || 0,
+        // audioDuration = real length of the saved audio; recordingTime (UI
+        // timer) is 0 for countDown tasks such as syllableRepeating.
+        duration: data?.audioDuration || data?.recordingTime || data?.duration || 0,
         taskParam: paramValue,
         repeatIndex,
         timeStamp: data?.timestamp || Date.now(),

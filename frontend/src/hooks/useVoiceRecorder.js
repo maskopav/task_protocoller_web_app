@@ -256,6 +256,10 @@ export const useVoiceRecorder = (options = {}) => {
     const audioURLRef       = useRef(null);
     const firstChunkTimeRef = useRef(null);
     const levelFramesRef    = useRef(null);  // per-frame rms of the last take (audioLevels.js)
+    // Length of the last take in seconds, from the PCM sample count -- the
+    // true file duration. recordingTime is only a UI timer and stays 0 in
+    // countDown mode (that mode ticks remainingTime instead).
+    const audioDurationRef  = useRef(null);
 
     // track the stream in a ref so the unmount cleanup can always reach
     // the latest value.  The cleanup useEffect closes over the initial render
@@ -710,6 +714,7 @@ export const useVoiceRecorder = (options = {}) => {
                         sizeBytes: audioBlob.size,
                     });
                     levelFramesRef.current = frames;  // set before audioURL, which triggers autoSubmit
+                    audioDurationRef.current = recordingInfo.durationSec;
                     const url = URL.createObjectURL(audioBlob);
                     audioURLRef.current = url;
                     setAudioURL(url);
@@ -739,6 +744,7 @@ export const useVoiceRecorder = (options = {}) => {
         pendingWritesRef.current = Promise.resolve();
         firstChunkTimeRef.current = null;
         levelFramesRef.current = null;
+        audioDurationRef.current = null;
 
         // clear stale node refs so nothing accidentally reaches them between
         // repeatRecording() and the next startRecording() call.
@@ -885,6 +891,7 @@ export const useVoiceRecorder = (options = {}) => {
         audioContext,
         firstChunkTimeRef,
         levelFramesRef,
+        audioDurationRef,
 
         // Actions
         getMicrophonePermission,
