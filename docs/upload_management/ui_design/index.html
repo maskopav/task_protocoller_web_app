@@ -99,7 +99,7 @@
           </ul>
         </div>
       </div>
-      <p><b>Flags</b> are derived from the archive and need no one to set them: ${Object.values(U.ISSUES).map((m) => `<span class="tag ${m.cls}" title="${U.esc(m.hint)}">${m.label}</span>`).join(" ")}. “Needs attention” = Invalid, or Needs review, or Recovered, or Mic interrupted.</p>
+      <p><b>Flags</b> are derived from the archive and need no one to set them: ${Object.values(U.ISSUES).map((m) => `<span class="tag ${m.cls}" title="${U.esc(m.hint)}">${m.label}</span>`).join(" ")}. “Needs attention” = Invalid, or Needs review, or Recovered, or Mic interrupted, or Non-standard mic / camera. <b>Non-standard</b> means the whole session ran on a device other than the one chosen in the app's Settings (<span class="mono">hardware.configuredMicDeviceId</span> / <span class="mono">configuredCameraDeviceId</span> matches none of <span class="mono">micUses</span> / <span class="mono">cameraUses</span>); a swap mid-session still starts on the configured device and shows as Mic interrupted.</p>
     </section>
 
     <section class="dash-section">
@@ -109,7 +109,7 @@
         <tbody>
           <tr><td>Upload request</td><td>exactly four parts: installationId, sessionId, zipSha256, zip. Plus server-side: received time, size, every attempt (incl. 400 / 409)</td></tr>
           <tr><td>examination.json</td><td>protocol + project, configVersion, start / end (end absent if the session never finished cleanly; processing.processedAt stands in), tasks (type VOCAL / VIDEO / QUESTIONNAIRE / INFO, subtype, repetition, takes, skipped, clipFile, videoFile, questionnaire answers as key → list), recovered, interruptions (old → new device), timeline used, audio format</td></tr>
-          <tr><td>examination.json → hardware</td><td>microphone and camera names (one entry per open, so a swapped mic shows both), input gain, video format, device events (capture failed, interrupted, gain changed)</td></tr>
+          <tr><td>examination.json → hardware</td><td>microphone and camera names (one entry per open, so a swapped mic shows both), devices set in the app's Settings (for the Non-standard flags), input gain, video format, device events (capture failed, interrupted, gain changed)</td></tr>
           <tr><td>participant.json</td><td><span class="mono">fields</span>: whatever the protocol's patientFields ask for, usually patient code and visit (masked by default)</td></tr>
           <tr><td>timeline_original.json / timeline_edited.json</td><td>task segments on the recording timeline; mic-lost takes (TAKE_REJECTED, reason DEVICE_LOST)</td></tr>
           <tr><td>task_configuration_snapshot.json</td><td>question texts for questionnaire answers; the clip file name template</td></tr>

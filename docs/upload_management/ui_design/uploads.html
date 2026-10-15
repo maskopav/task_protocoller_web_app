@@ -134,7 +134,7 @@
     { k: "week", cls: "", label: "Received · 7 days", f: week, hint: "all sites in scope" },
     { k: "valid", cls: "ok", label: "Valid", f: (s) => s.status === "valid", hint: "checksums verified" },
     { k: "invalid", cls: "bad", label: "Invalid", f: (s) => s.status === "invalid", hint: "failed a server check" },
-    { k: "attention", cls: "warn", label: "Needs attention", f: U.needsAttention, hint: "invalid, flagged, crash or mic loss" },
+    { k: "attention", cls: "warn", label: "Needs attention", f: U.needsAttention, hint: "invalid, flagged, crash, mic loss or non-standard device" },
     { k: "unreviewed", cls: "off", label: "Unreviewed", f: (s) => s.qc === "unreviewed", hint: "no one has looked yet" },
   ];
   const kpis = app.querySelector("#kpis");

@@ -36,8 +36,11 @@
       <div class="page-title-row"><h1 class="page-title">${U.esc(site.name)}</h1><span class="pill ok lg">Active</span>
         ${master ? '<div class="page-actions"><button class="btn btn-primary" type="button">Edit</button></div>' : ""}</div>
       <div class="meta-grid" style="margin-top:.5rem">
+        <div class="meta-item"><span class="m-label">Description</span><span class="m-value">${U.esc(site.description || "—")}</span></div>
         <div class="meta-item"><span class="m-label">Country</span><span class="m-value">📍 ${U.esc(site.country)}</span></div>
         <div class="meta-item"><span class="m-label">Contact person(s)</span><span class="m-value">👤 ${U.esc(site.contact)}</span></div>
+        <div class="meta-item"><span class="m-label">Contact email(s)</span><span class="m-value list">${site.emails ? site.emails.split(/,\s*/).map((e) => `<a href="mailto:${U.esc(e)}">${U.esc(e)}</a>`).join("") : "—"}</span></div>
+        <div class="meta-item"><span class="m-label">Site token</span><span class="m-value"><span class="token">${U.esc(site.token)}</span><button class="copy" type="button" data-copy="${U.esc(site.token)}">Copy</button></span></div>
         <div class="meta-item"><span class="m-label">Projects</span><span class="m-value">${site.projects.map(U.esc).join(", ")}</span></div>
       </div>
     </div>
@@ -95,6 +98,7 @@
     <p class="annot"><b>Scope.</b> The page opens only for a site in the user's scope; any other ID gets the same 404 as a missing one. Everything on it is narrowed to the projects the user sees <i>at this site</i>: someone with only a project grant sees that project's sessions here and nothing else from the clinic, so the statistics, the latest uploads, the chart and the Assigned Projects table all count the same subset. Device backlog numbers appear only with a site assignment (see Devices).</p>
   `;
   U.perDayChart(app.querySelector("#perday"), ss);
+  app.addEventListener("click", (e) => { const b = e.target.closest("button[data-copy]"); if (b) U.copyText(b, b.dataset.copy); });
 })();
 </script>
 </body>

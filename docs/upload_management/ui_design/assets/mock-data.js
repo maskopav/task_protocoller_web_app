@@ -12,9 +12,9 @@
   const CURRENT_APP = "1.4.2";
 
   const sites = [
-    { id: "paris", dbId: 1, name: "Paris", country: "France", contact: "Alice Martin", projects: ["Test Study 001", "Test Study 002"] },
-    { id: "london", dbId: 2, name: "London", country: "United Kingdom", contact: "Oliver Brown", projects: ["Test Study 001"] },
-    { id: "prague", dbId: 12, name: "Prague", country: "Czechia", contact: "Jana Dvořáková", projects: ["Czech Clinic Study", "Test Study 002"] },
+    { id: "paris", dbId: 1, name: "Paris", country: "France", description: "Neurology outpatient clinic", contact: "Alice Martin", emails: "alice.martin@chu-paris.example, neuro-lab@chu-paris.example", token: "3f9a1c7e5b2d48a6907e1d4c8b3a2f15", projects: ["Test Study 001", "Test Study 002"] },
+    { id: "london", dbId: 2, name: "London", country: "United Kingdom", description: "Speech and language therapy unit", contact: "Oliver Brown", emails: "o.brown@nhs-london.example", token: "london-clinic-2026", projects: ["Test Study 001"] },
+    { id: "prague", dbId: 12, name: "Prague", country: "Czechia", description: "Movement disorders centre", contact: "Jana Dvořáková", emails: "dvorakova@vfn-praha.example", token: "a81e04d2c6f94b3795d0e2c1f7a36b48", projects: ["Czech Clinic Study", "Test Study 002"] },
   ];
 
   // Protocol task lists, as the desktop app expands them (one entry per repetition).
@@ -80,6 +80,8 @@
   const scripted = {
     3: { status: "invalid", invalidReason: "checksum", attemptsExtra: ["bad400"] },
     2: { cameraFailed: true },
+    4: { nonstdMic: true },
+    10: { nonstdCam: true },
     7: { recovered: true, qc: "review", comment: "App crashed after the reading task; session rebuilt on restart. Check the last two clips." },
     9: { interruptions: 1, qc: "review", comment: "Mic unplugged during PATAKA, take was redone." },
     12: { status: "invalid", invalidReason: "manifest" },
@@ -137,9 +139,14 @@
     const di = devices.indexOf(dev);
     const mic = ["Focusrite Scarlett Solo USB", "RØDE NT-USB Mini", "USBAudioDevice"][di % 3];
     const cam = ["Logitech BRIO", "OBSBOT Tiny 2 (PTZ)"][di % 2];
+    const devId = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const BUILTIN_MIC = "Built-in Microphone Array", BUILTIN_CAM = "Integrated Webcam";
+    const firstMic = sc.nonstdMic ? BUILTIN_MIC : mic, firstCam = sc.nonstdCam ? BUILTIN_CAM : cam;
     const hardware = {
-      micUses: hasAudio ? [{ deviceName: mic, inputGainPercent: 70 }, ...(sc.interruptions ? [{ deviceName: "Built-in Microphone Array", inputGainPercent: 55 }] : [])] : [],
-      cameraUses: videoClips ? [{ deviceName: cam, captureFormat: { width: 1920, height: 1080, fps: 30 } }] : [],
+      configuredMicDeviceId: devId(mic),
+      configuredCameraDeviceId: devId(cam),
+      micUses: hasAudio ? [{ deviceId: devId(firstMic), deviceName: firstMic, inputGainPercent: 70 }, ...(sc.interruptions ? [{ deviceId: devId(BUILTIN_MIC), deviceName: BUILTIN_MIC, inputGainPercent: 55 }] : [])] : [],
+      cameraUses: videoClips ? [{ deviceId: devId(firstCam), deviceName: firstCam, captureFormat: { width: 1920, height: sc.nonstdCam ? 720 : 1080, fps: 30 } }] : [],
       events: [
         ...(sc.interruptions ? [{ device: "microphone", event: "interrupted", detail: mic + " disconnected" }] : []),
         ...(sc.cameraFailed && videoClips ? [{ device: "camera", event: "capture_failed", detail: cam + " stopped delivering frames; take recorded audio only" }] : []),
@@ -160,6 +167,11 @@
     if (lagH > 72) issues.push("late");
     if (sc.duplicates) issues.push("duplicate");
     if (hardware.events.some((e) => e.event === "capture_failed")) issues.push("device");
+    // The whole session ran on a device other than the one chosen in the app's Settings
+    // (no use matches it). A mid-session swap still starts on the configured one → "Mic interrupted" instead.
+    const offPrefs = (uses, conf) => uses.length > 0 && uses.every((u) => u.deviceId !== conf);
+    if (offPrefs(hardware.micUses, hardware.configuredMicDeviceId)) issues.push("nonstdMic");
+    if (offPrefs(hardware.cameraUses, hardware.configuredCameraDeviceId)) issues.push("nonstdCam");
 
     const attempts = [];
     if ((sc.attemptsExtra || []).includes("bad400")) {
@@ -209,9 +221,9 @@
   });
 
   const projects = [
-    { id: "ts1", name: "Test Study 001", description: "Initial testing project", contact: "Alice Martin", start: "2026-03-01" },
-    { id: "ts2", name: "Test Study 002", description: "Second testing project", contact: "Jana Dvořáková", start: "2026-05-15" },
-    { id: "czech", name: "Czech Clinic Study", description: "Desktop-app sample project", contact: "Petr Novák", start: "2026-08-01" },
+    { id: "ts1", name: "Test Study 001", description: "Initial testing project", contact: "Alice Martin", emails: "alice.martin@chu-paris.example", start: "2026-03-01" },
+    { id: "ts2", name: "Test Study 002", description: "Second testing project", contact: "Jana Dvořáková", emails: "dvorakova@vfn-praha.example, study002@example.org", start: "2026-05-15" },
+    { id: "czech", name: "Czech Clinic Study", description: "Desktop-app sample project", contact: "Petr Novák", emails: "novak@vfn-praha.example", start: "2026-08-01" },
   ];
 
   // "View as" personas, written as the grant rows the backend stores

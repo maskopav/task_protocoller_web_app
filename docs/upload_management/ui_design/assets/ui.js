@@ -81,6 +81,8 @@
     outdated:    { cls: "warn", label: "Old config",      hint: "Recorded with a config version older than the current one" },
     late:        { cls: "warn", label: "Late upload",     hint: "Uploaded more than 3 days after recording" },
     duplicate:   { cls: "",     label: "Re-sent",         hint: "Device re-sent an already received session (409)" },
+    nonstdMic:   { cls: "bad",  label: "Non-standard mic",    hint: "The whole session was recorded with a microphone other than the one set in the app's Settings (hardware.micUses vs configuredMicDeviceId)" },
+    nonstdCam:   { cls: "bad",  label: "Non-standard camera", hint: "The whole session was filmed with a camera other than the one set in the app's Settings (hardware.cameraUses vs configuredCameraDeviceId)" },
     device:      { cls: "warn", label: "Device event",    hint: "A camera or microphone failed during the session (examination.json → hardware.events[])" },
   };
 
@@ -119,7 +121,7 @@
   };
   const qcPill = (q, big) => { const m = QC[q]; return `<span class="pill ${m.cls}${big ? " lg" : ""}">${m.icon} ${m.label}</span>`; };
   const issueTags = (s) => `<span class="tags">${s.issues.map((k) => `<span class="tag ${ISSUES[k].cls}" title="${esc(ISSUES[k].hint)}">${ISSUES[k].label}</span>`).join("")}</span>`;
-  const needsAttention = (s) => s.status === "invalid" || s.qc === "review" || s.issues.includes("recovered") || s.issues.includes("interrupted");
+  const needsAttention = (s) => s.status === "invalid" || s.qc === "review" || ["recovered", "interrupted", "nonstdMic", "nonstdCam"].some((k) => s.issues.includes(k));
 
   const deviceHealth = (d) => {
     const h = (D.NOW - new Date(d.lastSeen)) / 3600e3;

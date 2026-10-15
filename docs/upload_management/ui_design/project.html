@@ -36,7 +36,7 @@
   const siteRow = (s) => {
     const mine = ss.filter((x) => x.site === s.id), att = mine.filter(U.needsAttention).length;
     return `<tr class="clickable" onclick="location.href='site.html#${s.id}'">
-      <td class="cell-main">${U.esc(s.name)}</td><td>${U.esc(s.country)}</td>
+      <td class="cell-main">${U.esc(s.name)}</td><td>${U.esc(s.description || "")}</td><td>${U.esc(s.country)}</td>
       <td class="r num">${mine.length}</td>
       <td><div class="stack"><span>${U.rel(mine[0] && mine[0].receivedAt)}</span>${mine[0] ? `<span class="cell-sub num">${U.fmtDT(mine[0].receivedAt)}</span>` : ""}</div></td>
       <td>${att ? `<span class="pill warn">${att} need attention</span>` : '<span class="pill ok">All clear</span>'}</td></tr>`;
@@ -52,6 +52,7 @@
         <div class="meta-item"><span class="m-label">Description</span><span class="m-value">${U.esc(proj.description)}</span></div>
         <div class="meta-item"><span class="m-label">Countries</span><span class="m-value">📍 ${U.esc(countries || "—")}</span></div>
         <div class="meta-item"><span class="m-label">Contact person(s)</span><span class="m-value">👤 ${U.esc(proj.contact)}</span></div>
+        <div class="meta-item"><span class="m-label">Contact email(s)</span><span class="m-value list">${proj.emails ? proj.emails.split(/,\s*/).map((e) => `<a href="mailto:${U.esc(e)}">${U.esc(e)}</a>`).join("") : "—"}</span></div>
         <div class="meta-item"><span class="m-label">Start date</span><span class="m-value num">${U.fmtDate(proj.start + "T00:00:00Z")}</span></div>
       </div>
     </div>
@@ -110,7 +111,7 @@
       <div class="section-head" style="margin-bottom:.5rem"><h2 class="section-title plain">Sites</h2></div>
       <div class="card">
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>Site</th><th>Country</th><th class="r">Sessions</th><th>Last upload</th><th>Attention</th></tr></thead>
+          <thead><tr><th>Site</th><th>Description</th><th>Country</th><th class="r">Sessions</th><th>Last upload</th><th>Attention</th></tr></thead>
           <tbody>${sites.map(siteRow).join("")}</tbody>
         </table></div>
       </div>
