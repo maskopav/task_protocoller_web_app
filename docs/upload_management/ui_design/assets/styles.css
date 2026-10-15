@@ -127,6 +127,13 @@ a { color: var(--primary); }
   gap: 0.75rem;
   min-width: 0;
 }
+/* foldable panel: <details class="panel fold"><summary>…</summary>…</details> */
+details.fold { display: block; }
+details.fold > * + * { margin-top: 0.75rem; }
+details.fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after { content: "▾"; color: var(--primary); font-size: 1.1rem; line-height: 1; }
+details.fold[open] > summary::after { content: "▴"; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
 .section-title {
   margin: 0; color: var(--primary); font-weight: 700; font-size: 1.1rem;
@@ -325,7 +332,10 @@ body.hide-pb .pb { display: none; }
 /* session timeline strip */
 .tl { display: flex; flex-direction: column; gap: 0.4rem; }
 .tl-track { position: relative; height: 34px; border-radius: 8px; background: var(--th-bg); border: 1px solid var(--row-border); overflow: hidden; }
-.tl-seg { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; background: var(--info-dot); opacity: 0.85; }
+.tl-seg { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; background: var(--info-dot); opacity: 0.85;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; padding: 0 2px;
+  font-size: 0.62rem; font-weight: 700; line-height: 24px; color: var(--white); }
+.tl-seg.sk { color: transparent; }
 .tl-seg.q { background: var(--purple); opacity: 0.55; }
 .tl-seg.v { background: var(--primary); }
 .tl-seg.sk { background: repeating-linear-gradient(45deg, var(--warn-dot) 0 4px, var(--warn-bg) 4px 8px); opacity: 1; }
@@ -364,6 +374,7 @@ body.hide-pb .pb { display: none; }
 .comment .when { font-weight: 400; color: var(--dark-gray); margin-left: 4px; }
 .comment .body { font-size: 0.88rem; margin-top: 1px; }
 .comment .sys { font-size: 0.8rem; color: var(--dark-gray); font-style: italic; }
+input.input { font: inherit; font-size: 0.86rem; width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.4rem; }
 textarea.input { font: inherit; font-size: 0.88rem; width: 100%; min-height: 70px; resize: vertical; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; }
 
 /* attempts list */

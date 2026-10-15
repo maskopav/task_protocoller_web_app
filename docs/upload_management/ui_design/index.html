@@ -84,8 +84,8 @@
           <div class="flow"><span class="pill info"><span class="dot"></span>Validating</span><span class="arrow">→</span><span class="pill ok"><span class="dot"></span>Valid</span><span class="muted">or</span><span class="pill bad"><span class="dot"></span>Invalid</span></div>
           <ul>
             <li>ZIP SHA-256 equals the <span class="mono">zipSha256</span> form field</li>
-            <li>Every file matches its hash in <span class="mono">manifest.json</span></li>
-            <li><span class="mono">sessionId</span> and <span class="mono">configVersion</span> agree across form, manifest and <span class="mono">examination.json</span></li>
+            <li>Every file listed in <span class="mono">manifest.json</span> exists and matches its hash, and no ZIP entry is unlisted</li>
+            <li><span class="mono">sessionId</span> agrees across form, manifest and <span class="mono">examination.json</span>; <span class="mono">installationId</span> across form and examination.json; <span class="mono">configVersion</span> across manifest and examination.json (the form has no configVersion)</li>
             <li>The device belongs to a site; unknown devices go to quarantine</li>
           </ul>
         </div>
@@ -107,11 +107,14 @@
       <div class="table-wrap"><table class="table src">
         <thead><tr><th>Source</th><th>Fields shown</th></tr></thead>
         <tbody>
-          <tr><td>Upload request</td><td>installationId, sessionId, zipSha256, received time, size, every attempt (incl. 400 / 409)</td></tr>
-          <tr><td>examination.json</td><td>protocol + project, configVersion, start / end, tasks (type, subtype, repetition, takes, skipped, clip and video files, questionnaire answers), recovered, interruptions, timeline used, audio format</td></tr>
-          <tr><td>participant.json</td><td>patient code, visit and every other field the protocol asks for (masked by default)</td></tr>
+          <tr><td>Upload request</td><td>exactly four parts: installationId, sessionId, zipSha256, zip. Plus server-side: received time, size, every attempt (incl. 400 / 409)</td></tr>
+          <tr><td>examination.json</td><td>protocol + project, configVersion, start / end (end absent if the session never finished cleanly; processing.processedAt stands in), tasks (type VOCAL / VIDEO / QUESTIONNAIRE / INFO, subtype, repetition, takes, skipped, clipFile, videoFile, questionnaire answers as key → list), recovered, interruptions (old → new device), timeline used, audio format</td></tr>
+          <tr><td>examination.json → hardware</td><td>microphone and camera names (one entry per open, so a swapped mic shows both), input gain, video format, device events (capture failed, interrupted, gain changed)</td></tr>
+          <tr><td>participant.json</td><td><span class="mono">fields</span>: whatever the protocol's patientFields ask for, usually patient code and visit (masked by default)</td></tr>
+          <tr><td>timeline_original.json / timeline_edited.json</td><td>task segments on the recording timeline; mic-lost takes (TAKE_REJECTED, reason DEVICE_LOST)</td></tr>
+          <tr><td>task_configuration_snapshot.json</td><td>question texts for questionnaire answers; the clip file name template</td></tr>
           <tr><td>manifest.json</td><td>per-file hashes for the server check</td></tr>
-          <tr><td>Server</td><td>site (via device), review status, comments, audit of reveals and downloads</td></tr>
+          <tr><td>Server</td><td>site (via device), review status, comments, participant field corrections, audit of reveals, downloads and participant edits</td></tr>
           <tr><td>Phase B ${U.PB("extended contract")}</td><td>site token and app version on the upload; device check-in with last seen and local waiting / failed counts</td></tr>
         </tbody>
       </table></div>
@@ -120,9 +123,10 @@
     <section class="dash-section">
       <h2>Decisions for the backend</h2>
       <ul>
-        <li><b>Duplicate uploads.</b> The app treats any non-2xx reply as a retryable failure. A repeat of an already received session with the same checksum should get <span class="mono">200</span> with the original receipt, and be logged as “Re-sent”. A repeat with a different checksum stays <span class="mono">409</span>.</li>
+        <li><b>Duplicate uploads.</b> The app treats any non-2xx reply as a retryable failure. A repeat of an already received session with the same checksum should get <span class="mono">200</span> with the original receipt, and be logged as “Re-sent”. A repeat with a different checksum stays <span class="mono">409</span>. The app's upload spec (<span class="mono">upload_data.md</span>) says only that the server “should reject” a session it already has and leaves response codes out of scope, so agree this with the app author.</li>
         <li><b>Who sees what.</b> See “Access” above. Put one shared <span class="mono">canSeeSession</span> / <span class="mono">canEditSession</span> helper beside <span class="mono">accessScope.js</span> and use it in every upload endpoint: list, detail, download, clip playback, reveal, review and comments. Downloads and reveals are audit-logged.</li>
-        <li><b>Personal data.</b> participant.json can hold surnames and birth years. Only the patient code and visit are visible by default.</li>
+        <li><b>Personal data.</b> participant.json can hold surnames and birth years. Only the patient code and visit are visible by default. The ZIP the device sends is named <span class="mono">&lt;patientCode&gt;_&lt;sessionId&gt;.zip</span>: the server stores and serves it as <span class="mono">&lt;sessionId&gt;.zip</span> and never writes the original name to logs.</li>
+        <li><b>Clip names.</b> Clip and video file names come from each site's <span class="mono">recordingsFileName</span> template. The server maps files to tasks only through <span class="mono">clipFile</span> / <span class="mono">videoFile</span> in examination.json, never by parsing names.</li>
         <li><b>Purple markers</b> (<span class="pb" style="cursor:default">phase B</span>) and purple notes mark what needs the extended desktop contract. Toggle them off in the top bar to see the plain product.</li>
       </ul>
     </section>

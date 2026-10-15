@@ -112,7 +112,7 @@
       </div>
     </section>
 
-    <p class="annot"><b>Row colour stripe:</b> red = failed server check, amber = needs review or crash/mic loss. <b>Recorded</b> is when the session ended at the clinic (examination.json → endedAt); the small line under it is the delay until upload. Paging, sorting and filtering run server-side in the real page (<span class="mono">GET /uploads?site=&amp;status=&amp;…&amp;page=</span>).</p>
+    <p class="annot"><b>Row colour stripe:</b> red = failed server check, amber = needs review or crash/mic loss. <b>Recorded</b> is when the session ended at the clinic (examination.json → endedAt, or processing.processedAt when the session never finished cleanly); the small line under it is the delay until upload. Paging, sorting and filtering run server-side in the real page (<span class="mono">GET /uploads?site=&amp;status=&amp;…&amp;page=</span>).</p>
   `;
 
   // ---------- chips ----------
@@ -155,7 +155,7 @@
       if (st.protocol && s.protocol !== st.protocol) return false;
       if (st.status && s.status !== st.status) return false;
       if (st.qc && s.qc !== st.qc) return false;
-      const dv = (st.dateField === "received" ? s.receivedAt : s.endedAt).slice(0, 10);
+      const dv = (st.dateField === "received" ? s.receivedAt : U.endOf(s)).slice(0, 10);
       if (st.from && dv < st.from) return false;
       if (st.to && dv > st.to) return false;
       for (const i of st.issues) { if (i === "video" ? !s.videoClips : !s.issues.includes(i)) return false; }
@@ -163,7 +163,7 @@
       return true;
     });
   }
-  const sortVal = (s, k) => k === "site" ? U.site(s.site).name : k === "patient" ? s.participant.patient_code : k === "qc" ? ["review", "unreviewed", "ok", "excluded"].indexOf(s.qc) : k === "status" ? ["invalid", "validating", "valid"].indexOf(s.status) : s[k];
+  const sortVal = (s, k) => k === "site" ? U.site(s.site).name : k === "patient" ? s.participant.patient_code : k === "qc" ? ["review", "unreviewed", "ok", "excluded"].indexOf(s.qc) : k === "status" ? ["invalid", "validating", "valid"].indexOf(s.status) : k === "endedAt" ? U.endOf(s) : s[k];
 
   function row(s) {
     const dev = U.device(s.deviceId);
@@ -174,7 +174,7 @@
       <td><div class="stack"><span>${U.esc(U.site(s.site).name)}</span><span class="cell-sub">${U.esc(dev.label)}</span></div></td>
       <td><div class="stack"><span class="cell-main">${U.esc(s.participant.patient_code)}</span><span class="cell-sub">${s.participant.visit_number} · <span class="mono">${s.id.slice(0, 8)}</span></span></div></td>
       <td><div class="stack"><span>${U.esc(s.protocol)}</span><span class="cell-sub">${U.esc(s.project)}</span></div></td>
-      <td><div class="stack"><span class="num">${U.fmtDT(s.endedAt)}</span><span class="cell-sub">+${U.lagText(s)} to upload</span></div></td>
+      <td><div class="stack"><span class="num">${U.fmtDT(U.endOf(s))}${s.endedAt ? "" : ' <span class="tag bad" title="No endedAt: the session never finished cleanly. Time shown is when the app rebuilt it.">not finished</span>'}</span><span class="cell-sub">+${U.lagText(s)} to upload</span></div></td>
       <td class="r num">${U.fmtDurShort(s.durationS)}</td>
       <td><div class="stack" title="${done} done, ${sk} skipped, ${total - done - sk} missing of ${total}">
         <span class="num">${done}/${total}${sk ? ` <span class="cell-sub">· ${sk} skipped</span>` : ""}</span>

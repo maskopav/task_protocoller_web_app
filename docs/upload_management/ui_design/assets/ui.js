@@ -81,6 +81,7 @@
     outdated:    { cls: "warn", label: "Old config",      hint: "Recorded with a config version older than the current one" },
     late:        { cls: "warn", label: "Late upload",     hint: "Uploaded more than 3 days after recording" },
     duplicate:   { cls: "",     label: "Re-sent",         hint: "Device re-sent an already received session (409)" },
+    device:      { cls: "warn", label: "Device event",    hint: "A camera or microphone failed during the session (examination.json → hardware.events[])" },
   };
 
   const pad = (n) => String(n).padStart(2, "0");
@@ -98,7 +99,10 @@
     const d = Math.round(h / 24);
     return d === 1 ? "yesterday" : `${d} days ago`;
   };
-  const lagText = (s) => { const h = (new Date(s.receivedAt) - new Date(s.endedAt)) / 3600e3; return h < 1 ? `${Math.round(h * 60)} min` : h < 48 ? `${Math.round(h)} h` : `${Math.round(h / 24)} days`; };
+  // examination.json → endedAt is absent when the session never finished cleanly
+  // (crash recovery); fall back to processing.processedAt.
+  const endOf = (s) => s.endedAt || s.processedAt;
+  const lagText = (s) => { const h = (new Date(s.receivedAt) - new Date(endOf(s))) / 3600e3; return h < 1 ? `${Math.round(h * 60)} min` : h < 48 ? `${Math.round(h)} h` : `${Math.round(h / 24)} days`; };
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   const site = (id) => D.sites.find((s) => s.id === id);
@@ -171,11 +175,40 @@
     });
   }
 
+  // "Uploads per day" panel shared by the site and project dashboards.
+  // Renders into `el` and redraws when the day range changes.
+  function perDayChart(el, ss, n = 21) {
+    const lbl = 'style="font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)"';
+    const opts = [7, 14, 21, 30, 60, 90];
+    el.innerHTML = `<div class="section-head"><span class="m-label" ${lbl}>Uploads per day</span>
+      <select aria-label="Days shown" style="font:inherit;font-size:.78rem;border:1px solid var(--border);border-radius:6px">${opts.map((o) => `<option value="${o}"${o === n ? " selected" : ""}>last ${o} days</option>`).join("")}</select></div><div></div>`;
+    const out = el.lastElementChild;
+    const draw = (n) => {
+      const days = Array.from({ length: n }, (_, i) => new Date(D.NOW.getTime() - (n - 1 - i) * 864e5).toISOString().slice(0, 10));
+      const perDay = days.map((d) => ss.filter((s) => s.receivedAt.slice(0, 10) === d));
+      const max = Math.max(2, ...perDay.map((x) => x.length));
+      const X0 = 16, step = (296 - X0) / n, y = (v) => 62 - v / max * 56;
+      const ticks = uniq([0, Math.round(max / 2), max]);
+      out.innerHTML = `<svg viewBox="0 0 296 76" role="img" aria-label="Uploads per day, last ${n} days" style="width:100%;height:auto">
+        ${ticks.map((t) => `<line x1="${X0}" y1="${y(t) + 0.5}" x2="296" y2="${y(t) + 0.5}" stroke="var(--row-border)"${t ? ' stroke-dasharray="2 2"' : ""}/>
+          <text x="${X0 - 3}" y="${y(t) + 3}" font-size="8" fill="var(--dark-gray)" text-anchor="end">${t}</text>`).join("")}
+        ${perDay.map((list, i) => {
+          const h = list.length / max * 56, bad = list.some((s) => s.status === "invalid");
+          return `<rect x="${X0 + i * step + step * 0.15}" y="${62 - h}" width="${step * 0.7}" height="${h}" rx="${Math.min(2, step * 0.2)}" fill="${bad ? "var(--danger)" : "var(--primary)"}"><title>${days[i]}: ${list.length} upload(s)</title></rect>`;
+        }).join("")}
+        <text x="${X0}" y="74" font-size="8" fill="var(--dark-gray)">${fmtDate(days[0] + "T00:00:00Z")}</text>
+        <text x="296" y="74" font-size="8" fill="var(--dark-gray)" text-anchor="end">today</text>
+      </svg>`;
+    };
+    el.querySelector("select").addEventListener("change", (e) => draw(+e.target.value));
+    draw(n);
+  }
+
   function copyText(btn, text) {
     const done = () => { const o = btn.textContent; btn.textContent = "Copied"; setTimeout(() => (btn.textContent = o), 1200); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done); else done();
   }
 
-  window.UM = { D, SC, scopeFor, STATUS, INVALID_REASON, QC, ISSUES, fmtDate, fmtTime, fmtDT, fmtDur, fmtDurShort, fmtBytes, rel, lagText, esc,
-    site, device, project, notFound, shortId, statusPill, qcPill, issueTags, needsAttention, deviceHealth, PB, topbar, previewBar, copyText };
+  window.UM = { D, SC, scopeFor, STATUS, INVALID_REASON, QC, ISSUES, fmtDate, fmtTime, fmtDT, fmtDur, fmtDurShort, fmtBytes, rel, endOf, lagText, esc,
+    site, device, project, notFound, shortId, statusPill, qcPill, issueTags, needsAttention, deviceHealth, PB, topbar, previewBar, perDayChart, copyText };
 })();

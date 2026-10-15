@@ -31,14 +31,6 @@
   const review = ss.filter((s) => s.qc === "review").length;
   const countries = [...new Set(sites.map((s) => s.country))].join(", ");
 
-  // uploads per day, last 21 days
-  const days = Array.from({ length: 21 }, (_, i) => new Date(D.NOW.getTime() - (20 - i) * 864e5).toISOString().slice(0, 10));
-  const perDay = days.map((d) => ss.filter((s) => s.receivedAt.slice(0, 10) === d));
-  const max = Math.max(2, ...perDay.map((x) => x.length));
-  const bars = perDay.map((list, i) => {
-    const h = list.length / max * 56, bad = list.some((s) => s.status === "invalid");
-    return `<rect x="${i * 14 + 2}" y="${62 - h}" width="10" height="${h}" rx="2" fill="${bad ? "var(--danger)" : "var(--primary)"}"><title>${days[i]}: ${list.length} upload(s)</title></rect>`;
-  }).join("");
   const label = 'style="font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)"';
 
   const siteRow = (s) => {
@@ -101,18 +93,14 @@
           </table>
         </div>
         <div style="display:flex;flex-direction:column;gap:.75rem;min-width:0">
-          <div class="panel">
-            <span class="m-label" ${label}>Uploads per day · last 21 days</span>
-            <svg viewBox="0 0 296 76" role="img" aria-label="Uploads per day" style="width:100%;height:auto">
-              <line x1="0" y1="62.5" x2="296" y2="62.5" stroke="var(--row-border)"/>
-              ${bars}
-              <text x="0" y="74" font-size="8" fill="var(--dark-gray)">${U.fmtDate(days[0] + "T00:00:00Z")}</text>
-              <text x="296" y="74" font-size="8" fill="var(--dark-gray)" text-anchor="end">today</text>
-            </svg>
-          </div>
+          <div class="panel" id="perday"></div>
           <div class="panel">
             <span class="m-label" ${label}>By protocol</span>
             ${protos.map((name) => { const n = ss.filter((s) => s.protocol === name).length; return `<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.86rem"><span>${U.esc(name)}</span><strong class="num">${n}</strong></div>`; }).join("")}
+          </div>
+          <div class="panel">
+            <span class="m-label" ${label}>By site</span>
+            ${sites.map((st) => { const n = ss.filter((s) => s.site === st.id).length; return `<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.86rem"><span>${U.esc(st.name)}</span><strong class="num">${n}</strong></div>`; }).join("")}
           </div>
         </div>
       </div>
@@ -128,9 +116,10 @@
       </div>
     </section>
 
-    <p class="annot"><b>Project dashboard.</b> The existing page (<span class="mono">ProjectDashboardPage</span>, <span class="mono">/admin/projects/:projectId</span>) keeps its header, statistics, actions and sites table. It gains the same upload block as the site dashboard: three upload numbers in the statistics, the 8 latest sessions, uploads per day and a per-protocol breakdown. The sites table gets per-site session counts, last upload and attention, so a project lead can see which clinic is behind. “View all” opens Uploads filtered to this project.</p>
+    <p class="annot"><b>Project dashboard.</b> The existing page (<span class="mono">ProjectDashboardPage</span>, <span class="mono">/admin/projects/:projectId</span>) keeps its header, statistics, actions and sites table. It gains the same upload block as the site dashboard: three upload numbers in the statistics, the 8 latest sessions, uploads per day (range selectable) and per-protocol and per-site breakdowns. The sites table gets per-site session counts, last upload and attention, so a project lead can see which clinic is behind. “View all” opens Uploads filtered to this project.</p>
     <p class="annot"><b>Scope.</b> The page opens only for a project in the user's scope; any other ID gets a 404. The site list and every number cover only the (site, project) pairs the user may see. A grant narrowed by <span class="mono">user_project_sites</span> shows just those clinics. A project reached only through a clinic shows just that clinic. Its sessions can be worked on (the clinic grant allows that), but the project itself is view only: Edit and protocol changes need <span class="mono">can_edit</span> on this project.</p>
   `;
+  U.perDayChart(app.querySelector("#perday"), ss);
 })();
 </script>
 </body>

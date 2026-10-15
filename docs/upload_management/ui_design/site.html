@@ -30,15 +30,6 @@
   const invalid = ss.filter((s) => s.status === "invalid").length;
   const review = ss.filter((s) => s.qc === "review").length;
 
-  // uploads per day, last 21 days
-  const days = Array.from({ length: 21 }, (_, i) => { const d = new Date(D.NOW.getTime() - (20 - i) * 864e5); return d.toISOString().slice(0, 10); });
-  const perDay = days.map((d) => ss.filter((s) => s.receivedAt.slice(0, 10) === d));
-  const max = Math.max(2, ...perDay.map((x) => x.length));
-  const bars = perDay.map((list, i) => {
-    const h = list.length / max * 56, bad = list.some((s) => s.status === "invalid");
-    return `<rect x="${i * 14 + 2}" y="${62 - h}" width="10" height="${h}" rx="2" fill="${bad ? "var(--danger)" : "var(--primary)"}"><title>${days[i]}: ${list.length} upload(s)</title></rect>`;
-  }).join("");
-
   app.innerHTML = `
     ${U.topbar()}
     <div class="page-header">
@@ -70,25 +61,18 @@
       <div class="detail-grid" style="grid-template-columns:minmax(0,1fr) 320px">
         <div class="table-wrap">
           <table class="table">
-            <thead><tr><th>Received</th><th>Patient</th><th>Protocol</th><th>Device</th><th>Server check</th><th>Review</th><th>Flags</th></tr></thead>
+            <thead><tr><th>Received</th><th>Patient</th><th>Project</th><th>Protocol</th><th>Device</th><th>Server check</th><th>Review</th><th>Flags</th></tr></thead>
             <tbody>${ss.slice(0, 8).map((s) => `<tr class="clickable ${s.status === "invalid" ? "row-bad" : U.needsAttention(s) ? "row-warn" : ""}" onclick="location.href='session.html#${s.id}'">
               <td><div class="stack"><span class="num">${U.fmtDT(s.receivedAt)}</span><span class="cell-sub">${U.rel(s.receivedAt)}</span></div></td>
               <td class="cell-main">${U.esc(s.participant.patient_code)}</td>
+              <td>${U.esc(s.project)}</td>
               <td>${U.esc(s.protocol)}</td>
               <td class="cell-sub">${U.esc(U.device(s.deviceId).label)}</td>
               <td>${U.statusPill(s)}</td><td>${U.qcPill(s.qc)}</td><td class="flags">${U.issueTags(s)}</td></tr>`).join("")}</tbody>
           </table>
         </div>
         <div style="display:flex;flex-direction:column;gap:.75rem;min-width:0">
-          <div class="panel">
-            <span class="m-label" style="font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">Uploads per day · last 21 days</span>
-            <svg viewBox="0 0 296 76" role="img" aria-label="Uploads per day" style="width:100%;height:auto">
-              <line x1="0" y1="62.5" x2="296" y2="62.5" stroke="var(--row-border)"/>
-              ${bars}
-              <text x="0" y="74" font-size="8" fill="var(--dark-gray)">${U.fmtDate(days[0] + "T00:00:00Z")}</text>
-              <text x="296" y="74" font-size="8" fill="var(--dark-gray)" text-anchor="end">today</text>
-            </svg>
-          </div>
+          <div class="panel" id="perday"></div>
           <div class="panel">
             <div class="section-head"><span class="m-label" style="font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">Devices ${U.PB("device check-in")}</span><a href="devices.html" style="font-size:.82rem">All devices →</a></div>
             ${devs.map((d) => `<div style="display:flex;justify-content:space-between;gap:.5rem;align-items:center;font-size:.86rem">
@@ -110,6 +94,7 @@
     <p class="annot"><b>Site dashboard.</b> The existing page (<span class="mono">SiteDashboardPage</span>) keeps its header and statistics card; three upload numbers join the statistics, and a new Uploads card shows the 8 latest sessions plus the site's devices. “View all” opens the Uploads page already filtered to this site.</p>
     <p class="annot"><b>Scope.</b> The page opens only for a site in the user's scope; any other ID gets the same 404 as a missing one. Everything on it is narrowed to the projects the user sees <i>at this site</i>: someone with only a project grant sees that project's sessions here and nothing else from the clinic, so the statistics, the latest uploads, the chart and the Assigned Projects table all count the same subset. Device backlog numbers appear only with a site assignment (see Devices).</p>
   `;
+  U.perDayChart(app.querySelector("#perday"), ss);
 })();
 </script>
 </body>

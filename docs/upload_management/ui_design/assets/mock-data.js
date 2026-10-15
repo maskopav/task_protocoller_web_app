@@ -1,7 +1,9 @@
 /* Mock data for the Upload Monitoring previews.
    Shapes follow what the server can know about a session upload:
+   (desktop app spec: NewShare docs/dev/upload_data.md v1.0)
    - multipart form: installationId, sessionId, zipSha256, zip   (+ siteToken, appVersion = phase B)
-   - ZIP: examination.json, participant.json, manifest.json, timeline_*.json, clips/
+   - ZIP: examination.json, participant.json, task_configuration_snapshot.json,
+     timeline_original.json (+ timeline_edited.json), manifest.json, master/, clips/
    - device check-in (phase B): lastSeen, localPending, localFailed
    "Today" in the mock is 2026-10-12. */
 (function () {
@@ -27,6 +29,7 @@
         { type: "VOCAL", subtype: "READING", len: 45 },
         { type: "VOCAL", subtype: "MONOLOGUE", len: 90, video: true },
         { type: "VOCAL", subtype: "PICTURE_DESCRIPTION", len: 60, video: true },
+        { type: "VIDEO", subtype: null, len: 40 },
         { type: "QUESTIONNAIRE", subtype: "VHI-10", len: 120 },
       ],
     },
@@ -76,6 +79,7 @@
   // hand-placed situations that the UI must make visible
   const scripted = {
     3: { status: "invalid", invalidReason: "checksum", attemptsExtra: ["bad400"] },
+    2: { cameraFailed: true },
     7: { recovered: true, qc: "review", comment: "App crashed after the reading task; session rebuilt on restart. Check the last two clips." },
     9: { interruptions: 1, qc: "review", comment: "Mic unplugged during PATAKA, take was redone." },
     12: { status: "invalid", invalidReason: "manifest" },
@@ -120,6 +124,27 @@
     const prefix = protocolName === "PD-battery" ? (rnd() < 0.65 ? "PD" : "HC") : protocolName === "Speech baseline" ? "SB" : "CQ";
     const code = prefix + String(2300 + ((i * 37) % 97)).padStart(4, "0");
     const visit = "V" + (1 + (i % 4));
+    // clips/<recordingsFileName>: names come from the site's template, so the
+    // server reads them from examination.json (clipFile / videoFile), never parses them.
+    tasks.forEach((t) => {
+      if (t.skipped || t.missing || (t.type !== "VOCAL" && t.type !== "VIDEO")) return;
+      const base = `clips/${code}_${dev.id}_${t.taskIndex}_${t.subtype || ""}_Rep${t.repetition}`.replace(/[^A-Za-z0-9_\/-]/g, "");
+      if (t.type === "VOCAL") t.clipFile = base + ".wav";
+      if (t.video || t.type === "VIDEO") t.videoFile = base + ".mp4";
+    });
+
+    // examination.json -> hardware: one fixed mic/camera per device; camera only when filmed
+    const di = devices.indexOf(dev);
+    const mic = ["Focusrite Scarlett Solo USB", "RØDE NT-USB Mini", "USBAudioDevice"][di % 3];
+    const cam = ["Logitech BRIO", "OBSBOT Tiny 2 (PTZ)"][di % 2];
+    const hardware = {
+      micUses: hasAudio ? [{ deviceName: mic, inputGainPercent: 70 }, ...(sc.interruptions ? [{ deviceName: "Built-in Microphone Array", inputGainPercent: 55 }] : [])] : [],
+      cameraUses: videoClips ? [{ deviceName: cam, captureFormat: { width: 1920, height: 1080, fps: 30 } }] : [],
+      events: [
+        ...(sc.interruptions ? [{ device: "microphone", event: "interrupted", detail: mic + " disconnected" }] : []),
+        ...(sc.cameraFailed && videoClips ? [{ device: "camera", event: "capture_failed", detail: cam + " stopped delivering frames; take recorded audio only" }] : []),
+      ],
+    };
 
     const configVersion = dev.appVersion === "1.3.0" || i % 11 === 5 ? "2026-09-10.093000" : CURRENT_CONFIG;
     const status = sc.status || "valid";
@@ -134,6 +159,7 @@
     if (configVersion !== CURRENT_CONFIG) issues.push("outdated");
     if (lagH > 72) issues.push("late");
     if (sc.duplicates) issues.push("duplicate");
+    if (hardware.events.some((e) => e.event === "capture_failed")) issues.push("device");
 
     const attempts = [];
     if ((sc.attemptsExtra || []).includes("bad400")) {
@@ -154,7 +180,7 @@
       id: hex(32),
       site, deviceId: dev.id, appVersion: dev.appVersion,
       protocol: protocolName, project: proto.project, configVersion,
-      startedAt: started.toISOString(), endedAt: ended.toISOString(), receivedAt: received.toISOString(),
+      startedAt: started.toISOString(), endedAt: sc.recovered ? null : ended.toISOString(), processedAt: ended.toISOString(), receivedAt: received.toISOString(),
       durationS: durS, bytes, zipSha256: hex(64),
       status, invalidReason: sc.invalidReason || null,
       qc, issues, tasks, audioClips, videoClips, hasAudio,
@@ -170,6 +196,8 @@
       examinerInitials: ex[i % 2],
       attempts, comments,
       captureFormat: hasAudio ? { sampleRate: 48000, bits: 16, channels: 1 } : null,
+      hardware,
+      interruptionDevices: sc.interruptions ? { oldDevice: mic, newDevice: "Built-in Microphone Array" } : null,
     });
   }
 
