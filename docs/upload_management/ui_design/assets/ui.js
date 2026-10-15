@@ -155,6 +155,7 @@
     ["devices.html", "4 · Devices"],
     ["site.html", "5 · Site dashboard"],
     ["project.html", "6 · Project dashboard"],
+    ["downloads.html", "7 · Downloads"],
   ];
   function previewBar(current) {
     const bar = document.createElement("nav");

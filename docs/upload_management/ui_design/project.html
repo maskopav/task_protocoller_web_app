@@ -78,7 +78,7 @@
     <section class="card">
       <div class="section-head">
         <h2 class="section-title">Uploads</h2>
-        <a class="btn btn-primary btn-sm" href="uploads.html#project=${proj.id}">View all ${ss.length} →</a>
+        <span style="display:flex;gap:.4rem">${ss.some(U.SC.canEdit) ? `<a class="btn btn-ghost btn-sm" href="downloads.html#project=${proj.id}">⬇ Go to Downloads</a>` : ""}<a class="btn btn-primary btn-sm" href="uploads.html#project=${proj.id}">View all ${ss.length} →</a></span>
       </div>
       <div class="detail-grid" style="grid-template-columns:minmax(0,1fr) 320px">
         <div class="table-wrap">

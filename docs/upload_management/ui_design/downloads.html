@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Downloads · TaskProtocoller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="dashboard-page" id="app"></div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/ui.js"></script>
+<script>
+(function () {
+  const U = window.UM, D = U.D;
+  U.previewBar("downloads.html");
+  const app = document.getElementById("app");
+  const master = U.SC.P.master;
+
+  // ---------- state ----------
+  const st = { by: "site", key: "", qc: "", protocol: "", issues: new Set(), hideBad: true, sel: new Set() };
+  const hash = (location.hash || "").slice(1);
+  if (hash.startsWith("site=") && U.site(hash.slice(5))) { st.by = "site"; st.key = hash.slice(5); }
+  if (hash.startsWith("project=")) { const p = U.project(decodeURIComponent(hash.slice(8))); if (p) { st.by = "project"; st.key = p.id; } }
+  const sources = () => st.by === "site" ? D.sites.map((s) => [s.id, s.name]) : D.projects.map((p) => [p.id, p.name]);
+  if (!st.key) st.key = (sources()[0] || [""])[0];
+
+  // Why a row can't be ticked (null = selectable).
+  const blocked = (s) => !U.SC.canEdit(s) ? "View only: your access to this session is read-only"
+    : s.status === "validating" ? "Still being checked on the server" : null;
+  // "Select all" skips invalid sessions; they can still be ticked one by one (e.g. to inspect a damaged ZIP).
+  const bulk = (s) => !blocked(s) && s.status !== "invalid";
+
+  app.innerHTML = `
+    ${U.topbar()}
+    <div class="page-header">
+      <h1 class="page-title">Downloads</h1>
+      <p class="page-desc">Download data from multiple sessions.</p>
+    </div>
+
+    <section class="card">
+      <div class="filters">
+        <div class="filter-row">
+          <div class="field"><span>Download from</span>
+            <div class="seg" role="group" aria-label="Download from">
+              <button type="button" data-by="site">Site</button><button type="button" data-by="project">Project</button>
+            </div>
+          </div>
+          <label class="field grow"><span id="src-label"></span><select id="f-src"></select></label>
+          <label class="field"><span>Protocol</span><select id="f-protocol"></select></label>
+          <label class="field"><span>Review</span>
+            <select id="f-qc"><option value="">Any</option>${Object.entries(U.QC).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join("")}</select>
+          </label>
+          <label class="field" style="flex-direction:row;align-items:center;gap:.4rem;align-self:flex-end;min-height:34px"><input type="checkbox" id="f-hide" checked> Hide excluded &amp; invalid</label>
+        </div>
+        <div class="chips" id="issue-chips"><span class="chips-label">Exclude flags</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2 class="section-title">Sessions</h2><span class="section-sub" id="count"></span></div>
+      <div class="table-wrap tall">
+        <table class="table" id="tbl">
+          <thead><tr>
+            <th class="c"><input type="checkbox" id="all" aria-label="Select all sessions shown"></th>
+            <th>Recorded</th><th>Patient</th><th>Protocol</th><th id="other-col"></th>
+            <th class="r">Size</th><th>Server check</th><th>Review</th><th>Flags</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="dl-bar">
+        <span id="sel-info"></span>
+        <button class="btn btn-ghost btn-sm" type="button" id="clear">Clear</button>
+        <button class="btn btn-primary" type="button" id="dl">⬇ Download</button>
+      </div>
+    </section>
+
+    <section class="annot">
+      <b>Task-level download ${U.PB("server-side repacking")}</b> Under consideration: download only some tasks from the selected sessions, e.g. just READING and MONOLOGUE.
+      <div class="chips" id="task-chips" style="margin:.4rem 0"></div>
+      The server would have to open every stored session ZIP, pull out the matching clips (by <span class="mono">clipFile</span> / <span class="mono">videoFile</span> in examination.json) plus examination.json and participant.json, build a new archive in temporary storage, stream it and delete the temporary files. That is heavy on CPU and disk for large selections, so it would run as a background job with a “your download is ready” link rather than a direct download. Decide whether it is worth it before building it.
+    </section>
+
+    <p class="annot"><b>Who can download.</b> Master can pick any site or project. Everyone else picks from the sites and projects in their scope, and can tick only sessions they may edit: a site assignment for the session's clinic, or <span class="mono">can_edit</span> on its project. Sessions seen through a read-only grant are listed with a disabled checkbox. The server checks every session ID in the request against the same <span class="mono">canEditSession</span> rule and refuses the whole request if one fails.</p>
+    <p class="annot"><b>Bundle.</b> <span class="mono">POST /uploads/download</span> with the session IDs streams one ZIP that <i>stores</i> (no recompression, no unpacking) each original session ZIP as <span class="mono">&lt;sessionId&gt;.zip</span>, plus <span class="mono">sessions.csv</span> listing patient code, visit, protocol, site, project, review and flags. Cheap to produce, starts immediately. One audit-log entry per bundle with the user and all session IDs. Limit about 5 GB or 200 sessions per bundle; beyond that the page asks to split the selection.</p>
+  `;
+
+  const $ = (sel) => app.querySelector(sel);
+  const tbody = $("#tbl tbody");
+
+  Object.entries(U.ISSUES).forEach(([k, m]) => $("#issue-chips").insertAdjacentHTML("beforeend",
+    `<button class="chip" type="button" data-issue="${k}" title="${U.esc("Hide sessions with this flag. " + m.hint)}" aria-pressed="false">${m.label}</button>`));
+
+  const inSource = () => D.sessions.filter((s) => st.by === "site" ? s.site === st.key : U.project(s.project).id === st.key);
+  const filtered = () => inSource().filter((s) => {
+    if (st.hideBad && (s.qc === "excluded" || s.status === "invalid")) return false;
+    if (st.qc && s.qc !== st.qc) return false;
+    if (st.protocol && s.protocol !== st.protocol) return false;
+    if (s.issues.some((i) => st.issues.has(i))) return false; // chips exclude flagged sessions
+    return true;
+  }).sort((a, b) => U.endOf(b).localeCompare(U.endOf(a)));
+
+  function renderSource() {
+    app.querySelectorAll("[data-by]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.by === st.by));
+    $("#src-label").textContent = st.by === "site" ? (master ? "Site (all sites)" : "Site") : (master ? "Project (all projects)" : "Project");
+    $("#f-src").innerHTML = sources().map(([id, name]) => `<option value="${id}"${id === st.key ? " selected" : ""}>${U.esc(name)}</option>`).join("");
+    const protos = [...new Set(inSource().map((s) => s.protocol))].sort();
+    if (!protos.includes(st.protocol)) st.protocol = "";
+    $("#f-protocol").innerHTML = `<option value="">All protocols</option>` + protos.map((p) => `<option${p === st.protocol ? " selected" : ""}>${U.esc(p)}</option>`).join("");
+    $("#other-col").textContent = st.by === "site" ? "Project" : "Site";
+  }
+
+  function render() {
+    const rows = filtered();
+    // keep only selections that are still visible
+    st.sel = new Set([...st.sel].filter((id) => rows.some((s) => s.id === id)));
+    tbody.innerHTML = rows.length ? rows.map((s) => {
+      const why = blocked(s);
+      return `<tr class="clickable ${s.status === "invalid" ? "row-bad" : U.needsAttention(s) ? "row-warn" : ""}" data-id="${s.id}">
+        <td class="c"><input type="checkbox" data-sel="${s.id}" aria-label="Select ${U.esc(s.participant.patient_code)}"${st.sel.has(s.id) ? " checked" : ""}${why ? ` disabled title="${U.esc(why)}"` : ""}></td>
+        <td class="num">${U.fmtDT(U.endOf(s))}</td>
+        <td><div class="stack"><span class="cell-main">${U.esc(s.participant.patient_code)}</span><span class="cell-sub">${U.esc(s.participant.visit_number || "")}</span></div></td>
+        <td>${U.esc(s.protocol)}</td>
+        <td>${U.esc(st.by === "site" ? s.project : U.site(s.site).name)}</td>
+        <td class="r num">${U.fmtBytes(s.bytes)}</td>
+        <td>${U.statusPill(s)}</td><td>${U.qcPill(s.qc)}</td><td class="flags">${U.issueTags(s)}</td></tr>`;
+    }).join("") : `<tr class="empty-row"><td colspan="9">No sessions match.</td></tr>`;
+
+    const selectable = rows.filter(bulk);
+    const ro = rows.filter(blocked).length;
+    $("#count").textContent = `${rows.length} sessions${ro ? ` · ${ro} not downloadable` : ""}`;
+    const all = $("#all");
+    all.disabled = !selectable.length;
+    all.checked = selectable.length > 0 && selectable.every((s) => st.sel.has(s.id));
+    all.indeterminate = !all.checked && st.sel.size > 0;
+
+    const chosen = rows.filter((s) => st.sel.has(s.id));
+    const bytes = chosen.reduce((a, s) => a + s.bytes, 0);
+    $("#sel-info").innerHTML = chosen.length ? `<strong>${chosen.length}</strong> selected · ${U.fmtBytes(bytes)}` : "Nothing selected";
+    $("#dl").disabled = !chosen.length;
+    $("#dl").textContent = chosen.length ? `⬇ Download ${chosen.length} session${chosen.length > 1 ? "s" : ""}` : "⬇ Download";
+    $("#clear").disabled = !chosen.length;
+
+    // phase B: subtypes present in the selection
+    const subs = [...new Set(chosen.flatMap((s) => s.tasks.filter((t) => t.clipFile || t.videoFile).map((t) => t.subtype || t.type)))];
+    $("#task-chips").innerHTML = subs.length
+      ? subs.map((t) => `<button class="chip" type="button" disabled aria-pressed="false">${U.esc(t.replace(/_/g, " "))}</button>`).join("")
+      : '<span class="muted">Select sessions to see their tasks.</span>';
+  }
+
+  // ---------- events ----------
+  app.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t.dataset.by) { st.by = t.dataset.by; st.key = (sources()[0] || [""])[0]; st.sel.clear(); renderSource(); return render(); }
+    if (t.dataset.issue) { const k = t.dataset.issue; st.issues.has(k) ? st.issues.delete(k) : st.issues.add(k); t.setAttribute("aria-pressed", st.issues.has(k)); return render(); }
+    if (t.id === "clear") { st.sel.clear(); return render(); }
+    if (t.id === "dl") {
+      // Mock: the real button POSTs the IDs and the browser receives the streamed bundle.
+      const b = t; b.disabled = true; b.textContent = "Preparing bundle…";
+      setTimeout(() => { b.textContent = "✓ Download started"; setTimeout(render, 1500); }, 900);
+      return;
+    }
+    if (t.matches("input")) return;
+    const tr = t.closest("tr[data-id]"); if (tr) location.href = "session.html#" + tr.dataset.id;
+  });
+  app.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset.sel) { t.checked ? st.sel.add(t.dataset.sel) : st.sel.delete(t.dataset.sel); return render(); }
+    if (t.id === "all") { filtered().filter(bulk).forEach((s) => (t.checked ? st.sel.add(s.id) : st.sel.delete(s.id))); return render(); }
+    if (t.id === "f-src") { st.key = t.value; st.sel.clear(); renderSource(); return render(); }
+    if (t.id === "f-protocol") { st.protocol = t.value; return render(); }
+    if (t.id === "f-qc") { st.qc = t.value; return render(); }
+    if (t.id === "f-hide") { st.hideBad = t.checked; return render(); }
+  });
+
+  if (!sources().length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Nothing in your scope to download.</td></tr>'; return; }
+  renderSource();
+  render();
+})();
+</script>
+</body>
+</html>
