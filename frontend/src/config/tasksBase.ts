@@ -206,10 +206,10 @@ export const taskBaseConfig: Record<string, TaskBase> = {
   },
 
   // Smell test: participant opens an envelope received by post, smells the
-  // paper inside, and picks the matching option. Own type so it gets a static
-  // instructions screen before the (reused) questionnaire engine; the actual
-  // question/options are placeholders until the real test is designed and can
-  // be edited via the same question builder as any other questionnaire.
+  // paper inside, picks the matching scent, then rates its intensity and
+  // pleasantness (SmellTestTask). Questions are authored in the same question
+  // builder as questionnaires; the defaults are placeholders until the real
+  // test is designed.
   smell: {
     type: "smell",
     recording: { mode: "basicStop" }, // Placeholder (not used, but required by type)

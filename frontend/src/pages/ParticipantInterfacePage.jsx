@@ -1211,7 +1211,7 @@ export default function ParticipantInterfacePage() {
       );
     }
 
-    // Render Smell Test (static instructions screen + reused questionnaire engine)
+    // Render Smell Test (instructions screen, then scent picker + rating sheet per question)
     if (currentTask.type === "smell") {
       return (
         <SmellTestTask

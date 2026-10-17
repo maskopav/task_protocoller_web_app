@@ -1,0 +1,291 @@
+/* =========================================
+   SmellTestTask.css
+   ========================================= */
+
+.smell-main {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: clamp(0.75rem, 2dvh, 1.25rem);
+  padding: clamp(8px, 2dvh, 16px) clamp(6px, 2vw, 12px);
+}
+
+.smell-question {
+  margin: 0;
+  max-width: 850px;
+  font-size: clamp(1.3rem, 4vw, 1.6rem);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text);
+  text-align: center;
+}
+
+/* Cancel the global button hover/press effects (darken + 1px shift). On touch
+   screens hover sticks to the last tapped button, so it would jump back when
+   another one is picked and visually single that button out. Only the
+   selection border distinguishes an option. */
+.scent-picker button.scent-option:hover:not(:disabled),
+.scent-picker button.scent-option:active:not(:disabled),
+.scent-sheet button.scent-rating-option:hover:not(:disabled),
+.scent-sheet button.scent-rating-option:active:not(:disabled),
+.scent-sheet button.scent-sheet-icon-btn:hover:not(:disabled),
+.scent-sheet button.scent-sheet-icon-btn:active:not(:disabled) {
+  filter: none;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .scent-option:hover,
+  .scent-rating-option:hover,
+  .scent-sheet-icon-btn:hover {
+    background: #f0f4ff;
+  }
+}
+
+/* ── Scent Picker ─────────────────────────────────────────────────── */
+/* 2×2 grid; an odd last option (e.g. "No scent") spans the full row */
+.scent-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.5rem, 2vw, 0.9rem);
+  width: 100%;
+  max-width: 850px;
+}
+
+.scent-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 56px;
+  margin: 0; /* global button margin would shift the absolutely-placed circles */
+  padding: clamp(0.6rem, 1.5dvh, 0.9rem) 0.5rem;
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.scent-option:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.scent-option.is-selected {
+  background: #e8f0fe;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.scent-option-image {
+  width: clamp(4.5rem, 22vw, 7rem);
+  height: clamp(4.5rem, 22vw, 7rem);
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(3.2rem, 15vw, 5rem);
+  line-height: 1;
+}
+
+.scent-option-text {
+  font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+  color: var(--text);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Cross layout: square stage, 4 circles in the corners, smaller one centred */
+.scent-picker.is-cross {
+  display: block;
+  position: relative;
+  width: min(100%, 440px);
+  aspect-ratio: 1;
+  flex-shrink: 0; /* keep the stage square inside the flex layout */
+  margin: 0 auto;
+}
+
+.scent-picker.is-cross .scent-option {
+  position: absolute;
+  width: 44%;
+  aspect-ratio: 1;
+  padding: 0;
+  gap: 0.2rem;
+  border-radius: 50%;
+}
+
+.scent-picker.is-cross .scent-option:nth-child(1) { top: 0; left: 0; }
+.scent-picker.is-cross .scent-option:nth-child(2) { top: 0; right: 0; }
+.scent-picker.is-cross .scent-option:nth-child(3) { bottom: 0; left: 0; }
+.scent-picker.is-cross .scent-option:nth-child(4) { bottom: 0; right: 0; }
+/* Centred by transform so it stays equidistant from all four circles */
+.scent-picker.is-cross .scent-option:nth-child(5),
+.scent-picker.is-cross button.scent-option:nth-child(5):hover:not(:disabled),
+.scent-picker.is-cross button.scent-option:nth-child(5):active:not(:disabled) {
+  top: 50%;
+  left: 50%;
+  width: 30%;
+  transform: translate(-50%, -50%);
+}
+
+.scent-picker.is-cross .scent-option-image {
+  width: 50%;
+  height: 50%;
+}
+
+.scent-picker.is-cross .scent-option:nth-child(5) .scent-option-text {
+  font-size: clamp(0.85rem, 2.6vw, 1.1rem);
+}
+
+/* Saved ratings (icons only), pinned to the bottom edge of the selected scent */
+.scent-option-badge {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  background: #fff;
+  border: 2px solid var(--primary);
+  border-radius: 999px;
+}
+
+.scent-option-badge .scent-rating-dot,
+.scent-option-badge .scent-rating-face {
+  width: 1.6rem;
+}
+
+/* ── Rating Sheet ─────────────────────────────────────────────────── */
+.scent-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+  animation: scent-sheet-fade 0.2s ease-out;
+}
+
+.scent-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  padding: 1.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  background: #fff;
+  border-radius: 1.5rem 1.5rem 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  animation: scent-sheet-slide 0.25s ease-out;
+}
+
+.scent-sheet-icon-btn {
+  position: absolute;
+  top: 0.6rem;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.scent-sheet-icon-btn.is-back { left: 0.6rem; }
+.scent-sheet-icon-btn.is-close { right: 0.6rem; }
+
+.scent-sheet-scent {
+  margin: 0;
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.scent-sheet-title {
+  margin: 0.25rem 0 1.25rem;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  color: var(--text);
+}
+
+.scent-rating-options {
+  display: grid;
+  grid-template-columns: repeat(var(--count), 1fr);
+  gap: clamp(0.3rem, 1.5vw, 0.7rem);
+}
+
+.scent-rating-option {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem 0.15rem;
+  background: #fff;
+  border: 2px solid var(--border);
+  box-shadow: none;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.scent-rating-option.is-selected {
+  background: #e8f0fe;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.scent-rating-dot,
+.scent-rating-face {
+  display: block;
+  width: clamp(2.6rem, 12vw, 3.4rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+/* Intensity: dot grows with the level (--dot-size set per level) */
+.scent-rating-dot {
+  box-sizing: border-box;
+  border: 2px solid var(--border);
+  background: radial-gradient(circle, var(--primary) 0, rgba(55, 100, 223, 0.35) calc(var(--dot-size) * 0.5), transparent var(--dot-size));
+}
+
+.scent-rating-face svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scent-rating-label {
+  font-size: clamp(0.75rem, 2.6vw, 1rem);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.scent-sheet-steps {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.scent-sheet-steps span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.scent-sheet-steps span.is-active {
+  background: var(--primary);
+}
+
+@keyframes scent-sheet-fade { from { opacity: 0; } }
+@keyframes scent-sheet-slide { from { transform: translateY(100%); } }

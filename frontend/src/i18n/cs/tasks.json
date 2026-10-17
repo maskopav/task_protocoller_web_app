@@ -5,6 +5,25 @@
     "pleaseAnswerAll": "Pro pokračování prosím odpovězte na všechny povinné otázky.",
     "optionalLabel": "(nepovinné)"
   },
+  "smell": {
+    "close": "Zavřít",
+    "back": "Zpět",
+    "intensity": {
+      "title": "Jak silná je vůně?",
+      "soft": "Slabá",
+      "medium": "Střední",
+      "strong": "Silná",
+      "intense": "Velmi silná"
+    },
+    "pleasantness": {
+      "title": "Jak příjemná je vůně?",
+      "veryUnpleasant": "Velmi nepříjemná",
+      "unpleasant": "Nepříjemná",
+      "neutral": "Neutrální",
+      "pleasant": "Příjemná",
+      "veryPleasant": "Velmi příjemná"
+    }
+  },
   "rbdsq": {
     "defaultContent": {
       "questions": [

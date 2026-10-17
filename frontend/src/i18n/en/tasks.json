@@ -691,6 +691,23 @@
       "title": "{{title}}",
       "noScent": "No scent",
       "scents": {},
+      "close": "Close",
+      "back": "Back",
+      "intensity": {
+        "title": "How strong is the smell?",
+        "soft": "Soft",
+        "medium": "Medium",
+        "strong": "Strong",
+        "intense": "Intense"
+      },
+      "pleasantness": {
+        "title": "How pleasant is the smell?",
+        "veryUnpleasant": "Very unpleasant",
+        "unpleasant": "Unpleasant",
+        "neutral": "Neutral",
+        "pleasant": "Pleasant",
+        "veryPleasant": "Very pleasant"
+      },
       "instructions": "PLACEHOLDER: Open the envelope you received by post. Take out the paper strip inside and smell it carefully. When you're ready, tap Next to answer the question.",
       "params": {
         "title": { "label": "Title" },

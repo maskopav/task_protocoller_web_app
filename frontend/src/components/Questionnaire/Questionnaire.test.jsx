@@ -10,7 +10,6 @@ vi.mock("react-i18next", () => ({
 
 const { default: Questionnaire } = await import("./Questionnaire");
 const { isFreeTextValid } = await import("../../utils/questionConditions");
-const { SMELL_IMAGES } = await import("../../config/smellScents");
 
 // Two questions is enough to cover: a required single-choice question (blocks
 // submit while unanswered) and an optional open-text question (doesn't).
@@ -180,85 +179,5 @@ describe("Questionnaire — numeric write-in", () => {
     act(() => setNativeValue(input(), "150"));
     expect(submit().disabled).toBe(true);
     expect(container.querySelector(".answer-input-error")).not.toBeNull();
-  });
-});
-
-describe("Questionnaire — picture options (smell test)", () => {
-  it("renders one picture card per option and submits the picked option", () => {
-    Element.prototype.scrollIntoView = vi.fn();
-    const container = document.createElement("div");
-    document.body.appendChild(container);
-    const onNextTask = vi.fn();
-    const question = {
-      id: "s1", type: "single", text: "Which smell?",
-      options: ["Apple", "Rose", "No scent"],
-      // path, a scent key whose picture is missing, a scent key with a picture
-      optionImages: { Apple: "/assets/smell/apple.png", Rose: "rose_missing", "No scent": "no_scent" },
-    };
-    let root;
-    act(() => {
-      root = createRoot(container);
-      root.render(<Questionnaire data={{ questions: [question] }} onNextTask={onNextTask} />);
-    });
-
-    const cards = container.querySelectorAll(".picture-option");
-    expect(cards).toHaveLength(3);
-    expect(container.querySelectorAll('input[type="radio"]')).toHaveLength(0);
-    expect(cards[0].querySelector("img").getAttribute("src")).toBe("/assets/smell/apple.png");
-    expect(cards[1].querySelector(".picture-option-image")).toBeNull();
-    expect(cards[2].querySelector("img").getAttribute("src")).toBe(SMELL_IMAGES.no_scent);
-
-    act(() => cards[1].click());
-    expect(cards[1].getAttribute("aria-checked")).toBe("true");
-    act(() => container.querySelector(".btn-submit-questionnaire").click());
-    expect(onNextTask.mock.calls[0][0].answers).toEqual({ s1: "Rose" });
-
-    act(() => root.unmount());
-    container.remove();
-  });
-
-  it("asks intensity for a scent, saves it per scent, and skips it for No scent", () => {
-    Element.prototype.scrollIntoView = vi.fn();
-    const container = document.createElement("div");
-    document.body.appendChild(container);
-    const onNextTask = vi.fn();
-    const question = {
-      id: "s1", type: "single", text: "Which smell?",
-      options: ["Mint", "Rose", "No scent"],
-      optionImages: { Mint: "mint", Rose: "rose", "No scent": "no_scent" },
-    };
-    let root;
-    act(() => {
-      root = createRoot(container);
-      root.render(<Questionnaire data={{ questions: [question] }} onNextTask={onNextTask} askScentIntensity />);
-    });
-    const cards = () => container.querySelectorAll(".picture-option");
-    const sheet = () => document.querySelector(".intensity-sheet");
-    const submit = () => container.querySelector(".btn-submit-questionnaire");
-
-    // Closing the sheet without a level leaves the question unanswered
-    act(() => cards()[0].click());
-    expect(sheet()).not.toBeNull();
-    act(() => document.querySelector(".intensity-close").click());
-    expect(sheet()).toBeNull();
-    expect(cards()[0].getAttribute("aria-checked")).toBe("false");
-
-    // Mint → Strong, then switch to Rose → Soft: only Rose's intensity is kept
-    act(() => cards()[0].click());
-    act(() => document.querySelectorAll(".intensity-option")[2].click());
-    act(() => cards()[1].click());
-    act(() => document.querySelectorAll(".intensity-option")[0].click());
-    expect(cards()[1].querySelector(".picture-option-badge").textContent).toBe("questionnaire.intensity.soft");
-    act(() => submit().click());
-    expect(onNextTask.mock.calls[0][0].answers).toEqual({ s1: "Rose", s1__intensity__Rose: 1 });
-
-    // No scent is saved directly and drops the previous intensity
-    act(() => cards()[2].click());
-    expect(sheet()).toBeNull();
-    act(() => submit().click());
-    expect(onNextTask.mock.calls[1][0].answers).toEqual({ s1: "No scent" });
-
-    act(() => root.unmount());
-    container.remove();
   });
 });

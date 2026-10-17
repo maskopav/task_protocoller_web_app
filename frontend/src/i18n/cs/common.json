@@ -72,15 +72,7 @@
     "typeAnswer": "Sem napište svou odpověď...",
     "pleaseSpecify": "Prosím upřesněte",
     "enterNumber": "Zadejte číslo",
-    "numberOutOfRange": "Zadejte prosím celé číslo od {{min}} do {{max}}.",
-    "intensity": {
-      "title": "Jak silná je vůně?",
-      "close": "Zavřít",
-      "soft": "Slabá",
-      "medium": "Střední",
-      "strong": "Silná",
-      "intense": "Velmi silná"
-    }
+    "numberOutOfRange": "Zadejte prosím celé číslo od {{min}} do {{max}}."
   },
   "identifiers": {
     "description": "Vyplňte prosím následující údaje.",

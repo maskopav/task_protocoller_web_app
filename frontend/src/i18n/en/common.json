@@ -97,14 +97,6 @@
         "okay": "Okay",
         "good": "Good",
         "veryGood": "Very good"
-      },
-      "intensity": {
-        "title": "How strong is the smell?",
-        "close": "Close",
-        "soft": "Soft",
-        "medium": "Medium",
-        "strong": "Strong",
-        "intense": "Intense"
       }
     },
     "identifiers": {
