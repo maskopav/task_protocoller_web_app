@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><g id="c">
+    <path d="M47 34L53 34L51.5 86L48.5 86Z" fill="#6D3B1F"/>
+    <path d="M40 30L50 40L60 30L56 22L50 26L44 22Z" fill="#8B4A25"/>
+    <circle cx="50" cy="20" r="8" fill="#A0582E"/>
+    <circle cx="48" cy="18" r="2.5" fill="#C27A4A"/>
+  </g></defs>
+  <use href="#c" transform="rotate(-30 50 88)"/>
+  <use href="#c" transform="rotate(30 50 88)"/>
+  <use href="#c" transform="translate(0 4)"/>
+</svg>

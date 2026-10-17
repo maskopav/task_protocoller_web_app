@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><g id="p"><path d="M50 50C43 40 43 22 50 10C57 22 57 40 50 50Z" fill="#8D4E2B"/><path d="M50 48C47 40 47 28 50 18" stroke="#5D2E14" stroke-width="1.5" fill="none"/><ellipse cx="52.5" cy="30" rx="2.6" ry="4.5" fill="#D9A86C"/></g></defs>
+  <use href="#p"/><use href="#p" transform="rotate(45 50 50)"/><use href="#p" transform="rotate(90 50 50)"/><use href="#p" transform="rotate(135 50 50)"/>
+  <use href="#p" transform="rotate(180 50 50)"/><use href="#p" transform="rotate(225 50 50)"/><use href="#p" transform="rotate(270 50 50)"/><use href="#p" transform="rotate(315 50 50)"/>
+  <circle cx="50" cy="50" r="6" fill="#6D3B1F"/>
+</svg>

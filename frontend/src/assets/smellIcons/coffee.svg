@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><g id="k">
+    <ellipse rx="15" ry="21" fill="#6D4C41"/>
+    <path d="M1 -17C-7 -7 7 7 -1 17" stroke="#3E2723" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M-9 -8C-11 -2 -11 3 -9 8" stroke="#fff" stroke-opacity=".25" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g></defs>
+  <use href="#k" transform="translate(32 36) rotate(-30)"/>
+  <use href="#k" transform="translate(68 40) rotate(25)"/>
+  <use href="#k" transform="translate(50 72) rotate(80)"/>
+</svg>
