@@ -687,8 +687,10 @@
 
     "smell": {
       "name": "Smell Test",
-      "description": "Placeholder task: participant opens the envelope received by post, smells the paper inside, and picks the matching smell. Instructions and options are placeholders — edit before use.",
+      "description": "Placeholder task: participant opens the envelope received by post, smells the paper inside, and picks the matching smell from 4 pictures + \"No scent\". Pick the 4 scents per question in the editor (pictures from src/assets/smellIcons/); instructions are a placeholder.",
       "title": "{{title}}",
+      "noScent": "No scent",
+      "scents": {},
       "instructions": "PLACEHOLDER: Open the envelope you received by post. Take out the paper strip inside and smell it carefully. When you're ready, tap Next to answer the question.",
       "params": {
         "title": { "label": "Title" },
@@ -703,12 +705,8 @@
             "id": 1786019780001,
             "text": "Which smell do you detect?",
             "type": "single",
-            "options": [
-              "Option 1",
-              "Option 2",
-              "Option 3",
-              "Option 4"
-            ],
+            "options": ["No scent"],
+            "optionImages": { "No scent": "no_scent" },
             "optional": false,
             "freeTextOptions": []
           }

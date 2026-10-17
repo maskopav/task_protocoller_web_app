@@ -303,3 +303,44 @@
         width: 100%;
     }
   }
+/* ── Smell test scent picker ── */
+.qm-scent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 0.5rem;
+}
+
+.qm-scent-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.qm-scent-option img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.qm-scent-option.is-picked {
+  background: #e8f0fe;
+  border-color: var(--primary);
+}
+
+.qm-scent-option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qm-scent-empty {
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}

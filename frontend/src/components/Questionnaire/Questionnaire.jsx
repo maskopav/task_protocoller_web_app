@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
+import { SMELL_IMAGES } from "../../config/smellScents";
 import { isQuestionVisible, pruneHiddenAnswers, expandRepeatedQuestions, isFreeTextValid } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
@@ -255,8 +256,36 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                   />
                 )}
 
+                {/* PICTURE CHOICE — single choice whose options carry an image
+                    (optionImages: { option: smell scent key, image path or emoji }), e.g. the smell test */}
+                {q.type === "single" && q.optionImages && (
+                  <div className="picture-options-group" role="radiogroup">
+                    {q.options?.map((opt, i) => {
+                      const raw = q.optionImages[opt];
+                      // A bare word is a scent key — no picture if its file is missing
+                      const img = SMELL_IMAGES[raw] || (/^\w+$/.test(raw ?? "") ? null : raw);
+                      const selected = answers[q.id] === opt;
+                      return (
+                        <button
+                          type="button"
+                          key={i}
+                          className={`picture-option${selected ? " is-selected" : ""}`}
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => handleChange(q.id, opt, "single")}
+                        >
+                          {img && (/[./]/.test(img)
+                            ? <img className="picture-option-image" src={img} alt="" />
+                            : <span className="picture-option-image" aria-hidden="true">{img}</span>)}
+                          <span className="picture-option-text">{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {/* SINGLE CHOICE */}
-                {q.type === "single" && (
+                {q.type === "single" && !q.optionImages && (
                   <div className="options-group" role="radiogroup">
                     {q.options?.map((opt, i) => {
                       const checked = answers[q.id] === opt;

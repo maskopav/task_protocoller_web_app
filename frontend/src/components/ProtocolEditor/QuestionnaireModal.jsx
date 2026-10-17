@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "./Modal";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
+import { SMELL_IMAGES, SMELL_SCENT_KEYS, SMELL_OPTION_COUNT, NO_SCENT_KEY, scentLabel } from "../../config/smellScents";
 import "./QuestionnaireModal.css";
 import {
   getConditionSourceQuestions,
@@ -10,8 +11,12 @@ import {
   clearDanglingShowIf,
 } from "../../utils/questionConditions";
 
-export default function QuestionnaireModal({ open, onClose, onSave, initialData }) {
-  const { t } = useTranslation(["admin", "common"]);
+export default function QuestionnaireModal({ open, onClose, onSave, initialData, language = "en" }) {
+  const { t, i18n } = useTranslation(["admin", "common"]);
+  // Smell test: single-choice questions get a scent picker (pictures from
+  // assets/smellIcons/) instead of free-text options; labels in the protocol's language
+  const isSmell = initialData?.category === "smell" || initialData?.type === "smell";
+  const tScent = i18n.getFixedT(language, "tasks");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState([]);
@@ -29,15 +34,37 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
     }
   }, [initialData, open]);
 
+  // Options + optionImages for the picked scent keys, "No scent" always last
+  const smellOptions = (keys) => {
+    const all = [...keys, NO_SCENT_KEY];
+    const labels = all.map((k) => scentLabel(k, tScent));
+    return { options: labels, optionImages: Object.fromEntries(labels.map((l, i) => [l, all[i]])) };
+  };
+
+  const pickedScents = (q) => Object.values(q.optionImages || {}).filter((k) => k !== NO_SCENT_KEY);
+
+  const toggleScent = (questionId, key) =>
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId) return q;
+        const current = pickedScents(q);
+        const next = current.includes(key)
+          ? current.filter((k) => k !== key)
+          : current.length < SMELL_OPTION_COUNT ? [...current, key] : current;
+        return { ...q, ...smellOptions(next) };
+      })
+    );
+
   const addQuestion = () => {
     setQuestions((prev) => [
       ...prev,
       {
         id: Date.now(),
         text: "",
-        type: "open",
+        type: isSmell ? "single" : "open",
         options: [],
         optional: false,
+        ...(isSmell && smellOptions([])),
       },
     ]);
   };
@@ -287,8 +314,38 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                 );
               })()}
 
+              {/* Scent picker (smell test) — exactly SMELL_OPTION_COUNT scents + "No scent" */}
+              {isSmell && q.type === "single" && (
+                <div className="qm-options-section">
+                  <label className="qm-options-label">
+                    Scents ({pickedScents(q).length} / {SMELL_OPTION_COUNT}) + {scentLabel(NO_SCENT_KEY, tScent)}
+                  </label>
+                  {SMELL_SCENT_KEYS.length === 0 && (
+                    <p className="qm-scent-empty">No scent pictures yet — add them to src/assets/smellIcons/ (e.g. hot_dog.png).</p>
+                  )}
+                  <div className="qm-scent-grid">
+                    {SMELL_SCENT_KEYS.map((key) => {
+                      const picked = pickedScents(q).includes(key);
+                      return (
+                        <button
+                          type="button"
+                          key={key}
+                          className={`qm-scent-option${picked ? " is-picked" : ""}`}
+                          aria-pressed={picked}
+                          disabled={!picked && pickedScents(q).length >= SMELL_OPTION_COUNT}
+                          onClick={() => toggleScent(q.id, key)}
+                        >
+                          <img src={SMELL_IMAGES[key]} alt="" />
+                          <span>{scentLabel(key, tScent)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Options Section */}
-              {q.type !== "open" && q.type !== "rating" && (
+              {q.type !== "open" && q.type !== "rating" && !(isSmell && q.type === "single") && (
                 <div className="qm-options-section">
                    <label className="qm-options-label">
                       {t("protocolEditor.questionnaire.answerOptions")}

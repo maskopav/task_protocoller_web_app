@@ -605,6 +605,7 @@ export function ProtocolEditor({
       <QuestionnaireModal
         open={showQuestionnaireModal}
         initialData={editingData} // Pass loaded data for editing
+        language={protocolData?.language || "en"}
         onClose={closeModals}
         onSave={handleSaveQuestionnaire}
       />
