@@ -129,12 +129,8 @@ export const Recorder = ({
     const { minDuration, maxDuration } = taskParams;
 
     // ── Video recorder hook ──────────────────────────────────────────────
-    const videoRecorder = useVideoRecorder({
-        debugMode: DEBUG_MODE,
-        onRecordingComplete: (videoData) => {
-            logger.info("Video data processed:", { size: videoData?.size, duration: videoData?.duration, type: videoData?.type });
-        }
-    });
+    // Tracking stats are logged by the hook itself (video_recording_finalized).
+    const videoRecorder = useVideoRecorder({ debugMode: DEBUG_MODE });
 
     // ── Voice recorder hook ──────────────────────────────────────────────
     const voiceRecorder = useVoiceRecorder({

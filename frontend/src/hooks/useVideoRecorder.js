@@ -22,14 +22,34 @@ const FRAME_RATE_MS = 33;
 // guarantees real idle time between frames.
 const CALIBRATION_FRAME_RATE_MS = 100;
 
-// TEMPORARY: fixed to "CPU" to A/B a specific open question from the FPS
-// investigation -- GPU dispatch/sync overhead can outweigh its benefit on a
-// model this small (see scripts/analyzeCoordinateFps.mjs's per-recording fps
-// numbers), so it's worth checking whether CPU matches or beats GPU's
-// ~40ms/frame on the real test device. This now applies to EVERY
-// participant, not just a test session -- switch back to "GPU" once the
-// comparison recording has been made.
-const FACE_DELEGATE = 'CPU';
+// The face model runs on the GPU where it can, CPU otherwise. On weak phones
+// CPU-only inference took ~120 ms/frame (8 fps, session 570) vs ~33-43 ms on
+// others, too slow for blink/articulation analysis. If the GPU delegate fails
+// to initialise, or throws later during detection (WebGL problems), the model
+// is recreated on the CPU and tracking continues. The delegate actually used
+// is logged per recording (video_recording_finalized), since GPU and CPU
+// landmarks can differ very slightly numerically.
+const PREFERRED_DELEGATE = 'GPU';
+const FALLBACK_DELEGATE = 'CPU';
+
+const FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+const VISION_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
+
+// Per-recording tracking quality, logged when recording stops so slow
+// devices / delegate fallbacks are visible in the session log and data_qc.
+function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs }) {
+    const sorted = [...detectMs].sort((a, b) => a - b);
+    const pct = (p) => (sorted.length ? Math.round(sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]) : null);
+    const spanSec = framesWithFace > 1 ? (lastTs - firstTs) / 1000 : 0;
+    return {
+        framesWithFace,
+        framesWithoutFace,
+        detectErrors: errors,
+        spanSec: Math.round(spanSec * 100) / 100,
+        fps: spanSec > 0 ? Math.round(((framesWithFace - 1) / spanSec) * 10) / 10 : null,
+        detectMs: { median: pct(0.5), p95: pct(0.95), max: sorted.length ? Math.round(sorted[sorted.length - 1]) : null },
+    };
+}
 // Neither FilesetResolver nor FaceLandmarker support cancellation, so a
 // stalled (not failed) CDN/model request would otherwise hang
 // isLoadingModel=true forever. Racing against this turns that into a
@@ -67,6 +87,12 @@ export const useVideoRecorder = ({
     const audioChunks = useRef([]);
     const coordinateTimeline = useRef([]);
     const recordingLoopRef = useRef(null);
+    // Delegate the current model instance runs on, the WASM fileset (reused
+    // when recreating the model on the CPU) and the in-flight switch, if any.
+    const delegateRef = useRef(null);
+    const visionRef = useRef(null);
+    const cpuSwitchRef = useRef(null);
+    const trackingStatsRef = useRef(null);
     const audioRecorder = useRef(null);
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
@@ -112,6 +138,49 @@ export const useVideoRecorder = ({
         return () => releaseStream();
     }, [releaseStream]);
 
+    const createLandmarker = async (delegate) => {
+        const { FaceLandmarker } = await import("@mediapipe/tasks-vision");
+        return FaceLandmarker.createFromOptions(visionRef.current, {
+            baseOptions: { modelAssetPath: FACE_MODEL_URL, delegate },
+            outputFaceBlendshapes: false,
+            runningMode: "VIDEO",
+            numFaces: 1
+        });
+    };
+
+    // A GPU delegate can initialise fine and still fail on the first real
+    // frame (WebGL context loss, driver bugs). Recreate the model on the CPU in
+    // the background; the detection loops skip frames until it is ready
+    // instead of stopping, so the recording keeps its landmarks.
+    const switchToCpu = (err) => {
+        if (cpuSwitchRef.current) return;
+        logger.warn("face_model_gpu_runtime_error", {
+            error: err?.message || String(err), switchingTo: FALLBACK_DELEGATE,
+        });
+        const old = faceDetector.current;
+        faceDetector.current = null;
+        try { old?.close?.(); } catch { /* already broken */ }
+        cpuSwitchRef.current = createLandmarker(FALLBACK_DELEGATE)
+            .then((detector) => {
+                faceDetector.current = detector;
+                delegateRef.current = FALLBACK_DELEGATE;
+            })
+            .catch((cpuErr) => logger.error("face_model_cpu_fallback_failed", cpuErr))
+            .finally(() => { cpuSwitchRef.current = null; });
+    };
+
+    // detectForVideo that never throws: returns null on failure (switching a
+    // failing GPU model to the CPU) so a single bad frame can't kill the loop.
+    const detectFace = (video, now) => {
+        try {
+            return faceDetector.current.detectForVideo(video, now);
+        } catch (err) {
+            if (trackingStatsRef.current) trackingStatsRef.current.errors++;
+            if (delegateRef.current === PREFERRED_DELEGATE) switchToCpu(err);
+            return null;
+        }
+    };
+
     // Loads the face-tracking model, independent of camera permission, so it
     // can be kicked off as early as possible (e.g. on mount, while the
     // participant is still reading the permission intro / instructions) to
@@ -124,20 +193,22 @@ export const useVideoRecorder = ({
         setIsLoadingModel(true);
         setModelLoadError(false);
         const load = async () => {
-            logger.info("face_model_delegate", { delegate: FACE_DELEGATE });
-            const { FaceLandmarker, FilesetResolver } = await import("@mediapipe/tasks-vision");
-            const vision = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
-            );
-            faceDetector.current = await FaceLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-                    delegate: FACE_DELEGATE
-                },
-                outputFaceBlendshapes: false,
-                runningMode: "VIDEO",
-                numFaces: 1
-            });
+            const { FilesetResolver } = await import("@mediapipe/tasks-vision");
+            visionRef.current = await FilesetResolver.forVisionTasks(VISION_WASM_URL);
+            try {
+                faceDetector.current = await createLandmarker(PREFERRED_DELEGATE);
+                delegateRef.current = PREFERRED_DELEGATE;
+                logger.info("face_model_delegate", { delegate: PREFERRED_DELEGATE });
+            } catch (gpuErr) {
+                // GPU unavailable (no WebGL, blocklisted driver, ...) -- the
+                // CPU attempt below rethrows if the model itself can't load.
+                faceDetector.current = await createLandmarker(FALLBACK_DELEGATE);
+                delegateRef.current = FALLBACK_DELEGATE;
+                logger.warn("face_model_delegate", {
+                    delegate: FALLBACK_DELEGATE, requested: PREFERRED_DELEGATE,
+                    fallbackReason: gpuErr?.message || String(gpuErr),
+                });
+            }
         };
 
         const promise = withTimeout(load(), MODEL_LOAD_TIMEOUT_MS)
@@ -244,9 +315,9 @@ export const useVideoRecorder = ({
             const now = performance.now();
             
             if (video.readyState >= 2) {
-                const result = faceDetector.current.detectForVideo(video, now);
+                const result = detectFace(video, now);
 
-                if (result.faceLandmarks && result.faceLandmarks.length > 0) {
+                if (result?.faceLandmarks?.length > 0) {
                     const landmarks = result.faceLandmarks[0];
                     
                     // Draw DEBUG coordinates
@@ -378,20 +449,32 @@ export const useVideoRecorder = ({
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        coordinateTimeline.current = []; 
+        coordinateTimeline.current = [];
+        trackingStatsRef.current = {
+            detectMs: [], framesWithFace: 0, framesWithoutFace: 0, errors: 0, firstTs: null, lastTs: null,
+        };
         setRecordingStatus("recording");
 
         const captureCoordinates = () => {
-            if (videoRef.current && faceDetector.current && recordingStatus !== "recorded") {
+            if (videoRef.current && recordingStatus !== "recorded") {
                 const now = performance.now();
-                const result = faceDetector.current.detectForVideo(videoRef.current, now);
+                // null while a failed GPU model is being recreated on the CPU
+                // -- keep looping so tracking resumes as soon as it's ready.
+                const result = faceDetector.current ? detectFace(videoRef.current, now) : null;
+                const stats = trackingStatsRef.current;
 
-                if (result.faceLandmarks && result.faceLandmarks.length > 0) {
+                if (result?.faceLandmarks?.length > 0) {
                     coordinateTimeline.current.push({
                         timestamp: now,
                         landmarks: result.faceLandmarks[0]
                     });
+                    stats.framesWithFace++;
+                    if (stats.firstTs === null) stats.firstTs = now;
+                    stats.lastTs = now;
+                } else if (result) {
+                    stats.framesWithoutFace++;
                 }
+                if (result) stats.detectMs.push(performance.now() - now);
                 // detectForVideo is synchronous and can itself take longer
                 // than FRAME_RATE_MS on slower devices. Subtract the time it
                 // just spent so we don't ALSO tack a full 33ms wait on top of
@@ -415,6 +498,18 @@ export const useVideoRecorder = ({
         if (requestRef.current) {
             clearTimeout(requestRef.current);
             requestRef.current = null;
+        }
+
+        // Tracking quality + the camera's actual settings (read before the
+        // stream is released below) for the session log.
+        if (trackingStatsRef.current) {
+            const cam = streamRef.current?.getVideoTracks?.()[0]?.getSettings?.() || {};
+            logger.info("video_recording_finalized", {
+                delegate: delegateRef.current,
+                ...summarizeTracking(trackingStatsRef.current),
+                camera: { width: cam.width, height: cam.height, frameRate: cam.frameRate },
+            });
+            trackingStatsRef.current = null;
         }
 
         // Save and emit the coordinates
