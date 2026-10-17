@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
-import { SMELL_IMAGES } from "../../config/smellScents";
+import { SMELL_IMAGES, SMELL_INTENSITY_LEVELS, NO_SCENT_KEY } from "../../config/smellScents";
 import { isQuestionVisible, pruneHiddenAnswers, expandRepeatedQuestions, isFreeTextValid } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
@@ -10,10 +11,16 @@ import "./Questionnaire.css";
 // UI is currently in, so a plain autonym map needs no i18n entry of its own.
 const LANGUAGE_NAMES = { en: "English", cs: "čeština", de: "Deutsch", it: "italiano", fr: "français" };
 
-export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
+// Intensity of the picked scent is stored next to the answer, per scent
+const intensityKey = (questionId, opt) => `${questionId}__intensity__${opt}`;
+
+export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading, hideHelperText = false, askScentIntensity = false }) {
   const { t, i18n } = useTranslation(["common", "tasks"]);
   const [answers, setAnswers] = useState({});
   const [isValid, setIsValid] = useState(false);
+  // { questionId, opt } of the scent awaiting its intensity — the scent itself
+  // is only saved once an intensity is picked, so closing the sheet changes nothing
+  const [intensityFor, setIntensityFor] = useState(null);
 
   const listRef = useRef(null);
   const lastScrolledIndex = useRef(0);
@@ -52,6 +59,12 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
         const stillSelected = type === "multiple" ? nextValue.includes(opt) : nextValue === opt;
         if (!stillSelected) delete next[`${questionId}__freeText__${opt}`];
       });
+      // Only the currently picked scent keeps its intensity
+      Object.keys(next).forEach((key) => {
+        if (key.startsWith(intensityKey(questionId, "")) && key !== intensityKey(questionId, nextValue)) {
+          delete next[key];
+        }
+      });
       // If this answer hides a follow-up question (e.g. a gate question like
       // "did you have technical problems?" flipped to "No"), drop its stale answer.
       next = pruneHiddenAnswers(data.questions, next, i18n.language);
@@ -84,6 +97,23 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
     (data?.questions || []).filter((q) => isQuestionVisible(q, answers, i18n.language)),
     answers
   );
+
+  // A scent opens the intensity sheet first; "No scent" is saved straight away
+  const handlePictureClick = (q, opt) => {
+    if (askScentIntensity && q.optionImages[opt] !== NO_SCENT_KEY) {
+      setIntensityFor({ questionId: q.id, opt });
+    } else {
+      handleChange(q.id, opt, "single");
+    }
+  };
+
+  const handleIntensityPick = (value) => {
+    const { questionId, opt } = intensityFor;
+    handleChange(questionId, opt, "single");
+    setAnswers((prev) => ({ ...prev, [intensityKey(questionId, opt)]: value }));
+    if (onLogAnswer) onLogAnswer(intensityKey(questionId, opt), value);
+    setIntensityFor(null);
+  };
 
   const handleFreeTextChange = (questionId, opt, text) => {
     setAnswers((prev) => ({ ...prev, [`${questionId}__freeText__${opt}`]: text }));
@@ -207,7 +237,7 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
       mainClassName="questionnaire-main"
       controls={
         <div className="submit-control-wrapper">
-          {!isValid && (
+          {!isValid && !hideHelperText && (
             <span className="submit-helper-text">
               {t("questionnaire.pleaseAnswerAll", { ns: "tasks" })}
             </span>
@@ -259,12 +289,19 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                 {/* PICTURE CHOICE — single choice whose options carry an image
                     (optionImages: { option: smell scent key, image path or emoji }), e.g. the smell test */}
                 {q.type === "single" && q.optionImages && (
-                  <div className="picture-options-group" role="radiogroup">
+                  // Exactly 5 (smell test: 4 scents + "No scent") → four circles
+                  // around a smaller centre one; otherwise a plain 2-column grid
+                  <div
+                    className={`picture-options-group${q.options?.length === 5 ? " is-cross" : ""}`}
+                    role="radiogroup"
+                  >
                     {q.options?.map((opt, i) => {
                       const raw = q.optionImages[opt];
                       // A bare word is a scent key — no picture if its file is missing
                       const img = SMELL_IMAGES[raw] || (/^\w+$/.test(raw ?? "") ? null : raw);
                       const selected = answers[q.id] === opt;
+                      const level = selected &&
+                        SMELL_INTENSITY_LEVELS.find((l) => l.value === answers[intensityKey(q.id, opt)]);
                       return (
                         <button
                           type="button"
@@ -272,12 +309,17 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
                           className={`picture-option${selected ? " is-selected" : ""}`}
                           role="radio"
                           aria-checked={selected}
-                          onClick={() => handleChange(q.id, opt, "single")}
+                          onClick={() => handlePictureClick(q, opt)}
                         >
                           {img && (/[./]/.test(img)
                             ? <img className="picture-option-image" src={img} alt="" />
                             : <span className="picture-option-image" aria-hidden="true">{img}</span>)}
                           <span className="picture-option-text">{opt}</span>
+                          {level && (
+                            <span className="picture-option-badge">
+                              {t(`questionnaire.intensity.${level.key}`)}
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -379,6 +421,52 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
           ))}
         </div>
       </div>
+
+      {/* INTENSITY SHEET — portalled so no transformed ancestor can trap the fixed overlay */}
+      {intensityFor && createPortal(
+        <div className="intensity-backdrop" onClick={() => setIntensityFor(null)}>
+          <div
+            className="intensity-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="intensity-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="intensity-close"
+              aria-label={t("questionnaire.intensity.close")}
+              onClick={() => setIntensityFor(null)}
+            >
+              ×
+            </button>
+            <p className="intensity-scent">{intensityFor.opt}</p>
+            <h4 id="intensity-title" className="intensity-title">
+              {t("questionnaire.intensity.title")}
+            </h4>
+            <div className="intensity-options" role="radiogroup" aria-labelledby="intensity-title">
+              {SMELL_INTENSITY_LEVELS.map((level) => {
+                const selected = answers[intensityKey(intensityFor.questionId, intensityFor.opt)] === level.value;
+                return (
+                  <button
+                    type="button"
+                    key={level.value}
+                    className={`intensity-option${selected ? " is-selected" : ""}`}
+                    style={{ "--dot-size": level.size }}
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => handleIntensityPick(level.value)}
+                  >
+                    <span className="intensity-dot" aria-hidden="true" />
+                    <span className="intensity-label">{t(`questionnaire.intensity.${level.key}`)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </TaskLayout>
   );
 }

@@ -16,7 +16,16 @@ export const SMELL_IMAGES = Object.fromEntries(
 export const NO_SCENT_KEY = "no_scent";
 export const SMELL_OPTION_COUNT = 4;
 
-export const SMELL_SCENT_KEYS = Object.keys(SMELL_IMAGES).filter((k) => k !== NO_SCENT_KEY).sort();
+// Follow-up asked after a scent is picked; the value (1–4) is what gets stored,
+// `size` is how far the dot spreads in the circle icon
+export const SMELL_INTENSITY_LEVELS = [
+  { value: 1, key: "soft", size: "18%" },
+  { value: 2, key: "medium", size: "38%" },
+  { value: 3, key: "strong", size: "58%" },
+  { value: 4, key: "intense", size: "80%" },
+];
+
+export const SMELL_SCENT_KEYS =Object.keys(SMELL_IMAGES).filter((k) => k !== NO_SCENT_KEY).sort();
 
 const humanize = (key) => key.charAt(0).toUpperCase() + key.slice(1).replace(/[_-]+/g, " ");
 

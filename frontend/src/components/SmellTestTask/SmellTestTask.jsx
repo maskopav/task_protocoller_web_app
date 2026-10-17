@@ -31,6 +31,8 @@ export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploadi
       onNextTask={onNextTask}
       onLogAnswer={onLogAnswer}
       isUploading={isUploading}
+      hideHelperText
+      askScentIntensity
     />
   );
 }
