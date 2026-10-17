@@ -31,12 +31,6 @@ export default function AudioGuideIntro({ onComplete }) {
           {t('buttons.next')}
         </SafeButton>
       }
-    >
-      <img
-        src={`${import.meta.env.BASE_URL}assets/audioGuide/audio_guide_example_icon.png`}
-        alt="Audio Guide Example"
-        className="intro-preview-img"
-      />
-    </TaskLayout>
+    />
   );
 }
