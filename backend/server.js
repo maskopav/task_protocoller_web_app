@@ -13,6 +13,8 @@ import sitesRouter from "./src/routes/sites.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
 import { deviceCheckin } from "./src/controllers/deviceController.js";
 import { createDevicesRouter } from "./src/routes/devices.js";
+import uploadsRouter from "./src/routes/uploads.js";
+import { createUploadDownloadsRouter } from "./src/routes/uploadDownloads.js";
 import { createUploadRouter } from "./src/routes/upload.js";
 import { loadUploadConfig, ensureDataPath } from "./src/config/uploads.js";
 import { LocalFileStore } from "./src/storage/fileStore.js";
@@ -130,6 +132,8 @@ app.use("/user-projects", requireAuth, userProjectsRouter)
 app.use("/user-sites", requireAuth, userSitesRouter)
 app.use("/sites", requireAuth, sitesRouter)
 app.use("/devices", requireAuth, createDevicesRouter({ queue: validationQueue }))
+app.use("/uploads", requireAuth, createUploadDownloadsRouter({ store: fileStore }))
+app.use("/uploads", requireAuth, uploadsRouter)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
