@@ -192,7 +192,9 @@ DoD: all of the above, existing tests green, committed.
   stubs. 283 backend tests green.
 - [x] A ingest · [x] B validator/extractor (421 backend tests; real-DB smoke upload: valid,
   re-send, manifest mismatch and quarantine all behave per spec)
-- [ ] C backup · [ ] D devices
+- [x] C backup · [x] D devices (507 backend tests; real backup run: dump restores into a
+  scratch DB, ZIP copies byte-identical, incremental re-run copies nothing; device
+  registration, check-in, list and quarantine assignment verified against the real DB)
 - [ ] E read/review API · [ ] F downloads
 - [ ] G uploads + session pages · [ ] H devices + downloads pages
 - [ ] I dashboard cards · [ ] J e2e
