@@ -195,7 +195,9 @@ DoD: all of the above, existing tests green, committed.
 - [x] C backup · [x] D devices (507 backend tests; real backup run: dump restores into a
   scratch DB once the view DEFINER user has rights on it (documented), ZIP copies byte-identical, incremental re-run copies nothing; device
   registration, check-in, list and quarantine assignment verified against the real DB)
-- [ ] E read/review API · [ ] F downloads
+- [x] E read/review API · [x] F downloads (606 backend tests; all endpoints smoke-tested on the
+  real DB as master and clinic admin. Fixed after merge: clip URL never matched exam_summary.
+  Visible-but-read-only writes get 403, out of scope stays 404.)
 - [ ] G uploads + session pages · [ ] H devices + downloads pages
 - [ ] I dashboard cards · [ ] J e2e
 - [ ] K review fixes · [ ] L docs
