@@ -190,7 +190,8 @@ DoD: all of the above, existing tests green, committed.
   test was fixed, and `LOGIN_RATE_LIMIT` was added to `.env.test`.
 - [x] Wave 0: schema, scope helpers (persona integration test on MariaDB), fixtures, fileStore,
   stubs. 283 backend tests green.
-- [ ] A ingest · [ ] B validator/extractor
+- [x] A ingest · [x] B validator/extractor (421 backend tests; real-DB smoke upload: valid,
+  re-send, manifest mismatch and quarantine all behave per spec)
 - [ ] C backup · [ ] D devices
 - [ ] E read/review API · [ ] F downloads
 - [ ] G uploads + session pages · [ ] H devices + downloads pages

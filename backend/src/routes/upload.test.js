@@ -252,6 +252,28 @@ describe('POST /upload — rejected after receipt', () => {
     expect(tmpFiles()).toEqual([]);
   });
 
+  it('a same-hash re-send of a quarantined session is still answered 404', async () => {
+    const fx = fixture();
+    await post(fx, { siteToken: undefined });
+    const again = await post(fx, { siteToken: undefined });
+    expect(again.status).toBe(404);
+    expect(again.body).toEqual({ error: 'device_not_registered', quarantined: true });
+    expect(db.attempts.map((a) => [a.http_code, a.outcome])).toEqual([[404, 'quarantined'], [404, 'quarantined']]);
+    expect(queue.enqueue).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces an orphan file left by a crash before the DB commit', async () => {
+    const fx = fixture();
+    const key = store.sessionKey(fx.sessionId);
+    fs.mkdirSync(path.dirname(store.resolve(key)), { recursive: true });
+    fs.writeFileSync(store.resolve(key), 'half of an earlier attempt');
+
+    const res = await post(fx);
+    expect(res.status).toBe(200);
+    expect(fs.readFileSync(store.resolve(key))).toEqual(fs.readFileSync(fx.path));
+    expect(tmpFiles()).toEqual([]);
+  });
+
   it('an invalid token quarantines even a device that already has a site', async () => {
     const fx = fixture();
     db.devices.push({ id: 7, installation_id: fx.installationId, site_id: 1, app_version: null });

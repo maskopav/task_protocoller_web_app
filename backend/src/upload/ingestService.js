@@ -44,7 +44,7 @@ export async function recordRejectedAttempt(err, now = () => new Date()) {
 // Step 3. Returns the response for an existing session, or null.
 async function resolveExisting(fields, file, at) {
   const rows = await executeQuery(
-    `SELECT id, session_id, bytes, zip_sha256, received_at FROM upload_sessions WHERE session_id = ?`,
+    `SELECT id, session_id, site_id, bytes, zip_sha256, received_at FROM upload_sessions WHERE session_id = ?`,
     [fields.sessionId]
   );
   if (rows.length === 0) return null;
@@ -64,6 +64,13 @@ async function resolveExisting(fields, file, at) {
      WHERE id = ? AND NOT JSON_CONTAINS(flags, '"duplicate"')`,
     [row.id]
   );
+  // A re-send of a quarantined session gets the same answer as the first
+  // upload did. A 200 would tell the device it was accepted while a master
+  // still has to assign it.
+  if (row.site_id == null) {
+    await recordAttempt(executeQuery, { ...attempt, httpCode: 404, outcome: "quarantined" });
+    return { httpCode: 404, body: { error: "device_not_registered", quarantined: true } };
+  }
   await recordAttempt(executeQuery, { ...attempt, httpCode: 200, outcome: "resent" });
   return { httpCode: 200, body: receipt(row) };
 }
@@ -123,7 +130,16 @@ async function commitSession(store, fields, file, at) {
       httpCode: quarantined ? 404 : 200, outcome: quarantined ? "quarantined" : "accepted",
       bytes: file.bytes, shaDeclared: fields.zipSha256, shaComputed: file.sha256,
     });
-    await store.commit(file.tempPath, key);
+    try {
+      await store.commit(file.tempPath, key);
+    } catch (err) {
+      if (err?.code !== "EEXIST") throw err;
+      // A file without a row: an earlier upload crashed between linking the
+      // file and committing this transaction. The row we just inserted holds
+      // the unique key, so no accepted session can own that file. It is an
+      // orphan, and replacing it is the only way this session can ever land.
+      await store.replaceOrphan(file.tempPath, key);
+    }
     return { id: res.insertId, quarantined };
   });
 }

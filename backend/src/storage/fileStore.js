@@ -50,6 +50,16 @@ export class LocalFileStore {
     return key;
   }
 
+  /**
+   * Overwrites `key` with a temp file. Only for an orphan: a file left by a
+   * crash between commit() and the DB commit, which no upload_sessions row
+   * references. Call it only while holding that session's row lock (ingest).
+   */
+  async replaceOrphan(tempFile, key) {
+    await fsp.rename(tempFile, this.resolve(key));
+    return key;
+  }
+
   /** Readable stream of a stored file, optionally a byte range (inclusive end). */
   openRead(key, range) {
     return fs.createReadStream(this.resolve(key), range);
