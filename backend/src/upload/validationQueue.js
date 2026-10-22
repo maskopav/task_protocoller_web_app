@@ -17,6 +17,36 @@ const EXTRACTED = [
 const EXTRACTED_JSON = ["participant_fields", "exam_summary"];
 const REQUIRED_PARSED = ["manifest", "examination", "participant", "snapshot", "timelineOriginal"];
 
+// Kept as they are once a master has edited the participant.
+const PARTICIPANT_COLUMNS = new Set(["patient_code", "visit_number", "participant_fields"]);
+
+const UNPROCESSABLE = { key: "archive", result: "bad", detail: "unprocessable content" };
+const UNPROCESSABLE_CHECKS = [
+  { key: "zip_checksum", result: "ok", detail: "verified at ingest" }, UNPROCESSABLE,
+  ...["manifest", "ids", "device", "config_version", "complete"].map((key) => ({ key, result: "skip" })),
+];
+
+// Server-side errors about the data itself, as opposed to the connection or
+// a lock, which a later retry can get past.
+const RETRYABLE_DB = new Set(["ER_LOCK_DEADLOCK", "ER_LOCK_WAIT_TIMEOUT", "ER_CON_COUNT_ERROR",
+  "ER_SERVER_SHUTDOWN", "ER_QUERY_INTERRUPTED"]);
+const isDataRejection = (err) => typeof err?.code === "string" && err.code.startsWith("ER_")
+  && !RETRYABLE_DB.has(err.code);
+
+/**
+ * Content that makes validation or extraction throw (or that the database
+ * refuses) is malformed, not an I/O failure: the row is closed as invalid so
+ * recover() does not retry it on every start. Extracted columns stay as they were.
+ */
+async function writeUnprocessable(row, checks) {
+  const marked = checks.some((c) => c.key === "archive")
+    ? checks.map((c) => (c.key === "archive" ? UNPROCESSABLE : c))
+    : UNPROCESSABLE_CHECKS;
+  await executeQuery(`UPDATE upload_sessions SET status = 'invalid', invalid_reason = 'malformed', checks = ? WHERE id = ?`,
+    [JSON.stringify(marked), row.id]);
+  logToFile("WARN", "Upload content unprocessable", { sessionId: row.session_id });
+}
+
 const parseFlags = (v) => {
   if (Array.isArray(v)) return v;
   try {
@@ -37,19 +67,30 @@ const parseFlags = (v) => {
  */
 export async function validateStoredSession(uploadSessionId, { store }) {
   const [row] = await executeQuery(
-    `SELECT us.id, us.session_id, us.site_id, us.storage_path, us.received_at, us.flags, d.installation_id
+    `SELECT us.id, us.session_id, us.site_id, us.storage_path, us.received_at, us.flags,
+            us.participant_edited_at, d.installation_id
      FROM upload_sessions us JOIN devices d ON d.id = us.device_id WHERE us.id = ?`,
     [uploadSessionId]
   );
   if (!row) return;
   try {
     const site = await loadSiteContext(row.site_id ?? null);
-    const result = await validateArchive(store.resolve(row.storage_path), {
-      sessionId: row.session_id,
-      installationId: row.installation_id,
-      siteKnown: row.site_id != null,
-      currentConfigVersion: site.currentConfigVersion,
-    });
+    let result;
+    try {
+      result = await validateArchive(store.resolve(row.storage_path), {
+        sessionId: row.session_id,
+        installationId: row.installation_id,
+        siteKnown: row.site_id != null,
+        currentConfigVersion: site.currentConfigVersion,
+      });
+    } catch (err) {
+      // Errno-coded errors are I/O on the stored file: the row stays
+      // 'validating' and recover() retries it. Anything else is the content
+      // tripping the validator, and retrying would fail forever.
+      if (err?.code) throw err;
+      await writeUnprocessable(row, UNPROCESSABLE_CHECKS);
+      return;
+    }
 
     const sets = ["status = ?", "invalid_reason = ?", "checks = ?"];
     const params = [result.status, result.invalidReason ?? null, JSON.stringify(result.checks)];
@@ -57,20 +98,29 @@ export async function validateStoredSession(uploadSessionId, { store }) {
     // Extraction needs every required JSON file. A broken archive still gets
     // its status and checks, and keeps whatever columns it had.
     if (REQUIRED_PARSED.every((k) => result.parsed?.[k] != null)) {
-      const { columns } = extractSession(result.parsed, {
-        receivedAt: new Date(`${String(row.received_at).replace(" ", "T")}Z`).toISOString(),
-        currentConfigVersion: site.currentConfigVersion,
-        projects: site.projects,
-        existingFlags: parseFlags(row.flags),
-      });
+      let columns;
+      try {
+        ({ columns } = extractSession(result.parsed, {
+          receivedAt: new Date(`${String(row.received_at).replace(" ", "T")}Z`).toISOString(),
+          currentConfigVersion: site.currentConfigVersion,
+          projects: site.projects,
+          existingFlags: parseFlags(row.flags),
+        }));
+      } catch {
+        await writeUnprocessable(row, result.checks);
+        return;
+      }
+      // A master's participant edit wins over the archive, also when the
+      // session re-validates later (e.g. its quarantined device is assigned).
+      const skip = row.participant_edited_at != null ? PARTICIPANT_COLUMNS : new Set();
       for (const col of EXTRACTED) {
-        if (col in columns) {
+        if (col in columns && !skip.has(col)) {
           sets.push(`${col} = ?`);
           params.push(columns[col] ?? null);
         }
       }
       for (const col of EXTRACTED_JSON) {
-        if (col in columns) {
+        if (col in columns && !skip.has(col)) {
           sets.push(`${col} = ?`);
           params.push(columns[col] == null ? null : JSON.stringify(columns[col]));
         }
@@ -84,7 +134,14 @@ export async function validateStoredSession(uploadSessionId, { store }) {
       }
     }
 
-    await executeQuery(`UPDATE upload_sessions SET ${sets.join(", ")} WHERE id = ?`, [...params, row.id]);
+    try {
+      await executeQuery(`UPDATE upload_sessions SET ${sets.join(", ")} WHERE id = ?`, [...params, row.id]);
+    } catch (err) {
+      // The server refused the extracted data (a value the extractor let
+      // through, a packet too large): retrying would fail the same way.
+      if (!isDataRejection(err)) throw err;
+      await writeUnprocessable(row, result.checks);
+    }
   } catch (err) {
     // The queue logs it, and only by sessionId (the id it holds means nothing
     // in the UI).

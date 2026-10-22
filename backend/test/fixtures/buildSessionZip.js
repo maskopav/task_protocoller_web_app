@@ -40,7 +40,22 @@ export const VARIANTS = [
   "highRatio",               // a listed 2 MB all-zero entry (compression ratio far above 200)
   "tooManyEntries",          // 10 001 tiny listed entries (above the 10 000 cap)
   "directoryEntry",          // an explicit "clips/" directory entry
+  // Hostile shapes: each once crashed the server or wedged a row in 'validating'.
+  "hugeRepetition",          // snapshot tasks with nrepetition 1e9 (26 of them, so the total cap trips too)
+  "overlappingEntries",      // 500 central-directory entries pointing at one 1 MiB local record
+  "jsonTooLarge",            // timeline_original.json is ~5 MiB (above the 4 MiB per-file cap)
+  "nullTask",                // null elements in examination.tasks and timeline_original.events
+  "longStrings",             // protocolName/protocolProject/patient_code 300 chars, configVersion/visit_number 100
 ];
+
+export const LONG = {
+  protocolName: "P".repeat(300),
+  protocolProject: "J".repeat(300),
+  configVersion: `${CONFIG_VERSION}${"9".repeat(100 - CONFIG_VERSION.length)}`,
+  patientCode: "C".repeat(300),
+  visitNumber: "V".repeat(100),
+};
+export const ALIAS_COUNT = 500;
 
 const sha256 = (buf) => crypto.createHash("sha256").update(buf).digest("hex");
 const json = (obj) => Buffer.from(JSON.stringify(obj), "utf8");
@@ -72,18 +87,30 @@ export function wav(ms = 100) {
   return Buffer.concat([header, data]);
 }
 
+// Zeros with a noise byte every 256: deflates about 75:1, under the per-entry
+// ratio guard (200), so only the overlap gives the bomb away.
+function sparseNoise(bytes) {
+  const b = Buffer.alloc(bytes);
+  let seed = 1;
+  for (let i = 0; i < b.length; i += 256) {
+    seed = (Math.imul(seed, 1103515245) + 12345) >>> 0;
+    b[i] = seed >>> 24;
+  }
+  return b;
+}
+
 // Not a playable MP4, just recognisable bytes. Nothing on the server decodes video.
 export const mp4 = (tag) => Buffer.concat([Buffer.from("\0\0\0\x18ftypisom"), Buffer.from(`fixture:${tag}`)]);
 
-export function snapshot(configVersion = CONFIG_VERSION) {
+export function snapshot(configVersion = CONFIG_VERSION, { name = PROTOCOL_NAME, project = PROTOCOL_PROJECT } = {}) {
   return {
     schemaVersion: 1,
     configVersion,
     siteName: "Fixture_Site",
     protocols: [{
-      name: PROTOCOL_NAME,
+      name,
       version: 1,
-      project: PROTOCOL_PROJECT,
+      project,
       recordingsFileName: "${installationId}_${field.patient_code}_${taskIndex}_${task.subtype}_${repetition}",
       patientFields: [
         { name: "patient_code", required: true },
@@ -108,7 +135,10 @@ export function snapshot(configVersion = CONFIG_VERSION) {
 export function sessionParts({ sessionId, installationId = INSTALLATION_ID, variant = "valid" } = {}) {
   sessionId ??= crypto.randomBytes(16).toString("hex");
   const noMaster = variant === "noMaster";
-  const configVersion = variant === "oldConfig" ? "2025-01-01.000000" : CONFIG_VERSION;
+  const long = variant === "longStrings";
+  const configVersion = variant === "oldConfig" ? "2025-01-01.000000" : long ? LONG.configVersion : CONFIG_VERSION;
+  const protocolName = long ? LONG.protocolName : PROTOCOL_NAME;
+  const protocolProject = long ? LONG.protocolProject : PROTOCOL_PROJECT;
   const base = `clips/${installationId}_${PATIENT_CODE}`;
   const capture = { sampleRate: 48000, bits: 16, channels: 1 };
 
@@ -126,8 +156,8 @@ export function sessionParts({ sessionId, installationId = INSTALLATION_ID, vari
   const examination = {
     sessionId,
     installationId,
-    protocolName: PROTOCOL_NAME,
-    protocolProject: PROTOCOL_PROJECT,
+    protocolName,
+    protocolProject,
     configVersion,
     startedAt: "2026-10-13T07:54:51.746661100Z",
     endedAt: "2026-10-13T08:10:00.000Z",
@@ -164,7 +194,8 @@ export function sessionParts({ sessionId, installationId = INSTALLATION_ID, vari
   if (variant === "idMismatch") examination.sessionId = "f".repeat(32);
 
   const participant = {
-    fields: { patient_code: PATIENT_CODE, visit_number: "1", sex: "female", year_of_birth: "1950" },
+    fields: { patient_code: long ? LONG.patientCode : PATIENT_CODE, visit_number: long ? LONG.visitNumber : "1",
+      sex: "female", year_of_birth: "1950" },
     createdAt: examination.startedAt,
   };
 
@@ -184,6 +215,17 @@ export function sessionParts({ sessionId, installationId = INSTALLATION_ID, vari
   }
   events.push(ev("SESSION_RECORDING_STOPPED", at));
   const timelineOriginal = { sessionId, sampleRate: 48000, events };
+  if (variant === "jsonTooLarge") timelineOriginal.padding = crypto.randomBytes(2_621_440).toString("hex"); // 5 MiB, barely compressible
+  if (variant === "nullTask") {
+    examination.tasks = [null, ...tasks];
+    events.splice(1, 0, null);
+  }
+
+  const snap = snapshot(configVersion, { name: protocolName, project: protocolProject });
+  if (variant === "hugeRepetition") {
+    snap.protocols[0].tasks[0].nrepetition = 1e9;
+    for (let i = 0; i < 25; i++) snap.protocols[0].tasks.push({ type: "VOCAL", subtype: "PHONATION", nrepetition: 1e9 });
+  }
 
   const files = new Map();
   if (!noMaster) files.set("master/session_master.wav", wav(300));
@@ -193,7 +235,7 @@ export function sessionParts({ sessionId, installationId = INSTALLATION_ID, vari
   }
   files.set("examination.json", variant === "badJson" ? Buffer.from("{not json") : json(examination));
   files.set("participant.json", json(participant));
-  files.set("task_configuration_snapshot.json", Buffer.from(JSON.stringify(snapshot(configVersion), null, 2)));
+  files.set("task_configuration_snapshot.json", Buffer.from(JSON.stringify(snap, null, 2)));
   files.set("timeline_original.json", json(timelineOriginal));
   if (variant === "edited") {
     files.set("timeline_edited.json", json({ sessionId, sampleRate: 48000,
@@ -202,8 +244,9 @@ export function sessionParts({ sessionId, installationId = INSTALLATION_ID, vari
   if (variant === "zipSlipName") files.set("../evil.txt", Buffer.from("x"));
   if (variant === "highRatio") files.set("clips/bomb.bin", Buffer.alloc(2_000_000));
   if (variant === "tooManyEntries") for (let i = 0; i < 10_001; i++) files.set(`pad/${i}.txt`, Buffer.from(String(i)));
+  if (variant === "overlappingEntries") files.set("pad/blob.bin", sparseNoise(1 << 20));
 
-  return { sessionId, installationId, configVersion, examination, participant, timelineOriginal, files };
+  return { sessionId, installationId, configVersion, examination, participant, timelineOriginal, snapshot: snap, files };
 }
 
 /**
@@ -221,6 +264,14 @@ export function buildSessionZip({ variant = "valid", sessionId, installationId, 
   if (variant === "missingEntry") manifestFiles.push({ path: "clips/ghost.wav", sha256: "1".repeat(64) });
   if (variant === "unlistedEntry") entries.push({ name: "clips/stowaway.wav", data: wav(10) });
   if (variant === "directoryEntry") entries.push({ name: "clips/", data: "" });
+  if (variant === "overlappingEntries") {
+    // Listed with the right hash, so the overlap is the only thing wrong.
+    const blobSha = sha256(parts.files.get("pad/blob.bin"));
+    for (let i = 0; i < ALIAS_COUNT; i++) {
+      entries.push({ name: `pad/alias${i}.bin`, aliasOf: "pad/blob.bin" });
+      manifestFiles.push({ path: `pad/alias${i}.bin`, sha256: blobSha });
+    }
+  }
 
   const manifest = { sessionId: parts.sessionId, configVersion: parts.configVersion,
     generatedAt: "2026-10-13T08:10:02.000Z", files: manifestFiles };

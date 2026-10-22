@@ -26,11 +26,14 @@ function sliceStream(start, end = Infinity) {
  * @property {number} compressedSize
  * @property {number} uncompressedSize
  * @property {boolean} isDirectory      name ends with "/"
+ * @property {number} relativeOffsetOfLocalHeader  where the entry's local header starts; two
+ *           entries sharing or overlapping one are a bomb (one compressed blob, inflated many times)
  */
 
 /**
  * @typedef {Object} ZipHandle
  * @property {ZipEntryInfo[]} entries                 in archive order
+ * @property {number} fileSize                        bytes of the ZIP file itself
  * @property {(name: string, range?: {start: number, end?: number}) => Promise<import('stream').Readable>} openEntry
  *           inflated bytes of one entry; with `range`, only those bytes (inclusive end)
  * @property {() => void} close
@@ -54,6 +57,7 @@ export async function openZip(file) {
         compressedSize: e.compressedSize,
         uncompressedSize: e.uncompressedSize,
         isDirectory: name.endsWith("/"),
+        relativeOffsetOfLocalHeader: e.relativeOffsetOfLocalHeader,
       });
       if (!raw.has(name)) raw.set(name, e);
     }
@@ -64,6 +68,7 @@ export async function openZip(file) {
 
   return {
     entries,
+    fileSize: zip.fileSize,
     async openEntry(name, range) {
       const e = raw.get(name);
       if (!e) throw new Error("no such entry");

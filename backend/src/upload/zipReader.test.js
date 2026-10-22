@@ -27,6 +27,20 @@ describe("openZip", () => {
       expect(exam.isDirectory).toBe(false);
       expect(exam.uncompressedSize).toBeGreaterThan(0);
       expect(exam.compressedSize).toBeGreaterThan(0);
+      expect(zip.fileSize).toBe(f.bytes);
+      const offsets = zip.entries.map((e) => e.relativeOffsetOfLocalHeader);
+      expect(offsets[0]).toBe(0);
+      expect(new Set(offsets).size).toBe(offsets.length);
+      expect([...offsets].sort((a, b) => a - b)).toEqual(offsets);
+    } finally { zip.close(); }
+  });
+
+  it("exposes shared local header offsets of overlapping entries", async () => {
+    const file = path.join(tmp(), "o.zip");
+    fs.writeFileSync(file, writeZip([{ name: "a.bin", data: "aaaa" }, { name: "b.bin", aliasOf: "a.bin" }]));
+    const zip = await openZip(file);
+    try {
+      expect(zip.entries.map((e) => e.relativeOffsetOfLocalHeader)).toEqual([0, 0]);
     } finally { zip.close(); }
   });
 
