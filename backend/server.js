@@ -11,7 +11,11 @@ import userProjectsRouter from "./src/routes/userProjects.js";
 import userSitesRouter from "./src/routes/userSites.js";
 import sitesRouter from "./src/routes/sites.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
-import { logFrontendToFile } from "./src/utils/logger.js";
+import { createUploadRouter } from "./src/routes/upload.js";
+import { loadUploadConfig, ensureDataPath } from "./src/config/uploads.js";
+import { LocalFileStore } from "./src/storage/fileStore.js";
+import { createValidationQueue } from "./src/upload/validationQueue.js";
+import { logFrontendToFile, logToFile } from "./src/utils/logger.js";
 import { requireAuth } from "./src/middleware/authMiddleware.js";
 import { logLimiter, siteConfigLimiter } from "./src/middleware/rateLimiter.js";
 
@@ -30,6 +34,13 @@ if (!process.env.JWT_SECRET) {
 if (!process.env.FRONTEND_BASE_URL) {
   throw new Error("FRONTEND_BASE_URL is not set — add it to backend/.env (e.g. https://example.org/app)");
 }
+
+// Uploaded sessions are the only copy on this server until the backup runs:
+// a missing or read-only DATA_PATH stops the boot (spec §11).
+const uploadConfig = loadUploadConfig();
+ensureDataPath(uploadConfig.dataPath);
+const fileStore = new LocalFileStore(uploadConfig.dataPath);
+const validationQueue = createValidationQueue({ store: fileStore });
 
 const app = express();
 
@@ -83,6 +94,10 @@ app.post("/logs/frontend", logLimiter, express.json({ limit: '16kb' }), (req, re
   res.status(200).json({ success: true });
 });
 
+// Public, gated by the site token: the desktop app's session upload. Mounted
+// before the body parsers below, which must never see this multi-GB stream.
+app.use("/upload", createUploadRouter({ store: fileStore, queue: validationQueue, maxBytes: uploadConfig.maxBytes }));
+
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
@@ -113,4 +128,8 @@ app.use("/sites", requireAuth, sitesRouter)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);
+  // Sessions still 'validating' were interrupted by a crash or restart.
+  validationQueue.recover()
+    .then((n) => { if (n > 0) logToFile("INFO", "Re-enqueued sessions for validation", { count: n }); })
+    .catch((err) => logToFile("ERROR", "Validation recovery failed", { code: err?.code ?? err?.name ?? "Error" }));
 });
