@@ -37,6 +37,9 @@ export const VARIANTS = [
   "recoveredInterrupted",    // crash-recovered, mic lost once, no endedAt
   "nonstdMic",               // every mic use differs from the configured mic
   "oldConfig",               // recorded with an older configVersion (consistently)
+  "highRatio",               // a listed 2 MB all-zero entry (compression ratio far above 200)
+  "tooManyEntries",          // 10 001 tiny listed entries (above the 10 000 cap)
+  "directoryEntry",          // an explicit "clips/" directory entry
 ];
 
 const sha256 = (buf) => crypto.createHash("sha256").update(buf).digest("hex");
@@ -45,7 +48,14 @@ const json = (obj) => Buffer.from(JSON.stringify(obj), "utf8");
 // 48 kHz / 16-bit / mono PCM WAV of `ms` milliseconds of silence.
 export function wav(ms = 100) {
   const samples = Math.round((48000 * ms) / 1000);
+  // Deterministic noise, not silence: real recordings barely compress, and
+  // silence would trip the validator's compression-ratio guard (≤ 200).
   const data = Buffer.alloc(samples * 2);
+  let seed = 12345;
+  for (let i = 0; i < data.length; i++) {
+    seed = (Math.imul(seed, 1103515245) + 12345) >>> 0;
+    data[i] = seed >>> 24;
+  }
   const header = Buffer.alloc(44);
   header.write("RIFF", 0);
   header.writeUInt32LE(36 + data.length, 4);
@@ -190,6 +200,8 @@ export function sessionParts({ sessionId, installationId = INSTALLATION_ID, vari
       segments: [{ taskIndex: 0, repetition: 1, startSample: 40000, stopSample: 150000 }] }));
   }
   if (variant === "zipSlipName") files.set("../evil.txt", Buffer.from("x"));
+  if (variant === "highRatio") files.set("clips/bomb.bin", Buffer.alloc(2_000_000));
+  if (variant === "tooManyEntries") for (let i = 0; i < 10_001; i++) files.set(`pad/${i}.txt`, Buffer.from(String(i)));
 
   return { sessionId, installationId, configVersion, examination, participant, timelineOriginal, files };
 }
@@ -208,6 +220,7 @@ export function buildSessionZip({ variant = "valid", sessionId, installationId, 
   if (variant === "manifestHashMismatch") manifestFiles[0].sha256 = "0".repeat(64);
   if (variant === "missingEntry") manifestFiles.push({ path: "clips/ghost.wav", sha256: "1".repeat(64) });
   if (variant === "unlistedEntry") entries.push({ name: "clips/stowaway.wav", data: wav(10) });
+  if (variant === "directoryEntry") entries.push({ name: "clips/", data: "" });
 
   const manifest = { sessionId: parts.sessionId, configVersion: parts.configVersion,
     generatedAt: "2026-10-13T08:10:02.000Z", files: manifestFiles };
