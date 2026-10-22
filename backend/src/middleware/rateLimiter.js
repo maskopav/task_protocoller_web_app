@@ -78,6 +78,19 @@ export function createUploadLimiter(overrides = {}) {
   });
 }
 
+// POST /device-checkin — public and written to the DB, but a device sends it
+// only after a config fetch or an upload batch, so a modest per-client cap.
+export function createCheckinLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+    ...overrides,
+  });
+}
+
 export const loginLimiter = createLoginLimiter();
 export const authLimiter = createAuthLimiter();
 export const logLimiter = createLogLimiter();

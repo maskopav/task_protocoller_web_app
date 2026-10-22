@@ -12,6 +12,7 @@ import {
 } from "../utils/fieldValidation.js";
 import { buildExtConfig, loadLocales } from "../utils/extConfig.js";
 import { logToFile } from "../utils/logger.js";
+import { registerDeviceFromConfig } from "./deviceController.js";
 import { assembleProtocol } from "./protocolController.js";
 import {
   getVisibleScope,
@@ -456,6 +457,14 @@ export const getSiteConfig = async (req, res) => {
     for (const s of skipped) {
       logToFile("WARN", "site-config: task skipped (unsupported by the desktop app)", { site: site.name, ...s });
     }
+
+    // Implicit device registration; swallows its own errors.
+    await registerDeviceFromConfig({
+      installationId: req.query?.installationId,
+      appVersion: req.query?.appVersion,
+      siteId: site.id,
+      configVersion: config.configVersion,
+    });
 
     res.json(config);
   } catch (err) {

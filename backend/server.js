@@ -11,13 +11,15 @@ import userProjectsRouter from "./src/routes/userProjects.js";
 import userSitesRouter from "./src/routes/userSites.js";
 import sitesRouter from "./src/routes/sites.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
+import { deviceCheckin } from "./src/controllers/deviceController.js";
+import { createDevicesRouter } from "./src/routes/devices.js";
 import { createUploadRouter } from "./src/routes/upload.js";
 import { loadUploadConfig, ensureDataPath } from "./src/config/uploads.js";
 import { LocalFileStore } from "./src/storage/fileStore.js";
 import { createValidationQueue } from "./src/upload/validationQueue.js";
 import { logFrontendToFile, logToFile } from "./src/utils/logger.js";
 import { requireAuth } from "./src/middleware/authMiddleware.js";
-import { logLimiter, siteConfigLimiter } from "./src/middleware/rateLimiter.js";
+import { createCheckinLimiter, logLimiter, siteConfigLimiter } from "./src/middleware/rateLimiter.js";
 
 import cors from "cors";
 import helmet from "helmet";
@@ -112,6 +114,9 @@ app.use("/auth", authRouter);
 // the external desktop app calls (server-to-server, no Origin header).
 app.get("/site-config/:token", siteConfigLimiter, getSiteConfig);
 
+// Public, gated by the site token: the desktop app reports its local backlog.
+app.post("/device-checkin", createCheckinLimiter(), deviceCheckin);
+
 // Admin-only: require a valid admin JWT.
 // /mappings used to be public because MappingProvider mounts above the auth
 // boundary and fired on the login page. Nothing pre-login actually reads it —
@@ -124,6 +129,7 @@ app.use("/projects", requireAuth, projectsRouter)
 app.use("/user-projects", requireAuth, userProjectsRouter)
 app.use("/user-sites", requireAuth, userSitesRouter)
 app.use("/sites", requireAuth, sitesRouter)
+app.use("/devices", requireAuth, createDevicesRouter({ queue: validationQueue }))
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
