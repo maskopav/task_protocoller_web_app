@@ -42,7 +42,7 @@ describe("buildSessionZip", () => {
     expect(sha(fs.readFileSync(f.path))).toBe(f.sha256);
     const entries = [...(await readAll(f.path)).keys()];
     expect(entries.at(-1)).toBe("manifest.json");
-  });
+  }, 30_000); // tooManyEntries reads 10 000 entries, slow when the full suite runs in parallel
 
   it("valid: every entry is listed with a matching hash", async () => {
     const entries = await readAll(build("valid").path);
