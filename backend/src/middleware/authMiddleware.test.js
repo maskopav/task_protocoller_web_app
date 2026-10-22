@@ -222,3 +222,72 @@ describe('requireRole', () => {
 function signAdminTokenWithExpiry(payload, expiresIn) {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 }
+
+describe('download tickets', async () => {
+  const { signDownloadTicket } = await import('../utils/jwt.js');
+  const { requireAuthOrTicket } = await import('./authMiddleware.js');
+  const active = () => executeQuery.mockResolvedValue([{ is_active: 1, token_version: 0, role: 'admin' }]);
+
+  beforeEach(() => executeQuery.mockReset());
+
+  it('a ticket is refused as a Bearer session token', async () => {
+    active();
+    const req = { headers: { authorization: `Bearer ${signDownloadTicket({ id: 2, tv: 0 })}` } };
+    const res = makeRes();
+    const next = vi.fn();
+    await requireAuth(req, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('a session token is refused as a ticket', async () => {
+    active();
+    const session = signAdminToken({ id: 2, role: 'admin', role_id: 2 });
+    const res = makeRes();
+    const next = vi.fn();
+    await requireAuthOrTicket({ headers: {}, query: { ticket: session } }, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('accepts a ticket from the query string or a form field', async () => {
+    active();
+    for (const where of ['query', 'body']) {
+      const req = { headers: {}, query: {}, body: {} };
+      req[where].ticket = signDownloadTicket({ id: 2, tv: 0 });
+      const next = vi.fn();
+      await requireAuthOrTicket(req, makeRes(), next);
+      expect(next).toHaveBeenCalledOnce();
+      expect(req.admin).toMatchObject({ id: 2, role: 'admin' });
+    }
+  });
+
+  it('still prefers the Authorization header when one is sent', async () => {
+    active();
+    const req = { headers: { authorization: 'Bearer garbage' }, query: { ticket: signDownloadTicket({ id: 2, tv: 0 }) } };
+    const res = makeRes();
+    const next = vi.fn();
+    await requireAuthOrTicket(req, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('refuses an expired ticket, and one issued before a password change', async () => {
+    active();
+    const expired = jwt.sign({ id: 2, tv: 0, purpose: 'download' }, 'test-secret', { expiresIn: -10 });
+    const stale = signDownloadTicket({ id: 2, tv: 7 });
+    for (const ticket of [expired, stale, 'not-a-jwt']) {
+      const res = makeRes();
+      const next = vi.fn();
+      await requireAuthOrTicket({ headers: {}, query: { ticket } }, res, next);
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(401);
+    }
+  });
+
+  it('refuses a request with neither', async () => {
+    const res = makeRes();
+    await requireAuthOrTicket({ headers: {}, query: {} }, res, vi.fn());
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+});

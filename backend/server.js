@@ -20,7 +20,8 @@ import { loadUploadConfig, ensureDataPath } from "./src/config/uploads.js";
 import { LocalFileStore } from "./src/storage/fileStore.js";
 import { createValidationQueue } from "./src/upload/validationQueue.js";
 import { logFrontendToFile, logToFile } from "./src/utils/logger.js";
-import { requireAuth } from "./src/middleware/authMiddleware.js";
+import { requireAuth, requireAuthOrTicket } from "./src/middleware/authMiddleware.js";
+import { signDownloadTicket } from "./src/utils/jwt.js";
 import { createCheckinLimiter, logLimiter, siteConfigLimiter } from "./src/middleware/rateLimiter.js";
 
 import cors from "cors";
@@ -132,7 +133,11 @@ app.use("/user-projects", requireAuth, userProjectsRouter)
 app.use("/user-sites", requireAuth, userSitesRouter)
 app.use("/sites", requireAuth, sitesRouter)
 app.use("/devices", requireAuth, createDevicesRouter({ queue: validationQueue }))
-app.use("/uploads", requireAuth, createUploadDownloadsRouter({ store: fileStore }))
+// Download tickets (5 min, download routes only) for <audio>/<video> and
+// native browser downloads, which cannot send the Authorization header. Only a
+// real session can mint one, so a ticket cannot be used to renew itself.
+app.post("/uploads/ticket", requireAuth, (req, res) => res.json({ ticket: signDownloadTicket(req.admin) }))
+app.use("/uploads", requireAuthOrTicket, createUploadDownloadsRouter({ store: fileStore }))
 app.use("/uploads", requireAuth, uploadsRouter)
 
 const PORT = process.env.PORT || 3000;

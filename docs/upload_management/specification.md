@@ -394,6 +394,18 @@ Dates in responses are ISO-8601 UTC.
   - It writes one `bundle` audit entry listing the ids.
 - **CSV export.** This is the list export (§8) and is separate from the bundle.
 
+- **Download tickets.** `<audio>`/`<video>` elements and native browser downloads cannot send the
+  `Authorization` header, so they authenticate with a ticket:
+  - `POST /uploads/ticket` (session token required) returns `{ticket}`, a JWT with
+    `purpose: "download"` that is valid for 5 minutes.
+  - The download routes (`/zip`, `/clips/*`, `POST /download`) accept it as `?ticket=` or as a
+    form field `ticket`.
+  - `requireAuth` refuses any token with a purpose, so a ticket that leaks into a URL or an access
+    log can't act as a session, and it can't mint a new ticket. It is still checked against the
+    account (active, `token_version`) and the session scope, like a session.
+  - The bundle is submitted as a plain form (`ticket`, `sessionIds` comma-joined), so the browser
+    streams it to disk instead of holding it in memory.
+
 ## 10. Backup
 
 ### 10.1 Interfaces

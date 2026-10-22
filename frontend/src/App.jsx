@@ -14,6 +14,10 @@ import ResetPasswordModal from "./components/AuthForm/ResetPasswordModal";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import UploadsPage from "./pages/UploadsPage";
+import SessionDetailPage from "./pages/SessionDetailPage";
+import DevicesPage from "./pages/DevicesPage";
+import DownloadsPage from "./pages/DownloadsPage";
 
 export default function App() {
   return (
@@ -61,6 +65,23 @@ export default function App() {
 
       <Route path="/admin/projects/:projectId/protocols/:protocolId" element={
         <ProtectedRoute><ProtocolEditorPage /></ProtectedRoute>
+      } />
+
+      {/* Phase B upload management. Literal paths before :sessionId. */}
+      <Route path="/admin/uploads" element={
+        <ProtectedRoute><UploadsPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/uploads/devices" element={
+        <ProtectedRoute><DevicesPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/uploads/downloads" element={
+        <ProtectedRoute><DownloadsPage /></ProtectedRoute>
+      } />
+
+      <Route path="/admin/uploads/:sessionId" element={
+        <ProtectedRoute><SessionDetailPage /></ProtectedRoute>
       } />
 
       {/* Protocol preview for admins (in-memory protocol, no persistence) */}

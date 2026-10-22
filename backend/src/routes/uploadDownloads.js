@@ -9,7 +9,13 @@ export function createUploadDownloadsRouter({ store }) {
   const h = createDownloadHandlers({ store });
   const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
 
-  router.post("/download", wrap(h.bundle));
+  // The bundle is also submitted as a plain HTML form (ticket auth), where the
+  // ids arrive as one comma-separated field instead of a JSON array.
+  const formIds = (req, _res, next) => {
+    if (typeof req.body?.sessionIds === "string") req.body.sessionIds = req.body.sessionIds.split(",").filter(Boolean);
+    next();
+  };
+  router.post("/download", formIds, wrap(h.bundle));
   router.get("/:sessionId/zip", wrap(h.download));
   router.get("/:sessionId/clips/*path", wrap(h.clip));
   return router;

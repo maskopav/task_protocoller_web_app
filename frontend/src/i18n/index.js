@@ -7,14 +7,20 @@ import enCommon from "./en/common.json";
 import enTasks from "./en/tasks.json";
 import enAdmin from "./en/admin.json";
 import enIntro from "./en/intro.json";
+import enUploads from "./en/uploads.json";
+import enUploadTools from "./en/uploadTools.json";
 
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
 import csAdmin from "./cs/admin.json";
+import csUploads from "./cs/uploads.json";
+import csUploadTools from "./cs/uploadTools.json";
 
 import deCommon from "./de/common.json";
 import deTasks from "./de/tasks.json";
 import deAdmin from "./de/admin.json";
+import deUploads from "./de/uploads.json";
+import deUploadTools from "./de/uploadTools.json";
 
 
 export const LANGUAGES = [
@@ -28,24 +34,30 @@ i18n
   .init({
     fallbackLng: "en",
     lng: "cs",
-    ns: ["common", "tasks", "admin", "intro"],
+    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools"],
     defaultNS: "common",
     resources: {
       en: {
         common: enCommon,
         tasks: enTasks,
         admin: enAdmin,
-        intro: enIntro
+        intro: enIntro,
+        uploads: enUploads,
+        uploadTools: enUploadTools
       },
       cs: {
         common: csCommon,
         tasks: csTasks,
-        admin: csAdmin
+        admin: csAdmin,
+        uploads: csUploads,
+        uploadTools: csUploadTools
       },
       de: {
         common: deCommon,
         tasks: deTasks,
-        admin: deAdmin
+        admin: deAdmin,
+        uploads: deUploads,
+        uploadTools: deUploadTools
       }
     },
     interpolation: {
