@@ -97,14 +97,25 @@ The server rejects unknown parts, duplicated parts, a missing part, or an oversi
    - If it exists with a different hash, respond `409 {error:"session_exists"}`, record the
      attempt (409), and delete the temporary file.
 4. **Device and site resolution.**
-   - If `siteToken` matches an active site, upsert the device and set `devices.site_id` to that
-     site. The session's site is that site.
+   - If `siteToken` matches an active site, upsert the device. A token **adopts** a device with no
+     site yet, but **never moves** a device that already belongs to another site. A token of a
+     different site than the device's quarantines the upload. Only a master moves devices between
+     sites (`PUT /devices/:id/site`). Otherwise any clinic's token holder could pull a foreign
+     device, and its later tokenless uploads, into their own scope.
    - If the token is missing but the device is known and has a site, use the device's site.
    - Otherwise (unknown device, or an invalid or inactive token), put the upload in
      **quarantine**. It is stored as usual, but `site_id` is NULL, `status` is `invalid`,
      `invalid_reason` is `unknown_device`, and the response is `404
      {error:"device_not_registered", quarantined:true}`. Only masters can see quarantined
      sessions.
+   - Quarantine is the one place an anonymous client can make the server store data, so it is
+     bounded by `QUARANTINE_MAX_BYTES` (default 20 GiB in total) and `QUARANTINE_MAX_PER_DEVICE`
+     (default 50 sessions). Over either limit nothing is stored. The answer is `503
+     {error:"quarantine_full"}` (the device retries later), with attempt outcome
+     `quarantine_full`.
+   - Before any of this: if `DATA_PATH` has less than `MIN_FREE_BYTES` (default 5 GiB) free,
+     every upload gets `507 {error:"insufficient_storage"}` (outcome `disk_full`), so a flood can
+     never fill the disk the DB and backups share.
 5. **Commit.** Rename `tmp/…part` to `sessions/<id[0:2]>/<sessionId>.zip`. Both paths are on the
    same filesystem, so the rename is atomic. Insert the `upload_sessions` row with `status
    validating` (unless it is quarantined) and the `upload_attempts` row in a single transaction.
@@ -126,6 +137,8 @@ Responses at a glance:
 | 404 | `device_not_registered` | quarantined (stored, master must assign) | `Rejected` |
 | 409 | `session_exists` | same id, different bytes | currently `ServerError`; app follow-up §12 |
 | 429 | `error` (message) | rate limit | `ServerError` |
+| 503 | `quarantine_full` | quarantine limits reached, nothing stored | `ServerError` → retry later |
+| 507 | `insufficient_storage` | free space on `DATA_PATH` below `MIN_FREE_BYTES` | `ServerError` → retry later |
 | 500 | `internal` | anything else (temporary file removed) | `ServerError` |
 
 ### 3.3 Attempts
@@ -277,10 +290,13 @@ backup_runs (id PK, kind ENUM('db','files'), started_at, finished_at NULL,
   `devices(installation_id)` with `site_id`, `app_version`, `last_config_version`,
   `last_config_at` and `last_seen_at`.
   - The device is not created when the token is invalid.
-  - A device that moves to another site's token is reassigned, which is the latest-wins rule.
+  - A device that has no site yet is adopted by the token's site. A device that belongs to another
+    site is left untouched, and the config is still served.
+  - Moving a device between sites is master-only (`PUT /devices/:id/site`).
 - **Check-in.** `POST /device-checkin {siteToken, installationId, appVersion, pending, failed}`
   is public and rate-limited. It updates `last_seen_at`, `app_version`, `local_pending` and
-  `local_failed`. It returns 404 for a bad token.
+  `local_failed`. It returns 404 for a bad token, and `409 {error:"device_belongs_to_another_site"}`
+  for a device registered to a different site than the token's (nothing is written).
 - **Health** is derived in the API and matches `deviceHealth` in `ui.js`:
   - `bad`: last seen more than 7 days ago
   - `warn`: there is a backlog
@@ -382,8 +398,12 @@ Dates in responses are ISO-8601 UTC.
     acceptable for the expected traffic.
   - It writes no audit entry: playback is not a download.
 - **Bundle.** `POST /uploads/download {sessionIds:[…]}`:
-  - If any id fails `canEditSession` or doesn't exist, the whole request returns 404. If any
-    session is `validating`, it returns 409.
+  - If any id is invisible or doesn't exist, the whole request returns 404. If all are visible but
+    any is read-only, it returns 403 (the same rule as the single download). If any session is
+    `validating`, it returns 409.
+  - Every stored file is checked before the first byte goes out. A missing one gives `500
+    {error:"file_missing"}`. A read error that only shows up while streaming aborts the response
+    (a failed download in the browser), never a 200 bundle without that file.
   - The limit is ≤ 200 sessions and ≤ 5 GB of summed `bytes`. Above that it returns 413 with
     `{error:"too_large"}`.
   - It streams a zip64 archive (`archiver`, store mode, no recompression) containing:

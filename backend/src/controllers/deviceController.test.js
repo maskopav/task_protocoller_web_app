@@ -62,6 +62,15 @@ describe('deviceCheckin', () => {
     expect(upsert[1]).toEqual(['dev-1', 5, '1.0', 2, 1]);
   });
 
+  it('409 for a device that belongs to another site, and writes nothing', async () => {
+    executeQuery.mockImplementation(async (sql = '') =>
+      sql.includes('FROM sites') ? [{ id: 5 }] : sql.includes('FROM devices WHERE installation_id') ? [{ site_id: 9 }] : []);
+    const res = makeRes();
+    await deviceCheckin({ body }, res);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INTO devices'))).toBe(false);
+  });
+
   it('404 invalid_token for an unknown or inactive token, and writes nothing', async () => {
     executeQuery.mockResolvedValue([]);
     const res = makeRes();

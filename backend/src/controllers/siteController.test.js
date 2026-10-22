@@ -400,11 +400,15 @@ describe('getSiteConfig', () => {
   describe('implicit device registration', () => {
     const SITE = { id: 7, name: 'Paris', config_json: null, is_active: 1, updated_at: '2026-09-01 10:00:00' };
     const deviceCalls = () => executeQuery.mock.calls.filter(([sql]) => sql.includes('INTO devices'));
-    const withDevices = (onDevice = async () => []) => {
+    // existingSite: the site_id the device already has (undefined = no such device).
+    const withDevices = (onDevice = async () => [], existingSite) => {
       mockConfigQueries(SITE);
       const base = executeQuery.getMockImplementation();
-      executeQuery.mockImplementation(async (sql, params) =>
-        sql.includes('INTO devices') ? onDevice(sql, params) : base(sql, params));
+      executeQuery.mockImplementation(async (sql, params) => {
+        if (sql.includes('INTO devices')) return onDevice(sql, params);
+        if (sql.includes('FROM devices WHERE installation_id')) return existingSite === undefined ? [] : [{ site_id: existingSite }];
+        return base(sql, params);
+      });
     };
 
     it('upserts the device with site, version and the served configVersion', async () => {
@@ -415,6 +419,14 @@ describe('getSiteConfig', () => {
       const config = res.json.mock.calls[0][0];
       expect(deviceCalls()).toHaveLength(1);
       expect(deviceCalls()[0][1]).toEqual(['dev-ABC-1', 7, '1.4.2', config.configVersion]);
+    });
+
+    it('never takes over a device that belongs to another site', async () => {
+      withDevices(undefined, 99);
+      const res = makeRes();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query: { installationId: 'dev-ABC-1' } }, res);
+      expect(deviceCalls()).toHaveLength(0);
+      expect(res.json).toHaveBeenCalled(); // the config is still served
     });
 
     it('does not touch devices without an installationId', async () => {

@@ -42,7 +42,15 @@ const logStreamError = (err) => {
 function sendArchive(res, archive, onFirstData) {
   pipeline(archive, res, logStreamError);
   archive.once("data", onFirstData);
-  archive.on("warning", logStreamError);
+  // archiver reports a missing or unreadable source file as a *warning* and
+  // carries on, which would end in a 200 bundle that silently lacks a session
+  // its sessions.csv lists. Any warning aborts the response instead, so the
+  // browser shows a failed download.
+  archive.on("warning", (err) => {
+    logStreamError(err);
+    archive.abort();
+    res.destroy(err);
+  });
   res.on("close", () => { if (!res.writableFinished) archive.abort(); });
   Promise.resolve(archive.finalize()).catch(logStreamError);
 }
@@ -145,12 +153,25 @@ export function createDownloadHandlers({ store }) {
     const rows = [];
     for (const id of ids) {
       const row = await findScopedSession(req.admin, id);
-      if (!row || !row.can_edit) return res.status(404).json({ error: "not_found" });
+      if (!row) return res.status(404).json({ error: "not_found" });
       rows.push(row);
     }
+    // Same rule as the single download: visible but read-only is 403.
+    if (rows.some((r) => !r.can_edit)) return res.status(403).json({ error: "forbidden" });
     if (rows.some((r) => r.status === "validating")) return res.status(409).json({ error: "validating" });
     if (rows.reduce((sum, r) => sum + Number(r.bytes), 0) > MAX_BUNDLE_BYTES) {
       return res.status(413).json({ error: "too_large" });
+    }
+
+    // Every file must exist before the first byte goes out: once streaming has
+    // started the only way to signal a problem is a broken download.
+    for (const r of rows) {
+      try {
+        await store.stat(r.storage_path);
+      } catch {
+        logToFile("ERROR", "Bundle: stored session file missing", { sessionId: r.session_id });
+        return res.status(500).json({ error: "file_missing" });
+      }
     }
 
     const names = await executeQuery(
@@ -171,7 +192,9 @@ export function createDownloadHandlers({ store }) {
         return [
           r.session_id, r.patient_code, r.visit_number,
           n.protocol ?? r.protocol_name, n.project ?? r.protocol_project, r.site_name,
-          iso(r.started_at), iso(r.received_at), r.status, r.qc,
+          // recordedAt = the session end, as in the list CSV (processedAt when the
+          // app never wrote endedAt).
+          iso(r.ended_at ?? r.processed_at), iso(r.received_at), r.status, r.qc,
           Array.isArray(flags) ? flags.join(";") : "",
         ];
       })

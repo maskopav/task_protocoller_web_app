@@ -1,8 +1,15 @@
 // src/upload/ingestService.js
 // Rules: docs/upload_management/specification.md §3.2–3.3.
+import fsp from "fs/promises";
 import { executeQuery, executeTransaction } from "../db/queryHelper.js";
 
 const DUP_KEY = "ER_DUP_ENTRY";
+
+// Thrown inside the commit transaction (so the device upsert rolls back too)
+// when a quarantined upload would exceed the quarantine limits.
+class QuarantineFull extends Error {}
+
+export const DEFAULT_LIMITS = { quarantineMaxBytes: 20 * 1024 ** 3, quarantineMaxPerDevice: 50, minFreeBytes: 5 * 1024 ** 3 };
 
 // DATETIME(3) literal in UTC, the format the pool (timezone 'Z',
 // dateStrings) reads and writes.
@@ -86,11 +93,13 @@ async function resolveDevice(conn, { installationId, siteToken, appVersion }, at
   }
 
   if (site) {
-    // The token is authoritative: a device that moved to another clinic's
-    // token is reassigned (latest wins, as in GET /site-config).
+    // A token adopts a device that has no site yet, but never moves one that
+    // belongs to another clinic: any clinic's token holder could otherwise
+    // pull a foreign device (and its later tokenless uploads) into their own
+    // scope. Moving a device between sites is the master's PUT /devices/:id/site.
     await q(
       `INSERT INTO devices (installation_id, site_id, app_version, last_seen_at) VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE site_id = VALUES(site_id),
+       ON DUPLICATE KEY UPDATE site_id = COALESCE(site_id, VALUES(site_id)),
          app_version = COALESCE(VALUES(app_version), app_version), last_seen_at = VALUES(last_seen_at)`,
       [installationId, site.id, appVersion ?? null, seen]
     );
@@ -104,19 +113,32 @@ async function resolveDevice(conn, { installationId, siteToken, appVersion }, at
     );
   }
   const [device] = await q(`SELECT id, site_id FROM devices WHERE installation_id = ?`, [installationId]);
-  // An invalid or inactive token quarantines even a known device: the spec
-  // falls back to the device's site only when no token was sent.
-  const siteId = site ? site.id : siteToken ? null : device.site_id ?? null;
+  // An invalid or inactive token quarantines even a known device, and so does
+  // a valid token of a different site than the device's. The device's own
+  // site is used only when no token was sent.
+  const siteId = site
+    ? (device.site_id === site.id ? site.id : null)
+    : siteToken ? null : device.site_id ?? null;
   return { deviceId: device.id, siteId };
 }
 
 // Step 5. The row is inserted before the file is linked, so a concurrent
 // request for the same sessionId fails on the unique key (and goes back to
 // step 3) before it can reach the store. commit() refuses to overwrite anyway.
-async function commitSession(store, fields, file, at) {
+async function commitSession(store, fields, file, at, limits) {
   return executeTransaction(async (conn) => {
     const { deviceId, siteId } = await resolveDevice(conn, fields, at);
     const quarantined = siteId === null;
+    if (quarantined) {
+      const [q] = (await conn.query(
+        `SELECT COALESCE(SUM(bytes), 0) AS total, COALESCE(SUM(device_id = ?), 0) AS mine
+         FROM upload_sessions WHERE site_id IS NULL`,
+        [deviceId]
+      ))[0];
+      if (Number(q.total) + file.bytes > limits.quarantineMaxBytes || Number(q.mine) >= limits.quarantineMaxPerDevice) {
+        throw new QuarantineFull();
+      }
+    }
     const key = store.sessionKey(fields.sessionId);
     const [res] = await conn.query(
       `INSERT INTO upload_sessions
@@ -156,7 +178,7 @@ async function commitSession(store, fields, file, at) {
  *          now?: () => Date}} deps
  * @returns {Promise<{httpCode: number, body: object}>}
  */
-export async function ingestUpload(upload, { store, queue, now = () => new Date() }) {
+export async function ingestUpload(upload, { store, queue, now = () => new Date(), limits = DEFAULT_LIMITS }) {
   const { fields, file } = upload;
   const at = now();
   try {
@@ -168,6 +190,17 @@ export async function ingestUpload(upload, { store, queue, now = () => new Date(
       return { httpCode: 400, body: { error: "checksum_mismatch" } };
     }
 
+    // The upload already sits in tmp/, on the same filesystem, so free space
+    // left now is what remains after keeping it.
+    const fsStat = await fsp.statfs(store.root).catch(() => null);
+    if (fsStat && fsStat.bavail * fsStat.bsize < limits.minFreeBytes) {
+      await recordAttempt(executeQuery, {
+        sessionId: fields.sessionId, installationId: fields.installationId, at, httpCode: 507,
+        outcome: "disk_full", bytes: file.bytes, shaDeclared: fields.zipSha256, shaComputed: file.sha256,
+      });
+      return { httpCode: 507, body: { error: "insufficient_storage" } };
+    }
+
     // Two rounds at most: a duplicate key on insert means another request
     // committed this sessionId in between, and the second step 3 sees it.
     for (let round = 0; ; round++) {
@@ -175,9 +208,18 @@ export async function ingestUpload(upload, { store, queue, now = () => new Date(
       if (existing) return existing;
       let committed;
       try {
-        committed = await commitSession(store, fields, file, at);
+        committed = await commitSession(store, fields, file, at, limits);
       } catch (err) {
         if (err?.code === DUP_KEY && round === 0) continue;
+        if (err instanceof QuarantineFull) {
+          // Temporary from the device's point of view (503, it retries later):
+          // once a master assigns or clears quarantine there is room again.
+          await recordAttempt(executeQuery, {
+            sessionId: fields.sessionId, installationId: fields.installationId, at, httpCode: 503,
+            outcome: "quarantine_full", bytes: file.bytes, shaDeclared: fields.zipSha256, shaComputed: file.sha256,
+          });
+          return { httpCode: 503, body: { error: "quarantine_full" } };
+        }
         throw err;
       }
       // Quarantined rows are validated too, so their checks are filled in for

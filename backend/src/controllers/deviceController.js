@@ -17,6 +17,15 @@ export const cleanAppVersion = (v) =>
 
 const isCount = (v) => Number.isInteger(v) && v >= 0 && v <= MAX_COUNT;
 
+// A site token may adopt a device that has no site yet, but never take over a
+// device that belongs to another clinic (that would pull the foreign device,
+// its backlog and its later tokenless uploads into the token holder's scope).
+// Moving a device between sites is the master's PUT /devices/:id/site.
+async function belongsToOtherSite(installationId, siteId) {
+  const rows = await executeQuery(`SELECT site_id FROM devices WHERE installation_id = ?`, [installationId]);
+  return rows.length > 0 && rows[0].site_id != null && Number(rows[0].site_id) !== Number(siteId);
+}
+
 /**
  * Called by getSiteConfig after the token resolved. Never throws: a device
  * bookkeeping failure must not keep a clinic from getting its config.
@@ -24,10 +33,11 @@ const isCount = (v) => Number.isInteger(v) && v >= 0 && v <= MAX_COUNT;
 export async function registerDeviceFromConfig({ installationId, appVersion, siteId, configVersion }) {
   if (!isValidInstallationId(installationId)) return;
   try {
+    if (await belongsToOtherSite(installationId, siteId)) return;
     await executeQuery(
       `INSERT INTO devices (installation_id, site_id, app_version, last_config_version, last_config_at, last_seen_at)
        VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
-       ON DUPLICATE KEY UPDATE site_id = VALUES(site_id),
+       ON DUPLICATE KEY UPDATE site_id = COALESCE(site_id, VALUES(site_id)),
          app_version = COALESCE(VALUES(app_version), app_version),
          last_config_version = VALUES(last_config_version),
          last_config_at = VALUES(last_config_at), last_seen_at = VALUES(last_seen_at)`,
@@ -55,11 +65,14 @@ export const deviceCheckin = async (req, res) => {
       [siteToken]
     );
     if (sites.length === 0) return res.status(404).json({ error: "invalid_token" });
+    if (await belongsToOtherSite(installationId, sites[0].id)) {
+      return res.status(409).json({ error: "device_belongs_to_another_site" });
+    }
 
     await executeQuery(
       `INSERT INTO devices (installation_id, site_id, app_version, last_seen_at, local_pending, local_failed)
        VALUES (?, ?, ?, UTC_TIMESTAMP(), ?, ?)
-       ON DUPLICATE KEY UPDATE site_id = VALUES(site_id),
+       ON DUPLICATE KEY UPDATE site_id = COALESCE(site_id, VALUES(site_id)),
          app_version = COALESCE(VALUES(app_version), app_version),
          last_seen_at = VALUES(last_seen_at),
          local_pending = VALUES(local_pending), local_failed = VALUES(local_failed)`,
@@ -173,7 +186,7 @@ export const listDevices = async (req, res) => {
     }
     res.json({ devices, stats });
   } catch (err) {
-    logToFile("ERROR", "Failed to list devices", { error: err.message });
+    logToFile("ERROR", "Failed to list devices", { code: err?.code ?? err?.name ?? "Error" });
     res.status(500).json({ error: "internal" });
   }
 };
@@ -203,7 +216,7 @@ export const renameDevice = async (req, res) => {
     await executeQuery(`UPDATE devices SET label = ? WHERE id = ?`, [label, id]);
     res.json({ id, label });
   } catch (err) {
-    logToFile("ERROR", "Failed to rename device", { deviceId: id, error: err.message });
+    logToFile("ERROR", "Failed to rename device", { deviceId: id, code: err?.code ?? err?.name ?? "Error" });
     res.status(500).json({ error: "internal" });
   }
 };
@@ -238,7 +251,7 @@ export const makeAssignDeviceSite = (queue) => async (req, res) => {
     for (const sid of moved) queue.enqueue(sid);
     res.json({ moved: moved.length });
   } catch (err) {
-    logToFile("ERROR", "Failed to assign device site", { deviceId: id, error: err.message });
+    logToFile("ERROR", "Failed to assign device site", { deviceId: id, code: err?.code ?? err?.name ?? "Error" });
     res.status(500).json({ error: "internal" });
   }
 };

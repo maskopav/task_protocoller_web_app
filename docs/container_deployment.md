@@ -300,6 +300,9 @@ never print it):
 ```
 DATA_PATH=/srv/task-protocoller/data      # required; one filesystem (atomic rename tmp -> sessions)
 UPLOAD_MAX_BYTES=4294967296               # optional, default 4 GiB
+QUARANTINE_MAX_BYTES=21474836480          # optional, default 20 GiB: total stored for unregistered devices
+QUARANTINE_MAX_PER_DEVICE=50              # optional: quarantined sessions per unregistered device
+MIN_FREE_BYTES=5368709120                 # optional, default 5 GiB: below this free space every upload gets 507
 BACKUP_TARGET=dir:/mnt/backup/task-protocoller   # see "Backups"; only the backup job needs it
 BACKUP_DB_KEEP=14                         # optional
 BACKUP_DUMP_CMD=                          # optional, default "mariadb-dump"

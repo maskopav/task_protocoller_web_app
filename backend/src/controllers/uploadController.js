@@ -285,7 +285,8 @@ const loadComments = async (pk) =>
 
 const fail = (res, err, what) => {
   if (err instanceof QueryError) return res.status(400).json({ error: err.code });
-  logToFile("ERROR", `uploads ${what} failed`, { error: err.message });
+  // Codes only: DB error messages can quote the offending value (participant data).
+  logToFile("ERROR", `uploads ${what} failed`, { code: err?.code ?? err?.name ?? "Error" });
   return res.status(500).json({ error: "internal" });
 };
 

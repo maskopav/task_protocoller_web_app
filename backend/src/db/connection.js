@@ -25,4 +25,11 @@ const pool = await mysql.createPool({
   timezone: 'Z'
 });
 
+// Pin every connection's session time zone to UTC. `timezone: 'Z'` only tells
+// the driver how to read and write values. TIMESTAMP columns filled by
+// CURRENT_TIMESTAMP (comments, audit, participant_edited_at) are rendered in
+// the *session* zone, which on a server not set to UTC would come back shifted
+// while the API labels them UTC.
+pool.pool.on("connection", (conn) => conn.query("SET time_zone = '+00:00'"));
+
 export default pool;

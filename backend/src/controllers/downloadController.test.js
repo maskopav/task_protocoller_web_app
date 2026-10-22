@@ -33,7 +33,7 @@ async function addSession(over = {}) {
     id: db.rows.length + 1, session_id: fx.sessionId, storage_path: store.sessionKey(fx.sessionId),
     status: 'valid', can_edit: 1, bytes: fx.bytes, exam_summary: JSON.stringify({ tasks }),
     participant_fields: null, participant_edited_at: null, patient_code: 'p1', visit_number: '2',
-    site_name: 'Paris', started_at: new Date('2026-10-13T08:00:00Z'), received_at: new Date('2026-10-13T09:00:00Z'),
+    site_name: 'Paris', started_at: new Date('2026-10-13T08:00:00Z'), ended_at: new Date('2026-10-13T08:15:00Z'), received_at: new Date('2026-10-13T09:00:00Z'),
     qc: 'unreviewed', flags: JSON.stringify(['a', 'b']), protocol_name: 'snap', protocol_project: 'snapproj',
     ...over,
   };
@@ -185,10 +185,10 @@ describe('POST /uploads/download', () => {
     expect((await post(many)).status).toBe(400);
   });
 
-  it('404 for all on one unauthorized id, 409 validating, 413 too large', async () => {
+  it('403 for a visible read-only id, 404 for an invisible one, 409 validating, 413 too large', async () => {
     const a = await addSession();
     const ro = await addSession({ can_edit: 0 });
-    expect((await post([a.row.session_id, ro.row.session_id])).status).toBe(404);
+    expect((await post([a.row.session_id, ro.row.session_id])).status).toBe(403);
     expect((await post([a.row.session_id, 'b'.repeat(32)])).status).toBe(404);
     const v = await addSession({ status: 'validating' });
     expect((await post([a.row.session_id, v.row.session_id])).status).toBe(409);
@@ -197,6 +197,16 @@ describe('POST /uploads/download', () => {
     const res = await post([big1.row.session_id, big2.row.session_id]);
     expect(res.status).toBe(413);
     expect(res.body).toEqual({ error: 'too_large' });
+    expect(audits).toHaveLength(0);
+  });
+
+  it('500 file_missing before streaming when a stored session file is gone, no audit', async () => {
+    const a = await addSession();
+    const b = await addSession();
+    fs.rmSync(store.resolve(b.row.storage_path));
+    const res = await post([a.row.session_id, b.row.session_id]);
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: 'file_missing' });
     expect(audits).toHaveLength(0);
   });
 
@@ -218,7 +228,7 @@ describe('POST /uploads/download', () => {
     const lines = Buffer.concat(chunks).toString().trim().split('\r\n');
     expect(lines[0]).toBe('sessionId,patient_code,visit_number,protocol,project,site,recordedAt,receivedAt,status,qc,flags');
     expect(lines).toHaveLength(3);
-    expect(lines[1]).toBe(`${a.row.session_id},'=evil,2,Speech battery,Speech Study,Paris,2026-10-13T08:00:00.000Z,2026-10-13T09:00:00.000Z,valid,unreviewed,a;b`);
+    expect(lines[1]).toBe(`${a.row.session_id},'=evil,2,Speech battery,Speech Study,Paris,2026-10-13T08:15:00.000Z,2026-10-13T09:00:00.000Z,valid,unreviewed,a;b`);
     await vi.waitFor(() => expect(audits).toHaveLength(1));
     expect(audits[0][1]).toBe('bundle');
     expect(JSON.parse(audits[0][3])).toEqual({ sessionIds: [a.row.session_id, b.row.session_id] });

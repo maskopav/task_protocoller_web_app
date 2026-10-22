@@ -15,7 +15,7 @@ import { logToFile } from "../utils/logger.js";
  *          queue: {enqueue: (id: number) => void},
  *          maxBytes: number}} deps
  */
-export function createUploadRouter({ store, queue, maxBytes }) {
+export function createUploadRouter({ store, queue, maxBytes, limits }) {
   const router = express.Router();
 
   router.post("/", createUploadLimiter(), async (req, res) => {
@@ -23,7 +23,7 @@ export function createUploadRouter({ store, queue, maxBytes }) {
     try {
       const upload = await receiveUpload(req, { store, maxBytes });
       sessionId = upload.fields.sessionId;
-      const { httpCode, body } = await ingestUpload(upload, { store, queue });
+      const { httpCode, body } = await ingestUpload(upload, { store, queue, ...(limits ? { limits } : {}) });
       res.status(httpCode).json(body);
     } catch (err) {
       if (err instanceof UploadRequestError) {

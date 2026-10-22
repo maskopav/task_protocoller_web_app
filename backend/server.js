@@ -16,7 +16,7 @@ import { createDevicesRouter } from "./src/routes/devices.js";
 import uploadsRouter from "./src/routes/uploads.js";
 import { createUploadDownloadsRouter } from "./src/routes/uploadDownloads.js";
 import { createUploadRouter } from "./src/routes/upload.js";
-import { loadUploadConfig, ensureDataPath } from "./src/config/uploads.js";
+import { loadUploadConfig, ensureDataPath, sweepTempFiles } from "./src/config/uploads.js";
 import { LocalFileStore } from "./src/storage/fileStore.js";
 import { createValidationQueue } from "./src/upload/validationQueue.js";
 import { logFrontendToFile, logToFile } from "./src/utils/logger.js";
@@ -44,6 +44,9 @@ if (!process.env.FRONTEND_BASE_URL) {
 // a missing or read-only DATA_PATH stops the boot (spec §11).
 const uploadConfig = loadUploadConfig();
 ensureDataPath(uploadConfig.dataPath);
+// Nothing is uploading yet, so anything in tmp/ is a leftover of a crash or
+// restart mid-upload (each up to UPLOAD_MAX_BYTES).
+sweepTempFiles(uploadConfig.dataPath);
 const fileStore = new LocalFileStore(uploadConfig.dataPath);
 const validationQueue = createValidationQueue({ store: fileStore });
 
@@ -112,7 +115,7 @@ app.post("/logs/frontend", logLimiter, express.json({ limit: '16kb' }), (req, re
 
 // Public, gated by the site token: the desktop app's session upload. Mounted
 // before the body parsers below, which must never see this multi-GB stream.
-app.use("/upload", createUploadRouter({ store: fileStore, queue: validationQueue, maxBytes: uploadConfig.maxBytes }));
+app.use("/upload", createUploadRouter({ store: fileStore, queue: validationQueue, maxBytes: uploadConfig.maxBytes, limits: uploadConfig.limits }));
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
@@ -152,10 +155,15 @@ app.use("/uploads", requireAuthOrTicket, createUploadDownloadsRouter({ store: fi
 app.use("/uploads", requireAuth, uploadsRouter)
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);
   // Sessions still 'validating' were interrupted by a crash or restart.
   validationQueue.recover()
     .then((n) => { if (n > 0) logToFile("INFO", "Re-enqueued sessions for validation", { count: n }); })
     .catch((err) => logToFile("ERROR", "Validation recovery failed", { code: err?.code ?? err?.name ?? "Error" }));
 });
+// Node's default requestTimeout (5 min) would cut off any session upload slower
+// than that: a 2 GB session at 50 Mbit/s. The whole-request deadline is off, and
+// nginx's proxy timeouts (docs/container_deployment.md) bound idle clients.
+// Slow-header clients are still cut off by headersTimeout (60 s default).
+server.requestTimeout = 0;

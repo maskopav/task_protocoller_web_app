@@ -62,13 +62,17 @@ async function dispatch(sql, p = []) {
       d = { id: db.devices.length + 1, installation_id, site_id: null, app_version: null };
       db.devices.push(d);
     }
-    if (withSite) d.site_id = site_id;
+    if (withSite) d.site_id = d.site_id ?? site_id; // COALESCE(site_id, VALUES(site_id))
     d.app_version = app_version ?? d.app_version;
     d.last_seen_at = last_seen_at;
     return { affectedRows: 1 };
   }
   if (sql.includes('FROM devices WHERE installation_id')) {
     return db.devices.filter((d) => d.installation_id === p[0]).map(({ id, site_id }) => ({ id, site_id }));
+  }
+  if (sql.includes('FROM upload_sessions WHERE site_id IS NULL')) {
+    const q = db.sessions.filter((s) => s.site_id == null);
+    return [{ total: q.reduce((n, s) => n + Number(s.bytes), 0), mine: q.filter((s) => s.device_id === p[0]).length }];
   }
   if (sql.includes('INSERT INTO upload_sessions')) {
     if (db.onSessionInsert) {
@@ -178,14 +182,66 @@ describe('POST /upload — accepted', () => {
     expect(db.sessions[0]).toMatchObject({ device_id: 7, site_id: 1, status: 'validating' });
   });
 
-  it('moves a device to the site of the token it now sends', async () => {
+  it('never moves a device of another site: a token of another clinic quarantines the upload', async () => {
     const fx = fixture();
     db.sites.push({ id: 3, access_token: OTHER_TOKEN, is_active: 1 });
     db.devices.push({ id: 7, installation_id: fx.installationId, site_id: 1, app_version: null });
     const res = await post(fx, { siteToken: OTHER_TOKEN });
+    expect(res.status).toBe(404);
+    expect(db.devices[0].site_id).toBe(1);
+    expect(db.sessions[0]).toMatchObject({ site_id: null, invalid_reason: 'unknown_device' });
+  });
+
+  it('a token adopts a device that has no site yet', async () => {
+    const fx = fixture();
+    db.devices.push({ id: 7, installation_id: fx.installationId, site_id: null, app_version: null });
+    const res = await post(fx);
     expect(res.status).toBe(200);
-    expect(db.devices[0].site_id).toBe(3);
-    expect(db.sessions[0].site_id).toBe(3);
+    expect(db.devices[0].site_id).toBe(1);
+  });
+});
+
+describe('POST /upload — storage limits', () => {
+  const limited = (limits) => {
+    const a = express();
+    a.use('/upload', createUploadRouter({ store, queue, maxBytes: 50 * 1024 * 1024,
+      limits: { quarantineMaxBytes: 1e12, quarantineMaxPerDevice: 1e6, minFreeBytes: 0, ...limits } }));
+    return a;
+  };
+
+  it('503 quarantine_full once a device has its quota of quarantined sessions, nothing stored', async () => {
+    const a = limited({ quarantineMaxPerDevice: 1 });
+    const first = fixture();
+    expect((await post(first, { siteToken: undefined }, a)).status).toBe(404);
+    const second = fixture({ installationId: first.installationId });
+    const res = await post(second, { siteToken: undefined }, a);
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ error: 'quarantine_full' });
+    expect(db.sessions).toHaveLength(1);
+    expect(fs.existsSync(store.resolve(store.sessionKey(second.sessionId)))).toBe(false);
+    expect(db.attempts.at(-1)).toMatchObject({ http_code: 503, outcome: 'quarantine_full' });
+    expect(tmpFiles()).toEqual([]);
+  });
+
+  it('503 once quarantine as a whole would exceed its byte budget', async () => {
+    const fx = fixture();
+    const res = await post(fx, { siteToken: undefined }, limited({ quarantineMaxBytes: fx.bytes - 1 }));
+    expect(res.status).toBe(503);
+    expect(db.sessions).toHaveLength(0);
+  });
+
+  it('the quarantine limits never apply to an upload with a valid token', async () => {
+    const res = await post(fixture(), {}, limited({ quarantineMaxBytes: 0, quarantineMaxPerDevice: 0 }));
+    expect(res.status).toBe(200);
+  });
+
+  it('507 insufficient_storage below the free-space floor, nothing stored', async () => {
+    const fx = fixture();
+    const res = await post(fx, {}, limited({ minFreeBytes: Number.MAX_SAFE_INTEGER }));
+    expect(res.status).toBe(507);
+    expect(db.sessions).toHaveLength(0);
+    expect(db.attempts.at(-1)).toMatchObject({ http_code: 507, outcome: 'disk_full' });
+    expect(tmpFiles()).toEqual([]);
   });
 });
 

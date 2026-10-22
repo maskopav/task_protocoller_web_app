@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { LocalFileStore } from './fileStore.js';
-import { ensureDataPath, loadUploadConfig } from '../config/uploads.js';
+import { ensureDataPath, loadUploadConfig, sweepTempFiles } from '../config/uploads.js';
 
 const ID = '76a67cd8af73486da13a7c0e1509bd2f';
 let root, store;
@@ -64,9 +64,18 @@ describe('loadUploadConfig', () => {
     expect(() => loadUploadConfig({})).toThrow(/DATA_PATH/);
   });
 
+  it('sweepTempFiles empties tmp/ and leaves sessions alone', async () => {
+    fs.writeFileSync(store.tempPath(), 'leftover');
+    const key = await store.commit(writeTemp('kept'), store.sessionKey(ID));
+    expect(sweepTempFiles(root)).toBe(1);
+    expect(fs.readdirSync(path.join(root, 'tmp'))).toEqual([]);
+    expect(fs.readFileSync(store.resolve(key), 'utf8')).toBe('kept');
+  });
+
   it('applies defaults', () => {
     const c = loadUploadConfig({ DATA_PATH: root });
     expect(c.maxBytes).toBe(4 * 1024 ** 3);
     expect(c.backup).toEqual({ target: null, dbKeep: 14, dumpCmd: 'mariadb-dump' });
+    expect(c.limits).toEqual({ quarantineMaxBytes: 20 * 1024 ** 3, quarantineMaxPerDevice: 50, minFreeBytes: 5 * 1024 ** 3 });
   });
 });
