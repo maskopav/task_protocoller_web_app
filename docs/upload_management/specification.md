@@ -481,3 +481,63 @@ The server refuses to start if `DATA_PATH` is unset or not writable.
 3. Call `POST /device-checkin` after each config fetch and after each upload batch.
 4. Treat `409 session_exists` as terminal ("already on the server with different contents"),
    not as something to retry.
+
+## Appendix: API responses (read and review, task E)
+
+All keys are camelCase and shaped after the session object of `ui_design/assets/mock-data.js`.
+Dates are ISO-8601 UTC. Errors are `{error: "<code>"}`: 400 for a bad query or body
+(`invalid_sort`, `invalid_status`, `invalid_qc`, `invalid_flag`, `invalid_site`, `invalid_date`,
+`invalid_text`, `invalid_fields`, `unknown_field`, `required_field`, `invalid_value`), 404
+`not_found` for a session or site that is out of scope or does not exist, 403 `forbidden` for a
+visible but read-only session on a write endpoint.
+
+**List row** (`GET /uploads` → `rows[]`, also the CSV columns): `id` (sessionId), `siteId`, `site`
+(name), `deviceId` (installation id), `deviceLabel`, `protocol`, `projectId`, `project`,
+`startedAt`, `endedAt`, `processedAt`, `receivedAt`, `durationS`, `bytes`, `status`,
+`invalidReason`, `qc`, `issues` (flags), `needsAttention`, `tasksTotal`, `tasksDone`,
+`tasksSkipped`, `hasAudio`, `audioClips`, `videoClips`, `participant: {patient_code,
+visit_number}`, `canEdit`, `commentCount` (non-system).
+
+**`GET /uploads`** returns `{rows, total, page, pageSize, kpis: {received7d, valid, invalid,
+attention, unreviewed}, facets: {sites: [{id, name, count}], flags: [{key, count}], video}}`.
+Query: `q` (prefix of patient code, session id or installation id, or part of the device label),
+`site` (repeatable or comma list of ids), `project` (id, or exact name), `protocol` (name),
+`dateField`, `from`, `to` (`YYYY-MM-DD`, inclusive), `status`, `qc`, `flag` (repeatable, AND),
+`hasVideo=1`, `attention=1`, `sort`, `dir=asc|desc` (default `receivedAt desc`), `page`,
+`pageSize` (10, 25, 50, 100; anything else gives 25). Unknown sort keys, enums, flags or dates
+give 400. KPIs are computed under every filter except `status`, `qc` and `attention` (they are
+the selectors). The site facet ignores `site`, the flag facet ignores `flag`; `facets.flags`
+always lists all 11 keys (count may be 0). `facets.video` is the "Has video" chip count.
+
+**`GET /uploads/export.csv`**: the same filters (no paging, at most 100 000 rows), UTF-8 with BOM,
+CRLF. Columns: sessionId, receivedAt, recordedAt, site, deviceId, deviceLabel, patientCode,
+visitNumber, protocol, project, durationS, tasksDone, tasksTotal, tasksSkipped, audioClips,
+videoClips, bytes, status, invalidReason, qc, flags (`;`-joined), comments. String values that
+start with `= + - @ TAB CR` get a leading `'`.
+
+**`GET /uploads/summary?siteId=&projectId=&days=`**: `{week, last30, total, invalid, needsReview,
+attention, unreviewed, lastUpload, days, perDay: [{date, count, invalid}], byProtocol:
+[{protocol, count}], bySite: [{id, name, count}]}`. `days` is clamped to 7..90 (default 30).
+`perDay`, `byProtocol` and `bySite` cover the `days` window; the other counts are over all
+sessions in scope (except `week` and `last30`). An id the caller cannot see gives 404.
+
+**`GET /uploads/:sessionId`**: the list row fields (without `commentCount`) plus `appVersion`,
+`configVersion`, `zipSha256`, `checks` (`[{key, result, detail}]`), `tasks` (from
+`exam_summary`), `interruptions` (count), `interruptionEvents`, `recovered`, `timelineUsed`,
+`timeline`, `captureFormat`, `sampleRate`, `hardware`, `videoTakes`, `participant: {patient_code,
+visit_number, fields, maskedKeys, editedAt}` (every value in `fields` is `null` except the
+patient code and visit number), `comments`, `canEdit`, `prevId`, `nextId`. Prev/next follow the
+list's filters and sort: pass them as ordinary query parameters or as one `ctx=<encoded list
+query string>`. Both are `null` when the session is not in that filtered list.
+
+**Comment**: `{id, who (initials, "SYS" without an author), name, at, text, system}`.
+`GET .../comments` returns an array, `POST .../comments {text}` returns 201 with the new comment.
+
+**`GET .../attempts`**: array, newest first, `{id, at, code, outcome, bytes, shaDeclared,
+shaComputed, deviceReported, installationId}`; `outcome` is the stored keyword (accepted, resent,
+checksum, conflict, quarantined, error).
+
+**`POST .../reveal`** returns `{fields}` (all values). **`PATCH .../participant {fields}`** returns
+`{changed: [names], participant: {patient_code, visit_number, fields (masked), maskedKeys,
+editedAt}, comments}`; unchanged values are not written, and nothing at all is written when
+nothing changed. **`PUT .../qc {qc}`** returns `{qc, comments}`.
