@@ -396,6 +396,60 @@ describe('getSiteConfig', () => {
 
     expect(res.status).toHaveBeenCalledWith(403);
   });
+
+  describe('implicit device registration', () => {
+    const SITE = { id: 7, name: 'Paris', config_json: null, is_active: 1, updated_at: '2026-09-01 10:00:00' };
+    const deviceCalls = () => executeQuery.mock.calls.filter(([sql]) => sql.includes('INTO devices'));
+    const withDevices = (onDevice = async () => []) => {
+      mockConfigQueries(SITE);
+      const base = executeQuery.getMockImplementation();
+      executeQuery.mockImplementation(async (sql, params) =>
+        sql.includes('INTO devices') ? onDevice(sql, params) : base(sql, params));
+    };
+
+    it('upserts the device with site, version and the served configVersion', async () => {
+      withDevices();
+      const res = makeRes();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query: { installationId: 'dev-ABC-1', appVersion: '1.4.2' } }, res);
+
+      const config = res.json.mock.calls[0][0];
+      expect(deviceCalls()).toHaveLength(1);
+      expect(deviceCalls()[0][1]).toEqual(['dev-ABC-1', 7, '1.4.2', config.configVersion]);
+    });
+
+    it('does not touch devices without an installationId', async () => {
+      withDevices();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query: {} }, makeRes());
+      expect(deviceCalls()).toHaveLength(0);
+    });
+
+    it('ignores an invalid installationId and an invalid appVersion', async () => {
+      withDevices();
+      const res = makeRes();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query: { installationId: 'bad id!', appVersion: 'x' } }, res);
+      expect(deviceCalls()).toHaveLength(0);
+      expect(res.json).toHaveBeenCalled();
+
+      executeQuery.mockReset();
+      withDevices();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query: { installationId: 'dev1', appVersion: 'a\nb' } }, makeRes());
+      expect(deviceCalls()[0][1][2]).toBeNull();
+    });
+
+    it('does not register a device for an unknown token', async () => {
+      mockConfigQueries(null);
+      await getSiteConfig({ params: { token: 'nope' }, query: { installationId: 'dev1' } }, makeRes());
+      expect(deviceCalls()).toHaveLength(0);
+    });
+
+    it('still serves the config when the device upsert fails', async () => {
+      withDevices(async () => { throw new Error('db down'); });
+      const res = makeRes();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query: { installationId: 'dev1' } }, res);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json.mock.calls[0][0]).toHaveProperty('configVersion');
+    });
+  });
 });
 
 describe('createSite', () => {
