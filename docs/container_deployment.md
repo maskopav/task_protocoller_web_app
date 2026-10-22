@@ -62,7 +62,7 @@ Run from the repo root on your machine. This keeps the database and `.env`.
 # 3. Upload. Keep these excludes: they protect the server's .env, logs and
 #    installed node_modules.
 S="ssh -o BatchMode=yes -o ServerAliveInterval=10"
-rsync -az --delete -e "$S" --exclude node_modules --exclude logs --exclude '.env*' --exclude uploads \
+rsync -az --delete -e "$S" --exclude node_modules --exclude logs --exclude '.env*' --exclude uploads --exclude .data \
   backend/ share_web:/opt/task-protocoller/backend/
 rsync -az --delete -e "$S" frontend/dist/ share_web:/opt/task-protocoller/frontend/
 rsync -az --delete -e "$S" frontend/src/i18n/ share_web:/opt/task-protocoller/locales/
@@ -81,7 +81,16 @@ If the change adds columns or tables, apply the non-destructive upgrade
 ssh share_web 'cd /opt/task-protocoller/backend && sudo -u taskprot node src/applyPermissions.js'
 ```
 
-Then run the checks under [Verify](#verify).
+Phase B (upload management) adds more steps on first deploy: see
+[Phase B: upload management](#phase-b-upload-management). Then run the checks under
+[Verify](#verify).
+
+**Never let `--delete` reach `DATA_PATH`.** Uploaded session ZIPs are the only copy until the
+backup has run. The recommended `DATA_PATH` (`/srv/task-protocoller/data`) is outside the rsync
+target. If you put it inside `backend/` (for example `backend/.data`), keep the `--exclude .data`
+above (or the matching name). Never rsync *to* a path that contains `DATA_PATH`, and never run
+`chown -R` or `rm -r` over it by accident (the step-4 `chown -R` covers `/opt/task-protocoller`,
+which is only safe if `DATA_PATH` is outside it or already owned by `taskprot`).
 
 ## Verify
 
@@ -164,8 +173,10 @@ FRONTEND_BASE_URL=http://192.168.122.183:10001
 CORS_ORIGIN=http://192.168.122.183:10001
 JWT_SECRET=$JWT
 JWT_EXPIRES_IN=8h
+DATA_PATH=/srv/task-protocoller/data
+UPLOAD_MAX_BYTES=4294967296
 EOF
-mkdir -p logs; chown -R taskprot:taskprot /opt/task-protocoller
+mkdir -p logs /srv/task-protocoller/data; chown -R taskprot:taskprot /opt/task-protocoller /srv/task-protocoller/data
 sudo -u taskprot node src/runInit.js 2>&1 | tail -3'
 ```
 
@@ -197,15 +208,16 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/opt/task-protocoller/backend/logs
+ReadWritePaths=/opt/task-protocoller/backend/logs /srv/task-protocoller/data
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 `ProtectSystem=strict` leaves the filesystem read-only for the app except for
-`logs/`. If a feature later needs to write somewhere else (for example uploads
-under `DATA_PATH`), add that path to `ReadWritePaths`.
+`logs/` and `DATA_PATH` (uploads). If a feature later needs to write somewhere
+else, add that path to `ReadWritePaths`. The path must exist when the unit
+starts, otherwise systemd fails the namespace setup (exit 226/NAMESPACE).
 
 ### 5. nginx site — `/etc/nginx/sites-available/task-protocoller`
 
@@ -231,6 +243,32 @@ server {
         client_max_body_size 6m;
     }
 
+    # Phase B: desktop app session upload (up to 4 GiB). Must come before
+    # /api/. See "Phase B: upload management" for what each line is for.
+    location = /api/upload {
+        proxy_pass http://127.0.0.1:3000/upload;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 4g;
+        proxy_request_buffering off;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+    }
+
+    # Phase B: ZIP, clip and bundle downloads stream large bodies.
+    location /api/uploads/ {
+        proxy_pass http://127.0.0.1:3000/uploads/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+        client_max_body_size 6m;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }
@@ -249,6 +287,132 @@ proxy layer, change that setting too. Otherwise the rate limiters either count
 every client as the same one or can be bypassed with a spoofed
 `X-Forwarded-For`.
 
+## Phase B: upload management
+
+What a deploy of the upload feature needs on top of a routine redeploy. Do these in order. The
+backend refuses to start without `DATA_PATH`, so the `.env` and directory steps come first.
+
+### 1. `.env` keys
+
+Add to `/opt/task-protocoller/backend/.env` (mode 600, owner `taskprot`; edit it on the container,
+never print it):
+
+```
+DATA_PATH=/srv/task-protocoller/data      # required; one filesystem (atomic rename tmp -> sessions)
+UPLOAD_MAX_BYTES=4294967296               # optional, default 4 GiB
+BACKUP_TARGET=dir:/mnt/backup/task-protocoller   # see "Backups"; only the backup job needs it
+BACKUP_DB_KEEP=14                         # optional
+BACKUP_DUMP_CMD=                          # optional, default "mariadb-dump"
+```
+
+### 2. Create `DATA_PATH`
+
+```bash
+ssh share_web 'install -d -o taskprot -g taskprot -m 750 /srv/task-protocoller/data'
+```
+
+The server creates `tmp/` and `sessions/` inside it at boot, but it can't create the parent, and
+it exits if the directory is not writable by `taskprot`. Don't put it under
+`/opt/task-protocoller/backend` unless the rsync excludes cover it.
+
+### 3. systemd
+
+Add the path to `ReadWritePaths=` in `task-protocoller.service` (see the unit above), then:
+
+```bash
+ssh share_web 'systemctl daemon-reload && systemctl restart task-protocoller'
+```
+
+The backup service needs its own `ReadWritePaths` for the backup mount (see "Backups").
+
+### 4. nginx
+
+Use the two extra `location` blocks from the site file above, then `nginx -t && systemctl reload nginx`.
+
+| Setting | Why |
+|---|---|
+| `location = /api/upload` | Separate from `/api/`, which caps bodies at 6m |
+| `client_max_body_size 4g` | Matches the default `UPLOAD_MAX_BYTES`. Raise both if you raise the limit. Without it nginx answers 413 before the app sees the request |
+| `proxy_request_buffering off` | Streams the body to the app instead of spooling GBs into nginx's temp dir |
+| `proxy_read_timeout` / `proxy_send_timeout 600s` | Large uploads over slow clinic links |
+| `proxy_buffering off` on `/api/uploads/` | Streams ZIPs, clips and bundles instead of buffering them on disk |
+
+**Keep `?ticket=` out of access logs.** Download tickets (5 min, download routes only) travel in the
+query string of `GET /uploads/:id/zip` and `/clips/...`. The default nginx `combined` format logs the
+full request line. A ticket can't act as a session or mint another one, but it can fetch whatever
+that admin may download until it expires, so don't keep it. Log the path without the query string:
+
+```nginx
+# in the http {} block (e.g. /etc/nginx/conf.d/log_noquery.conf)
+log_format noquery '$remote_addr - [$time_local] "$request_method $uri $server_protocol" '
+                   '$status $body_bytes_sent "$http_user_agent"';
+# in the server {} block
+access_log /var/log/nginx/access.log noquery;
+```
+
+If you keep the default format, treat the access log as sensitive and rotate it quickly. The bundle
+download is a POST form, so its ticket is in the body, not the URL. Any reverse proxy in front
+(`malenia`) has its own logs and the same risk.
+
+### 5. Database
+
+For an existing database, add the six new tables without touching data:
+
+```bash
+ssh share_web 'cd /opt/task-protocoller/backend && sudo -u taskprot npm run db:uploads'
+```
+
+It runs `scripts/schema/create_upload_tables.sql` (`CREATE TABLE IF NOT EXISTS`), so re-running is
+harmless. A fresh install gets the tables from `runInit.js`.
+
+### 6. Verify the upload path
+
+`B` and `TOKEN` as in [Verify](#verify). The site token is the seeded Paris test token. The fixture
+ZIP is built on your machine from the repo's test builder (it needs no database):
+
+```bash
+# Build a valid fixture ZIP locally; prints path, sessionId, sha256
+(cd backend && node -e '
+import("./test/fixtures/buildSessionZip.js").then(({buildSessionZip}) => {
+  const r = buildSessionZip({ variant: "valid" });
+  console.log(JSON.stringify({ path: r.path, sessionId: r.sessionId, sha256: r.sha256, installationId: r.installationId }));
+});' > /tmp/fixture.json)
+F=$(python3 -c 'import json;print(json.load(open("/tmp/fixture.json"))["path"])')
+SID=$(python3 -c 'import json;print(json.load(open("/tmp/fixture.json"))["sessionId"])')
+SHA=$(python3 -c 'import json;print(json.load(open("/tmp/fixture.json"))["sha256"])')
+IID=$(python3 -c 'import json;print(json.load(open("/tmp/fixture.json"))["installationId"])')
+
+# 1. Upload (text parts first, zip last). Expect 200 {"status":"ok",...}
+curl -s -w "\nupload %{http_code}\n" $B/api/upload \
+  -F installationId=$IID -F sessionId=$SID -F zipSha256=$SHA \
+  -F siteToken=paris000paris000paris000paris000 -F appVersion=0.0-verify -F "zip=@$F;type=application/zip"
+
+# 2. Same request again: still 200 (idempotent re-send). With different bytes it would be 409.
+
+# 3. As master: the session is listed and turns valid after a moment
+sleep 3
+curl -s -H "Authorization: Bearer $TOKEN" "$B/api/uploads?q=${SID:0:8}" \
+  | python3 -c 'import sys,json;d=json.load(sys.stdin);print(d["total"],[ (r["id"][:8],r["status"]) for r in d["rows"]])'
+
+# 4. Ticket and download. Expect 200 and the first bytes "PK"
+T=$(curl -s -X POST -H "Authorization: Bearer $TOKEN" $B/api/uploads/ticket | python3 -c 'import sys,json;print(json.load(sys.stdin)["ticket"])')
+curl -s -o /tmp/dl.zip -w "download %{http_code} %{size_download} bytes\n" "$B/api/uploads/$SID/zip?ticket=$T"
+head -c 2 /tmp/dl.zip; echo
+# A ticket must not work as a session: expect 401
+curl -s -o /dev/null -w "ticket as session %{http_code}\n" -H "Authorization: Bearer $T" $B/api/uploads
+```
+
+Expected: `upload 200`, `1 [('<id>', 'valid')]` (the fixture's project and protocol names don't
+match the seed data, so the row has no project, which is allowed), `download 200`, `PK`, `401`. Also
+check `ls /srv/task-protocoller/data/sessions/*/` on the container, the `device` row in the UI under
+`/admin/uploads/devices`, and that `grep ticket= /var/log/nginx/access.log` finds nothing if you
+applied the log format above. The original upload filename is never stored or logged. Leave the
+fixture session in place or ask before removing it (there is no delete feature; it is the only
+copy of its bytes).
+
+Then run `node src/runBackup.js all` as `taskprot` (or start the timer) once `BACKUP_TARGET` is
+mounted and check `backup_runs`.
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |
@@ -261,6 +425,14 @@ every client as the same one or can be bypassed with a spoofed
 | 429 on login or `/site-config` | Rate limit (10 logins or 20 failed site-config lookups per 15 min per client IP). `systemctl restart task-protocoller` clears it (the counters are in memory) |
 | Every request is 401 after upgrading | The token no longer matches the account's `token_version` (it goes up on every password change). Log in again |
 | `Unknown column 'token_version'` | Old schema: run `node src/applyPermissions.js` as shown above |
+| `Table 'upload_sessions' doesn't exist` or similar after deploying phase B | Run `npm run db:uploads` (see below) |
+| Upload from the desktop app fails with 413 from nginx (HTML body, not JSON) | `client_max_body_size` on `/api/upload` is missing or too small (the generic `/api/` has 6m). Add the `location = /api/upload` block, `nginx -t`, reload. Also check any reverse proxy in front (the `malenia` one) |
+| Upload hangs, then 502/504 | `proxy_request_buffering off`, `proxy_read_timeout`/`proxy_send_timeout 600s` missing, or the client link is too slow for 600 s |
+| Service exits at boot with `DATA_PATH is not set`, or `EACCES`/`EROFS` on `DATA_PATH` | Key missing from `.env`, directory not owned by `taskprot`, or the path is not in `ReadWritePaths`. Check `ls -ld $DATA_PATH` and `systemctl cat task-protocoller`. Unit exit 226/NAMESPACE means the `ReadWritePaths` directory doesn't exist yet |
+| Sessions stay `validating` | Validation runs in-process after the response. Look in `journalctl -u task-protocoller` for errors. A restart re-enqueues every `validating` row at boot. A session that never leaves the state usually means the validator crashed on that ZIP, or `DATA_PATH` was replaced and the file is missing |
+| Bundle download in the browser gives 403 "Not allowed by CORS" | The bundle is a native form POST with `Origin: null` and no `Authorization` header. Only `POST /uploads/download` is exempt. Check that the backend is current and that the proxy forwards the path unchanged (`/api/uploads/download` to `/uploads/download`). A `fetch` with a header gets the normal CORS check |
+| Download or clip play returns 401 | The ticket expired (5 min) or the account's `token_version` changed. Reload the page to get a new one |
+| Disk fills up under `DATA_PATH/tmp` | Interrupted uploads are normally deleted. Leftover `*.part` files from a crash are safe to remove while no upload is running |
 
 ## Rules for agents
 
