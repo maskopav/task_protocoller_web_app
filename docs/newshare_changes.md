@@ -7,7 +7,8 @@ access token and fetches a config JSON containing every protocol it inherits
 through its assigned projects. The participant layer is removed.
 
 Result-data ingestion (the desktop app uploading session ZIPs) is **phase B**
-— see the draft contract in [`desktop_upload_spec_draft.md`](./desktop_upload_spec_draft.md).
+— see [Phase B: upload management](#phase-b-upload-management) below and
+[`upload_management/specification.md`](./upload_management/specification.md).
 
 ## Database schema
 
@@ -319,3 +320,200 @@ emitted (it is handed out on paper); it stays in `tasks.json` for the web
 preview. `dynamic_monologue` was removed and `pictureDescription` (VOCAL /
 `PICTURE_DESCRIPTION`) added in its seed slot (id 10). The protocol editor's task modal
 previews both cards. Questionnaires, sdmt and d15colour are unchanged.
+
+---
+
+## Phase B: upload management
+
+The desktop app uploads one session ZIP per request. The server stores it, validates it,
+extracts the metadata the UI needs, and lets admins browse, review, play and download it.
+Normative documents: [`upload_management/specification.md`](./upload_management/specification.md)
+(what), [`implementation_plan.md`](./upload_management/implementation_plan.md) (order, progress)
+and [`guidelines.md`](./upload_management/guidelines.md) (how).
+
+### New tables
+
+All are created by `scripts/schema/create_upload_tables.sql` (`CREATE TABLE IF NOT EXISTS`).
+`runInit.js` runs it after `create_tables.sql`. `npm run db:uploads` runs it against an existing
+database without data loss. `drop_tables.sql` drops them.
+
+```
+devices           id, installation_id (UNIQUE), site_id (NULL = unassigned), label, app_version,
+                  last_config_version/at, last_seen_at, local_pending, local_failed, created_at
+upload_sessions   id, session_id (CHAR 32, UNIQUE), device_id, site_id/project_id/protocol_id (NULL ok),
+                  protocol_name, protocol_project, config_version, started/ended/processed/received_at,
+                  duration_s, bytes, zip_sha256, storage_path,
+                  status (validating|valid|invalid), invalid_reason, checks (JSON),
+                  qc (unreviewed|ok|review|excluded), flags (JSON), task/clip counters,
+                  patient_code, visit_number, participant_fields (JSON, personal data),
+                  participant_edited_at, exam_summary (JSON), backed_up_at
+upload_attempts   id, session_id (no FK: rejected attempts have no row), installation_id, at,
+                  http_code, outcome, bytes, sha_declared, sha_computed, device_reported
+session_comments  id, upload_session_id (CASCADE), user_id, text, is_system, created_at
+audit_log         id, user_id, action (reveal|download|bundle|participant_edit|qc_change),
+                  upload_session_id, details (JSON), created_at
+backup_runs       id, kind (db|files), started/finished_at, status, target, artifact, bytes, items, error
+```
+
+- Metadata lives in MariaDB, the ZIPs on the filesystem. Same pool, same scope rules, one backup.
+- `upload_sessions.checks` holds the server checks (`zip_checksum`, `archive`, `manifest`, `ids`,
+  `device`, `config_version`, `complete`). `flags` holds the 11 issue keys of the UI (`recovered`,
+  `interrupted`, `skipped`, `retakes`, `edited`, `outdated`, `late`, `duplicate`, `nonstdMic`,
+  `nonstdCam`, `device`). "Needs attention" is derived, never stored.
+- `upload_sessions.exam_summary` carries everything the detail page needs, so the page never opens
+  the ZIP for metadata.
+
+### Backend API
+
+#### Public (no JWT)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/upload` | `siteToken` part (site token) | `multipart/form-data`, text parts before `zip`. Mounted **before** the JSON parsers. 300 requests per 15 min per IP. Codes below |
+| POST | `/device-checkin` | `siteToken` in body | `{siteToken, installationId, appVersion, pending, failed}`. 200 `{status:"ok"}`, 400 `invalid_request`, 404 `invalid_token`. 120 requests per 15 min per IP |
+| GET | `/site-config/:token` | site token | **Additions:** optional `?installationId=&appVersion=` upserts the device (site, app version, config version, last seen). Not created for an invalid token. A device that moves to another site's token is reassigned |
+
+`POST /upload` parts: `installationId` (1-64 chars `[A-Za-z0-9-]`), `sessionId` (32 hex),
+`zipSha256` (64 hex), optional `siteToken`, optional `appVersion` (up to 32 chars), then `zip`
+(up to `UPLOAD_MAX_BYTES`). Unknown, duplicated or missing parts give 400.
+
+| Code | `error` | Meaning |
+|---|---|---|
+| 200 | | Accepted, or re-sent with the same hash (original receipt, `duplicate` flag added) |
+| 400 | `bad_request` / `checksum_mismatch` / `too_large` | Bad request or transfer. The temp file is deleted |
+| 404 | `device_not_registered` | Stored in **quarantine** (no site). A master must assign the device |
+| 409 | `session_exists` | Same `sessionId`, different bytes |
+| 429 | | Rate limit |
+| 500 | `internal` | Anything else |
+
+The 200 body is `{status:"ok", sessionId, bytes, sha256, receivedAt}`. Validation runs after the
+response, in a serial in-process queue. Rows still `validating` are re-enqueued at boot.
+
+#### Admin (`Authorization: Bearer <JWT>`)
+
+"See" and "edit" are defined under [Permissions](#permissions-phase-b).
+
+| Method | Path | Rights | Purpose |
+|---|---|---|---|
+| GET | `/uploads` | see | List with filters, sort, paging (`pageSize` 10/25/50/100). Returns `rows`, `total`, `kpis`, `facets` |
+| GET | `/uploads/export.csv` | see | Same filters, no paging, no masked fields, UTF-8 BOM, formula-injection escaping |
+| GET | `/uploads/summary` | see | `?siteId=`/`?projectId=`/none, `?days=7..90`. Counts, last upload, per-day, by protocol, by site |
+| GET | `/uploads/:sessionId` | see | Detail: checks, tasks, timeline, masked participant, comments, `canEdit`, prev/next (`?ctx=`) |
+| GET | `/uploads/:sessionId/attempts` | see | Upload attempts, newest first |
+| GET | `/uploads/:sessionId/comments` | see | |
+| POST | `/uploads/:sessionId/comments` | edit | `{text}`, up to 2000 chars. 201 |
+| PUT | `/uploads/:sessionId/qc` | edit | `{qc}`. System comment plus audit `qc_change` |
+| POST | `/uploads/:sessionId/reveal` | edit | Full participant fields. Audit `reveal` |
+| PATCH | `/uploads/:sessionId/participant` | edit | `{fields}`. Audit `participant_edit`, system comment (field names only) |
+| POST | `/uploads/ticket` | any admin session | `{ticket}`: 5 min JWT for downloads only |
+| GET | `/uploads/:sessionId/zip` | edit, session or ticket | 409 `validating` until validated. Audit `download` |
+| GET | `/uploads/:sessionId/clips/*path` | edit, session or ticket | Streams a clip from the ZIP, supports `Range`. No audit |
+| POST | `/uploads/download` | edit on every id, session or ticket | Bundle (zip64, store). Audit `bundle` |
+| GET | `/devices` | see | Scoped, with derived health and backlog (hidden without a site grant) |
+| PUT | `/devices/:id` | master | `{label}` |
+| PUT | `/devices/:id/site` | master | `{siteId}`. Assigns the device and moves its quarantined sessions, which are re-validated |
+
+Mount order in `server.js`: `/uploads/ticket`, then `/uploads` with `requireAuthOrTicket` (the
+download router), then `/uploads` with `requireAuth` (list and review).
+
+Downloads:
+- **Single:** `Content-Disposition: attachment; filename="<sessionId>.zip"`. The client's original
+  filename is never stored. If participant fields were edited, the response is a stored ZIP with
+  `<sessionId>.zip` plus `<sessionId>.participant.json`. The archive on disk is never rewritten.
+- **Clips:** only entries named in `exam_summary` (under `clips/`). Any other path is 404.
+- **Bundle:** at most 200 sessions and 5 GB summed (413 `too_large`). An id that is out of edit
+  scope or unknown gives 404, and any `validating` session gives 409. It contains each
+  `<sessionId>.zip`, the participant sidecars and `sessions.csv`, and is named
+  `uploads-<UTC stamp>.zip`.
+
+Errors are `{error: "<code>"}`. Response shapes are in the specification's appendix.
+
+### Permissions (phase B)
+
+| Rule | Behaviour |
+|---|---|
+| Visibility | Master sees all. Others: site in `user_sites`, or project in `user_projects` and the site allowed by `user_project_sites` (else all the project's clinics). A session with no matched project is visible through a site grant only |
+| See | List, KPIs, facets, detail (masked), attempts, comments, device list |
+| Edit | Master, a site grant, or `can_edit` on the project grant that makes the session visible. Covers ZIP, clips, bundle, reveal, participant edit, qc, comments |
+| Out of scope | **404**, exactly like a nonexistent session. Lists, KPIs and facets are computed after scoping |
+| Visible but read-only | **403** `forbidden` on write endpoints |
+| Master only | Quarantined sessions, device rename, device site assignment |
+| Masking | `GET /uploads/:id` returns only `patient_code` and `visit_number`. Other participant fields are `null` and named in `maskedKeys[]` |
+| Audit | `reveal`, `download`, `bundle`, `participant_edit` (old and new values, DB only), `qc_change`. Clip playback is not audited |
+| Logs | `logs/system_log.txt` never holds participant values, patient codes or upload filenames, only session ids and codes |
+
+Helpers: `canSeeSession`, `canEditSession` and `scopeWhereClause` in `src/utils/accessScope.js`.
+Loading a scoped session and writing audit rows is in `src/upload/sessionAccess.js`.
+
+### Storage layout
+
+```
+DATA_PATH/
+  tmp/<uuid>.part                       in-flight uploads, deleted on failure
+  sessions/<id[0:2]>/<sessionId>.zip    accepted archives, immutable, never renamed
+```
+
+`tmp/` and `sessions/` must be on one filesystem (the commit is an atomic rename). The server
+creates both at boot and refuses to start if `DATA_PATH` is unset or not writable. These ZIPs are
+the only copy until the backup has run (see `container_deployment.md`, "Backups").
+
+### Download tickets
+
+`<audio>`, `<video>` and native browser downloads cannot send an `Authorization` header.
+
+- `POST /uploads/ticket` (session token) returns a JWT with `purpose: "download"`, valid for 5 min.
+- The download routes accept it as `?ticket=` or as a form field `ticket`.
+- `requireAuth` rejects any token that has a purpose, so a leaked ticket can't act as a session or
+  mint another ticket. The ticket is still checked against the account (active, `token_version`)
+  and the session scope.
+- The bundle is a plain `<form method="post">` (`ticket`, `sessionIds` comma-joined), so the browser
+  streams it to disk. On an https page calling an http API that form sends `Origin: null`, so the
+  CORS check exempts exactly `POST /uploads/download` without an `Authorization` header. The ticket
+  authenticates it, and scripts can't read the response.
+- Tickets appear in URLs, so keep them out of access logs (see `container_deployment.md`).
+
+### Frontend
+
+| Route | Page | Notes |
+|---|---|---|
+| `/admin/uploads` | `UploadsPage` | KPIs, filters, sortable table, attention, CSV export, bundle selection |
+| `/admin/uploads/:sessionId` | `SessionDetailPage` | Checks, tasks and timeline, clip player, participant panel (reveal and edit), review and comments, attempts, prev/next |
+| `/admin/uploads/devices` | `DevicesPage` | Health, backlog, rename and site assignment (master) |
+| `/admin/uploads/downloads` | `DownloadsPage` | Bundle download form |
+
+All four are behind `ProtectedRoute`. Upload cards (latest 8, per-day chart, attention) also appear
+on the admin dashboard, the site page and the project page (`components/Uploads/cards`). Code is in
+`frontend/src/components/Uploads`, API modules `src/api/uploads.js` and `devices.js`, i18n keys
+`uploads.*`, `devices.*` and `downloads.*`. The pages follow `docs/upload_management/ui_design/`.
+
+### Backup
+
+`node src/runBackup.js [db|files|all]` (`npm run backup`) makes a nightly DB dump and an
+incremental copy of the session ZIPs to a pluggable `BackupTarget` (the `dir:` target ships).
+Details are in `container_deployment.md`, "Backups".
+
+### Tests
+
+- **Backend unit** (`cd backend && npm test`): ingest (`routes/upload.test.js`), validator and
+  extractor (table-driven per fixture variant), ZIP reader, validation queue, `fileStore`, CSV,
+  devices, downloads, read and review API, backup targets (shared contract suite), dumper and
+  service. Fixtures come from `test/fixtures/buildSessionZip.js` (variants `valid`, `noMaster`,
+  `edited`, `manifestHashMismatch`, `missingEntry`, `unlistedEntry`, `idMismatch`, `badJson`,
+  `zipSlipName`, `recovered+interrupted`, `nonstdMic`, `oldConfig`).
+- **Integration against MariaDB** (`test/integration/*.test.js`): `sessionScope` (four personas,
+  quarantine) and `uploadList`. They use `test/helpers/testDb.js`, read `.env.test`, roll back
+  every test, and skip with a message when the DB is unreachable.
+- **E2E** (`cd frontend && npm run test:e2e`): `uploads-ingest`, `uploads-scoping`,
+  `uploads-detail`, `uploads-downloads` and `uploads-z-devices`. Sessions are created through the
+  real `POST /upload` path. They cover list scoping per persona, masks, reveal and edit (audit),
+  qc and comments, the single download name, bundle selection rules, the devices page, and an upload
+  that appears as `valid`. `.env.test` also needs `DATA_PATH` (a git-ignored folder under
+  `backend/.data/`).
+
+### Desktop app follow-ups (NewShare repo)
+
+1. Send `siteToken` and `appVersion` as upload parts.
+2. Send `installationId` and `appVersion` as query parameters on `GET /site-config/:token`.
+3. Call `POST /device-checkin` after each config fetch and after each upload batch.
+4. Treat `409 session_exists` as terminal (already on the server with different contents), not as
+   something to retry. Today it reads as a retryable `ServerError`.
