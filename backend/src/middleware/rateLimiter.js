@@ -63,6 +63,21 @@ export function createSiteConfigLimiter(overrides = {}) {
   });
 }
 
+// POST /upload — public, authenticated only by the site token. A whole clinic
+// often sits behind one NAT address and a device drains its backlog in a
+// burst after being offline, so the cap is generous. It still stops a client
+// from looping on the endpoint and filling the disk.
+export function createUploadLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+    ...overrides,
+  });
+}
+
 export const loginLimiter = createLoginLimiter();
 export const authLimiter = createAuthLimiter();
 export const logLimiter = createLogLimiter();
