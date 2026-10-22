@@ -248,5 +248,69 @@
       "invalid_fields": "The fields could not be read.",
       "unknown_field": "Unknown field."
     }
+  },
+  "cards": {
+    "unavailable": "Upload data is unavailable right now.",
+    "noUploads": "No uploads yet",
+    "allClear": "All clear",
+    "needAttention_one": "{{count}} needs attention",
+    "needAttention_other": "{{count}} need attention",
+    "thisWeek": "{{count}} this week",
+    "lastUpload": "Last upload {{when}}",
+    "monitoring": "Monitoring",
+    "byProtocol": "By protocol",
+    "bySite": "By site",
+    "uploads": {
+      "title": "Uploads",
+      "desc_one": "Sessions uploaded from your {{count}} site: arrival checks, review and downloads.",
+      "desc_other": "Sessions uploaded from your {{count}} sites: arrival checks, review and downloads."
+    },
+    "devices": {
+      "title": "Devices",
+      "desc": "Clinic computers running the desktop app and sessions still waiting on them.",
+      "waiting": "{{count}} waiting",
+      "silent": "{{count}} silent",
+      "none": "No devices yet",
+      "all": "All devices →",
+      "seen": "seen {{when}}"
+    },
+    "health": {
+      "ok": "OK",
+      "warn": "Backlog",
+      "bad": "Silent",
+      "off": "No uploads"
+    },
+    "downloads": {
+      "title": "Downloads",
+      "desc": "Download the data from multiple sessions."
+    },
+    "stats": {
+      "uploads30": "Uploads · 30 days",
+      "invalid": "Invalid",
+      "needsReview": "Needs review"
+    },
+    "latest": {
+      "viewAll": "View all {{count}} →",
+      "viewAllNoCount": "View all →",
+      "goToDownloads": "Go to Downloads",
+      "empty": "No uploads yet.",
+      "project": "Project",
+      "site": "Site",
+      "device": "Device"
+    },
+    "perDay": {
+      "title": "Uploads per day",
+      "daysShown": "Days shown",
+      "lastDays": "last {{count}} days",
+      "aria": "Uploads per day, last {{count}} days",
+      "bar_one": "{{date}}: {{count}} upload",
+      "bar_other": "{{date}}: {{count}} uploads",
+      "today": "today"
+    },
+    "sites": {
+      "sessions": "Sessions",
+      "lastUpload": "Last upload",
+      "attention": "Attention"
+    }
   }
 }

@@ -248,5 +248,68 @@
       "invalid_fields": "Die Felder konnten nicht gelesen werden.",
       "unknown_field": "Unbekanntes Feld."
     }
+  },
+  "cards": {
+    "unavailable": "Die Upload-Daten sind derzeit nicht verfügbar.",
+    "noUploads": "Noch keine Uploads",
+    "allClear": "Alles in Ordnung",
+    "needAttention_one": "{{count}} braucht Aufmerksamkeit",
+    "needAttention_other": "{{count}} brauchen Aufmerksamkeit",
+    "thisWeek": "{{count}} diese Woche",
+    "lastUpload": "Letzter Upload {{when}}",
+    "monitoring": "Überwachung",
+    "byProtocol": "Nach Protokoll",
+    "bySite": "Nach Standort",
+    "uploads": {
+      "title": "Uploads",
+      "desc": "Sitzungen, die von Ihren {{count}} Standorten hochgeladen wurden: Eingangsprüfung, Review und Downloads."
+    },
+    "devices": {
+      "title": "Geräte",
+      "desc": "Klinikrechner mit der Desktop-App und die Sitzungen, die noch auf sie warten.",
+      "waiting": "{{count}} wartend",
+      "silent": "{{count}} stumm",
+      "none": "Noch keine Geräte",
+      "all": "Alle Geräte →",
+      "seen": "zuletzt gesehen {{when}}"
+    },
+    "health": {
+      "ok": "OK",
+      "warn": "Rückstand",
+      "bad": "Stumm",
+      "off": "Keine Uploads"
+    },
+    "downloads": {
+      "title": "Downloads",
+      "desc": "Daten mehrerer Sitzungen herunterladen."
+    },
+    "stats": {
+      "uploads30": "Uploads · 30 Tage",
+      "invalid": "Ungültig",
+      "needsReview": "Zu prüfen"
+    },
+    "latest": {
+      "viewAll": "Alle {{count}} anzeigen →",
+      "viewAllNoCount": "Alle anzeigen →",
+      "goToDownloads": "Zu den Downloads",
+      "empty": "Noch keine Uploads.",
+      "project": "Projekt",
+      "site": "Standort",
+      "device": "Gerät"
+    },
+    "perDay": {
+      "title": "Uploads pro Tag",
+      "daysShown": "Angezeigte Tage",
+      "lastDays": "letzte {{count}} Tage",
+      "aria": "Uploads pro Tag, letzte {{count}} Tage",
+      "bar_one": "{{date}}: {{count}} Upload",
+      "bar_other": "{{date}}: {{count}} Uploads",
+      "today": "heute"
+    },
+    "sites": {
+      "sessions": "Sitzungen",
+      "lastUpload": "Letzter Upload",
+      "attention": "Aufmerksamkeit"
+    }
   }
 }

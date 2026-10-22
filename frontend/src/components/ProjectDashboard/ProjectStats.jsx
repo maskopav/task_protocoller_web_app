@@ -3,7 +3,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import "./ProjectDashboard.css";
 
-export default function ProjectStats({ stats }) {
+// `extra`: optional stat items appended to the row (the upload numbers).
+export default function ProjectStats({ stats, extra = null }) {
   const { t } = useTranslation(["admin"]);
 
   return (
@@ -20,6 +21,7 @@ export default function ProjectStats({ stats }) {
             <span className="stat-value">{stats?.count_sites || 0}</span>
             <span className="stat-label">{t("projectDashboard.stats.sites")}</span>
           </div>
+          {extra}
         </div>
       </div>
     </div>

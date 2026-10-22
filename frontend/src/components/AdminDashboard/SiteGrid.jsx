@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import StatusBadge from "../ProjectDashboard/StatusBadge";
+import UploadLine from "../Uploads/cards/UploadLine";
 import "./AdminDashboard.css";
 
 export default function SiteGrid({ sites, onSiteClick }) {
@@ -23,6 +24,7 @@ export default function SiteGrid({ sites, onSiteClick }) {
             <div className="project-card-body">
               <p>{site.project_count} {t("siteDashboard.stats.projects")}</p>
             </div>
+            <UploadLine siteId={site.id} />
           </div>
         ))}
       </div>

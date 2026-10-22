@@ -9,6 +9,10 @@ import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import SiteModal from "../components/SiteManagement/SiteModal";
 import SiteProjectsModal from "../components/SiteManagement/SiteProjectsModal";
 
+import UploadStats from "../components/Uploads/cards/UploadStats";
+import UploadsSection from "../components/Uploads/cards/UploadsSection";
+import { useUploadSummary } from "../components/Uploads/cards/hooks";
+
 import "./Pages.css";
 import "../components/ProjectDashboard/ProjectDashboard.css";
 
@@ -37,6 +41,9 @@ export default function SiteDashboardPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const [uploadDays, setUploadDays] = useState(30);
+  const uploadSummary = useUploadSummary({ siteId }, uploadDays);
 
   const isMaster = user?.role_id === 1;
   const isReadOnly = site?.is_active === 0;
@@ -114,9 +121,12 @@ export default function SiteDashboardPage() {
               <span className="stat-value">{site?.protocols?.length || 0}</span>
               <span className="stat-label">{t("siteDashboard.stats.protocols")}</span>
             </div>
+            <UploadStats summary={uploadSummary} />
           </div>
         </div>
       </div>
+
+      <UploadsSection kind="site" siteId={siteId} summary={uploadSummary} days={uploadDays} onDaysChange={setUploadDays} />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 className="section-heading">{t("management.siteManagement.assignedProjects")}</h2>
