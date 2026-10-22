@@ -203,7 +203,8 @@ DoD: all of the above, existing tests green, committed.
   https dev page to the http API. Fixed after merge: .gitignore 'uploads' hid components/Uploads
   on Windows. The native bundle POST is exempt from the CORS origin check (Origin: null on
   https→http, ticket-authenticated, response unreadable by scripts).)
-- [ ] I dashboard cards · [ ] J e2e
+- [x] I dashboard cards · [x] J e2e (combined: backend 612, frontend 130, Playwright 80/80 incl.
+  22 new upload scenarios created through the real POST /upload path; no app bugs found)
 - [ ] K review fixes · [ ] L docs
 - [ ] End-to-end on the test container (spec §11, plan verification)
 
