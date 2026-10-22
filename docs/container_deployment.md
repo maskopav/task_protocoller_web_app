@@ -60,7 +60,8 @@ Run from the repo root on your machine. This keeps the database and `.env`.
 (cd frontend && npm ci && npm run build)
 
 # 3. Upload. Keep these excludes: they protect the server's .env, logs and
-#    installed node_modules.
+#    installed node_modules. (No rsync, e.g. Git Bash on Windows? See the tar
+#    variant below.)
 S="ssh -o BatchMode=yes -o ServerAliveInterval=10"
 rsync -az --delete -e "$S" --exclude node_modules --exclude logs --exclude '.env*' --exclude uploads --exclude .data \
   backend/ share_web:/opt/task-protocoller/backend/
@@ -80,6 +81,16 @@ If the change adds columns or tables, apply the non-destructive upgrade
 ```bash
 ssh share_web 'cd /opt/task-protocoller/backend && sudo -u taskprot node src/applyPermissions.js'
 ```
+
+Without rsync, ship exactly the git-tracked backend files with tar. Build the archive **first**
+and only clear the server side once it exists. `--force-local` stops GNU tar from reading `C:` in a
+Windows path as a remote host:
+
+```bash
+(cd backend && git ls-files | tar --force-local -czf /tmp/backend.tgz -T -) && (cd frontend/dist && tar --force-local -czf /tmp/frontend.tgz .) && (cd frontend/src/i18n && tar --force-local -czf /tmp/locales.tgz .) && ssh share_web 'cd /opt/task-protocoller/backend && find . -mindepth 1 -maxdepth 1 ! -name node_modules ! -name logs ! -name ".env*" -exec rm -rf {} +' && ssh share_web 'tar xzf - -C /opt/task-protocoller/backend' < /tmp/backend.tgz && ssh share_web 'rm -rf /opt/task-protocoller/frontend/* && tar xzf - -C /opt/task-protocoller/frontend' < /tmp/frontend.tgz && ssh share_web 'rm -rf /opt/task-protocoller/locales/* && tar xzf - -C /opt/task-protocoller/locales' < /tmp/locales.tgz
+```
+
+Then continue with step 4.
 
 Phase B (upload management) adds more steps on first deploy: see
 [Phase B: upload management](#phase-b-upload-management). Then run the checks under
@@ -227,6 +238,7 @@ server {
     listen [::]:80 default_server;
     server_name _;
     server_tokens off;
+    access_log /var/log/nginx/access.log noquery;   # Phase B, see "Keep ?ticket= out of access logs"
 
     root /opt/task-protocoller/frontend;
     index index.html;
@@ -257,9 +269,11 @@ server {
         proxy_send_timeout 600s;
     }
 
-    # Phase B: ZIP, clip and bundle downloads stream large bodies.
-    location /api/uploads/ {
-        proxy_pass http://127.0.0.1:3000/uploads/;
+    # Phase B: ZIP, clip and bundle downloads stream large bodies. No trailing
+    # slash: with "/api/uploads/" nginx answers the list call GET /api/uploads?…
+    # with a 301 redirect to /api/uploads/.
+    location /api/uploads {
+        proxy_pass http://127.0.0.1:3000/uploads;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
@@ -338,7 +352,7 @@ Use the two extra `location` blocks from the site file above, then `nginx -t && 
 | `client_max_body_size 4g` | Matches the default `UPLOAD_MAX_BYTES`. Raise both if you raise the limit. Without it nginx answers 413 before the app sees the request |
 | `proxy_request_buffering off` | Streams the body to the app instead of spooling GBs into nginx's temp dir |
 | `proxy_read_timeout` / `proxy_send_timeout 600s` | Large uploads over slow clinic links |
-| `proxy_buffering off` on `/api/uploads/` | Streams ZIPs, clips and bundles instead of buffering them on disk |
+| `proxy_buffering off` on `/api/uploads` (no trailing slash, or the list call gets a 301) | Streams ZIPs, clips and bundles instead of buffering them on disk |
 
 **Keep `?ticket=` out of access logs.** Download tickets (5 min, download routes only) travel in the
 query string of `GET /uploads/:id/zip` and `/clips/...`. The default nginx `combined` format logs the

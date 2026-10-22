@@ -206,7 +206,11 @@ DoD: all of the above, existing tests green, committed.
 - [x] I dashboard cards · [x] J e2e (combined: backend 612, frontend 130, Playwright 80/80 incl.
   22 new upload scenarios created through the real POST /upload path; no app bugs found)
 - [x] K review fixes (13 findings fixed: 1 critical, 4 high, 4 medium, 4 low; backend 660, e2e 80) · [x] L docs
-- [ ] End-to-end on the test container (spec §11, plan verification)
+- [x] End-to-end on the test container (2026-10-22): deployed phase B to share_web (tables added
+  non-destructively, DATA_PATH /srv/task-protocoller/data, nginx upload/download blocks + noquery
+  log). Verified through nginx: upload, idempotent re-send, invalid manifest, quarantine 404,
+  byte-identical download, clip Range 206, form-POST bundle, ticket refused as session, no
+  ticket or patient code in logs. Fixed in the doc: the /api/uploads/ trailing-slash 301.
 
 ## 5. Verification (end-to-end)
 
