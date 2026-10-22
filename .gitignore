@@ -10,7 +10,7 @@ CLAUDE.md
 
 node_modules
 dist
-uploads
+/backend/uploads/
 locales
 dist-ssr
 *.local
