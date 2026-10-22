@@ -170,6 +170,20 @@ The validator reads the ZIP with `yauzl` and does not extract it to disk. Each c
 | `config_version` ("Config version") | `manifest.configVersion` = `examination.configVersion`. If both are older than the site's current config version, the check is a `warn` and the session gets the `outdated` flag. | mismatch → `invalid`, reason `malformed` |
 | `complete` ("Session complete") | `endedAt` is present, and no expected task instance is missing. | `warn` only |
 
+Limits that keep a hostile archive cheap (all fail `archive` without inflating the offending data):
+- **Overlapping entries:** two central-directory entries sharing or overlapping one local header,
+  which is the classic zip bomb.
+- **Total declared uncompressed size:** more than min(20 × ZIP size, 8 GiB).
+- **JSON size:** a JSON file over 4 MiB, or more than 16 MiB of JSON in total.
+- **`nrepetition`:** clamped to 1..100, and the expected task list capped at 2000 instances. The
+  `complete` check warns when a cap applied.
+
+The extractor tolerates malformed-but-parseable content. It skips non-object list elements and
+truncates strings to their column lengths. If extraction still fails, the row becomes
+`invalid`/`malformed` with the `archive` detail "unprocessable content". Only a missing or
+unreadable stored file leaves a row `validating` for a retry. Re-validation never overwrites
+participant fields a user has edited.
+
 A session is `valid` when no check is `bad`. The first failing check, in table order,
 determines `invalid_reason`.
 

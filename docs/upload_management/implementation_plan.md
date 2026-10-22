@@ -205,7 +205,7 @@ DoD: all of the above, existing tests green, committed.
   https→http, ticket-authenticated, response unreadable by scripts).)
 - [x] I dashboard cards · [x] J e2e (combined: backend 612, frontend 130, Playwright 80/80 incl.
   22 new upload scenarios created through the real POST /upload path; no app bugs found)
-- [ ] K review fixes · [x] L docs
+- [x] K review fixes (13 findings fixed: 1 critical, 4 high, 4 medium, 4 low; backend 660, e2e 80) · [x] L docs
 - [ ] End-to-end on the test container (spec §11, plan verification)
 
 ## 5. Verification (end-to-end)
