@@ -86,4 +86,28 @@ describe("buildSessionZip", () => {
     const slip = await readAll(build("zipSlipName").path);
     expect(slip.has("../evil.txt")).toBe(true);
   });
+
+  it("highRatio has an entry compressed more than 200:1", async () => {
+    const zip = await yauzl.openPromise(build("highRatio").path, { lazyEntries: true, decodeStrings: false });
+    let worst = 0;
+    for await (const e of zip.eachEntry()) worst = Math.max(worst, e.uncompressedSize / Math.max(e.compressedSize, 1));
+    zip.close();
+    expect(worst).toBeGreaterThan(200);
+  });
+
+  it("valid stays below the ratio guard (WAV fixtures are noise, not silence)", async () => {
+    const zip = await yauzl.openPromise(build("valid").path, { lazyEntries: true, decodeStrings: false });
+    for await (const e of zip.eachEntry()) {
+      expect(e.compressedSize === 0 ? e.uncompressedSize : e.uncompressedSize / e.compressedSize).toBeLessThanOrEqual(200);
+    }
+    zip.close();
+  });
+
+  it("tooManyEntries has more than 10 000 entries and directoryEntry has a directory", async () => {
+    const many = await yauzl.openPromise(build("tooManyEntries").path, { lazyEntries: true, decodeStrings: false });
+    expect(many.entryCount).toBeGreaterThan(10_000);
+    many.close();
+    const dir = await readAll(build("directoryEntry").path);
+    expect(dir.has("clips/")).toBe(true);
+  });
 });
