@@ -273,3 +273,95 @@ every client as the same one or can be bypassed with a spoofed
 - Before this app was deployed, the container ran a Python mock server
   (`share-mock-server.service`). It was removed on 2026-09-27; its backup is
   `/root/share-mock-server-backup-20260927.tgz`. Don't delete the backup without asking.
+
+## Backups
+
+`node src/runBackup.js [db|files|all]` (also `npm run backup`) writes two kinds of backup
+to a pluggable target and records every run in the `backup_runs` table:
+
+- **db**: `mariadb-dump --single-transaction --routines --triggers`, gzip'd to
+  `db/<UTC yyyymmdd-HHMMss>.sql.gz`. The newest `BACKUP_DB_KEEP` dumps are kept, older ones removed.
+- **files**: every session ZIP not yet backed up (`upload_sessions.backed_up_at IS NULL`, not
+  `validating`) is copied to `sessions/<id[0:2]>/<id>.zip`, its size is verified, then
+  `backed_up_at` is set. ZIPs are immutable, so this is incremental and never pruned. One
+  failing session doesn't stop the others; the run then ends `failed`.
+
+Exit codes: 0 ok, 1 a run failed, 2 bad usage or missing/unknown `BACKUP_TARGET`.
+
+### `.env` keys
+
+```
+BACKUP_TARGET=dir:/mnt/backup/task-protocoller   # required; scheme:location
+BACKUP_DB_KEEP=14                                # optional, default 14
+BACKUP_DUMP_CMD=                                 # optional, default "mariadb-dump"
+```
+
+The DB credentials are the app's `DB_*` keys. They go to `mariadb-dump` through a temporary
+`--defaults-extra-file` (mode 600, deleted afterwards), never argv. If `BACKUP_DUMP_CMD` has
+prefix arguments (for example `docker exec -i tp-mariadb mariadb-dump`), the file would not exist
+inside the container, so the same text is sent on stdin as `--defaults-extra-file=/dev/stdin`.
+The wrapper must forward stdin (`docker exec -i`, `ssh host ...`).
+
+### systemd
+
+`/etc/systemd/system/task-protocoller-backup.service`:
+
+```ini
+[Unit]
+Description=TaskProtocoller backup (DB dump + session ZIPs)
+After=network-online.target mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=taskprot
+Group=taskprot
+WorkingDirectory=/opt/task-protocoller/backend
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node src/runBackup.js all
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/mnt/backup/task-protocoller
+```
+
+`/etc/systemd/system/task-protocoller-backup.timer`:
+
+```ini
+[Unit]
+Description=Nightly TaskProtocoller backup
+
+[Timer]
+OnCalendar=*-*-* 02:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Enable with `systemctl daemon-reload && systemctl enable --now task-protocoller-backup.timer`.
+Check with `systemctl list-timers` and `journalctl -u task-protocoller-backup -n 30 --no-pager`.
+`PrivateTmp=true` is fine: the option file is created in the private `/tmp`. The service only
+reads `DATA_PATH`, so it needs no write access there.
+
+### Restore a dump
+
+```bash
+gunzip -c /mnt/backup/task-protocoller/db/20261022-023000.sql.gz | mariadb task_protocoller
+```
+
+Restore into an empty database (see "Reset the database"); the dump contains `CREATE TABLE`
+statements. Session ZIPs are copied back from `sessions/` into `DATA_PATH/sessions/`, keeping the
+same relative paths.
+
+### Add a new target type (SFTP, S3, WebDAV)
+
+1. Write a class implementing `BackupTarget` (`put`, `list`, `remove`, `describe`; see
+   `backend/src/backup/BackupTarget.js`). `put` must be atomic and `describe` must not contain secrets.
+2. Run it through the shared suite: in a test file call
+   `runBackupTargetContract("MyTarget", async () => ({ target, cleanup }))` from
+   `backup/backupTargetContract.js`. It must pass.
+3. Register the scheme in `backend/src/backup/targetFactory.js` and use `BACKUP_TARGET=<scheme>:<location>`.
+
+Nothing else changes.
