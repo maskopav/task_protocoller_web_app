@@ -125,7 +125,7 @@ Responses at a glance:
 | 400 | `bad_request` / `checksum_mismatch` / `too_large` | malformed request or transfer | `ServerError` → retry later |
 | 404 | `device_not_registered` | quarantined (stored, master must assign) | `Rejected` |
 | 409 | `session_exists` | same id, different bytes | currently `ServerError`; app follow-up §12 |
-| 429 | — | rate limit | `ServerError` |
+| 429 | `error` (message) | rate limit | `ServerError` |
 | 500 | `internal` | anything else (temporary file removed) | `ServerError` |
 
 ### 3.3 Attempts
@@ -353,9 +353,9 @@ A session whose `project_id` is NULL (unmatched project) is visible through a si
 | GET | `/uploads/:sessionId/clips/*path` | edit | §9 |
 | POST | `/uploads/download` | edit (every id) | §9 |
 | GET | `/devices` | see | scoped, health, backlog rule (§6) |
-| PUT | `/devices/:id` | master | `{label}` |
+| PUT | `/devices/:id` | master (others: 403 `forbidden`) | `{label}` |
 | PUT | `/devices/:id/site` | master | `{siteId}` |
-| GET | `/backups/status` | master | the latest `backup_runs` per kind (for the master dashboard tile; optional UI) |
+| GET | `/backups/status` | master | **Not implemented in phase B.** It would return the latest `backup_runs` per kind for a master dashboard tile. For now, query `backup_runs` directly. |
 
 Sort keys: `receivedAt, site, patient, protocol, endedAt, durationS, bytes, status, qc`. Two keys
 use a semantic order instead of alphabetical:
@@ -366,7 +366,7 @@ Dates in responses are ISO-8601 UTC.
 
 ## 9. Downloads
 
-- **Single session.** `GET /uploads/:id/zip` returns `409` while the session is `validating`.
+- **Single session.** `GET /uploads/:id/zip` returns `409 {error:"validating"}` while the session is `validating` (the bundle does the same).
   It streams `sessions/…/<id>.zip` with `Content-Disposition: attachment;
   filename="<sessionId>.zip"`.
   - If `participant_edited_at` is set, it instead streams a *stored* (uncompressed) ZIP
@@ -391,6 +391,7 @@ Dates in responses are ISO-8601 UTC.
     - `<sessionId>.participant.json` for each edited session
     - `sessions.csv`, with columns sessionId, patient_code, visit_number, protocol, project,
       site, recordedAt, receivedAt, status, qc, flags (`;`-joined)
+  - The file is named `uploads-<UTC yyyymmdd-HHMM>.zip`.
   - It writes one `bundle` audit entry listing the ids.
 - **CSV export.** This is the list export (§8) and is separate from the bundle.
 
