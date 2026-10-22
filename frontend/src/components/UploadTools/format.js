@@ -5,12 +5,8 @@ export const fmtDT = (iso, lang) => {
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleString(lang, { dateStyle: "medium", timeStyle: "short" });
 };
 
-export const fmtBytes = (b) => {
-  b = Number(b) || 0;
-  if (b > 1e9) return `${(b / 1e9).toFixed(2)} GB`;
-  if (b > 1e6) return `${(b / 1e6).toFixed(1)} MB`;
-  return `${Math.round(b / 1e3)} kB`;
-};
+// One byte formatter for all upload pages.
+export { fmtBytes } from "../Uploads/format";
 
 /** Relative time through i18n keys uploadTools:rel.* */
 export const rel = (iso, t, now = Date.now()) => {

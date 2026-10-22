@@ -9,7 +9,7 @@ import { fetchSites } from "../api/sites";
 import { fetchProjectsList } from "../api/projects";
 import { fmtBytes, fmtDT } from "../components/UploadTools/format";
 import { IssueTags, QcPill, StatusPill } from "../components/UploadTools/Pills";
-import { ISSUE_CLS, QC_META } from "../components/UploadTools/enums";
+import { ISSUE_CLS, QC_META } from "../components/Uploads/format";
 import {
   blockedReason, checkBundleLimits, filterRows, isBulkSelectable, sessionEnd,
   MAX_BUNDLE_BYTES, MAX_BUNDLE_SESSIONS,

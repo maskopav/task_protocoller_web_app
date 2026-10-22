@@ -2,7 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-import { ISSUE_CLS, QC_META, STATUS_CLS } from "./enums";
+import { ISSUE_CLS, QC_META, STATUS_CLS } from "../Uploads/format";
 
 export function StatusPill({ status, invalidReason }) {
   const { t } = useTranslation("uploadTools");
