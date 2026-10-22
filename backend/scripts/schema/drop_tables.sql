@@ -1,5 +1,13 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- Phase B upload management (create_upload_tables.sql)
+DROP TABLE IF EXISTS `audit_log`;
+DROP TABLE IF EXISTS `session_comments`;
+DROP TABLE IF EXISTS `upload_attempts`;
+DROP TABLE IF EXISTS `upload_sessions`;
+DROP TABLE IF EXISTS `devices`;
+DROP TABLE IF EXISTS `backup_runs`;
+
 DROP TABLE IF EXISTS `user_project_sites`;
 DROP TABLE IF EXISTS `user_sites`;
 DROP TABLE IF EXISTS `site_projects`;

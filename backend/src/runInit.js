@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 // DDL scripts — MySQL cannot roll these back; compensation via teardown below
 const teardownPath = path.join(__dirname, '../scripts/schema/drop_tables.sql');
 const schemaPath = path.join(__dirname, '../scripts/schema/create_tables.sql');
+const uploadTablesPath = path.join(__dirname, '../scripts/schema/create_upload_tables.sql');
 const viewsPath = path.join(__dirname, '../scripts/schema/create_views.sql');
 
 // DML scripts — genuinely transactional; auto-rolled back on failure
@@ -31,6 +32,7 @@ async function init() {
     // Step 1 — DDL: Create tables (auto-committed by MySQL; no real rollback)
     console.log('Creating tables...');
     await runSqlFile(pool, schemaPath);
+    await runSqlFile(pool, uploadTablesPath);
     schemaCreated = true; // only set after success; gates teardown below
 
     // Step 2 — DDL: Create views

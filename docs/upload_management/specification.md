@@ -222,9 +222,11 @@ in {recovered, interrupted, nonstdMic, nonstdCam}.
 
 ## 5. Data model
 
-All of the following are new tables. They are defined in `scripts/schema/create_tables.sql`
-for fresh installs. The idempotent `scripts/schema/alter_uploads.sql` (`npm run db:uploads`)
-adds them to existing databases, and `drop_tables.sql` drops them.
+All of the following are new tables. They are defined once, in
+`scripts/schema/create_upload_tables.sql`, where every statement is `CREATE TABLE IF NOT
+EXISTS`. `runInit.js` runs that file right after `create_tables.sql` for a fresh install, and
+`npm run db:uploads` (`src/applyUploads.js`) runs it against an existing database, so the two
+paths can't drift. `drop_tables.sql` drops the tables.
 
 ```sql
 devices (

@@ -138,3 +138,62 @@ export async function getVisibleScope(userId) {
   ]);
   return { projectIds, siteIds };
 }
+
+// --- Uploaded sessions (phase B) ---------------------------------------------
+//
+// A session belongs to one (site, project) pair, and the rule is the same one
+// as above, applied to that pair instead of to lists of ids:
+//
+//   see   = site in user_sites
+//         OR project granted AND the site is allowed through that grant
+//            (on the project's site_projects, and on its whitelist if it has one)
+//   edit  = site in user_sites (clinic staff correct their own recordings)
+//         OR the grant above carries can_edit
+//
+// Quarantined sessions (site_id NULL, unknown device) are master-only.
+//
+// The rule exists exactly once, as a SQL predicate over an upload_sessions
+// alias. Lists and aggregates filter with it, and the per-row checks evaluate
+// the same predicate, so a session can never show up in a list yet 404 on open
+// (or the reverse).
+const SQL_ALIAS = /^[a-z_][a-z0-9_]*$/;
+
+export function scopeWhereClause(admin, alias = "us", { editable = false } = {}) {
+  if (!SQL_ALIAS.test(alias)) throw new Error(`scopeWhereClause: bad alias ${alias}`);
+  if (admin?.role === "master") return { sql: "1=1", params: [] };
+  const userId = admin?.id ?? null;
+  if (userId == null) return { sql: "1=0", params: [] };
+
+  const sql = `(${alias}.site_id IS NOT NULL AND (
+    EXISTS (SELECT 1 FROM user_sites usx
+            WHERE usx.user_id = ? AND usx.site_id = ${alias}.site_id)
+    OR EXISTS (
+      SELECT 1 FROM user_projects upx
+      JOIN site_projects spx ON spx.project_id = upx.project_id AND spx.site_id = ${alias}.site_id
+      WHERE upx.user_id = ? AND upx.project_id = ${alias}.project_id${editable ? " AND upx.can_edit = 1" : ""}
+        AND (
+          NOT EXISTS (SELECT 1 FROM user_project_sites r
+                      WHERE r.user_id = upx.user_id AND r.project_id = upx.project_id)
+          OR EXISTS (SELECT 1 FROM user_project_sites r
+                     WHERE r.user_id = upx.user_id AND r.project_id = upx.project_id
+                       AND r.site_id = ${alias}.site_id)
+        )
+    )
+  ))`;
+  return { sql, params: [userId, userId] };
+}
+
+// row: an upload_sessions row, or anything carrying its primary key as `id`.
+async function sessionMatches(admin, row, opts) {
+  if (row?.id == null) return false;
+  if (admin?.role === "master") return true;
+  const scope = scopeWhereClause(admin, "us", opts);
+  const rows = await executeQuery(
+    `SELECT 1 FROM upload_sessions us WHERE us.id = ? AND ${scope.sql}`,
+    [row.id, ...scope.params]
+  );
+  return rows.length > 0;
+}
+
+export const canSeeSession = (admin, row) => sessionMatches(admin, row, { editable: false });
+export const canEditSession = (admin, row) => sessionMatches(admin, row, { editable: true });

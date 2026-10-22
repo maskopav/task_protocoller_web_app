@@ -38,10 +38,15 @@ coverage.
 ### Wave 0: contracts and foundations (lead, Opus, inline)
 
 Owns:
-- `scripts/schema/{create_tables,drop_tables,alter_uploads}.sql` and the `db:uploads` script
+- `scripts/schema/{create_upload_tables,drop_tables}.sql`, `src/applyUploads.js`, the
+  `db:uploads` script and the `runInit.js` hook
 - `src/utils/accessScope.js` additions plus their tests
 - the JSDoc contracts and stubs under `src/upload/`, `src/storage/` and `src/backup/`
-- `src/config/uploads.js` (env parsing)
+- `src/config/uploads.js` (env parsing) and `src/storage/fileStore.js` (fully implemented, so
+  A, C and F share one storage layer)
+- `test/helpers/testDb.js` (rollback-only real-DB helper) and
+  `test/integration/sessionScope.test.js`
+- the `yauzl` dependency (added for the fixture tests, so B uses it without adding it)
 - `test/fixtures/buildSessionZip.js` plus the fixture tests
 - `.gitignore` (`backend/.data/`)
 
@@ -74,7 +79,8 @@ DoD: all of the above, existing tests green, committed.
 
 **A. Ingest** (agent, **Opus**)
 - Owns `src/upload/{multipartReceiver,ingestService,validationQueue}.js`, `src/routes/upload.js`,
-  the `server.js` mount, and `src/storage/fileStore.js`, plus their tests.
+  and the `server.js` mount (including the `loadUploadConfig`/`ensureDataPath` boot check and
+  `queue.recover()`), plus their tests. Uses `src/storage/fileStore.js` as it is.
 - Adds `busboy`.
 - Implements spec §3. `validationQueue` calls `archiveValidator`/`sessionExtractor` through
   their stub interfaces, so it works with B's real ones after the merge.
@@ -93,7 +99,9 @@ DoD: all of the above, existing tests green, committed.
 
 **B. Archive validation and extraction** (agent, **Sonnet**)
 - Owns `src/upload/{archiveValidator,sessionExtractor,zipReader}.js` plus their tests.
-- Adds `yauzl`.
+- `yauzl` is already installed. Note that with `decodeStrings: true` it rejects `../` names
+  by itself, so the reader opens with `decodeStrings: false` (see `zipReader.js` and the
+  fixture test).
 - Implements spec §4, using a table-driven test per fixture variant, plus extractor unit tests
   for every flag rule and the task-result computation (Done/Skipped/Missing from the snapshot,
   including `nrepetition`).
@@ -178,8 +186,10 @@ DoD: all of the above, existing tests green, committed.
 ## 4. Progress checklist
 
 - [x] Spec, plan and guidelines written
-- [ ] Local environment and baseline green
-- [ ] Wave 0: schema, scope helpers, fixtures, stubs
+- [x] Local environment and baseline green (backend 235, frontend unit 83, e2e 58). One stale
+  test was fixed, and `LOGIN_RATE_LIMIT` was added to `.env.test`.
+- [x] Wave 0: schema, scope helpers (persona integration test on MariaDB), fixtures, fileStore,
+  stubs. 283 backend tests green.
 - [ ] A ingest · [ ] B validator/extractor
 - [ ] C backup · [ ] D devices
 - [ ] E read/review API · [ ] F downloads

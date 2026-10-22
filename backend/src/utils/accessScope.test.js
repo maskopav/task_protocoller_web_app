@@ -202,3 +202,43 @@ describe.each([
     expect(executeQuery).not.toHaveBeenCalled();
   });
 });
+
+describe('session scope', async () => {
+  const { scopeWhereClause, canSeeSession, canEditSession } = await import('./accessScope.js');
+
+  it('lets a master through without touching the database', async () => {
+    expect(scopeWhereClause({ id: 1, role: 'master' })).toEqual({ sql: '1=1', params: [] });
+    expect(await canSeeSession({ id: 1, role: 'master' }, { id: 5 })).toBe(true);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+
+  it('matches nothing without a user id', () => {
+    expect(scopeWhereClause({ role: 'admin' }).sql).toBe('1=0');
+  });
+
+  it('never selects quarantined sessions for a non-master', () => {
+    expect(scopeWhereClause({ id: 2, role: 'admin' }).sql).toContain('us.site_id IS NOT NULL');
+  });
+
+  it('only demands can_edit for the editable variant', () => {
+    expect(scopeWhereClause({ id: 2, role: 'admin' }).sql).not.toContain('can_edit');
+    expect(scopeWhereClause({ id: 2, role: 'admin' }, 'x', { editable: true }).sql).toContain('upx.can_edit = 1');
+  });
+
+  it('refuses an alias that is not a plain identifier', () => {
+    expect(() => scopeWhereClause({ id: 2, role: 'admin' }, 'us; DROP')).toThrow();
+  });
+
+  it('evaluates the same predicate for a single row', async () => {
+    executeQuery.mockResolvedValueOnce([{ 1: 1 }]).mockResolvedValueOnce([]);
+    expect(await canSeeSession({ id: 2, role: 'admin' }, { id: 9 })).toBe(true);
+    expect(await canEditSession({ id: 2, role: 'admin' }, { id: 9 })).toBe(false);
+    const [sql, params] = executeQuery.mock.calls[1];
+    expect(sql).toContain('upx.can_edit = 1');
+    expect(params).toEqual([9, 2, 2]);
+  });
+
+  it('is false for a row without an id', async () => {
+    expect(await canEditSession({ id: 2, role: 'admin' }, {})).toBe(false);
+  });
+});

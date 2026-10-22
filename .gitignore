@@ -38,3 +38,6 @@ coverage
 *.sln
 *.sw?
 /.claude/
+
+# Phase B local upload storage (DATA_PATH)
+backend/.data/
