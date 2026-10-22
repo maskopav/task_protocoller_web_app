@@ -374,7 +374,8 @@ Dates in responses are ISO-8601 UTC.
     the current fields.
   - The original archive is never rewritten, so its manifest stays verifiable.
   - Every download writes an audit entry (`download`).
-- **Clips.** `GET /uploads/:id/clips/<entry path>` only serves entries named in
+- **Clips.** `GET /uploads/:id/clips/<file>` serves the ZIP entry `clips/<file>` (every clip lives
+  under `clips/`, UD §2), and only entries named in
   `exam_summary.tasks[].clipFile/videoFile`. Any other path is a 404.
   - It streams the inflated entry with `Content-Type` `audio/wav` or `video/mp4`.
   - It supports `Range: bytes=a-b` by inflating and discarding bytes up to `a`. This is

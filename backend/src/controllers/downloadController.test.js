@@ -26,7 +26,8 @@ let root, store, app, db, audits;
 async function addSession(over = {}) {
   const fx = buildSessionZip({ dir: root });
   await store.commit(fx.path, store.sessionKey(fx.sessionId));
-  const media = [...fx.parts.files.keys()].filter((k) => /\.(wav|mp4)$/.test(k));
+  // Clips only: the master WAV is never a task's clipFile.
+  const media = [...fx.parts.files.keys()].filter((k) => /^clips\/.*\.(wav|mp4)$/.test(k));
   const tasks = media.map((k) => (k.endsWith('.wav') ? { clipFile: k } : { videoFile: k }));
   const row = {
     id: db.rows.length + 1, session_id: fx.sessionId, storage_path: store.sessionKey(fx.sessionId),
@@ -119,14 +120,14 @@ describe('GET /uploads/:id/clips/*', () => {
   it('404/403 matrix', async () => {
     expect((await request(app).get(`/uploads/${'a'.repeat(32)}/clips/x.wav`)).status).toBe(404);
     const ro = await addSession({ can_edit: 0 });
-    expect((await request(app).get(`/uploads/${ro.row.session_id}/clips/${ro.media[0]}`)).status).toBe(403);
+    expect((await request(app).get(`/uploads/${ro.row.session_id}/clips/${ro.media[0].replace(/^clips\//, '')}`)).status).toBe(403);
   });
 
   it('serves the full entry and honours ranges', async () => {
     const { fx, row, media } = await addSession();
     const name = media.find((m) => m.endsWith('.wav'));
     const orig = await original(fx, name);
-    const url = `/uploads/${row.session_id}/clips/${name}`;
+    const url = `/uploads/${row.session_id}/clips/${name.replace(/^clips\//, '')}`;
 
     const full = await request(app).get(url).buffer(true).parse(binary);
     expect(full.status).toBe(200);
@@ -157,14 +158,14 @@ describe('GET /uploads/:id/clips/*', () => {
 
   it('serves video as video/mp4', async () => {
     const { row, media } = await addSession();
-    const res = await request(app).get(`/uploads/${row.session_id}/clips/${media.find((m) => m.endsWith('.mp4'))}`);
+    const res = await request(app).get(`/uploads/${row.session_id}/clips/${media.find((m) => m.endsWith('.mp4')).replace(/^clips\//, '')}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toBe('video/mp4');
   });
 
   it('404 for unlisted paths including traversal', async () => {
     const { row } = await addSession();
-    for (const p of ['manifest.json', 'clips/ghost.wav', '../../x.wav', '%2e%2e/%2e%2e/x.wav', 'clips/../manifest.json']) {
+    for (const p of ['../manifest.json', 'ghost.wav', '../../x.wav', '%2e%2e/%2e%2e/x.wav', 'clips/x.wav', '%2e%2e%2fmanifest.json']) {
       const res = await request(app).get(`/uploads/${row.session_id}/clips/${p}`);
       expect(res.status, p).toBe(404);
     }

@@ -82,7 +82,10 @@ export function createDownloadHandlers({ store }) {
     if (!row.can_edit) return res.status(403).json({ error: "forbidden" });
 
     const raw = req.params.path;
-    const name = Array.isArray(raw) ? raw.join("/") : String(raw ?? "");
+    // The URL is /uploads/:id/clips/<file>: the route already consumed the
+    // "clips/" of the entry path (UD §2: every clip lives under clips/).
+    const rest = Array.isArray(raw) ? raw.join("/") : String(raw ?? "");
+    const name = rest === "" ? "" : `clips/${rest}`;
     const tasks = parseJson(row.exam_summary)?.tasks;
     const listed = name !== "" && Array.isArray(tasks) && tasks.some((t) => t && (t.clipFile === name || t.videoFile === name));
     if (!listed) return res.status(404).json({ error: "not_found" });
