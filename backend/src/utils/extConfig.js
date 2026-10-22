@@ -195,6 +195,16 @@ const formatVersion = (d) => {
   return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}.${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}`;
 };
 
+/**
+ * The config version of a site: its newest updated_at across the site row and
+ * every protocol row it serves, formatted YYYY-MM-DD.HHMMSS (sorts as a string).
+ * Shared by buildExtConfig and the upload validation, so the two can't drift.
+ */
+export function deriveConfigVersion(siteUpdatedAt, protocolUpdatedAts, now = new Date()) {
+  const stamps = [siteUpdatedAt, ...protocolUpdatedAts].map(toDate).filter(Boolean);
+  return formatVersion(stamps.length ? new Date(Math.max(...stamps)) : now);
+}
+
 // ---------------------------------------------------------------------------
 // The transform
 // ---------------------------------------------------------------------------
@@ -224,8 +234,7 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
   for (const l of languages) strings[l] ??= {};
 
   // configVersion = newest updated_at across the site and every protocol row.
-  const stamps = [site?.updated_at, ...allAssembled.map((a) => a.protocol.updated_at)].map(toDate).filter(Boolean);
-  const configVersion = formatVersion(stamps.length ? new Date(Math.max(...stamps)) : now);
+  const configVersion = deriveConfigVersion(site?.updated_at, allAssembled.map((a) => a.protocol.updated_at), now);
 
   const audioUrl = (category, params) => {
     const key = AUDIO_PARAM[category] && `${category}_${params?.[AUDIO_PARAM[category]]}`;
