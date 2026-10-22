@@ -1,1 +1,141 @@
-{}
+{
+  "common": { "save": "Save", "cancel": "Cancel", "loading": "Loading…" },
+  "rel": {
+    "never": "never",
+    "minutes": "{{count}} min ago",
+    "hours": "{{count}} h ago",
+    "yesterday": "yesterday",
+    "days": "{{count}} d ago"
+  },
+  "health": {
+    "ok": "Healthy",
+    "warn": "Backlog",
+    "bad": "Silent > 7 days",
+    "off": "No uploads yet"
+  },
+  "status": {
+    "valid": { "label": "Valid", "hint": "Checksum and manifest verified" },
+    "validating": { "label": "Validating", "hint": "Received, checks running" },
+    "invalid": { "label": "Invalid", "hint": "Failed a server check" }
+  },
+  "invalidReason": {
+    "checksum": "ZIP checksum mismatch",
+    "manifest": "Manifest hash mismatch",
+    "malformed": "Malformed archive",
+    "unknown_device": "Device not registered"
+  },
+  "qc": {
+    "unreviewed": "Unreviewed",
+    "ok": "OK",
+    "review": "Needs review",
+    "excluded": "Excluded"
+  },
+  "issues": {
+    "recovered": { "label": "Recovered", "hint": "App crashed; session rebuilt and may be incomplete" },
+    "interrupted": { "label": "Mic interrupted", "hint": "Microphone lost mid-session" },
+    "skipped": { "label": "Skipped tasks", "hint": "One or more tasks skipped by the examiner" },
+    "retakes": { "label": "Retakes", "hint": "A task was repeated; only the last take is exported" },
+    "edited": { "label": "Edited timeline", "hint": "Segment boundaries adjusted in the waveform editor" },
+    "outdated": { "label": "Old config", "hint": "Recorded with a config version older than the current one" },
+    "late": { "label": "Late upload", "hint": "Uploaded more than 3 days after recording" },
+    "duplicate": { "label": "Re-sent", "hint": "Device re-sent an already received session" },
+    "nonstdMic": { "label": "Non-standard mic", "hint": "The whole session was recorded with a microphone other than the one set in the app's Settings" },
+    "nonstdCam": { "label": "Non-standard camera", "hint": "The whole session was filmed with a camera other than the one set in the app's Settings" },
+    "device": { "label": "Device event", "hint": "A camera or microphone failed during the session" }
+  },
+  "devices": {
+    "title": "Devices",
+    "description": "Every computer running the desktop app at your sites. Use this page to spot sessions that were recorded but have not reached the server yet.",
+    "loadError": "Failed to load devices",
+    "stats": {
+      "title": "Device health",
+      "devices": "Devices",
+      "healthy": "Healthy",
+      "waiting": "Waiting to upload",
+      "failed": "Failed on device",
+      "silent": "Silent > 7 days"
+    },
+    "all": "All devices",
+    "site": "Site",
+    "allSites": "All",
+    "noSite": "No site (quarantine)",
+    "col": {
+      "device": "Device",
+      "site": "Site",
+      "health": "Health",
+      "lastCheckin": "Last check-in",
+      "lastUpload": "Last upload",
+      "uploads30": "Uploads (30 d)",
+      "waiting": "Waiting",
+      "failed": "Failed",
+      "app": "App",
+      "config": "Last config fetch"
+    },
+    "hidden": "hidden",
+    "hiddenHint": "Device counts span all projects at this site; shown only with a site assignment",
+    "old": "old",
+    "showUploads": "Show this site's uploads",
+    "rename": "Rename device",
+    "renameLabel": "Device name",
+    "renamed": "Device saved.",
+    "assign": "Assign to site",
+    "assignTo": "Assign to site",
+    "pickSite": "Choose a site…",
+    "assignConfirm": "Assign {{device}} to {{site}}? Its quarantined sessions move to this site and are checked again.",
+    "assignYes": "Yes, assign",
+    "assigned": "Device assigned. {{count}} quarantined session(s) released for checking.",
+    "empty": "No devices.",
+    "legend": {
+      "ok": { "name": "Healthy", "text": "checked in within 7 days, nothing waiting" },
+      "warn": { "name": "Backlog", "text": "sessions recorded but not uploaded, or failed" },
+      "bad": { "name": "Silent", "text": "no contact for over 7 days" },
+      "off": { "name": "No uploads yet", "text": "fetched a config, never uploaded" }
+    }
+  },
+  "downloads": {
+    "title": "Downloads",
+    "description": "Download data from multiple sessions.",
+    "from": "Download from",
+    "site": "Site",
+    "project": "Project",
+    "protocol": "Protocol",
+    "allProtocols": "All protocols",
+    "review": "Review",
+    "any": "Any",
+    "hideBad": "Hide excluded & invalid",
+    "excludeFlags": "Exclude flags",
+    "excludeHint": "Hide sessions with this flag.",
+    "sessions": "Sessions",
+    "count": "{{count}} sessions",
+    "notDownloadable": "{{count}} not downloadable",
+    "loading": "loading {{loaded}} of {{total}}",
+    "loadError": "Failed to load sessions",
+    "selectAll": "Select all sessions shown",
+    "selectRow": "Select {{code}}",
+    "col": {
+      "recorded": "Recorded",
+      "patient": "Patient",
+      "protocol": "Protocol",
+      "project": "Project",
+      "site": "Site",
+      "size": "Size",
+      "status": "Server check",
+      "review": "Review",
+      "flags": "Flags"
+    },
+    "blocked": {
+      "readOnly": "View only: your access to this session is read-only",
+      "validating": "Still being checked on the server"
+    },
+    "noMatch": "No sessions match.",
+    "nothingInScope": "Nothing in your scope to download.",
+    "nothingSelected": "Nothing selected",
+    "selected": "selected · {{size}}",
+    "clear": "Clear",
+    "download": "Download",
+    "downloadN": "Download {{count}}",
+    "started": "Download started. Your browser saves the bundle to disk.",
+    "failed": "Could not start the download.",
+    "tooLarge": "This selection is too large ({{count}} sessions, {{size}}). One bundle holds at most {{maxCount}} sessions and {{maxSize}}. Please split the selection into several downloads."
+  }
+}

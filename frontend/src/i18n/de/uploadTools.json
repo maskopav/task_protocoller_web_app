@@ -1,1 +1,141 @@
-{}
+{
+  "common": { "save": "Speichern", "cancel": "Abbrechen", "loading": "Wird geladen…" },
+  "rel": {
+    "never": "nie",
+    "minutes": "vor {{count}} Min.",
+    "hours": "vor {{count}} Std.",
+    "yesterday": "gestern",
+    "days": "vor {{count}} T."
+  },
+  "health": {
+    "ok": "In Ordnung",
+    "warn": "Rückstand",
+    "bad": "Stumm > 7 Tage",
+    "off": "Noch keine Uploads"
+  },
+  "status": {
+    "valid": { "label": "Gültig", "hint": "Prüfsumme und Manifest verifiziert" },
+    "validating": { "label": "Wird geprüft", "hint": "Empfangen, Prüfungen laufen" },
+    "invalid": { "label": "Ungültig", "hint": "Serverprüfung fehlgeschlagen" }
+  },
+  "invalidReason": {
+    "checksum": "ZIP-Prüfsumme stimmt nicht überein",
+    "manifest": "Manifest-Hash stimmt nicht überein",
+    "malformed": "Fehlerhaftes Archiv",
+    "unknown_device": "Gerät nicht registriert"
+  },
+  "qc": {
+    "unreviewed": "Ungeprüft",
+    "ok": "In Ordnung",
+    "review": "Zu prüfen",
+    "excluded": "Ausgeschlossen"
+  },
+  "issues": {
+    "recovered": { "label": "Wiederhergestellt", "hint": "App abgestürzt; Sitzung rekonstruiert und möglicherweise unvollständig" },
+    "interrupted": { "label": "Mikrofon unterbrochen", "hint": "Mikrofon fiel während der Sitzung aus" },
+    "skipped": { "label": "Übersprungene Aufgaben", "hint": "Eine oder mehrere Aufgaben wurden von der Untersuchenden übersprungen" },
+    "retakes": { "label": "Wiederholungen", "hint": "Eine Aufgabe wurde wiederholt; nur die letzte Aufnahme wird exportiert" },
+    "edited": { "label": "Zeitleiste bearbeitet", "hint": "Segmentgrenzen im Wellenform-Editor angepasst" },
+    "outdated": { "label": "Alte Konfiguration", "hint": "Mit einer älteren Konfigurationsversion als der aktuellen aufgenommen" },
+    "late": { "label": "Verspäteter Upload", "hint": "Mehr als 3 Tage nach der Aufnahme hochgeladen" },
+    "duplicate": { "label": "Erneut gesendet", "hint": "Gerät hat eine bereits empfangene Sitzung erneut gesendet" },
+    "nonstdMic": { "label": "Anderes Mikrofon", "hint": "Die ganze Sitzung wurde mit einem anderen Mikrofon als in den App-Einstellungen aufgenommen" },
+    "nonstdCam": { "label": "Andere Kamera", "hint": "Die ganze Sitzung wurde mit einer anderen Kamera als in den App-Einstellungen gefilmt" },
+    "device": { "label": "Geräteereignis", "hint": "Eine Kamera oder ein Mikrofon ist während der Sitzung ausgefallen" }
+  },
+  "devices": {
+    "title": "Geräte",
+    "description": "Alle Computer mit der Desktop-App an Ihren Standorten. Hier erkennen Sie Sitzungen, die aufgenommen wurden, den Server aber noch nicht erreicht haben.",
+    "loadError": "Geräte konnten nicht geladen werden",
+    "stats": {
+      "title": "Gerätestatus",
+      "devices": "Geräte",
+      "healthy": "In Ordnung",
+      "waiting": "Warten auf Upload",
+      "failed": "Auf dem Gerät fehlgeschlagen",
+      "silent": "Stumm > 7 Tage"
+    },
+    "all": "Alle Geräte",
+    "site": "Standort",
+    "allSites": "Alle",
+    "noSite": "Kein Standort (Quarantäne)",
+    "col": {
+      "device": "Gerät",
+      "site": "Standort",
+      "health": "Status",
+      "lastCheckin": "Letzter Kontakt",
+      "lastUpload": "Letzter Upload",
+      "uploads30": "Uploads (30 T.)",
+      "waiting": "Wartend",
+      "failed": "Fehlgeschlagen",
+      "app": "App",
+      "config": "Letzter Konfigurationsabruf"
+    },
+    "hidden": "verborgen",
+    "hiddenHint": "Gerätezahlen umfassen alle Projekte an diesem Standort; sie werden nur mit Standortzuweisung angezeigt",
+    "old": "alt",
+    "showUploads": "Uploads dieses Standorts anzeigen",
+    "rename": "Gerät umbenennen",
+    "renameLabel": "Gerätename",
+    "renamed": "Gerät gespeichert.",
+    "assign": "Standort zuweisen",
+    "assignTo": "Standort zuweisen",
+    "pickSite": "Standort wählen…",
+    "assignConfirm": "{{device}} dem Standort {{site}} zuweisen? Die Sitzungen in Quarantäne wechseln zu diesem Standort und werden erneut geprüft.",
+    "assignYes": "Ja, zuweisen",
+    "assigned": "Gerät zugewiesen. Aus der Quarantäne zur Prüfung freigegebene Sitzungen: {{count}}.",
+    "empty": "Keine Geräte.",
+    "legend": {
+      "ok": { "name": "In Ordnung", "text": "innerhalb von 7 Tagen gemeldet, nichts wartet" },
+      "warn": { "name": "Rückstand", "text": "Sitzungen aufgenommen, aber nicht hochgeladen, oder fehlgeschlagen" },
+      "bad": { "name": "Stumm", "text": "seit über 7 Tagen kein Kontakt" },
+      "off": { "name": "Noch keine Uploads", "text": "Konfiguration abgerufen, nie hochgeladen" }
+    }
+  },
+  "downloads": {
+    "title": "Downloads",
+    "description": "Daten aus mehreren Sitzungen herunterladen.",
+    "from": "Herunterladen von",
+    "site": "Standort",
+    "project": "Projekt",
+    "protocol": "Protokoll",
+    "allProtocols": "Alle Protokolle",
+    "review": "Prüfung",
+    "any": "Beliebig",
+    "hideBad": "Ausgeschlossene und ungültige ausblenden",
+    "excludeFlags": "Markierungen ausschließen",
+    "excludeHint": "Sitzungen mit dieser Markierung ausblenden.",
+    "sessions": "Sitzungen",
+    "count": "{{count}} Sitzungen",
+    "notDownloadable": "{{count}} nicht herunterladbar",
+    "loading": "{{loaded}} von {{total}} geladen",
+    "loadError": "Sitzungen konnten nicht geladen werden",
+    "selectAll": "Alle angezeigten Sitzungen auswählen",
+    "selectRow": "{{code}} auswählen",
+    "col": {
+      "recorded": "Aufgenommen",
+      "patient": "Patient",
+      "protocol": "Protokoll",
+      "project": "Projekt",
+      "site": "Standort",
+      "size": "Größe",
+      "status": "Serverprüfung",
+      "review": "Prüfung",
+      "flags": "Markierungen"
+    },
+    "blocked": {
+      "readOnly": "Nur Ansicht: Ihr Zugriff auf diese Sitzung ist schreibgeschützt",
+      "validating": "Wird noch vom Server geprüft"
+    },
+    "noMatch": "Keine passenden Sitzungen.",
+    "nothingInScope": "In Ihrem Bereich gibt es nichts herunterzuladen.",
+    "nothingSelected": "Nichts ausgewählt",
+    "selected": "ausgewählt · {{size}}",
+    "clear": "Auswahl löschen",
+    "download": "Herunterladen",
+    "downloadN": "{{count}} herunterladen",
+    "started": "Download gestartet. Ihr Browser speichert das Paket auf der Festplatte.",
+    "failed": "Der Download konnte nicht gestartet werden.",
+    "tooLarge": "Diese Auswahl ist zu groß ({{count}} Sitzungen, {{size}}). Ein Paket enthält höchstens {{maxCount}} Sitzungen und {{maxSize}}. Bitte teilen Sie die Auswahl auf mehrere Downloads auf."
+  }
+}

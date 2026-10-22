@@ -1,1 +1,141 @@
-{}
+{
+  "common": { "save": "Uložit", "cancel": "Zrušit", "loading": "Načítání…" },
+  "rel": {
+    "never": "nikdy",
+    "minutes": "před {{count}} min",
+    "hours": "před {{count}} h",
+    "yesterday": "včera",
+    "days": "před {{count}} d"
+  },
+  "health": {
+    "ok": "V pořádku",
+    "warn": "Nahrávání čeká",
+    "bad": "Bez kontaktu > 7 dní",
+    "off": "Zatím bez nahrávek"
+  },
+  "status": {
+    "valid": { "label": "Platné", "hint": "Kontrolní součet a manifest ověřeny" },
+    "validating": { "label": "Kontroluje se", "hint": "Přijato, probíhají kontroly" },
+    "invalid": { "label": "Neplatné", "hint": "Neprošlo kontrolou na serveru" }
+  },
+  "invalidReason": {
+    "checksum": "Nesouhlasí kontrolní součet ZIPu",
+    "manifest": "Nesouhlasí hash manifestu",
+    "malformed": "Poškozený archiv",
+    "unknown_device": "Zařízení není registrováno"
+  },
+  "qc": {
+    "unreviewed": "Nezkontrolováno",
+    "ok": "V pořádku",
+    "review": "Ke kontrole",
+    "excluded": "Vyloučeno"
+  },
+  "issues": {
+    "recovered": { "label": "Obnoveno", "hint": "Aplikace spadla; relace byla znovu sestavena a může být neúplná" },
+    "interrupted": { "label": "Přerušený mikrofon", "hint": "Mikrofon se během relace odpojil" },
+    "skipped": { "label": "Přeskočené úlohy", "hint": "Vyšetřující přeskočil jednu nebo více úloh" },
+    "retakes": { "label": "Opakování", "hint": "Úloha byla opakována; exportuje se jen poslední záznam" },
+    "edited": { "label": "Upravená časová osa", "hint": "Hranice segmentů byly upraveny v editoru průběhu zvuku" },
+    "outdated": { "label": "Stará konfigurace", "hint": "Nahráno se starší verzí konfigurace, než je aktuální" },
+    "late": { "label": "Pozdní nahrání", "hint": "Nahráno více než 3 dny po záznamu" },
+    "duplicate": { "label": "Odesláno znovu", "hint": "Zařízení znovu odeslalo již přijatou relaci" },
+    "nonstdMic": { "label": "Jiný mikrofon", "hint": "Celá relace byla nahrána jiným mikrofonem, než je nastaven v Nastavení aplikace" },
+    "nonstdCam": { "label": "Jiná kamera", "hint": "Celá relace byla natočena jinou kamerou, než je nastavena v Nastavení aplikace" },
+    "device": { "label": "Událost zařízení", "hint": "Během relace selhala kamera nebo mikrofon" }
+  },
+  "devices": {
+    "title": "Zařízení",
+    "description": "Všechny počítače s desktopovou aplikací na vašich pracovištích. Na této stránce zjistíte relace, které byly nahrány, ale ještě nedorazily na server.",
+    "loadError": "Zařízení se nepodařilo načíst",
+    "stats": {
+      "title": "Stav zařízení",
+      "devices": "Zařízení",
+      "healthy": "V pořádku",
+      "waiting": "Čeká na nahrání",
+      "failed": "Selhalo v zařízení",
+      "silent": "Bez kontaktu > 7 dní"
+    },
+    "all": "Všechna zařízení",
+    "site": "Pracoviště",
+    "allSites": "Vše",
+    "noSite": "Bez pracoviště (karanténa)",
+    "col": {
+      "device": "Zařízení",
+      "site": "Pracoviště",
+      "health": "Stav",
+      "lastCheckin": "Poslední kontakt",
+      "lastUpload": "Poslední nahrání",
+      "uploads30": "Nahrání (30 d)",
+      "waiting": "Čeká",
+      "failed": "Selhalo",
+      "app": "Aplikace",
+      "config": "Poslední stažení konfigurace"
+    },
+    "hidden": "skryto",
+    "hiddenHint": "Počty zařízení zahrnují všechny projekty na pracovišti; zobrazují se jen při přiřazení k pracovišti",
+    "old": "stará",
+    "showUploads": "Zobrazit nahrávky tohoto pracoviště",
+    "rename": "Přejmenovat zařízení",
+    "renameLabel": "Název zařízení",
+    "renamed": "Zařízení uloženo.",
+    "assign": "Přiřadit k pracovišti",
+    "assignTo": "Přiřadit k pracovišti",
+    "pickSite": "Vyberte pracoviště…",
+    "assignConfirm": "Přiřadit {{device}} k pracovišti {{site}}? Relace v karanténě se přesunou na toto pracoviště a znovu se zkontrolují.",
+    "assignYes": "Ano, přiřadit",
+    "assigned": "Zařízení přiřazeno. Počet relací propuštěných z karantény ke kontrole: {{count}}.",
+    "empty": "Žádná zařízení.",
+    "legend": {
+      "ok": { "name": "V pořádku", "text": "ozvalo se do 7 dnů, nic nečeká" },
+      "warn": { "name": "Nahrávání čeká", "text": "relace nahrány, ale neodeslány, nebo selhaly" },
+      "bad": { "name": "Bez kontaktu", "text": "žádný kontakt více než 7 dní" },
+      "off": { "name": "Zatím bez nahrávek", "text": "stáhlo konfiguraci, nikdy nenahrálo" }
+    }
+  },
+  "downloads": {
+    "title": "Stahování",
+    "description": "Stáhněte data z více relací najednou.",
+    "from": "Stáhnout z",
+    "site": "Pracoviště",
+    "project": "Projekt",
+    "protocol": "Protokol",
+    "allProtocols": "Všechny protokoly",
+    "review": "Kontrola",
+    "any": "Jakákoli",
+    "hideBad": "Skrýt vyloučené a neplatné",
+    "excludeFlags": "Vyloučit příznaky",
+    "excludeHint": "Skrýt relace s tímto příznakem.",
+    "sessions": "Relace",
+    "count": "Relací: {{count}}",
+    "notDownloadable": "ke stažení nelze: {{count}}",
+    "loading": "načteno {{loaded}} z {{total}}",
+    "loadError": "Relace se nepodařilo načíst",
+    "selectAll": "Vybrat všechny zobrazené relace",
+    "selectRow": "Vybrat {{code}}",
+    "col": {
+      "recorded": "Zaznamenáno",
+      "patient": "Pacient",
+      "protocol": "Protokol",
+      "project": "Projekt",
+      "site": "Pracoviště",
+      "size": "Velikost",
+      "status": "Kontrola serverem",
+      "review": "Kontrola",
+      "flags": "Příznaky"
+    },
+    "blocked": {
+      "readOnly": "Pouze pro čtení: k této relaci máte jen čtecí přístup",
+      "validating": "Server ji ještě kontroluje"
+    },
+    "noMatch": "Žádné relace neodpovídají.",
+    "nothingInScope": "Ve vašem rozsahu není nic ke stažení.",
+    "nothingSelected": "Nic nevybráno",
+    "selected": "vybráno · {{size}}",
+    "clear": "Zrušit výběr",
+    "download": "Stáhnout",
+    "downloadN": "Stáhnout {{count}}",
+    "started": "Stahování zahájeno. Prohlížeč uloží balíček na disk.",
+    "failed": "Stahování se nepodařilo zahájit.",
+    "tooLarge": "Výběr je příliš velký ({{count}} relací, {{size}}). Jeden balíček obsahuje nejvýše {{maxCount}} relací a {{maxSize}}. Rozdělte prosím výběr na několik stahování."
+  }
+}
