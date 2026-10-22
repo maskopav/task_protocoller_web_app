@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { extractSession, needsAttention, toDbDate } from "./sessionExtractor.js";
-import { sessionParts, CONFIG_VERSION, PROTOCOL_NAME, PROTOCOL_PROJECT, snapshot } from "../../test/fixtures/buildSessionZip.js";
+import { extractSession, needsAttention, toDbDate, taskInstances, str, MAX_REPETITION, MAX_TASK_INSTANCES } from "./sessionExtractor.js";
+import { sessionParts, CONFIG_VERSION, PROTOCOL_NAME, PROTOCOL_PROJECT, LONG, snapshot } from "../../test/fixtures/buildSessionZip.js";
 
 const SID = "a".repeat(32);
 const PROJECTS = [
@@ -16,7 +16,7 @@ function parsedFor(variant = "valid", mutate) {
     manifest: { sessionId: SID, configVersion: p.configVersion, files: [] },
     examination: structuredClone(p.examination),
     participant: structuredClone(p.participant),
-    snapshot: snapshot(p.configVersion),
+    snapshot: structuredClone(p.snapshot),
     timelineOriginal: structuredClone(p.timelineOriginal),
     timelineEdited: p.files.has("timeline_edited.json") ? JSON.parse(p.files.get("timeline_edited.json")) : null,
   };
@@ -230,6 +230,89 @@ describe("extractSession: flags", () => {
     expect(f).toContain("duplicate");
     expect(f.filter((x) => x === "recovered")).toHaveLength(1);
     expect(new Set(f).size).toBe(f.length);
+  });
+});
+
+describe("extractSession: hostile input", () => {
+  it("clamps nrepetition to 100 and caps the expected instances at 2000, quickly", () => {
+    const t0 = Date.now();
+    const list = taskInstances(parsedFor("hugeRepetition").examination, parsedFor("hugeRepetition").snapshot);
+    expect(Date.now() - t0).toBeLessThan(500);
+    expect(list).toHaveLength(MAX_TASK_INSTANCES);
+    expect(list.capped).toBe(true);
+    // Instances 5..99 have no exam task, so their type comes from the snapshot.
+    expect(list.slice(5, 100).every((i) => i.subtype === "PHONATION" && i.result === "Missing")).toBe(true);
+    expect(list[99].repetition).toBe(100);
+    expect(list[100].subtype).toBe("READING"); // the first task stopped at 100 repetitions
+    expect(run("hugeRepetition").tasks_total).toBe(MAX_TASK_INSTANCES);
+  });
+
+  it("clamps a single huge nrepetition without hitting the total cap", () => {
+    const snap = snapshot();
+    snap.protocols[0].tasks[0].nrepetition = 1e9;
+    const list = taskInstances(parsedFor().examination, snap);
+    expect(list).toHaveLength(MAX_REPETITION + 3);
+    expect(list.capped).toBe(true);
+    expect(taskInstances(parsedFor().examination, snapshot()).capped).toBe(false);
+  });
+
+  it("caps the fallback to examination.tasks too", () => {
+    const exam = { tasks: Array.from({ length: MAX_TASK_INSTANCES + 5 }, (_, i) => ({ taskIndex: i })) };
+    const list = taskInstances(exam, null);
+    expect(list).toHaveLength(MAX_TASK_INSTANCES);
+    expect(list.capped).toBe(true);
+  });
+
+  it("skips null and non-object elements in tasks, events and segments", () => {
+    const c = run("nullTask", (p) => {
+      p.examination.tasks.push(7, "x", [1]);
+      p.examination.processing.timelineUsed = "edited";
+      p.timelineEdited = { segments: [null, 3, { taskIndex: 0, startSample: 1, stopSample: 2 }] };
+      p.timelineOriginal.events.push(5, [], { type: "START_BUTTON_PRESSED", taskIndex: { toString: 1 }, take: 1 });
+      p.snapshot.protocols[0].tasks.unshift(null);
+    });
+    expect(c).toMatchObject({ tasks_total: 5, tasks_done: 5, audio_clips: 3, video_clips: 2 });
+    expect(c.exam_summary.timeline.find((s) => s.taskIndex === 0).kept).toEqual({ take: 1, startSample: 1, stopSample: 2 });
+  });
+
+  it("does not throw on a null task with no snapshot either", () => {
+    expect(run("nullTask", (p) => { p.snapshot = null; }).tasks_total).toBe(5);
+  });
+
+  it("truncates string columns to their lengths", () => {
+    const c = run("longStrings");
+    expect(c.protocol_name).toBe(LONG.protocolName.slice(0, 100));
+    expect(c.protocol_project).toBe(LONG.protocolProject.slice(0, 255));
+    expect(c.config_version).toBe(LONG.configVersion.slice(0, 32));
+    expect(c.patient_code).toBe(LONG.patientCode.slice(0, 255));
+    expect(c.visit_number).toBe(LONG.visitNumber.slice(0, 64));
+    expect(c.participant_fields.patient_code).toBe(LONG.patientCode); // the JSON keeps it whole
+    expect(c.project_id).toBeNull(); // a truncated name never matches
+  });
+
+  it("truncates by code point, never splitting a surrogate pair", () => {
+    expect(str("😀".repeat(70), 64)).toBe("😀".repeat(64));
+  });
+
+  it("coerces non-string scalars and drops objects and arrays", () => {
+    const c = run("valid", (p) => {
+      p.examination.protocolName = ["a", "b"];
+      p.examination.protocolProject = { toString: 1 };
+      p.examination.configVersion = 2026;
+      p.manifest.configVersion = 2026;
+      p.participant.fields.patient_code = 12345;
+      p.participant.fields.visit_number = { v: 1 };
+    });
+    expect(c).toMatchObject({ protocol_name: null, protocol_project: null, config_version: "2026",
+      patient_code: "12345", visit_number: null, project_id: null });
+  });
+
+  it("drops dates outside the DATETIME range and a duration beyond INT", () => {
+    expect(toDbDate("0999-12-31T23:00:00Z")).toBeNull();
+    expect(toDbDate("9999-12-31T23:00:00-05:00")).toBeNull();
+    expect(toDbDate("1000-01-01T00:00:00Z")).toBe("1000-01-01 00:00:00.000");
+    const c = run("valid", (p) => { p.examination.startedAt = "1000-01-01T00:00:00Z"; });
+    expect(c.duration_s).toBeNull();
   });
 });
 

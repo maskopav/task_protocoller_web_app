@@ -132,6 +132,68 @@ describe('validateStoredSession', () => {
     expect(updates).toEqual([]);
   });
 
+  it('a throwing extractor closes the row as invalid/malformed instead of throwing', async () => {
+    mockDb(row());
+    const checks = [{ key: 'zip_checksum', result: 'ok' }, { key: 'archive', result: 'ok' }, { key: 'complete', result: 'warn' }];
+    validateArchive.mockResolvedValue({ checks, status: 'valid', invalidReason: null, parsed: PARSED });
+    extractSession.mockImplementation(() => { throw new TypeError("Cannot read properties of null (reading 'taskIndex')"); });
+    await expect(validateStoredSession(42, { store })).resolves.toBeUndefined();
+    expect(updatedColumns()).toEqual({
+      checks: JSON.stringify([checks[0], { key: 'archive', result: 'bad', detail: 'unprocessable content' }, checks[2]]),
+    });
+    expect(updates[0].sql).toMatch(/status = 'invalid', invalid_reason = 'malformed', checks = \?/);
+  });
+
+  it('a validator that throws without an errno code also closes the row as invalid', async () => {
+    mockDb(row());
+    validateArchive.mockRejectedValue(new TypeError('Cannot convert object to primitive value'));
+    await validateStoredSession(42, { store });
+    const { checks } = updatedColumns();
+    expect(JSON.parse(checks).find((c) => c.key === 'archive')).toEqual({ key: 'archive', result: 'bad', detail: 'unprocessable content' });
+    expect(JSON.parse(checks).map((c) => c.key)).toEqual(['zip_checksum', 'archive', 'manifest', 'ids', 'device', 'config_version', 'complete']);
+  });
+
+  it('when the database refuses the extracted data, closes the row as invalid; a lost connection still throws', async () => {
+    mockDb(row());
+    validateArchive.mockResolvedValue({ checks: CHECKS, status: 'valid', invalidReason: null, parsed: PARSED });
+    extractSession.mockReturnValue({ columns: { protocol_name: 'x', flags: [] } });
+    let first = true;
+    const base = executeQuery.getMockImplementation();
+    executeQuery.mockImplementation(async (sql, params) => {
+      if (sql.startsWith('UPDATE') && first) {
+        first = false;
+        throw Object.assign(new Error('Data too long'), { code: 'ER_DATA_TOO_LONG' });
+      }
+      return base(sql, params);
+    });
+    await validateStoredSession(42, { store });
+    expect(updatedColumns()).toEqual({ checks: expect.stringContaining('unprocessable content') });
+    expect(updates[0].sql).toMatch(/status = 'invalid', invalid_reason = 'malformed'/);
+
+    mockDb(row());
+    executeQuery.mockImplementation(async (sql) => {
+      if (sql.startsWith('UPDATE')) throw Object.assign(new Error('gone'), { code: 'PROTOCOL_CONNECTION_LOST' });
+      return [row()];
+    });
+    await expect(validateStoredSession(42, { store })).rejects.toMatchObject({ code: 'PROTOCOL_CONNECTION_LOST' });
+  });
+
+  it('keeps patient_code, visit_number and participant_fields once a master has edited them', async () => {
+    mockDb(row({ participant_edited_at: '2026-10-14 09:00:00' }));
+    validateArchive.mockResolvedValue({ checks: CHECKS, status: 'valid', invalidReason: null, parsed: PARSED });
+    extractSession.mockReturnValue({ columns: {
+      protocol_name: 'Speech battery', patient_code: 'archive', visit_number: '1',
+      participant_fields: { patient_code: 'archive' }, exam_summary: { tasks: [] }, flags: [],
+    } });
+    await validateStoredSession(42, { store });
+    const cols = updatedColumns();
+    expect(cols).toMatchObject({ status: 'valid', protocol_name: 'Speech battery', exam_summary: JSON.stringify({ tasks: [] }) });
+    expect(cols).not.toHaveProperty('patient_code');
+    expect(cols).not.toHaveProperty('visit_number');
+    expect(cols).not.toHaveProperty('participant_fields');
+    expect(executeQuery.mock.calls[0][0]).toMatch(/participant_edited_at/);
+  });
+
   it('does nothing for a row that no longer exists', async () => {
     mockDb(null);
     await validateStoredSession(42, { store });

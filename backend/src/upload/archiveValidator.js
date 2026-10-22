@@ -26,18 +26,30 @@ import { taskInstances } from "./sessionExtractor.js";
 
 const MAX_ENTRIES = 10_000;
 const MAX_RATIO = 200;
-// The JSON files are small by construction; the cap only stops a hostile one
-// from being buffered whole.
-const MAX_JSON_BYTES = 64 * 1024 * 1024;
+// The per-entry ratio alone does not stop a bomb built from many modest
+// entries, so the sum of what would be inflated is capped too. yauzl's
+// validateEntrySizes (on by default) fails a stream whose inflated size differs
+// from the declared one, which makes declared sizes trustworthy here.
+const MAX_TOTAL_RATIO = 20;
+const MAX_TOTAL_BYTES = 8 * 1024 ** 3;
+// The JSON files are buffered and parsed together. Real ones are kilobytes;
+// the caps only stop hostile ones from exhausting the heap.
+const MAX_JSON_BYTES = 4 * 1024 ** 2;
+const MAX_JSON_TOTAL_BYTES = 16 * 1024 ** 2;
+// Smallest possible local record: fixed header plus the compressed data. Using
+// the lower bound means an honest archive can never be flagged as overlapping.
+const LOCAL_HEADER_BYTES = 30;
 
-const JSON_FILES = {
-  "manifest.json": "manifest",
-  "examination.json": "examination",
-  "participant.json": "participant",
-  "task_configuration_snapshot.json": "snapshot",
-  "timeline_original.json": "timelineOriginal",
-  "timeline_edited.json": "timelineEdited",
-};
+// A Map, not an object literal: an entry named "constructor" or "__proto__"
+// must not look like a JSON file.
+const JSON_FILES = new Map([
+  ["manifest.json", "manifest"],
+  ["examination.json", "examination"],
+  ["participant.json", "participant"],
+  ["task_configuration_snapshot.json", "snapshot"],
+  ["timeline_original.json", "timelineOriginal"],
+  ["timeline_edited.json", "timelineEdited"],
+]);
 const REQUIRED = ["manifest.json", "examination.json", "participant.json",
   "task_configuration_snapshot.json", "timeline_original.json"];
 
@@ -68,6 +80,34 @@ async function drain(stream, { hash, collect }) {
     }
   }
   return { sha: h?.digest("hex"), buf: collect ? Buffer.concat(chunks) : null };
+}
+
+const quote = (name) => JSON.stringify(name.slice(0, 80));
+
+/**
+ * Indexes of entries whose local records share or overlap another's. Each
+ * overlapping entry would inflate the same compressed bytes again.
+ */
+function overlapping(entries) {
+  const order = entries.map((e, i) => i)
+    .sort((a, b) => entries[a].relativeOffsetOfLocalHeader - entries[b].relativeOffsetOfLocalHeader);
+  const out = new Set();
+  let prev = -1;
+  let prevEnd = -1;
+  for (const i of order) {
+    const e = entries[i];
+    const start = e.relativeOffsetOfLocalHeader;
+    if (prev >= 0 && start < prevEnd) {
+      out.add(prev);
+      out.add(i);
+    }
+    const end = start + LOCAL_HEADER_BYTES + e.compressedSize;
+    if (end > prevEnd) {
+      prevEnd = end;
+      prev = i;
+    }
+  }
+  return out;
 }
 
 const check = (key, result, detail) => (detail === undefined ? { key, result } : { key, result, detail });
@@ -107,30 +147,51 @@ export async function validateArchive(file, ctx) {
       if (entries.length > MAX_ENTRIES) {
         problems.push(`too many entries (${entries.length})`);
       } else {
+        const overlaps = overlapping(entries);
+        if (overlaps.size) problems.push(`entries share local data (${overlaps.size} entries)`);
         const seen = new Set();
-        const streamable = [];
-        for (const e of entries) {
+        let streamable = [];
+        for (const [i, e] of entries.entries()) {
           const why = badName(e.name);
-          if (why) problems.push(`${why}: ${JSON.stringify(e.name.slice(0, 80))}`);
+          if (why) problems.push(`${why}: ${quote(e.name)}`);
           if (seen.has(e.name)) {
-            problems.push(`duplicate entry name: ${JSON.stringify(e.name.slice(0, 80))}`);
+            problems.push(`duplicate entry name: ${quote(e.name)}`);
             continue; // streams open by name, so a twin could never be hashed on its own
           }
           seen.add(e.name);
           if (e.isDirectory) continue;
+          if (overlaps.has(i)) continue;
           const ratioBad = e.compressedSize === 0 ? e.uncompressedSize > 0 : e.uncompressedSize / e.compressedSize > MAX_RATIO;
           if (ratioBad) {
-            problems.push(`compression ratio above ${MAX_RATIO}: ${JSON.stringify(e.name.slice(0, 80))}`);
+            problems.push(`compression ratio above ${MAX_RATIO}: ${quote(e.name)}`);
             continue; // never inflate a likely bomb
           }
-          streamable.push(e.name);
+          streamable.push(e);
         }
+
+        const total = streamable.reduce((n, e) => n + e.uncompressedSize, 0);
+        const totalCap = Math.min(MAX_TOTAL_BYTES, MAX_TOTAL_RATIO * zip.fileSize);
+        if (total > totalCap) {
+          problems.push(`total uncompressed size too large (${total} bytes)`);
+          streamable = []; // inflate nothing
+        }
+
+        // JSON files over the caps are still hashed, but never buffered or parsed.
+        let jsonTotal = 0;
+        for (const e of streamable) if (JSON_FILES.has(e.name)) jsonTotal += e.uncompressedSize;
+        const jsonTooLarge = jsonTotal > MAX_JSON_TOTAL_BYTES;
+        if (jsonTooLarge) problems.push(`JSON files too large together (${jsonTotal} bytes)`);
 
         // One pass: hash every entry, keep the small JSON files.
         let streamFailed = false;
-        for (const name of streamable) {
+        for (const e of streamable) {
+          const { name } = e;
+          let key = JSON_FILES.get(name);
+          if (key && (jsonTooLarge || e.uncompressedSize > MAX_JSON_BYTES)) {
+            if (!jsonTooLarge) problems.push(`${name} too large (${e.uncompressedSize} bytes)`);
+            key = undefined;
+          }
           try {
-            const key = JSON_FILES[name];
             const { sha, buf } = await drain(await zip.openEntry(name), { hash: true, collect: !!key });
             hashes.set(name, sha);
             if (key) {
@@ -142,10 +203,10 @@ export async function validateArchive(file, ctx) {
             }
           } catch (err) {
             streamFailed = true;
-            problems.push(`entry unreadable: ${JSON.stringify(name.slice(0, 80))} (${err.message})`);
+            problems.push(`entry unreadable: ${quote(name)} (${err.message})`);
           }
         }
-        hashingComplete = !streamFailed && streamable.length === entries.filter((e) => !e.isDirectory).length;
+        hashingComplete = !streamFailed && hashes.size === entries.filter((e) => !e.isDirectory).length;
       }
 
       const names = new Set(entries.map((e) => e.name));
@@ -224,7 +285,8 @@ function checkConfigVersion(parsed, ctx) {
   }
   const cur = ctx.currentConfigVersion;
   if (cur && String(examination.configVersion) < cur) {
-    return check("config_version", "warn", `recorded with ${examination.configVersion}, current is ${cur}`);
+    // Both sides are the same primitive here (=== above), so String() is safe.
+    return check("config_version", "warn", `recorded with ${String(examination.configVersion).slice(0, 64)}, current is ${cur}`);
   }
   return check("config_version", "ok");
 }
@@ -234,7 +296,9 @@ function checkComplete(parsed) {
   if (!examination) return check("complete", "skip", "examination unavailable");
   const issues = [];
   if (!examination.endedAt) issues.push("session has no end time");
-  const missing = taskInstances(examination, parsed.snapshot).filter((i) => i.result === "Missing").length;
+  const instances = taskInstances(examination, parsed.snapshot);
+  const missing = instances.filter((i) => i.result === "Missing").length;
   if (missing) issues.push(`${missing} task instance(s) missing`);
+  if (instances.capped) issues.push("expected task list exceeds the limits and was capped");
   return issues.length ? check("complete", "warn", issues.join("; ")) : check("complete", "ok");
 }

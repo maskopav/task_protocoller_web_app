@@ -8,16 +8,29 @@
 import zlib from "zlib";
 
 /**
- * @param {{name: string, data: Buffer|string, store?: boolean}[]} entries  in archive order
+ * An entry with `aliasOf` (the name of an earlier entry) writes no data of its
+ * own: its central-directory record points at that entry's local header. That
+ * is the overlapping-entries zip bomb, one compressed blob inflated many times.
+ *
+ * @param {{name: string, data?: Buffer|string, store?: boolean, aliasOf?: string}[]} entries  in archive order
  * @returns {Buffer}
  */
 export function writeZip(entries) {
   const locals = [];
   const centrals = [];
+  const written = new Map(); // name -> its central record, for aliases
   let offset = 0;
 
   for (const entry of entries) {
     const name = Buffer.from(entry.name, "utf8");
+    if (entry.aliasOf !== undefined) {
+      const target = written.get(entry.aliasOf);
+      if (!target) throw new Error(`aliasOf: no earlier entry ${entry.aliasOf}`);
+      const central = Buffer.from(target);
+      central.writeUInt16LE(name.length, 28);
+      centrals.push(central, name);
+      continue;
+    }
     const data = Buffer.isBuffer(entry.data) ? entry.data : Buffer.from(entry.data, "utf8");
     const method = entry.store ? 0 : 8;
     const body = method === 8 ? zlib.deflateRawSync(data) : data;
@@ -51,6 +64,7 @@ export function writeZip(entries) {
     central.writeUInt16LE(name.length, 28);
     central.writeUInt32LE(offset, 42);    // local header offset (rest stays 0)
     centrals.push(central, name);
+    written.set(entry.name, central);
 
     offset += local.length + name.length + body.length;
   }

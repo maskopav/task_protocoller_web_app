@@ -1,9 +1,11 @@
 import { describe, it, expect, afterAll } from "vitest";
+import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
 import { validateArchive } from "./archiveValidator.js";
 import { buildSessionZip, VARIANTS, CONFIG_VERSION, INSTALLATION_ID } from "../../test/fixtures/buildSessionZip.js";
+import { writeZip } from "../../test/fixtures/zipWriter.js";
 
 const dirs = [];
 afterAll(() => dirs.forEach((d) => fs.rmSync(d, { recursive: true, force: true })));
@@ -39,6 +41,11 @@ const TABLE = {
   highRatio: ["invalid", "malformed", { archive: "bad", manifest: "skip" }],
   tooManyEntries: ["invalid", "malformed", { archive: "bad", ...ALL_SKIPPED }],
   directoryEntry: ["invalid", "malformed", { archive: "bad" }],
+  hugeRepetition: ["valid", null, { complete: "warn" }],
+  overlappingEntries: ["invalid", "malformed", { archive: "bad", manifest: "skip" }],
+  jsonTooLarge: ["invalid", "malformed", { archive: "bad" }],
+  nullTask: ["valid", null, {}],
+  longStrings: ["valid", null, {}],
 };
 
 describe("validateArchive", () => {
@@ -114,6 +121,74 @@ describe("validateArchive", () => {
     expect(results(v)).toEqual({ ...OK, archive: "bad", ...ALL_SKIPPED });
     expect(v.invalidReason).toBe("malformed");
     expect(Object.values(v.parsed).every((p) => p === null)).toBe(true);
+  });
+
+  describe("hostile archives end quickly", () => {
+    const detail = (v) => v.checks.find((c) => c.key === "archive").detail;
+    const timed = async (f) => {
+      const t0 = Date.now();
+      const v = await run(f);
+      return { v, ms: Date.now() - t0 };
+    };
+
+    it("hugeRepetition: the expected list is capped and the complete check says so", async () => {
+      const { v, ms } = await timed(build("hugeRepetition"));
+      expect(ms).toBeLessThan(2000);
+      expect(v.checks.find((c) => c.key === "complete").detail).toMatch(/capped/);
+    }, 3000);
+
+    it("overlappingEntries: an archive failure, and the shared data is never inflated", async () => {
+      const f = build("overlappingEntries");
+      const { v, ms } = await timed(f);
+      expect(ms).toBeLessThan(2000);
+      expect(detail(v)).toMatch(/share local data \(501 entries\)/);
+      expect(v.invalidReason).toBe("malformed");
+    }, 3000);
+
+    it("jsonTooLarge: the file is hashed but not parsed", async () => {
+      const v = await run(build("jsonTooLarge"));
+      expect(detail(v)).toMatch(/timeline_original\.json too large/);
+      expect(v.parsed.timelineOriginal).toBeNull();
+      expect(results(v).manifest).toBe("ok");
+    });
+
+    const tmpZip = (entries) => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hostile-"));
+      dirs.push(dir);
+      const file = path.join(dir, "h.zip");
+      fs.writeFileSync(file, writeZip(entries));
+      return file;
+    };
+    const ctx = { sessionId: "a".repeat(32), installationId: INSTALLATION_ID, siteKnown: true, currentConfigVersion: null };
+
+    it("many modest entries above 20x the ZIP size in total: nothing is inflated", async () => {
+      // 64 entries of 1 MiB at ~75:1 each, every one under the per-entry guard.
+      const blob = Buffer.alloc(1 << 20);
+      let seed = 1;
+      for (let i = 0; i < blob.length; i += 256) {
+        seed = (Math.imul(seed, 1103515245) + 12345) >>> 0;
+        blob[i] = seed >>> 24;
+      }
+      const file = tmpZip(Array.from({ length: 64 }, (_, i) => ({ name: `pad/${i}.bin`, data: blob })));
+      const v = await validateArchive(file, ctx);
+      expect(detail(v)).toMatch(/total uncompressed size too large/);
+      expect(Object.values(v.parsed).every((p) => p === null)).toBe(true);
+    });
+
+    it("JSON files above 16 MiB together are not parsed, even when each is under 4 MiB", async () => {
+      const big = Buffer.from(JSON.stringify({ padding: crypto.randomBytes(1_800_000).toString("hex") }));
+      const file = tmpZip(["manifest.json", "examination.json", "participant.json", "task_configuration_snapshot.json",
+        "timeline_original.json"].map((name) => ({ name, data: big, store: true })));
+      const v = await validateArchive(file, ctx);
+      expect(detail(v)).toMatch(/JSON files too large together/);
+      expect(Object.values(v.parsed).every((p) => p === null)).toBe(true);
+    });
+
+    it("an entry named like an Object.prototype key is not treated as a JSON file", async () => {
+      const file = tmpZip([{ name: "constructor", data: "not json" }]);
+      const v = await validateArchive(file, ctx);
+      expect(detail(v)).not.toMatch(/not valid JSON/);
+    });
   });
 
   it("a missing file is an I/O error and does throw", async () => {
