@@ -72,7 +72,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "https://localhost:5173,https
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-app.use(cors({
+const corsMiddleware = cors({
   origin(origin, callback) {
     // No Origin header at all means a same-origin browser request or a
     // non-browser client (curl, server-to-server) — neither is a CORS concern.
@@ -81,7 +81,18 @@ app.use(cors({
     }
     return callback(new Error("Not allowed by CORS"));
   },
-}));
+});
+// The one exception: the bundle download, which the page submits as a plain
+// HTML form so the browser streams a multi-GB archive to disk. That is a
+// navigation. Page scripts can never read its response, so CORS protects
+// nothing there, and it is authenticated by a short-lived download ticket in
+// the body that another site cannot obtain. Browsers send `Origin: null` for
+// such a POST from an https page to an http API (dev, e2e), which the list
+// above would refuse. A scripted request (Authorization header) still goes
+// through CORS.
+const isNativeBundlePost = (req) =>
+  req.method === "POST" && req.path === "/uploads/download" && !req.headers.authorization;
+app.use((req, res, next) => (isNativeBundlePost(req) ? next() : corsMiddleware(req, res, next)));
 app.use((err, req, res, next) => {
   if (err && err.message === "Not allowed by CORS") {
     return res.status(403).json({ error: "Not allowed by CORS" });

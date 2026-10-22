@@ -198,7 +198,11 @@ DoD: all of the above, existing tests green, committed.
 - [x] E read/review API · [x] F downloads (606 backend tests; all endpoints smoke-tested on the
   real DB as master and clinic admin. Fixed after merge: clip URL never matched exam_summary.
   Visible-but-read-only writes get 403, out of scope stays 404.)
-- [ ] G uploads + session pages · [ ] H devices + downloads pages
+- [x] G uploads + session pages · [x] H devices + downloads pages (frontend 111 tests; lead's
+  Playwright walk of all four pages as master, incl. a real browser bundle download from the
+  https dev page to the http API. Fixed after merge: .gitignore 'uploads' hid components/Uploads
+  on Windows. The native bundle POST is exempt from the CORS origin check (Origin: null on
+  https→http, ticket-authenticated, response unreadable by scripts).)
 - [ ] I dashboard cards · [ ] J e2e
 - [ ] K review fixes · [ ] L docs
 - [ ] End-to-end on the test container (spec §11, plan verification)
