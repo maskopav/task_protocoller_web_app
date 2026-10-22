@@ -351,9 +351,21 @@ reads `DATA_PATH`, so it needs no write access there.
 gunzip -c /mnt/backup/task-protocoller/db/20261022-023000.sql.gz | mariadb task_protocoller
 ```
 
-Restore into an empty database (see "Reset the database"); the dump contains `CREATE TABLE`
+Restore into an empty database (see "Reset the database"). The dump contains `CREATE TABLE`
 statements. Session ZIPs are copied back from `sessions/` into `DATA_PATH/sessions/`, keeping the
 same relative paths.
+
+The views in the dump are `DEFINER=taskprot SQL SECURITY DEFINER`. The restore fails with
+`ERROR 1356 ... definer/invoker of view lack rights` unless the `taskprot` user exists and has
+privileges on the target database. On a fresh server, create the user first (see "First-time
+setup"). To test a dump without touching the live data, restore it into a scratch database and
+grant the user on it for the duration:
+
+```bash
+mariadb -e "CREATE DATABASE restore_check; GRANT ALL PRIVILEGES ON restore_check.* TO 'taskprot'@'localhost'"
+gunzip -c <dump>.sql.gz | mariadb restore_check
+mariadb -e "DROP DATABASE restore_check; REVOKE ALL PRIVILEGES ON restore_check.* FROM 'taskprot'@'localhost'"
+```
 
 ### Add a new target type (SFTP, S3, WebDAV)
 

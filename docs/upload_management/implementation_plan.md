@@ -193,7 +193,7 @@ DoD: all of the above, existing tests green, committed.
 - [x] A ingest · [x] B validator/extractor (421 backend tests; real-DB smoke upload: valid,
   re-send, manifest mismatch and quarantine all behave per spec)
 - [x] C backup · [x] D devices (507 backend tests; real backup run: dump restores into a
-  scratch DB, ZIP copies byte-identical, incremental re-run copies nothing; device
+  scratch DB once the view DEFINER user has rights on it (documented), ZIP copies byte-identical, incremental re-run copies nothing; device
   registration, check-in, list and quarantine assignment verified against the real DB)
 - [ ] E read/review API · [ ] F downloads
 - [ ] G uploads + session pages · [ ] H devices + downloads pages
