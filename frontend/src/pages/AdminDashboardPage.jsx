@@ -11,6 +11,7 @@ import ProjectGrid from "../components/AdminDashboard/ProjectGrid";
 import SiteGrid from "../components/AdminDashboard/SiteGrid";
 import MasterTools from "../components/AdminDashboard/MasterTools";
 import MyTools from "../components/AdminDashboard/MyTools";
+import MonitoringCards from "../components/Uploads/cards/MonitoringCards";
 import ProjectModal from "../components/ProjectManagement/ProjectModal";
 import SiteModal from "../components/SiteManagement/SiteModal";
 
@@ -73,6 +74,8 @@ export default function AdminDashboardPage() {
           {t("adminDashboard.description")}
         </p>
       </div>
+
+      <MonitoringCards isMaster={user.role_id === 1} sitesCount={sites.length} />
 
       <SiteGrid
         sites={sites}

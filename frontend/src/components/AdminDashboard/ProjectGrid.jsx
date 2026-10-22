@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import StatusBadge from "../ProjectDashboard/StatusBadge";
+import UploadLine from "../Uploads/cards/UploadLine";
 import "./AdminDashboard.css";
 
 export default function ProjectGrid({ projects, onProjectClick }) {
@@ -24,6 +25,7 @@ export default function ProjectGrid({ projects, onProjectClick }) {
               <p>{project.countries}</p>
               <p className="project-descr">{project.description?.split('.')[0]}</p>
             </div>
+            <UploadLine projectId={project.project_id} />
           </div>
         ))}
       </div>

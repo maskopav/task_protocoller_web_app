@@ -1,0 +1,37 @@
+/* Upload cards embedded in the dashboard, site and project pages. Everything
+   hangs off .um-page (the Uploads.css scope) with .um-embed removing that
+   page's own width and padding. */
+.um-page.um-embed { display: flex; flex-direction: column; max-width: none; margin: 0; padding: 0; gap: 0.5rem; }
+.um-page.um-section { margin-bottom: 1.5rem; }
+.um-page .um-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.um-page .um-quiet { font-size: 0.82rem; color: var(--dark-gray); font-style: italic; }
+.um-page .um-head-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.um-page .um-section-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 0.75rem; align-items: start; }
+.um-page .um-side { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+.um-page .um-latest-note { padding: 1rem; }
+.um-page .um-mini-select { font: inherit; font-size: 0.78rem; border: 1px solid var(--border); border-radius: 6px; }
+.um-page .um-small-link { font-size: 0.82rem; }
+.um-page .um-count-row { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.86rem; }
+.um-page .um-device-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.86rem; }
+.um-page .um-device-name { display: flex; flex-direction: column; min-width: 0; }
+.um-page .um-device-name .um-muted { font-size: 0.75rem; }
+.um-page .stack { display: flex; flex-direction: column; }
+.um-page .cell-sub { font-size: 0.75rem; color: var(--dark-gray); }
+.um-page .cell-main { font-weight: 600; }
+.um-page .um-table tbody tr.clickable { cursor: pointer; }
+.um-page .um-table tbody tr.clickable:hover { background: var(--row-hover); }
+
+/* Dashboard cards */
+.um-link-card { text-decoration: none; color: inherit; }
+.um-link-card .icon.um-violet { background: #ede9fe; }
+.um-link-card .um-badges { flex-direction: row; flex-wrap: wrap; margin-top: 0.4rem; gap: 0.4rem; }
+.um-page .um-upline { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; font-size: 0.8rem; line-height: 1.3; text-align: center; font-weight: 400; color: var(--text); }
+.um-page .um-upline .um-muted { color: var(--muted); }
+
+/* Stats joined to the existing statistics card */
+.stat-value.um-bad { color: var(--danger); }
+.stat-value.um-warn { color: var(--warning); }
+
+@media (max-width: 900px) {
+  .um-page .um-section-grid { grid-template-columns: minmax(0, 1fr); }
+}

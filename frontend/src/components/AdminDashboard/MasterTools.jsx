@@ -7,6 +7,7 @@ import "./AdminDashboard.css";
 export default function MasterTools() {
   const navigate = useNavigate();
   const { t } = useTranslation(["admin"]);
+  const { t: tu } = useTranslation("uploads");
 
   return (
     <section className="dashboard-section master-tools">
@@ -39,6 +40,15 @@ export default function MasterTools() {
           <div className="text">
             <h3>{t("adminDashboard.masterTools.sites")}</h3>
             <p>{t("adminDashboard.masterTools.sitesDesc")}</p>
+          </div>
+        </button>
+
+        {/* Downloads Card (phase B upload management) */}
+        <button className="action-card btn-protocols" onClick={() => navigate("/admin/uploads/downloads")}>
+          <div className="icon">⬇</div>
+          <div className="text">
+            <h3>{tu("cards.downloads.title")}</h3>
+            <p>{tu("cards.downloads.desc")}</p>
           </div>
         </button>
       </div>

@@ -252,5 +252,69 @@
       "invalid_fields": "Pole se nepodařilo přečíst.",
       "unknown_field": "Neznámé pole."
     }
+  },
+  "cards": {
+    "unavailable": "Data o nahrávání nejsou momentálně dostupná.",
+    "noUploads": "Zatím žádná nahrávání",
+    "allClear": "Vše v pořádku",
+    "needAttention_one": "{{count}} vyžaduje pozornost",
+    "needAttention_few": "{{count}} vyžadují pozornost",
+    "needAttention_many": "{{count}} vyžaduje pozornost",
+    "needAttention_other": "{{count}} vyžaduje pozornost",
+    "thisWeek": "{{count}} tento týden",
+    "lastUpload": "Poslední nahrání {{when}}",
+    "monitoring": "Monitoring",
+    "byProtocol": "Podle protokolu",
+    "bySite": "Podle pracoviště",
+    "uploads": {
+      "title": "Nahrávání",
+      "desc": "Sezení nahraná z vašich pracovišť ({{count}}): kontroly po příjmu, posouzení a stahování."
+    },
+    "devices": {
+      "title": "Zařízení",
+      "desc": "Klinické počítače s desktopovou aplikací a sezení, která na ně stále čekají.",
+      "waiting": "{{count}} čeká",
+      "silent": "{{count}} bez odezvy",
+      "none": "Zatím žádná zařízení",
+      "all": "Všechna zařízení →",
+      "seen": "viděno {{when}}"
+    },
+    "health": {
+      "ok": "V pořádku",
+      "warn": "Nevyřízeno",
+      "bad": "Bez odezvy",
+      "off": "Bez nahrávání"
+    },
+    "downloads": {
+      "title": "Stahování",
+      "desc": "Stáhněte si data z více sezení."
+    },
+    "stats": {
+      "uploads30": "Nahrávání · 30 dní",
+      "invalid": "Neplatná",
+      "needsReview": "K posouzení"
+    },
+    "latest": {
+      "viewAll": "Zobrazit všech {{count}} →",
+      "viewAllNoCount": "Zobrazit vše →",
+      "goToDownloads": "Přejít na Stahování",
+      "empty": "Zatím žádná nahrávání.",
+      "project": "Projekt",
+      "site": "Pracoviště",
+      "device": "Zařízení"
+    },
+    "perDay": {
+      "title": "Nahrávání za den",
+      "daysShown": "Zobrazené dny",
+      "lastDays": "posledních {{count}} dní",
+      "aria": "Nahrávání za den, posledních {{count}} dní",
+      "bar": "{{date}}: {{count}}×",
+      "today": "dnes"
+    },
+    "sites": {
+      "sessions": "Sezení",
+      "lastUpload": "Poslední nahrání",
+      "attention": "Pozornost"
+    }
   }
 }

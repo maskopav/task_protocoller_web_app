@@ -11,6 +11,11 @@ import StatusBadge from "../components/ProjectDashboard/StatusBadge";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar"; 
 import ProjectModal from "../components/ProjectManagement/ProjectModal";
 
+import UploadStats from "../components/Uploads/cards/UploadStats";
+import UploadsSection from "../components/Uploads/cards/UploadsSection";
+import SiteRowUploadCells from "../components/Uploads/cards/SiteRowUploadCells";
+import { useUploadSummary } from "../components/Uploads/cards/hooks";
+
 import "./Pages.css";
 import "../components/ProjectDashboard/ProjectDashboard.css";
 
@@ -43,6 +48,9 @@ export default function ProjectDashboardPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const [uploadDays, setUploadDays] = useState(30);
+  const uploadSummary = useUploadSummary({ projectId }, uploadDays);
 
   const project = mappings?.projects?.find(p => p.id === Number(projectId));
   // Archived project, or one this admin only reaches through a clinic.
@@ -104,12 +112,14 @@ export default function ProjectDashboardPage() {
       </div>
 
       {/* Stats and Actions now sit higher on the page */}
-      <ProjectStats stats={stats} />
+      <ProjectStats stats={stats} extra={<UploadStats summary={uploadSummary} />} />
 
       <h2 className="section-heading">{t("projectDashboard.actionsTitle")}</h2>
       <ProjectActions
         onProtocols={() => navigate(`/admin/projects/${projectId}/protocols`)}
       />
+
+      <UploadsSection kind="project" projectId={projectId} summary={uploadSummary} days={uploadDays} onDaysChange={setUploadDays} />
 
       <h2 className="section-heading">{t("projectDashboard.sitesTitle")}</h2>
       <section className="section card">
@@ -123,6 +133,9 @@ export default function ProjectDashboardPage() {
                   <th>{t("management.siteManagement.table.name")}</th>
                   <th>{t("management.siteManagement.table.description")}</th>
                   <th>{t("management.siteManagement.table.status")}</th>
+                  <th>{t("cards.sites.sessions", { ns: "uploads" })}</th>
+                  <th>{t("cards.sites.lastUpload", { ns: "uploads" })}</th>
+                  <th>{t("cards.sites.attention", { ns: "uploads" })}</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,6 +148,7 @@ export default function ProjectDashboardPage() {
                     <td className="highlighted">{s.name}</td>
                     <td>{s.description}</td>
                     <td>{s.is_active ? t("management.status.active") : t("management.status.inactive")}</td>
+                    <SiteRowUploadCells siteId={s.id} projectId={projectId} />
                   </tr>
                 ))}
               </tbody>
