@@ -13,6 +13,7 @@
     "db:views": "node src/applyViews.js",
     "db:permissions": "node src/applyPermissions.js",
     "db:uploads": "node src/applyUploads.js",
+    "backup": "node src/runBackup.js",
     "db:sql": "node --env-file=.env src/dbConsole.js",
     "start:test": "node --env-file=.env.test server.js",
     "db:schema:diff": "node scripts/schema/compareSchemas.js"
