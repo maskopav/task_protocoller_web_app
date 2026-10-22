@@ -575,7 +575,7 @@ describe('delegated write rights', () => {
   };
 
   describe('createSite', () => {
-    const body = { name: 'New Clinic' };
+    const body = { name: 'New_Clinic' };
 
     it('refuses an admin without the create-sites right', async () => {
       mockRights({ editable: [7], mayCreate: false });
