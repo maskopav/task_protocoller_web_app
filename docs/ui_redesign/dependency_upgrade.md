@@ -137,3 +137,9 @@ The 2 low findings remain: `npm audit` says a fix exists, but the batch limits i
    5. Record a short clip and check that it completes and the result screen shows.
    6. Take a screenshot of the preview with guidance visible.
 3. Check one Czech and one German screen with `<Trans>` text (for example the audio intro and the completion screen) for correct formatting after react-i18next 17.
+
+## Open items (2026-10-25)
+
+- **Camera check postponed** by the user. This Windows Server VM has no camera, and the upgraded code isn't deployed yet. Run the manual camera check above on the test server after the next deploy, before the redesign is released.
+- Server Node version is still unverified. Run `node -v` on the server; it must satisfy `engines` (≥ 22.12).
+- E2E suite and one real password-reset email are still to be run at a checkpoint.
