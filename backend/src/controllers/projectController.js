@@ -1,158 +1,256 @@
-  // backend/src/controllers/projectController.js
-  import { executeQuery } from "../db/queryHelper.js";
-  import { firstInvalidEmail } from "../utils/fieldValidation.js";
-  import { getVisibleProjectIds, getEditableProjectIds, canCreateProjects, ownsRecord } from "../utils/accessScope.js";
+// backend/src/controllers/projectController.js
+import { executeQuery, executeTransaction } from "../db/queryHelper.js";
+import { firstInvalidEmail } from "../utils/fieldValidation.js";
+import { bumpConfigVersionForProject } from "../utils/configVersionBump.js";
+import {
+  getVisibleProjectIds,
+  getEditableProjectIds,
+  canCreateProjects,
+  ownsRecord,
+  scopeWhereClause,
+} from "../utils/accessScope.js";
 
-  // Masters see every project. Everyone else sees the projects resolved by
-  // accessScope.js — their explicit user_projects grants, or, when they have
-  // none, the projects reachable through the clinics they were given.
-  //
-  // The scope comes from req.admin (re-read from the DB by requireAuth), not
-  // from ?userId=&role= as before: those were client-supplied, so any admin
-  // could pass role=master and receive the full list.
-  export const getProjectList = async (req, res) => {
-    const isMaster = req.admin?.role === "master";
+// A "project" is a Study in the UI. Masters see every study; everyone else sees
+// the ones accessScope.js resolves (studies they edit plus studies running at
+// their clinics). The scope comes from req.admin, never from the client.
+//
+// Errors: 400 { error: "<snake_case>" } for validation, 403 for a visible study
+// the caller may not change, 404 for a study out of scope (never 403, so its
+// existence is not leaked).
 
-    try {
-        if (isMaster) {
-            const rows = await executeQuery("SELECT * FROM v_project_summary_stats", []);
-            return res.json(rows.map((r) => ({ ...r, can_edit: true })));
-        }
+const isMasterReq = (req) => req.admin?.role === "master";
 
-        const userId = req.admin?.id ?? null;
-        const projectIds = await getVisibleProjectIds(userId);
-        if (projectIds.length === 0) return res.json([]);
+const parseId = (raw) => {
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : null;
+};
 
-        const rows = await executeQuery(
-            "SELECT * FROM v_project_summary_stats WHERE project_id IN (?)",
-            [projectIds]
-        );
+// One row per study for the list and the detail read. The old summary-view
+// column names stay (project_id, project_name, project_is_active,
+// count_sites ...) next to the new ones, so the pages that still read them keep
+// working while the UI is rebuilt. Unreviewed counts recordings at clinics the
+// caller sees, so it can never leak a clinic's numbers.
+async function queryProjects(req, projectIds) {
+  const scope = scopeWhereClause(req.admin, "us");
+  const where = projectIds ? "WHERE s.project_id IN (?)" : "";
+  const params = [...scope.params, ...(projectIds ? [projectIds] : [])];
 
-        // can_edit lets the UI go read-only instead of letting the admin fill in
-        // a protocol editor only to be refused on save. The server check in
-        // saveProtocol is the actual gate; this is the hint.
-        const editable = await getEditableProjectIds(userId);
-        res.json(rows.map((r) => ({ ...r, can_edit: editable.includes(Number(r.project_id)) })));
-    } catch (err) {
-        console.error("Error fetching project list:", err);
-        res.status(500).json({ error: "Failed to fetch projects" });
+  return executeQuery(
+    `SELECT s.*,
+            p.id, p.name, p.end_date, p.contact_persons, p.contact_emails,
+            p.created_by, u.full_name AS creator_name,
+            s.count_sites AS site_count,
+            (SELECT COUNT(DISTINCT pr.protocol_group_id) FROM protocols pr
+              WHERE pr.project_id = p.id AND pr.is_current = 1 AND pr.is_archived = 0) AS protocol_count,
+            (SELECT COUNT(*) FROM upload_sessions us
+              WHERE us.project_id = p.id AND us.qc = 'unreviewed' AND ${scope.sql}) AS unreviewed
+     FROM v_project_summary_stats s
+     JOIN projects p ON p.id = s.project_id
+     LEFT JOIN users u ON u.id = p.created_by
+     ${where}
+     ORDER BY p.name`,
+    params
+  );
+}
+
+async function decorate(req, rows) {
+  const isMaster = isMasterReq(req);
+  const userId = req.admin?.id ?? null;
+  const editable = isMaster ? [] : await getEditableProjectIds(userId);
+  return rows.map((r) => ({
+    ...r,
+    site_count: Number(r.site_count),
+    protocol_count: Number(r.protocol_count),
+    unreviewed: Number(r.unreviewed),
+    can_edit: isMaster || editable.includes(Number(r.project_id)),
+    is_owner: userId != null && Number(r.created_by) === Number(userId),
+  }));
+}
+
+// GET /projects
+export const getProjectList = async (req, res) => {
+  try {
+    let ids = null;
+    if (!isMasterReq(req)) {
+      ids = await getVisibleProjectIds(req.admin?.id ?? null);
+      if (ids.length === 0) return res.json([]);
     }
-  };
+    res.json(await decorate(req, await queryProjects(req, ids)));
+  } catch (err) {
+    console.error("Error fetching project list:", err);
+    res.status(500).json({ error: "projects_fetch_failed" });
+  }
+};
 
-  export const createProject = async (req, res) => {
-    const { name, description, countries, contact_persons, contact_emails } = req.body;
-    
-    if (!name) return res.status(400).json({ error: "Project name is required" });
+// GET /projects/:id
+export const getProject = async (req, res) => {
+  const id = parseId(req.params.id);
+  if (id == null) return res.status(404).json({ error: "project_not_found" });
 
-    const badEmail = firstInvalidEmail(contact_emails);
-    if (badEmail) return res.status(400).json({ error: `Not a valid email address: ${badEmail}` });
-
-    // Creating projects is a per-user right a master switches on; it is not
-    // implied by holding any existing project.
-    const isMaster = req.admin?.role === "master";
-    const authorId = req.admin?.id ?? null;
-    if (!isMaster && !(await canCreateProjects(authorId))) {
-        return res.status(403).json({ error: "You are not allowed to create projects." });
+  try {
+    if (!isMasterReq(req)) {
+      const visible = await getVisibleProjectIds(req.admin?.id ?? null);
+      if (!visible.includes(id)) return res.status(404).json({ error: "project_not_found" });
     }
+    const [row] = await decorate(req, await queryProjects(req, [id]));
+    if (!row) return res.status(404).json({ error: "project_not_found" });
+    res.json(row);
+  } catch (err) {
+    console.error("Error fetching project:", err);
+    res.status(500).json({ error: "project_fetch_failed" });
+  }
+};
 
-    try {
-        const result = await executeQuery(
-            `INSERT INTO projects (name, description, countries, contact_persons, contact_emails, created_by, updated_by, start_date, updated_at, is_active)
-             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
-            [name, description, countries, contact_persons, contact_emails, authorId, authorId]
-        );
+const isDuplicate = (err) => err?.errno === 1062 || err?.code === "ER_DUP_ENTRY";
 
-        // The creator's own grant, written explicitly so it shows up in the
-        // assignments table and a master can take it away. Access is never
-        // implied by created_by — that only decides who may archive.
-        if (!isMaster && authorId != null) {
-            await executeQuery(
-                "INSERT INTO user_projects (user_id, project_id, can_edit) VALUES (?, ?, 1)",
-                [authorId, result.insertId]
-            );
-        }
+// POST /projects
+export const createProject = async (req, res) => {
+  const { name, description, countries, contact_persons, contact_emails } = req.body ?? {};
 
-        res.json({ success: true, id: result.insertId });
-    } catch (err) {
-        console.error("Create project error:", err);
-        res.status(500).json({ error: "Failed to create project" });
+  const trimmed = typeof name === "string" ? name.trim() : "";
+  if (!trimmed) return res.status(400).json({ error: "name_required" });
+
+  if (firstInvalidEmail(contact_emails)) return res.status(400).json({ error: "invalid_contact_email" });
+
+  // Creating studies is a per-user right a master switches on; it is not
+  // implied by editing any existing study.
+  const authorId = req.admin?.id ?? null;
+  if (!isMasterReq(req) && !(await canCreateProjects(authorId))) {
+    return res.status(403).json({ error: "not_allowed" });
+  }
+
+  try {
+    const id = await executeTransaction(async (conn) => {
+      const [result] = await conn.query(
+        `INSERT INTO projects (name, description, countries, contact_persons, contact_emails, created_by, updated_by, start_date, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)`,
+        [trimmed, description, countries, contact_persons, contact_emails, authorId, authorId]
+      );
+      // The creator is the study's first editor, so the study never has none.
+      if (authorId != null) {
+        await conn.query("INSERT INTO project_editors (user_id, project_id) VALUES (?, ?)", [authorId, result.insertId]);
+      }
+      return result.insertId;
+    });
+
+    res.status(201).json({ success: true, id });
+  } catch (err) {
+    if (isDuplicate(err)) return res.status(400).json({ error: "name_taken" });
+    console.error("Create project error:", err);
+    res.status(500).json({ error: "project_create_failed" });
+  }
+};
+
+// Checks the caller may write to the study. Answers the request itself (404
+// out of scope, 403 visible but not allowed) and returns false when it did.
+// creatorOnly is for archiving: it reaches every clinic running the study, so
+// it is the creator's call (and master's), not any editor's.
+async function requireWritableProject(req, res, id, { creatorOnly = false } = {}) {
+  const [exists] = await executeQuery("SELECT id FROM projects WHERE id = ?", [id]);
+  if (!exists) {
+    res.status(404).json({ error: "project_not_found" });
+    return false;
+  }
+  if (isMasterReq(req)) return true;
+
+  const userId = req.admin?.id ?? null;
+  const visible = await getVisibleProjectIds(userId);
+  if (!visible.includes(id)) {
+    res.status(404).json({ error: "project_not_found" });
+    return false;
+  }
+
+  if (creatorOnly) {
+    if (!(await ownsRecord(userId, "projects", id))) {
+      res.status(403).json({ error: "creator_only" });
+      return false;
     }
-  };
+    return true;
+  }
 
-  export const updateProject = async (req, res) => {
-    // Destructure is_active to use it in our date logic
-    const { id, name, description, countries, contact_persons, contact_emails, is_active, updated_by } = req.body;
-    
-    const badEmail = firstInvalidEmail(contact_emails);
-    if (badEmail) return res.status(400).json({ error: `Not a valid email address: ${badEmail}` });
+  const editable = await getEditableProjectIds(userId);
+  if (!editable.includes(id)) {
+    res.status(403).json({ error: "not_editor" });
+    return false;
+  }
+  return true;
+}
 
-    // Same rule as protocols: changing a project is gated on an explicit
-    // user_projects grant, never on access inherited through one of its clinics.
-    const isMaster = req.admin?.role === "master";
-    if (!isMaster) {
-        const editable = await getEditableProjectIds(req.admin?.id ?? null);
-        if (!editable.includes(Number(id))) {
-            return res.status(403).json({ error: "You do not have edit rights on this project." });
-        }
+// IFNULL, not overwrite: omitted => unchanged, "" => cleared. Deactivating
+// stamps end_date, reactivating clears it, anything else keeps it.
+async function writeProject(id, authorId, f) {
+  await executeQuery(
+    `UPDATE projects
+     SET name = IFNULL(?, name),
+         description = IFNULL(?, description),
+         countries = IFNULL(?, countries),
+         contact_persons = IFNULL(?, contact_persons),
+         contact_emails = IFNULL(?, contact_emails),
+         is_active = IFNULL(?, is_active),
+         end_date = CASE
+            WHEN ? = 0 THEN UTC_DATE()
+            WHEN ? = 1 THEN NULL
+            ELSE end_date
+         END,
+         updated_at = UTC_TIMESTAMP(),
+         updated_by = ?
+     WHERE id = ?`,
+    [
+      f.name, f.description, f.countries, f.contact_persons, f.contact_emails,
+      f.is_active, f.is_active, f.is_active, authorId, id,
+    ].map((v) => v ?? null)
+  );
+}
 
-        // Archiving is this app's delete, and it reaches further than the
-        // project: an inactive project drops out of v_site_protocols, so every
-        // clinic on it stops receiving its protocols at once. Editing metadata
-        // is fine with can_edit; flipping is_active is the owner's call.
-        // (updateSite already restricts clinics to their creator this way.)
-        if (is_active !== undefined && is_active !== null) {
-            const owns = await ownsRecord(req.admin?.id ?? null, "projects", id);
-            if (!owns) {
-                return res.status(403).json({
-                    error: "Only the project's creator can archive or restore it."
-                });
-            }
-        }
-    }
+// PATCH /projects/:id
+export const updateProject = async (req, res) => {
+  const id = parseId(req.params.id);
+  if (id == null) return res.status(404).json({ error: "project_not_found" });
 
-    // Authorship comes from the verified session, not the payload.
-    const authorId = req.admin?.id ?? updated_by ?? null;
+  const body = req.body ?? {};
+  const { description, countries, contact_persons, contact_emails } = body;
+  let { name, is_active } = body;
 
-    try {
-        await executeQuery(
-            `UPDATE projects 
-             SET name = IFNULL(?, name), 
-                 description = IFNULL(?, description), 
-                 /* IFNULL, not overwrite: ProjectManagementPage posts a partial
-                    { id, is_active, updated_by } payload on the archive toggle, and
-                    overwrite semantics would wipe every contact field. Omitted =>
-                    unchanged, "" => cleared. */
-                 countries = IFNULL(?, countries),
-                 contact_persons = IFNULL(?, contact_persons),
-                 contact_emails = IFNULL(?, contact_emails),
-                 is_active = IFNULL(?, is_active),
-                 /* Logic: If deactivated (0) -> set end_date to today. 
-                    If activated (1) -> set end_date to NULL. 
-                    If metadata update (null/undefined) -> keep current date. */
-                 end_date = CASE 
-                    WHEN ? = 0 THEN UTC_DATE() 
-                    WHEN ? = 1 THEN NULL 
-                    ELSE end_date 
-                 END,
-                 updated_at = UTC_TIMESTAMP(), 
-                 updated_by = ? 
-             WHERE id = ?`,
-            [
-                name, 
-                description, 
-                countries, 
-                contact_persons, 
-                contact_emails, 
-                is_active, 
-                is_active, // Parameter for CASE WHEN 0
-                is_active, // Parameter for CASE WHEN 1
-                authorId, 
-                id
-            ]
-        );
-        res.json({ success: true, message: "Project updated successfully" });
-    } catch (err) {
-        console.error("Update project error:", err);
-        res.status(500).json({ error: "Failed to update project" });
-    }
+  if (name !== undefined && name !== null) {
+    name = typeof name === "string" ? name.trim() : "";
+    if (!name) return res.status(400).json({ error: "name_required" });
+  }
+  if (firstInvalidEmail(contact_emails)) return res.status(400).json({ error: "invalid_contact_email" });
+
+  const touchesActive = is_active !== undefined && is_active !== null;
+  if (touchesActive) is_active = is_active ? 1 : 0;
+
+  try {
+    if (!(await requireWritableProject(req, res, id, { creatorOnly: touchesActive }))) return;
+
+    await writeProject(id, req.admin?.id ?? null, {
+      name, description, countries, contact_persons, contact_emails,
+      is_active: touchesActive ? is_active : null,
+    });
+    await bumpConfigVersionForProject(id); // the study name and active flag reach the desktop config
+    res.json({ success: true });
+  } catch (err) {
+    if (isDuplicate(err)) return res.status(400).json({ error: "name_taken" });
+    console.error("Update project error:", err);
+    res.status(500).json({ error: "project_update_failed" });
+  }
+};
+
+// POST /projects/:id/archive  { archived: boolean }
+export const archiveProject = async (req, res) => {
+  const id = parseId(req.params.id);
+  if (id == null) return res.status(404).json({ error: "project_not_found" });
+
+  const archived = req.body?.archived;
+  if (typeof archived !== "boolean") return res.status(400).json({ error: "archived_required" });
+
+  try {
+    if (!(await requireWritableProject(req, res, id, { creatorOnly: true }))) return;
+    await writeProject(id, req.admin?.id ?? null, { is_active: archived ? 0 : 1 });
+    await bumpConfigVersionForProject(id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Archive project error:", err);
+    res.status(500).json({ error: "project_archive_failed" });
+  }
 };

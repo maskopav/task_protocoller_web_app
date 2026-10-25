@@ -75,12 +75,9 @@ ssh share_web 'cd /opt/task-protocoller/backend && npm ci --omit=dev >/tmp/npm_c
   systemctl is-active task-protocoller && journalctl -u task-protocoller -n 5 --no-pager -o cat'
 ```
 
-If the change adds columns or tables, apply the non-destructive upgrade
-(`scripts/schema/alter_permissions.sql` and the views). This keeps existing data:
-
-```bash
-ssh share_web 'cd /opt/task-protocoller/backend && sudo -u taskprot node src/applyPermissions.js'
-```
+The schema is not migrated: when it changes, the database is recreated from `create_tables.sql`,
+`create_views.sql` and the seeds with `runInit.js` (existing data is discarded). There is no
+`db:permissions` step any more.
 
 Without rsync, ship exactly the git-tracked backend files with tar. Build the archive **first**
 and only clear the server side once it exists. `--force-local` stops GNU tar from reading `C:` in a
@@ -441,7 +438,7 @@ mounted and check `backup_runs`.
 | 403 "Not allowed by CORS" | The request's `Origin` isn't in `CORS_ORIGIN` in `.env` |
 | 429 on login or `/site-config` | Rate limit (10 logins or 20 failed site-config lookups per 15 min per client IP). `systemctl restart task-protocoller` clears it (the counters are in memory) |
 | Every request is 401 after upgrading | The token no longer matches the account's `token_version` (it goes up on every password change). Log in again |
-| `Unknown column 'token_version'` | Old schema: run `node src/applyPermissions.js` as shown above |
+| `Unknown column ...` or `Table ... doesn't exist` | Old schema: recreate the database with `runInit.js` (the schema is not migrated) |
 | `Table 'upload_sessions' doesn't exist` or similar after deploying phase B | Run `npm run db:uploads` (see below) |
 | Upload from the desktop app fails with 413 from nginx (HTML body, not JSON) | `client_max_body_size` on `/api/upload` is missing or too small (the generic `/api/` has 6m). Add the `location = /api/upload` block, `nginx -t`, reload. Also check any reverse proxy in front (the `malenia` one) |
 | Upload hangs, then 502/504 | `proxy_request_buffering off`, `proxy_read_timeout`/`proxy_send_timeout 600s` missing, or the client link is too slow for 600 s |

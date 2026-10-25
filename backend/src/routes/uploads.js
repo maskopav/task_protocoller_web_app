@@ -3,7 +3,7 @@
 // Downloads live in routes/uploadDownloads.js (task F), mounted on the same path.
 import express from "express";
 import {
-  listUploads, exportCsv, getSummary, getUpload, getAttempts,
+  listUploads, exportCsv, getSummary, getUpload, getAttempts, getActivity,
   revealParticipant, patchParticipant, putQc, getComments, addComment,
 } from "../controllers/uploadController.js";
 
@@ -15,6 +15,7 @@ router.get("/export.csv", exportCsv);
 router.get("/summary", getSummary);
 router.get("/:sessionId", getUpload);
 router.get("/:sessionId/attempts", getAttempts);
+router.get("/:sessionId/activity", getActivity);
 router.post("/:sessionId/reveal", revealParticipant);
 router.patch("/:sessionId/participant", patchParticipant);
 router.put("/:sessionId/qc", putQc);

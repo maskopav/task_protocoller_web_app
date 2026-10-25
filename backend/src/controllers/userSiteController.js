@@ -1,45 +1,40 @@
 // backend/src/controllers/userSiteController.js
-import { executeQuery } from "../db/queryHelper.js";
+// PUT /users/:id/sites { site_ids: [] } — replaces the user's clinic set (master only).
+import { executeQuery, executeTransaction } from "../db/queryHelper.js";
+import { logToFile } from "../utils/logger.js";
+import { refuseUnlessAdminTarget } from "./userController.js";
 
-  // Fetch all site assignments
-  export const getUserSiteAssignments = async (req, res) => {
-    try {
-      const rows = await executeQuery("SELECT * FROM v_user_site_assignments", []);
-      res.json(rows);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to fetch assignments" });
+const parseId = (v) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n > 0 ? n : null;
+};
+
+export const setUserSites = async (req, res) => {
+  const userId = parseId(req.params.id);
+  const raw = req.body?.site_ids;
+  if (!Array.isArray(raw) || !raw.every((s) => parseId(s))) {
+    return res.status(400).json({ error: "invalid_site_ids" });
+  }
+  const siteIds = [...new Set(raw.map(Number))];
+
+  try {
+    const refusal = await refuseUnlessAdminTarget(userId);
+    if (refusal) return res.status(refusal.status).json({ error: refusal.error });
+
+    if (siteIds.length > 0) {
+      const found = await executeQuery(`SELECT id FROM sites WHERE id IN (?)`, [siteIds]);
+      if (found.length !== siteIds.length) return res.status(400).json({ error: "unknown_site" });
     }
-  };
 
-  // Assign a user to a site
-  export const assignUserToSite = async (req, res) => {
-    const { user_id, site_id } = req.body;
-    try {
-      await executeQuery(
-        "INSERT INTO user_sites (user_id, site_id) VALUES (?, ?)",
-        [user_id, site_id]
-      );
-      res.json({ success: true });
-    } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({ error: "User is already assigned to this site." });
+    await executeTransaction(async (conn) => {
+      await conn.query(`DELETE FROM user_sites WHERE user_id = ?`, [userId]);
+      for (const siteId of siteIds) {
+        await conn.query(`INSERT INTO user_sites (user_id, site_id) VALUES (?, ?)`, [userId, siteId]);
       }
-      res.status(500).json({ error: "Failed to assign site" });
-    }
-  };
-
-  // Remove a site assignment from a user
-  export const removeUserSiteAssignment = async (req, res) => {
-    const { id } = req.params; // Using the assignment_id
-    try {
-        const result = await executeQuery("DELETE FROM user_sites WHERE id = ?", [id]);
-        // A blank success on a row that was not there reads as "removed"
-        // in the UI and hides the fact that nothing changed.
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: "Assignment not found" });
-        }
-        res.json({ success: true, message: "Assignment removed successfully" });
-    } catch (err) {
-        res.status(500).json({ error: "Failed to remove assignment" });
-    }
-  };
+    });
+    res.json({ success: true, site_ids: siteIds });
+  } catch (err) {
+    logToFile("ERROR", "Failed to set user sites", { userId, error: err.message, stack: err.stack });
+    res.status(500).json({ error: "internal" });
+  }
+};

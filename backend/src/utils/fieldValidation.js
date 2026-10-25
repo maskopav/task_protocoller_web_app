@@ -35,13 +35,18 @@ export const normalizeToken = (input) => {
 export const TOKEN_FORMAT_ERROR =
   "Access token must be 16-64 characters: letters, digits, _ or -";
 
-// The site name can be substituted into recording file names (${siteName}), so
-// it is limited to filename-safe ASCII. Enforced on create only: existing sites
-// ("Prague General Hospital") keep their names until someone renames them.
-export const isValidSiteName = (v) => /^[A-Za-z0-9_-]{1,32}$/.test(String(v ?? ""));
+// A clinic name is free text of 1-64 characters (spaces and accents allowed),
+// trimmed and not empty. The desktop app sanitises it itself when it builds file
+// names, so the server never has to restrict the alphabet (spec F-008).
+export const SITE_NAME_MAX_LENGTH = 64;
 
-export const SITE_NAME_FORMAT_ERROR =
-  "Site name must be 1-32 characters: letters, digits, _ or - (no spaces or dots)";
+export const isValidSiteName = (v) => {
+  if (typeof v !== "string") return false;
+  const name = v.trim();
+  return name.length >= 1 && name.length <= SITE_NAME_MAX_LENGTH;
+};
+
+export const SITE_NAME_FORMAT_ERROR = "site_name_invalid";
 
 // --- Desktop-app config fields ------------------------------------------------
 // Mirrors frontend/src/components/Identifiers/IdentifierFields.js.

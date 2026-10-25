@@ -21,25 +21,13 @@ CREATE TABLE `users` (
   `token_version` integer NOT NULL DEFAULT 0 COMMENT 'Bumped on every password change, JWTs carrying an older value are rejected'
 ); 
 
-CREATE TABLE `user_projects` (
+-- Who may change a study and its protocols. Seeing a study is a different claim
+-- and comes from user_sites (studies running at your clinics) or from this table.
+CREATE TABLE `project_editors` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `user_id` integer NOT NULL,
   `project_id` integer NOT NULL,
-  `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `can_edit` BOOLEAN NOT NULL DEFAULT 1 COMMENT 'Whether this assignment carries the right to change the project and its protocols'
-);
-
--- Which clinics of ONE project a user may see through that project. Rows here
--- are a whitelist scoped to (user, project): none at all means "all of the
--- project's clinics, including ones added later". It is deliberately separate
--- from user_sites -- that table says "you have this clinic", this one says
--- "you are narrowed to these" -- because carrying both meanings in one table is
--- what made every earlier version of the scoping contradict itself.
-CREATE TABLE `user_project_sites` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `user_id` integer NOT NULL,
-  `project_id` integer NOT NULL,
-  `site_id` integer NOT NULL
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE `projects` (
@@ -75,13 +63,9 @@ CREATE TABLE `protocols` (
   `required_identifiers` JSON DEFAULT NULL COMMENT 'Array of identifier objects {name, catalogue, label, help, placeholder, regex, required} (legacy: array of string ids)',
   `recordings_file_name` varchar(255) DEFAULT NULL COMMENT 'Desktop-app clip filename template, must contain ${taskIndex}',
   `instructions_pdf_url` varchar(512) DEFAULT NULL,
-  `is_archived` BOOLEAN NOT NULL DEFAULT false
-);
-
-CREATE TABLE `project_protocols` (
-  `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `project_id` integer NOT NULL,
-  `protocol_id` integer NOT NULL
+  `is_archived` BOOLEAN NOT NULL DEFAULT false,
+  `project_id` integer DEFAULT NULL COMMENT 'The study this protocol belongs to. NULL only for protocol library entries',
+  `copied_from_id` integer DEFAULT NULL COMMENT 'Study copy: the library version it came from. Library entry: the study protocol it was shared from'
 );
 
 CREATE TABLE `protocol_tasks` (
@@ -153,13 +137,13 @@ CREATE TABLE `user_sites` (
   `assigned_at` timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE UNIQUE INDEX `user_projects_index_0` ON `user_projects` (`user_id`, `project_id`);
+CREATE UNIQUE INDEX `project_editors_index` ON `project_editors` (`user_id`, `project_id`);
 
 CREATE UNIQUE INDEX `protocols_index_1` ON `protocols` (`protocol_group_id`, `version`, `language_id`);
 
-CREATE UNIQUE INDEX `protocols_index_2` ON `protocols` (`name`, `version`, `language_id`);
+CREATE UNIQUE INDEX `protocols_index_2` ON `protocols` (`project_id`, `name`, `version`, `language_id`);
 
-CREATE UNIQUE INDEX `project_protocols_index_3` ON `project_protocols` (`project_id`, `protocol_id`);
+CREATE INDEX `protocols_project_index` ON `protocols` (`project_id`);
 
 CREATE UNIQUE INDEX `protocol_tasks_index_4` ON `protocol_tasks` (`protocol_id`, `task_order`);
 
@@ -167,13 +151,11 @@ CREATE UNIQUE INDEX `site_projects_index` ON `site_projects` (`site_id`, `projec
 
 CREATE UNIQUE INDEX `user_sites_index` ON `user_sites` (`user_id`, `site_id`);
 
-CREATE UNIQUE INDEX `user_project_sites_index` ON `user_project_sites` (`user_id`, `project_id`, `site_id`);
-
 ALTER TABLE `users` ADD FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
-ALTER TABLE `user_projects` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `project_editors` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `user_projects` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
+ALTER TABLE `project_editors` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `projects` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
 
@@ -185,9 +167,9 @@ ALTER TABLE `protocols` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
 
 ALTER TABLE `protocols` ADD FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`);
 
-ALTER TABLE `project_protocols` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
+ALTER TABLE `protocols` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 
-ALTER TABLE `project_protocols` ADD FOREIGN KEY (`protocol_id`) REFERENCES `protocols` (`id`);
+ALTER TABLE `protocols` ADD FOREIGN KEY (`copied_from_id`) REFERENCES `protocols` (`id`) ON DELETE SET NULL;
 
 ALTER TABLE `protocol_tasks` ADD FOREIGN KEY (`protocol_id`) REFERENCES `protocols` (`id`);
 
@@ -206,9 +188,3 @@ ALTER TABLE `site_projects` ADD FOREIGN KEY (`project_id`) REFERENCES `projects`
 ALTER TABLE `user_sites` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `user_sites` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `user_project_sites` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `user_project_sites` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `user_project_sites` ADD FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE CASCADE;

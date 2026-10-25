@@ -90,6 +90,8 @@ export const deviceCheckin = async (req, res) => {
  * A device with no last-seen time counts as silent once it has uploaded.
  */
 export function deviceHealth(d, now = Date.now()) {
+  // F-045: a computer without a clinic is quarantined, whatever else it reports.
+  if (d.siteId === null) return { key: "unassigned", label: "Needs assignment", rank: -1 };
   if (d.neverUploaded) return { key: "off", label: "No uploads yet", rank: 2 };
   if (!d.lastUpload) return { key: "off", label: "No uploads in your scope", rank: 2 };
   const seen = d.lastSeenAt ? new Date(d.lastSeenAt).getTime() : NaN;
@@ -106,7 +108,7 @@ const iso = (v) => {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 };
 
-const emptyStats = () => ({ devices: 0, healthy: 0, waiting: 0, failed: 0, silent: 0 });
+const emptyStats = () => ({ devices: 0, healthy: 0, waiting: 0, failed: 0, silent: 0, unassigned: 0 });
 
 // GET /devices[?siteId=]
 export const listDevices = async (req, res) => {
@@ -137,11 +139,12 @@ export const listDevices = async (req, res) => {
       `SELECT d.id, d.installation_id, d.label, d.site_id, s.name AS site_name, d.app_version,
               d.last_config_version, d.last_config_at, d.last_seen_at, d.local_pending, d.local_failed,
               (SELECT MAX(us.received_at) FROM upload_sessions us
-                WHERE us.device_id = d.id AND ${scope.sql}) AS last_upload,
+                WHERE us.device_id = d.id AND us.site_id IS NOT NULL AND ${scope.sql}) AS last_upload,
               (SELECT COUNT(*) FROM upload_sessions us
-                WHERE us.device_id = d.id AND ${scope.sql}
+                WHERE us.device_id = d.id AND us.site_id IS NOT NULL AND ${scope.sql}
                   AND us.received_at >= UTC_TIMESTAMP() - INTERVAL 30 DAY) AS uploads30,
-              EXISTS (SELECT 1 FROM upload_sessions ua WHERE ua.device_id = d.id) AS has_uploads
+              EXISTS (SELECT 1 FROM upload_sessions ua
+                       WHERE ua.device_id = d.id AND ua.site_id IS NOT NULL) AS has_uploads
        FROM devices d
        LEFT JOIN sites s ON s.id = d.site_id
        ${where.length ? `WHERE ${where.join(" AND ")}` : ""}`,
@@ -181,6 +184,7 @@ export const listDevices = async (req, res) => {
     for (const d of devices) {
       if (d.health.key === "ok") stats.healthy++;
       if (d.health.key === "bad") stats.silent++;
+      if (d.health.key === "unassigned") stats.unassigned++;
       if (!d.backlogHidden) { stats.waiting += d.pending; stats.failed += d.failed; }
       delete d.rank;
     }

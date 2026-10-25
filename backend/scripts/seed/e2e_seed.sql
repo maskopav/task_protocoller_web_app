@@ -11,8 +11,8 @@
 -- Builds one protocol (three task types) linked to project 1, plus a site with
 -- a fixed access token so the Playwright E2E tests can fetch
 -- /site-config/<token> without an extra setup API call.
--- NOTE: artificial_data.sql already seeds sites 1-2 and project_protocols is
--- empty at this point; ids below continue from there.
+-- NOTE: artificial_data.sql already seeds sites 1-2 and no protocols exist yet,
+-- so protocol ids below start at 1.
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -20,10 +20,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 1) Protocol
 -- --------------------------
 INSERT INTO protocols
-  (id, protocol_group_id, name, language_id, version, is_current, created_by,
+  (id, protocol_group_id, project_id, name, language_id, version, is_current, created_by,
    randomization, use_audio_guide, required_identifiers)
 VALUES
-  (1, 1, 'E2E Test Protocol', 1, 1, 1, 1,
+  (1, 1, 1, 'E2E Test Protocol', 1, 1, 1, 1,
    '{"strategy":"none"}', 0, '[]');
 
 -- --------------------------
@@ -45,11 +45,8 @@ INSERT INTO protocol_tasks (protocol_id, task_id, task_order, params) VALUES
   (1, 6, 3, '{"title": "Quick Check", "questions": [{"id": "q1", "type": "single", "text": "How did that feel?", "options": ["Good", "Bad"]}]}');
 
 -- --------------------------
--- 4) project_protocols — links protocol 1 to project 1 (from artificial_data.sql)
+-- 4) Protocol 1 belongs to project 1 (protocols.project_id, set in step 1)
 -- --------------------------
-INSERT INTO project_protocols (id, project_id, protocol_id)
-VALUES
-  (1, 1, 1);
 
 -- --------------------------
 -- 5) E2E site — the fixed access_token the E2E tests fetch /site-config with.
@@ -78,33 +75,65 @@ VALUES
   (5, 'E2E Clinic B', 'Upload tests: clinic B', 'e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5', '{"defaultLanguage":"en","languages":["en"]}', 1, 1);
 
 INSERT INTO protocols
-  (id, protocol_group_id, name, language_id, version, is_current, created_by,
+  (id, protocol_group_id, project_id, name, language_id, version, is_current, created_by,
    randomization, use_audio_guide, required_identifiers)
 VALUES
-  (2, 2, 'Speech battery', 1, 1, 1, 1, '{"strategy":"none"}', 0, '[]');
-
-INSERT INTO project_protocols (id, project_id, protocol_id) VALUES (2, 3, 2);
+  (2, 2, 3, 'Speech battery', 1, 1, 1, 1, '{"strategy":"none"}', 0, '[]');
 
 INSERT INTO site_projects (site_id, project_id) VALUES (4, 3), (5, 3);
 
-INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_change_password`) VALUES
-('clinic@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Clinic Admin', 2, 0),
-('editor@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Project Editor', 2, 0),
-('reviewer@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Read-only Reviewer', 2, 0),
-('nogrant@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'No Grants', 2, 0);
+-- Study 3 has an editor (not assigned to clinic A, for the strict-scope test), a
+-- researcher with two clinics, a clinician who only receives it, and a user with
+-- no grants at all.
+INSERT INTO users (`email`, `password_hash`, `full_name`, `role_id`, `must_change_password`, `can_create_projects`) VALUES
+('clinic@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Clinic Admin', 2, 0, 0),
+('editor@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Project Editor', 2, 0, 0),
+('reviewer@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Read-only Reviewer', 2, 0, 0),
+('nogrant@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'No Grants', 2, 0, 0),
+('researcher@test.com', '$2b$10$/mFCk6K0PxTUKHKusGPFMedj6oJD9Dul3219rfQ8Jhr4BTTNP8F/q', 'Multi-site Researcher', 2, 0, 1);
 
--- clinic: site grant only (E2E Clinic A)
+-- clinic: one clinic (E2E Clinic A), receives study 3 read-only
 INSERT INTO user_sites (user_id, site_id)
 SELECT id, 4 FROM users WHERE email = 'clinic@test.com';
 
--- editor: project 3 with edit rights, narrowed to E2E Clinic B (site 5)
-INSERT INTO user_projects (user_id, project_id, can_edit)
-SELECT id, 3, 1 FROM users WHERE email = 'editor@test.com';
-INSERT INTO user_project_sites (user_id, project_id, site_id)
-SELECT id, 3, 5 FROM users WHERE email = 'editor@test.com';
+-- editor: edits study 3, assigned to E2E Clinic B only (not to clinic A)
+INSERT INTO project_editors (user_id, project_id)
+SELECT id, 3 FROM users WHERE email = 'editor@test.com';
+INSERT INTO user_sites (user_id, site_id)
+SELECT id, 5 FROM users WHERE email = 'editor@test.com';
 
--- reviewer: project 3, read-only, all of its clinics
-INSERT INTO user_projects (user_id, project_id, can_edit)
-SELECT id, 3, 0 FROM users WHERE email = 'reviewer@test.com';
+-- researcher: edits study 3 and sees both of its clinics
+INSERT INTO project_editors (user_id, project_id)
+SELECT id, 3 FROM users WHERE email = 'researcher@test.com';
+INSERT INTO user_sites (user_id, site_id)
+SELECT id, 4 FROM users WHERE email = 'researcher@test.com';
+INSERT INTO user_sites (user_id, site_id)
+SELECT id, 5 FROM users WHERE email = 'researcher@test.com';
+
+-- reviewer: sees both clinics of study 3, edits nothing (receives it)
+INSERT INTO user_sites (user_id, site_id)
+SELECT id, 4 FROM users WHERE email = 'reviewer@test.com';
+INSERT INTO user_sites (user_id, site_id)
+SELECT id, 5 FROM users WHERE email = 'reviewer@test.com';
+
+-- --------------------------
+-- 7) Protocol library. Entries have project_id NULL and never reach a config.
+-- 3 = source of the video entry, archived so it stays out of study 3's configs
+-- 4 = library copy of Speech battery (protocol 2), with one task so it is usable
+-- 5 = library copy of 'Video sample' (protocol 3)
+-- Each library entry is its own group, authored by the master.
+-- --------------------------
+INSERT INTO protocols
+  (id, protocol_group_id, project_id, name, language_id, version, is_current, is_archived, created_by,
+   randomization, use_audio_guide, required_identifiers, copied_from_id)
+VALUES
+  (3, 3, 3, 'Video sample', 1, 1, 1, 1, 1, '{"strategy":"none"}', 0, '[]', NULL),
+  (4, 4, NULL, 'Speech battery', 1, 1, 1, 0, 1, '{"strategy":"none"}', 0, '[]', 2),
+  (5, 5, NULL, 'Video sample', 1, 1, 1, 0, 1, '{"strategy":"none"}', 0, '[]', 3);
+
+INSERT INTO protocol_tasks (protocol_id, task_id, task_order, params) VALUES
+  (3, 10, 1, '{"duration": 5}'),
+  (4, 5, 1, '{"duration": 5}'),
+  (5, 10, 1, '{"duration": 5}');
 
 SET FOREIGN_KEY_CHECKS = 1;

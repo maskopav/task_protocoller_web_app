@@ -67,7 +67,7 @@ describe('parseListQuery / buildListQuery', () => {
     expect(q.sql).toMatch(/COALESCE\(us\.ended_at, us\.processed_at\) >= \?/);
     expect(q.sql).toMatch(/video_clips > 0/);
     expect(q.sql.match(/JSON_CONTAINS\(us\.flags, JSON_QUOTE\(\?\)\)/g)).toHaveLength(2);
-    expect(q.countParams.length).toBe(q.params.length - 2); // can_edit scope params
+    expect(q.countParams.length).toBe(q.params.length - 1); // can_edit scope param
   });
 
   it('filters a project given by name through the project name', () => {
@@ -240,7 +240,7 @@ describe('getSummary', () => {
     vi.resetModules();
     executeQuery.mockImplementation(async (sql) => {
       if (sql.includes('FROM user_sites WHERE user_id')) return [{ id: 3 }];
-      if (sql.includes('FROM user_projects')) return [];
+      if (sql.includes('FROM project_editors')) return [];
       return [];
     });
     const res = makeRes();

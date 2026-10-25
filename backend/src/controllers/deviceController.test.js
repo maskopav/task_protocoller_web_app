@@ -6,6 +6,7 @@ vi.mock('../db/queryHelper.js', () => ({
 }));
 
 const { executeQuery, executeTransaction } = await import('../db/queryHelper.js');
+const { scopeWhereClause } = await import('../utils/accessScope.js');
 const {
   deviceCheckin,
   deviceHealth,
@@ -28,7 +29,11 @@ const NOW = Date.parse('2026-10-22T12:00:00Z');
 const daysAgo = (n) => new Date(NOW - n * 24 * 3600e3).toISOString();
 
 describe('deviceHealth', () => {
-  const base = { neverUploaded: false, lastUpload: daysAgo(1), lastSeenAt: daysAgo(1), pending: 0, failed: 0 };
+  const base = { siteId: 5, neverUploaded: false, lastUpload: daysAgo(1), lastSeenAt: daysAgo(1), pending: 0, failed: 0 };
+  it('unassigned: a computer without a clinic needs assignment, whatever else it reports (F-045)', () => {
+    expect(deviceHealth({ ...base, siteId: null }, NOW)).toMatchObject({ key: 'unassigned', label: 'Needs assignment', rank: -1 });
+    expect(deviceHealth({ ...base, siteId: null, neverUploaded: true, lastSeenAt: daysAgo(30) }, NOW).key).toBe('unassigned');
+  });
   it('off: never uploaded', () => {
     expect(deviceHealth({ ...base, neverUploaded: true }, NOW)).toMatchObject({ key: 'off', label: 'No uploads yet' });
   });
@@ -142,11 +147,11 @@ describe('listDevices', () => {
     expect(sql).not.toContain('d.site_id IN');
     expect(params).toEqual([]);
     const { devices, stats } = res.json.mock.calls[0][0];
-    expect(devices.map((d) => d.installationId)).toEqual(['silent', 'new', 'a-ok', 'b-ok']);
-    expect(devices[1]).toMatchObject({ siteId: null, siteName: null, neverUploaded: true, health: { key: 'off' } });
-    expect(devices[0]).toMatchObject({ lastSeenAt: '2020-01-01T00:00:00.000Z', backlogHidden: false, health: { key: 'bad' } });
+    expect(devices.map((d) => d.installationId)).toEqual(['new', 'silent', 'a-ok', 'b-ok']);
+    expect(devices[0]).toMatchObject({ siteId: null, siteName: null, neverUploaded: true, health: { key: 'unassigned', label: 'Needs assignment' } });
+    expect(devices[1]).toMatchObject({ lastSeenAt: '2020-01-01T00:00:00.000Z', backlogHidden: false, health: { key: 'bad' } });
     expect(devices[0]).not.toHaveProperty('rank');
-    expect(stats).toEqual({ devices: 4, healthy: 2, waiting: 3 + 9, failed: 1 + 1, silent: 1 });
+    expect(stats).toEqual({ devices: 4, healthy: 2, waiting: 3 + 9, failed: 1 + 1, silent: 1, unassigned: 1 });
   });
 
   it('scoped admin: restricts by visible sites in SQL and scopes the session subqueries', async () => {
@@ -158,9 +163,10 @@ describe('listDevices', () => {
 
     const [sql, params] = deviceQuery();
     expect(sql).toContain('d.site_id IN (?)');
-    expect(sql).toContain('user_sites usx');
-    // scope params twice (last upload, count 30d), then the site list
-    expect(params).toEqual([2, 2, 2, 2, [5, 6]]);
+    // the scope predicate is embedded twice (last upload, count 30d), then the site list
+    const scoped = scopeWhereClause(admin, 'us');
+    expect(sql).toContain(scoped.sql);
+    expect(params).toEqual([...scoped.params, ...scoped.params, [5, 6]]);
     expect(res.json.mock.calls[0][0].devices[0]).toMatchObject({ pending: 3, failed: 1, backlogHidden: false });
   });
 
@@ -181,8 +187,18 @@ describe('listDevices', () => {
   it('returns an empty list without querying devices when no site is visible', async () => {
     const res = makeRes();
     await listDevices(req(admin), res);
-    expect(res.json).toHaveBeenCalledWith({ devices: [], stats: { devices: 0, healthy: 0, waiting: 0, failed: 0, silent: 0 } });
+    expect(res.json).toHaveBeenCalledWith({ devices: [], stats: { devices: 0, healthy: 0, waiting: 0, failed: 0, silent: 0, unassigned: 0 } });
     expect(deviceQuery()).toBeUndefined();
+  });
+
+  it('does not count quarantined (site-less) or invalid-site uploads as uploads (F-045)', async () => {
+    deviceRows = [row({})];
+    await listDevices(req(master), makeRes());
+    const [sql] = deviceQuery();
+    const lastUpload = sql.slice(sql.indexOf('AS last_upload') - 200, sql.indexOf('AS last_upload'));
+    expect(lastUpload).toContain('us.site_id IS NOT NULL');
+    expect(sql).toMatch(/ua\.device_id = d\.id AND ua\.site_id IS NOT NULL\) AS has_uploads/);
+    expect((sql.match(/us\.site_id IS NOT NULL/g) ?? []).length).toBe(2);
   });
 
   it('applies ?siteId as an extra AND and rejects garbage', async () => {

@@ -1,7 +1,8 @@
 // Session visibility/edit rule (accessScope.scopeWhereClause) against a real
-// MariaDB, using the four personas of the UI design (ui_design/assets/mock-data.js)
-// plus a whitelist-narrowed admin and a stranger. Mocked-SQL tests can only
-// check the predicate's shape; this checks what it actually selects.
+// MariaDB. The rule is strict: a recording is visible through its clinic and
+// nothing else, so editing a study never widens it (spec criterion 8).
+// Mocked-SQL tests can only check the predicate's shape; this checks what it
+// actually selects.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import crypto from "crypto";
 import { testDbAvailable, withRollback, closeTestDb } from "../helpers/testDb.js";
@@ -31,17 +32,17 @@ async function buildWorld(q) {
 
   const users = {
     master: await user("master", masterRole),
-    projectAdmin: await user("pa"),
+    editorNoClinic: await user("en"),
+    editorOneClinic: await user("e1"),
     clinicAdmin: await user("ca"),
-    reviewer: await user("rv"),
-    narrowed: await user("nw"),
     stranger: await user("xx"),
   };
-  await q(`INSERT INTO user_projects (user_id, project_id, can_edit) VALUES (?, ?, 1)`, [users.projectAdmin, P1]);
+  // Edits study P1 but is assigned to no clinic at all: sees no recordings.
+  await q(`INSERT INTO project_editors (user_id, project_id) VALUES (?, ?)`, [users.editorNoClinic, P1]);
+  // Edits P1 and has clinic S2 only: sees S2's recordings, not S1's of the same study.
+  await q(`INSERT INTO project_editors (user_id, project_id) VALUES (?, ?)`, [users.editorOneClinic, P1]);
+  await q(`INSERT INTO user_sites (user_id, site_id) VALUES (?, ?)`, [users.editorOneClinic, S2]);
   await q(`INSERT INTO user_sites (user_id, site_id) VALUES (?, ?)`, [users.clinicAdmin, S1]);
-  await q(`INSERT INTO user_projects (user_id, project_id, can_edit) VALUES (?, ?, 0)`, [users.reviewer, P1]);
-  await q(`INSERT INTO user_projects (user_id, project_id, can_edit) VALUES (?, ?, 1)`, [users.narrowed, P1]);
-  await q(`INSERT INTO user_project_sites (user_id, project_id, site_id) VALUES (?, ?, ?)`, [users.narrowed, P1, S2]);
 
   const device = (await q(`INSERT INTO devices (installation_id) VALUES (?)`, [`dev-${t}`])).insertId;
   const sessions = {};
@@ -76,11 +77,10 @@ async function selected(q, world, who, opts) {
 const EXPECTED = {
   //             see       edit
   master:       ["abcdeq", "abcdeq"],
-  projectAdmin: ["ab",     "ab"],
-  clinicAdmin:  ["ade",    "ade"],
-  reviewer:     ["ab",     ""],
-  narrowed:     ["b",      "b"],
-  stranger:     ["",       ""],
+  editorNoClinic:  ["",    ""],
+  editorOneClinic: ["b",   "b"],
+  clinicAdmin:     ["ade", "ade"],
+  stranger:        ["",    ""],
 };
 
 describe.skipIf(!dbUp)("scopeWhereClause against MariaDB", () => {

@@ -1,33 +1,21 @@
 // src/utils/accessScope.js
 //
 // Resolves what a non-master admin may see and change. Masters never reach this
-// module — callers short-circuit on req.admin.role === "master".
+// module -- callers short-circuit on req.admin.role === "master".
 //
-// THREE TABLES, THREE DISTINCT CLAIMS
-//   user_projects       "you have this project"        (+ can_edit: may change it)
-//   user_sites          "you have this clinic"
-//   user_project_sites  "through THIS project you see only THESE of its clinics"
+// TWO TABLES, TWO CLAIMS (docs/ui_redesign/02_spec.md section 4)
+//   user_sites       "you have this clinic"
+//   project_editors  "you may change this study and its protocols"
 //
-// Everything is a union. There is no "an empty axis means not specified"
-// rule any more: narrowing is never inferred from the absence of rows, it is
-// stated in user_project_sites and applies only inside its own project. Three
-// earlier versions inferred it, and each one broke somewhere else — creating a
-// clinic silently hid the clinics reachable through your projects, or a master
-// could not narrow you away from a clinic you had created.
+//   clinics you see   = user_sites
+//   studies you edit  = project_editors
+//   studies you see   = studies running at your clinics + studies you edit
+//   recordings you see/review = recordings whose clinic you see (strict:
+//                       editing a study does not widen it)
 //
-//   projects you see   = granted projects (editable per can_edit)
-//                      + projects of your granted clinics (read-only)
-//
-//   clinics you see    = granted clinics
-//                      + per granted project: its whitelist, or all its clinics
-//
-// A project reached only through a clinic is never editable: a protocol is
-// shared by every clinic on its project, so inherited access must not rewrite
-// what the other clinics run.
-//
-// Because "all its clinics" is resolved live from site_projects, a clinic added
-// to an unrestricted project shows up on its own; a restricted one is a
-// whitelist and does not grow by itself.
+// A study reached only through a clinic is *received*: visible, never editable.
+// A protocol is shared by every clinic running its study, so inherited access
+// must not rewrite what the other clinics run.
 import { executeQuery } from "../db/queryHelper.js";
 
 const union = (...lists) => [...new Set(lists.flat())];
@@ -37,7 +25,17 @@ export async function getEditableProjectIds(userId) {
   if (userId == null) return [];
 
   const rows = await executeQuery(
-    `SELECT project_id AS id FROM user_projects WHERE user_id = ? AND can_edit = 1`,
+    `SELECT project_id AS id FROM project_editors WHERE user_id = ?`,
+    [userId]
+  );
+  return toIds(rows);
+}
+
+export async function getVisibleSiteIds(userId) {
+  if (userId == null) return [];
+
+  const rows = await executeQuery(
+    `SELECT site_id AS id FROM user_sites WHERE user_id = ?`,
     [userId]
   );
   return toIds(rows);
@@ -46,12 +44,8 @@ export async function getEditableProjectIds(userId) {
 export async function getVisibleProjectIds(userId) {
   if (userId == null) return [];
 
-  // Deliberately ignores can_edit: a read-only assignment still grants sight.
-  const [granted, viaClinics] = await Promise.all([
-    executeQuery(
-      `SELECT project_id AS id FROM user_projects WHERE user_id = ?`,
-      [userId]
-    ),
+  const [edited, viaClinics] = await Promise.all([
+    getEditableProjectIds(userId),
     executeQuery(
       `SELECT DISTINCT sp.project_id AS id
        FROM user_sites us
@@ -60,40 +54,17 @@ export async function getVisibleProjectIds(userId) {
       [userId]
     ),
   ]);
-  return union(toIds(granted), toIds(viaClinics));
+  return union(edited, toIds(viaClinics));
 }
 
-export async function getVisibleSiteIds(userId) {
-  if (userId == null) return [];
+export async function canEditProject(userId, projectId) {
+  if (userId == null || projectId == null) return false;
 
-  const [granted, viaProjects] = await Promise.all([
-    executeQuery(
-      `SELECT site_id AS id FROM user_sites WHERE user_id = ?`,
-      [userId]
-    ),
-    // NOT EXISTS / EXISTS rather than a LEFT JOIN: "this project has no
-    // whitelist" and "this clinic is not on the whitelist" both surface as a
-    // NULL in a join and have to stay distinguishable.
-    executeQuery(
-      `SELECT DISTINCT sp.site_id AS id
-       FROM user_projects up
-       JOIN site_projects sp ON sp.project_id = up.project_id
-       WHERE up.user_id = ?
-         AND (
-           NOT EXISTS (
-             SELECT 1 FROM user_project_sites r
-             WHERE r.user_id = up.user_id AND r.project_id = up.project_id
-           )
-           OR EXISTS (
-             SELECT 1 FROM user_project_sites r
-             WHERE r.user_id = up.user_id AND r.project_id = up.project_id
-               AND r.site_id = sp.site_id
-           )
-         )`,
-      [userId]
-    ),
-  ]);
-  return union(toIds(granted), toIds(viaProjects));
+  const rows = await executeQuery(
+    `SELECT 1 FROM project_editors WHERE user_id = ? AND project_id = ? LIMIT 1`,
+    [userId, projectId]
+  );
+  return rows.length > 0;
 }
 
 // The two creation rights. Both are switched on per user by a master and are
@@ -130,6 +101,14 @@ export async function ownsRecord(userId, table, id) {
   return rows.length > 0;
 }
 
+// Who may browse the protocol library and add entries to a study: anyone who
+// writes protocols. Masters are short-circuited by the caller.
+export async function canUseLibrary(userId) {
+  if (userId == null) return false;
+  if (await canCreateProjects(userId)) return true;
+  return (await getEditableProjectIds(userId)).length > 0;
+}
+
 // Convenience for the endpoints that need both axes at once.
 export async function getVisibleScope(userId) {
   const [projectIds, siteIds] = await Promise.all([
@@ -141,53 +120,37 @@ export async function getVisibleScope(userId) {
 
 // --- Uploaded sessions (phase B) ---------------------------------------------
 //
-// A session belongs to one (site, project) pair, and the rule is the same one
-// as above, applied to that pair instead of to lists of ids:
-//
-//   see   = site in user_sites
-//         OR project granted AND the site is allowed through that grant
-//            (on the project's site_projects, and on its whitelist if it has one)
-//   edit  = site in user_sites (clinic staff correct their own recordings)
-//         OR the grant above carries can_edit
+// A session belongs to one clinic, and the rule is the clinic rule and nothing
+// else: you see and review (QC, comments, participant edits) a session when its
+// clinic is one of yours. Editing a study never widens this.
 //
 // Quarantined sessions (site_id NULL, unknown device) are master-only.
 //
 // The rule exists exactly once, as a SQL predicate over an upload_sessions
 // alias. Lists and aggregates filter with it, and the per-row checks evaluate
 // the same predicate, so a session can never show up in a list yet 404 on open
-// (or the reverse).
+// (or the reverse). `editable` is accepted for the callers that distinguish
+// see from edit; both are the same rule now.
 const SQL_ALIAS = /^[a-z_][a-z0-9_]*$/;
 
-export function scopeWhereClause(admin, alias = "us", { editable = false } = {}) {
+export function scopeWhereClause(admin, alias = "us") {
   if (!SQL_ALIAS.test(alias)) throw new Error(`scopeWhereClause: bad alias ${alias}`);
   if (admin?.role === "master") return { sql: "1=1", params: [] };
   const userId = admin?.id ?? null;
   if (userId == null) return { sql: "1=0", params: [] };
 
-  const sql = `(${alias}.site_id IS NOT NULL AND (
-    EXISTS (SELECT 1 FROM user_sites usx
-            WHERE usx.user_id = ? AND usx.site_id = ${alias}.site_id)
-    OR EXISTS (
-      SELECT 1 FROM user_projects upx
-      JOIN site_projects spx ON spx.project_id = upx.project_id AND spx.site_id = ${alias}.site_id
-      WHERE upx.user_id = ? AND upx.project_id = ${alias}.project_id${editable ? " AND upx.can_edit = 1" : ""}
-        AND (
-          NOT EXISTS (SELECT 1 FROM user_project_sites r
-                      WHERE r.user_id = upx.user_id AND r.project_id = upx.project_id)
-          OR EXISTS (SELECT 1 FROM user_project_sites r
-                     WHERE r.user_id = upx.user_id AND r.project_id = upx.project_id
-                       AND r.site_id = ${alias}.site_id)
-        )
-    )
+  const sql = `(${alias}.site_id IS NOT NULL AND EXISTS (
+    SELECT 1 FROM user_sites usx
+    WHERE usx.user_id = ? AND usx.site_id = ${alias}.site_id
   ))`;
-  return { sql, params: [userId, userId] };
+  return { sql, params: [userId] };
 }
 
 // row: an upload_sessions row, or anything carrying its primary key as `id`.
-async function sessionMatches(admin, row, opts) {
+async function sessionMatches(admin, row) {
   if (row?.id == null) return false;
   if (admin?.role === "master") return true;
-  const scope = scopeWhereClause(admin, "us", opts);
+  const scope = scopeWhereClause(admin, "us");
   const rows = await executeQuery(
     `SELECT 1 FROM upload_sessions us WHERE us.id = ? AND ${scope.sql}`,
     [row.id, ...scope.params]
@@ -195,5 +158,5 @@ async function sessionMatches(admin, row, opts) {
   return rows.length > 0;
 }
 
-export const canSeeSession = (admin, row) => sessionMatches(admin, row, { editable: false });
-export const canEditSession = (admin, row) => sessionMatches(admin, row, { editable: true });
+export const canSeeSession = (admin, row) => sessionMatches(admin, row);
+export const canEditSession = (admin, row) => sessionMatches(admin, row);

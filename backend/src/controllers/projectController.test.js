@@ -5,8 +5,9 @@ vi.mock('../db/queryHelper.js', () => ({
   executeTransaction: vi.fn(),
 }));
 
-const { executeQuery } = await import('../db/queryHelper.js');
-const { getProjectList, createProject, updateProject } = await import('./projectController.js');
+const { executeQuery, executeTransaction } = await import('../db/queryHelper.js');
+const { getProjectList, getProject, createProject, updateProject, archiveProject } =
+  await import('./projectController.js');
 
 const makeRes = () => {
   const res = {};
@@ -16,277 +17,288 @@ const makeRes = () => {
 };
 
 const ids = (arr) => arr.map((id) => ({ id }));
+const master = { id: 1, role: 'master' };
+const admin = { id: 2, role: 'admin' };
 
-// Everything accessScope asks on the way to a controller's own query. Miss one
-// and unrelated assertions start counting it as the main call.
-const isScopeQuery = (sql) =>
-  sql.includes('FROM user_projects WHERE user_id') ||
-  sql.includes('FROM user_sites WHERE user_id') ||
-  sql.includes('DISTINCT sp.') ||
-  sql.includes('AND created_by = ?') ||
-  sql.includes('AS flag FROM users');
-
-const statsRows = [{ project_id: 7, project_name: 'Project A' }];
-
-// Five lookups, told apart by their SQL:
-//   ... AND can_edit = 1        -- editable projects
-//   DISTINCT sp.project_id      -- projects reached through granted clinics
-//   DISTINCT sp.site_id         -- clinics reached through granted projects
-//   FROM user_projects WHERE    -- granted projects (any can_edit)
-//   FROM user_sites WHERE       -- granted clinics
-const mockGrants = ({ projects = [], sites = [], viaClinics = [], editable = null }, rows = statsRows) => {
+// What accessScope asks on the way to a controller's own query, told apart by
+// its SQL. Anything else is the controller's own statement and returns `rows`.
+const mockWorld = ({
+  editors = [], viaClinics = [], canCreate = false, owns = false, exists = true, rows = [],
+} = {}) => {
   executeQuery.mockImplementation(async (sql) => {
-    if (sql.includes('can_edit = 1')) return ids(editable ?? projects);
+    if (sql.includes('FROM project_editors WHERE user_id = ?')) return ids(editors);
     if (sql.includes('DISTINCT sp.project_id')) return ids(viaClinics);
-    if (sql.includes('DISTINCT sp.site_id')) return [];
-    if (sql.includes('FROM user_projects WHERE user_id')) return ids(projects);
-    if (sql.includes('FROM user_sites WHERE user_id')) return ids(sites);
+    if (sql.includes('AS flag FROM users')) return [{ flag: canCreate ? 1 : 0 }];
+    if (sql.includes('AND created_by = ?')) return owns ? [{ 1: 1 }] : [];
+    if (sql.includes('SELECT id FROM projects WHERE id = ?')) return exists ? [{ id: 1 }] : [];
     return rows;
   });
 };
 
+const isScopeQuery = (sql) =>
+  sql.includes('FROM project_editors WHERE user_id = ?') ||
+  sql.includes('DISTINCT sp.') ||
+  sql.includes('AND created_by = ?') ||
+  sql.includes('AS flag FROM users') ||
+  sql.includes('SELECT id FROM projects WHERE id = ?');
 const mainCalls = () => executeQuery.mock.calls.filter(([sql]) => !isScopeQuery(sql));
+
+const row = (over = {}) => ({
+  project_id: 7, project_name: 'Project A', created_by: 2, site_count: '2', protocol_count: '3', unreviewed: '1', ...over,
+});
 
 beforeEach(() => {
   executeQuery.mockReset();
+  executeTransaction.mockReset();
 });
 
 describe('getProjectList', () => {
-  it('returns every project for a master', async () => {
-    executeQuery.mockResolvedValueOnce(statsRows);
+  it('returns every study for a master, all editable', async () => {
+    mockWorld({ rows: [row({ created_by: 5 })] });
 
     const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 1, role: 'master' } }, res);
+    await getProjectList({ query: {}, admin: master }, res);
 
-    const [sql] = executeQuery.mock.calls[0];
-    expect(sql).toBe('SELECT * FROM v_project_summary_stats');
-    // can_edit tells the UI whether to render the project read-only.
-    expect(res.json).toHaveBeenCalledWith([{ ...statsRows[0], can_edit: true }]);
+    const [sql] = mainCalls()[0];
+    expect(sql).toContain('v_project_summary_stats');
+    expect(sql).not.toContain('IN (?)');
+    expect(res.json).toHaveBeenCalledWith([
+      expect.objectContaining({ project_id: 7, can_edit: true, is_owner: false, site_count: 2, protocol_count: 3, unreviewed: 1 }),
+    ]);
   });
 
-  it('marks a project reached only through a clinic as not editable', async () => {
-    mockGrants({ sites: [1], viaClinics: [7] });
+  it('scopes a non-master to the studies they edit and the ones at their clinics', async () => {
+    mockWorld({ editors: [7], viaClinics: [8], rows: [row(), row({ project_id: 8, created_by: 9 })] });
 
     const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 2, role: 'admin' } }, res);
-
-    const [payload] = res.json.mock.calls[0];
-    expect(payload[0].can_edit).toBe(false);
-  });
-
-  it('marks an explicitly granted project as editable', async () => {
-    mockGrants({ projects: [7] });
-
-    const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 2, role: 'admin' } }, res);
-
-    const [payload] = res.json.mock.calls[0];
-    expect(payload[0].can_edit).toBe(true);
-  });
-
-  it('scopes to the explicit user_projects grant', async () => {
-    mockGrants({ projects: [7, 8] });
-
-    const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 2, role: 'admin' } }, res);
+    await getProjectList({ query: {}, admin: admin }, res);
 
     const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('WHERE project_id IN (?)');
-    expect(params).toEqual([[7, 8]]);
+    expect(sql).toContain('IN (?)');
+    expect(params.at(-1)).toEqual([7, 8]);
+    const items = res.json.mock.calls[0][0];
+    expect(items.map((i) => [i.project_id, i.can_edit, i.is_owner])).toEqual([[7, true, true], [8, false, false]]);
   });
 
-  it('derives projects from the granted sites when no project was specified', async () => {
-    // Ticking only a clinic must hand over that clinic's projects.
-    mockGrants({ sites: [1], viaClinics: [7, 8] });
+  it('limits the unreviewed count to clinics the caller sees', async () => {
+    mockWorld({ editors: [7], rows: [row()] });
+    await getProjectList({ query: {}, admin: admin }, makeRes());
 
-    const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 2, role: 'admin' } }, res);
-
-    const [, params] = mainCalls()[0];
-    expect(params).toEqual([[7, 8]]);
+    const [sql, params] = mainCalls()[0];
+    expect(sql).toContain('user_sites usx');
+    expect(params[0]).toBe(2);
   });
 
-  it('unions a direct grant with the projects reached through clinics', async () => {
-    // Nothing replaces anything any more: a grant on one axis never switches
-    // off what the other one reaches. Narrowing is stated in
-    // user_project_sites and applies only inside its own project.
-    mockGrants({ projects: [7], sites: [1], viaClinics: [8, 9] });
-
+  it('answers an empty list without a main query when nothing is in scope', async () => {
+    mockWorld({});
     const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(mainCalls()[0][1]).toEqual([[7, 8, 9]]);
-  });
-
-  it('returns an empty list when the admin has no grant on either axis', async () => {
-    mockGrants({});
-
-    const res = makeRes();
-    await getProjectList({ query: {}, admin: { id: 2, role: 'admin' } }, res);
-
+    await getProjectList({ query: {}, admin: admin }, res);
     expect(res.json).toHaveBeenCalledWith([]);
     expect(mainCalls()).toHaveLength(0);
   });
 
-  it('ignores a spoofed userId/role in the query string', async () => {
-    mockGrants({ projects: [7] });
-
+  it('500s with a code on a database error', async () => {
+    executeQuery.mockRejectedValue(new Error('boom'));
     const res = makeRes();
-    // Claiming to be the master in the query string must change nothing.
-    await getProjectList(
-      { query: { userId: '1', role: 'master' }, admin: { id: 2, role: 'admin' } },
-      res
-    );
+    await getProjectList({ query: {}, admin: master }, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'projects_fetch_failed' });
+  });
+});
 
-    const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('WHERE project_id IN (?)');
-    expect(params).toEqual([[7]]);
+describe('getProject', () => {
+  it('404s for a study outside the caller scope', async () => {
+    mockWorld({ editors: [7] });
+    const res = makeRes();
+    await getProject({ params: { id: '99' }, admin: admin }, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: 'project_not_found' });
+  });
+
+  it('marks a study received through a clinic as not editable', async () => {
+    mockWorld({ viaClinics: [8], rows: [row({ project_id: 8, created_by: 9 })] });
+    const res = makeRes();
+    await getProject({ params: { id: '8' }, admin: admin }, res);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ project_id: 8, can_edit: false, is_owner: false }));
+  });
+
+  it('404s for a master on an unknown study', async () => {
+    mockWorld({ rows: [] });
+    const res = makeRes();
+    await getProject({ params: { id: '99' }, admin: master }, res);
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 });
 
 describe('createProject', () => {
-  const body = { name: 'New Study' };
+  const body = { name: ' Study X ', description: 'd', countries: 'CZ', contact_persons: 'A', contact_emails: 'a@b.org' };
+  const conn = { query: vi.fn() };
 
-  const mockCreate = ({ allowed = false } = {}) => {
-    executeQuery.mockImplementation(async (sql) => {
-      if (sql.includes('can_create_projects') && sql.includes('FROM users')) {
-        return [{ flag: allowed ? 1 : 0 }];
-      }
-      if (sql.includes('INSERT INTO projects')) return { insertId: 42 };
-      return [];
-    });
-  };
-
-  it('refuses an admin the master has not given the right', async () => {
-    mockCreate({ allowed: false });
-
-    const res = makeRes();
-    await createProject({ body, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INSERT INTO projects'))).toBe(false);
+  beforeEach(() => {
+    conn.query.mockReset();
+    conn.query.mockResolvedValueOnce([{ insertId: 42 }]).mockResolvedValue([{}]);
+    executeTransaction.mockImplementation(async (cb) => cb(conn));
   });
 
-  it('allows an admin holding can_create_projects', async () => {
-    mockCreate({ allowed: true });
-
+  it('requires a name', async () => {
     const res = makeRes();
-    await createProject({ body, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).not.toHaveBeenCalledWith(403);
-    const insert = executeQuery.mock.calls.find(([sql]) => sql.includes('INSERT INTO projects'));
-    expect(insert[1].slice(-2)).toEqual([2, 2]); // created_by / updated_by from the session
-  });
-
-  it('grants the creator an explicit, revocable assignment', async () => {
-    // Not inferred from created_by: the row is what makes the access show up in
-    // the assignments table and lets a master take it away again.
-    mockCreate({ allowed: true });
-
-    const res = makeRes();
-    await createProject({ body, admin: { id: 2, role: 'admin' } }, res);
-
-    const grant = executeQuery.mock.calls.find(([sql]) => sql.includes('INSERT INTO user_projects'));
-    expect(grant).toBeTruthy();
-    expect(grant[0]).toContain('can_edit');
-    expect(grant[1]).toEqual([2, 42]);
-  });
-
-  it('does not self-assign for a master, who sees everything anyway', async () => {
-    executeQuery.mockImplementation(async (sql) => {
-      if (sql.includes('INSERT INTO projects')) return { insertId: 42 };
-      return [];
-    });
-
-    const res = makeRes();
-    await createProject({ body, admin: { id: 1, role: 'master' } }, res);
-
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INSERT INTO user_projects'))).toBe(false);
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('can_create_projects'))).toBe(false);
-  });
-
-  it('rejects a nameless project before checking anything else', async () => {
-    executeQuery.mockResolvedValue([]);
-
-    const res = makeRes();
-    await createProject({ body: {}, admin: { id: 2, role: 'admin' } }, res);
-
+    await createProject({ body: { name: '  ' }, admin: master }, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(executeQuery).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ error: 'name_required' });
+  });
+
+  it('rejects an invalid contact email', async () => {
+    const res = makeRes();
+    await createProject({ body: { ...body, contact_emails: 'nope' }, admin: master }, res);
+    expect(res.json).toHaveBeenCalledWith({ error: 'invalid_contact_email' });
+  });
+
+  it('403s without the can_create_projects right', async () => {
+    mockWorld({ canCreate: false });
+    const res = makeRes();
+    await createProject({ body, admin: admin }, res);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it('makes the creator the first editor', async () => {
+    mockWorld({ canCreate: true });
+    const res = makeRes();
+    await createProject({ body, admin: admin }, res);
+
+    expect(conn.query.mock.calls[0][1][0]).toBe('Study X');
+    const [sql, params] = conn.query.mock.calls[1];
+    expect(sql).toContain('INSERT INTO project_editors');
+    expect(params).toEqual([2, 42]);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({ success: true, id: 42 });
+  });
+
+  it('lets a master create without the flag', async () => {
+    const res = makeRes();
+    await createProject({ body, admin: master }, res);
+    expect(res.json).toHaveBeenCalledWith({ success: true, id: 42 });
+  });
+
+  it('answers a duplicate name with 400 name_taken', async () => {
+    executeTransaction.mockRejectedValue({ errno: 1062 });
+    const res = makeRes();
+    await createProject({ body, admin: master }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'name_taken' });
   });
 });
 
-// Archiving a project is this app's delete, and it reaches every clinic on the
-// project at once (an inactive project drops out of v_site_protocols). can_edit
-// is enough to change metadata; flipping is_active is the creator's call.
 describe('updateProject', () => {
-  const mockRights = ({ editable = [7], owns = false } = {}) => {
+  const req = (over = {}) => ({ params: { id: '7' }, body: { name: 'New name' }, admin: admin, ...over });
+
+  it('takes the id from the path, not the body', async () => {
+    mockWorld({ editors: [7] });
+    const res = makeRes();
+    await updateProject(req({ body: { id: 99, name: 'New name' } }), res);
+
+    const [, params] = mainCalls().find(([sql]) => sql.includes('UPDATE projects'));
+    expect(params.at(-1)).toBe(7);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('404s for a study the caller cannot see', async () => {
+    mockWorld({ editors: [8] });
+    const res = makeRes();
+    await updateProject(req(), res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(mainCalls().some(([sql]) => sql.includes('UPDATE'))).toBe(false);
+  });
+
+  it('403s for a received study', async () => {
+    mockWorld({ viaClinics: [7] });
+    const res = makeRes();
+    await updateProject(req(), res);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ error: 'not_editor' });
+    expect(mainCalls().some(([sql]) => sql.includes('UPDATE'))).toBe(false);
+  });
+
+  it('lets a master edit without any assignment', async () => {
+    mockWorld({});
+    const res = makeRes();
+    await updateProject(req({ admin: master }), res);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('keeps archiving to the creator, even for another editor', async () => {
+    mockWorld({ editors: [7], owns: false });
+    const res = makeRes();
+    await updateProject(req({ body: { is_active: false } }), res);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ error: 'creator_only' });
+  });
+
+  it('rejects a blank name and a bad email before touching the database', async () => {
+    let res = makeRes();
+    await updateProject(req({ body: { name: ' ' } }), res);
+    expect(res.json).toHaveBeenCalledWith({ error: 'name_required' });
+
+    res = makeRes();
+    await updateProject(req({ body: { contact_emails: 'x' } }), res);
+    expect(res.json).toHaveBeenCalledWith({ error: 'invalid_contact_email' });
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+
+  it('answers a duplicate name with 400 name_taken', async () => {
     executeQuery.mockImplementation(async (sql) => {
-      if (sql.includes('can_edit = 1')) return ids(editable);
-      if (sql.includes('DISTINCT sp.')) return [];
-      if (sql.includes('FROM user_projects WHERE user_id')) return ids(editable);
-      if (sql.includes('FROM user_sites WHERE user_id')) return [];
-      if (sql.includes('SELECT id FROM') && sql.includes('WHERE created_by')) return [];
-      if (sql.includes('AND created_by = ?')) return owns ? [{ 1: 1 }] : [];
-      return {};
+      if (sql.includes('UPDATE projects')) throw { code: 'ER_DUP_ENTRY' };
+      if (sql.includes('SELECT id FROM projects')) return [{ id: 7 }];
+      return [];
     });
-  };
-
-  it('refuses to archive a project the caller did not create', async () => {
-    mockRights({ editable: [7], owns: false });
-
     const res = makeRes();
-    await updateProject({ body: { id: 7, name: 'X', is_active: 0 }, admin: { id: 2, role: 'admin' } }, res);
+    await updateProject(req({ admin: master }), res);
+    expect(res.json).toHaveBeenCalledWith({ error: 'name_taken' });
+  });
+});
 
+describe('archiveProject', () => {
+  const req = (over = {}) => ({ params: { id: '7' }, body: { archived: true }, admin: admin, ...over });
+
+  it('requires a boolean archived flag', async () => {
+    const res = makeRes();
+    await archiveProject(req({ body: {} }), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'archived_required' });
+  });
+
+  it('lets the creator archive, which sets is_active to 0', async () => {
+    mockWorld({ editors: [7], owns: true });
+    const res = makeRes();
+    await archiveProject(req(), res);
+
+    const [, params] = mainCalls().find(([sql]) => sql.includes('UPDATE projects'));
+    expect(params.slice(5, 8)).toEqual([0, 0, 0]);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('restores with archived false', async () => {
+    mockWorld({ editors: [7], owns: true });
+    await archiveProject(req({ body: { archived: false } }), makeRes());
+    const [, params] = mainCalls().find(([sql]) => sql.includes('UPDATE projects'));
+    expect(params.slice(5, 8)).toEqual([1, 1, 1]);
+  });
+
+  it('403s for an editor who is not the creator', async () => {
+    mockWorld({ editors: [7], owns: false });
+    const res = makeRes();
+    await archiveProject(req(), res);
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('UPDATE projects'))).toBe(false);
   });
 
-  it('refuses to restore one either', async () => {
-    mockRights({ editable: [7], owns: false });
+  it('404s for a study out of scope and lets a master through', async () => {
+    mockWorld({});
+    let res = makeRes();
+    await archiveProject(req(), res);
+    expect(res.status).toHaveBeenCalledWith(404);
 
-    const res = makeRes();
-    await updateProject({ body: { id: 7, name: 'X', is_active: 1 }, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(403);
-  });
-
-  it('still allows metadata edits with can_edit alone', async () => {
-    mockRights({ editable: [7], owns: false });
-
-    const res = makeRes();
-    await updateProject({ body: { id: 7, name: 'Renamed' }, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).not.toHaveBeenCalledWith(403);
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('UPDATE projects'))).toBe(true);
-  });
-
-  it('lets the creator archive their own project', async () => {
-    mockRights({ editable: [7], owns: true });
-
-    const res = makeRes();
-    await updateProject({ body: { id: 7, name: 'X', is_active: 0 }, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).not.toHaveBeenCalledWith(403);
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('UPDATE projects'))).toBe(true);
-  });
-
-  it('lets a master archive anything, without an ownership lookup', async () => {
-    executeQuery.mockResolvedValue({});
-
-    const res = makeRes();
-    await updateProject({ body: { id: 7, name: 'X', is_active: 0 }, admin: { id: 1, role: 'master' } }, res);
-
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('AND created_by = ?'))).toBe(false);
-    expect(executeQuery.mock.calls.some(([sql]) => sql.includes('UPDATE projects'))).toBe(true);
-  });
-
-  it('refuses a project outside the caller edit scope before anything else', async () => {
-    mockRights({ editable: [8], owns: true });
-
-    const res = makeRes();
-    await updateProject({ body: { id: 7, name: 'X' }, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(403);
+    res = makeRes();
+    await archiveProject(req({ admin: master }), res);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
   });
 });

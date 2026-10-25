@@ -12,15 +12,14 @@ SELECT
     p.updated_at,
     p.updated_by,
     -- Join Data
-    pp.project_id,
+    p.project_id,
     pr.name AS project_name,
     pr.end_date AS project_end_date,
     -- Aggregated Counts (Default to 0 if NULL)
     COALESCE(agg.n_tasks, 0) AS n_tasks,
     COALESCE(agg.n_quest, 0) AS n_quest
 FROM protocols p
-JOIN project_protocols pp ON p.id = pp.protocol_id
-JOIN projects pr ON pp.project_id = pr.id
+JOIN projects pr ON p.project_id = pr.id
 -- Efficient Aggregation Join
 LEFT JOIN (
     SELECT 
@@ -30,7 +29,10 @@ LEFT JOIN (
     FROM protocol_tasks pt 
     JOIN tasks t ON pt.task_id = t.id 
     GROUP BY pt.protocol_id
-) agg ON agg.protocol_id = p.id;
+) agg ON agg.protocol_id = p.id
+-- Library entries (project_id NULL) drop out through the join above, and an
+-- archived protocol is no longer part of its study.
+WHERE p.is_archived = 0;
 
 
 
@@ -91,23 +93,22 @@ JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
 ORDER BY u.id;
 
--- View for the User-Project Assignments Table
+-- View for the study editors (who may change a study and its protocols)
 CREATE OR REPLACE VIEW v_user_project_assignments AS
 SELECT 
-    up.id as assignment_id,
-    up.user_id,
+    pe.id as assignment_id,
+    pe.user_id,
     u.full_name as user_name,
-    u.email as user_email, -- Added email
+    u.email as user_email,
     p.id as project_id,
     p.name as project_name,
-    up.can_edit,
-    up.assigned_at
-FROM user_projects up
-JOIN users u ON up.user_id = u.id
-JOIN projects p ON up.project_id = p.id
+    pe.created_at as assigned_at
+FROM project_editors pe
+JOIN users u ON pe.user_id = u.id
+JOIN projects p ON pe.project_id = p.id
 JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
-ORDER BY up.user_id, p.name;
+ORDER BY pe.user_id, p.name;
 
 -- View for the User-Site Assignments Table
 CREATE OR REPLACE VIEW v_user_site_assignments AS
@@ -159,7 +160,8 @@ SELECT
     JSON_VALUE(params, CONCAT('$.questions[', n, '].type')) AS q_type
 FROM seq;
 
--- Site -> project -> current protocol spine.
+-- Site -> project -> current protocol spine. Library entries have no project
+-- and never appear here.
 -- Used by the site config endpoint and the admin site/project detail reads.
 CREATE OR REPLACE VIEW v_site_protocols AS
 SELECT
@@ -177,6 +179,5 @@ SELECT
 FROM sites s
 JOIN site_projects sp     ON sp.site_id = s.id
 JOIN projects pr          ON pr.id = sp.project_id AND pr.is_active = 1
-JOIN project_protocols pp ON pp.project_id = pr.id
-JOIN protocols proto      ON proto.id = pp.protocol_id AND proto.is_current = 1
+JOIN protocols proto      ON proto.project_id = pr.id AND proto.is_current = 1 AND proto.is_archived = 0
 JOIN languages l          ON l.id = proto.language_id;

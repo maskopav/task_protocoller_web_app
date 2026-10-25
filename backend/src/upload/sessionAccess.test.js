@@ -19,8 +19,9 @@ describe('findScopedSession', () => {
     expect(row).toMatchObject({ id: 5, can_edit: true });
     const [sql, params] = executeQuery.mock.calls[0];
     expect(sql).toContain('us.site_id IS NOT NULL');
-    expect(sql).toContain('upx.can_edit = 1');
-    expect(params).toEqual([2, 2, SID, 2, 2]);
+    expect(sql).toContain('user_sites');
+    expect(sql).not.toContain('can_edit = 1');
+    expect(params).toEqual([2, SID, 2]);
   });
 
   it('is null when the scope excludes the row (same as missing)', async () => {

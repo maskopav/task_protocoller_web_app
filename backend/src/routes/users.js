@@ -1,21 +1,22 @@
-// src/routes/users.js
+// src/routes/users.js — user management, master only.
 import express from "express";
-import { getAllUsers,
-    toggleUserStatus,
-    createAdmin,
-    updateUser
- } from "../controllers/userController.js";
+import {
+  getAllUsers,
+  getUserById,
+  createAdmin,
+  updateUser,
+} from "../controllers/userController.js";
+import { setUserSites } from "../controllers/userSiteController.js";
 import { requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// The admin list (emails + permission flags) only feeds the master-only
-// AdminManagementPage, so non-masters have no reason to read it.
-router.get("/users", requireRole("master"), getAllUsers);
+router.use(requireRole("master"));
 
-// Managing other admin accounts is restricted to the master role.
-router.post("/toggle-status", requireRole("master"), toggleUserStatus);
-router.post("/create", requireRole("master"), createAdmin);
-router.put("/update", requireRole("master"), updateUser);
+router.get("/", getAllUsers);
+router.post("/", createAdmin);
+router.get("/:id", getUserById);
+router.patch("/:id", updateUser);
+router.put("/:id/sites", setUserSites);
 
 export default router;

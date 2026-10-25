@@ -333,6 +333,7 @@ These must not change in any observable way:
 The F-006 defaults (§6.4) change only the *values* of a newly created protocol, never the shape. F-009 and F-010 stay out of scope.
 
 - **Library entries** have no study, so they never appear in `v_site_protocols` or in any config. A copy in a study is an ordinary protocol.
+- **Config version:** anything that changes what a clinic receives without writing a newer protocol row bumps `sites.updated_at` for the affected clinics, so `configVersion` rises and the computers refresh. That covers runs-at on or off, archiving a protocol, renaming, archiving or (de)activating a study (`utils/configVersionBump.js`).
 - **`siteName`** is unchanged: it is still `sites.name`. F-008 changes only which names the web form accepts.
 - **Protocol names are unique only within a study, no longer globally.** Two studies at one clinic may both send "Speech battery".
   - Upload matching uses study name plus protocol name (`sessionExtractor.js`), so it stays unambiguous.
@@ -402,7 +403,7 @@ The rules are the ones in §4. The whitelist SQL is removed. The upload scoping 
 | Library | `GET /library?q=&lang=&mine=1` (current, non-withdrawn entries, grouped like protocols, with `used_in`) · `GET /library/:id` · `POST /protocols/:id/share` (copies the current version of a study protocol's group into the library, or adds a new library version when it was shared before) · `POST /library/:id/copy` `{project_id, name}` → `{protocol_id}` · `POST /library/:id/withdraw`. Library entries are edited through the normal `POST /protocols` save. When `project_id` is NULL, that save checks for the author or master. |
 | Uploads | unchanged paths, plus `GET /uploads/:sid/activity` (audit entries for that session, scoped like `getUpload`) · `GET /uploads/summary` gains `unassigned_devices` for master |
 | Devices | unchanged |
-| Lookups | `GET /mappings` unchanged |
+| Lookups | `GET /mappings`: same shape. For non-masters, `projects` and `protocols` are scoped to the studies they see (never library entries). |
 
 **Errors:**
 - `400 {error: "<snake_case>"}` for validation;

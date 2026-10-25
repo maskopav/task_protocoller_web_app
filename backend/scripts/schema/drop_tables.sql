@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS `devices`;
 DROP TABLE IF EXISTS `backup_runs`;
 
 DROP TABLE IF EXISTS `user_project_sites`;
+DROP TABLE IF EXISTS `project_editors`;
 DROP TABLE IF EXISTS `user_sites`;
 DROP TABLE IF EXISTS `site_projects`;
 DROP TABLE IF EXISTS `sites`;
@@ -40,5 +41,8 @@ DROP VIEW IF EXISTS `v_quest_results`;
 DROP VIEW IF EXISTS `v_session_progress_detailed`;
 DROP VIEW IF EXISTS `v_session_summary`;
 DROP VIEW IF EXISTS `v_site_protocols`;
+DROP VIEW IF EXISTS `v_project_protocols`;
+DROP VIEW IF EXISTS `v_project_summary_stats`;
+DROP VIEW IF EXISTS `v_user_project_assignments`;
 
 SET FOREIGN_KEY_CHECKS = 1;

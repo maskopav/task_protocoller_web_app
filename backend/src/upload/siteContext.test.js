@@ -41,6 +41,27 @@ describe("loadSiteContext", () => {
     ]);
   });
 
+  it("keeps same-named protocols of two studies apart (names are unique per study only)", async () => {
+    mockDb({
+      spine: [
+        { project_id: 1, project_name: "Study A", protocol_id: 10, protocol_name: "Speech battery", updated_at: "2026-09-10 09:30:00" },
+        { project_id: 2, project_name: "Study B", protocol_id: 20, protocol_name: "Speech battery", updated_at: "2026-09-10 09:30:00" },
+      ],
+    });
+    expect((await loadSiteContext(5)).projects).toEqual([
+      { id: 1, name: "Study A", protocols: [{ id: 10, name: "Speech battery" }] },
+      { id: 2, name: "Study B", protocols: [{ id: 20, name: "Speech battery" }] },
+    ]);
+  });
+
+  it("reads the spine view only, which never contains library entries", async () => {
+    mockDb({ spine });
+    await loadSiteContext(5);
+    const sqls = executeQuery.mock.calls.map(([sql]) => sql).join(" ");
+    expect(sqls).toContain("v_site_protocols");
+    expect(sqls).not.toMatch(/project_protocols|user_projects/);
+  });
+
   it("derives the version from the newest of the site and every protocol row", async () => {
     mockDb({ spine });
     expect((await loadSiteContext(5)).currentConfigVersion).toBe("2026-09-12.070509");

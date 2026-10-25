@@ -7,8 +7,7 @@ import protocolsRouter from "./src/routes/protocols.js";
 import authRouter from "./src/routes/auth.js";
 import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
-import userProjectsRouter from "./src/routes/userProjects.js";
-import userSitesRouter from "./src/routes/userSites.js";
+import libraryRouter from "./src/routes/library.js";
 import sitesRouter from "./src/routes/sites.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
 import { deviceCheckin } from "./src/controllers/deviceController.js";
@@ -143,8 +142,7 @@ app.use("/mappings", requireAuth, mappingsRouter);
 app.use("/protocols", requireAuth, protocolsRouter);
 app.use("/users", requireAuth, usersRouter)
 app.use("/projects", requireAuth, projectsRouter)
-app.use("/user-projects", requireAuth, userProjectsRouter)
-app.use("/user-sites", requireAuth, userSitesRouter)
+app.use("/library", requireAuth, libraryRouter)
 app.use("/sites", requireAuth, sitesRouter)
 app.use("/devices", requireAuth, createDevicesRouter({ queue: validationQueue }))
 // Download tickets (5 min, download routes only) for <audio>/<video> and

@@ -44,7 +44,7 @@ async function world(q) {
   const editor = await user("ed", "Eva Editor");
   const reader = await user("rd", null);
   await q(`INSERT INTO user_sites (user_id, site_id) VALUES (?, ?)`, [editor, S1]);
-  await q(`INSERT INTO user_projects (user_id, project_id, can_edit) VALUES (?, ?, 0)`, [reader, P1]);
+  await q(`INSERT INTO project_editors (user_id, project_id) VALUES (?, ?)`, [reader, P1]);
   const dev = (await q(`INSERT INTO devices (installation_id, label) VALUES (?, ?)`, [`dev-${t}`, `Lab PC ${t}`])).insertId;
 
   const ids = {};
@@ -125,18 +125,23 @@ describe.skipIf(!dbUp)("uploadController SQL against MariaDB", () => {
     });
   });
 
-  it("scope: a read-only project reader sees the rows but cannot edit", async () => {
+  it("scope: editing a study does not widen recordings, clinic staff review their own", async () => {
     await withRollback(async (q) => {
       hold.q = q;
       const w = await world(q);
+      // reader edits P1 but has no clinic: strict scope hides every recording of it
       const rd = { id: w.reader, role: "admin" };
-      const r = await call(C.listUploads, rd, { query: {} });
+      expect((await call(C.listUploads, rd, { query: {} })).body.total).toBe(0);
+      expect((await call(C.getUpload, rd, { params: { sessionId: w.ids.a } })).code).toBe(404);
+      expect((await call(C.putQc, rd, { params: { sessionId: w.ids.a }, body: { qc: "ok" } })).code).toBe(404);
+      // the clinic user sees the rows and may review them
+      const ed = { id: w.editor, role: "admin" };
+      const r = await call(C.listUploads, ed, { query: {} });
       expect(r.body.total).toBe(3);
-      expect(r.body.rows.every((x) => x.canEdit === false)).toBe(true);
+      expect(r.body.rows.every((x) => x.canEdit === true)).toBe(true);
       const stranger = { id: w.reader + 100000, role: "admin" };
       expect((await call(C.listUploads, stranger)).body.total).toBe(0);
       expect((await call(C.getUpload, stranger, { params: { sessionId: w.ids.a } })).code).toBe(404);
-      expect((await call(C.putQc, rd, { params: { sessionId: w.ids.a }, body: { qc: "ok" } })).code).toBe(403);
     });
   });
 

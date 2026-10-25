@@ -11,31 +11,23 @@ const {
   getVisibleSiteIds,
   getVisibleScope,
   getEditableProjectIds,
+  canEditProject,
+  canUseLibrary,
   canCreateProjects,
   canCreateSites,
   ownsRecord,
 } = await import('./accessScope.js');
 
-// Five distinct lookups, told apart by their SQL:
-//   editable      -- user_projects ... AND can_edit = 1
-//   projects      -- user_projects rows (any can_edit)
-//   sites         -- user_sites rows
-//   viaClinics    -- projects reached through granted clinics
-//   viaProjects   -- clinics reached through granted projects, whitelist applied
-//
-// The whitelist itself lives inside that last query (NOT EXISTS / EXISTS over
-// user_project_sites), so these tests treat it as a black box and assert its
-// shape; the behaviour is covered against a real database instead.
+// Three lookups, told apart by their SQL:
+//   editors     -- project_editors rows (the studies the user may change)
+//   sites       -- user_sites rows (the clinics the user has)
+//   viaClinics  -- studies running at those clinics
 const ids = (arr) => arr.map((id) => ({ id }));
 
-const mockScope = ({
-  editable = null, projects = [], sites = [], viaClinics = [], viaProjects = [],
-} = {}) => {
+const mockScope = ({ editors = [], sites = [], viaClinics = [] } = {}) => {
   executeQuery.mockImplementation(async (sql) => {
-    if (sql.includes('can_edit = 1')) return ids(editable ?? projects);
+    if (sql.includes('FROM project_editors WHERE user_id = ?') && !sql.includes('project_id = ?')) return ids(editors);
     if (sql.includes('DISTINCT sp.project_id')) return ids(viaClinics);
-    if (sql.includes('DISTINCT sp.site_id')) return ids(viaProjects);
-    if (sql.includes('FROM user_projects WHERE user_id')) return ids(projects);
     if (sql.includes('FROM user_sites WHERE user_id')) return ids(sites);
     throw new Error(`Unexpected query: ${sql}`);
   });
@@ -46,21 +38,14 @@ beforeEach(() => {
 });
 
 describe('getVisibleProjectIds', () => {
-  it('unions granted projects with the ones reached through clinics', async () => {
-    mockScope({ projects: [7], viaClinics: [8, 9] });
+  it('unions the studies I edit with the ones running at my clinics', async () => {
+    mockScope({ editors: [7], viaClinics: [8, 9] });
     expect(await getVisibleProjectIds(2)).toEqual([7, 8, 9]);
   });
 
-  it('does not duplicate a project reachable both ways', async () => {
-    mockScope({ projects: [7], viaClinics: [7, 8] });
+  it('does not duplicate a study reachable both ways', async () => {
+    mockScope({ editors: [7], viaClinics: [7, 8] });
     expect(await getVisibleProjectIds(2)).toEqual([7, 8]);
-  });
-
-  it('keeps a read-only assignment visible', async () => {
-    mockScope({ projects: [7], editable: [] });
-
-    expect(await getVisibleProjectIds(2)).toEqual([7]);
-    expect(await getEditableProjectIds(2)).toEqual([]);
   });
 
   it('returns nothing when the user holds nothing', async () => {
@@ -75,26 +60,15 @@ describe('getVisibleProjectIds', () => {
 });
 
 describe('getVisibleSiteIds', () => {
-  it('unions granted clinics with the ones reached through projects', async () => {
-    mockScope({ sites: [6, 8], viaProjects: [1, 2, 3] });
-    expect(await getVisibleSiteIds(2)).toEqual([6, 8, 1, 2, 3]);
+  it('is exactly the clinics assigned in user_sites', async () => {
+    mockScope({ sites: [6, 8], editors: [3], viaClinics: [1] });
+    expect(await getVisibleSiteIds(2)).toEqual([6, 8]);
   });
 
-  it('does not duplicate a clinic reachable both ways', async () => {
-    mockScope({ sites: [1], viaProjects: [1, 2] });
-    expect(await getVisibleSiteIds(2)).toEqual([1, 2]);
-  });
-
-  it('asks the whitelist question inside the project lookup', async () => {
-    // "no whitelist for this project" and "this clinic is not on it" both look
-    // like a NULL in a LEFT JOIN, so the query has to use NOT EXISTS / EXISTS.
-    mockScope({ sites: [], viaProjects: [] });
-    await getVisibleSiteIds(2);
-
-    const [sql] = executeQuery.mock.calls.find(([q]) => q.includes('DISTINCT sp.site_id'));
-    expect(sql).toContain('user_project_sites');
-    expect(sql).toContain('NOT EXISTS');
-    expect(sql).toContain('EXISTS');
+  it('does not widen with the studies I edit', async () => {
+    mockScope({ sites: [], editors: [7] });
+    expect(await getVisibleSiteIds(2)).toEqual([]);
+    expect(executeQuery.mock.calls.every(([sql]) => !sql.includes('project_editors'))).toBe(true);
   });
 
   it('never queries for a missing user id', async () => {
@@ -103,33 +77,38 @@ describe('getVisibleSiteIds', () => {
   });
 });
 
-describe('getEditableProjectIds', () => {
-  it('returns only the assignments carrying can_edit', async () => {
-    mockScope({ projects: [7, 8], editable: [7] });
-    expect(await getEditableProjectIds(2)).toEqual([7]);
+describe('getEditableProjectIds and canEditProject', () => {
+  it('returns the studies in project_editors', async () => {
+    mockScope({ editors: [7, 8] });
+    expect(await getEditableProjectIds(2)).toEqual([7, 8]);
   });
 
-  it('never includes a project reached only through a clinic', async () => {
-    // A protocol is shared by every clinic on its project, so inherited access
+  it('never includes a study reached only through a clinic', async () => {
+    // A protocol is shared by every clinic on its study, so inherited access
     // must not let it be rewritten for clinics the caller cannot even see.
-    mockScope({ projects: [], editable: [], viaClinics: [7] });
-
+    mockScope({ editors: [], viaClinics: [7] });
     expect(await getVisibleProjectIds(2)).toEqual([7]);
     expect(await getEditableProjectIds(2)).toEqual([]);
   });
 
-  it('never queries for a missing user id', async () => {
+  it('canEditProject asks for the exact (user, study) pair', async () => {
+    executeQuery.mockResolvedValueOnce([{ 1: 1 }]).mockResolvedValueOnce([]);
+    expect(await canEditProject(2, 7)).toBe(true);
+    expect(await canEditProject(2, 8)).toBe(false);
+    expect(executeQuery.mock.calls[0][1]).toEqual([2, 7]);
+  });
+
+  it('never queries for a missing id', async () => {
     expect(await getEditableProjectIds(null)).toEqual([]);
+    expect(await canEditProject(null, 7)).toBe(false);
+    expect(await canEditProject(2, null)).toBe(false);
     expect(executeQuery).not.toHaveBeenCalled();
   });
 });
 
 describe('created_by grants nothing', () => {
   it('is never consulted while resolving a scope', async () => {
-    // Three earlier versions inferred access from created_by. Each one broke:
-    // the grant existed nowhere a master could see or revoke, or it silently
-    // switched off a derivation. Access comes from the assignment tables only.
-    mockScope({ projects: [7], sites: [1] });
+    mockScope({ editors: [7], sites: [1] });
 
     await getVisibleProjectIds(2);
     await getVisibleSiteIds(2);
@@ -148,8 +127,6 @@ describe('created_by grants nothing', () => {
   });
 
   it('refuses a table name outside the two ownsRecord knows', async () => {
-    // The table name is interpolated into the SQL, so the whitelist is the
-    // thing standing between this helper and an injection.
     await expect(ownsRecord(2, 'users', 5)).rejects.toThrow(/unsupported table/);
     expect(executeQuery).not.toHaveBeenCalled();
   });
@@ -157,17 +134,15 @@ describe('created_by grants nothing', () => {
 
 describe('getVisibleScope', () => {
   it('resolves both axes at once', async () => {
-    mockScope({ projects: [7], sites: [1], viaProjects: [1, 2] });
-    expect(await getVisibleScope(2)).toEqual({ projectIds: [7], siteIds: [1, 2] });
+    mockScope({ editors: [7], sites: [1] });
+    expect(await getVisibleScope(2)).toEqual({ projectIds: [7], siteIds: [1] });
   });
 
   it('coerces ids to numbers so callers can compare against req.params', async () => {
-    // mysql2 can hand back strings depending on column type and driver config;
-    // getSiteById compares with Number(id), so the axis must be numeric.
     executeQuery.mockImplementation(async (sql) => {
       if (sql.includes('DISTINCT')) return [];
-      if (sql.includes('FROM user_projects WHERE user_id')) return [{ id: '7' }];
-      if (sql.includes('FROM user_sites WHERE user_id')) return [{ id: '5' }];
+      if (sql.includes('FROM project_editors')) return [{ id: '7' }];
+      if (sql.includes('FROM user_sites')) return [{ id: '5' }];
       throw new Error(`Unexpected query: ${sql}`);
     });
 
@@ -203,6 +178,36 @@ describe.each([
   });
 });
 
+describe('canUseLibrary', () => {
+  it('is true for a user who may create studies', async () => {
+    executeQuery.mockResolvedValueOnce([{ flag: 1 }]);
+    expect(await canUseLibrary(2)).toBe(true);
+  });
+
+  it('is true for an editor of at least one study', async () => {
+    executeQuery.mockImplementation(async (sql) => {
+      if (sql.includes('can_create_projects')) return [{ flag: 0 }];
+      if (sql.includes('FROM project_editors')) return ids([7]);
+      throw new Error(`Unexpected query: ${sql}`);
+    });
+    expect(await canUseLibrary(2)).toBe(true);
+  });
+
+  it('is false for a clinician who only receives studies', async () => {
+    executeQuery.mockImplementation(async (sql) => {
+      if (sql.includes('can_create_projects')) return [{ flag: 0 }];
+      if (sql.includes('FROM project_editors')) return [];
+      throw new Error(`Unexpected query: ${sql}`);
+    });
+    expect(await canUseLibrary(2)).toBe(false);
+  });
+
+  it('is false without a user id', async () => {
+    expect(await canUseLibrary(null)).toBe(false);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
+});
+
 describe('session scope', async () => {
   const { scopeWhereClause, canSeeSession, canEditSession } = await import('./accessScope.js');
 
@@ -220,9 +225,12 @@ describe('session scope', async () => {
     expect(scopeWhereClause({ id: 2, role: 'admin' }).sql).toContain('us.site_id IS NOT NULL');
   });
 
-  it('only demands can_edit for the editable variant', () => {
-    expect(scopeWhereClause({ id: 2, role: 'admin' }).sql).not.toContain('can_edit');
-    expect(scopeWhereClause({ id: 2, role: 'admin' }, 'x', { editable: true }).sql).toContain('upx.can_edit = 1');
+  it('depends on the clinic assignment only, never on studies', () => {
+    const { sql, params } = scopeWhereClause({ id: 2, role: 'admin' });
+    expect(sql).toContain('user_sites');
+    expect(sql).not.toContain('project_editors');
+    expect(sql).not.toContain('site_projects');
+    expect(params).toEqual([2]);
   });
 
   it('refuses an alias that is not a plain identifier', () => {
@@ -233,9 +241,8 @@ describe('session scope', async () => {
     executeQuery.mockResolvedValueOnce([{ 1: 1 }]).mockResolvedValueOnce([]);
     expect(await canSeeSession({ id: 2, role: 'admin' }, { id: 9 })).toBe(true);
     expect(await canEditSession({ id: 2, role: 'admin' }, { id: 9 })).toBe(false);
-    const [sql, params] = executeQuery.mock.calls[1];
-    expect(sql).toContain('upx.can_edit = 1');
-    expect(params).toEqual([9, 2, 2]);
+    const [, params] = executeQuery.mock.calls[1];
+    expect(params).toEqual([9, 2]);
   });
 
   it('is false for a row without an id', async () => {

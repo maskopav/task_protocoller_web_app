@@ -90,6 +90,28 @@ describe("extractSession: project and protocol matching", () => {
     expect([c.project_id, c.protocol_id]).toEqual([8, 81]); // not project 7's protocol of the same name
   });
 
+  it("matches the right one of two same-named protocols in one config by protocolProject", () => {
+    // Protocol names are unique per study only. Both studies run at the clinic
+    // and both send "Speech battery": the study name decides.
+    const twin = [
+      { id: 1, name: "Study A", protocols: [{ id: 10, name: PROTOCOL_NAME }] },
+      { id: 2, name: "Study B", protocols: [{ id: 20, name: PROTOCOL_NAME }] },
+    ];
+    const a = run("valid", (p) => { p.examination.protocolProject = "Study A"; }, { projects: twin });
+    const b = run("valid", (p) => { p.examination.protocolProject = "Study B"; }, { projects: twin });
+    expect([a.project_id, a.protocol_id]).toEqual([1, 10]);
+    expect([b.project_id, b.protocol_id]).toEqual([2, 20]);
+  });
+
+  it("leaves both NULL rather than guessing when two studies share the name and the ZIP names neither", () => {
+    const twin = [
+      { id: 1, name: "Study A", protocols: [{ id: 10, name: PROTOCOL_NAME }] },
+      { id: 2, name: "Study B", protocols: [{ id: 20, name: PROTOCOL_NAME }] },
+    ];
+    const c = run("valid", (p) => { p.examination.protocolProject = "Study C"; }, { projects: twin });
+    expect([c.project_id, c.protocol_id]).toEqual([null, null]);
+  });
+
   it("leaves the project NULL when it is not among the site's projects", () => {
     const c = run("valid", (p) => { p.examination.protocolProject = "Unknown Study"; });
     expect([c.project_id, c.protocol_id]).toEqual([null, null]);

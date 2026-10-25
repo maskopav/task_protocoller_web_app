@@ -483,6 +483,13 @@ export const getSummary = async (req, res) => {
     });
 
     const c = counts[0] ?? {};
+    // Computers not yet assigned to a clinic (their recordings are quarantined).
+    // Master only: nobody else sees unassigned computers.
+    let unassignedDevices;
+    if (admin.role === "master") {
+      const [u] = await executeQuery(`SELECT COUNT(*) AS n FROM devices WHERE site_id IS NULL`, []);
+      unassignedDevices = num(u?.n);
+    }
     res.json({
       week: num(c.week), last30: num(c.last30), total: num(c.total),
       invalid: num(c.invalid), needsReview: num(c.needsReview),
@@ -492,6 +499,7 @@ export const getSummary = async (req, res) => {
       perDay,
       byProtocol: byProtocol.map((r) => ({ protocol: r.protocol ?? null, count: num(r.count) })),
       bySite: bySite.map((r) => ({ id: r.id, name: r.name, count: num(r.count) })),
+      ...(unassignedDevices === undefined ? {} : { unassigned_devices: unassignedDevices }),
     });
   } catch (err) {
     fail(res, err, "summary");
@@ -644,6 +652,43 @@ export const addComment = async (req, res) => {
     res.status(201).json(commentRow(created[0] ?? { id: result.insertId, user_id: req.admin.id, text, is_system: 0, created_at: new Date() }));
   } catch (err) {
     fail(res, err, "comment");
+  }
+};
+
+// --- GET /uploads/:sessionId/activity (F-044) -------------------------------------------------
+// The audit entries of one session, scoped exactly like getUpload. Values of
+// participant edits stay in the DB-only audit table: only the field names leave.
+
+export function activityDetail(action, rawDetails) {
+  const d = parseJson(rawDetails, null);
+  if (!d || typeof d !== "object") return null;
+  if (action === "participant_edit") {
+    return { fields: Array.isArray(d.changes) ? d.changes.map((c) => c.field).filter(Boolean) : [] };
+  }
+  if (action === "qc_change") return { from: d.from ?? null, to: d.to ?? null };
+  return null;
+}
+
+export const getActivity = async (req, res) => {
+  try {
+    const row = await findScopedSession(req.admin, req.params.sessionId);
+    if (!row) return res.status(404).json({ error: "not_found" });
+    const rows = await executeQuery(
+      `SELECT a.id, a.action, a.details, a.created_at, a.user_id, u.full_name, u.email
+       FROM audit_log a LEFT JOIN users u ON u.id = a.user_id
+       WHERE a.upload_session_id = ?
+       ORDER BY a.created_at DESC, a.id DESC`,
+      [row.id]
+    );
+    res.json(rows.map((r) => ({
+      id: r.id,
+      action: r.action,
+      at: toIso(r.created_at),
+      user: r.user_id == null ? null : { id: r.user_id, name: r.full_name ?? r.email ?? null },
+      detail: activityDetail(r.action, r.details),
+    })));
+  } catch (err) {
+    fail(res, err, "activity");
   }
 };
 

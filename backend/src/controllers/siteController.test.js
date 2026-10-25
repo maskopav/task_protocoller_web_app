@@ -4,16 +4,25 @@ vi.mock('../db/queryHelper.js', () => ({
   executeQuery: vi.fn(),
   executeTransaction: vi.fn(),
 }));
+// Access rules are tested in accessScope.test.js; here they are inputs.
+vi.mock('../utils/accessScope.js', () => ({
+  getVisibleSiteIds: vi.fn(),
+  getVisibleProjectIds: vi.fn(),
+  getEditableProjectIds: vi.fn(),
+  canCreateSites: vi.fn(),
+  ownsRecord: vi.fn(),
+}));
 
 const { executeQuery } = await import('../db/queryHelper.js');
+const { getVisibleSiteIds, getVisibleProjectIds, getEditableProjectIds, canCreateSites, ownsRecord } =
+  await import('../utils/accessScope.js');
 const {
   getSites,
   getSiteById,
   getSiteConfig,
   createSite,
   updateSite,
-  assignProjectToSite,
-  removeProjectFromSite,
+  groupReceives,
 } = await import('./siteController.js');
 
 // requireAuth populates req.admin from the DB on every request; controllers
@@ -70,263 +79,6 @@ const mockConfigQueries = (siteRow) => {
     throw new Error(`Unexpected query: ${sql}`);
   });
 };
-
-// --- accessScope.js fixtures -------------------------------------------------
-// Both axes are resolved through executeQuery, so tests declare what
-// user_projects / user_sites hold and what deriving through site_projects would
-// yield. Dispatching on the SQL keeps them independent of how many scope
-// lookups a controller happens to make, and in which order.
-const ids = (arr) => arr.map((id) => ({ id }));
-
-// Everything accessScope asks on the way to a controller's own query. Miss one
-// and unrelated assertions start counting it as the main call.
-const isScopeQuery = (sql) =>
-  sql.includes('FROM user_projects WHERE user_id') ||
-  sql.includes('FROM user_sites WHERE user_id') ||
-  sql.includes('DISTINCT sp.') ||
-  sql.includes('AND created_by = ?') ||
-  sql.includes('AS flag FROM users');
-
-// Five lookups, told apart by their SQL:
-//   ... AND can_edit = 1        -- editable projects
-//   DISTINCT sp.project_id      -- projects reached through granted clinics
-//   DISTINCT sp.site_id         -- clinics reached through granted projects
-//   FROM user_projects WHERE    -- granted projects (any can_edit)
-//   FROM user_sites WHERE       -- granted clinics
-const scopeAnswer = ({ projects = [], sites = [], viaClinics = [], viaProjects = [], editable = null }) => (sql) => {
-  if (sql.includes('can_edit = 1')) return ids(editable ?? projects);
-  if (sql.includes('DISTINCT sp.project_id')) return ids(viaClinics);
-  if (sql.includes('DISTINCT sp.site_id')) return ids(viaProjects);
-  if (sql.includes('FROM user_projects WHERE user_id')) return ids(projects);
-  if (sql.includes('FROM user_sites WHERE user_id')) return ids(sites);
-  return null;
-};
-
-// The controller's own queries, i.e. everything that is not a scope lookup.
-const mainCalls = () => executeQuery.mock.calls.filter(([sql]) => !isScopeQuery(sql));
-
-describe('getSites', () => {
-  beforeEach(() => {
-    executeQuery.mockReset();
-  });
-
-  const siteRows = [{ id: 1, name: 'Paris', description: 'd', is_active: 1, project_count: 2 }];
-
-  const mockSites = (scope, rows = siteRows) => {
-    const answer = scopeAnswer(scope);
-    executeQuery.mockImplementation(async (sql) => answer(sql) ?? rows);
-  };
-
-  it('scopes to the resolved site ids and never selects the access token', async () => {
-    mockSites({ sites: [1] });
-
-    const res = makeRes();
-    await getSites(asAdmin(2), res);
-
-    const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('WHERE s.id IN (?)');
-    expect(sql).not.toContain('access_token');
-    expect(sql).not.toContain('s.*');
-    expect(params.at(-1)).toEqual([1]);
-    expect(res.json).toHaveBeenCalled();
-  });
-
-  it('ignores a spoofed userId/role in the query string', async () => {
-    mockSites({ sites: [1] });
-
-    const res = makeRes();
-    // An admin asking to be treated as a master must still be scoped.
-    await getSites({ query: { userId: '1', role: 'master' }, admin: { id: 2, role: 'admin' } }, res);
-
-    const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('WHERE s.id IN (?)');
-    expect(params.at(-1)).toEqual([1]);
-  });
-
-  it('derives sites from the granted projects when no site was specified', async () => {
-    // Ticking only a project must hand over that project's clinics.
-    mockSites({ projects: [7], sites: [], viaProjects: [1, 2] });
-
-    const res = makeRes();
-    await getSites(asAdmin(2), res);
-
-    const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('WHERE s.id IN (?)');
-    expect(params.at(-1)).toEqual([1, 2]);
-  });
-
-  it('unions a direct clinic grant with the clinics reached through projects', async () => {
-    // This is the case that broke three times: two clinics of your own used to
-    // read as "the master limited me to these two" and hid everything the
-    // projects reached. Now they simply add.
-    mockSites({ projects: [7], sites: [6, 8], viaProjects: [1, 2, 3] });
-
-    const res = makeRes();
-    await getSites(asAdmin(2), res);
-
-    expect(mainCalls()[0][1].at(-1)).toEqual([6, 8, 1, 2, 3]);
-  });
-
-  it('returns an empty list when the admin has no grant on either axis', async () => {
-    mockSites({});
-
-    const res = makeRes();
-    await getSites(asAdmin(2), res);
-
-    expect(res.json).toHaveBeenCalledWith([]);
-    expect(mainCalls()).toHaveLength(0);
-  });
-
-  it('counts only the projects the caller may see', async () => {
-    mockSites({ projects: [7], sites: [1] });
-
-    const res = makeRes();
-    await getSites(asAdmin(2), res);
-
-    const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('AND sp.project_id IN (?)');
-    expect(params[0]).toEqual([7]);
-  });
-
-  it('returns all sites for master role', async () => {
-    executeQuery.mockResolvedValueOnce([]);
-
-    const res = makeRes();
-    await getSites(asMaster(), res);
-
-    const [sql] = executeQuery.mock.calls[0];
-    expect(sql).not.toContain('user_sites');
-    expect(sql).toContain('LEFT JOIN site_projects');
-  });
-
-  it('scopes the ?project_id= listing for a non-master', async () => {
-    mockSites({ projects: [7], sites: [1] }, []);
-
-    const res = makeRes();
-    await getSites({ query: { project_id: '7' }, admin: { id: 2, role: 'admin' } }, res);
-
-    const [sql, params] = mainCalls()[0];
-    expect(sql).toContain('WHERE sp.project_id = ? AND s.id IN (?)');
-    expect(sql).not.toContain('access_token');
-    expect(params).toEqual(['7', [1]]);
-  });
-
-  it('returns nothing for ?project_id= naming a project the caller cannot see', async () => {
-    mockSites({ projects: [7], sites: [1] });
-
-    const res = makeRes();
-    await getSites({ query: { project_id: '99' }, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.json).toHaveBeenCalledWith([]);
-    expect(mainCalls()).toHaveLength(0);
-  });
-
-  it('strips the access token from rows returned to a non-master', async () => {
-    mockSites({ sites: [1] }, [{ id: 1, name: 'Paris', access_token: SITE_TOKEN, config_json: null }]);
-
-    const res = makeRes();
-    await getSites(asAdmin(2), res);
-
-    const [payload] = res.json.mock.calls[0];
-    expect(payload[0]).not.toHaveProperty('access_token');
-    expect(JSON.stringify(payload)).not.toContain(SITE_TOKEN);
-  });
-
-  it('keeps the access token for a master', async () => {
-    executeQuery.mockResolvedValueOnce([
-      { id: 1, name: 'Paris', access_token: SITE_TOKEN, config_json: null },
-    ]);
-
-    const res = makeRes();
-    await getSites(asMaster(), res);
-
-    const [payload] = res.json.mock.calls[0];
-    expect(payload[0].access_token).toBe(SITE_TOKEN);
-  });
-});
-
-describe('getSiteById', () => {
-  beforeEach(() => {
-    executeQuery.mockReset();
-  });
-
-  const siteRecord = { id: 5, name: 'London', access_token: SITE_TOKEN, config_json: null };
-
-  const mockSite = (scope, { projects = [], protocols = [], owns = false } = {}) => {
-    const answer = scopeAnswer(scope);
-    executeQuery.mockImplementation(async (sql) => {
-      const scoped = answer(sql);
-      if (scoped) return scoped;
-      // ownsRecord, behind the can_manage flag on the response.
-      if (sql.includes('AND created_by = ?')) return owns ? [{ 1: 1 }] : [];
-      if (sql.includes('FROM sites WHERE id')) return [siteRecord];
-      if (sql.includes('FROM site_projects sp')) return projects;
-      if (sql.includes('FROM v_site_protocols')) return protocols;
-      throw new Error(`Unexpected query: ${sql}`);
-    });
-  };
-
-  it('404s for a site the admin cannot reach, without leaking its existence', async () => {
-    mockSite({ sites: [1] }); // site 5 is not in scope
-
-    const res = makeRes();
-    await getSiteById({ params: { id: '5' }, admin: { id: 2, role: 'admin' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Site not found' });
-    expect(JSON.stringify(res.json.mock.calls)).not.toContain(SITE_TOKEN);
-  });
-
-  it('reaches a site derived from a granted project', async () => {
-    mockSite({ projects: [7], viaProjects: [5] }, { projects: [{ id: 7, name: 'Project A' }] });
-
-    const res = makeRes();
-    await getSiteById({ params: { id: '5' }, admin: { id: 2, role: 'admin' } }, res);
-
-    const [payload] = res.json.mock.calls[0];
-    expect(payload.name).toBe('London');
-    expect(payload).not.toHaveProperty('access_token');
-  });
-
-  it('narrows the nested project and protocol lists to the visible projects', async () => {
-    mockSite({ projects: [7], sites: [5] });
-
-    const res = makeRes();
-    await getSiteById({ params: { id: '5' }, admin: { id: 2, role: 'admin' } }, res);
-
-    const nested = mainCalls().filter(([sql]) => !sql.includes('FROM sites WHERE id'));
-    expect(nested).toHaveLength(2);
-    for (const [sql, params] of nested) {
-      expect(sql).toContain('IN (?)');
-      expect(params).toEqual(['5', [7]]);
-    }
-  });
-
-  it('serves an empty site when the admin can see no project on it', async () => {
-    mockSite({ sites: [5] }); // explicit site, nothing to derive projects from
-
-    const res = makeRes();
-    await getSiteById({ params: { id: '5' }, admin: { id: 2, role: 'admin' } }, res);
-
-    const [payload] = res.json.mock.calls[0];
-    expect(payload.projects).toEqual([]);
-    expect(payload.protocols).toEqual([]);
-  });
-
-  it('skips the scope lookups for a master and returns the token', async () => {
-    executeQuery
-      .mockResolvedValueOnce([siteRecord])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([]);
-
-    const res = makeRes();
-    await getSiteById({ params: { id: '5' }, admin: { id: 1, role: 'master' } }, res);
-
-    expect(executeQuery.mock.calls.some(([sql]) => isScopeQuery(sql))).toBe(false);
-    const [payload] = res.json.mock.calls[0];
-    expect(payload.access_token).toBe(SITE_TOKEN);
-  });
-});
 
 describe('getSiteConfig', () => {
   beforeEach(() => {
@@ -464,372 +216,321 @@ describe('getSiteConfig', () => {
   });
 });
 
-describe('createSite', () => {
+
+const scope = ({ sites = [], projects = [], editable = [], owns = false, canCreate = false } = {}) => {
+  getVisibleSiteIds.mockResolvedValue(sites);
+  getVisibleProjectIds.mockResolvedValue(projects);
+  getEditableProjectIds.mockResolvedValue(editable);
+  ownsRecord.mockResolvedValue(owns);
+  canCreateSites.mockResolvedValue(canCreate);
+};
+
+describe('getSites', () => {
   beforeEach(() => {
-    executeQuery.mockReset();
+    vi.resetAllMocks();
+    scope();
   });
 
-  it('generates a 32-hex access token and stores the known settings only', async () => {
-    executeQuery.mockResolvedValueOnce({ insertId: 5 });
+  const rows = [{ id: 1, name: 'Paris', description: 'd', is_active: 1, project_count: 2, created_by: 2, access_token: SITE_TOKEN }];
 
+  it('scopes a non-master to the visible clinics and never selects the access token', async () => {
+    scope({ sites: [1], projects: [4] });
+    executeQuery.mockResolvedValue(rows);
     const res = makeRes();
-    await createSite(
-      { body: { name: 'Paris', description: 'desc', config_json: '{"defaultLanguage": "cs", "useCalibration": true, "note": "legacy"}' }, admin: { id: 1, role: 'master' } },
-      res
-    );
+    await getSites(asAdmin(2), res);
 
-    expect(res.status).not.toHaveBeenCalled();
-    expect(res.json).toHaveBeenCalledWith({ success: true, site_id: 5 });
-
-    const params = executeQuery.mock.calls[0][1];
-    expect(params[0]).toBe('Paris');
-    expect(params[2]).toMatch(/^[0-9a-f]{32}$/);
-    expect(params[3]).toBe('{"defaultLanguage":"cs","useCalibration":true}'); // unknown key stripped
-    expect(params.at(-1)).toBe(1); // created_by comes from the session
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toContain('WHERE s.id IN (?)');
+    expect(sql).not.toContain('access_token');
+    expect(sql).not.toContain('s.*');
+    expect(params).toEqual([[4], [1]]);
   });
 
-  it('accepts config_json as an object (the settings form posts one)', async () => {
-    executeQuery.mockResolvedValueOnce({ insertId: 5 });
-
+  it('ignores a spoofed userId/role in the query string', async () => {
+    scope({ sites: [1] });
+    executeQuery.mockResolvedValue(rows);
     const res = makeRes();
-    await createSite(
-      { body: { name: 'Paris', config_json: { languages: ['en', 'cs'], defaultMicGain: 50, indicatorType: 'WAVEFORM' } }, admin: { id: 1, role: 'master' } },
-      res
-    );
-
-    expect(res.status).not.toHaveBeenCalled();
-    expect(executeQuery.mock.calls[0][1][3]).toBe('{"languages":["en","cs"],"defaultMicGain":50,"indicatorType":"WAVEFORM"}');
+    await getSites({ query: { userId: '1', role: 'master' }, admin: { id: 2, role: 'admin' } }, res);
+    expect(executeQuery.mock.calls[0][0]).toContain('WHERE s.id IN (?)');
   });
 
-  it('rejects invalid config_json without touching the database', async () => {
+  it('returns an empty list when the user sees no clinic', async () => {
     const res = makeRes();
-    await createSite({ body: { name: 'Paris', config_json: '{not json' }, admin: { id: 1, role: 'master' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
+    await getSites(asAdmin(2), res);
+    expect(res.json).toHaveBeenCalledWith([]);
     expect(executeQuery).not.toHaveBeenCalled();
   });
 
-  it('rejects a badly typed setting', async () => {
+  it('?project_id= for a study the caller cannot see yields nothing', async () => {
+    scope({ sites: [1], projects: [4] });
     const res = makeRes();
-    await createSite({ body: { name: 'Paris', config_json: { indicatorType: 'SQUARE' } }, admin: { id: 1, role: 'master' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json.mock.calls[0][0].error).toMatch(/indicatorType/);
+    await getSites({ ...asAdmin(2), query: { project_id: '9' } }, res);
+    expect(res.json).toHaveBeenCalledWith([]);
     expect(executeQuery).not.toHaveBeenCalled();
   });
 
-  it.each([0.8, 101, -1, '63'])('rejects defaultMicGain %j (must be an integer 0-100)', async (gain) => {
+  it('strips the token for a non-master, flags ownership and hides created_by', async () => {
+    scope({ sites: [1], projects: [] });
+    executeQuery.mockResolvedValue(rows);
     const res = makeRes();
-    await createSite({ body: { name: 'Paris', config_json: { defaultMicGain: gain } }, admin: { id: 1, role: 'master' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json.mock.calls[0][0].error).toMatch(/defaultMicGain must be an integer 0-100/);
-    expect(executeQuery).not.toHaveBeenCalled();
+    await getSites(asAdmin(2), res);
+    const [site] = res.json.mock.calls[0][0];
+    expect(site).not.toHaveProperty('access_token');
+    expect(site).not.toHaveProperty('created_by');
+    expect(site).toMatchObject({ is_owner: true, can_edit: true });
   });
 
-  it('rejects a missing name', async () => {
+  it('a non-owner non-master cannot edit', async () => {
+    scope({ sites: [1] });
+    executeQuery.mockResolvedValue(rows);
     const res = makeRes();
-    await createSite({ body: { name: '  ' }, admin: { id: 1, role: 'master' } }, res);
+    await getSites(asAdmin(3), res);
+    expect(res.json.mock.calls[0][0][0]).toMatchObject({ is_owner: false, can_edit: false });
+  });
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(executeQuery).not.toHaveBeenCalled();
+  it('master gets everything including the token, without scope lookups', async () => {
+    executeQuery.mockResolvedValue(rows);
+    const res = makeRes();
+    await getSites(asMaster(), res);
+    expect(getVisibleSiteIds).not.toHaveBeenCalled();
+    expect(res.json.mock.calls[0][0][0]).toMatchObject({ access_token: SITE_TOKEN, can_edit: true });
   });
 });
 
-describe('updateSite', () => {
-  beforeEach(() => {
-    executeQuery.mockReset();
+describe('groupReceives', () => {
+  it('groups by study, then by protocol, merging language variants', () => {
+    const rows = [
+      { project_id: 1, project_name: 'A', protocol_id: 10, protocol_name: 'Speech', protocol_version: 2, language_code: 'cs' },
+      { project_id: 1, project_name: 'A', protocol_id: 11, protocol_name: 'Speech', protocol_version: 2, language_code: 'en' },
+      { project_id: 1, project_name: 'A', protocol_id: 12, protocol_name: 'Video', protocol_version: 1, language_code: 'en' },
+      { project_id: 2, project_name: 'B', protocol_id: 13, protocol_name: 'Speech', protocol_version: 1, language_code: 'en' },
+    ];
+    expect(groupReceives(rows)).toEqual([
+      { project_id: 1, project_name: 'A', protocols: [
+        { protocol_id: 10, name: 'Speech', version: 2, languages: ['cs', 'en'] },
+        { protocol_id: 12, name: 'Video', version: 1, languages: ['en'] },
+      ] },
+      { project_id: 2, project_name: 'B', protocols: [{ protocol_id: 13, name: 'Speech', version: 1, languages: ['en'] }] },
+    ]);
   });
+});
 
-  // The payload SiteManagementPage's activate/deactivate button posts: no token,
-  // no contact fields. Nothing here may clobber them.
-  const base = { name: 'Paris', description: 'd', config_json: null, is_active: 1 };
-  const call = async (body) => {
+describe('getSiteById', () => {
+  const site = { id: 1, name: 'Paris', access_token: SITE_TOKEN, config_json: null, is_active: 1, created_by: 2 };
+  const mockSite = (projects = [], protocols = []) => {
+    executeQuery.mockImplementation(async (sql) => {
+      if (sql.includes('FROM sites WHERE id')) return [site];
+      if (sql.includes('FROM site_projects sp')) return projects;
+      if (sql.includes('FROM v_site_protocols')) return protocols;
+      throw new Error(`Unexpected query: ${sql}`);
+    });
+  };
+  const call = async (req) => {
     const res = makeRes();
-    await updateSite({ params: { id: '1' }, body, admin: { id: 1, role: 'master' } }, res);
+    await getSiteById({ ...req, params: { id: '1' } }, res);
     return res;
   };
 
-  it('leaves the access token untouched when the payload omits it', async () => {
-    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
-
-    const res = await call(base);
-
-    const [sql, params] = executeQuery.mock.calls[0];
-    expect(sql).toMatch(/access_token\s*=\s*IFNULL\(\?, access_token\)/);
-    expect(params[4]).toBeNull();
-    expect(res.status).not.toHaveBeenCalled();
+  beforeEach(() => {
+    vi.resetAllMocks();
+    scope();
   });
 
-  it('accepts the seeded non-hex token', async () => {
-    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
-
-    const res = await call({ ...base, access_token: SITE_TOKEN });
-
-    expect(res.status).not.toHaveBeenCalled();
-    expect(executeQuery.mock.calls[0][1][4]).toBe(SITE_TOKEN);
+  it('404 not_found for a clinic the admin cannot see, without leaking its existence', async () => {
+    scope({ sites: [2] });
+    mockSite();
+    const res = await call(asAdmin(2));
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: 'not_found' });
   });
 
-  it('rejects a too-short token without touching the database', async () => {
-    const res = await call({ ...base, access_token: 'abc' });
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(executeQuery).not.toHaveBeenCalled();
+  it('returns projects with can_edit and receives[] grouped by study', async () => {
+    scope({ sites: [1], projects: [4, 5], editable: [4], owns: false });
+    mockSite(
+      [
+        { id: 4, name: 'Mine', is_active: 1, created_by: 2, assigned_at: 't' },
+        { id: 5, name: 'Received', is_active: 1, created_by: 9, assigned_at: 't' },
+      ],
+      [{ project_id: 4, project_name: 'Mine', protocol_id: 10, protocol_name: 'P', protocol_version: 1, language_code: 'en' }],
+    );
+    const res = await call(asAdmin(2));
+    const body = res.json.mock.calls[0][0];
+    expect(body.projects.map((p) => [p.id, p.can_edit, p.is_owner])).toEqual([[4, true, true], [5, false, false]]);
+    expect(body.receives).toEqual([
+      { project_id: 4, project_name: 'Mine', protocols: [{ protocol_id: 10, name: 'P', version: 1, languages: ['en'] }] },
+    ]);
+    expect(body).not.toHaveProperty('access_token');
+    expect(body).not.toHaveProperty('protocols');
   });
 
-  it('rejects an invalid entry in the comma-separated contact emails', async () => {
-    const res = await call({ ...base, contact_emails: 'a@b.org, nope' });
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(executeQuery).not.toHaveBeenCalled();
+  it('narrows the nested lists to the visible studies', async () => {
+    scope({ sites: [1], projects: [4] });
+    mockSite();
+    await call(asAdmin(2));
+    const nested = executeQuery.mock.calls.filter(([sql]) => sql.includes('site_projects sp') || sql.includes('v_site_protocols'));
+    for (const [sql, params] of nested) {
+      expect(sql).toContain('IN (?)');
+      expect(params[1]).toEqual([4]);
+    }
   });
 
-  it('blames the token, not the name, on a duplicate-token collision', async () => {
-    executeQuery.mockRejectedValueOnce(Object.assign(new Error('dup'), {
-      code: 'ER_DUP_ENTRY',
-      sqlMessage: "Duplicate entry 'x' for key 'sites.access_token'",
-    }));
+  it('serves empty lists when the admin sees no study on the clinic', async () => {
+    scope({ sites: [1], projects: [] });
+    mockSite();
+    const res = await call(asAdmin(2));
+    expect(res.json.mock.calls[0][0]).toMatchObject({ projects: [], receives: [] });
+    expect(executeQuery).toHaveBeenCalledTimes(1);
+  });
 
-    const res = await call({ ...base, access_token: 'london00london00london00london00' });
-
-    expect(res.status).toHaveBeenCalledWith(409);
-    expect(res.json.mock.calls[0][0].error).toMatch(/token/i);
+  it('master skips the scope lookups, gets the token and can edit every study', async () => {
+    mockSite([{ id: 4, name: 'S', is_active: 1, created_by: 9, assigned_at: 't' }]);
+    const res = await call(asMaster());
+    expect(getVisibleSiteIds).not.toHaveBeenCalled();
+    const body = res.json.mock.calls[0][0];
+    expect(body.access_token).toBe(SITE_TOKEN);
+    expect(body.projects[0]).toMatchObject({ can_edit: true });
+    expect(body.can_manage).toBe(true);
   });
 });
 
-describe('assignProjectToSite', () => {
+describe('createSite', () => {
   beforeEach(() => {
-    executeQuery.mockReset();
+    vi.resetAllMocks();
+    scope({ canCreate: true });
   });
-
-  it('maps a duplicate assignment to a 400', async () => {
-    executeQuery.mockRejectedValueOnce(Object.assign(new Error('dup'), { code: 'ER_DUP_ENTRY' }));
-
+  const master = { id: 1, role: 'master' };
+  const call = async (body, admin = master) => {
     const res = makeRes();
-    await assignProjectToSite({ params: { id: 1 }, body: { project_id: 2 }, admin: { id: 1, role: 'master' } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-  });
-});
-
-// --- delegated write rights --------------------------------------------------
-// A master can hand out three things independently: the right to change a
-// project (user_projects.can_edit), the right to create projects
-// (users.can_create_projects), and — implied by the first — the right to create
-// clinics. Ownership (created_by) is what stops any of that from reaching
-// records that were already there.
-describe('delegated write rights', () => {
-  beforeEach(() => {
-    executeQuery.mockReset();
-  });
-
-  // editable = rows of user_projects carrying can_edit; owns = created_by match
-  const mockRights = ({ editable = [], owns = false, mayCreate = false, extra } = {}) => {
-    executeQuery.mockImplementation(async (sql, params) => {
-      if (sql.includes('can_edit = 1')) return ids(editable);
-      if (sql.includes('DISTINCT sp.')) return [];
-      if (sql.includes('FROM user_projects WHERE user_id')) return ids(editable);
-      if (sql.includes('FROM user_sites WHERE user_id')) return [];
-      if (sql.includes('can_create_sites')) return [{ flag: mayCreate ? 1 : 0 }];
-      if (sql.includes('AND created_by = ?')) return owns ? [{ 1: 1 }] : [];
-      if (extra) {
-        const hit = extra(sql, params);
-        if (hit !== undefined) return hit;
-      }
-      return [];
-    });
+    await createSite({ body, admin }, res);
+    return res;
   };
 
-  describe('createSite', () => {
-    const body = { name: 'New_Clinic' };
-
-    it('refuses an admin without the create-sites right', async () => {
-      mockRights({ editable: [7], mayCreate: false });
-
-      const res = makeRes();
-      await createSite({ body, admin: { id: 2, role: 'admin' } }, res);
-
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INSERT INTO sites'))).toBe(false);
+  it('generates a 32-hex access token, stores the known settings only, answers 201', async () => {
+    executeQuery.mockResolvedValueOnce({ insertId: 4 });
+    const res = await call({
+      name: 'Olomouc University Hospital',
+      config_json: { defaultLanguage: 'cs', bogus: 1 },
     });
-
-    it('allows an admin the master granted the right to', async () => {
-      mockRights({
-        editable: [],
-        mayCreate: true,
-        extra: (sql) => (sql.includes('INSERT INTO sites') ? { insertId: 5 } : undefined),
-      });
-
-      const res = makeRes();
-      await createSite({ body, admin: { id: 2, role: 'admin' } }, res);
-
-      expect(res.status).not.toHaveBeenCalledWith(403);
-      const insert = executeQuery.mock.calls.find(([sql]) => sql.includes('INSERT INTO sites'));
-      expect(insert[1].at(-1)).toBe(2); // created_by is the creator
-    });
-
-    it('grants the creator an explicit, revocable assignment', async () => {
-      mockRights({
-        editable: [],
-        mayCreate: true,
-        extra: (sql) => (sql.includes('INSERT INTO sites') ? { insertId: 5 } : undefined),
-      });
-
-      const res = makeRes();
-      await createSite({ body, admin: { id: 2, role: 'admin' } }, res);
-
-      const grant = executeQuery.mock.calls.find(([sql]) => sql.includes('INSERT INTO user_sites'));
-      expect(grant).toBeTruthy();
-      expect(grant[1]).toEqual([2, 5]);
-    });
-
-    it('writes no assignment for a master, who sees every clinic anyway', async () => {
-      executeQuery.mockResolvedValue({ insertId: 5 });
-
-      const res = makeRes();
-      await createSite({ body, admin: { id: 1, role: 'master' } }, res);
-
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INSERT INTO user_sites'))).toBe(false);
-    });
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toContain('INSERT INTO sites');
+    expect(params[0]).toBe('Olomouc University Hospital');
+    expect(params[2]).toMatch(/^[0-9a-f]{32}$/);
+    expect(JSON.parse(params[3])).toEqual({ defaultLanguage: 'cs' });
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({ success: true, site_id: 4 });
   });
 
-  describe('updateSite', () => {
-    const body = { name: 'Renamed' };
-
-    it('refuses a clinic the admin did not create', async () => {
-      mockRights({ editable: [7], owns: false });
-
-      const res = makeRes();
-      await updateSite({ params: { id: '5' }, body, admin: { id: 2, role: 'admin' } }, res);
-
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('UPDATE sites'))).toBe(false);
-    });
-
-    it('lets the creator archive their own clinic', async () => {
-      // "Archive instead of delete": is_active = 0 through the normal update.
-      mockRights({
-        editable: [7],
-        owns: true,
-        extra: (sql) => (sql.includes('UPDATE sites') ? { affectedRows: 1 } : undefined),
-      });
-
-      const res = makeRes();
-      await updateSite(
-        { params: { id: '5' }, body: { name: 'Mine', is_active: 0 }, admin: { id: 2, role: 'admin' } },
-        res
-      );
-
-      expect(res.status).not.toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('UPDATE sites'))).toBe(true);
-    });
-
-    it('ignores an access token sent by a non-master', async () => {
-      // The token is never shown to them, so a value here can only be a mistake
-      // or an attempt; IFNULL turns the null into "leave it alone".
-      mockRights({
-        editable: [7],
-        owns: true,
-        extra: (sql) => (sql.includes('UPDATE sites') ? { affectedRows: 1 } : undefined),
-      });
-
-      const res = makeRes();
-      await updateSite(
-        {
-          params: { id: '5' },
-          body: { name: 'Mine', access_token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' },
-          admin: { id: 2, role: 'admin' },
-        },
-        res
-      );
-
-      const update = executeQuery.mock.calls.find(([sql]) => sql.includes('UPDATE sites'));
-      expect(update[1]).not.toContain('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-    });
-
-    it('still lets a master set the token', async () => {
-      executeQuery.mockResolvedValue({ affectedRows: 1 });
-
-      const res = makeRes();
-      await updateSite(
-        {
-          params: { id: '5' },
-          body: { name: 'Mine', access_token: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' },
-          admin: { id: 1, role: 'master' },
-        },
-        res
-      );
-
-      const update = executeQuery.mock.calls.find(([sql]) => sql.includes('UPDATE sites'));
-      expect(update[1]).toContain('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
-    });
+  it('rejects an empty or missing name with 400 invalid_name', async () => {
+    for (const name of [undefined, '', '   ']) {
+      executeQuery.mockReset();
+      const res = await call({ name });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'invalid_name' });
+      expect(executeQuery).not.toHaveBeenCalled();
+    }
   });
 
-  describe('assignProjectToSite / removeProjectFromSite', () => {
-    it('refuses wiring a project the admin cannot edit', async () => {
-      mockRights({ editable: [7], owns: true });
+  it('rejects invalid config_json and badly typed settings without touching the database', async () => {
+    const bad = await call({ name: 'Paris', config_json: '{nope' });
+    expect(bad.json.mock.calls[0][0].error).toBe('invalid_config');
+    const typed = await call({ name: 'Paris', config_json: { useCalibration: 'yes' } });
+    expect(typed.status).toHaveBeenCalledWith(400);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
 
-      const res = makeRes();
-      await assignProjectToSite(
-        { params: { id: '5' }, body: { project_id: 99 }, admin: { id: 2, role: 'admin' } },
-        res
-      );
+  it('403 for a non-master without can_create_sites; allowed with it, creator gets assigned', async () => {
+    scope({ canCreate: false });
+    const denied = await call({ name: 'Paris' }, { id: 2, role: 'admin' });
+    expect(denied.status).toHaveBeenCalledWith(403);
+    expect(executeQuery).not.toHaveBeenCalled();
 
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INSERT INTO site_projects'))).toBe(false);
-    });
+    scope({ canCreate: true });
+    executeQuery.mockResolvedValueOnce({ insertId: 8 }).mockResolvedValueOnce({});
+    await call({ name: 'Paris' }, { id: 2, role: 'admin' });
+    expect(executeQuery.mock.calls[1]).toEqual([expect.stringContaining('INSERT INTO user_sites'), [2, 8]]);
+  });
 
-    it('refuses wiring to a clinic the admin did not create', async () => {
-      mockRights({ editable: [7], owns: false });
+  it('409 name_taken / token_taken on a duplicate', async () => {
+    executeQuery.mockRejectedValueOnce(Object.assign(new Error('dup'), { code: 'ER_DUP_ENTRY', sqlMessage: "for key 'sites.name'" }));
+    const name = await call({ name: 'Paris' });
+    expect(name.status).toHaveBeenCalledWith(409);
+    expect(name.json).toHaveBeenCalledWith({ error: 'name_taken' });
 
-      const res = makeRes();
-      await assignProjectToSite(
-        { params: { id: '5' }, body: { project_id: 7 }, admin: { id: 2, role: 'admin' } },
-        res
-      );
+    executeQuery.mockRejectedValueOnce(Object.assign(new Error('dup'), { code: 'ER_DUP_ENTRY', sqlMessage: "for key 'sites.access_token'" }));
+    const token = await call({ name: 'Paris2', access_token: SITE_TOKEN });
+    expect(token.json).toHaveBeenCalledWith({ error: 'token_taken' });
+  });
+});
 
-      expect(res.status).toHaveBeenCalledWith(403);
-    });
+describe('updateSite (PATCH)', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    scope({ sites: [1], owns: true });
+  });
+  const master = { id: 1, role: 'master' };
+  const call = async (body, admin = master) => {
+    const res = makeRes();
+    await updateSite({ params: { id: '1' }, body, admin }, res);
+    return res;
+  };
 
-    it('allows own project onto own clinic', async () => {
-      mockRights({ editable: [7], owns: true });
+  it('updates only the fields that are present', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+    const res = await call({ is_active: false, country: 'CZ' });
+    const [sql, params] = executeQuery.mock.calls[0];
+    expect(sql).toMatch(/SET is_active = \?, country = \?, updated_at/);
+    expect(sql).not.toContain('access_token');
+    expect(params).toEqual([0, 'CZ', 1, '1']);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
 
-      const res = makeRes();
-      await assignProjectToSite(
-        { params: { id: '5' }, body: { project_id: 7 }, admin: { id: 2, role: 'admin' } },
-        res
-      );
+  it('an empty string clears a text field', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+    await call({ contact_persons: '' });
+    expect(executeQuery.mock.calls[0][1][0]).toBeNull();
+  });
 
-      expect(res.status).not.toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('INSERT INTO site_projects'))).toBe(true);
-    });
+  it('master can rotate the token', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+    await call({ access_token: SITE_TOKEN });
+    expect(executeQuery.mock.calls[0][0]).toContain('access_token = ?');
+    expect(executeQuery.mock.calls[0][1][0]).toBe(SITE_TOKEN);
+  });
 
-    it('refuses detaching a clinic that was already there', async () => {
-      // The whole point of the ownership rule: a pre-existing clinic cannot be
-      // unhooked from a project by anyone but a master.
-      mockRights({ editable: [7], owns: false });
+  it('the creator (non-master) cannot rotate the token: it is ignored', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 1 });
+    await call({ name: 'Paris', access_token: SITE_TOKEN }, { id: 2, role: 'admin' });
+    expect(executeQuery.mock.calls[0][0]).not.toContain('access_token');
+  });
 
-      const res = makeRes();
-      await removeProjectFromSite(
-        { params: { id: '5', projectId: '7' }, admin: { id: 2, role: 'admin' } },
-        res
-      );
+  it('rejects a too-short token, a bad email, a bad name and an empty patch', async () => {
+    expect((await call({ access_token: 'abc' })).json).toHaveBeenCalledWith({ error: 'invalid_token' });
+    expect((await call({ contact_emails: 'a@b.org, nope' })).json.mock.calls[0][0].error).toBe('invalid_email');
+    expect((await call({ name: '' })).json).toHaveBeenCalledWith({ error: 'invalid_name' });
+    expect((await call({})).json).toHaveBeenCalledWith({ error: 'no_changes' });
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
 
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('DELETE FROM site_projects'))).toBe(false);
-    });
+  it('404 for a clinic out of scope, 403 for a visible clinic the user did not create', async () => {
+    scope({ sites: [2] });
+    const hidden = await call({ name: 'x' }, { id: 2, role: 'admin' });
+    expect(hidden.status).toHaveBeenCalledWith(404);
 
-    it('lets a master detach anything', async () => {
-      executeQuery.mockResolvedValue({});
+    scope({ sites: [1], owns: false });
+    const denied = await call({ name: 'x' }, { id: 2, role: 'admin' });
+    expect(denied.status).toHaveBeenCalledWith(403);
+    expect(executeQuery).not.toHaveBeenCalled();
+  });
 
-      const res = makeRes();
-      await removeProjectFromSite(
-        { params: { id: '5', projectId: '7' }, admin: { id: 1, role: 'master' } },
-        res
-      );
+  it('404 when a master patches a missing clinic; 409 token_taken on collision', async () => {
+    executeQuery.mockResolvedValueOnce({ affectedRows: 0 });
+    expect((await call({ name: 'x' })).status).toHaveBeenCalledWith(404);
 
-      expect(res.status).not.toHaveBeenCalledWith(403);
-      expect(executeQuery.mock.calls.some(([sql]) => sql.includes('DELETE FROM site_projects'))).toBe(true);
-    });
+    executeQuery.mockRejectedValueOnce(Object.assign(new Error('dup'), {
+      code: 'ER_DUP_ENTRY', sqlMessage: "Duplicate entry 'x' for key 'sites.access_token'",
+    }));
+    const res = await call({ access_token: 'london00london00london00london00' });
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({ error: 'token_taken' });
   });
 });

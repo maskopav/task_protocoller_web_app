@@ -1,22 +1,19 @@
 // src/routes/protocols.js
-import express from 'express';
-import { saveProtocol, getProtocolById, getProtocolsByProjectId, getArchivedProtocols, archiveProtocol } from '../controllers/protocolController.js';
+import express from "express";
+import {
+  saveProtocol,
+  getProtocolById,
+  archiveProtocol,
+} from "../controllers/protocolController.js";
+import { shareProtocol } from "../controllers/libraryController.js";
 
 const router = express.Router();
 
-// Save new protocol
-router.post('/save', saveProtocol);
-
-// Archived protocols (must come before the /:id catch-all route)
-router.get('/archived', getArchivedProtocols);
-
-// Archive a protocol (removes it from every project using it)
-router.post('/:id/archive', archiveProtocol);
-
-// View protocol (GET /api/protocols/:id)
-router.get('/:id', getProtocolById);
-
-// Handles /api/protocols?project_id=1
-router.get('/', getProtocolsByProjectId);
+// Create a protocol, or save a new version of one. Study protocols are listed
+// by GET /projects/:id/protocols.
+router.post("/", saveProtocol);
+router.get("/:id", getProtocolById);
+router.post("/:id/archive", archiveProtocol);
+router.post("/:id/share", shareProtocol);
 
 export default router;
