@@ -24,7 +24,7 @@ async function loginAsMaster(page: Page) {
   await page.locator('input[name="email"]').fill(MASTER_EMAIL);
   await page.locator('input[name="password"]').fill(MASTER_PASSWORD);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/recordings$/);
 }
 
 test('project dashboard does not repeatedly refetch the project list', async ({ page }) => {

@@ -45,7 +45,7 @@ export default function OnboardingPage() {
         const updatedUser = { ...user, full_name: formData.fullName, must_change_password: 0 };
         // Setup retires the login token (password changed), so store the new one.
         login(updatedUser, res.token);
-        navigate("/admin");
+        navigate("/recordings");
       }
     } catch (err) {
       setError(err.message);

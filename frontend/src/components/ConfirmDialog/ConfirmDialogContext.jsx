@@ -1,18 +1,25 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { SafeButton } from '../Shared/SafeButton';
-import "./ConfirmDialog.css"
+import { useTranslation } from "react-i18next";
+import { Modal } from "../ui/Modal.jsx";
+import { Button } from "../ui/Button.jsx";
+import "./ConfirmDialog.css";
 
 export const ConfirmDialogContext = createContext();
 
+// Restyled onto the UI kit Modal. API unchanged:
+// confirm({ title, message, confirmText, cancelText, infoOnly, headerRight }) -> Promise<boolean>
+// New optional: `danger: true` renders the confirm button as a danger button.
 export function ConfirmDialogProvider({ children }) {
+  const { t } = useTranslation();
   const [dialog, setDialog] = useState({
     open: false,
     title: "",
-    headerRight: null, 
+    headerRight: null,
     message: "",
-    confirmText: "Confirm",
-    cancelText: "Cancel",
+    confirmText: "",
+    cancelText: "",
     infoOnly: false,
+    danger: false,
     resolve: null,
   });
 
@@ -26,62 +33,45 @@ export function ConfirmDialogProvider({ children }) {
         confirmText: options.confirmText,
         cancelText: options.cancelText,
         infoOnly: options.infoOnly || false,
+        danger: options.danger || false,
         resolve,
       });
     });
   }, []);
 
-  const handleConfirm = () => {
-    dialog.resolve(true);
+  const finish = (result) => {
+    dialog.resolve?.(result);
     setDialog((d) => ({ ...d, open: false }));
   };
 
-  const handleCancel = () => {
-    dialog.resolve(false);
-    setDialog((d) => ({ ...d, open: false }));
-  };
+  const confirmLabel = dialog.confirmText || t("ui.confirm", "Confirm");
+  const cancelLabel = dialog.cancelText || t("ui.cancel", "Cancel");
 
   return (
     <ConfirmDialogContext.Provider value={{ confirm, isDialogOpen: dialog.open }}>
       {children}
-
-      {dialog.open && (
-        <div className="confirm-backdrop">
-          <div className="confirm-dialog">
-            <div className="confirm-header">
-              {(typeof dialog.title === 'string' ? dialog.title.trim() !== "" : !!dialog.title) && (
-                <h2>{dialog.title}</h2>
-              )}
-              {dialog.headerRight && (
-                <div className="confirm-header-right">
-                  {dialog.headerRight}
-                </div>
-              )}
-            </div>
-
-            <div className="confirm-message-content">
-              {dialog.message}
-            </div>
-
-            <div className="confirm-buttons">
-              {dialog.infoOnly ? (
-                <SafeButton className="btn-confirm" onClick={handleConfirm}>
-                  {dialog.confirmText}
-                </SafeButton>
-              ) : (
-                <>
-                  <SafeButton className="btn-cancel" onClick={handleCancel}>
-                    {dialog.cancelText}
-                  </SafeButton>
-                  <SafeButton className="btn-confirm" onClick={handleConfirm}>
-                    {dialog.confirmText}
-                  </SafeButton>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={dialog.open}
+        onClose={() => finish(!!dialog.infoOnly)}
+        title={typeof dialog.title === "string" ? dialog.title.trim() || undefined : dialog.title}
+        footer={
+          <>
+            {!dialog.infoOnly && (
+              <Button variant="secondary" onClick={() => finish(false)}>{cancelLabel}</Button>
+            )}
+            <Button
+              variant={dialog.danger ? "danger" : "primary"}
+              data-autofocus
+              onClick={() => finish(true)}
+            >
+              {confirmLabel}
+            </Button>
+          </>
+        }
+      >
+        {dialog.headerRight ? <div className="ui-confirm-extra">{dialog.headerRight}</div> : null}
+        {dialog.message ?<div className="ui-confirm-message">{dialog.message}</div> : null}
+      </Modal>
     </ConfirmDialogContext.Provider>
   );
 }

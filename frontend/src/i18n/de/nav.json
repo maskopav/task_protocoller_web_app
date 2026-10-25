@@ -1,0 +1,32 @@
+{
+  "brand": "Task Protocoller",
+  "main": "Hauptnavigation",
+  "recordings": "Aufnahmen",
+  "studies": "Studien",
+  "clinics": "Kliniken",
+  "myClinic": "Meine Klinik",
+  "library": "Bibliothek",
+  "users": "Benutzer",
+  "admin": "Verwaltung",
+  "unreviewed": "{{count}} ungeprüft",
+  "userMenu": "Benutzermenü",
+  "language": "Sprache",
+  "logout": "Abmelden",
+  "roleMaster": "Master",
+  "roleUser": "Mitglied",
+  "clinicsCount_one": "{{count}} Klinik",
+  "clinicsCount_other": "{{count}} Kliniken",
+  "notAvailable": {
+    "title": "Nicht verfügbar",
+    "message": "Diese Seite steht nur Administratoren zur Verfügung. Bitten Sie einen Master-Benutzer um Zugriff.",
+    "action": "Zu den Aufnahmen"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "message": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "action": "Zu den Aufnahmen"
+  },
+  "placeholder": {
+    "library": "Die Protokollbibliothek ist in Arbeit. Sie erscheint bald hier."
+  }
+}

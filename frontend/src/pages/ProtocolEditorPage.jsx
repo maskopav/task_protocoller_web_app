@@ -1,12 +1,10 @@
 // src/pages/ProtocolEditorPage.jsx
 import React, { useState, useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import ProtocolEditor from "../components/ProtocolEditor";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
-import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import { getProtocolById } from "../api/protocols";
 import { mapProtocolWithNames } from "../hooks/useProtocolActions";
 import "./Pages.css"
@@ -24,10 +22,8 @@ export default function ProtocolEditorPage() {
   const { t } = useTranslation(["admin"]);
   const { projectId, protocolId } = useParams();
   const { state } = useLocation();
-  const navigate = useNavigate();
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
   const { refreshMappings, mappings } = useMappings();
-  const confirm = useConfirm();
 
   // 1. Prepare restored data
   const restoredTasks = state?.originalTasks || state?.protocol?.tasks || selectedProtocol?.tasks || [];
@@ -90,27 +86,9 @@ export default function ProtocolEditorPage() {
     }
   }
 
-  // Back navigation handler
-  async function handleBack() {
-    const isConfirmed = await confirm({
-      title: t("protocolEditor.confirmBack.title"),
-      message: t("protocolEditor.confirmBack.message"),
-      confirmText: t("protocolEditor.confirmBack.confirmText"),
-      cancelText: t("protocolEditor.buttons.cancel") //
-    });
-
-    if (isConfirmed) {
-      // Clean environment
-      setSelectedProtocol(null);
-      // Redirect to dashboard
-      navigate(`/admin/projects/${projectId}/protocols`);
-    }
-  };
-
   if (loading) {
     return (
       <div className="protocol-editor-page">
-        <DashboardTopBar onBack={handleBack} />
         <p>{t("loading")}</p>
       </div>
     );
@@ -118,10 +96,6 @@ export default function ProtocolEditorPage() {
 
   return (
     <div className="protocol-editor-page">
-      <DashboardTopBar
-        onBack={handleBack}
-      />
-
       <ProtocolEditor
         initialTasks={configuredTasks}
         onChange={setConfiguredTasks}

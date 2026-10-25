@@ -1,48 +1,21 @@
-/* src/pages/NotFoundPage.css */
-
-/* Override app-container alignment for this specific page if needed, 
-   or just use a wrapper to position the card. */
-   .not-found-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Aligns items to top instead of center */
-    min-height: 80vh;
-    padding-top: 10vh; /* "Margin from the top a bit" */
-  }
-  
-  .not-found-card {
-    text-align: center;
-    padding: 3rem 2rem;
-    max-width: 500px;
-    width: 90%;
-    background: var(--card-bg, #ededed); /* Fallback or var from Pages.css */
-    border-radius: var(--radius, 1rem);
-    box-shadow: var(--shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
-  }
-  
-  .not-found-icon {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .not-found-title {
-    margin-bottom: 0.5rem;
-    font-size: 1.8rem;
-    color: var(--text, #333);
-  }
-  
-  .not-found-message {
-    font-size: 1.1rem;
-    color: var(--muted, #666);
-    margin-bottom: 0;
-  }
-  
-  .not-found-actions {
-    margin-top: 2rem;
-  }
-  
-  .btn-not-found-back {
-    width: auto; /* Overrides default full width */
-    padding: 0.6rem 1.5rem;
-    font-size: 1.1rem;
-  }
+/* src/pages/NotFoundPage.css: shared by NotFoundPage and NotAvailablePage. Tokens only. */
+.notice-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+  max-width: 480px;
+  padding: var(--s-7) 0;
+}
+.notice-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--idle-soft);
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+}
+.notice-title { margin: 0; font-size: var(--fs-xl); font-weight: 600; color: var(--text); }
+.notice-message { margin: 0; color: var(--text-2); }
+.notice-actions { margin-top: var(--s-2); }

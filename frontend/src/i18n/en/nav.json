@@ -1,0 +1,32 @@
+{
+  "brand": "Task Protocoller",
+  "main": "Main navigation",
+  "recordings": "Recordings",
+  "studies": "Studies",
+  "clinics": "Clinics",
+  "myClinic": "My clinic",
+  "library": "Library",
+  "users": "Users",
+  "admin": "Administration",
+  "unreviewed": "{{count}} unreviewed",
+  "userMenu": "User menu",
+  "language": "Language",
+  "logout": "Log out",
+  "roleMaster": "Master",
+  "roleUser": "Member",
+  "clinicsCount_one": "{{count}} clinic",
+  "clinicsCount_other": "{{count}} clinics",
+  "notAvailable": {
+    "title": "Not available",
+    "message": "This page is only available to administrators. Ask a master user if you need access.",
+    "action": "Go to Recordings"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you are looking for does not exist or has moved.",
+    "action": "Go to Recordings"
+  },
+  "placeholder": {
+    "library": "The protocol library is being built. It will appear here soon."
+  }
+}

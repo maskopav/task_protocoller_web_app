@@ -15,7 +15,7 @@ async function loginAndGetToken(page: Page, email: string, password: string): Pr
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/recordings$/);
 
   return page.evaluate(() => localStorage.getItem('adminToken'));
 }

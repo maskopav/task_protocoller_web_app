@@ -314,7 +314,7 @@ export function ProtocolEditor({
       );
       onSave(result);
       setSelectedProtocol(null);
-      navigate(`/admin/projects/${projectId}/protocols`);
+      navigate(`/studies/${projectId}/protocols`);
     } catch (err) {
       // Show the specific error message from the backend (Conflict 409)
       const errorMsg = err.code ? apiErrorMessage(err, t) : (err.message || t("protocolEditor.saveFailedMsg"));
@@ -334,7 +334,7 @@ export function ProtocolEditor({
 
     // Send the version to the interface
     setSelectedProtocol(previewProtocol);
-    navigate("/participant/test", {
+    navigate(`/studies/${projectId}/protocols/${protocolData?.id ?? protocolData?.protocolId ?? "new"}/preview`, {
       state: {
         protocol: previewProtocol,
         originalTasks: tasks, // untouched tasks list

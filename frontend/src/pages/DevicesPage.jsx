@@ -2,8 +2,7 @@
 // desktop app at the user's sites (spec §6, ui_design/devices.html).
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
+import { Link } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { assignDeviceSite, fetchDevices, renameDevice } from "../api/devices";
 import { fetchSites } from "../api/sites";
@@ -34,7 +33,6 @@ function sortDevices(devices) {
 
 export default function DevicesPage() {
   const { t, i18n } = useTranslation("uploadTools");
-  const navigate = useNavigate();
   const { user } = useUser();
   const isMaster = user?.role_id === 1;
 
@@ -174,7 +172,7 @@ export default function DevicesPage() {
           <td>
             <div className="ut-actions">
               {d.siteId != null && (
-                <Link className="ut-icon-btn" to={`/admin/uploads?site=${d.siteId}`} title={t("devices.showUploads")} aria-label={t("devices.showUploads")}>📤</Link>
+                <Link className="ut-icon-btn" to={`/recordings?clinic=${d.siteId}`} title={t("devices.showUploads")} aria-label={t("devices.showUploads")}>📤</Link>
               )}
               {isMaster && (
                 <button type="button" className="ut-icon-btn light" title={t("devices.rename")} aria-label={t("devices.rename")}
@@ -214,7 +212,6 @@ export default function DevicesPage() {
 
   return (
     <div className="dashboard-page ut-scope">
-      <DashboardTopBar onBack={() => navigate("/admin/uploads")} />
       <div className="ut-wide">
         <div className="page-header">
           <h1 className="page-title">{t("devices.title")}</h1>

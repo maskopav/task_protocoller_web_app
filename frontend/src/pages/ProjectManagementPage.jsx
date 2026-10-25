@@ -1,9 +1,7 @@
 // frontend/src/pages/ProjectManagementPage.jsx
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { useMappings } from "../context/MappingContext";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import ProjectTable from "../components/ProjectManagement/ProjectTable";
 import ProjectModal from "../components/ProjectManagement/ProjectModal";
 import { updateProject } from "../api/projects";
@@ -12,7 +10,6 @@ import "./Pages.css";
 export default function ProjectManagementPage() {
   const { t } = useTranslation(["admin", "common"]);
   const { mappings, refreshMappings } = useMappings();
-  const navigate = useNavigate();
   const [editingProject, setEditingProject] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -28,7 +25,6 @@ export default function ProjectManagementPage() {
 
   return (
     <div className="dashboard-page">
-      <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="page-header">
         <h1 className="page-title">{t("management.projectManagement.title")}</h1> {/* From admin.json */}

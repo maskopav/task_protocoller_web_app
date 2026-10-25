@@ -1,0 +1,34 @@
+{
+  "brand": "Task Protocoller",
+  "main": "Hlavní navigace",
+  "recordings": "Záznamy",
+  "studies": "Studie",
+  "clinics": "Kliniky",
+  "myClinic": "Moje klinika",
+  "library": "Knihovna",
+  "users": "Uživatelé",
+  "admin": "Správa",
+  "unreviewed": "Nezkontrolováno: {{count}}",
+  "userMenu": "Uživatelské menu",
+  "language": "Jazyk",
+  "logout": "Odhlásit",
+  "roleMaster": "Master",
+  "roleUser": "Člen",
+  "clinicsCount_one": "{{count}} klinika",
+  "clinicsCount_few": "{{count}} kliniky",
+  "clinicsCount_many": "{{count}} kliniky",
+  "clinicsCount_other": "{{count}} klinik",
+  "notAvailable": {
+    "title": "Nedostupné",
+    "message": "Tato stránka je dostupná jen správcům. Pokud ji potřebujete, požádejte uživatele s rolí Master.",
+    "action": "Přejít na Záznamy"
+  },
+  "notFound": {
+    "title": "Stránka nenalezena",
+    "message": "Hledaná stránka neexistuje nebo byla přesunuta.",
+    "action": "Přejít na Záznamy"
+  },
+  "placeholder": {
+    "library": "Knihovna protokolů se připravuje. Brzy se zde objeví."
+  }
+}

@@ -1,8 +1,6 @@
 // frontend/src/pages/SiteManagementPage.jsx
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import SiteTable from "../components/SiteManagement/SiteTable";
 import SiteModal from "../components/SiteManagement/SiteModal";
 import SiteProjectsModal from "../components/SiteManagement/SiteProjectsModal";
@@ -11,7 +9,6 @@ import "./Pages.css";
 
 export default function SiteManagementPage() {
   const { t } = useTranslation(["admin", "common"]);
-  const navigate = useNavigate();
 
   // Sites are intentionally NOT in the public mappings context — they carry
   // access tokens, so they only travel over the authenticated /sites API.
@@ -42,7 +39,6 @@ export default function SiteManagementPage() {
 
   return (
     <div className="dashboard-page">
-      <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="page-header">
         <h1 className="page-title">{t("management.siteManagement.title")}</h1>

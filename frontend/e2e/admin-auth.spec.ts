@@ -12,7 +12,7 @@ async function loginAndGetToken(page: Page): Promise<string | null> {
   await page.locator('input[name="email"]').fill(MASTER_EMAIL);
   await page.locator('input[name="password"]').fill(MASTER_PASSWORD);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/recordings$/);
 
   return page.evaluate(() => localStorage.getItem('adminToken'));
 }

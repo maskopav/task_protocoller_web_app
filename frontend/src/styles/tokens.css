@@ -1,0 +1,151 @@
+/* src/styles/tokens.css
+ * The single :root token block plus base element styles and the shared kit classes
+ * (buttons, badges, dots, form controls, cards). Everything else uses these tokens only.
+ * Seeded from docs/ui_redesign/mockups/mockups.css. */
+
+:root {
+  /* neutrals */
+  --bg: #f6f6f7;
+  --surface: #ffffff;
+  --surface-2: #fafafb;
+  --border: #e7e7ea;
+  --border-strong: #d6d6db;
+  --text: #17171a;
+  --text-2: #55555e;
+  --text-3: #8b8b94;
+
+  /* one accent */
+  --accent: #2f6fed;
+  --accent-hover: #2560d4;
+  --accent-soft: #edf3fe;
+  --accent-text: #1f56c4;
+  --on-accent: #ffffff;
+
+  /* status only */
+  --ok: #1e9e5a;
+  --ok-soft: #e7f6ee;
+  --warn: #c47a0a;
+  --warn-soft: #fdf3e1;
+  --warn-text: #8a5605;
+  --bad: #d63c3c;
+  --bad-soft: #fdeceb;
+  --idle: #a5a5ae;
+  --idle-soft: #f0f0f2;
+
+  /* shape and rhythm */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  /* type */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 28px;
+
+  /* elevation, overlays, layout */
+  --shadow-1: 0 1px 2px rgba(20, 20, 30, .04);
+  --shadow-pop: 0 8px 28px rgba(20, 20, 30, .14);
+  --shadow-knob: 0 1px 2px rgba(0, 0, 0, .2);
+  --overlay: rgba(20, 20, 28, .32);
+  --sidebar-w: 236px;
+  --z-menu: 20;
+  --z-modal: 50;
+  --z-toast: 60;
+}
+
+/* ── Base elements ─────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: var(--fs-md)/1.5 var(--font);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent-text); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.01em; }
+h1 { font-size: var(--fs-2xl); line-height: 1.2; }
+h2 { font-size: var(--fs-lg); }
+h3 { font-size: var(--fs-md); }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+input[type=text], input[type=email], input[type=password], input[type=url], input[type=number], input[type=search], select, textarea {
+  height: 34px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  font: var(--fs-md) var(--font); color: var(--text); background: var(--surface);
+}
+textarea { height: auto; padding: 8px 10px; resize: vertical; }
+input::placeholder, textarea::placeholder { color: var(--text-3); }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+input:disabled, select:disabled, textarea:disabled { background: var(--surface-2); color: var(--text-3); }
+[hidden] { display: none !important; }
+
+/* ── Utilities ─────────────────────────────────────────── */
+.ui-muted { color: var(--text-2); }
+.ui-faint { color: var(--text-3); }
+.ui-mono { font-family: var(--mono); font-size: var(--fs-sm); }
+.ui-small { font-size: var(--fs-sm); }
+.ui-xs { font-size: var(--fs-xs); }
+.ui-nowrap { white-space: nowrap; }
+.ui-stack { display: flex; flex-direction: column; gap: var(--s-4); }
+.ui-row { display: flex; align-items: center; gap: var(--s-3); }
+.ui-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Icon ──────────────────────────────────────────────── */
+svg.ui-icon { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+
+/* ── Button ────────────────────────────────────────────── */
+.ui-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px; border-radius: var(--r-sm);
+  font: 500 var(--fs-md)/1 var(--font); cursor: pointer; white-space: nowrap;
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
+}
+.ui-btn:hover { background: var(--surface-2); text-decoration: none; }
+.ui-btn[disabled], .ui-btn[aria-disabled=true] { opacity: .45; cursor: default; }
+.ui-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ui-btn-primary:hover { background: var(--accent-hover); }
+.ui-btn-quiet { border-color: transparent; background: transparent; color: var(--text-2); }
+.ui-btn-quiet:hover { background: var(--idle-soft); color: var(--text); }
+.ui-btn-danger { color: var(--bad); }
+.ui-btn-sm { height: 28px; padding: 0 10px; font-size: var(--fs-sm); }
+.ui-icon-btn { width: 30px; height: 30px; padding: 0; justify-content: center; border-color: transparent; background: transparent; color: var(--text-2); }
+.ui-icon-btn:hover { background: var(--idle-soft); color: var(--text); }
+
+/* ── Badge and status dot ──────────────────────────────── */
+.ui-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 22px; padding: 0 8px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); font-weight: 550; white-space: nowrap;
+  background: var(--idle-soft); color: var(--text-2);
+}
+.ui-badge svg.ui-icon { width: 12px; height: 12px; vertical-align: 0; }
+.ui-badge-ok { background: var(--ok-soft); color: var(--ok); }
+.ui-badge-warn { background: var(--warn-soft); color: var(--warn); }
+.ui-badge-bad { background: var(--bad-soft); color: var(--bad); }
+.ui-badge-accent { background: var(--accent-soft); color: var(--accent-text); }
+.ui-badge-outline { background: transparent; border: 1px solid var(--border-strong); }
+.ui-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--idle); margin-right: 7px; vertical-align: 1px; flex: none; }
+.ui-dot-ok { background: var(--ok); }
+.ui-dot-warn { background: var(--warn); }
+.ui-dot-bad { background: var(--bad); }
+.ui-dot-accent { background: var(--accent); }
+.ui-status { display: inline-flex; align-items: center; white-space: nowrap; }
+
+/* ── Card ──────────────────────────────────────────────── */
+.ui-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+.ui-card-pad { padding: var(--s-5); }

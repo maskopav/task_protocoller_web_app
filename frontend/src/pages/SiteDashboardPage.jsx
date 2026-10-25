@@ -5,7 +5,6 @@ import { useUser } from "../context/UserContext";
 import { fetchSiteById, countReceivedProtocols } from "../api/sites";
 
 import StatusBadge from "../components/ProjectDashboard/StatusBadge";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import SiteModal from "../components/SiteManagement/SiteModal";
 import SiteProjectsModal from "../components/SiteManagement/SiteProjectsModal";
 
@@ -52,7 +51,6 @@ export default function SiteDashboardPage() {
 
   return (
     <div className={`dashboard-page ${isReadOnly ? "view-only-mode" : ""}`}>
-      <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="page-header">
         <div className="header-top-row">
@@ -156,7 +154,7 @@ export default function SiteDashboardPage() {
                 {site.projects.map((p) => (
                   <tr
                     key={p.id}
-                    onClick={() => navigate(`/admin/projects/${p.id}`)}
+                    onClick={() => navigate(`/studies/${p.id}`)}
                     style={{ cursor: "pointer" }}
                   >
                     <td className="highlighted">{p.name}</td>

@@ -1,9 +1,7 @@
 // frontend/src/pages/AdminManagementPage.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import UserTable from "../components/AdminManagement/UserTable";
 import UserSiteTable from "../components/AdminManagement/UserSiteTable";
 import AssignSiteModal from "../components/AdminManagement/AssignSiteModal";
@@ -16,7 +14,6 @@ import "./Pages.css";
 
 export default function AdminManagementPage() {
   const { t } = useTranslation(["admin", "common"]);
-  const navigate = useNavigate();
   const confirm = useConfirm();
 
   const [users, setUsers] = useState([]);
@@ -113,7 +110,6 @@ export default function AdminManagementPage() {
 
   return (
     <div className="dashboard-page">
-      <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="page-header">
         <h1 className="page-title">{t("adminDashboard.masterTools.users")}</h1> {/* From admin.json */}

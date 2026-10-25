@@ -4,7 +4,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import StatusPill from "../components/Uploads/StatusPill";
 import QcPill from "../components/Uploads/QcPill";
 import FlagTags from "../components/Uploads/FlagTags";
@@ -36,8 +35,8 @@ function readFilters(sp) {
   const size = Number(sp.get("pageSize"));
   return {
     q: sp.get("q") || "",
-    site: sp.getAll("site"),
-    project: sp.get("project") || "",
+    site: [...new Set([...sp.getAll("site"), ...sp.getAll("clinic")])], // ?clinic= is the new name of ?site=
+    project: sp.get("project") || sp.get("study") || "",
     protocol: sp.get("protocol") || "",
     dateField: sp.get("dateField") === "recorded" ? "recorded" : "received",
     from: sp.get("from") || "",
@@ -96,6 +95,8 @@ export default function UploadsPage() {
     const next = new URLSearchParams(sp);
     for (const [key, value] of Object.entries(patch)) {
       next.delete(key);
+      if (key === "site") next.delete("clinic");
+      if (key === "project") next.delete("study");
       const vals = Array.isArray(value) ? value : [value];
       vals.forEach((v) => v !== "" && v != null && v !== false && next.append(key, v === true ? "1" : String(v)));
     }
@@ -168,7 +169,7 @@ export default function UploadsPage() {
   if (f.qc) active.push(L.qc(f.qc));
   if (f.q) active.push(`“${f.q}”`);
 
-  const open = (id) => navigate(`/admin/uploads/${id}?ctx=${encodeURIComponent(listQuery)}`);
+  const open = (id) => navigate(`/recordings/${id}?ctx=${encodeURIComponent(listQuery)}`);
   const total = data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / f.pageSize));
   const rows = data?.rows ?? [];
@@ -187,13 +188,12 @@ export default function UploadsPage() {
 
   return (
     <div className="dashboard-page um-page">
-      <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="um-header">
         <div className="um-title-row">
           <h1 className="um-title">{t("list.title")}</h1>
           <div className="um-actions">
-            <Link className="um-btn um-btn-ghost" to="/admin/uploads/devices">🖥 {t("list.devices")}</Link>
+            <Link className="um-btn um-btn-ghost" to="/clinics/devices">🖥 {t("list.devices")}</Link>
             <button className="um-btn um-btn-ghost" type="button" onClick={exportCsv} disabled={busyCsv}>⬇ {t("list.exportCsv")}</button>
           </div>
         </div>
@@ -347,7 +347,7 @@ export default function UploadsPage() {
                     <td className="flags"><FlagTags issues={r.issues} /></td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <div className="um-actions-cell">
-                        <Link className="um-icon-btn" to={`/admin/uploads/${r.id}?ctx=${encodeURIComponent(listQuery)}`} title={t("list.openSession")} aria-label={t("list.openSession")}>🔍</Link>
+                        <Link className="um-icon-btn" to={`/recordings/${r.id}?ctx=${encodeURIComponent(listQuery)}`} title={t("list.openSession")} aria-label={t("list.openSession")}>🔍</Link>
                         {r.canEdit && (
                           <button className="um-icon-btn light" type="button" title={t("session.download")} aria-label={t("session.download")} disabled={r.status === "validating"} onClick={(e) => download(e, r.id)}>⬇</button>
                         )}

@@ -21,6 +21,7 @@ These rules apply to everyone implementing a task from [`03_plan.md`](03_plan.md
   - the golden fixtures.
 
   If the golden test fails, your change is wrong.
+- **Never change git state.** No `git stash`, `checkout`, `reset`, `restore`, `clean` or commits: another agent's uncommitted work shares the same tree. To measure a baseline, use the numbers in the plan or ask the orchestrator.
 - **No new dependencies.** Icons are inline SVG in `src/components/ui/icons.jsx`.
 - **Versions change only in batch 4u.** Only batch 4u changes `package.json` versions or lock files. After it, write code for the upgraded APIs (Vite 8, Vitest 5, ESLint 10 flat config, i18next 26), not from older examples.
 - **Nothing beyond the spec.** Don't add features, endpoints, columns or settings that the spec doesn't name.

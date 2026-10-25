@@ -8,7 +8,6 @@ import { fetchSites } from "../api/sites";
 import ProjectStats from "../components/ProjectDashboard/ProjectStats";
 import ProjectActions from "../components/ProjectDashboard/ProjectActions";
 import StatusBadge from "../components/ProjectDashboard/StatusBadge";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar"; 
 import ProjectModal from "../components/ProjectManagement/ProjectModal";
 
 import UploadStats from "../components/Uploads/cards/UploadStats";
@@ -60,7 +59,6 @@ export default function ProjectDashboardPage() {
 
   return (
     <div className={`dashboard-page ${isReadOnly ? "view-only-mode" : ""}`}>
-      <DashboardTopBar onBack={() => navigate("/admin")} />
 
       <div className="page-header">
         {/* Row 1: Title, Badge, and Edit button */}
@@ -116,7 +114,7 @@ export default function ProjectDashboardPage() {
 
       <h2 className="section-heading">{t("projectDashboard.actionsTitle")}</h2>
       <ProjectActions
-        onProtocols={() => navigate(`/admin/projects/${projectId}/protocols`)}
+        onProtocols={() => navigate(`/studies/${projectId}/protocols`)}
       />
 
       <UploadsSection kind="project" projectId={projectId} summary={uploadSummary} days={uploadDays} onDaysChange={setUploadDays} />
@@ -142,7 +140,7 @@ export default function ProjectDashboardPage() {
                 {sites.map((s) => (
                   <tr
                     key={s.id}
-                    onClick={() => navigate(`/admin/sites/${s.id}`)}
+                    onClick={() => navigate(`/clinics/${s.id}`)}
                     style={{ cursor: "pointer" }}
                   >
                     <td className="highlighted">{s.name}</td>

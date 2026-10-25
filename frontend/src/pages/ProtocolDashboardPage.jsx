@@ -1,15 +1,12 @@
 // src/pages/ProtocolDashboardPage.jsx
 import React, { useContext, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProtocolContext } from "../context/ProtocolContext";
 import { useMappings } from "../context/MappingContext";
 import Protocols from "../components/Protocols/Protocols";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import "./Pages.css"
 
 export default function ProtocolDashboardPage() {
-  const { t } = useTranslation(["common"]);
   const { setSelectedProtocol } = useContext(ProtocolContext);
   const { refreshMappings } = useMappings();
   const { projectId } = useParams();
@@ -28,7 +25,7 @@ export default function ProtocolDashboardPage() {
     const testingMode = true; // always in test mode for admin
     const editingMode = false; // because user opens it for creating
     setSelectedProtocol(protocol);
-    navigate(`/admin/projects/${projectId}/protocols/${protocol.id}`, {
+    navigate(`/studies/${projectId}/protocols/${protocol.id}`, {
       state: { 
         protocol,
         testingMode,
@@ -37,17 +34,8 @@ export default function ProtocolDashboardPage() {
     });
   };
 
-  // Back navigation handler
-  const handleBackToDashboard = () => {
-    // Clean environment
-    setSelectedProtocol(null);
-    // Redirect to dashboard
-    navigate(`/admin/projects/${projectId}`);
-  };
-
   return (
     <div className="dashboard-page">
-      <DashboardTopBar onBack={handleBackToDashboard} />
       <Protocols onSelectProtocol={handleSelectProtocol} />
     </div>
   );

@@ -6,15 +6,15 @@ import { test, expect } from '@playwright/test';
 const MASTER_EMAIL = 'master@test.com';
 const MASTER_PASSWORD = '1234';
 
-test('admin can log in and reach the dashboard', async ({ page }) => {
+test('admin can log in and reach the home page', async ({ page }) => {
   await page.goto('/login');
 
   await page.locator('input[name="email"]').fill(MASTER_EMAIL);
   await page.locator('input[name="password"]').fill(MASTER_PASSWORD);
   await page.locator('button[type="submit"]').click();
 
-  await expect(page).toHaveURL(/\/admin$/);
-  await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible();
+  await expect(page).toHaveURL(/\/recordings$/);
+  await expect(page.getByTestId('app-shell')).toBeVisible();
 });
 
 test('shows an error for a wrong password without navigating away', async ({ page }) => {

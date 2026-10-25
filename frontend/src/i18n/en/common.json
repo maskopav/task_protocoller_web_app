@@ -311,6 +311,14 @@
       "adminWelcomeBody": "You have been registered as a system administrator. Please use your email and the temporary password below to log in and set up your permanent password.",
       "loginUrlLabel": "Login Page",
       "tempPasswordLabel": "Temporary Password"
-    }
+    },
+  "ui": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "more": "More actions",
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   }
+}
   

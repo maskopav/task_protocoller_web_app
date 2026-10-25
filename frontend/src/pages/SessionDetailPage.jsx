@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import StatusPill from "../components/Uploads/StatusPill";
 import QcPill from "../components/Uploads/QcPill";
 import FlagTags from "../components/Uploads/FlagTags";
@@ -72,16 +71,14 @@ export default function SessionDetailPage() {
 
   const tickets = useDownloadTicket(Boolean(s?.canEdit));
 
-  const listUrl = `/admin/uploads${ctx ? `?${ctx}` : ""}`;
-  const goto = (id) => id && navigate(`/admin/uploads/${id}${ctx ? `?ctx=${encodeURIComponent(ctx)}` : ""}`);
+  const goto = (id) => id && navigate(`/recordings/${id}${ctx ? `?ctx=${encodeURIComponent(ctx)}` : ""}`);
 
-  const topBar = <DashboardTopBar onBack={() => navigate(listUrl)} backLabel={t("session.backToList")} />;
 
-  if (state === "loading") return <div className="dashboard-page um-page">{topBar}<p>{t("loading", { ns: "common" })}…</p></div>;
+  if (state === "loading") return <div className="dashboard-page um-page"><p>{t("loading", { ns: "common" })}…</p></div>;
   if (state === "notFound" || state === "error") {
     return (
       <div className="dashboard-page um-page">
-        {topBar}
+        
         <div className="um-header">
           <h1 className="um-title">{state === "notFound" ? t("session.notFoundTitle") : t("session.errorTitle")}</h1>
           <p className="um-desc">{state === "notFound" ? t("session.notFoundBody") : t("session.errorBody")}</p>
@@ -110,7 +107,7 @@ export default function SessionDetailPage() {
 
   return (
     <div className="dashboard-page um-page">
-      {topBar}
+      
       <div className="um-header">
         <div className="um-title-row">
           <h1 className="um-title">
@@ -133,7 +130,7 @@ export default function SessionDetailPage() {
         </div>
         <p className="um-desc">
           {s.protocol} · {s.project} · {t("session.recordedAt")}{" "}
-          <Link to={`/admin/sites/${s.siteId}`}>{s.site}</Link> {t("session.on")} {fmtDate(endOf(s))}
+          <Link to={`/clinics/${s.siteId}`}>{s.site}</Link> {t("session.on")} {fmtDate(endOf(s))}
         </p>
         {dlError && <div className="um-error" role="alert">{t("session.downloadFailed")}</div>}
         {s.issues.length > 0 && <div style={{ marginTop: "0.35rem" }}><FlagTags issues={s.issues} /></div>}
@@ -146,7 +143,7 @@ export default function SessionDetailPage() {
             <div className="um-meta-grid">
               <Meta label={t("session.site")}>📍 {s.site}</Meta>
               <Meta label={t("session.device")} sub={<span className="cell-sub um-mono m-sub">{s.deviceId}</span>}>
-                🖥 <Link to="/admin/uploads/devices">{s.deviceLabel || shortId(s.deviceId)}</Link>
+                🖥 <Link to="/clinics/devices">{s.deviceLabel || shortId(s.deviceId)}</Link>
               </Meta>
               <Meta label={t("session.appVersion")}>{s.appVersion || "—"}</Meta>
               <Meta label={t("session.startedEnded")}>

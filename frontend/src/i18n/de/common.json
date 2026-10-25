@@ -55,6 +55,14 @@
         "surname": { "label": "Nachname", "help": "" },
         "year_of_birth": { "label": "Geburtsjahr", "help": "" }
       }
-    }
+    },
+  "ui": {
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "more": "Weitere Aktionen",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen"
   }
+}
   

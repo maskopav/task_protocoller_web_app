@@ -1,15 +1,13 @@
 // src/pages/ProjectFieldworkPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import FieldworkTable from "../components/Fieldwork/FieldworkTable";
 import { getProjectFieldwork } from "../api/projects";
 import "./Pages.css";
 
 export default function ProjectFieldworkPage() {
   const { projectId } = useParams();
-  const navigate = useNavigate();
   const { t } = useTranslation(["admin", "common"]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +28,6 @@ export default function ProjectFieldworkPage() {
 
   return (
     <div className="dashboard-page">
-      <DashboardTopBar onBack={() => navigate(`/admin/projects/${projectId}`)} />
       
       <div className="page-header">
         <h1 className="page-title">Fieldwork Management</h1>

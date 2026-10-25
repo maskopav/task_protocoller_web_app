@@ -102,6 +102,14 @@
       "welcomeTitle": "TaskProtocoller",
       "welcomeSubtitle": "Prosím zaregistrujte se nebo přihlašte pro vyplnění testu. <br/><strong>Registrovaní uživatelé:</strong> použijte Váš unikátní link nebo přihlašovací údaje poslané emailem. <br/><strong>Noví uživatelé:</strong> vaše přístupové údaje Vám budou poslány emailem po registraci.",
       "forgotPasswordLink": "Zapomenuté heslo?" 
-    }
+    },
+  "ui": {
+    "copy": "Kopírovat",
+    "copied": "Zkopírováno",
+    "more": "Další akce",
+    "close": "Zavřít",
+    "confirm": "Potvrdit",
+    "cancel": "Zrušit"
   }
+}
   

@@ -29,7 +29,7 @@ test('the single ZIP download is named <sessionId>.zip', async ({ page }) => {
 
 test('the Downloads page bundles two selected sessions; select all skips the invalid one', async ({ page }) => {
   await uiLogin(page, USERS.master);
-  await page.goto('/#/admin/uploads/downloads');
+  await page.goto('/#/recordings/downloads');
 
   await page.locator('label.ut-field.grow select').selectOption({ label: 'E2E Clinic A' });
   // Show the invalid session too: it must still not be picked by "select all".

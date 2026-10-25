@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import { downloadBundle, fetchUploads } from "../api/uploads";
 import { fetchSites } from "../api/sites";
 import { fetchProjectsList } from "../api/projects";
@@ -123,7 +122,6 @@ export default function DownloadsPage() {
 
   return (
     <div className="dashboard-page ut-scope">
-      <DashboardTopBar onBack={() => navigate("/admin/uploads")} />
       <div className="ut-wide">
         <div className="page-header">
           <h1 className="page-title">{t("downloads.title")}</h1>
@@ -203,7 +201,7 @@ export default function DownloadsPage() {
                   const attention = s.status === "invalid" ? "row-bad" : s.needsAttention ? "row-warn" : "";
                   return (
                     <tr key={s.id} className={`clickable ${attention}`}
-                      onClick={(e) => { if (!e.target.closest("input")) navigate(`/admin/uploads/${s.id}`); }}>
+                      onClick={(e) => { if (!e.target.closest("input")) navigate(`/recordings/${s.id}`); }}>
                       <td className="c">
                         <input type="checkbox" checked={sel.has(s.id)} disabled={!!why} title={why}
                           aria-label={t("downloads.selectRow", { code: s.participant?.patient_code || s.id })}

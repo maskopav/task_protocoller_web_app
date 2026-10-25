@@ -1,0 +1,125 @@
+/* AppShell: sidebar plus content area. Tokens only. */
+.shell {
+  --shell-sidebar-w: var(--sidebar-w, 236px);
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+.shell.is-collapsed { --shell-sidebar-w: 64px; }
+
+.shell-sidebar {
+  width: var(--shell-sidebar-w);
+  flex: none;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: var(--s-4) var(--s-3);
+  box-sizing: border-box;
+}
+
+.shell-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-5);
+  font-weight: 650;
+  color: var(--text);
+}
+.shell-brand-mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  display: grid;
+  place-items: center;
+}
+
+.shell-nav { display: flex; flex-direction: column; gap: 2px; }
+.shell-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-weight: 500;
+  text-decoration: none;
+}
+.shell-nav-link:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+.shell-nav-link.is-active { background: var(--accent-soft); color: var(--accent-text); }
+.shell-nav-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.shell-nav-count {
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border-radius: var(--r-pill);
+  padding: 0 var(--s-2);
+}
+.shell-nav-link.is-active .shell-nav-count { background: var(--surface); }
+.shell-nav-sep { height: 1px; background: var(--border); margin: var(--s-3) var(--s-2); }
+.shell-nav-heading { font-size: var(--fs-xs); color: var(--text-3); padding: 0 var(--s-3) var(--s-1); }
+
+.shell-user {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.shell-user-row { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-1) var(--s-2); }
+.shell-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--idle-soft);
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.shell-user-text { min-width: 0; }
+.shell-user-name { font-weight: 550; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shell-user-role { font-size: var(--fs-xs); color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shell-user-actions { display: flex; gap: var(--s-2); padding: 0 var(--s-2); align-items: center; }
+.shell-lang {
+  flex: 1;
+  min-width: 0;
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+
+.shell-main { flex: 1; min-width: 0; }
+.shell-content { max-width: 1320px; padding: var(--s-6) var(--s-7) var(--s-7); box-sizing: border-box; }
+.shell-content.is-wide { max-width: none; padding: 0; }
+
+/* Collapsed variant (protocol editor): icons only. */
+.shell.is-collapsed .shell-sidebar { padding: var(--s-4) var(--s-2); align-items: center; }
+.shell.is-collapsed .shell-brand { padding: var(--s-2) 0 var(--s-5); }
+.shell.is-collapsed .shell-brand-name,
+.shell.is-collapsed .shell-nav-label,
+.shell.is-collapsed .shell-nav-heading,
+.shell.is-collapsed .shell-nav-count,
+.shell.is-collapsed .shell-user-text,
+.shell.is-collapsed .shell-lang { display: none; }
+.shell.is-collapsed .shell-nav-link { padding: var(--s-2); justify-content: center; }
+.shell.is-collapsed .shell-nav-sep { width: 32px; margin-left: 0; margin-right: 0; }
+.shell.is-collapsed .shell-user-actions { flex-direction: column; padding: 0; }
+.shell.is-collapsed .shell-user-row { padding: var(--s-1) 0; }

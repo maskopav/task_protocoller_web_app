@@ -92,7 +92,7 @@ export async function uiLogin(page: Page, email: string): Promise<string> {
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(PASSWORD);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/recordings$/);
   return (await page.evaluate(() => localStorage.getItem('adminToken'))) as string;
 }
 

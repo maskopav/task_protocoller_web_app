@@ -6,7 +6,6 @@ import { fetchProjectsList } from "../api/projects";
 import { fetchSites } from "../api/sites";
 
 // Shared & Local Components
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import ProjectGrid from "../components/AdminDashboard/ProjectGrid";
 import SiteGrid from "../components/AdminDashboard/SiteGrid";
 import MasterTools from "../components/AdminDashboard/MasterTools";
@@ -20,7 +19,7 @@ import "./Pages.css";
 export default function AdminDashboardPage() {
   const { t } = useTranslation(["admin", "common"]);
   const navigate = useNavigate();
-  const { user, logout } = useUser();
+  const { user } = useUser();
   const [projects, setProjects] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,15 +57,10 @@ export default function AdminDashboardPage() {
       .catch(err => console.error(err));
   };
 
-  // UserContext.logout clears the JWT too; removing only adminUser left a
-  // working token in localStorage after "logging out".
-  const handleLogout = logout;
-
   if (loading) return <div className="app-container"><p>{t("loading", {ns: "common"})}...</p></div>;
 
   return (
     <div className="dashboard-page">
-      <DashboardTopBar user={user} onLogout={handleLogout} />
 
       <div className="page-header">
         <h1 className="page-title">{t("adminDashboard.title")}</h1>
@@ -79,12 +73,12 @@ export default function AdminDashboardPage() {
 
       <SiteGrid
         sites={sites}
-        onSiteClick={(id) => navigate(`/admin/sites/${id}`)}
+        onSiteClick={(id) => navigate(`/clinics/${id}`)}
       />
 
       <ProjectGrid
         projects={projects}
-        onProjectClick={(id) => navigate(`/admin/projects/${id}`)}
+        onProjectClick={(id) => navigate(`/studies/${id}`)}
       />
 
       {/* A master reaches both of these through MasterTools below; this row is

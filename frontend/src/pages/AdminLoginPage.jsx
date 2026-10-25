@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
         if (res.user.must_change_password) {
           navigate("/setup-account");
         } else {
-          navigate("/admin");
+          navigate("/recordings");
         }
       } else {
         // Handle cases where res.success is false but no exception was thrown

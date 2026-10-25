@@ -12,11 +12,11 @@ const TARGET_EMAIL = 'admin@test.com';
 const TARGET_PASSWORD = '1234';
 
 async function loginAndGetToken(page: Page, email: string, password: string): Promise<string> {
-  await page.goto('/login');
+  await page.goto('/#/login'); // a logged-in visit to / now opens the app, so address the login route itself
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/recordings$/);
 
   const token = await page.evaluate(() => localStorage.getItem('adminToken'));
   if (!token) throw new Error('Login did not yield an adminToken');

@@ -870,12 +870,12 @@ export default function ParticipantInterfacePage() {
 
   function handleBack() {
     if (location.state?.returnTo === "dashboard") {
-      navigate(`/admin/projects/${protocolData.projectId}/protocols`);
+      navigate(`/studies/${protocolData.projectId}/protocols`);
       return;
     }
   
     // default → return to editor
-    navigate(`/admin/projects/${protocolData.projectId}/protocols/${protocolData.id}`, {
+    navigate(`/studies/${protocolData.projectId}/protocols/${protocolData.id}`, {
       state: { 
         protocol: protocolData, 
         originalTasks, 

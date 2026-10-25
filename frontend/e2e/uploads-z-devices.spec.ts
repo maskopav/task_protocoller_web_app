@@ -32,7 +32,7 @@ test('a non-master cannot rename or assign a device', async ({ request }) => {
 
 test('master renames a device in the UI; non-masters get no rename or assign controls', async ({ page, browser }) => {
   await uiLogin(page, USERS.master);
-  await page.goto('/#/admin/uploads/devices');
+  await page.goto('/#/clinics/devices');
   const row = page.locator('tr', { hasText: F.s4.installationId });
   await row.getByRole('button', { name: 'Rename device' }).click();
   await page.getByLabel('Device name').fill('Clinic B laptop');
@@ -43,7 +43,7 @@ test('master renames a device in the UI; non-masters get no rename or assign con
   const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
   const other = await ctx.newPage();
   await uiLogin(other, USERS.clinic);
-  await other.goto('/#/admin/uploads/devices');
+  await other.goto('/#/clinics/devices');
   await expect(other.locator('tr', { hasText: F.s1.installationId })).toBeVisible();
   await expect(other.getByRole('button', { name: 'Rename device' })).toHaveCount(0);
   await expect(other.getByRole('button', { name: 'Assign to site' })).toHaveCount(0);
@@ -59,7 +59,7 @@ test('assigning the quarantined device to a site moves its session and re-valida
   expect(before.siteId ?? null).toBeNull();
 
   await uiLogin(page, USERS.master);
-  await page.goto('/#/admin/uploads/devices');
+  await page.goto('/#/clinics/devices');
   const row = page.locator('tr', { hasText: F.q2.installationId });
   await expect(row.getByText('No site (quarantine)')).toBeVisible();
   await row.getByRole('button', { name: 'Assign to site' }).click();

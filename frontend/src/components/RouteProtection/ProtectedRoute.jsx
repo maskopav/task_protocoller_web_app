@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children, requireMaster = false }) {
   // the actual gate; this only stops a non-master from landing on a master
   // tool and seeing a page full of 403s.
   if (requireMaster && user.role_id !== 1) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/recordings" replace />;
   }
 
   return children;
