@@ -119,7 +119,7 @@ for (const persona of PERSONAS) {
     });
 
     const sites: any[] = (await api('/sites')) ?? [];
-    const projects: any[] = (await api('/projects/projects-list')) ?? [];
+    const projects: any[] = (await api('/projects')) ?? [];
     const siteId = (sites.find((s) => s.name === 'E2E Clinic A') ?? sites[0])?.id;
     const proj = projects.find((p) => p.name === 'Speech Study') ?? projects[0];
     const projectId = proj?.project_id ?? proj?.id;

@@ -15,10 +15,11 @@ export const SITE_B_TOKEN = 'e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5'; // "E2E Clinic B
 
 export const USERS = {
   master: 'master@test.com',
-  clinic: 'clinic@test.com', // site grant on E2E Clinic A only
-  editor: 'editor@test.com', // project grant (can_edit) narrowed to E2E Clinic B
-  reviewer: 'reviewer@test.com', // read-only project grant
-  nogrant: 'nogrant@test.com', // no grants at all
+  clinic: 'clinic@test.com', // assigned to E2E Clinic A only; receives the study
+  editor: 'editor@test.com', // edits the study, but is assigned to E2E Clinic B only
+  reviewer: 'reviewer@test.com', // assigned to both clinics; receives the study
+  researcher: 'researcher@test.com', // edits the study and is assigned to both clinics
+  nogrant: 'nogrant@test.com', // no clinics, edits nothing
 } as const;
 
 export interface Fixture {

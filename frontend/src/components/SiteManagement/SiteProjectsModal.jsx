@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
 import { fetchSiteById, assignProjectToSite, removeProjectFromSite } from "../../api/sites";
 import { fetchProjectsList } from "../../api/projects";
+import { apiErrorMessage } from "../../utils/apiError";
 
 export default function SiteProjectsModal({ site, onClose, onChanged }) {
   const { t } = useTranslation(["admin", "common"]);
@@ -16,9 +17,9 @@ export default function SiteProjectsModal({ site, onClose, onChanged }) {
     try {
       setDetail(await fetchSiteById(site.id));
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     }
-  }, [site.id]);
+  }, [site.id, t]);
 
   useEffect(() => { loadDetail(); }, [loadDetail]);
 
@@ -27,7 +28,7 @@ export default function SiteProjectsModal({ site, onClose, onChanged }) {
   useEffect(() => {
     fetchProjectsList()
       .then(list => setCandidates(list.filter(p => p.can_edit !== false)))
-      .catch(err => setError(err.message));
+      .catch(err => setError(apiErrorMessage(err, t)));
   }, []);
 
   const assignedIds = new Set((detail?.projects || []).map(p => p.id));
@@ -42,7 +43,7 @@ export default function SiteProjectsModal({ site, onClose, onChanged }) {
       await loadDetail();
       onChanged();
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     }
   };
 
@@ -53,7 +54,7 @@ export default function SiteProjectsModal({ site, onClose, onChanged }) {
       await loadDetail();
       onChanged();
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     }
   };
 

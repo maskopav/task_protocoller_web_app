@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useUser } from "../context/UserContext";
-import { fetchSiteById } from "../api/sites";
+import { fetchSiteById, countReceivedProtocols } from "../api/sites";
 
 import StatusBadge from "../components/ProjectDashboard/StatusBadge";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
@@ -27,7 +27,7 @@ export default function SiteDashboardPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
 
-  // GET /sites/:id returns the site plus its projects and inherited protocols
+  // GET /sites/:id returns the site plus its projects and receives[] (the protocols its computers get)
   const loadData = useCallback(async () => {
     try {
       setSite(await fetchSiteById(siteId));
@@ -118,7 +118,7 @@ export default function SiteDashboardPage() {
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
-              <span className="stat-value">{site?.protocols?.length || 0}</span>
+              <span className="stat-value">{countReceivedProtocols(site)}</span>
               <span className="stat-label">{t("siteDashboard.stats.protocols")}</span>
             </div>
             <UploadStats summary={uploadSummary} />

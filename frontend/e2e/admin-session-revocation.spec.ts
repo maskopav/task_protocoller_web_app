@@ -24,19 +24,19 @@ async function loginAndGetToken(page: Page, email: string, password: string): Pr
 }
 
 async function findUserId(request: APIRequestContext, masterToken: string, email: string): Promise<number> {
-  const res = await request.get(`${BACKEND_URL}/users/users`, {
+  const res = await request.get(`${BACKEND_URL}/users`, {
     headers: { Authorization: `Bearer ${masterToken}` },
   });
   const admins = await res.json();
-  const match = admins.find((u: { user_email: string }) => u.user_email === email);
+  const match = admins.find((u: { email: string }) => u.email === email);
   if (!match) throw new Error(`No admin row found for ${email}`);
-  return match.user_id;
+  return match.id;
 }
 
 async function setActive(request: APIRequestContext, masterToken: string, userId: number, isActive: 0 | 1) {
-  const res = await request.post(`${BACKEND_URL}/users/toggle-status`, {
+  const res = await request.patch(`${BACKEND_URL}/users/${userId}`, {
     headers: { Authorization: `Bearer ${masterToken}` },
-    data: { user_id: userId, is_active: isActive },
+    data: { is_active: isActive === 1 },
   });
   expect(res.ok()).toBeTruthy();
 }
@@ -44,8 +44,8 @@ async function setActive(request: APIRequestContext, masterToken: string, userId
 test('deactivating an admin immediately invalidates their existing token, without waiting for expiry', async ({ page, request }) => {
   // 1. The target admin logs in and gets a token that is valid right now.
   const targetToken = await loginAndGetToken(page, TARGET_EMAIL, TARGET_PASSWORD);
-  // Probe with an endpoint any admin may call (/users/users is master-only).
-  const before = await request.get(`${BACKEND_URL}/projects/projects-list`, {
+  // Probe with an endpoint any admin may call (GET /users is master-only).
+  const before = await request.get(`${BACKEND_URL}/projects`, {
     headers: { Authorization: `Bearer ${targetToken}` },
   });
   expect(before.ok()).toBeTruthy();
@@ -58,7 +58,7 @@ test('deactivating an admin immediately invalidates their existing token, withou
     await setActive(request, masterToken, targetUserId, 0);
 
     // 3. The SAME still-unexpired token the admin already had must now be rejected.
-    const after = await request.get(`${BACKEND_URL}/projects/projects-list`, {
+    const after = await request.get(`${BACKEND_URL}/projects`, {
       headers: { Authorization: `Bearer ${targetToken}` },
     });
     expect(after.status()).toBe(401);

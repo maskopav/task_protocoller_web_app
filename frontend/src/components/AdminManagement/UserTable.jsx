@@ -1,10 +1,9 @@
 // frontend/src/components/AdminManagement/UserTable.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
-import AssignIcon from "../Icons/AssignIcon"; // Reusing the shared icon
 import "./AdminManagement.css";
 
-export default function UserTable({ users, onToggleStatus, onEdit, onAssignProject, onAssignSite, onAddClick, onToggleRight }) {
+export default function UserTable({ users, onToggleStatus, onEdit, onAssignSite, onAddClick, onToggleRight }) {
   const { t } = useTranslation(["admin", "common"]);
 
   // mysql2 hands booleans back as 0/1 depending on driver config.
@@ -35,10 +34,10 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.user_id}>
-                <td>{u.user_id}</td>
-                <td><strong>{u.full_name || "—"}</strong></td>
-                <td>{u.user_email}</td>
+              <tr key={u.id}>
+                <td>{u.id}</td>
+                <td><strong>{u.name || "—"}</strong></td>
+                <td>{u.email}</td>
                 <td><span className="user-role-badge">{u.role}</span></td>
                 <td>
                   <span className={`status-badge ${u.is_active ? "active" : "inactive"}`}>
@@ -53,7 +52,7 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
                     className="checkbox-input"
                     checked={on(u.can_create_projects)}
                     title={t("management.table.canCreateProjects")}
-                    onChange={() => onToggleRight(u.user_id, "can_create_projects", !on(u.can_create_projects))}
+                    onChange={() => onToggleRight(u.id, "can_create_projects", !on(u.can_create_projects))}
                   />
                 </td>
                 <td style={{ textAlign: "center" }}>
@@ -62,7 +61,7 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
                     className="checkbox-input"
                     checked={on(u.can_create_sites)}
                     title={t("management.table.canCreateSites")}
-                    onChange={() => onToggleRight(u.user_id, "can_create_sites", !on(u.can_create_sites))}
+                    onChange={() => onToggleRight(u.id, "can_create_sites", !on(u.can_create_sites))}
                   />
                 </td>
                 <td>
@@ -74,15 +73,6 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
                       onClick={() => onEdit(u)}
                     >
                       ✒️
-                    </button>
-
-                    {/* Purple Assign Button */}
-                    <button 
-                      className="btn-mgmt-icon btn-assign-purple" 
-                      title={t("management.buttons.assign")} 
-                      onClick={() => onAssignProject(u)}
-                    >
-                      <AssignIcon title={t("management.buttons.assign")} />
                     </button>
 
                     {/* Site Assign Button */}
@@ -97,7 +87,7 @@ export default function UserTable({ users, onToggleStatus, onEdit, onAssignProje
                     {/* Dynamic Status Toggle Button */}
                     <button 
                       className={`btn-mgmt-icon ${u.is_active ? "btn-deactivate" : "btn-activate"}`}
-                      onClick={() => onToggleStatus(u.user_id, u.is_active)}
+                      onClick={() => onToggleStatus(u.id, u.is_active)}
                       title={u.is_active ? t("management.buttons.deactivate") : t("management.buttons.activate")}
                     >
                       {u.is_active ? "🚫" : "✅"}

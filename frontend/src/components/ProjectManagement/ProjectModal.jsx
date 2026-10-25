@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
-import { createProjectApi, updateProjectApi } from "../../api/projects";
-import { useUser } from "../../context/UserContext";
+import { createProject, updateProject } from "../../api/projects";
+import { apiErrorMessage } from "../../utils/apiError";
 import { validate } from "../../utils/validation";
 
 const BLANK = {
@@ -13,7 +13,6 @@ const BLANK = {
 
 export default function ProjectModal({ open, onClose, project, onSuccess }) {
   const { t } = useTranslation(["admin", "common"]);
-  const { user } = useUser();
   const isEdit = !!project;
   const [formData, setFormData] = useState(BLANK);
   const [error, setError] = useState("");
@@ -52,14 +51,14 @@ export default function ProjectModal({ open, onClose, project, onSuccess }) {
       // Always send all five keys: updateProject uses IFNULL(?, col), so an
       // omitted field means "unchanged" and only "" can clear a value.
       if (isEdit) {
-        await updateProjectApi({ id: project.id, ...formData, updated_by: user.id });
+        await updateProject(project.id, formData);
       } else {
-        await createProjectApi({ ...formData, created_by: user.id });
+        await createProject(formData);
       }
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     } finally {
       setIsSubmitting(false);
     }

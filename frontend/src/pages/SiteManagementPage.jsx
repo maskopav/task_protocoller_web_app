@@ -32,12 +32,7 @@ export default function SiteManagementPage() {
 
   const handleToggleActive = async (site, newStatus) => {
     try {
-      await updateSite(site.id, {
-        name: site.name,
-        description: site.description,
-        config_json: site.config_json,
-        is_active: newStatus,
-      });
+      await updateSite(site.id, { is_active: !!newStatus });
       loadData();
     } catch (err) {
       console.error("Update failed:", err);

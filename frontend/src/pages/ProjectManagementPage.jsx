@@ -3,28 +3,22 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useMappings } from "../context/MappingContext";
-import { useUser } from "../context/UserContext";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import ProjectTable from "../components/ProjectManagement/ProjectTable";
 import ProjectModal from "../components/ProjectManagement/ProjectModal";
-import { updateProjectApi } from "../api/projects"; 
+import { updateProject } from "../api/projects";
 import "./Pages.css";
 
 export default function ProjectManagementPage() {
   const { t } = useTranslation(["admin", "common"]);
   const { mappings, refreshMappings } = useMappings();
-  const { user } = useUser();
   const navigate = useNavigate();
   const [editingProject, setEditingProject] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const handleToggleActive = async (projectId, newStatus) => {
     try {
-    await updateProjectApi({
-        id: projectId,
-        is_active: newStatus ? 1 : 0,
-        updated_by: user?.id 
-        });
+      await updateProject(projectId, { is_active: !!newStatus });
       refreshMappings();
     } catch (err) {
       console.error("Update failed:", err);

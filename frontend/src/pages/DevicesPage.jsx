@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import { useUser } from "../context/UserContext";
-import { assignDeviceSite, fetchDevices, renameDevice } from "../api/uploads";
+import { assignDeviceSite, fetchDevices, renameDevice } from "../api/devices";
 import { fetchSites } from "../api/sites";
 import { fmtDT, rel } from "../components/UploadTools/format";
 import "./Pages.css";

@@ -3,29 +3,20 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
 import { createAdminApi } from "../../api/users";
+import { apiErrorMessage } from "../../utils/apiError";
 import "./AdminManagement.css";
 
-export default function AddAdminModal({ open, onClose, projects, sites = [], onSuccess }) {
+export default function AddAdminModal({ open, onClose, sites = [], onSuccess }) {
   const { t, i18n } = useTranslation(["admin", "common"]);
   const [formData, setFormData] = useState({
     email: "",
     full_name: "",
-    project_ids: [],
     site_ids: [],
     can_create_projects: false,
     can_create_sites: false
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleToggleProject = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      project_ids: prev.project_ids.includes(id)
-        ? prev.project_ids.filter(pId => pId !== id)
-        : [...prev.project_ids, id]
-    }));
-  };
 
   const handleToggleSite = (id) => {
     setFormData(prev => ({
@@ -47,15 +38,17 @@ export default function AddAdminModal({ open, onClose, projects, sites = [], onS
     setIsSubmitting(true);
     setError("");
     try {
+      const { full_name, ...rest } = formData;
       await createAdminApi({
-        ...formData,
+        ...rest,
+        name: full_name,
         lang: i18n.language
       });
       onSuccess(); 
       onClose();
-      setFormData({ email: "", full_name: "", project_ids: [], site_ids: [], can_create_projects: false, can_create_sites: false });
+      setFormData({ email: "", full_name: "", site_ids: [], can_create_projects: false, can_create_sites: false });
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     } finally {
       setIsSubmitting(false);
     }
@@ -97,25 +90,6 @@ export default function AddAdminModal({ open, onClose, projects, sites = [], onS
           />
         </div>
         
-        <div className="form-group">
-          <label className="form-label">{t("adminDashboard.projectsTitle")}</label>
-          <div className="project-selection-grid">
-            {projects.map(p => (
-              <div key={p.project_id} className="project-selection-checkbox">
-                <label className="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    className="checkbox-input"
-                    checked={formData.project_ids.includes(p.project_id)}
-                    onChange={() => handleToggleProject(p.project_id)}
-                  />
-                  <span>{p.project_name}</span>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Site access is a separate grant from project access — a site is only
             visible to an admin listed in user_sites for it. */}
         <div className="form-group">

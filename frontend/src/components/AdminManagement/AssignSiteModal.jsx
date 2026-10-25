@@ -20,7 +20,7 @@ export default function AssignSiteModal({ user, onClose, onAssign }) {
     <Modal
       open={true}
       onClose={onClose}
-      title={`${t("management.buttons.assignSite")}: ${user.full_name}`}
+      title={`${t("management.buttons.assignSite")}: ${user.name}`}
       showSaveButton={false}
     >
       <div className="modal-body-list">
@@ -37,7 +37,7 @@ export default function AssignSiteModal({ user, onClose, onAssign }) {
                   </div>
                   <button
                     className="btn-primary btn-sm"
-                    onClick={() => onAssign(user.user_id, s.id)}
+                    onClick={() => onAssign(user.id, s.id)}
                   >
                     + {t("management.buttons.assignShort", "Assign")}
                   </button>

@@ -1,48 +1,23 @@
-// frontend/src/api/protocols.js
-import { apiFetch } from "./apiClient";
+// src/api/protocols.js
+import { apiJson } from "./apiClient";
 
-export async function saveProtocolToBackend(protocolData) {
-    try {
-      const response = await apiFetch(`/protocols/save`, {
-        method: "POST",
-        body: JSON.stringify(protocolData),
-      });
+// Creates a protocol, or saves a new version of one (editingMode).
+// -> { success, protocol_id }
+export const saveProtocol = (protocolData) =>
+  apiJson("/protocols", { method: "POST", body: protocolData, fallback: "protocol_save_failed" });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to save protocol");
+// -> the assembled protocol plus can_edit
+export const getProtocolById = (protocolId) =>
+  apiJson(`/protocols/${protocolId}`, { fallback: "protocol_load_failed" });
 
-      return data;
-    } catch (error) {
-      console.error("Error in saveProtocol:", error);
-      throw error;
-    }
-  }
+// One item per protocol group, with languages[] ({language_id, code, protocol_id}).
+// archived: true lists the archived ones instead of the current ones.
+export const getProtocolsByProjectId = (projectId, { archived = false } = {}) =>
+  apiJson(`/projects/${projectId}/protocols?archived=${archived ? 1 : 0}`, { fallback: "protocols_load_failed" });
 
-export async function getProtocolById(protocolId) {
-  const res = await apiFetch(`/protocols/${protocolId}`);
-  if (!res.ok) throw new Error("Failed to fetch protocol");
-  return res.json(); // expected: { protocolData, tasks }
-}
+export const archiveProtocol = (protocolId) =>
+  apiJson(`/protocols/${protocolId}/archive`, { method: "POST", fallback: "protocol_archive_failed" });
 
-export async function getProtocolsByProjectId(projectId) {
-  // If projectId is provided, filter by it. Otherwise, fetch all.
-  const url = projectId
-    ? `/protocols?project_id=${projectId}`
-    : `/protocols`;
-
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error("Failed to fetch protocols");
-  return res.json();
-}
-
-export async function getArchivedProtocols() {
-  const res = await apiFetch(`/protocols/archived`);
-  if (!res.ok) throw new Error("Failed to fetch archived protocols");
-  return res.json();
-}
-
-export async function archiveProtocol(protocolId) {
-  const res = await apiFetch(`/protocols/${protocolId}/archive`, { method: "POST" });
-  if (!res.ok) throw new Error("Failed to archive protocol");
-  return res.json();
-}
+// Copies a study protocol's group into the library (or adds a new library version).
+export const shareProtocol = (protocolId) =>
+  apiJson(`/protocols/${protocolId}/share`, { method: "POST", fallback: "protocol_share_failed" });

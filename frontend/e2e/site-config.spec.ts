@@ -67,9 +67,9 @@ test('deactivating a project drops its protocols from site-config and reactivati
     let cfg = await (await request.get(`${BACKEND_URL}/site-config/${SITE_TOKEN}`)).json();
     expect(cfg.protocols).toHaveLength(1);
 
-    const deactivate = await request.put(`${BACKEND_URL}/projects/update`, {
+    const deactivate = await request.patch(`${BACKEND_URL}/projects/1`, {
       headers: authHeaders,
-      data: { id: 1, is_active: 0, updated_by: 1 },
+      data: { is_active: 0 },
     });
     expect(deactivate.ok()).toBeTruthy();
 
@@ -80,9 +80,9 @@ test('deactivating a project drops its protocols from site-config and reactivati
     const site = sites.find((s: { id: number }) => s.id === 3);
     expect(site.project_count).toBe(0); // assignment row is untouched, but it's no longer counted as live
   } finally {
-    const reactivate = await request.put(`${BACKEND_URL}/projects/update`, {
+    const reactivate = await request.patch(`${BACKEND_URL}/projects/1`, {
       headers: authHeaders,
-      data: { id: 1, is_active: 1, updated_by: 1 },
+      data: { is_active: 1 },
     });
     expect(reactivate.ok()).toBeTruthy();
   }

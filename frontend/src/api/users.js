@@ -1,36 +1,20 @@
-// src/api/users.js
-import { apiFetch } from "./apiClient";
+// src/api/users.js — user management (master only).
+import { apiJson } from "./apiClient";
 
-export async function fetchAllAdmins() {
-    const res = await apiFetch(`/users/users`);
-    if (!res.ok) throw new Error("Failed to fetch admins");
-    return res.json();
-  }
+// -> [{ id, name, email, role, is_active, can_create_projects, can_create_sites, sites:[{id,name}] }]
+export const fetchAllAdmins = () => apiJson("/users", { fallback: "users_fetch_failed" });
+export const fetchUser = (id) => apiJson(`/users/${id}`, { fallback: "user_fetch_failed" });
 
-  export async function toggleAdminActive(user_id, is_active) {
-    const res = await apiFetch(`/users/toggle-status`, {
-      method: "POST",
-      body: JSON.stringify({ user_id, is_active })
-    });
-    return res.json();
-  }
+// -> { success, id }
+export const createAdminApi = (payload) =>
+  apiJson("/users", { method: "POST", body: payload, fallback: "user_create_failed" });
 
-  export async function createAdminApi(payload) {
-    const res = await apiFetch(`/users/create`, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Failed to create admin");
-    return json;
-  }
+// Partial: name, email, is_active, can_create_projects, can_create_sites.
+export const updateUser = (id, payload) =>
+  apiJson(`/users/${id}`, { method: "PATCH", body: payload, fallback: "user_update_failed" });
 
-  export async function updateUserApi(payload) {
-    const res = await apiFetch(`/users/update`, {
-      method: "PUT",
-      body: JSON.stringify(payload)
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Failed to update user");
-    return json;
-}
+export const toggleAdminActive = (id, isActive) => updateUser(id, { is_active: !!isActive });
+
+// Replaces the user's clinic set.
+export const setUserSites = (id, siteIds) =>
+  apiJson(`/users/${id}/sites`, { method: "PUT", body: { site_ids: siteIds }, fallback: "user_sites_failed" });

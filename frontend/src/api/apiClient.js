@@ -27,3 +27,31 @@ export async function apiFetch(path, options = {}) {
 
   return res;
 }
+
+// Error thrown by the resource modules: `code` is the backend's snake_case
+// error code (e.g. "name_taken"), `status` the HTTP status. `message` equals
+// the code so a bare err.message is still readable; screens translate it with
+// utils/apiError.js.
+export class ApiError extends Error {
+  constructor(status, code, body = {}) {
+    super(code);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.body = body;
+  }
+}
+
+// Parses a JSON response, throwing ApiError on a non-2xx status.
+export async function readJson(res, fallbackCode = "request_failed") {
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, body?.error || fallbackCode, body);
+  return body;
+}
+
+// apiFetch + readJson for the common case of a JSON body.
+export async function apiJson(path, { method = "GET", body, fallback } = {}) {
+  const options = { method };
+  if (body !== undefined) options.body = JSON.stringify(body);
+  return readJson(await apiFetch(path, options), fallback);
+}

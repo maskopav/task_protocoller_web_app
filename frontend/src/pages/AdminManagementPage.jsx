@@ -5,17 +5,13 @@ import { useTranslation } from "react-i18next";
 import { useConfirm } from "../components/ConfirmDialog/ConfirmDialogContext";
 import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import UserTable from "../components/AdminManagement/UserTable";
-import UserProjectTable from "../components/AdminManagement/UserProjectTable";
 import UserSiteTable from "../components/AdminManagement/UserSiteTable";
-import AssignProjectModal from "../components/AdminManagement/AssignProjectModal";
 import AssignSiteModal from "../components/AdminManagement/AssignSiteModal";
 import AddAdminModal from "../components/AdminManagement/AddAdminModal";
 import EditAdminModal from "../components/AdminManagement/EditAdminModal";
-import { fetchProjectsList } from "../api/projects";
 import { fetchSites } from "../api/sites";
-import { fetchAllAdmins, toggleAdminActive, updateUserApi } from "../api/users";
-import { fetchAdminAssignments, assignProjectToUser, setAssignmentCanEdit, removeUserProjectAssignmentApi } from "../api/userProjects";
-import { fetchSiteAssignments, assignSiteToUser, removeUserSiteAssignmentApi } from "../api/userSites";
+import { fetchAllAdmins, toggleAdminActive, updateUser, setUserSites } from "../api/users";
+import { apiErrorMessage } from "../utils/apiError";
 import "./Pages.css";
 
 export default function AdminManagementPage() {
@@ -24,29 +20,19 @@ export default function AdminManagementPage() {
   const confirm = useConfirm();
 
   const [users, setUsers] = useState([]);
-  const [assignments, setAssignments] = useState([]);
-  const [siteAssignments, setSiteAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedUserForProject, setSelectedUserForProject] = useState(null);
   const [selectedUserForSite, setSelectedUserForSite] = useState(null);
-  const [allProjects, setAllProjects] = useState([]);
   const [allSites, setAllSites] = useState([]);
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
 
   const loadData = async () => {
     try {
-      const [uData, aData, sData, pData, siteData] = await Promise.all([
+      const [uData, siteData] = await Promise.all([
         fetchAllAdmins(),
-        fetchAdminAssignments(),
-        fetchSiteAssignments(),
-        fetchProjectsList(),
         fetchSites()
       ]);
       setUsers(uData);
-      setAssignments(aData);
-      setSiteAssignments(sData);
-      setAllProjects(pData);
       setAllSites(siteData);
     } catch (err) {
       console.error("Management data error:", err);
@@ -57,65 +43,41 @@ export default function AdminManagementPage() {
 
   useEffect(() => { loadData(); }, []);
 
+  // GET /users carries each user's clinics, so the clinic assignments table is
+  // derived from it. A row is one (user, clinic) pair.
+  const siteAssignments = users.flatMap((u) =>
+    (u.sites || []).map((s) => ({
+      assignment_id: `${u.id}:${s.id}`,
+      user_id: u.id,
+      user_name: u.name,
+      user_email: u.email,
+      site_id: s.id,
+      site_name: s.name,
+    }))
+  );
+
   const handleToggleStatus = async (user_id, current_status) => {
     try {
-      await toggleAdminActive(user_id, current_status === 1 ? 0 : 1);
+      await toggleAdminActive(user_id, !current_status);
       await loadData(); 
     } catch (err) {
-      alert(t("management.alerts.statusError")); // Translated alert
-    }
-  };
-
-  const handleRemoveAssignment = async (id) => {
-    // Call the custom dialog and wait for the boolean result
-    const isConfirmed = await confirm({
-      title: t("management.confirm.deleteTitle"),
-      message: t("management.confirm.removeAssignment"),
-      confirmText: t("management.confirm.confirm"),
-      cancelText: t("management.confirm.cancel"),
-    });
-
-    if (isConfirmed) {
-      try {
-        await removeUserProjectAssignmentApi(id);
-        await loadData(); // Refresh assignments table
-      } catch (err) {
-        // You could also implement a "useAlert" here for consistency
-        alert(err.message || "Failed to remove assignment.");
-      }
-    }
-  };
-
-  const handleAssignProject = async (user_id, project_id, can_edit = true) => {
-    try {
-      await assignProjectToUser(user_id, project_id, can_edit);
-      setSelectedUserForProject(null);
-      await loadData();
-    } catch (err) {
-      alert(err.message);
+      alert(apiErrorMessage(err, t) || t("management.alerts.statusError"));
     }
   };
 
   const handleToggleRight = async (user_id, right, value) => {
     try {
-      // updateUser is IFNULL-based, so sending one field leaves the rest alone.
-      await updateUserApi({ user_id, [right]: value });
+      // PATCH is partial, so sending one field leaves the rest alone.
+      await updateUser(user_id, { [right]: value });
       await loadData();
     } catch (err) {
-      alert(err.message);
+      alert(apiErrorMessage(err, t));
     }
   };
 
-  const handleToggleCanEdit = async (assignment_id, can_edit) => {
-    try {
-      await setAssignmentCanEdit(assignment_id, can_edit);
-      await loadData();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleRemoveSiteAssignment = async (id) => {
+  // PUT /users/:id/sites replaces the user's clinic set, so both assigning and
+  // removing send the new full list.
+  const handleRemoveSiteAssignment = async (assignment) => {
     const isConfirmed = await confirm({
       title: t("management.confirm.deleteTitle"),
       message: t("management.confirm.removeSiteAssignment"),
@@ -125,21 +87,25 @@ export default function AdminManagementPage() {
 
     if (isConfirmed) {
       try {
-        await removeUserSiteAssignmentApi(id);
+        const owner = users.find((u) => u.id === assignment.user_id);
+        const remaining = (owner?.sites || []).map((x) => x.id).filter((id) => id !== assignment.site_id);
+        await setUserSites(assignment.user_id, remaining);
         await loadData();
       } catch (err) {
-        alert(err.message || "Failed to remove assignment.");
+        alert(apiErrorMessage(err, t));
       }
     }
   };
 
   const handleAssignSite = async (user_id, site_id) => {
     try {
-      await assignSiteToUser(user_id, site_id);
+      const owner = users.find((u) => u.id === user_id);
+      const current = (owner?.sites || []).map((x) => x.id);
+      if (!current.includes(site_id)) await setUserSites(user_id, [...current, site_id]);
       setSelectedUserForSite(null);
       await loadData();
     } catch (err) {
-      alert(err.message);
+      alert(apiErrorMessage(err, t));
     }
   };
 
@@ -161,7 +127,6 @@ export default function AdminManagementPage() {
           users={users} 
           onToggleStatus={handleToggleStatus}
           onEdit={(u) => setUserToEdit(u)}
-          onAssignProject={(u) => setSelectedUserForProject(u)}
           onAssignSite={(u) => setSelectedUserForSite(u)}
           onToggleRight={handleToggleRight}
           onAddClick={() => setIsAddAdminOpen(true)}
@@ -170,7 +135,6 @@ export default function AdminManagementPage() {
         <AddAdminModal 
           open={isAddAdminOpen}
           onClose={() => setIsAddAdminOpen(false)}
-          projects={allProjects}
           sites={allSites}
           onSuccess={loadData}
         />
@@ -182,25 +146,11 @@ export default function AdminManagementPage() {
           onSuccess={loadData}
         />
 
-        <UserProjectTable
-          assignments={assignments}
-          onRemove={handleRemoveAssignment}
-          onToggleCanEdit={handleToggleCanEdit}
-        />
-
         <UserSiteTable
           assignments={siteAssignments}
           onRemove={handleRemoveSiteAssignment}
         />
       </div>
-
-      {selectedUserForProject && (
-        <AssignProjectModal
-          user={selectedUserForProject}
-          onClose={() => setSelectedUserForProject(null)}
-          onAssign={handleAssignProject}
-        />
-      )}
 
       {selectedUserForSite && (
         <AssignSiteModal

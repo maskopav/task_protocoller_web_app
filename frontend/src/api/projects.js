@@ -1,60 +1,44 @@
-// src/api/projects.js
+// src/api/projects.js — studies ("projects"), their editors and where they run.
 import { getMappings } from "./mappings";
-import { apiFetch } from "./apiClient";
+import { apiJson } from "./apiClient";
 
-// Stats for one project, taken from the scoped projects list rather than the
-// /mappings dump of v_project_summary_stats: the list is filtered per user and
-// carries can_edit, which the dump does not.
+// The server scopes this from the Bearer token. Rows carry can_edit, is_owner,
+// site_count, protocol_count and unreviewed next to the summary-view columns.
+export const fetchProjectsList = () => apiJson("/projects", { fallback: "projects_fetch_failed" });
+
+export const fetchProject = (id) => apiJson(`/projects/${id}`, { fallback: "project_fetch_failed" });
+
+// Stats for one project, taken from the scoped list.
 export async function getProjectStats(projectId) {
-  try {
-    const allStats = await fetchProjectsList();
-    const projectStats = allStats.find(p => p.project_id === Number(projectId));
-    return projectStats || null;
-  } catch (err) {
-    console.error("Failed to load project stats:", err);
-    throw err;
-  }
+  const all = await fetchProjectsList();
+  return all.find((p) => p.project_id === Number(projectId)) || null;
 }
 
-// The server scopes this from the Bearer token; passing an identity from the
-// client was both redundant and spoofable.
-export async function fetchProjectsList() {
-  const res = await apiFetch(`/projects/projects-list`);
+// -> { success, id }
+export const createProject = (payload) =>
+  apiJson("/projects", { method: "POST", body: payload, fallback: "project_create_failed" });
 
-  if (!res.ok) throw new Error("Failed to fetch projects");
-  return res.json();
-}
+// Partial update: omitted fields stay, "" clears a text field.
+export const updateProject = (id, payload) =>
+  apiJson(`/projects/${id}`, { method: "PATCH", body: payload, fallback: "project_update_failed" });
 
-export async function createProjectApi(payload) {
-  const res = await apiFetch(`/projects/create`, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Failed to create project");
-  return json;
-}
+export const archiveProject = (id, archived) =>
+  apiJson(`/projects/${id}/archive`, { method: "POST", body: { archived }, fallback: "project_archive_failed" });
 
-export async function updateProjectApi(payload) {
-  const res = await apiFetch(`/projects/update`, {
-    method: "PUT",
-    body: JSON.stringify(payload)
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Failed to update project");
-  return json;
-}
+// Co-editors.
+export const fetchEditors = (id) => apiJson(`/projects/${id}/editors`, { fallback: "editors_fetch_failed" });
+export const addEditor = (id, email) =>
+  apiJson(`/projects/${id}/editors`, { method: "POST", body: { email }, fallback: "editor_add_failed" });
+export const removeEditor = (id, userId) =>
+  apiJson(`/projects/${id}/editors/${userId}`, { method: "DELETE", fallback: "editor_remove_failed" });
 
-// Add to src/api/projects.js
+// "Runs at": the study on / off at a clinic (the clinic side uses the same calls).
+export const setRunsAt = (projectId, siteId) =>
+  apiJson(`/projects/${projectId}/sites/${siteId}`, { method: "PUT", fallback: "runs_at_failed" });
+export const removeRunsAt = (projectId, siteId) =>
+  apiJson(`/projects/${projectId}/sites/${siteId}`, { method: "DELETE", fallback: "runs_at_failed" });
+
 export async function getProjectFieldwork(projectId) {
-  try {
-    const data = await getMappings(["v_session_summary"]);
-    const allSessions = data.v_session_summary || [];
-
-    // Filter client-side for the specific project
-    return allSessions.filter(s => s.project_id === Number(projectId));
-  } catch (err) {
-    console.error("Failed to load fieldwork data:", err);
-    throw err;
-  }
+  const data = await getMappings(["v_session_summary"]);
+  return (data.v_session_summary || []).filter((s) => s.project_id === Number(projectId));
 }

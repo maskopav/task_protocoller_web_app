@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 // Regression coverage for two protocol-manager bugs found on `main` while
-// debugging a console log full of repeated 401s on GET /projects/projects-list:
+// debugging a console log full of repeated 401s on GET /projects:
 //
 // 1. MappingContext.refreshMappings wasn't memoized, so any effect depending
 //    on it (e.g. ProjectDashboardPage's loadData) re-fired on every mappings
@@ -32,7 +32,7 @@ test('project dashboard does not repeatedly refetch the project list', async ({ 
 
   let projectsListRequests = 0;
   page.on('request', (req) => {
-    if (req.url().includes('/projects/projects-list')) projectsListRequests += 1;
+    if (new URL(req.url()).pathname === '/projects') projectsListRequests += 1;
   });
 
   await page.goto(`/#/admin/projects/${PROJECT_ID}`);

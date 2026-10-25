@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
-import { updateUserApi } from "../../api/users";
+import { updateUser } from "../../api/users";
+import { apiErrorMessage } from "../../utils/apiError";
 
 export default function EditAdminModal({ open, onClose, user, onSuccess }) {
   const { t } = useTranslation(["admin", "common"]);
@@ -13,8 +14,8 @@ export default function EditAdminModal({ open, onClose, user, onSuccess }) {
   useEffect(() => {
     if (user) {
       setFormData({
-        email: user.user_email || "",
-        full_name: user.full_name || "",
+        email: user.email || "",
+        full_name: user.name || "",
         can_create_projects: user.can_create_projects === 1 || user.can_create_projects === true,
         can_create_sites: user.can_create_sites === 1 || user.can_create_sites === true
       });
@@ -27,17 +28,16 @@ export default function EditAdminModal({ open, onClose, user, onSuccess }) {
     setIsSubmitting(true);
     setError("");
     try {
-      await updateUserApi({
-        user_id: user.user_id,
+      await updateUser(user.id, {
         email: formData.email,
-        full_name: formData.full_name,
+        name: formData.full_name,
         can_create_projects: formData.can_create_projects,
         can_create_sites: formData.can_create_sites
       });
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     } finally {
       setIsSubmitting(false);
     }

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Modal from "../ProtocolEditor/Modal";
 import { createSite, updateSite } from "../../api/sites";
 import { validate } from "../../utils/validation";
+import { apiErrorMessage } from "../../utils/apiError";
 
 // Mirrors isValidAccessToken in backend/src/utils/fieldValidation.js. The
 // backend re-checks it — this is UX only.
@@ -93,7 +94,7 @@ export default function SiteModal({ site, onClose, onSuccess }) {
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err, t));
     } finally {
       setIsSubmitting(false);
     }

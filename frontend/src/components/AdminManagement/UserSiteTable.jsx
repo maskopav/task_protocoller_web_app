@@ -30,13 +30,13 @@ export default function UserSiteTable({ assignments, onRemove }) {
                 <td className="highlighted">{a.user_name}</td>
                 <td>{a.user_email}</td>
                 <td><span className="project-tag">{a.site_name}</span></td>
-                <td>{new Date(a.assigned_at).toLocaleDateString()}</td>
+                <td>{a.assigned_at ? new Date(a.assigned_at).toLocaleDateString() : "—"}</td>
                 <td>
                   <div className="actions-cell">
                     <button
                       className="btn-mgmt-icon btn-deactivate"
                       title={t("management.buttons.remove")}
-                      onClick={() => onRemove(a.assignment_id)}
+                      onClick={() => onRemove(a)}
                     >
                       <DeleteIcon size={16} />
                     </button>

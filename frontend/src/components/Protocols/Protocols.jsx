@@ -4,7 +4,7 @@ import { useMappings } from "../../context/MappingContext";
 import { useProtocolActions } from "../../hooks/useProtocolActions";
 import { useConfirm } from "../ConfirmDialog/ConfirmDialogContext";
 import { useParams } from "react-router-dom";
-import { getProtocolsByProjectId, getArchivedProtocols, archiveProtocol as archiveProtocolApi } from "../../api/protocols";
+import { getProtocolsByProjectId, archiveProtocol as archiveProtocolApi } from "../../api/protocols";
 import { getProjectStats } from "../../api/projects";
 import "./Protocols.css";
 
@@ -41,8 +41,8 @@ export default function Protocols({ onSelectProtocol }) {
     setLoadingProtocols(true);
     try {
       const [data, archived, stats] = await Promise.all([
-        getProtocolsByProjectId(),
-        getArchivedProtocols(),
+        getProtocolsByProjectId(projectId),
+        getProtocolsByProjectId(projectId, { archived: true }),
         getProjectStats(projectId),
       ]);
       setProtocols(data);
@@ -77,12 +77,12 @@ export default function Protocols({ onSelectProtocol }) {
     }
   };
 
-  const currentProtocols = protocols.filter(p => p.is_current == 1).filter(p => p.project_id == projectId);
-  // Other protocols: old versions, other projects' protocols, and truly archived ones
-  const archivedProtocols = [
-    ...protocols.filter(p => p.is_current != 1 || p.project_id != projectId),
-    ...archivedList.map(p => ({ ...p, project_name: t("protocolDashboard.archivedLabel"), isArchived: true })),
-  ];
+  // The server lists one item per protocol group: the current version of each
+  // language variant, with languages[]. Archived groups come from a second call.
+  const currentProtocols = protocols;
+  const archivedProtocols = archivedList.map(p => ({ ...p, project_name: t("protocolDashboard.archivedLabel"), isArchived: true }));
+  const langLabel = (p) =>
+    p.languages?.length ? p.languages.map(l => l.code).join(", ") : getLangName(p.language_id);
 
   if (loadingProtocols) return <p>{t("loading")}</p>;
 
@@ -116,7 +116,7 @@ export default function Protocols({ onSelectProtocol }) {
               list.map((p) => (
                 <tr key={p.id}>
                   <td className="highlighted">{p.name}</td>
-                  <td>{getLangName(p.language_id)}</td>
+                  <td>{langLabel(p)}</td>
                   <td>{p.description}</td>
                   {isHistory && (
                     <td>

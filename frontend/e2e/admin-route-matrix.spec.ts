@@ -21,38 +21,42 @@ const GATED_ROUTES: RouteCheck[] = [
   // pre-login reads it, so it is gated at the mount like every other admin route
   { method: 'GET', path: '/mappings?tables=languages' },
   // /protocols — requireAuth applied at the router mount in server.js
-  { method: 'GET', path: '/protocols' },
   { method: 'GET', path: '/protocols/1' },
-  { method: 'POST', path: '/protocols/save', data: {} },
+  { method: 'POST', path: '/protocols', data: {} },
+  { method: 'POST', path: '/protocols/1/archive', data: {} },
+  { method: 'POST', path: '/protocols/1/share', data: {} },
 
-  // /users — requireAuth at the mount, requireRole('master') per-route (the list included)
-  { method: 'GET', path: '/users/users' },
-  { method: 'POST', path: '/users/toggle-status', data: {} },
-  { method: 'POST', path: '/users/create', data: {} },
-  { method: 'PUT', path: '/users/update', data: {} },
+  // /library — requireAuth at the mount
+  { method: 'GET', path: '/library' },
+  { method: 'GET', path: '/library/4' },
+  { method: 'POST', path: '/library/4/copy', data: {} },
+  { method: 'POST', path: '/library/4/withdraw', data: {} },
+
+  // /users — requireAuth at the mount, requireRole('master') on the router (the list included)
+  { method: 'GET', path: '/users' },
+  { method: 'POST', path: '/users', data: {} },
+  { method: 'GET', path: '/users/1' },
+  { method: 'PATCH', path: '/users/1', data: {} },
+  { method: 'PUT', path: '/users/1/sites', data: { site_ids: [] } },
 
   // /projects — requireAuth at the router mount
-  { method: 'GET', path: '/projects/projects-list' },
-  { method: 'POST', path: '/projects/create', data: {} },
-  { method: 'PUT', path: '/projects/update', data: {} },
+  { method: 'GET', path: '/projects' },
+  { method: 'POST', path: '/projects', data: {} },
+  { method: 'GET', path: '/projects/1' },
+  { method: 'PATCH', path: '/projects/1', data: {} },
+  { method: 'POST', path: '/projects/1/archive', data: { archived: true } },
+  { method: 'GET', path: '/projects/1/protocols' },
+  { method: 'GET', path: '/projects/1/editors' },
+  { method: 'POST', path: '/projects/1/editors', data: {} },
+  { method: 'DELETE', path: '/projects/1/editors/1' },
+  { method: 'PUT', path: '/projects/1/sites/1' },
+  { method: 'DELETE', path: '/projects/1/sites/1' },
 
-  // /user-projects — requireAuth at the router mount
-  { method: 'GET', path: '/user-projects/user-projects' },
-  { method: 'POST', path: '/user-projects/assign-project', data: {} },
-  { method: 'DELETE', path: '/user-projects/remove-assignment/1' },
-
-  // /user-sites — requireAuth at the router mount
-  { method: 'GET', path: '/user-sites/user-sites' },
-  { method: 'POST', path: '/user-sites/assign-site', data: {} },
-  { method: 'DELETE', path: '/user-sites/remove-assignment/1' },
-
-  // /sites — requireAuth at the mount, requireRole('master') per-route for the mutating ones
+  // /sites — requireAuth at the mount, the controllers decide per record
   { method: 'GET', path: '/sites' },
   { method: 'GET', path: '/sites/1' },
-  { method: 'POST', path: '/sites/create', data: {} },
-  { method: 'PUT', path: '/sites/1', data: {} },
-  { method: 'POST', path: '/sites/1/projects', data: {} },
-  { method: 'DELETE', path: '/sites/1/projects/1' },
+  { method: 'POST', path: '/sites', data: {} },
+  { method: 'PATCH', path: '/sites/1', data: {} },
 ];
 
 const PUBLIC_ROUTES: RouteCheck[] = [

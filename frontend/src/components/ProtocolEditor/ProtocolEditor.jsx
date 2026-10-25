@@ -27,6 +27,7 @@ import {
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import "./ProtocolEditor.css";
+import { apiErrorMessage } from "../../utils/apiError";
 
 // Force Quill to use inline styles instead of classes for font sizes
 const Size = Quill.import('attributors/style/size');
@@ -316,7 +317,7 @@ export function ProtocolEditor({
       navigate(`/admin/projects/${projectId}/protocols`);
     } catch (err) {
       // Show the specific error message from the backend (Conflict 409)
-      const errorMsg = err.response?.data?.error || err.message || t("protocolEditor.saveFailedMsg");
+      const errorMsg = err.code ? apiErrorMessage(err, t) : (err.message || t("protocolEditor.saveFailedMsg"));
       console.error("Save Error:", err);
       
       await confirm({

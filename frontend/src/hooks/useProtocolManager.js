@@ -1,5 +1,5 @@
 // src/hooks/useProtocolManager.js
-import { saveProtocolToBackend } from "../api/protocols";
+import { saveProtocol } from "../api/protocols";
 import { normalizeIdentifiers, DEFAULT_RECORDINGS_FILE_NAME } from "../components/Identifiers/IdentifierFields";
 import { useMappings } from "../context/MappingContext";
 
@@ -40,7 +40,7 @@ export function useProtocolManager() {
       instructions_pdf_url: (selectedProtocol.instructions_pdf_url || "").trim() || null,
     };
     console.log("Saving protocol:", protocolData);
-    const result = await saveProtocolToBackend(protocolData);
+    const result = await saveProtocol(protocolData);
     return result;
   }
 

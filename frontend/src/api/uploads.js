@@ -38,6 +38,8 @@ export const updateParticipant = async (sessionId, fields) =>
   json(await apiFetch(`/uploads/${sessionId}/participant`, { method: "PATCH", body: JSON.stringify({ fields }) }), "Failed to update participant");
 export const setReview = async (sessionId, qc) =>
   json(await apiFetch(`/uploads/${sessionId}/qc`, { method: "PUT", body: JSON.stringify({ qc }) }), "Failed to set review");
+// Audit entries for one session, scoped like fetchSession.
+export const fetchActivity = async (sessionId) => json(await apiFetch(`/uploads/${sessionId}/activity`), "Failed to load activity");
 export const fetchComments = async (sessionId) => json(await apiFetch(`/uploads/${sessionId}/comments`), "Failed to load comments");
 export const postComment = async (sessionId, text) =>
   json(await apiFetch(`/uploads/${sessionId}/comments`, { method: "POST", body: JSON.stringify({ text }) }), "Failed to post comment");

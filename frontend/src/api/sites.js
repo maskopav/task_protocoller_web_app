@@ -1,54 +1,26 @@
-// frontend/src/api/sites.js
-import { apiFetch } from "./apiClient";
+// src/api/sites.js — clinics ("sites").
+import { apiJson } from "./apiClient";
+import { setRunsAt, removeRunsAt } from "./projects";
 
-export async function fetchSites(projectId) {
-  const query = projectId ? `?project_id=${projectId}` : "";
-  const res = await apiFetch(`/sites${query}`);
-  if (!res.ok) throw new Error("Failed to fetch sites");
-  return res.json();
-}
+export const fetchSites = (projectId) =>
+  apiJson(`/sites${projectId ? `?project_id=${encodeURIComponent(projectId)}` : ""}`, { fallback: "sites_fetch_failed" });
 
-export async function fetchSiteById(siteId) {
-  const res = await apiFetch(`/sites/${siteId}`);
-  if (!res.ok) throw new Error("Failed to fetch site");
-  return res.json();
-}
+// -> the clinic plus projects[] (with can_edit) and receives[] (studies, each
+// with grouped protocols and languages[]).
+export const fetchSiteById = (siteId) => apiJson(`/sites/${siteId}`, { fallback: "site_fetch_failed" });
 
-export async function createSite(payload) {
-  const res = await apiFetch(`/sites/create`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Failed to create site");
-  return json;
-}
+// -> { success, site_id }
+export const createSite = (payload) =>
+  apiJson("/sites", { method: "POST", body: payload, fallback: "site_create_failed" });
 
-export async function updateSite(siteId, payload) {
-  const res = await apiFetch(`/sites/${siteId}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Failed to update site");
-  return json;
-}
+// Partial update; access_token is honoured for a master only (that is "rotate").
+export const updateSite = (siteId, payload) =>
+  apiJson(`/sites/${siteId}`, { method: "PATCH", body: payload, fallback: "site_update_failed" });
 
-export async function assignProjectToSite(siteId, projectId) {
-  const res = await apiFetch(`/sites/${siteId}/projects`, {
-    method: "POST",
-    body: JSON.stringify({ project_id: projectId }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Failed to assign project");
-  return json;
-}
+// The clinic side of "runs at" uses the study endpoints.
+export const assignProjectToSite = (siteId, projectId) => setRunsAt(projectId, siteId);
+export const removeProjectFromSite = (siteId, projectId) => removeRunsAt(projectId, siteId);
 
-export async function removeProjectFromSite(siteId, projectId) {
-  const res = await apiFetch(`/sites/${siteId}/projects/${projectId}`, {
-    method: "DELETE",
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Failed to remove assignment");
-  return json;
-}
+// The number of protocols a clinic's computers receive (receives[] is grouped by study).
+export const countReceivedProtocols = (site) =>
+  (site?.receives || []).reduce((n, study) => n + (study.protocols?.length || 0), 0);
