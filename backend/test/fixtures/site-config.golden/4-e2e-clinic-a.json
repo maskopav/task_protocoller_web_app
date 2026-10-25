@@ -1,0 +1,30 @@
+{
+  "body": {
+    "configVersion": "<configVersion>",
+    "defaultLanguage": "en",
+    "defaultMicName": "",
+    "enableEditor": false,
+    "indicatorType": "CIRCLE",
+    "languages": [
+      "en"
+    ],
+    "protocols": [
+      {
+        "name": "Speech battery",
+        "patientFields": [],
+        "project": "Speech Study",
+        "recordingsFileName": "${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+        "tasks": [],
+        "version": 1
+      }
+    ],
+    "schemaVersion": 1,
+    "siteName": "E2E Clinic A",
+    "strings": {
+      "en": {}
+    },
+    "useCalibration": true
+  },
+  "contentType": "application/json; charset=utf-8",
+  "status": 200
+}

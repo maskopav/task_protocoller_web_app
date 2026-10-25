@@ -1,0 +1,73 @@
+{
+  "body": {
+    "configVersion": "<configVersion>",
+    "defaultLanguage": "en",
+    "defaultMicName": "",
+    "enableEditor": false,
+    "indicatorType": "CIRCLE",
+    "languages": [
+      "en"
+    ],
+    "protocols": [
+      {
+        "name": "E2E Test Protocol",
+        "patientFields": [],
+        "project": "Test Study 001",
+        "recordingsFileName": "${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}",
+        "tasks": [
+          {
+            "canRepeat": true,
+            "canSkip": false,
+            "instructionKeys": [
+              "p1_t1_instr1",
+              "p1_t1_instr2"
+            ],
+            "length": 3,
+            "nrepetition": 1,
+            "recordVideo": false,
+            "showIndicator": true,
+            "subtype": "SYLLABLES",
+            "titleKey": "p1_t1_title",
+            "type": "VOCAL"
+          },
+          {
+            "canRepeat": true,
+            "canSkip": false,
+            "length": 300,
+            "nrepetition": 1,
+            "questions": [
+              {
+                "questionKey": "p1_t3_q1",
+                "questionOptions": [
+                  "p1_t3_q1_o1",
+                  "p1_t3_q1_o2"
+                ],
+                "questionTextKey": "p1_t3_q1_text",
+                "questionType": "SINGLE_CHOICE"
+              }
+            ],
+            "titleKey": "p1_t3_title",
+            "type": "QUESTIONNAIRE"
+          }
+        ],
+        "version": 1
+      }
+    ],
+    "schemaVersion": 1,
+    "siteName": "E2E Site",
+    "strings": {
+      "en": {
+        "p1_t1_instr1": "<bold>Please repeat the following syllables after me: /ta/.</bold>\n\n<italic>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</italic>\n\n<bold>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</bold>\n\n<italic>Press PLAY EXAMPLE to play the example.</italic>",
+        "p1_t1_instr2": "<bold>Start now.</bold>\n\n<italic>Press the START button to begin recording. The required number of repetitions is at least 25× /ta/. Then press STOP button to end the recording.\nThe repetition rate should keep the individual syllables intelligible (no mumbling!).</italic>",
+        "p1_t1_title": "TA",
+        "p1_t3_q1_o1": "Good",
+        "p1_t3_q1_o2": "Bad",
+        "p1_t3_q1_text": "How did that feel?",
+        "p1_t3_title": "Quick Check"
+      }
+    },
+    "useCalibration": true
+  },
+  "contentType": "application/json; charset=utf-8",
+  "status": 200
+}
