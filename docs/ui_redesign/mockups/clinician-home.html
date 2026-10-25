@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recordings · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="recordings" data-persona="clinician">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Recordings</h1></div>
+        <p class="sub">From the 2 computers at Prague General Hospital.</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-toast="Preparing ZIP of 3 recordings…"><i data-icon="download"></i>Download all 3</button></div>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi on" data-toggle><div class="l"><span class="dot accent"></span>Unreviewed</div><div class="v">3</div></div>
+      <div class="card kpi" data-toggle><div class="l"><span class="dot warn"></span>Needs attention</div><div class="v">1</div></div>
+      <div class="card kpi" data-toggle><div class="l"><span class="dot bad"></span>Failed server check</div><div class="v">0</div></div>
+      <div class="card kpi" data-toggle><div class="l"><span class="dot"></span>Received in last 7 days</div><div class="v">11</div></div>
+    </div>
+
+    <div class="filters">
+      <div class="search"><i data-icon="search"></i><input type="text" placeholder="Patient code"></div>
+      <select class="filter"><option>All studies</option><option>Voice in Parkinson's</option><option>Speech after stroke</option><option>Huntington speech markers</option></select>
+      <select class="filter"><option>Any review</option></select>
+      <select class="filter"><option>Any date</option></select>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Received</th><th>Patient</th><th>Study · protocol</th><th>Tasks · length</th><th>Server check</th><th>Review</th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="recording.html"><td><div class="primary-cell">12 min ago</div><div class="sub">25 Oct, 10:42</div></td><td><div class="primary-cell">PD-0142</div><div class="sub">Visit 2</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v4 · CS</div></td><td>9 / 9 <span class="faint">· 14:52</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span><div class="sub">Mic interrupted</div></td><td><span class="status"><span class="dot accent"></span>Unreviewed</span></td></tr>
+          <tr class="click" data-href="recording.html"><td><div class="primary-cell">1 h ago</div><div class="sub">25 Oct, 09:31</div></td><td><div class="primary-cell">PD-0139</div><div class="sub">Visit 1</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v4 · CS</div></td><td>9 / 9 <span class="faint">· 15:08</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span></td><td><span class="status"><span class="dot accent"></span>Unreviewed</span></td></tr>
+          <tr class="click" data-href="recording.html"><td><div class="primary-cell">Yesterday</div><div class="sub">24 Oct, 14:02</div></td><td><div class="primary-cell">HD-0007</div><div class="sub">Visit 4</div></td>
+            <td>Huntington speech markers <i data-icon="lock"></i><div class="sub">HD speech set · v2 · CS</div></td><td>7 / 7 <span class="faint">· 11:20</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span></td><td><span class="status"><span class="dot accent"></span>Unreviewed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> The same screen as the master's, scaled down for a clinician with one clinic. There's no Clinic filter, no Clinic column and no quarantine banner. The sidebar says "My clinic" and opens Prague General Hospital directly. Recordings of received studies are reviewable like any other; the lock only marks who manages the study.</div>
+  </div></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

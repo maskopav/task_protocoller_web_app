@@ -14,6 +14,7 @@ const FAKE_AUDIO_FILE = path.resolve(__dirname, 'public/audio/illustrations/syll
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: '**/tools/**',
   fullyParallel: false,
   workers: 1,
   retries: 0,

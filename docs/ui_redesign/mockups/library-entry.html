@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speech battery · Library</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="library" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="library.html">Library</a><span class="sep">/</span><span>Speech battery</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Speech battery</h1><span class="badge outline">v4</span></div>
+        <p class="sub">Shared by Jana Nováková from <a href="study-protocols.html">Voice in Parkinson's</a> · updated 3 days ago · used in 4 studies</p>
+      </div>
+      <div class="actions">
+        <div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+          <div class="menu-pop"><a href="protocol-editor.html"><i data-icon="settings"></i>Edit library entry</a><div class="sep"></div><a href="#" class="danger" data-toast="Withdrawn. The 4 study copies stay as they are.">Withdraw from library</a></div></div>
+        <a class="btn btn-quiet" href="#"><i data-icon="eye"></i>Preview</a>
+        <button class="btn btn-primary" data-open="add-to-study"><i data-icon="plus"></i>Add to study…</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-pad"><div class="section-head"><h2>Tasks</h2><span class="hint">In the order participants see them</span></div></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Task</th><th>Settings</th></tr></thead>
+          <tbody>
+            <tr><td class="faint">1</td><td class="primary-cell">Info page</td><td class="muted">Welcome text</td></tr>
+            <tr><td class="faint">2</td><td class="primary-cell">Sustained phonation /a/</td><td class="muted">2 repetitions · 10–60 s</td></tr>
+            <tr><td class="faint">3</td><td class="primary-cell">Syllable repetition</td><td class="muted">PATAKA · 7 s</td></tr>
+            <tr><td class="faint">4</td><td class="primary-cell">Syllable repetition</td><td class="muted">PA · 7 s</td></tr>
+            <tr><td class="faint">5</td><td class="primary-cell">Reading text</td><td class="muted">The North Wind and the Sun</td></tr>
+            <tr><td class="faint">6</td><td class="primary-cell">Monologue</td><td class="muted">Free topic · 30–120 s</td></tr>
+            <tr><td class="faint">7</td><td class="primary-cell">Picture description</td><td class="muted">Cookie theft · 60 s</td></tr>
+            <tr><td class="faint">8</td><td class="primary-cell">Health questionnaire</td><td class="muted">4 questions</td></tr>
+            <tr><td class="faint">9</td><td class="primary-cell">Info page</td><td class="muted">Thank-you text</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stack">
+        <div class="card card-pad">
+          <div class="section-head"><h2>About</h2></div>
+          <p class="muted small">A 15-minute speech battery for Parkinson's and other movement disorders. Validated in the 2025 pilot at Prague General Hospital.</p>
+          <div class="divider"></div>
+          <dl class="kv cols-1">
+            <div><dt>Languages</dt><dd><span class="lang">cs</span><span class="lang">en</span><span class="lang">fr</span><span class="lang">de</span></dd></div>
+            <div><dt>Patient fields</dt><dd>Patient code (required), visit</dd></div>
+            <div><dt>File names</dt><dd class="mono small">${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}</dd></div>
+            <div><dt>Audio guide</dt><dd>On</dd></div>
+            <div><dt>Task order</dt><dd>Fixed</dd></div>
+          </dl>
+        </div>
+        <div class="card card-pad">
+          <div class="section-head"><h2>Used in</h2></div>
+          <div class="stack small" style="gap:6px">
+            <div>Speech after stroke <span class="faint">· copied v3</span></div>
+            <div>Voice cohort Brno <span class="faint">· copied v4</span></div>
+            <div class="faint">2 studies you can't see</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> The whole protocol is readable before anyone commits to it. "Add to study…" is the only primary action. Edit and Withdraw sit in "⋯" and exist only for the author and master. Withdrawing hides the entry, and the copies stay. "Used in" lists the copies by the version they were taken from, and it names only studies you can see.</div>
+  </div></main>
+</div>
+
+<div class="modal-back" id="add-to-study"><div class="modal">
+  <div class="modal-head"><h2>Add “Speech battery” to a study</h2><p>The study gets its own copy, version 1, in all 4 languages.</p></div>
+  <div class="modal-body">
+    <div><label>Study</label><select><option>Voice in Parkinson's</option><option>Speech after stroke</option></select></div>
+    <div><label>Name in the study</label><input type="text" value="Speech battery">
+      <div class="xs faint" style="margin-top:4px">Must be unique within the study.</div></div>
+    <label class="check small"><input type="checkbox" checked> Open in the editor after adding</label>
+  </div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><a class="btn btn-primary" href="protocol-editor.html">Add to study</a></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

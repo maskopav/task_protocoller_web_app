@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinics · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="clinics" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Clinics</h1></div>
+        <p class="sub">Where your studies run. All computers at a clinic share one access token and receive the same protocols.</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-open="new-clinic"><i data-icon="plus"></i>New clinic</button></div>
+    </div>
+
+    <div class="section" id="unassigned">
+      <div class="section-head"><h2>Unassigned computers</h2><span class="hint">Their recordings wait in quarantine</span></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Computer</th><th>App version</th><th>Last seen</th><th class="num">Recordings waiting</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">7f3a…c19e</span> <span class="faint small">unnamed</span></td><td>1.4.0</td><td>3 h ago</td><td class="num">3</td>
+              <td class="end"><button class="btn btn-sm" data-open="assign">Assign to clinic…</button></td></tr>
+            <tr><td><span class="mono">b210…77d4</span> <span class="faint small">unnamed</span></td><td>1.3.2</td><td>2 days ago</td><td class="num">1</td>
+              <td class="end"><button class="btn btn-sm" data-open="assign">Assign to clinic…</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="filters"><div class="search"><i data-icon="search"></i><input type="text" placeholder="Search clinics"></div></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Clinic</th><th>Country</th><th>Studies running</th><th>Computers</th><th>Last upload</th><th class="num">Unreviewed</th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="clinic-studies.html"><td class="primary-cell">Prague General Hospital</td><td>Czechia</td><td>3</td><td>2 <span class="faint">· healthy</span></td><td>12 min ago</td><td class="num">3</td></tr>
+          <tr class="click" data-href="clinic-studies.html"><td class="primary-cell">Brno St. Anne's</td><td>Czechia</td><td>1</td><td>1 <span class="faint">· healthy</span></td><td>3 days ago</td><td class="num">0</td></tr>
+          <tr class="click" data-href="clinic-studies.html"><td class="primary-cell">Paris Pitié-Salpêtrière</td><td>France</td><td>1</td><td>1 <span class="faint">·</span> <span class="status small"><span class="dot warn"></span>silent 4 days</span></td><td>Yesterday</td><td class="num">1</td></tr>
+          <tr class="click" data-href="clinic-studies.html"><td class="primary-cell">Munich LMU Klinikum</td><td>Germany</td><td><span class="faint">None yet</span></td><td>1 <span class="faint">· waiting</span></td><td class="faint">–</td><td class="num">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> This replaces the dashboard site tiles, the Site management table and the top-level Devices page. "Unassigned computers" shows only to the master and only when there are any. A user with exactly one clinic never sees this list: the sidebar says "My clinic" and opens the clinic directly.</div>
+  </div></main>
+</div>
+<div class="modal-back" id="assign"><div class="modal">
+  <div class="modal-head"><h2>Assign computer to a clinic</h2><p>Its recordings in quarantine move to the clinic you choose.</p></div>
+  <div class="modal-body">
+    <div><label>Clinic</label><select><option>Prague General Hospital</option><option>Brno St. Anne's</option><option>Paris Pitié-Salpêtrière</option><option>Munich LMU Klinikum</option></select></div>
+    <div><label>Computer name</label><input type="text" placeholder="e.g. Exam room 3"></div>
+  </div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn btn-primary" data-close data-toast="Computer assigned">Assign</button></div>
+</div></div>
+<div class="modal-back" id="new-clinic"><div class="modal">
+  <div class="modal-head"><h2>New clinic</h2><p>You'll get an access token to enter in the desktop app on each computer.</p></div>
+  <div class="modal-body">
+    <div><label>Name</label><input type="text" placeholder="e.g. Olomouc University Hospital" data-slug="new-slug"><div class="xs faint" style="margin-top:4px">In file names: <span class="mono" id="new-slug">OlomoucUniversityHospital</span></div></div>
+    <div><label>Country</label><input type="text" placeholder="e.g. Czechia"></div>
+  </div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><a class="btn btn-primary" href="clinic-computers.html">Create clinic</a></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

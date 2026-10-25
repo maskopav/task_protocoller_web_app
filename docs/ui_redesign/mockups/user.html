@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jana Nováková · Users</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="users" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="users.html">Users</a><span class="sep">/</span><span>Jana Nováková</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Jana Nováková</h1><span class="badge ok"><span class="dot ok"></span>Active</span></div>
+        <p class="sub">jana.novakova@example.org · last login today</p>
+      </div>
+      <div class="actions">
+        <div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+          <div class="menu-pop"><a href="#" data-toast="Reset email sent">Send password reset</a><div class="sep"></div><a href="#" class="danger">Deactivate user</a></div></div>
+        <button class="btn btn-primary" data-toast="Saved">Save changes</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="form-section">
+          <h2>Clinics</h2>
+          <p>Jana sees these clinics, their recordings and computers, and every study that runs there.</p>
+          <div class="search" style="max-width:none;margin-bottom:8px"><i data-icon="search"></i><input type="text" placeholder="Filter clinics"></div>
+          <label class="check"><input type="checkbox" checked> Prague General Hospital</label>
+          <label class="check"><input type="checkbox" checked> Brno St. Anne's</label>
+          <label class="check"><input type="checkbox"> Paris Pitié-Salpêtrière</label>
+          <label class="check"><input type="checkbox"> Munich LMU Klinikum</label>
+        </div>
+        <div class="form-section">
+          <h2>Permissions</h2>
+          <p>Anyone can edit studies they created or were added to.</p>
+          <div class="row" style="justify-content:space-between;padding:6px 0"><div><b>Can create studies</b><div class="xs faint">They become the study's first editor.</div></div><label class="switch"><input type="checkbox" checked><span></span></label></div>
+          <div class="row" style="justify-content:space-between;padding:6px 0"><div><b>Can create clinics</b><div class="xs faint">They're assigned to clinics they create.</div></div><label class="switch"><input type="checkbox"><span></span></label></div>
+        </div>
+        <div class="form-section">
+          <h2>Profile</h2>
+          <div class="form" style="grid-template-columns:120px minmax(0,1fr)">
+            <label class="l">Name</label><input type="text" value="Jana Nováková">
+            <label class="l">Email</label><input type="email" value="jana.novakova@example.org">
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <div class="section-head"><h2>Studies Jana edits</h2></div>
+        <div class="stack small" style="gap:10px">
+          <div class="row" style="justify-content:space-between"><a href="study-protocols.html">Voice in Parkinson's</a><span class="badge">Creator</span></div>
+          <div class="row" style="justify-content:space-between"><a href="study-protocols.html">Video pilot 2027</a><span class="faint xs">co-editor</span></div>
+        </div>
+        <p class="xs faint" style="margin-top:14px">Editors are managed on each study's Editors tab.</p>
+      </div>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> The three-layer access UI (project grants with can_edit, site grants, per-project narrowing) becomes one clinic checklist and two switches. Study editing is shown here for information and managed on the study.</div>
+  </div></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

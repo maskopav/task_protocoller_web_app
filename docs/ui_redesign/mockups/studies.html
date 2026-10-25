@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studies · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="studies" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Studies</h1></div>
+        <p class="sub">What you collect. Each study owns its protocols and runs at one or more clinics.</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-open="new-study"><i data-icon="plus"></i>New study</button></div>
+    </div>
+
+    <div class="filters">
+      <div class="search"><i data-icon="search"></i><input type="text" placeholder="Search studies"></div>
+      <label class="check small muted"><input type="checkbox"> Show archived</label>
+    </div>
+
+    <div class="group-label">Yours · 2</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Study</th><th>Protocols</th><th>Runs at</th><th class="num">Recordings · 30 d</th><th class="num">Unreviewed</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="study-protocols.html">
+            <td><div class="primary-cell">Voice in Parkinson's</div><div class="sub">Multicentre speech markers, 2026–2028</div></td>
+            <td>2 <span class="faint">·</span> <span class="lang">cs</span><span class="lang">en</span><span class="lang">fr</span><span class="lang">de</span></td>
+            <td>3 clinics</td>
+            <td class="num">58</td><td class="num">6</td>
+            <td><span class="status"><span class="dot ok"></span>Active</span></td>
+          </tr>
+          <tr class="click" data-href="study-protocols.html">
+            <td><div class="primary-cell">Speech after stroke</div><div class="sub">Pilot, Prague only</div></td>
+            <td>1 <span class="faint">·</span> <span class="lang">cs</span></td>
+            <td>Prague General Hospital</td>
+            <td class="num">9</td><td class="num">1</td>
+            <td><span class="status"><span class="dot ok"></span>Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="group-label"><i data-icon="lock"></i>Received · 1</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Study</th><th>Protocols</th><th>Runs at (your clinics)</th><th class="num">Recordings · 30 d</th><th class="num">Unreviewed</th><th>Managed by</th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="study-received.html">
+            <td><div class="primary-cell">Huntington speech markers</div><div class="sub">Sponsor protocol, read-only</div></td>
+            <td>1 <span class="faint">·</span> <span class="lang">en</span><span class="lang">cs</span></td>
+            <td>Prague General Hospital</td>
+            <td class="num">4</td><td class="num">0</td>
+            <td>Martin Dvořák</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> This list replaces both the dashboard project tiles and the master-only Project management table. "Yours" holds the studies you edit; "Received" holds the ones that reach you only through your clinic. A master sees one group, "All studies". Protocols count logical protocols (not language rows), with language chips. "New study" shows only with <code>can_create_projects</code>.</div>
+  </div></main>
+</div>
+
+<div class="modal-back" id="new-study"><div class="modal">
+  <div class="modal-head"><h2>New study</h2><p>You can add protocols and clinics right after.</p></div>
+  <div class="modal-body">
+    <div><label>Name</label><input type="text" placeholder="e.g. Voice in Parkinson's"></div>
+    <div><label>Description <span class="faint">(optional)</span></label><textarea rows="2"></textarea></div>
+    <div><label>Countries <span class="faint">(optional)</span></label><input type="text" placeholder="e.g. Czechia, France"></div>
+  </div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><a class="btn btn-primary" href="study-protocols.html">Create study</a></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

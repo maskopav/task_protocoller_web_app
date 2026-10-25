@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prague General Hospital · Studies</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="clinics" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="clinics.html">Clinics</a><span class="sep">/</span><span>Prague General Hospital</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Prague General Hospital</h1><span class="badge ok"><span class="dot ok"></span>Active</span></div>
+        <p class="sub">Czechia · Neurology department · contact Petr Svoboda</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-open="add-study"><i data-icon="plus"></i>Add study</button></div>
+    </div>
+
+    <nav class="tabs">
+      <a class="active" href="clinic-studies.html">Studies <span class="n">3</span></a>
+      <a href="clinic-computers.html">Computers <span class="n">2</span></a>
+      <a href="recordings.html">Recordings <span class="n">44</span></a>
+      <a href="clinic-settings.html">Settings</a>
+    </nav>
+
+    <div class="grid-2">
+      <div>
+        <div class="section-head"><h2>Studies running here</h2></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Study</th><th></th><th class="num">Recordings · 30 d</th><th></th></tr></thead>
+            <tbody>
+              <tr class="click" data-href="study-protocols.html"><td><div class="primary-cell">Voice in Parkinson's</div><div class="sub">also at 2 other clinics</div></td><td><span class="badge accent">Yours</span></td><td class="num">31</td>
+                <td class="end"><div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button><div class="menu-pop"><a href="#" class="danger" data-toast="Stopped running here">Stop running here…</a></div></div></td></tr>
+              <tr class="click" data-href="study-protocols.html"><td><div class="primary-cell">Speech after stroke</div><div class="sub">only here</div></td><td><span class="badge accent">Yours</span></td><td class="num">9</td>
+                <td class="end"><div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button><div class="menu-pop"><a href="#" class="danger">Stop running here…</a></div></div></td></tr>
+              <tr class="click" data-href="study-received.html"><td><div class="primary-cell">Huntington speech markers</div><div class="sub">managed by Martin Dvořák</div></td><td><span class="badge"><i data-icon="lock"></i>Received</span></td><td class="num">4</td><td class="end"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <div class="section-head"><h2>What the computers receive</h2></div>
+        <p class="small muted" style="margin-bottom:12px">Current protocols of every study above. Computers refresh at start-up and from Settings.</p>
+        <div class="stack" style="gap:14px">
+          <div><div class="xs faint">Voice in Parkinson's</div>
+            <div class="row" style="justify-content:space-between"><span>Speech battery</span><span><span class="lang">cs</span><span class="lang">en</span> <span class="faint small">v4</span></span></div>
+            <div class="row" style="justify-content:space-between"><span>Video tasks</span><span><span class="lang">en</span> <span class="faint small">v1</span></span></div></div>
+          <div><div class="xs faint">Speech after stroke</div>
+            <div class="row" style="justify-content:space-between"><span>Short screening</span><span><span class="lang">cs</span> <span class="faint small">v2</span></span></div></div>
+          <div><div class="xs faint">Huntington speech markers</div>
+            <div class="row" style="justify-content:space-between"><span>HD speech set</span><span><span class="lang">en</span><span class="lang">cs</span> <span class="faint small">v2</span></span></div></div>
+        </div>
+        <div class="divider" style="margin:16px 0 12px"></div>
+        <p class="xs faint">4 protocols · offered in the app's languages: CS, EN</p>
+      </div>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> This page answers the question the old one never did: what will this clinic's computers download? Each protocol appears once, with its language chips (F-014). Studies show whether they're yours or received. "Add study" lists only the studies you edit; "Stop running here" asks for confirmation, as on the study side.</div>
+  </div></main>
+</div>
+<div class="modal-back" id="add-study"><div class="modal">
+  <div class="modal-head"><h2>Run a study at Prague General Hospital</h2><p>Its current protocols go to the 2 computers here on their next refresh.</p></div>
+  <div class="modal-body"><div><label>Study</label><select><option>Choose one of your studies…</option><option>Video pilot 2027</option></select></div></div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn btn-primary" data-close data-toast="Study now runs here">Add study</button></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

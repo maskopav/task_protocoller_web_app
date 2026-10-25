@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice in Parkinson's · Clinics</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="studies" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="studies.html">Studies</a><span class="sep">/</span><span>Voice in Parkinson's</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Voice in Parkinson's</h1><span class="badge ok"><span class="dot ok"></span>Active</span><span class="badge accent">Shared with 3 clinics</span></div>
+        <p class="sub">Multicentre speech markers, 2026–2028 · Czechia, France, Germany</p>
+      </div>
+      <div class="actions">
+        <div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+          <div class="menu-pop"><a href="#" class="danger">Archive study</a></div></div>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <a href="study-protocols.html">Protocols <span class="n">2</span></a>
+      <a class="active" href="study-clinics.html">Clinics <span class="n">3</span></a>
+      <a href="recordings.html">Recordings <span class="n">58</span></a>
+      <a href="study-editors.html">Editors <span class="n">2</span></a>
+      <a href="#">Settings</a>
+    </nav>
+
+    <p class="muted" style="margin-bottom:16px">When a study runs at a clinic, every computer there receives its current protocols on the next refresh.</p>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th style="width:70px">Runs here</th><th>Clinic</th><th>Computers</th><th class="num">Recordings · 30 d</th><th>Last upload</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><label class="switch"><input type="checkbox" checked data-confirm-title="Stop running at Prague General Hospital?" data-confirm-off="The 2 computers at Prague General Hospital will stop receiving this study's protocols on their next refresh. Existing recordings stay."><span></span></label></td>
+            <td><a class="primary-cell" href="clinic-studies.html">Prague General Hospital</a></td>
+            <td>2 <span class="faint">· all healthy</span></td><td class="num">31</td><td>12 min ago</td>
+          </tr>
+          <tr>
+            <td><label class="switch"><input type="checkbox" checked data-confirm-title="Stop running at Brno St. Anne's?" data-confirm-off="The computer at Brno St. Anne's will stop receiving this study's protocols on its next refresh. Existing recordings stay."><span></span></label></td>
+            <td><a class="primary-cell" href="clinic-studies.html">Brno St. Anne's</a></td>
+            <td>1 <span class="faint">· healthy</span></td><td class="num">19</td><td>3 days ago</td>
+          </tr>
+          <tr>
+            <td><label class="switch"><input type="checkbox" checked data-confirm-title="Stop running at Paris Pitié-Salpêtrière?" data-confirm-off="Its computers will stop receiving this study's protocols on their next refresh. Existing recordings stay."><span></span></label></td>
+            <td><a class="primary-cell" href="clinic-studies.html">Paris Pitié-Salpêtrière</a></td>
+            <td>1 <span class="faint">· <span class="dot warn"></span>silent 4 days</span></td><td class="num">8</td><td>Yesterday</td>
+          </tr>
+          <tr>
+            <td><label class="switch"><input type="checkbox" data-toast-on="Now runs at Munich LMU Klinikum"><span></span></label></td>
+            <td class="muted">Munich LMU Klinikum</td>
+            <td class="faint">1</td><td class="num faint">–</td><td class="faint">–</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> "Runs at" made visible. An editor sees the clinics the study runs at, plus the other clinics they're assigned to, each with a switch. Turning one off asks for confirmation and says what happens to the computers. The same switch appears on the clinic side (Clinic › Studies). A master sees every clinic.</div>
+  </div></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

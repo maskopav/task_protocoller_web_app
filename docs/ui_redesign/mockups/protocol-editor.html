@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speech battery · Protocol editor</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="studies" data-persona="master" data-collapsed>
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content wide">
+
+    <div class="crumbs"><a href="studies.html">Studies</a><span class="sep">/</span><a href="study-protocols.html">Voice in Parkinson's</a><span class="sep">/</span><span>Speech battery</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Speech battery</h1><span class="badge outline">v4</span>
+          <span class="lang-tabs"><a href="#" class="on">CS</a><a href="#">EN</a><a href="#">FR</a><a href="#">DE</a><a href="#" title="Add language" aria-label="Add language"><i data-icon="plus"></i></a></span></div>
+        <p class="sub" id="dirty-note"><span class="dot warn"></span>Unsaved changes. Saving creates <b>v5</b>; computers pick it up on their next refresh.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-quiet" href="#"><i data-icon="eye"></i>Preview</a>
+        <button class="btn btn-primary" data-toast="Saved as v5">Save</button>
+      </div>
+    </div>
+
+    <div class="editor">
+      <!-- task catalogue -->
+      <div>
+        <div class="side-label">Add tasks</div>
+        <div class="search" style="max-width:none;margin-bottom:10px"><i data-icon="search"></i><input type="text" placeholder="Search tasks"></div>
+        <div class="stack" style="gap:8px">
+          <div class="lib-item"><div><div class="primary-cell">Sustained phonation</div><div class="meta">Speech · 1 rep · 10–60 s · video No</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+          <div class="lib-item"><div><div class="primary-cell">Syllable repetition</div><div class="meta">Speech · PATAKA · 7 s · video No</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+          <div class="lib-item"><div><div class="primary-cell">Reading text</div><div class="meta">Speech · North Wind · 30–150 s</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+          <div class="lib-item"><div><div class="primary-cell">Monologue</div><div class="meta">Speech · free topic · 30–120 s</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+          <div class="lib-item"><div><div class="primary-cell">Picture description</div><div class="meta">Speech · 60 s</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+          <div class="lib-item"><div><div class="primary-cell">Questionnaire</div><div class="meta">Form · your own questions</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+          <div class="lib-item"><div><div class="primary-cell">Info page</div><div class="meta">Text shown to the participant</div></div><button class="btn icon-btn add" aria-label="Add"><i data-icon="plus"></i></button></div>
+        </div>
+      </div>
+
+      <!-- task list -->
+      <div>
+        <div class="side-label">Protocol · 9 tasks · about 15 min</div>
+        <div class="tbl-wrap">
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">1</span><div class="body"><div class="primary-cell">Welcome and consent</div><div class="params">Info page</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task sel"><span class="grip"><i data-icon="grip"></i></span><span class="num">2</span><div class="body"><div class="primary-cell">Sustained phonation /a/</div><div class="params">2 repetitions · 10–60 s · level indicator · retry allowed</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">3</span><div class="body"><div class="primary-cell">Syllable repetition PATAKA</div><div class="params">1 repetition · 7 s · retry allowed</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">4</span><div class="body"><div class="primary-cell">Syllable repetition PA</div><div class="params">1 repetition · 7 s</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">5</span><div class="body"><div class="primary-cell">Reading: Severák a Slunce</div><div class="params">1 repetition · 30–150 s · video</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">6</span><div class="body"><div class="primary-cell">Monologue: Your last holiday</div><div class="params">1 repetition · 30–120 s</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">7</span><div class="body"><div class="primary-cell">Picture description</div><div class="params">1 repetition · 60 s · skip allowed</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">8</span><div class="body"><div class="primary-cell">Health questionnaire</div><div class="params">4 questions</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+          <div class="task"><span class="grip"><i data-icon="grip"></i></span><span class="num">9</span><div class="body"><div class="primary-cell">Thank you</div><div class="params">Info page</div></div><div class="tools"><button class="btn icon-btn" aria-label="Edit"><i data-icon="settings"></i></button><button class="btn icon-btn" aria-label="Remove"><i data-icon="x"></i></button></div></div>
+        </div>
+      </div>
+
+      <!-- settings -->
+      <div class="card">
+        <div class="panel">
+          <div class="side-label">Protocol settings</div>
+          <label>Description</label>
+          <input type="text" value="Core speech set for all VIP visits">
+        </div>
+        <div class="panel">
+          <label>Patient fields asked before recording</label>
+          <div class="tagrow"><span class="badge accent">Patient code · required</span><span class="badge">Visit number</span><span class="badge">Sex · hidden</span><span class="badge">Year of birth · hidden</span></div>
+          <a href="#" class="small" style="display:inline-block;margin-top:8px">Edit fields</a>
+        </div>
+        <div class="panel">
+          <label>Recording file name</label>
+          <input type="text" class="mono" value="${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}">
+          <div class="xs faint" style="margin-top:6px">Example: <span class="mono">PD-0142_02_PHONATION_Rep1.wav</span></div>
+        </div>
+        <div class="panel">
+          <label>Examiner manual (PDF link)</label>
+          <input type="url" placeholder="https://…">
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> A workspace instead of a form. The library sits on the left, the protocol at full height in the middle (drag to reorder, so no separate Reorder mode), and settings on the right. Language variants are chips next to the title. Save is the only primary action; it's enabled only when something changed, and the version warning appears only then (audit B3). Boolean defaults read Yes/No (F-007). New protocols start with a required patient code and <code>${patientCode}</code> in the file name (F-006). For a received study, the same screen has no Save, no library, and a read-only banner.</div>
+  </div></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice in Parkinson's · Protocols</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="studies" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="studies.html">Studies</a><span class="sep">/</span><span>Voice in Parkinson's</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Voice in Parkinson's</h1><span class="badge ok"><span class="dot ok"></span>Active</span><span class="badge accent">Shared with 3 clinics</span></div>
+        <p class="sub">Multicentre speech markers, 2026–2028 · Czechia, France, Germany</p>
+      </div>
+      <div class="actions">
+        <div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+          <div class="menu-pop"><a href="#" class="danger" data-toast="Study archived">Archive study</a></div></div>
+        <button class="btn btn-primary" data-open="new-protocol"><i data-icon="plus"></i>New protocol</button>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <a class="active" href="study-protocols.html">Protocols <span class="n">2</span></a>
+      <a href="study-clinics.html">Clinics <span class="n">3</span></a>
+      <a href="recordings.html">Recordings <span class="n">58</span></a>
+      <a href="study-editors.html">Editors <span class="n">2</span></a>
+      <a href="#">Settings</a>
+    </nav>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Protocol</th><th>Languages</th><th>Version</th><th class="num">Tasks</th><th>Last changed</th><th></th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="protocol-editor.html">
+            <td><div class="primary-cell">Speech battery</div><div class="sub">Phonation, PATAKA, reading, monologue, questionnaire · <span class="badge outline" style="height:18px;font-size:11px"><i data-icon="library"></i>In library</span></div></td>
+            <td><span class="lang">cs</span><span class="lang">en</span><span class="lang">fr</span><span class="lang">de</span></td>
+            <td>v4</td><td class="num">9</td><td>3 days ago <span class="faint">· Jana Nováková</span></td>
+            <td class="end"><div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+              <div class="menu-pop"><a href="#"><i data-icon="eye"></i>Preview</a><a href="#" data-toast="Duplicated as “Speech battery (copy)”"><i data-icon="copy"></i>Duplicate</a><a href="#">Copy to another study…</a><a href="#" data-toast="Library entry updated to v5. The 3 studies with copies keep theirs."><i data-icon="library"></i>Update library entry</a><div class="sep"></div><a href="#" class="danger">Archive</a></div></div></td>
+          </tr>
+          <tr class="click" data-href="protocol-editor.html">
+            <td><div class="primary-cell">Video tasks</div><div class="sub">Facial expressions, finger tapping · <a class="from-lib" href="library-entry.html"><i data-icon="library"></i>From library: Motor video tasks v2</a></div></td>
+            <td><span class="lang">en</span></td>
+            <td>v1</td><td class="num">3</td><td>12 Oct <span class="faint">· Eva Horáková</span></td>
+            <td class="end"><div class="menu"><button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+              <div class="menu-pop"><a href="#"><i data-icon="eye"></i>Preview</a><a href="#"><i data-icon="copy"></i>Duplicate</a><a href="#">Copy to another study…</a><a href="#" data-toast="Shared to the library as “Video tasks”"><i data-icon="library"></i>Share to library</a><div class="sep"></div><a href="#" class="danger">Archive</a></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details style="margin-top:16px"><summary class="muted small">Archived · 1</summary>
+      <div class="tbl-wrap" style="margin-top:8px"><table class="tbl"><tbody>
+        <tr><td class="muted">Speech battery (pilot)</td><td><span class="lang">cs</span></td><td class="muted">v2</td><td class="muted">Archived 1 Sep</td><td class="end"><a href="#" class="small">Restore</a></td></tr>
+      </tbody></table></div>
+    </details>
+
+    <div class="mock-note"><b>Design notes.</b> Protocols is the default tab. Each row is one logical protocol with its language variants as chips (F-014). Row actions sit in "⋯", so the page has one primary action. Protocols of other studies never appear here (audit A6). <b>Library:</b> "New protocol" offers Blank or From library. Adding always makes a copy, and the copy names its source ("From library: Motor video tasks v2"). "In library" marks a protocol this study has shared. Its author can push a new version with ⋯ › Update library entry, and existing copies stay untouched.</div>
+  </div></main>
+</div>
+
+<div class="modal-back" id="new-protocol"><div class="modal wide">
+  <div class="modal-head"><h2>New protocol</h2></div>
+  <div class="modal-body">
+    <div class="seg"><button class="on" data-pane="blank">Blank</button><button data-pane="lib"><i data-icon="library"></i>From library</button></div>
+
+    <div data-pane-id="blank" class="stack">
+      <p class="muted small">It starts with a patient code field and a standard file name. Change both in the editor.</p>
+      <div><label>Name</label><input type="text" placeholder="e.g. Speech battery"></div>
+      <div><label>Language</label><select><option>Čeština</option><option>English</option><option>Deutsch</option><option>Français</option></select></div>
+      <div><label>Description <span class="faint">(optional)</span></label><textarea rows="2"></textarea></div>
+    </div>
+
+    <div data-pane-id="lib" class="stack" hidden>
+      <div class="search" style="max-width:none"><i data-icon="search"></i><input type="text" placeholder="Search the library"></div>
+      <div class="pick-list">
+        <button class="pick on"><div><div class="primary-cell">Speech battery <span class="faint">· v4</span></div><div class="meta">9 tasks · ~15 min · Jana Nováková</div></div><div><span class="lang">cs</span><span class="lang">en</span><span class="lang">fr</span><span class="lang">de</span></div></button>
+        <button class="pick"><div><div class="primary-cell">Short voice screen <span class="faint">· v1</span></div><div class="meta">4 tasks · ~4 min · Petr Svoboda</div></div><div><span class="lang">cs</span></div></button>
+        <button class="pick"><div><div class="primary-cell">Health questionnaire <span class="faint">· v3</span></div><div class="meta">1 task · ~3 min · Martin Dvořák</div></div><div><span class="lang">en</span><span class="lang">de</span></div></button>
+      </div>
+      <div><label>Name in this study</label><input type="text" value="Speech battery (follow-up)">
+        <div class="xs faint" style="margin-top:4px">“Speech battery” is already used in this study. Names must be unique within a study.</div></div>
+    </div>
+  </div>
+  <div class="modal-foot" data-pane-id="blank"><button class="btn" data-close>Cancel</button><a class="btn btn-primary" href="protocol-editor.html">Create and edit</a></div>
+  <div class="modal-foot" data-pane-id="lib" hidden><button class="btn" data-close>Cancel</button><a class="btn" href="protocol-editor.html">Add and edit</a><button class="btn btn-primary" data-close data-toast="Added “Speech battery (follow-up)” as a copy">Add to study</button></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Users · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="users" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Users</h1></div>
+        <p class="sub">People see the clinics you assign them, and every study that runs there.</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-open="new-user"><i data-icon="plus"></i>New user</button></div>
+    </div>
+
+    <div class="filters"><div class="search"><i data-icon="search"></i><input type="text" placeholder="Search by name or email"></div>
+      <select class="filter"><option>All clinics</option><option>Prague General Hospital</option></select></div>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Name</th><th>Clinics</th><th>Can create</th><th>Status</th><th>Last login</th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="user.html"><td><div class="row"><span class="avatar">EH</span><div><div class="primary-cell">Eva Horáková</div><div class="sub">eva.horakova@example.org</div></div></div></td>
+            <td><span class="badge accent">All · master</span></td><td class="faint">–</td><td><span class="status"><span class="dot ok"></span>Active</span></td><td>Now</td></tr>
+          <tr class="click" data-href="user.html"><td><div class="row"><span class="avatar">JN</span><div><div class="primary-cell">Jana Nováková</div><div class="sub">jana.novakova@example.org</div></div></div></td>
+            <td>Prague General Hospital, Brno St. Anne's</td><td>Studies</td><td><span class="status"><span class="dot ok"></span>Active</span></td><td>Today</td></tr>
+          <tr class="click" data-href="user.html"><td><div class="row"><span class="avatar">PS</span><div><div class="primary-cell">Petr Svoboda</div><div class="sub">petr.svoboda@example.org</div></div></div></td>
+            <td>Prague General Hospital</td><td>Studies</td><td><span class="status"><span class="dot ok"></span>Active</span></td><td>Today</td></tr>
+          <tr class="click" data-href="user.html"><td><div class="row"><span class="avatar">LM</span><div><div class="primary-cell">Luc Martin</div><div class="sub">luc.martin@example.org</div></div></div></td>
+            <td>Paris Pitié-Salpêtrière</td><td>Studies, clinics</td><td><span class="status"><span class="dot ok"></span>Active</span></td><td>Yesterday</td></tr>
+          <tr class="click" data-href="user.html"><td><div class="row"><span class="avatar">KB</span><div><div class="primary-cell">Klára Benešová</div><div class="sub">klara.benesova@example.org</div></div></div></td>
+            <td class="faint">None yet</td><td class="faint">–</td><td><span class="status"><span class="dot"></span>Invited</span></td><td class="faint">Never</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> One sentence explains the whole access model. The table has no icon-button row (audit B5). Everything is on the user page.</div>
+  </div></main>
+</div>
+<div class="modal-back" id="new-user"><div class="modal">
+  <div class="modal-head"><h2>New user</h2><p>They get an email to set their password.</p></div>
+  <div class="modal-body">
+    <div><label>Name</label><input type="text"></div>
+    <div><label>Email</label><input type="email" placeholder="name@example.org"></div>
+    <div><label>Clinics</label><select><option>Choose clinics…</option></select></div>
+  </div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><a class="btn btn-primary" href="user.html">Create and invite</a></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

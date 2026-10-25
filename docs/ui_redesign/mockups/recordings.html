@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recordings · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="recordings" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="page-head">
+      <div>
+        <div class="title"><h1 data-i18n="title">Recordings</h1></div>
+        <p class="sub" data-i18n="sub">Everything uploaded by the computers at your clinics.</p>
+      </div>
+      <div class="actions">
+        <div class="menu">
+          <button class="btn icon-btn" aria-label="More"><i data-icon="more"></i></button>
+          <div class="menu-pop"><a href="#" data-toast="CSV exported"><i data-icon="file"></i><span data-i18n="csv">Export CSV</span></a></div>
+        </div>
+        <button class="btn btn-primary" data-toast="Preparing ZIP of 2 recordings…"><i data-icon="download"></i><span data-i18n="download">Download 2 selected</span></button>
+      </div>
+    </div>
+
+    <div class="banner warn">
+      <i data-icon="alert"></i>
+      <span data-i18n="banner"><b>2 computers aren't assigned to a clinic.</b> Their recordings wait in quarantine until you assign them.</span>
+      <div class="actions"><a class="btn btn-sm" href="clinics.html#unassigned" data-i18n="review">Review computers</a></div>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi on" data-toggle><div class="l"><span class="dot accent"></span><span data-i18n="k1">Unreviewed</span></div><div class="v">7</div></div>
+      <div class="card kpi" data-toggle><div class="l"><span class="dot warn"></span><span data-i18n="k2">Needs attention</span></div><div class="v">3</div></div>
+      <div class="card kpi" data-toggle><div class="l"><span class="dot bad"></span><span data-i18n="k3">Failed server check</span></div><div class="v">1</div></div>
+      <div class="card kpi" data-toggle><div class="l"><span class="dot"></span><span data-i18n="k4">Received in last 7 days</span></div><div class="v">24</div></div>
+    </div>
+
+    <div class="filters">
+      <div class="search"><i data-icon="search"></i><input type="text" placeholder="Patient code or session ID" data-i18n-ph></div>
+      <select class="filter"><option data-i18n="fclinic">All clinics</option><option>Prague General Hospital</option><option>Brno St. Anne's</option><option>Paris Pitié-Salpêtrière</option></select>
+      <select class="filter"><option data-i18n="fstudy">All studies</option><option>Voice in Parkinson's</option><option>Speech after stroke</option></select>
+      <select class="filter"><option data-i18n="freview">Any review</option><option>Unreviewed</option><option>OK</option><option>Needs review</option><option>Excluded</option></select>
+      <select class="filter"><option data-i18n="fdate">Any date</option><option>Today</option><option>Last 7 days</option><option>Last 30 days</option><option>Custom…</option></select>
+      <button class="btn btn-quiet btn-sm" data-i18n="more">More filters</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th style="width:28px"><input type="checkbox" aria-label="Select all"></th>
+          <th data-i18n="c1">Received</th><th data-i18n="c2">Patient</th><th data-i18n="c3">Study · protocol</th><th data-i18n="c4">Clinic</th>
+          <th data-i18n="c6">Tasks · length</th><th data-i18n="c7">Server check</th><th data-i18n="c8">Review</th>
+        </tr></thead>
+        <tbody>
+          <tr class="click" data-href="recording.html">
+            <td><input type="checkbox" checked aria-label="Select"></td>
+            <td><div class="primary-cell">12 min ago</div><div class="sub">25 Oct, 10:42</div></td>
+            <td><div class="primary-cell">PD-0142</div><div class="sub">Visit 2</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v4 · CS</div></td>
+            <td>Prague General Hospital</td>
+            <td>9 / 9 <span class="faint">· 14:52</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span><div class="sub">Mic interrupted</div></td>
+            <td><span class="status"><span class="dot accent"></span>Unreviewed</span></td>
+                      </tr>
+          <tr class="click" data-href="recording.html">
+            <td><input type="checkbox" checked aria-label="Select"></td>
+            <td><div class="primary-cell">1 h ago</div><div class="sub">25 Oct, 09:31</div></td>
+            <td><div class="primary-cell">PD-0139</div><div class="sub">Visit 1</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v4 · CS</div></td>
+            <td>Prague General Hospital</td>
+            <td>9 / 9 <span class="faint">· 15:08</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span></td>
+            <td><span class="status"><span class="dot accent"></span>Unreviewed</span></td>
+                      </tr>
+          <tr class="click" data-href="recording-quarantined.html">
+            <td><input type="checkbox" aria-label="Select"></td>
+            <td><div class="primary-cell">3 h ago</div><div class="sub">25 Oct, 07:55</div></td>
+            <td><div class="primary-cell">ST-0021</div><div class="sub">Visit 1</div></td>
+            <td>Speech after stroke<div class="sub">Short screening · v2 · CS</div></td>
+            <td><span class="faint">No clinic</span></td>
+            <td>4 / 4 <span class="faint">· 06:40</span></td>
+            <td><span class="status"><span class="dot warn"></span>Quarantined</span></td>
+            <td><span class="status"><span class="dot accent"></span>Unreviewed</span></td>
+                      </tr>
+          <tr class="click" data-href="recording.html">
+            <td><input type="checkbox" aria-label="Select"></td>
+            <td><div class="primary-cell">Yesterday</div><div class="sub">24 Oct, 16:20</div></td>
+            <td><div class="primary-cell">PD-0311</div><div class="sub">Visit 1</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v4 · FR</div></td>
+            <td>Paris Pitié-Salpêtrière</td>
+            <td>8 / 9 <span class="faint">· 13:47</span></td>
+            <td><span class="status"><span class="dot bad"></span>Checksum mismatch</span><div class="sub">Skipped 1</div></td>
+            <td><span class="status"><span class="dot accent"></span>Unreviewed</span></td>
+                      </tr>
+          <tr class="click" data-href="recording.html">
+            <td><input type="checkbox" aria-label="Select"></td>
+            <td><div class="primary-cell">Yesterday</div><div class="sub">24 Oct, 11:05</div></td>
+            <td><div class="primary-cell">PD-0140</div><div class="sub">Visit 3</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v3 · CS</div></td>
+            <td>Prague General Hospital</td>
+            <td>9 / 9 <span class="faint">· 14:30</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span><div class="sub">Old protocol · +1</div></td>
+            <td><span class="status"><span class="dot warn"></span>Needs review</span></td>
+                      </tr>
+          <tr class="click" data-href="recording.html">
+            <td><input type="checkbox" aria-label="Select"></td>
+            <td><div class="primary-cell">22 Oct</div><div class="sub">22 Oct, 14:12</div></td>
+            <td><div class="primary-cell">PD-0207</div><div class="sub">Visit 1</div></td>
+            <td>Voice in Parkinson's<div class="sub">Speech battery · v4 · CS</div></td>
+            <td>Brno St. Anne's</td>
+            <td>9 / 9 <span class="faint">· 15:01</span></td>
+            <td><span class="status"><span class="dot ok"></span>Valid</span></td>
+            <td><span class="status"><span class="dot ok"></span>OK</span></td>
+                      </tr>
+        </tbody>
+      </table>
+      <div class="tbl-foot"><span data-i18n="foot">Showing 6 of 7 unreviewed</span><span>‹ 1 ›</span></div>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> Home for everyone. Unreviewed come first. The one primary action follows the selection: "Download 2 selected", or "Download all 7" when nothing is selected. It replaces the Downloads page. Device UUIDs and session IDs are gone from the list and live on the detail page. Flags appear as a quiet second line under the server check. Switch the language at the bottom left to check CS and DE string lengths.</div>
+  </div></main>
+</div>
+<script>
+window.PAGE_I18N = {
+  cs: {
+    title: 'Záznamy', sub: 'Vše, co nahrály počítače na vašich klinikách.', csv: 'Exportovat CSV',
+    download: 'Stáhnout 2 vybrané',
+    banner: '<b>2 počítače nejsou přiřazeny ke klinice.</b> Jejich záznamy čekají v karanténě, dokud je nepřiřadíte.',
+    review: 'Zkontrolovat počítače', k1: 'Nezkontrolované', k2: 'Vyžaduje pozornost', k3: 'Neprošlo kontrolou serveru', k4: 'Přijato za posledních 7 dní',
+    fclinic: 'Všechny kliniky', fstudy: 'Všechny studie', freview: 'Libovolná kontrola', fdate: 'Libovolné datum', more: 'Další filtry',
+    c1: 'Přijato', c2: 'Pacient', c3: 'Studie · protokol', c4: 'Klinika', c5: 'Délka', c6: 'Úlohy', c7: 'Kontrola serveru', c8: 'Kontrola',
+    foot: 'Zobrazeno 6 ze 7 nezkontrolovaných'
+  },
+  de: {
+    title: 'Aufnahmen', sub: 'Alles, was die Computer Ihrer Kliniken hochgeladen haben.', csv: 'CSV exportieren',
+    download: '2 ausgewählte herunterladen',
+    banner: '<b>2 Computer sind keiner Klinik zugeordnet.</b> Ihre Aufnahmen warten in Quarantäne, bis Sie sie zuordnen.',
+    review: 'Computer prüfen', k1: 'Ungeprüft', k2: 'Braucht Aufmerksamkeit', k3: 'Serverprüfung fehlgeschlagen', k4: 'Eingegangen in 7 Tagen',
+    fclinic: 'Alle Kliniken', fstudy: 'Alle Studien', freview: 'Jede Prüfung', fdate: 'Jedes Datum', more: 'Weitere Filter',
+    c1: 'Eingegangen', c2: 'Patient', c3: 'Studie · Protokoll', c4: 'Klinik', c5: 'Dauer', c6: 'Aufgaben', c7: 'Serverprüfung', c8: 'Prüfung',
+    foot: '6 von 7 ungeprüften'
+  }
+};
+</script>
+<script src="shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="library" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Library</h1></div>
+        <p class="sub">Ready-made protocols. Adding one to a study makes the study its own copy, so later changes here never affect it.</p>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="search"><i data-icon="search"></i><input type="text" placeholder="Search protocols and tasks"></div>
+      <select aria-label="Language"><option>All languages</option><option>Čeština</option><option>English</option><option>Deutsch</option><option>Français</option></select>
+      <button class="chip" data-toggle>Shared by me</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Protocol</th><th>Languages</th><th class="num">Tasks</th><th>Length</th><th>Author</th><th class="num">Used in</th><th>Last changed</th></tr></thead>
+        <tbody>
+          <tr class="click" data-href="library-entry.html">
+            <td><div class="primary-cell">Speech battery</div><div class="sub">Phonation, PATAKA, reading, monologue, questionnaire</div></td>
+            <td><span class="lang">cs</span><span class="lang">en</span><span class="lang">fr</span><span class="lang">de</span></td>
+            <td class="num">9</td><td>~15 min</td><td>Jana Nováková</td><td class="num">4 studies</td><td>3 days ago <span class="faint">· v4</span></td>
+          </tr>
+          <tr class="click" data-href="library-entry.html">
+            <td><div class="primary-cell">Motor video tasks</div><div class="sub">Facial expressions, finger tapping, hand opening</div></td>
+            <td><span class="lang">en</span><span class="lang">cs</span></td>
+            <td class="num">3</td><td>~6 min</td><td>Eva Horáková</td><td class="num">2 studies</td><td>12 Oct <span class="faint">· v2</span></td>
+          </tr>
+          <tr class="click" data-href="library-entry.html">
+            <td><div class="primary-cell">Short voice screen</div><div class="sub">Three phonations and one reading, for quick follow-up visits</div></td>
+            <td><span class="lang">cs</span></td>
+            <td class="num">4</td><td>~4 min</td><td>Petr Svoboda</td><td class="num">1 study</td><td>2 Sep <span class="faint">· v1</span></td>
+          </tr>
+          <tr class="click" data-href="library-entry.html">
+            <td><div class="primary-cell">Health questionnaire</div><div class="sub">Smoking, voice problems, diagnosis, medication</div></td>
+            <td><span class="lang">en</span><span class="lang">de</span></td>
+            <td class="num">1</td><td>~3 min</td><td>Martin Dvořák</td><td class="num">–</td><td>20 Aug <span class="faint">· v3</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> The page has no primary button, because a library entry is created in one place only: a study's Protocols tab, through ⋯ › Share to library. That keeps one way in. Every entry is a copy source, never a live link. "Used in" counts the studies holding a copy. This page and its sidebar item only appear for people who write protocols: master, anyone with <code>can_create_projects</code>, and study editors. A clinician who only receives studies doesn't see it.</div>
+  </div></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

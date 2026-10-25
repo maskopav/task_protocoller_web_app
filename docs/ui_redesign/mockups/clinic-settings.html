@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prague General Hospital · Settings</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="clinics" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="clinics.html">Clinics</a><span class="sep">/</span><span>Prague General Hospital</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Prague General Hospital</h1><span class="badge ok"><span class="dot ok"></span>Active</span></div>
+        <p class="sub">Czechia · Neurology department · contact Petr Svoboda</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-toast="Settings saved">Save changes</button></div>
+    </div>
+
+    <nav class="tabs">
+      <a href="clinic-studies.html">Studies <span class="n">3</span></a>
+      <a href="clinic-computers.html">Computers <span class="n">2</span></a>
+      <a href="recordings.html">Recordings <span class="n">44</span></a>
+      <a class="active" href="clinic-settings.html">Settings</a>
+    </nav>
+
+    <div class="card">
+      <div class="form-section">
+        <h2>Clinic</h2>
+        <p>How the clinic appears in this app.</p>
+        <div class="form">
+          <label class="l">Name</label>
+          <div><input type="text" value="Prague General Hospital" data-slug="set-slug"><div class="help">In file names: <span class="mono" id="set-slug">PragueGeneralHospital</span>. A new name applies to recordings made after the change.</div></div>
+          <label class="l">Description</label><input type="text" value="Neurology department">
+          <label class="l">Country</label><input type="text" value="Czechia">
+          <label class="l">Contact people</label><input type="text" value="Petr Svoboda">
+          <label class="l">Contact emails</label><input type="text" placeholder="e.g. name@hospital.cz">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Desktop app defaults</h2>
+        <p>Sent to every computer at this clinic. A local change on a computer wins over these defaults.</p>
+        <div class="form">
+          <label class="l">App language</label>
+          <select><option>Čeština</option><option>English</option><option>Deutsch</option></select>
+          <label class="l">Languages offered</label>
+          <div><label class="check"><input type="checkbox" checked> Čeština</label><label class="check"><input type="checkbox" checked> English</label><label class="check"><input type="checkbox"> Deutsch</label>
+            <div class="help">Leave all unchecked to offer every language the protocols exist in.</div></div>
+          <label class="l">Microphone</label>
+          <div><input type="text" placeholder="e.g. USB audio CODEC"><div class="help">Leave empty to use the computer's default microphone.</div></div>
+          <label class="l">Microphone gain</label>
+          <div><input type="number" placeholder="e.g. 63" style="width:120px"> <span class="faint small">%</span></div>
+          <label class="l">Level indicator</label>
+          <div class="seg"><button class="on">Circle</button><button>Bar</button><button>None</button></div>
+          <label class="l">Steps</label>
+          <div><label class="check"><input type="checkbox" checked> Show the calibration screen before speech tasks</label>
+            <label class="check"><input type="checkbox"> Let the examiner adjust task boundaries after the protocol</label></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> A page instead of a long modal (audit B4). Labels and options are written in plain words, so raw codes like "en" and "CIRCLE" are gone, and placeholders are clearly placeholders. The token moved to Computers. F-008 (decided): any name is allowed. The desktop app turns it into a file-name form itself; the hint shows exactly that form, live.</div>
+  </div></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

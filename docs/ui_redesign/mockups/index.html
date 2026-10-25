@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redesign mockups · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+<style>
+  .idx { max-width: 920px; margin: 0 auto; padding: 48px 24px; }
+  .idx h1 { margin-bottom: 8px; }
+  .idx .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0 32px; }
+  .idx .grid a { display: block; padding: 14px 16px; }
+  .idx .grid a:hover { text-decoration: none; border-color: var(--accent); }
+  .idx .grid b { color: var(--text); display: block; }
+  .idx .grid span { color: var(--text-2); font-size: var(--fs-sm); }
+  .idx h2 { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="idx">
+  <h1>Redesign mockups</h1>
+  <p class="muted">Static, clickable mockups for <a href="../02_spec.md">02_spec.md</a>. Data is invented. The sidebar, tabs, row clicks, "⋯" menus, modals, switches and toasts all work. Each page ends with design notes. Switch the language at the bottom left of the sidebar (fully translated on Recordings).</p>
+  <div class="mock-note" style="margin-top:16px"><b>The model in one line.</b> <b>Studies</b> are what you collect (they own protocols). <b>Clinics</b> are where it runs (they own computers and recordings). A study <b>runs at</b> clinics. <b>Recordings</b> are where the two meet, and they're the home screen.</div>
+
+  <h2 style="margin-top:32px">Recordings · home</h2>
+  <div class="grid">
+    <a class="card" href="recordings.html"><b>Recordings (master)</b><span>Inbox, filters, bulk download, quarantine banner, CS/DE toggle</span></a>
+    <a class="card" href="clinician-home.html"><b>Recordings (clinician, one clinic)</b><span>The same screen, scaled down</span></a>
+    <a class="card" href="recording.html"><b>Recording detail</b><span>Review, participant, tasks, activity</span></a>
+    <a class="card" href="recording-quarantined.html"><b>Quarantined recording</b><span>F-043 state, with one fix action</span></a>
+  </div>
+
+  <h2>Studies</h2>
+  <div class="grid">
+    <a class="card" href="studies.html"><b>Studies list</b><span>Yours and Received</span></a>
+    <a class="card" href="study-protocols.html"><b>Study · Protocols</b><span>Default tab, new protocol modal</span></a>
+    <a class="card" href="study-clinics.html"><b>Study · Clinics</b><span>"Runs here" switches</span></a>
+    <a class="card" href="study-editors.html"><b>Study · Editors</b><span>Add by email</span></a>
+    <a class="card" href="study-received.html"><b>Received study (clinician)</b><span>Locked, read-only</span></a>
+    <a class="card" href="protocol-editor.html"><b>Protocol editor</b><span>Workspace with a collapsed sidebar</span></a>
+  </div>
+
+  <h2>Protocol library <span class="badge accent">new</span></h2>
+  <div class="grid">
+    <a class="card" href="library.html"><b>Library</b><span>Ready-made protocols, search, "Shared by me"</span></a>
+    <a class="card" href="library-entry.html"><b>Library entry</b><span>Read-only preview, "Add to study…", author menu</span></a>
+    <a class="card" href="study-protocols.html"><b>New protocol › From library</b><span>Open "New protocol", then switch to From library</span></a>
+  </div>
+
+  <h2>Clinics</h2>
+  <div class="grid">
+    <a class="card" href="clinics.html"><b>Clinics list (master)</b><span>Unassigned computers, clinic table</span></a>
+    <a class="card" href="clinic-studies.html"><b>Clinic · Studies</b><span>What the computers receive</span></a>
+    <a class="card" href="clinic-computers.html"><b>Clinic · Computers</b><span>Token, computers, status</span></a>
+    <a class="card" href="clinic-settings.html"><b>Clinic · Settings</b><span>Identity and desktop app defaults</span></a>
+  </div>
+
+  <h2>Administration and auth</h2>
+  <div class="grid">
+    <a class="card" href="users.html"><b>Users</b><span>One-sentence access model</span></a>
+    <a class="card" href="user.html"><b>User</b><span>Clinic checklist and two switches</span></a>
+    <a class="card" href="login.html"><b>Sign in</b></a>
+  </div>
+
+  <h2>Decided at the checkpoint</h2>
+  <ul class="muted">
+    <li><b>F-008 clinic names:</b> any name. The desktop app's file-name form is shown live under the name field.</li>
+    <li><b>Received studies:</b> a separate group in the Studies list.</li>
+    <li><b>Protocol library:</b> any editor can share. Adding always copies. Seeded from existing protocols.</li>
+  </ul>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

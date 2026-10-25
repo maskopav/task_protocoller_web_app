@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recording ST-0021 · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="recordings" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="recordings.html">Recordings</a><span class="sep">/</span><span>ST-0021</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>ST-0021 <span class="faint">· visit 1</span></h1>
+          <span class="badge warn"><span class="dot warn"></span>Quarantined</span>
+          <span class="badge accent">Unreviewed</span></div>
+        <p class="sub">Speech after stroke · Short screening v2 (CS) · recorded 25 Oct 2026, 07:40–07:47</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" data-open="assign">Assign computer…</button>
+      </div>
+    </div>
+
+    <div class="banner warn">
+      <i data-icon="alert"></i>
+      <span><b>This computer isn't assigned to a clinic.</b> It used a token that no clinic has, so the recording is kept in quarantine. Assign the computer to a clinic, and its recordings move there.</span>
+    </div>
+
+    <div class="card card-pad">
+      <div class="section-head"><h2>Session</h2></div>
+      <dl class="kv">
+        <div><dt>Computer</dt><dd><span class="mono">7f3a…c19e</span> <span class="faint small">(unnamed)</span></dd></div>
+        <div><dt>App version</dt><dd>1.4.0</dd></div>
+        <div><dt>Length</dt><dd>6 min 40 s</dd></div>
+        <div><dt>Received</dt><dd>25 Oct, 07:55</dd></div>
+      </dl>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> F-043: the empty site and broken header are replaced by an explicit quarantined state, with the one action that fixes it. Download is still available in "⋯" on the full page. Only the master sees quarantined recordings.</div>
+  </div></main>
+</div>
+<div class="modal-back" id="assign"><div class="modal">
+  <div class="modal-head"><h2>Assign computer to a clinic</h2><p>All 3 recordings from this computer move to the clinic you choose.</p></div>
+  <div class="modal-body">
+    <div><label>Clinic</label><select><option>Prague General Hospital</option><option>Brno St. Anne's</option></select></div>
+    <div><label>Computer name</label><input type="text" placeholder="e.g. Exam room 3"></div>
+  </div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn btn-primary" data-close data-toast="Computer assigned · 3 recordings moved">Assign</button></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>

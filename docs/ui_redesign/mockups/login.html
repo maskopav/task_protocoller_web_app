@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · Task Protocoller</title>
+<link rel="stylesheet" href="mockups.css">
+<style>
+  .auth { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .auth-card { width: 380px; padding: 32px; }
+  .auth-card .brand { padding: 0 0 20px; font-size: var(--fs-lg); }
+  .auth-card label { display: block; font-weight: 500; margin: 14px 0 6px; }
+  .auth-card input { width: 100%; }
+  .auth-card .btn { width: 100%; justify-content: center; margin-top: 20px; height: 38px; }
+</style>
+</head>
+<body>
+<div class="auth">
+  <div>
+    <div class="card auth-card">
+      <div class="brand"><span class="brand-mark"><i data-icon="wave"></i></span>Task Protocoller</div>
+      <h1 style="font-size:20px">Sign in</h1>
+      <p class="muted small" style="margin-top:4px">Set up studies and review recordings from clinic computers.</p>
+      <label for="em">Email</label><input id="em" type="email" placeholder="name@example.org">
+      <label for="pw">Password</label><input id="pw" type="password">
+      <a class="btn btn-primary" href="recordings.html">Sign in</a>
+      <p class="small" style="text-align:center;margin-top:16px"><a href="#">Forgot password?</a></p>
+    </div>
+    <p class="xs faint" style="text-align:center;margin-top:16px">
+      <select aria-label="Language" style="height:28px;font-size:12px"><option>English</option><option>Čeština</option><option>Deutsch</option></select></p>
+  </div>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

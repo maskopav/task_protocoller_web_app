@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice in Parkinson's · Editors</title>
+<link rel="stylesheet" href="mockups.css">
+</head>
+<body data-active="studies" data-persona="master">
+<div class="shell">
+  <aside id="sidebar"></aside>
+  <main class="main"><div class="content">
+
+    <div class="crumbs"><a href="studies.html">Studies</a><span class="sep">/</span><span>Voice in Parkinson's</span></div>
+    <div class="page-head">
+      <div>
+        <div class="title"><h1>Voice in Parkinson's</h1><span class="badge ok"><span class="dot ok"></span>Active</span><span class="badge accent">Shared with 3 clinics</span></div>
+        <p class="sub">Multicentre speech markers, 2026–2028 · Czechia, France, Germany</p>
+      </div>
+      <div class="actions"><button class="btn btn-primary" data-open="add-editor"><i data-icon="plus"></i>Add editor</button></div>
+    </div>
+
+    <nav class="tabs">
+      <a href="study-protocols.html">Protocols <span class="n">2</span></a>
+      <a href="study-clinics.html">Clinics <span class="n">3</span></a>
+      <a href="recordings.html">Recordings <span class="n">58</span></a>
+      <a class="active" href="study-editors.html">Editors <span class="n">2</span></a>
+      <a href="#">Settings</a>
+    </nav>
+
+    <p class="muted" style="margin-bottom:16px">Editors can change this study and its protocols, and choose where it runs. Seeing recordings still depends on which clinics each person is assigned.</p>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Name</th><th>Email</th><th>Clinics they see</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><div class="row"><span class="avatar">JN</span><span class="primary-cell">Jana Nováková</span><span class="badge">Creator</span></div></td>
+            <td class="muted">jana.novakova@example.org</td><td>Prague General Hospital, Brno St. Anne's</td><td class="end"></td></tr>
+          <tr><td><div class="row"><span class="avatar">LM</span><span class="primary-cell">Luc Martin</span></div></td>
+            <td class="muted">luc.martin@example.org</td><td>Paris Pitié-Salpêtrière</td>
+            <td class="end"><button class="btn btn-quiet btn-sm btn-danger" data-toast="Luc Martin removed">Remove</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mock-note"><b>Design notes.</b> Editors are added by exact email. Non-masters can't browse the user list. The creator and the last editor have no Remove button. The "Clinics they see" column makes the strict-scope rule visible: an editor without Paris won't see Paris recordings.</div>
+  </div></main>
+</div>
+<div class="modal-back" id="add-editor"><div class="modal">
+  <div class="modal-head"><h2>Add editor</h2><p>They'll be able to change this study and its protocols.</p></div>
+  <div class="modal-body"><div><label>Email</label><input type="email" placeholder="name@example.org"></div></div>
+  <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn btn-primary" data-close data-toast="Editor added">Add</button></div>
+</div></div>
+<script src="shell.js"></script>
+</body>
+</html>
