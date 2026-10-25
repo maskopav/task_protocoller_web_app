@@ -20,7 +20,7 @@ const localesPath = path.join(baseLocalesDir, "{{lng}}/{{ns}}.json");
 // 1. Initialize i18next to use your FRONTEND translation files
 // This points to: frontend/src/i18n/{{lng}}/common.json (or admin.json)
 await i18next.use(Backend).init({
-  initImmediate: false,
+  initAsync: false,
   fallbackLng: "en",
   preload: ["en", "cs", "de"],
   ns: ["common"],

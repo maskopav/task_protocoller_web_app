@@ -5,12 +5,13 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // public/ holds vendored minified bundles (flac, vad); coverage/ is generated output.
+  globalIgnores(['dist', 'coverage', 'public']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
+      reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
     languageOptions: {
@@ -23,6 +24,14 @@ export default defineConfig([
       },
     },
     rules: {
+      // eslint-plugin-react-hooks 7 added React Compiler rules. The app does not use the
+      // compiler and fixing them means restructuring components (behaviour change), so they
+      // stay off until a separate cleanup. rules-of-hooks and exhaustive-deps remain on.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/static-components': 'off',
+      'react-hooks/immutability': 'off',
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },

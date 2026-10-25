@@ -51,6 +51,9 @@ const build = (variant) => {
   return f;
 };
 const storeFor = (f) => ({ resolve: () => f.path });
+// mysql2 >= 3.2x returns JSON-typed columns already parsed; older versions returned a string.
+const asObj = (v) => (typeof v === "string" ? JSON.parse(v) : v);
+
 const read = async (q, id) => (await q(
   `SELECT status, invalid_reason, protocol_name, protocol_project, config_version, patient_code, visit_number,
           participant_fields, tasks_total, tasks_done, checks FROM upload_sessions WHERE id = ?`, [id]))[0];
@@ -83,7 +86,7 @@ describe.skipIf(!dbUp)("validateStoredSession UPDATE against MariaDB (STRICT)", 
         visit_number: LONG.visitNumber.slice(0, 64),
         tasks_total: 5,
       });
-      expect(JSON.parse(r.participant_fields).patient_code).toBe(LONG.patientCode);
+      expect(asObj(r.participant_fields).patient_code).toBe(LONG.patientCode);
     });
   });
 
@@ -107,7 +110,7 @@ describe.skipIf(!dbUp)("validateStoredSession UPDATE against MariaDB (STRICT)", 
       await validateStoredSession(id, { store: storeFor(f) });
       const r = await read(q, id);
       expect(r).toMatchObject({ status: "valid", patient_code: "EDITED", visit_number: "V9", tasks_total: 5 });
-      expect(JSON.parse(r.participant_fields)).toEqual({ patient_code: "EDITED" });
+      expect(asObj(r.participant_fields)).toEqual({ patient_code: "EDITED" });
     });
   });
 });

@@ -14,7 +14,7 @@ The plan implements [`02_spec.md`](02_spec.md). The rules for implementers are i
 | 1 | Audit and "before" screenshots | ✅ done ([01_audit.md](01_audit.md)) |
 | 2 | Spec, plan, guidelines | ✅ updated at the mockup checkpoint (F-008, received group, protocol library, dependency upgrade), then corrected after the independent checkpoint review |
 | 3 | Clickable mockups | ✅ done ([mockups/index.html](mockups/index.html)). Review: no page errors, no broken links, at most one primary button per page. |
-| 4 | Backend simplification (golden test → **dependency upgrade** → schema and routes) | 🔄 4a ✅ golden test (5 clinics, 5/5 green twice, backend 665/665); 4u next |
+| 4 | Backend simplification (golden test → **dependency upgrade** → schema and routes) | 🔄 4a ✅ golden test; 4u ✅ all dependencies latest ([dependency_upgrade.md](dependency_upgrade.md)), e2e and camera check pending; 4b next |
 | 5 | Frontend foundation (tokens, UI kit, shell, routes) | – |
 | 6 | Recordings | – |
 | 7 | Studies and Clinics | – |

@@ -69,7 +69,7 @@ export default function TaskList({ onCreate }) {
                         const val = defaults[key] ?? p.default ?? "";
                         
                         // Handle multiple values selection for default values
-                        let displayLabel = val;
+                        let displayLabel;
                         if (Array.isArray(val)) {
                           // Map over the array of keys and find the label for each one
                           displayLabel = val

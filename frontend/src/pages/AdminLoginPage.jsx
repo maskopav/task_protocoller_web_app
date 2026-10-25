@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
       console.error("Login submission error:", err);
       
       // Map backend error messages to translation keys
-      let msg = t("adminLogin.errorGeneric"); // Default error
+      let msg;
 
       if (err.message.includes("deactivated")) {
         msg = t("adminLogin.errorDeactivated"); // Specific message for inactive users
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
       }
       
       setStatus({ type: "error", message: msg });
-      throw new Error(msg);
+      throw new Error(msg, { cause: err });
     } finally {
       setIsSubmitting(false);
     }

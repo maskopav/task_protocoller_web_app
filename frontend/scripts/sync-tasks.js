@@ -53,7 +53,7 @@ function parseTsConfig(filePath) {
     try {
         return eval(`(${objectStr})`);
     } catch (err) {
-        throw new Error(`Syntax error while evaluating tasksBase config: ${err.message}`);
+        throw new Error(`Syntax error while evaluating tasksBase config: ${err.message}`, { cause: err });
     }
 }
 

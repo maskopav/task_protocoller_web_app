@@ -71,7 +71,7 @@ export const useVideoRecorder = ({
 
             setIsLoadingModel(true);
             const vision = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.1/wasm"
             );
             faceDetector.current = await FaceLandmarker.createFromOptions(vision, {
                 baseOptions: {
@@ -200,7 +200,7 @@ export const useVideoRecorder = ({
                     // LOOSENED ZOOM CONDITION: Widened to accept small/large faces if fully visible
                     const isRightSize = eyeDist > 0.09 && eyeDist < 0.32; 
 
-                    let newGuidance = { text: "Detecting...", arrow: null };
+                    let newGuidance;
 
                     // --- INTUITIVE DIRECTIVE LOGIC (Move Body instead of Device) ---
                     if (!isLookingForward) {
