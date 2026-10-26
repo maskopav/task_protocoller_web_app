@@ -1,9 +1,10 @@
-// frontend/src/components/AuthForm/ResetPasswordModal.jsx
+// src/components/AuthForm/ResetPasswordModal.jsx — the page behind /reset-password/:token (name kept for the route import).
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { adminResetPasswordApi } from "../../api/auth";
 import { useTranslation } from "react-i18next";
-import "./ResetPasswordModal.css"; // New dedicated styles
+import { adminResetPasswordApi } from "../../api/auth";
+import { Button, TextField } from "../ui";
+import AuthCard from "./AuthCard";
 
 export default function ResetPasswordModal() {
   const { token } = useParams();
@@ -11,86 +12,52 @@ export default function ResetPasswordModal() {
   const { t } = useTranslation(["common"]);
 
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [confirm, setConfirm] = useState("");
-  const [status, setStatus] = useState({ loading: false, error: "", success: false });
+  const [showPassword, setShowPassword] = useState(false);
+  const [state, setState] = useState({ loading: false, error: "", success: false });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirm) {
-      setStatus({ ...status, error: t("auth.passwordMismatch") });
+      setState({ loading: false, error: t("auth.passwordMismatch"), success: false });
       return;
     }
-    setStatus({ loading: true, error: "", success: false });
-
+    setState({ loading: true, error: "", success: false });
     try {
       await adminResetPasswordApi(token, password);
-      setStatus({ loading: false, error: "", success: true });
+      setState({ loading: false, error: "", success: true });
       setTimeout(() => navigate("/login", { replace: true }), 3000);
     } catch (err) {
-      setStatus({ loading: false, error: err.message, success: false });
+      setState({ loading: false, error: err.message, success: false });
     }
   };
 
+  const status = state.success
+    ? { type: "success", message: `${t("auth.passwordUpdateSuccess")} ${t("auth.redirectingToLogin")}` }
+    : state.error ? { type: "error", message: state.error } : null;
+
   return (
-    <div className="reset-modal-overlay">
-      <div className="reset-modal-content">
-        <h2 className="text-center">{t("auth.resetPasswordTitle")}</h2>
-
-        {status.success ? (
-          <div className="text-center password-update-container">
-            <p className="validation-success-msg">
-              {t("auth.passwordUpdateSuccess")}
-            </p>
-            <p>{t("auth.redirectingToLogin")}</p>
+    <AuthCard title={t("auth.resetPasswordTitle")} status={status} data-testid="reset-card">
+      {!state.success && (
+        <form onSubmit={handleSubmit} className="auth-form">
+          <TextField
+            label={t("auth.newPassword")} required autoComplete="new-password"
+            type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+          />
+          <TextField
+            label={t("auth.confirmPassword")} required autoComplete="new-password"
+            type={showPassword ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)}
+          />
+          <div className="auth-link">
+            <Button variant="quiet" size="sm" onClick={() => setShowPassword((s) => !s)}>
+              {showPassword ? t("auth.hide") : t("auth.show")}
+            </Button>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="reset-form">
-            <div>
-              <label className="form-label">{t("auth.newPassword")}</label>
-              <div className="password-wrapper">
-                <input
-                  required
-                  type={showPassword ? "text" : "password"}
-                  className="participant-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? t("auth.hide") : t("auth.show")}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="form-label">{t("auth.confirmPassword")}</label>
-              <div className="password-wrapper">
-                <input
-                  required
-                  type={showPassword ? "text" : "password"}
-                  className="participant-input"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {status.error && (
-              <div className="validation-error-msg text-center">
-                {status.error}
-              </div>
-            )}
-
-            <button type="submit" disabled={status.loading} className="btn-save">
-              {status.loading ? t("auth.processing") : t("auth.btnSetNewPassword")}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+          <Button variant="primary" type="submit" disabled={state.loading}>
+            {state.loading ? t("auth.processing") : t("auth.btnSetNewPassword")}
+          </Button>
+        </form>
+      )}
+    </AuthCard>
   );
 }

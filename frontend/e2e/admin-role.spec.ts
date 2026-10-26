@@ -22,7 +22,7 @@ async function loginAndGetToken(page: Page, email: string, password: string): Pr
 
 test('a non-master admin cannot list the other admins', async ({ page, request }) => {
   // The list (emails + permission flags of every admin) only feeds the
-  // master-only AdminManagementPage, so it is master-only on the server too.
+  // master-only Users page, so it is master-only on the server too.
   const token = await loginAndGetToken(page, NON_MASTER_EMAIL, NON_MASTER_PASSWORD);
   expect(token).toBeTruthy();
 

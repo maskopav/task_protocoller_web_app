@@ -1,0 +1,75 @@
+{
+  "loading": "Loading…",
+  "cancel": "Cancel",
+  "active": "Active",
+  "disabled": "Disabled",
+  "master": "Master",
+  "allClinics": "All",
+  "noClinics": "None",
+  "saved": "Saved.",
+  "activated": "User activated.",
+  "deactivated": "User deactivated.",
+  "resendSent": "A reset link was sent to {{email}}.",
+  "list": {
+    "title": "Users",
+    "sub": "People who can sign in, and what they can reach.",
+    "new": "Invite user",
+    "emptyTitle": "No users yet"
+  },
+  "columns": {
+    "name": "Name",
+    "email": "Email",
+    "clinics": "Clinics",
+    "canCreate": "Can create",
+    "status": "Status"
+  },
+  "canCreate": {
+    "studies": "Studies",
+    "clinics": "Clinics"
+  },
+  "fields": {
+    "name": "Name",
+    "email": "Email"
+  },
+  "errors": {
+    "nameRequired": "Enter a name.",
+    "emailInvalid": "Enter a valid email address.",
+    "emailTaken": "A user with this email already exists."
+  },
+  "invite": {
+    "title": "Invite user",
+    "description": "They get an email with a link to set a password. Assign clinics on their page afterwards.",
+    "submit": "Send invitation",
+    "sent": "Invitation sent."
+  },
+  "profile": {
+    "title": "Profile",
+    "save": "Save changes",
+    "resend": "Send password reset link",
+    "activeLabel": "Active (can sign in)"
+  },
+  "deactivate": {
+    "title": "Deactivate {{name}}?",
+    "message": "They can no longer sign in. Their studies and recordings stay as they are.",
+    "confirm": "Deactivate"
+  },
+  "clinics": {
+    "title": "Clinics",
+    "count_one": "{{count}} clinic",
+    "count_other": "{{count}} clinics",
+    "masterAll": "Master users see all clinics.",
+    "search": "Search clinics",
+    "none": "No clinics found."
+  },
+  "permissions": {
+    "title": "Permissions",
+    "hint": "Applied immediately",
+    "studies": "May create studies",
+    "clinics": "May create clinics"
+  },
+  "auth": {
+    "brand": "TaskProtocoller",
+    "loginTitle": "Sign in",
+    "purpose": "Set up studies and review recordings from clinic computers."
+  }
+}

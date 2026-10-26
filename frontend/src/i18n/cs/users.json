@@ -1,0 +1,77 @@
+{
+  "loading": "Načítání…",
+  "cancel": "Zrušit",
+  "active": "Aktivní",
+  "disabled": "Zakázaný",
+  "master": "Master",
+  "allClinics": "Všechny",
+  "noClinics": "Žádné",
+  "saved": "Uloženo.",
+  "activated": "Uživatel byl aktivován.",
+  "deactivated": "Uživatel byl deaktivován.",
+  "resendSent": "Odkaz pro obnovení hesla byl odeslán na {{email}}.",
+  "list": {
+    "title": "Uživatelé",
+    "sub": "Lidé, kteří se mohou přihlásit, a k čemu mají přístup.",
+    "new": "Pozvat uživatele",
+    "emptyTitle": "Zatím žádní uživatelé"
+  },
+  "columns": {
+    "name": "Jméno",
+    "email": "E-mail",
+    "clinics": "Kliniky",
+    "canCreate": "Může vytvářet",
+    "status": "Stav"
+  },
+  "canCreate": {
+    "studies": "Studie",
+    "clinics": "Kliniky"
+  },
+  "fields": {
+    "name": "Jméno",
+    "email": "E-mail"
+  },
+  "errors": {
+    "nameRequired": "Zadejte jméno.",
+    "emailInvalid": "Zadejte platnou e-mailovou adresu.",
+    "emailTaken": "Uživatel s tímto e-mailem již existuje."
+  },
+  "invite": {
+    "title": "Pozvat uživatele",
+    "description": "Dostane e-mail s odkazem pro nastavení hesla. Kliniky přiřaďte poté na jeho stránce.",
+    "submit": "Odeslat pozvánku",
+    "sent": "Pozvánka byla odeslána."
+  },
+  "profile": {
+    "title": "Profil",
+    "save": "Uložit změny",
+    "resend": "Poslat odkaz pro obnovení hesla",
+    "activeLabel": "Aktivní (může se přihlásit)"
+  },
+  "deactivate": {
+    "title": "Deaktivovat uživatele {{name}}?",
+    "message": "Už se nebude moci přihlásit. Jeho studie a záznamy zůstanou beze změny.",
+    "confirm": "Deaktivovat"
+  },
+  "clinics": {
+    "title": "Kliniky",
+    "count_one": "{{count}} klinika",
+    "count_few": "{{count}} kliniky",
+    "count_many": "{{count}} kliniky",
+    "count_other": "{{count}} klinik",
+    "masterAll": "Uživatelé typu Master vidí všechny kliniky.",
+    "search": "Hledat kliniky",
+    "none": "Žádné kliniky nenalezeny."
+  },
+  "permissions": {
+    "title": "Oprávnění",
+    "hint": "Použije se ihned",
+    "studies": "Může vytvářet studie",
+    "clinics": "Může vytvářet kliniky"
+  },
+  "auth": {
+    "brand": "TaskProtocoller",
+    "loginTitle": "Přihlášení",
+    "purpose": "Nastavujte studie a prohlížejte záznamy z počítačů na klinikách."
+  }
+}

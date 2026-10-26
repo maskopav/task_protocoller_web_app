@@ -13,6 +13,8 @@ import enNav from "./en/nav.json";
 import enRecording from "./en/recording.json";
 import enStudies from "./en/studies.json";
 import enClinics from "./en/clinics.json";
+import enUsers from "./en/users.json";
+import enLibrary from "./en/library.json";
 
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
@@ -23,6 +25,8 @@ import csNav from "./cs/nav.json";
 import csRecording from "./cs/recording.json";
 import csStudies from "./cs/studies.json";
 import csClinics from "./cs/clinics.json";
+import csUsers from "./cs/users.json";
+import csLibrary from "./cs/library.json";
 
 import deCommon from "./de/common.json";
 import deTasks from "./de/tasks.json";
@@ -33,6 +37,8 @@ import deNav from "./de/nav.json";
 import deRecording from "./de/recording.json";
 import deStudies from "./de/studies.json";
 import deClinics from "./de/clinics.json";
+import deUsers from "./de/users.json";
+import deLibrary from "./de/library.json";
 
 
 export const LANGUAGES = [
@@ -46,7 +52,7 @@ i18n
   .init({
     fallbackLng: "en",
     lng: "cs",
-    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording", "studies", "clinics"],
+    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording", "studies", "clinics", "users", "library"],
     defaultNS: "common",
     resources: {
       en: {
@@ -59,7 +65,9 @@ i18n
         nav: enNav,
         recording: enRecording,
         studies: enStudies,
-        clinics: enClinics
+        clinics: enClinics,
+        users: enUsers,
+        library: enLibrary
       },
       cs: {
         common: csCommon,
@@ -70,7 +78,9 @@ i18n
         nav: csNav,
         recording: csRecording,
         studies: csStudies,
-        clinics: csClinics
+        clinics: csClinics,
+        users: csUsers,
+        library: csLibrary
       },
       de: {
         common: deCommon,
@@ -81,7 +91,9 @@ i18n
         nav: deNav,
         recording: deRecording,
         studies: deStudies,
-        clinics: deClinics
+        clinics: deClinics,
+        users: deUsers,
+        library: deLibrary
       }
     },
     interpolation: {

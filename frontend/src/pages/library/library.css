@@ -1,0 +1,21 @@
+/* Library screens (docs/ui_redesign/02_spec.md 6.10). Classes are prefixed library-. */
+.library-page { display: flex; flex-direction: column; gap: var(--s-4); }
+.library-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4); }
+.library-search { position: relative; flex: 0 1 320px; min-width: 200px; }
+.library-search svg.ui-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+.library-search input { width: 100%; padding-left: 32px; }
+.library-check { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--text-2); font-size: var(--fs-sm); }
+.library-muted { color: var(--text-3); }
+.library-sub { display: block; color: var(--text-2); font-size: var(--fs-sm); }
+.library-langs { display: inline-flex; flex-wrap: wrap; gap: var(--s-1); }
+.library-skeleton {
+  min-height: 160px; border-radius: var(--r-md);
+  background: linear-gradient(90deg, var(--idle-soft), var(--surface-2), var(--idle-soft));
+  background-size: 200% 100%; animation: library-pulse 1.4s ease-in-out infinite;
+}
+@keyframes library-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.library-tasks { margin: 0; padding-left: var(--s-5); display: flex; flex-direction: column; gap: var(--s-2); }
+.library-tasks li { color: var(--text); }
+.library-check-row { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-3); color: var(--text-2); font-size: var(--fs-sm); }
+.library-form { display: flex; flex-direction: column; gap: var(--s-3); }
+.library-error { margin: var(--s-3) 0 0; color: var(--bad); }

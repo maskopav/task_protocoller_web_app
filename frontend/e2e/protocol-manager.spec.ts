@@ -29,6 +29,9 @@ async function loginAsMaster(page: Page) {
 
 test('the study page does not repeatedly refetch the project list', async ({ page }) => {
   await loginAsMaster(page);
+  // The Recordings home also fetches /projects; let it settle so a slow
+  // request from that page is not counted against the study page.
+  await page.waitForLoadState('networkidle');
 
   let projectsListRequests = 0;
   page.on('request', (req) => {

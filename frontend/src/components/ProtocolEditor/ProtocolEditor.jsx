@@ -90,6 +90,8 @@ const TemplateSelector = ({ templateType, currentLanguage, onSelect, i18n, label
  * @param {string} [props.readOnlyReason] banner text when read-only
  * @param {boolean} props.isDraft an unsaved new protocol (no id yet)
  * @param {Array<{code:string, protocol_id:number}>} [props.variants] language variants of the group
+ * @param {boolean} [props.library] a library entry (spec 6.10): no study, no preview, saves a new library version
+ * @param {number} [props.usedIn] library mode: how many studies hold a copy
  * @param {(result) => Promise|void} props.onSaved called with the save result
  */
 export function ProtocolEditor({
@@ -102,10 +104,13 @@ export function ProtocolEditor({
   readOnlyReason,
   isDraft = false,
   variants = [],
+  library = false,
+  usedIn = 0,
   onSaved,
 }) {
   const { t, i18n } = useTranslation(["admin", "common", "intro"]);
   const { t: ts } = useTranslation("studies");
+  const { t: tl } = useTranslation("library");
   const navigate = useNavigate();
   const toast = useToast();
   const confirm = useConfirm();
@@ -266,16 +271,16 @@ export function ProtocolEditor({
     if (!dirty || !validation.isValid || saving) return;
     if (editingMode) {
       const ok = await confirm({
-        title: t("protocolEditor.confirmUpdateTitle"),
-        message: t("protocolEditor.confirmUpdateMsg"),
-        confirmText: t("protocolEditor.buttons.updateEveryone"),
+        title: library ? tl("edit.confirmTitle") : t("protocolEditor.confirmUpdateTitle"),
+        message: library ? tl("edit.confirmMessage", { count: usedIn }) : t("protocolEditor.confirmUpdateMsg"),
+        confirmText: library ? tl("edit.confirmSave") : t("protocolEditor.buttons.updateEveryone"),
         cancelText: t("common:cancel"),
       });
       if (!ok) return;
     }
     setSaving(true);
     try {
-      const result = await saveNewProtocol(tasks, protocolData, projectId, editingMode);
+      const result = await saveNewProtocol(tasks, protocolData, library ? null : projectId, editingMode, { library });
       setSelectedProtocol(null);
       await onSaved?.(result);
     } catch (err) {
@@ -362,7 +367,11 @@ export function ProtocolEditor({
   return (
     <div className="pe" data-testid="protocol-editor">
       <PageHeader
-        breadcrumbs={[
+        breadcrumbs={library ? [
+          { label: tl("title"), to: "/library" },
+          { label: name, to: protocolData?.id ? `/library/${protocolData.id}` : undefined },
+          { label: tl("edit.crumb") },
+        ] : [
           { label: ts("list.title"), to: "/studies" },
           { label: study?.project_name || "…", to: `/studies/${projectId}/protocols` },
           { label: name },
@@ -376,7 +385,7 @@ export function ProtocolEditor({
                 {chips.map((c) => (
                   c.protocol_id === currentId || !c.protocol_id || c.code === language
                     ? <span key={c.code} className="pe-lang pe-lang-on" aria-current="true">{c.code}</span>
-                    : <Link key={c.code} className="pe-lang" to={`/studies/${projectId}/protocols/${c.protocol_id}`}>{c.code}</Link>
+                    : <Link key={c.code} className="pe-lang" to={library ? `/library/${c.protocol_id}/edit` : `/studies/${projectId}/protocols/${c.protocol_id}`}>{c.code}</Link>
                 ))}
               </span>
             )}
@@ -386,7 +395,7 @@ export function ProtocolEditor({
         sub={sub}
         actions={(
           <>
-            <Button variant="quiet" icon="eye" onClick={handlePreview} disabled={!tasks.length} data-testid="protocol-preview">{ts("protocols.preview")}</Button>
+            {!library && <Button variant="quiet" icon="eye" onClick={handlePreview} disabled={!tasks.length} data-testid="protocol-preview">{ts("protocols.preview")}</Button>}
             {!readOnly && (
               <Button
                 variant="primary"
@@ -430,6 +439,7 @@ export function ProtocolEditor({
           readOnly={readOnly}
           editingMode={editingMode}
           isDraft={isDraft}
+          libraryNote={library ? tl("edit.note", { count: usedIn }) : undefined}
           onEditInfo={() => setShowInfoModal(true)}
           onDeleteInfo={handleDeleteInfo}
           onEditInstructions={() => setShowInstructionsModal(true)}

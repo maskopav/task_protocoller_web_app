@@ -1,0 +1,73 @@
+{
+  "title": "Knihovna",
+  "sub": "Hotové protokoly, které můžete přidat do studie.",
+  "loading": "Načítání…",
+  "cancel": "Zrušit",
+  "search": "Hledat v knihovně",
+  "sharedByMe": "Sdílené mnou",
+  "noMatch": "Žádné položky knihovny neodpovídají.",
+  "emptyTitle": "Zatím není sdílen žádný protokol",
+  "emptyBody": "Sdílejte jej na kartě Protokoly ve studii přes ⋯ › Sdílet do knihovny.",
+  "columns": {
+    "name": "Název",
+    "languages": "Jazyky",
+    "tasks": "Úlohy",
+    "author": "Sdílí",
+    "usedIn": "Použito v",
+    "updated": "Naposledy změněno"
+  },
+  "add": {
+    "action": "Přidat do studie…",
+    "title": "Přidat „{{name}}“ do studie",
+    "description": "Studie dostane vlastní kopii. Pozdější změny položky knihovny ji nezmění.",
+    "submit": "Přidat do studie",
+    "study": "Studie",
+    "name": "Název kopie",
+    "openAfter": "Po přidání otevřít v editoru",
+    "none": "Neupravujete žádnou studii, do které lze přidat protokol.",
+    "done": "Protokol „{{name}}“ byl přidán do studie."
+  },
+  "entry": {
+    "notFound": "Tato položka knihovny nebyla nalezena.",
+    "back": "Zpět do knihovny",
+    "author": "Sdílí {{name}}",
+    "updated": "změněno {{when}}",
+    "more": "Další akce",
+    "edit": "Upravit",
+    "noTasks": "Tento protokol nemá žádné úlohy.",
+    "settings": "Nastavení",
+    "identifiers": "Identifikátory účastníka",
+    "fileName": "Šablona názvu souboru",
+    "languages": "Jazyky",
+    "usedIn_one": "použito v {{count}} studii",
+    "usedIn_few": "použito ve {{count}} studiích",
+    "usedIn_many": "použito v {{count}} studii",
+    "usedIn_other": "použito v {{count}} studiích",
+    "tasks_one": "{{count}} úloha",
+    "tasks_few": "{{count}} úlohy",
+    "tasks_many": "{{count}} úlohy",
+    "tasks_other": "{{count}} úloh"
+  },
+  "withdraw": {
+    "action": "Stáhnout z knihovny",
+    "title": "Stáhnout „{{name}}“ z knihovny?",
+    "message": "Položka zmizí pro všechny. Kopie už přidané do studií zůstanou beze změny.",
+    "confirm": "Stáhnout",
+    "done": "Položka „{{name}}“ byla stažena z knihovny."
+  },
+  "edit": {
+    "crumb": "Úpravy",
+    "confirmTitle": "Uložit novou verzi v knihovně?",
+    "confirmSave": "Uložit novou verzi",
+    "saved": "Položka knihovny byla uložena jako nová verze.",
+    "notAuthor": "Tuto položku může upravit jen její autor.",
+    "confirmMessage_one": "Použito v {{count}} studii. Uložením vznikne nová verze v knihovně. Studie si ponechá svou kopii.",
+    "confirmMessage_few": "Použito ve {{count}} studiích. Uložením vznikne nová verze v knihovně. Studie si ponechají své kopie.",
+    "confirmMessage_many": "Použito v {{count}} studii. Uložením vznikne nová verze v knihovně. Studie si ponechají své kopie.",
+    "confirmMessage_other": "Použito v {{count}} studiích. Uložením vznikne nová verze v knihovně. Studie si ponechají své kopie.",
+    "note_one": "Použito v {{count}} studii. Uložením vznikne nová verze v knihovně. Studie si ponechá svou kopii.",
+    "note_few": "Použito ve {{count}} studiích. Uložením vznikne nová verze v knihovně. Studie si ponechají své kopie.",
+    "note_many": "Použito v {{count}} studii. Uložením vznikne nová verze v knihovně. Studie si ponechají své kopie.",
+    "note_other": "Použito v {{count}} studiích. Uložením vznikne nová verze v knihovně. Studie si ponechají své kopie."
+  }
+}

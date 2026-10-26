@@ -1,0 +1,75 @@
+{
+  "loading": "Wird geladen…",
+  "cancel": "Abbrechen",
+  "active": "Aktiv",
+  "disabled": "Deaktiviert",
+  "master": "Master",
+  "allClinics": "Alle",
+  "noClinics": "Keine",
+  "saved": "Gespeichert.",
+  "activated": "Benutzer aktiviert.",
+  "deactivated": "Benutzer deaktiviert.",
+  "resendSent": "Ein Link zum Zurücksetzen wurde an {{email}} gesendet.",
+  "list": {
+    "title": "Benutzer",
+    "sub": "Personen, die sich anmelden können, und worauf sie Zugriff haben.",
+    "new": "Benutzer einladen",
+    "emptyTitle": "Noch keine Benutzer"
+  },
+  "columns": {
+    "name": "Name",
+    "email": "E-Mail",
+    "clinics": "Kliniken",
+    "canCreate": "Darf erstellen",
+    "status": "Status"
+  },
+  "canCreate": {
+    "studies": "Studien",
+    "clinics": "Kliniken"
+  },
+  "fields": {
+    "name": "Name",
+    "email": "E-Mail"
+  },
+  "errors": {
+    "nameRequired": "Bitte einen Namen eingeben.",
+    "emailInvalid": "Bitte eine gültige E-Mail-Adresse eingeben.",
+    "emailTaken": "Ein Benutzer mit dieser E-Mail existiert bereits."
+  },
+  "invite": {
+    "title": "Benutzer einladen",
+    "description": "Die Person erhält eine E-Mail mit einem Link zum Festlegen eines Passworts. Kliniken weisen Sie danach auf ihrer Seite zu.",
+    "submit": "Einladung senden",
+    "sent": "Einladung gesendet."
+  },
+  "profile": {
+    "title": "Profil",
+    "save": "Änderungen speichern",
+    "resend": "Link zum Zurücksetzen des Passworts senden",
+    "activeLabel": "Aktiv (kann sich anmelden)"
+  },
+  "deactivate": {
+    "title": "{{name}} deaktivieren?",
+    "message": "Die Person kann sich nicht mehr anmelden. Ihre Studien und Aufnahmen bleiben unverändert.",
+    "confirm": "Deaktivieren"
+  },
+  "clinics": {
+    "title": "Kliniken",
+    "count_one": "{{count}} Klinik",
+    "count_other": "{{count}} Kliniken",
+    "masterAll": "Master-Benutzer sehen alle Kliniken.",
+    "search": "Kliniken suchen",
+    "none": "Keine Kliniken gefunden."
+  },
+  "permissions": {
+    "title": "Berechtigungen",
+    "hint": "Wird sofort angewendet",
+    "studies": "Darf Studien erstellen",
+    "clinics": "Darf Kliniken erstellen"
+  },
+  "auth": {
+    "brand": "TaskProtocoller",
+    "loginTitle": "Anmelden",
+    "purpose": "Studien einrichten und Aufnahmen von Klinik-Computern prüfen."
+  }
+}

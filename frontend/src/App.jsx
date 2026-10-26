@@ -4,9 +4,13 @@ import ProtectedRoute from "./components/RouteProtection/ProtectedRoute";
 import AppShell from "./components/ui/AppShell";
 import { useUser } from "./context/UserContext";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
-import AdminManagementPage from "./pages/AdminManagementPage";
+import UsersListPage from "./pages/users/UsersListPage";
+import UserPage from "./pages/users/UserPage";
 import ClinicsListPage from "./pages/clinics/ClinicsListPage";
 import ClinicPage from "./pages/clinics/ClinicPage";
+import LibraryPage from "./pages/library/LibraryPage";
+import LibraryEntryPage from "./pages/library/LibraryEntryPage";
+import LibraryEditorPage from "./pages/library/LibraryEditorPage";
 import ProtocolEditorPage from "./pages/ProtocolEditorPage";
 import StudiesPage from "./pages/studies/StudiesPage";
 import StudyPage, { StudyIndexRedirect } from "./pages/studies/StudyPage";
@@ -98,12 +102,12 @@ export default function App() {
         <Route path="/clinics/:siteId" element={<ClinicPage />} />
         <Route path="/clinics/:siteId/:tab" element={<ClinicPage />} />
 
-        <Route path="/library" element={<PlaceholderPage titleKey="library" messageKey="placeholder.library" testId="library-placeholder" />} />
-        <Route path="/library/:protocolId" element={<PlaceholderPage titleKey="library" messageKey="placeholder.library" testId="library-placeholder" />} />
-        <Route path="/library/:protocolId/edit" element={<PlaceholderPage titleKey="library" messageKey="placeholder.library" testId="library-placeholder" />} />
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/library/:protocolId" element={<LibraryEntryPage />} />
+        <Route path="/library/:protocolId/edit" element={<LibraryEditorPage />} />
 
-        <Route path="/users" element={<MasterOnly><AdminManagementPage /></MasterOnly>} />
-        <Route path="/users/:id" element={<MasterOnly><AdminManagementPage /></MasterOnly>} />
+        <Route path="/users" element={<MasterOnly><UsersListPage /></MasterOnly>} />
+        <Route path="/users/:id" element={<MasterOnly><UserPage /></MasterOnly>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

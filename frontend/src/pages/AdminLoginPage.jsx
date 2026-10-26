@@ -1,61 +1,37 @@
-// frontend/src/pages/AdminLoginPage.jsx
+// frontend/src/pages/AdminLoginPage.jsx — sign-in (docs/ui_redesign/02_spec.md section 6.9).
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import AuthForm from "../components/AuthForm/AuthForm";
 import { loginAdmin, adminForgotPasswordApi } from "../api/auth";
-import DashboardTopBar from "../components/DashboardTopBar/DashboardTopBar";
 import { useUser } from "../context/UserContext";
-import "./AdminLoginPage.css";
 
 export default function AdminLoginPage() {
-  const { t } = useTranslation(["admin", "common"]);
+  const { t } = useTranslation("admin");
+  const { t: tu } = useTranslation("users");
   const navigate = useNavigate();
   const { login, logout } = useUser();
   const [status, setStatus] = useState({ type: "", message: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Ensure clean state on mount
-    logout(); 
+    logout();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAdminLogin = async (formData) => {
     setStatus({ type: "", message: "" });
-    setIsSubmitting(true);
-
     try {
       const res = await loginAdmin(formData);
-      
-      if (res.success && res.user) {
-        login(res.user, res.token);
-        if (res.user.must_change_password) {
-          navigate("/setup-account");
-        } else {
-          navigate("/recordings");
-        }
-      } else {
-        // Handle cases where res.success is false but no exception was thrown
-        throw new Error("credentials"); 
-      }
+      if (!(res.success && res.user)) throw new Error("credentials");
+      login(res.user, res.token);
+      navigate(res.user.must_change_password ? "/setup-account" : "/recordings");
     } catch (err) {
-      console.error("Login submission error:", err);
-      
-      // Map backend error messages to translation keys
-      let msg;
-
-      if (err.message.includes("deactivated")) {
-        msg = t("adminLogin.errorDeactivated"); // Specific message for inactive users
-      } else if (err.message.includes("credentials")) {
-        msg = t("adminLogin.errorGeneric");
-      } else {
-        msg = t("adminLogin.errorConnection");
-      }
-      
-      setStatus({ type: "error", message: msg });
-      throw new Error(msg, { cause: err });
-    } finally {
-      setIsSubmitting(false);
+      const text = String(err?.message || "");
+      const message = text.includes("deactivated")
+        ? t("adminLogin.errorDeactivated")
+        : text.includes("credentials") ? t("adminLogin.errorGeneric") : t("adminLogin.errorConnection");
+      setStatus({ type: "error", message });
+      throw err;
     }
   };
 
@@ -63,40 +39,19 @@ export default function AdminLoginPage() {
     setStatus({ type: "", message: "" });
     try {
       await adminForgotPasswordApi(email);
-      // Use "success" type so the box turns green
-      setStatus({ type: "success", message: t("adminLogin.resetEmailSent") }); 
-    } catch (err) {
+      setStatus({ type: "success", message: t("adminLogin.resetEmailSent") });
+    } catch {
       setStatus({ type: "error", message: t("adminLogin.errorConnection") });
     }
   };
 
   return (
-    <div className="dashboard-page">
-      <DashboardTopBar />
-      
-      <div className="auth-page-wrapper">
-        <AuthForm
-          title={t("adminLogin.title")}
-          subtitle={
-            <Trans
-              i18nKey="adminLogin.subtitle"
-              ns="admin"
-              components={{ strong: <strong /> }}
-            />
-          }
-          onLogin={handleAdminLogin}
-          isLoading={isSubmitting}
-          onForgot={handleForgotSubmit} 
-        />
-
-        {/* Dynamic Status Feedback (Success or Error) */}
-        {status.message && (
-          <div className={`auth-status-box ${status.type === "success" ? "status-success" : "status-error"} fade-in`}>
-            <span className="status-icon">{status.type === "success" ? "✅" : "⚠️"}</span>
-            <span className="status-text">{status.message}</span>
-          </div>
-        )}
-      </div>
-    </div>
+    <AuthForm
+      title={tu("auth.loginTitle")}
+      lead={tu("auth.purpose")}
+      status={status.message ? status : null}
+      onLogin={handleAdminLogin}
+      onForgot={handleForgotSubmit}
+    />
   );
 }

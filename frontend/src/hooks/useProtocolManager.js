@@ -6,8 +6,9 @@ import { useMappings } from "../context/MappingContext";
 export function useProtocolManager() {
   const { mappings } = useMappings();
 
-  async function saveNewProtocol(tasks, selectedProtocol, projectId, editingMode) {
-    if (!projectId) throw new Error("Missing projectId when saving protocol");
+  // library: a library entry has no study (project_id null); the server accepts that only on an existing entry.
+  async function saveNewProtocol(tasks, selectedProtocol, projectId, editingMode, { library = false } = {}) {
+    if (!projectId && !library) throw new Error("Missing projectId when saving protocol");
     const langCodes = Array.isArray(selectedProtocol.language) 
       ? selectedProtocol.language 
       : [selectedProtocol.language || "en"];
@@ -31,7 +32,7 @@ export function useProtocolManager() {
         task_order: index + 1,
         params: task,
       })),
-      project_id: Number(projectId),  
+      project_id: library ? null : Number(projectId),
       editingMode,
       info_text: selectedProtocol.info_text,
       instructions_text: selectedProtocol.instructions_text,

@@ -1,0 +1,20 @@
+/* Users list and user page: tokens only. */
+.users-page { display: flex; flex-direction: column; gap: var(--s-4); }
+.users-page > header { margin-bottom: 0; }
+.users-muted { color: var(--text-3); }
+.users-sub { display: block; font-size: var(--fs-xs); color: var(--text-3); font-weight: 400; }
+.users-chips { display: inline-flex; flex-wrap: wrap; gap: var(--s-1); }
+.users-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3);
+}
+.users-card p { margin: 0; color: var(--text-2); }
+.users-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--s-3); }
+.users-row { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+.users-checklist {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  max-height: 20rem; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.users-checklist li + li { border-top: 1px solid var(--border); }
+.users-check { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); cursor: pointer; }
+.users-check input { width: auto; }

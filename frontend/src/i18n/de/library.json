@@ -1,0 +1,65 @@
+{
+  "title": "Bibliothek",
+  "sub": "Fertige Protokolle, die Sie einer Studie hinzufügen können.",
+  "loading": "Wird geladen…",
+  "cancel": "Abbrechen",
+  "search": "Bibliothek durchsuchen",
+  "sharedByMe": "Von mir geteilt",
+  "noMatch": "Keine Bibliothekseinträge gefunden.",
+  "emptyTitle": "Noch keine Protokolle geteilt",
+  "emptyBody": "Teilen Sie eines im Tab Protokolle einer Studie über ⋯ › In Bibliothek teilen.",
+  "columns": {
+    "name": "Name",
+    "languages": "Sprachen",
+    "tasks": "Aufgaben",
+    "author": "Geteilt von",
+    "usedIn": "Verwendet in",
+    "updated": "Zuletzt geändert"
+  },
+  "add": {
+    "action": "Zu Studie hinzufügen…",
+    "title": "„{{name}}“ zu einer Studie hinzufügen",
+    "description": "Die Studie erhält eine eigene Kopie. Spätere Änderungen am Bibliothekseintrag ändern sie nicht.",
+    "submit": "Zu Studie hinzufügen",
+    "study": "Studie",
+    "name": "Name der Kopie",
+    "openAfter": "Nach dem Hinzufügen im Editor öffnen",
+    "none": "Sie bearbeiten keine Studie, der ein Protokoll hinzugefügt werden kann.",
+    "done": "„{{name}}“ wurde zur Studie hinzugefügt."
+  },
+  "entry": {
+    "notFound": "Dieser Bibliothekseintrag wurde nicht gefunden.",
+    "back": "Zurück zur Bibliothek",
+    "author": "Geteilt von {{name}}",
+    "updated": "geändert {{when}}",
+    "more": "Weitere Aktionen",
+    "edit": "Bearbeiten",
+    "noTasks": "Dieses Protokoll hat keine Aufgaben.",
+    "settings": "Einstellungen",
+    "identifiers": "Teilnehmerkennungen",
+    "fileName": "Vorlage für Dateinamen",
+    "languages": "Sprachen",
+    "usedIn_one": "verwendet in {{count}} Studie",
+    "usedIn_other": "verwendet in {{count}} Studien",
+    "tasks_one": "{{count}} Aufgabe",
+    "tasks_other": "{{count}} Aufgaben"
+  },
+  "withdraw": {
+    "action": "Aus Bibliothek zurückziehen",
+    "title": "„{{name}}“ aus der Bibliothek zurückziehen?",
+    "message": "Der Eintrag verschwindet für alle. Bereits in Studien hinzugefügte Kopien bleiben unverändert.",
+    "confirm": "Zurückziehen",
+    "done": "„{{name}}“ wurde aus der Bibliothek zurückgezogen."
+  },
+  "edit": {
+    "crumb": "Bearbeiten",
+    "confirmTitle": "Neue Version in der Bibliothek speichern?",
+    "confirmSave": "Neue Version speichern",
+    "saved": "Bibliothekseintrag als neue Version gespeichert.",
+    "notAuthor": "Nur die Autorin oder der Autor kann diesen Eintrag bearbeiten.",
+    "confirmMessage_one": "Verwendet in {{count}} Studie. Beim Speichern entsteht eine neue Bibliotheksversion. Die Studie behält ihre Kopie.",
+    "confirmMessage_other": "Verwendet in {{count}} Studien. Beim Speichern entsteht eine neue Bibliotheksversion. Die Studien behalten ihre Kopien.",
+    "note_one": "Verwendet in {{count}} Studie. Beim Speichern entsteht eine neue Bibliotheksversion. Die Studie behält ihre Kopie.",
+    "note_other": "Verwendet in {{count}} Studien. Beim Speichern entsteht eine neue Bibliotheksversion. Die Studien behalten ihre Kopien."
+  }
+}

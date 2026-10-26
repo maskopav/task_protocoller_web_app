@@ -14,7 +14,8 @@ Branch: `newshare`. Docs: [02_spec.md](02_spec.md) (spec), [03_plan.md](03_plan.
 | 5 Tokens, UI kit, app shell, routes | ✅ | `c6c6642` |
 | 6 Recordings list + detail | ✅ verified 2026-10-26 | see `git log` |
 | 7 Studies + Clinics (+ runs-at, editors, F6/F7) | ✅ verified 2026-10-26 | see `git log` |
-| **8 Users + Library UI (F8, F10)**, then 8b i18n/clean-up (F9) | **next** (after the user's `/usage` check) | – |
+| 8 Users + Library UI (F8, F10) | ✅ verified 2026-10-26 | see `git log` |
+| **8b i18n and clean-up (F9)** | **next** (after the user's `/usage` check) | – |
 | 9 Verify, "after" screenshots, `05_results.md` | – | – |
 
 ## Increment 6 verification (done 2026-10-26)
@@ -60,6 +61,12 @@ Branch: `newshare`. Docs: [02_spec.md](02_spec.md) (spec), [03_plan.md](03_plan.
   - `ClinicPage` load has no cancellation; runs-at on archived studies is not gated (spec silent); browser Back is not guarded in the editor.
   - Agents' notes for F9: the global `p`/`h1` rules in `pages/Pages.css` leak into new pages; delete `AdminDashboardPage` with `SiteGrid`, `SiteModal`, `ProjectGrid`, `ProjectModal`, `StatusBadge`, `ProjectTable.css`; `Protocols.css` with the dead `Fieldwork/*`; unused `getProjectStats`, `uploadTools:devices.*`, `admin:management.siteManagement.*`; `ProtocolLanguageSelector.css` hex colours; "site (clinic)" in `admin.json`.
   - Deviations: no Overview tab (Protocols first, per spec); level indicator offers only Circle/Waveform (contract); no "Recordings waiting" or editor "clinics they see" columns (no endpoint); no protocol restore API.
+
+## Increment 8 verification (done 2026-10-26)
+
+- **Tests:** vitest 252, build OK, lint 60, full e2e 163 passed + 1 flaky (`protocol-manager` refetch count picked up the Recordings home's own `/projects` fetch; the test now waits for network idle first). Backend unchanged. Critic: nothing medium or higher. Screenshots: `screens/increment8/`.
+- **Deviations:** Users has no "Studies they edit" section and no Last login (no endpoint); invite takes name and email only; master users show "All clinics" and no switches (the backend refuses changes to a master). Library has no Length / Source study columns, no entry Preview (preview route is study-bound), no Language filter; Edit and Withdraw sit in the ⋯ menu.
+- **For F9:** user page buttons ("Save changes", "Send password reset link") render full width (old global button CSS); `components/DashboardTopBar` unused; `useProtocolManager` still sends `created_by: 1` (ignored by the server); `PlaceholderPage` may now be unused; legacy `/admin/admin-management` references in `e2e/tools/capture.spec.ts`; review cs/de of `users.json` and `library.json`.
 
 ## Decisions made with the user (beyond the spec text)
 

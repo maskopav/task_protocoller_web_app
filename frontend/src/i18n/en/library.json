@@ -1,0 +1,65 @@
+{
+  "title": "Library",
+  "sub": "Ready-made protocols you can add to a study.",
+  "loading": "Loading…",
+  "cancel": "Cancel",
+  "search": "Search the library",
+  "sharedByMe": "Shared by me",
+  "noMatch": "No library entries match.",
+  "emptyTitle": "No protocols shared yet",
+  "emptyBody": "Share one from a study’s Protocols tab with ⋯ › Share to library.",
+  "columns": {
+    "name": "Name",
+    "languages": "Languages",
+    "tasks": "Tasks",
+    "author": "Shared by",
+    "usedIn": "Used in",
+    "updated": "Last changed"
+  },
+  "add": {
+    "action": "Add to study…",
+    "title": "Add \"{{name}}\" to a study",
+    "description": "The study gets its own copy. Later changes to the library entry do not change it.",
+    "submit": "Add to study",
+    "study": "Study",
+    "name": "Name of the copy",
+    "openAfter": "Open in the editor after adding",
+    "none": "You do not edit any study that can take a new protocol.",
+    "done": "Added \"{{name}}\" to the study."
+  },
+  "entry": {
+    "notFound": "This library entry was not found.",
+    "back": "Back to the library",
+    "author": "Shared by {{name}}",
+    "updated": "changed {{when}}",
+    "more": "More actions",
+    "edit": "Edit",
+    "noTasks": "This protocol has no tasks.",
+    "settings": "Settings",
+    "identifiers": "Participant identifiers",
+    "fileName": "File name template",
+    "languages": "Languages",
+    "usedIn_one": "used in {{count}} study",
+    "usedIn_other": "used in {{count}} studies",
+    "tasks_one": "{{count}} task",
+    "tasks_other": "{{count}} tasks"
+  },
+  "withdraw": {
+    "action": "Withdraw from library",
+    "title": "Withdraw \"{{name}}\" from the library?",
+    "message": "The entry disappears for everyone. Copies already added to studies stay as they are.",
+    "confirm": "Withdraw",
+    "done": "Withdrawn \"{{name}}\" from the library."
+  },
+  "edit": {
+    "crumb": "Edit",
+    "confirmTitle": "Save a new library version?",
+    "confirmSave": "Save new version",
+    "saved": "Library entry saved as a new version.",
+    "notAuthor": "Only the author of this entry can edit it.",
+    "confirmMessage_one": "Used in {{count}} study. Saving creates a new library version. The study keeps its copy.",
+    "confirmMessage_other": "Used in {{count}} studies. Saving creates a new library version. Those studies keep their copies.",
+    "note_one": "Used in {{count}} study. Saving creates a new library version. That study keeps its copy.",
+    "note_other": "Used in {{count}} studies. Saving creates a new library version. Those studies keep their copies."
+  }
+}
