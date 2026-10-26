@@ -33,12 +33,12 @@ for (const persona of ['clinic', 'editor', 'reviewer', 'researcher', 'nogrant'] 
     }
 
     await uiLogin(page, USERS[persona]);
-    await page.goto('/#/admin/uploads');
-    await expect(page.getByText(`of ${expected.length} sessions`)).toBeVisible();
+    await page.goto('/#/recordings');
+    if (expected.length) await expect(page.getByTestId('recordings-count')).toContainText(`of ${expected.length} recordings`);
     await expect(page.locator('tr.clickable')).toHaveCount(expected.length);
 
-    await page.goto(`/#/admin/uploads/${outOfScope[0]}`);
-    await expect(page.getByRole('heading', { name: 'Not found' })).toBeVisible();
+    await page.goto(`/#/recordings/${outOfScope[0]}`);
+    await expect(page.getByRole('heading', { name: 'Not found' }).first()).toBeVisible();
   });
 }
 
@@ -63,7 +63,7 @@ test('a user who sees a session can review it; editing the study does not reach 
   expect(own.canEdit).toBe(true);
 
   await uiLogin(page, USERS.reviewer);
-  await page.goto(`/#/admin/uploads/${F.s1.sessionId}`);
+  await page.goto(`/#/recordings/${F.s1.sessionId}`);
   await expect(page.getByText('View only')).toHaveCount(0);
   for (const name of ['Unreviewed', 'OK', 'Needs review', 'Excluded']) {
     await expect(page.getByRole('button', { name })).toBeEnabled();

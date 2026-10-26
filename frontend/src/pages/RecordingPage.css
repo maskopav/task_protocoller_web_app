@@ -1,0 +1,11 @@
+/* Recording detail page. Tokens only. Component styles live in components/Recording/Recording.css. */
+.recd-skeleton {
+  height: 320px; border-radius: var(--r-lg);
+  background: linear-gradient(90deg, var(--idle-soft), var(--surface-2), var(--idle-soft));
+  background-size: 200% 100%; animation: recd-shimmer 1.4s linear infinite;
+}
+@keyframes recd-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .recd-skeleton { animation: none; } }
+.recd-tasks-wrap { padding: var(--s-3) var(--s-4) var(--s-4); }
+.recd-tasks-wrap .ui-tbl-wrap { box-shadow: none; }
+.recd-pad { padding: 0 var(--s-4) var(--s-4); margin: 0; }

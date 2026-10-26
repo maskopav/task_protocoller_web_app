@@ -1,130 +1,115 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Badge, Button, Modal, StatusDot } from "../ui";
 import ClipPlayer from "./ClipPlayer";
-import { prettyName } from "./format";
-import useUploadLabels from "./useUploadLabels";
-import "./Uploads.css";
+import { answerRows, prettyName } from "../Recording/recordingFormat";
+import "../Recording/Recording.css";
 
-const RESULT_CLS = { Done: "ok", Skipped: "warn", Missing: "bad" };
+const RESULT_TONE = { Done: "ok", Skipped: "warn", Missing: "bad" };
 
 // Instances whose timeline lists a take rejected because the microphone vanished.
 function micLostSet(timeline = []) {
   const s = new Set();
-  for (const seg of timeline) {
+  for (const seg of timeline || []) {
     if ((seg.rejected || []).some((r) => r.reason === "DEVICE_LOST")) s.add(`${seg.taskIndex}:${seg.repetition}`);
   }
   return s;
 }
 
-const answerList = (answers) => Object.entries(answers || {});
+/** Questionnaire answers with question and answer text; internal keys only where the text is missing (F-040). */
+export function AnswersModal({ open, onClose, title, answers, questionTexts }) {
+  const { t } = useTranslation("recording");
+  const rows = answerRows(answers, questionTexts);
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      description={t("answers.sub")}
+      footer={<Button onClick={onClose}>{t("answers.close")}</Button>}
+    >
+      <dl className="recd-qa" data-testid="answers-list">
+        {rows.map((r) => (
+          <React.Fragment key={r.key}>
+            <dt className={r.resolved ? undefined : "recd-rawkey"}>{r.question}</dt>
+            <dd>{r.answer}</dd>
+          </React.Fragment>
+        ))}
+      </dl>
+    </Modal>
+  );
+}
 
-/** Tasks of the session with inline clip players and expandable questionnaire answers. */
-export default function TaskTable({ sessionId, tasks, timeline, tickets, canPlay }) {
-  const { t } = useUploadLabels();
-  const [open, setOpen] = useState(() => new Set()); // questionnaire rows
+/** Tasks of the session with inline clip players and questionnaire answers. */
+export default function TaskTable({ sessionId, tasks, timeline, tickets, canPlay, questionTexts }) {
+  const { t } = useTranslation("recording");
   const [videoOpen, setVideoOpen] = useState(() => new Set());
+  const [answersOf, setAnswersOf] = useState(null); // the questionnaire task being shown
   const lost = micLostSet(timeline);
-  const flip = (set, setter, k) => {
-    const next = new Set(set);
-    next.has(k) ? next.delete(k) : next.add(k);
-    setter(next);
-  };
+  const flip = (k) => setVideoOpen((cur) => {
+    const next = new Set(cur);
+    if (next.has(k)) next.delete(k); else next.add(k);
+    return next;
+  });
 
   const taskName = (x) =>
     x.subtype ? prettyName(x.subtype) : x.type === "VIDEO" ? t("tasks.videoTask") : x.type === "QUESTIONNAIRE" ? t("tasks.questionnaire") : t("tasks.infoScreen");
-  const fileName = (f) => f.replace(/^clips\//, "");
 
   return (
-    <div className="um-table-wrap">
-      <table className="um-table">
+    <div className="ui-tbl-wrap recd-tasks">
+      <table className="ui-tbl">
         <thead>
           <tr>
             <th>#</th>
             <th>{t("tasks.task")}</th>
-            <th className="c">{t("tasks.rep")}</th>
-            <th className="c">{t("tasks.takes")}</th>
+            <th>{t("tasks.takes")}</th>
             <th>{t("tasks.result")}</th>
             <th>{t("tasks.clip")}</th>
-            <th>{t("tasks.file")}</th>
           </tr>
         </thead>
         <tbody>
           {tasks.map((x) => {
             const key = `${x.taskIndex}:${x.repetition}`;
-            const answers = answerList(x.questionnaireAnswers);
+            const answerCount = Object.keys(x.questionnaireAnswers || {}).length;
             const done = x.result === "Done";
+            const media = x.clipFile || x.videoFile;
             return (
               <React.Fragment key={key}>
-                <tr className={x.result === "Missing" ? "row-bad" : x.result === "Skipped" ? "row-warn" : ""}>
-                  <td className="um-num">{x.taskIndex}</td>
+                <tr data-testid="task-row">
+                  <td className="recd-muted">{x.taskIndex}</td>
                   <td>
-                    <div className="stack">
-                      <span>{taskName(x)}</span>
-                      <span className="cell-sub">{x.type}</span>
-                    </div>
-                  </td>
-                  <td className="c um-num">{x.repetition}</td>
-                  <td className="c um-num">
-                    {x.takes || "—"}
-                    {x.takes > 1 && <> <span className="um-tag" title={t("tasks.lastKeptHint")}>{t("tasks.lastKept")}</span></>}
-                    {lost.has(key) && <> <span className="um-tag bad" title={t("tasks.micLostHint")}>{t("tasks.micLost")}</span></>}
+                    <div className="ui-tbl-primary">{taskName(x)}</div>
+                    {x.repetition > 1 && <div className="ui-tbl-sub">{t("tasks.repetition", { n: x.repetition })}</div>}
                   </td>
                   <td>
-                    <span className={`um-pill ${RESULT_CLS[x.result] || "off"}`}>{t(`tasks.results.${x.result}`, { defaultValue: x.result })}</span>
+                    {x.takes || ""}
+                    {x.takes > 1 && <> <Badge title={t("tasks.lastKeptHint")}>{t("tasks.lastKept")}</Badge></>}
                   </td>
                   <td>
-                    {x.clipFile || x.videoFile ? (
-                      <span className="um-player">
-                        {x.clipFile && <ClipPlayer sessionId={sessionId} file={x.clipFile} kind="audio" tickets={tickets} disabled={!canPlay} />}
+                    <StatusDot tone={RESULT_TONE[x.result] || "idle"}>{t(`tasks.results.${x.result}`, { defaultValue: x.result })}</StatusDot>
+                    {lost.has(key) && <> <Badge tone="warn" title={t("tasks.micLostHint")}>{t("tasks.micLost")}</Badge></>}
+                  </td>
+                  <td>
+                    {media && canPlay ? (
+                      <span className="recd-clips">
+                        {x.clipFile && <ClipPlayer sessionId={sessionId} file={x.clipFile} kind="audio" tickets={tickets} />}
                         {x.videoFile && !videoOpen.has(key) && (
-                          <button
-                            type="button"
-                            className="um-play video"
-                            aria-label={t("tasks.playVideo")}
-                            title={t("tasks.videoNoSound")}
-                            disabled={!canPlay}
-                            onClick={() => flip(videoOpen, setVideoOpen, key)}
-                          >
-                            🎥
-                          </button>
+                          <Button size="sm" icon="video" aria-label={t("tasks.playVideo")} title={t("tasks.videoNoSound")} onClick={() => flip(key)} />
                         )}
                       </span>
-                    ) : answers.length && done ? (
-                      <button type="button" className="um-linklike" aria-expanded={open.has(key)} onClick={() => flip(open, setOpen, key)}>
-                        {open.has(key) ? t("tasks.hideAnswers", { count: answers.length }) : t("tasks.showAnswers", { count: answers.length })}
+                    ) : answerCount > 0 && done ? (
+                      <button type="button" className="recd-link" onClick={() => setAnswersOf(x)}>
+                        {t("tasks.showAnswers", { count: answerCount })}
                       </button>
-                    ) : (
-                      <span className="um-muted">—</span>
-                    )}
-                  </td>
-                  <td className="um-mono cell-sub">
-                    {[x.clipFile, x.videoFile].filter(Boolean).map((f) => (
-                      <span key={f} title={fileName(f)} style={{ display: "block", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {fileName(f)}
-                      </span>
-                    ))}
+                    ) : null}
                   </td>
                 </tr>
                 {x.videoFile && videoOpen.has(key) && canPlay && (
-                  <tr className="um-sub-row">
+                  <tr className="recd-sub-row">
                     <td />
-                    <td colSpan={6}>
-                      <ClipPlayer sessionId={sessionId} file={x.videoFile} kind="video" tickets={tickets} autoOpen />
-                      <button type="button" className="um-linklike" onClick={() => flip(videoOpen, setVideoOpen, key)}>{t("tasks.closeVideo")}</button>
-                    </td>
-                  </tr>
-                )}
-                {answers.length > 0 && open.has(key) && (
-                  <tr className="um-sub-row">
-                    <td />
-                    <td colSpan={6}>
-                      <dl className="um-qa">
-                        {answers.map(([q, a]) => (
-                          <React.Fragment key={q}>
-                            <dt>{q}</dt>
-                            <dd>{[].concat(a).join(", ")}</dd>
-                          </React.Fragment>
-                        ))}
-                      </dl>
+                    <td colSpan={4}>
+                      <ClipPlayer sessionId={sessionId} file={x.videoFile} kind="video" tickets={tickets} autoOpen />{" "}
+                      <button type="button" className="recd-link" onClick={() => flip(key)}>{t("tasks.closeVideo")}</button>
                     </td>
                   </tr>
                 )}
@@ -133,6 +118,15 @@ export default function TaskTable({ sessionId, tasks, timeline, tickets, canPlay
           })}
         </tbody>
       </table>
+      {answersOf && (
+        <AnswersModal
+          open
+          onClose={() => setAnswersOf(null)}
+          title={taskName(answersOf)}
+          answers={answersOf.questionnaireAnswers}
+          questionTexts={questionTexts}
+        />
+      )}
     </div>
   );
 }

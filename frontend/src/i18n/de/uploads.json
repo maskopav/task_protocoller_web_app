@@ -311,5 +311,86 @@
       "lastUpload": "Letzter Upload",
       "attention": "Aufmerksamkeit"
     }
+  },
+  "recordings": {
+    "title": "Aufnahmen",
+    "sub": "Alles, was die Computer Ihrer Kliniken hochgeladen haben.",
+    "download": "Herunterladen",
+    "downloadSelected_one": "{{count}} ausgewählte herunterladen",
+    "downloadSelected_other": "{{count}} ausgewählte herunterladen",
+    "downloadAll": "Alle {{count}} herunterladen",
+    "more": "Weitere Aktionen",
+    "selectAll": "Alle Aufnahmen dieser Seite auswählen",
+    "selectRow": "Aufnahme {{code}} auswählen",
+    "blocked": {
+      "readOnly": "Sie können diese Aufnahme prüfen, aber nicht herunterladen",
+      "validating": "Wird noch geprüft"
+    },
+    "noClinic": "Keine Klinik",
+    "comments_one": "{{count}} Kommentar",
+    "comments_other": "{{count}} Kommentare",
+    "loading": "Aufnahmen werden geladen…",
+    "loadError": "Die Aufnahmen konnten nicht geladen werden.",
+    "emptyTitle": "Noch keine Aufnahmen",
+    "emptyBody": "Sie erscheinen hier, sobald ein Klinikcomputer seine erste Sitzung hochlädt.",
+    "emptyFiltered": "Keine Aufnahme entspricht diesen Filtern.",
+    "banner_one": "{{count}} Computer ist keiner Klinik zugeordnet, seine Aufnahmen liegen in Quarantäne.",
+    "banner_other": "{{count}} Computer sind keiner Klinik zugeordnet, ihre Aufnahmen liegen in Quarantäne.",
+    "bannerAction": "Computer prüfen",
+    "kpi": {
+      "unreviewed": "Ungeprüft",
+      "attention": "Braucht Aufmerksamkeit",
+      "invalid": "Ungültig",
+      "week": "Eingegangen in 7 Tagen"
+    },
+    "filters": {
+      "search": "Suche",
+      "searchPlaceholder": "Patientencode, Sitzungs-ID oder Computer",
+      "clinic": "Klinik",
+      "allClinics": "Alle Kliniken",
+      "study": "Studie",
+      "allStudies": "Alle Studien",
+      "protocol": "Protokoll",
+      "allProtocols": "Alle Protokolle",
+      "review": "Prüfung",
+      "anyReview": "Jede Prüfung",
+      "serverCheck": "Serverprüfung",
+      "anyCheck": "Jede Serverprüfung",
+      "date": "Datum",
+      "anyDate": "Jedes Datum",
+      "today": "Heute",
+      "last7": "Letzte 7 Tage",
+      "last30": "Letzte 30 Tage",
+      "custom": "Benutzerdefiniert…",
+      "from": "Von",
+      "to": "Bis",
+      "more": "Weitere Filter",
+      "flags": "Markierungen",
+      "hasVideo": "Mit Video"
+    },
+    "columns": {
+      "received": "Eingegangen",
+      "patient": "Patient · Besuch",
+      "studyProtocol": "Studie / Protokoll",
+      "clinic": "Klinik",
+      "length": "Dauer",
+      "tasks": "Aufgaben",
+      "serverCheck": "Serverprüfung",
+      "review": "Prüfung",
+      "flags": "Markierungen"
+    },
+    "foot": {
+      "showing": "{{from}}–{{to}} von {{total}} Aufnahmen",
+      "rows": "Zeilen",
+      "prev": "Vorherige Seite",
+      "next": "Nächste Seite"
+    },
+    "bulk": {
+      "tooMany": "Das sind {{count}} Aufnahmen, ein Download fasst höchstens {{max}}. Filter einengen oder weniger auswählen.",
+      "tooLarge": "Das sind {{size}}, ein Download fasst höchstens {{maxSize}}. Wählen Sie weniger Aufnahmen aus.",
+      "nothing": "Hier lässt sich nichts herunterladen: ungültige, noch in Prüfung befindliche und nur lesbare Aufnahmen bleiben außen vor.",
+      "started": "ZIP mit {{count}} Aufnahmen wird vorbereitet…",
+      "failed": "Der Download konnte nicht gestartet werden."
+    }
   }
 }

@@ -24,9 +24,10 @@ function compare(a, b) {
  * @param {(row) => string} [href]      router path (e.g. "/studies/3"); makes rows clickable
  * @param {React.ReactNode} [empty]     shown instead of the table when rows is empty (default EmptyState)
  * @param {{key: string, dir: 'asc'|'desc'}} [defaultSort]
+ * @param {(row) => string} [rowClassName] extra class names for a row (e.g. a hook for tests or stripes)
  * Rows with controls (buttons, links, Menu) keep working: clicks on them do not trigger the row.
  */
-export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href, empty, defaultSort, caption, ...rest }) {
+export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href, empty, defaultSort, caption, rowClassName, ...rest }) {
   const navigate = useNavigate();
   const [sort, setSort] = useState(defaultSort || null);
 
@@ -79,7 +80,7 @@ export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href,
           {sorted.map((row) => (
             <tr
               key={getKey(row)}
-              className={clickable ? "ui-tbl-click" : undefined}
+              className={[clickable && "ui-tbl-click", rowClassName?.(row)].filter(Boolean).join(" ") || undefined}
               tabIndex={clickable ? 0 : undefined}
               onClick={clickable ? (e) => { if (!e.target.closest(INTERACTIVE)) activate(row); } : undefined}
               onKeyDown={clickable ? (e) => {

@@ -1,34 +1,35 @@
 import React from "react";
-import { fmtBytes, fmtDT } from "./format";
-import useUploadLabels from "./useUploadLabels";
-import "./Uploads.css";
+import { useTranslation } from "react-i18next";
+import { Badge } from "../ui";
+import { formatDateTime } from "../../utils/formatDate";
+import { fmtBytes } from "../Recording/recordingFormat";
+import "../Recording/Recording.css";
 
-const cls = (a) => (a.code === 200 || a.code === 201 ? "" : a.code === 409 ? "info" : a.code === 0 || a.deviceReported ? "warn" : "bad");
+const tone = (a) => (a.code === 200 || a.code === 201 ? "ok" : a.code === 409 ? "neutral" : a.code === 0 || a.deviceReported ? "warn" : "bad");
 
 /** Every request the server received for this session id (newest first). */
 export default function UploadHistory({ attempts, deviceLabel }) {
-  const { t } = useUploadLabels();
+  const { t } = useTranslation("recording");
   return (
-    <details className="um-panel um-fold">
+    <details className="recd-card recd-fold">
       <summary>
-        <h2 className="um-section-title">{t("history.title")}</h2>
-        <span className="um-section-sub" style={{ marginLeft: "auto" }}>{t("history.sub")}</span>
+        <h2>{t("history.title")}</h2>
+        <span className="recd-xs">{t("history.sub")}</span>
       </summary>
       {attempts == null ? (
-        <p className="um-section-sub">…</p>
+        <p className="recd-note">…</p>
       ) : attempts.length === 0 ? (
-        <p className="um-section-sub">{t("history.none")}</p>
+        <p className="recd-note">{t("history.none")}</p>
       ) : (
-        <ul className="um-attempts">
+        <ul className="recd-list recd-attempts">
           {attempts.map((a) => (
-            <li key={a.id} className={cls(a)}>
-              <div>
-                <strong>{a.deviceReported ? t("history.deviceReport") : `HTTP ${a.code}`}</strong>
-                {" · "}
+            <li key={a.id}>
+              <span>
+                <Badge tone={tone(a)}>{a.deviceReported ? t("history.deviceReport") : `HTTP ${a.code}`}</Badge>{" "}
                 {t(`history.outcome.${a.outcome}`, { defaultValue: a.outcome })}
-                {a.bytes != null && <span className="um-muted"> · {fmtBytes(a.bytes)}</span>}
-                <div className="a-when um-num">{fmtDT(a.at)}{deviceLabel ? ` · ${deviceLabel}` : ""}</div>
-              </div>
+                {a.bytes != null && <span className="recd-muted"> · {fmtBytes(a.bytes)}</span>}
+              </span>
+              <span className="recd-xs">{formatDateTime(a.at)}{deviceLabel ? ` · ${deviceLabel}` : ""}</span>
             </li>
           ))}
         </ul>

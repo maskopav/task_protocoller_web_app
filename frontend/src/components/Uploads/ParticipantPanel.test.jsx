@@ -90,11 +90,19 @@ describe("pills", () => {
   it("renders translated status and flags", async () => {
     render(<><StatusPill status="invalid" invalidReason="checksum" /><FlagTags issues={["late", "nonstdMic"]} /></>);
     expect(host.textContent).toContain("Invalid");
-    expect(host.querySelector(".um-pill.bad").title).toBe("ZIP checksum mismatch");
+    expect(host.querySelector(".ui-status").title).toBe("ZIP checksum mismatch");
+    expect(host.querySelector(".ui-dot-bad")).not.toBeNull();
     expect(host.textContent).toContain("Late upload");
-    expect(host.querySelectorAll(".um-tag.bad")).toHaveLength(1);
+    expect(host.querySelectorAll(".ui-badge-bad")).toHaveLength(1);
     await act(() => i18n.changeLanguage("de"));
     expect(host.textContent).toContain("Ungültig");
     await act(() => i18n.changeLanguage("en"));
+  });
+
+  it("folds flags beyond max into a +n badge", () => {
+    render(<FlagTags issues={["late", "nonstdMic", "recovered", "skipped"]} max={2} />);
+    expect(host.textContent).toContain("Late upload");
+    expect(host.textContent).not.toContain("Recovered");
+    expect(host.textContent).toContain("+2");
   });
 });

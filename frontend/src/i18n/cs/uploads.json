@@ -316,5 +316,89 @@
       "lastUpload": "Poslední nahrání",
       "attention": "Pozornost"
     }
+  },
+  "recordings": {
+    "title": "Záznamy",
+    "sub": "Vše, co nahrály počítače na vašich klinikách.",
+    "download": "Stáhnout",
+    "downloadSelected_one": "Stáhnout {{count}} vybraný",
+    "downloadSelected_few": "Stáhnout {{count}} vybrané",
+    "downloadSelected_other": "Stáhnout {{count}} vybraných",
+    "downloadAll": "Stáhnout všech {{count}}",
+    "more": "Další akce",
+    "selectAll": "Vybrat všechny záznamy na této stránce",
+    "selectRow": "Vybrat záznam {{code}}",
+    "blocked": {
+      "readOnly": "Záznam můžete posoudit, ale ne stáhnout",
+      "validating": "Stále se kontroluje"
+    },
+    "noClinic": "Bez kliniky",
+    "comments_one": "{{count}} komentář",
+    "comments_few": "{{count}} komentáře",
+    "comments_other": "{{count}} komentářů",
+    "loading": "Načítání záznamů…",
+    "loadError": "Záznamy se nepodařilo načíst.",
+    "emptyTitle": "Zatím žádné záznamy",
+    "emptyBody": "Objeví se zde, jakmile počítač na klinice nahraje první relaci.",
+    "emptyFiltered": "Těmto filtrům neodpovídá žádný záznam.",
+    "banner_one": "{{count}} počítač není přiřazen ke klinice a jeho záznamy jsou v karanténě.",
+    "banner_few": "{{count}} počítače nejsou přiřazeny ke klinice a jejich záznamy jsou v karanténě.",
+    "banner_other": "{{count}} počítačů není přiřazeno ke klinice a jejich záznamy jsou v karanténě.",
+    "bannerAction": "Zkontrolovat počítače",
+    "kpi": {
+      "unreviewed": "Nezkontrolované",
+      "attention": "Vyžaduje pozornost",
+      "invalid": "Neplatné",
+      "week": "Přijato za posledních 7 dní"
+    },
+    "filters": {
+      "search": "Hledat",
+      "searchPlaceholder": "Kód pacienta, ID relace nebo počítač",
+      "clinic": "Klinika",
+      "allClinics": "Všechny kliniky",
+      "study": "Studie",
+      "allStudies": "Všechny studie",
+      "protocol": "Protokol",
+      "allProtocols": "Všechny protokoly",
+      "review": "Kontrola",
+      "anyReview": "Libovolná kontrola",
+      "serverCheck": "Kontrola serveru",
+      "anyCheck": "Libovolná kontrola serveru",
+      "date": "Datum",
+      "anyDate": "Libovolné datum",
+      "today": "Dnes",
+      "last7": "Posledních 7 dní",
+      "last30": "Posledních 30 dní",
+      "custom": "Vlastní…",
+      "from": "Od",
+      "to": "Do",
+      "more": "Další filtry",
+      "flags": "Příznaky",
+      "hasVideo": "S videem"
+    },
+    "columns": {
+      "received": "Přijato",
+      "patient": "Pacient · návštěva",
+      "studyProtocol": "Studie / protokol",
+      "clinic": "Klinika",
+      "length": "Délka",
+      "tasks": "Úlohy",
+      "serverCheck": "Kontrola serveru",
+      "review": "Kontrola",
+      "flags": "Příznaky"
+    },
+    "foot": {
+      "showing": "Zobrazeno {{from}}–{{to}} z {{total}} záznamů",
+      "rows": "Řádků",
+      "prev": "Předchozí strana",
+      "next": "Další strana"
+    },
+    "bulk": {
+      "tooMany": "To je {{count}} záznamů, ale jedno stažení pojme nejvýše {{max}}. Zúžte filtr nebo vyberte méně.",
+      "tooLarge": "To je {{size}}, ale jedno stažení pojme nejvýše {{maxSize}}. Vyberte méně záznamů.",
+      "nothing": "Nic zde nelze stáhnout: neplatné záznamy, záznamy, které se stále kontrolují, a záznamy jen pro čtení se vynechávají.",
+      "started": "Připravuje se ZIP se záznamy ({{count}})…",
+      "failed": "Stahování se nepodařilo spustit."
+    }
   }
 }

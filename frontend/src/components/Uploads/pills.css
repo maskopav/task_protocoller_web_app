@@ -1,0 +1,2 @@
+/* Shared upload pills: tokens only. */
+.uploads-tags { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--s-1); }

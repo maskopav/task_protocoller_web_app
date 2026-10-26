@@ -4,54 +4,62 @@ import os from 'os';
 import path from 'path';
 import { BACKEND_URL, F, USERS, apiToken, bearer, ensureSeeded, uiLogin, zipEntries } from './helpers/uploads';
 
-// Downloads (spec §9): single ZIP, bundle through the Downloads page, and download tickets.
+// Downloads (spec §9): single ZIP, bundle through the Recordings page, and download tickets.
 test.beforeAll(async ({ request }) => {
   await ensureSeeded(request);
 });
 
 test('the single ZIP download is named <sessionId>.zip', async ({ page }) => {
   await uiLogin(page, USERS.master);
-  await page.goto(`/#/admin/uploads/${F.s1.sessionId}`);
+  await page.goto(`/#/recordings/${F.s1.sessionId}`);
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: /Download ZIP/ }).click(),
   ]);
   expect(download.suggestedFilename()).toBe(`${F.s1.sessionId}.zip`);
-
-  // The list's per-row button does the same.
-  await page.goto('/#/admin/uploads');
-  const [fromList] = await Promise.all([
-    page.waitForEvent('download'),
-    page.locator('tr.clickable', { hasText: F.s2.sessionId.slice(0, 8) }).getByRole('button', { name: 'Download ZIP' }).click(),
-  ]);
-  expect(fromList.suggestedFilename()).toBe(`${F.s2.sessionId}.zip`);
 });
 
-test('the Downloads page bundles two selected sessions; select all skips the invalid one', async ({ page }) => {
+test('the Recordings page bundles the ticked recordings; select all skips the invalid one', async ({ page }) => {
   await uiLogin(page, USERS.master);
-  await page.goto('/#/recordings/downloads');
+  await page.goto('/#/recordings');
 
-  await page.locator('label.ut-field.grow select').selectOption({ label: 'E2E Clinic A' });
-  // Show the invalid session too: it must still not be picked by "select all".
-  await page.getByLabel('Hide excluded & invalid').uncheck();
+  await page.getByTestId('recordings-filter-clinic').selectOption({ label: 'E2E Clinic A' });
   const rows = page.locator('tbody tr.clickable');
   await expect(rows).toHaveCount(3);
 
-  await page.getByLabel('Select all sessions shown').check();
-  const boxes = rows.locator('input[type="checkbox"]');
-  await expect(boxes.filter({ has: page.locator(':checked') })).toHaveCount(0); // sanity: filter by state below
+  // One primary action; its label follows the selection.
+  await expect(page.locator('.ui-btn-primary')).toHaveCount(1);
+  await page.getByTestId('recordings-select-all').check();
   await expect(rows.locator('input[type="checkbox"]:checked')).toHaveCount(2);
   await expect(rows.filter({ hasText: 'Invalid' }).locator('input[type="checkbox"]')).not.toBeChecked();
 
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'Download 2' }).click(),
+    page.getByRole('button', { name: 'Download 2 selected' }).click(),
   ]);
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'tp-e2e-bundle-')), 'bundle.zip');
   await download.saveAs(file);
 
   const names = await zipEntries(file);
   expect(names).toContain('sessions.csv');
+  expect(names).toContain(`${F.s1.sessionId}.zip`);
+  expect(names).toContain(`${F.s2.sessionId}.zip`);
+  expect(names).not.toContain(`${F.s3.sessionId}.zip`);
+});
+
+test('with nothing ticked, Download takes the current filter without the invalid recording', async ({ page }) => {
+  await uiLogin(page, USERS.master);
+  await page.goto('/#/recordings');
+  await page.getByTestId('recordings-filter-clinic').selectOption({ label: 'E2E Clinic A' });
+  await expect(page.locator('tbody tr.clickable')).toHaveCount(3);
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Download all 3' }).click(),
+  ]);
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'tp-e2e-bundle-')), 'bundle.zip');
+  await download.saveAs(file);
+  const names = await zipEntries(file);
   expect(names).toContain(`${F.s1.sessionId}.zip`);
   expect(names).toContain(`${F.s2.sessionId}.zip`);
   expect(names).not.toContain(`${F.s3.sessionId}.zip`);

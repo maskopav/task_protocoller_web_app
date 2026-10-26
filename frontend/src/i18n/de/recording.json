@@ -1,0 +1,228 @@
+{
+  "session": {
+    "title": "Sitzung",
+    "appVersion": "App-Version",
+    "notFinished": "nicht beendet",
+    "notFinishedHint": "Es wurde keine Endzeit aufgezeichnet: Die Sitzung wurde nicht sauber beendet. Angezeigt wird der Zeitpunkt, an dem die App sie neu aufgebaut hat.",
+    "length": "Dauer",
+    "received": "Eingegangen",
+    "afterEnd": "{{lag}} nach Ende der Sitzung",
+    "tasks": "Aufgaben",
+    "tasksDone": "{{done}} von {{total}} aufgenommen",
+    "timelineUsed": "Verwendete Zeitleiste",
+    "timelineEdited": "Im Wellenform-Editor bearbeitet",
+    "timelineOriginal": "Original",
+    "mic": "Mikrofon",
+    "audio": "Audio",
+    "camera": "Kamera",
+    "video": "Video",
+    "settings": "Einstellungen",
+    "nonStandard": "Nicht-Standard",
+    "inputGain": "Eingangspegel {{gain}}",
+    "noAudio": "Kein Audio in diesem Protokoll",
+    "sessionId": "Sitzungs-ID",
+    "configVersion": "Konfigurationsversion",
+    "old": "alt",
+    "zipSha": "ZIP-SHA-256",
+    "computer": "Computer",
+    "recorded": "Aufgenommen",
+    "mono": "Mono",
+    "channels": "{{count}} Kanäle",
+    "unnamed": "unbenannt",
+    "lag": {
+      "min": "{{count}} Min.",
+      "h": "{{count}} Std.",
+      "days_one": "{{count}} Tag",
+      "days_other": "{{count}} Tage"
+    }
+  },
+  "tasks": {
+    "title": "Aufgaben",
+    "sub": "Clips werden von der Server-Kopie abgespielt",
+    "task": "Aufgabe",
+    "rep": "Wdh.",
+    "takes": "Versuche",
+    "result": "Ergebnis",
+    "clip": "Clip",
+    "file": "Datei",
+    "videoTask": "Videoaufgabe",
+    "questionnaire": "Fragebogen",
+    "infoScreen": "Informationsbildschirm",
+    "lastKept": "letzter behalten",
+    "lastKeptHint": "Nur der letzte Versuch wird exportiert",
+    "micLost": "Mikrofon verloren",
+    "micLostHint": "Mikrofon während dieser Aufgabe verloren (Versuch verworfen: DEVICE_LOST)",
+    "results": {
+      "Done": "Erledigt",
+      "Skipped": "Übersprungen",
+      "Missing": "Fehlt"
+    },
+    "playAudio": "Audioclip abspielen",
+    "playVideo": "Videoclip abspielen",
+    "videoNoSound": "Video abspielen (das MP4 hat keine Tonspur)",
+    "showAnswers": "Antworten anzeigen ({{count}})",
+    "closeVideo": "Video schließen",
+    "viewOnlyNote": "Zum Abspielen von Clips sind Bearbeitungsrechte für diese Sitzung nötig.",
+    "answersTitle": "Antworten",
+    "repetition": "Wiederholung {{n}}"
+  },
+  "timeline": {
+    "title": "Aufnahme-Zeitleiste",
+    "sub": "Hauptaufnahme, {{duration}} · Segmente aus {{file}}",
+    "aria": "Aufgabensegmente entlang der Hauptaufnahme",
+    "task": "Aufgabe {{task}}",
+    "rejectedTake": "Aufgabe {{task}}: verworfener Versuch ({{reason}})",
+    "legend": {
+      "audio": "Audioaufgabe",
+      "filmed": "Gefilmt",
+      "questionnaire": "Fragebogen / Info",
+      "rejected": "Verworfener Versuch"
+    }
+  },
+  "checks": {
+    "title": "Serverprüfungen",
+    "keys": {
+      "zip_checksum": "ZIP-Prüfsumme",
+      "archive": "Archivstruktur",
+      "manifest": "Datei-Hashes im Manifest",
+      "ids": "IDs konsistent",
+      "device": "Gerät registriert",
+      "config_version": "Konfigurationsversion",
+      "complete": "Sitzung vollständig"
+    },
+    "desc": {
+      "zip_checksum": "Die SHA-256 der Datei entspricht dem vom Gerät angegebenen Wert",
+      "archive": "Das Archiv ist lesbar und hat die erwartete Struktur",
+      "manifest": "Jede Datei ist vorhanden und stimmt mit manifest.json überein",
+      "ids": "Sitzungs- und Installations-ID stimmen in allen Dateien überein",
+      "device": "Das Gerät hat eine registrierte Installations-ID",
+      "config_version": "Die Konfigurationsversion ist die aktuelle",
+      "complete": "Die Verarbeitung wurde normal abgeschlossen"
+    }
+  },
+  "history": {
+    "title": "Upload-Verlauf",
+    "sub": "Jede Anfrage, die der Server für diese Sitzungs-ID erhalten hat",
+    "none": "Keine Anfragen aufgezeichnet.",
+    "deviceReport": "Gerätemeldung",
+    "outcome": {
+      "accepted": "Angenommen",
+      "resent": "Erneut gesendet (als Erfolg beantwortet)",
+      "checksum": "Prüfsumme stimmt nicht",
+      "conflict": "Konflikt",
+      "quarantined": "In Quarantäne gehalten",
+      "error": "Serverfehler"
+    }
+  },
+  "review": {
+    "title": "Prüfung",
+    "noComments": "Noch keine Kommentare.",
+    "addComment": "Kommentar für das Klinikteam hinzufügen",
+    "placeholder": "z. B. Phonation, Versuch 2, übersteuert; bitte beim nächsten Besuch neu aufnehmen",
+    "post": "Kommentar senden",
+    "forbidden": "Sie haben nur Lesezugriff auf diese Sitzung.",
+    "failed": "Speichern fehlgeschlagen ({{code}}).",
+    "viewOnlyNote": "Nur Ansicht. Herunterladen, Anzeigen von Teilnehmerfeldern, Ändern des Prüfstatus und Kommentieren erfordern eine Zuordnung zu dieser Klinik oder Bearbeitungsrechte für die Studie."
+  },
+  "participant": {
+    "title": "Teilnehmer",
+    "show": "Werte anzeigen",
+    "hide": "Werte ausblenden",
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "hiddenValue": "Verborgener Wert",
+    "note": "So, wie in der Klinik eingegeben. Felder außer Patientencode und Besuch sind verborgen.",
+    "noteEdit": "So, wie in der Klinik eingegeben. Felder außer Patientencode und Besuch bleiben verborgen, bis Sie sie anzeigen. Jede Anzeige wird im Audit-Log protokolliert. Das Bearbeiten korrigiert Tippfehler: Neue Werte ersetzen die alten auf allen Seiten und in späteren Downloads, und jede Änderung wird im Audit-Log festgehalten.",
+    "errors": {
+      "generic": "Speichern fehlgeschlagen ({{code}}).",
+      "forbidden": "Sie haben nur Lesezugriff auf diese Sitzung.",
+      "required_field": "Patientencode und Besuch dürfen nicht leer sein.",
+      "invalid_value": "Ein Wert ist ungültig (Text mit höchstens 255 Zeichen).",
+      "invalid_fields": "Die Felder konnten nicht gelesen werden.",
+      "unknown_field": "Unbekanntes Feld."
+    }
+  },
+  "qc": {
+    "unreviewed": "Ungeprüft",
+    "ok": "OK",
+    "review": "Zu prüfen",
+    "excluded": "Ausgeschlossen"
+  },
+  "page": {
+    "crumbRoot": "Aufnahmen",
+    "notFoundTitle": "Nicht gefunden",
+    "notFoundBody": "Diese Aufnahme existiert nicht oder liegt außerhalb Ihres Zugriffs.",
+    "errorTitle": "Die Aufnahme konnte nicht geladen werden",
+    "errorBody": "Der Server hat nicht wie erwartet geantwortet. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "loading": "Aufnahme wird geladen"
+  },
+  "header": {
+    "prev": "Vorherige Aufnahme",
+    "next": "Nächste Aufnahme",
+    "download": "ZIP herunterladen",
+    "downloadHint": "{{size}} · gespeichert als {{id}}.zip",
+    "downloadFailed": "Der Download konnte nicht gestartet werden.",
+    "more": "Weitere Aktionen",
+    "viewOnly": "Nur Ansicht",
+    "viewOnlyHint": "Ihr Zugriff auf diese Studie ist schreibgeschützt",
+    "visit": "Besuch {{visit}}",
+    "recordedOn": "aufgenommen am {{date}}"
+  },
+  "quarantine": {
+    "badge": "In Quarantäne",
+    "title": "In Quarantäne: Dieser Computer ist keiner Klinik zugewiesen",
+    "body": "Seine Aufnahmen werden in Quarantäne gehalten. Weisen Sie den Computer einer Klinik zu, dann wandern seine Aufnahmen dorthin.",
+    "assign": "Computer zuweisen…",
+    "modalTitle": "Computer einer Klinik zuweisen",
+    "modalDesc": "Alle Aufnahmen dieses Computers wandern in die gewählte Klinik.",
+    "clinic": "Klinik",
+    "choose": "Klinik wählen",
+    "confirm": "Zuweisen",
+    "cancel": "Abbrechen",
+    "done": "Computer zugewiesen. {{count}} Aufnahme(n) zur Prüfung freigegeben.",
+    "failed": "Der Computer konnte nicht zugewiesen werden ({{code}}).",
+    "notFound": "Dieser Computer wurde in der Computerliste nicht gefunden."
+  },
+  "device": {
+    "details": "Details",
+    "camera": {
+      "interrupted": "Die Kamera hat während der Aufnahme keine Bilder mehr geliefert.",
+      "capture_failed": "Die Kamera konnte kein Video aufnehmen.",
+      "other": "Die Kamera hat während der Aufnahme ein Problem gemeldet."
+    },
+    "microphone": {
+      "interrupted": "Das Mikrofon wurde während der Aufnahme unterbrochen.",
+      "capture_failed": "Das Mikrofon konnte nicht aufnehmen.",
+      "other": "Das Mikrofon hat während der Aufnahme ein Problem gemeldet."
+    }
+  },
+  "clip": {
+    "cantPlay": "Dieser Clip lässt sich im Browser nicht abspielen. Zum Abspielen herunterladen.",
+    "download": "Clip herunterladen"
+  },
+  "answers": {
+    "sub": "Antworten, wie sie in der Klinik eingegeben wurden",
+    "close": "Schließen"
+  },
+  "activity": {
+    "title": "Aktivität",
+    "count_one": "{{count}} Ereignis",
+    "count_other": "{{count}} Ereignisse",
+    "loading": "Wird geladen…",
+    "none": "Noch keine Aktivität aufgezeichnet.",
+    "failed": "Die Aktivität konnte nicht geladen werden.",
+    "someone": "Jemand",
+    "actions": {
+      "reveal": "{{name}} hat Teilnehmerfelder angezeigt",
+      "participant_edit": "{{name}} hat Teilnehmerfelder bearbeitet",
+      "participant_edit_fields": "{{name}} hat Teilnehmerfelder bearbeitet: {{fields}}",
+      "qc_change": "{{name}} hat die Prüfung geändert",
+      "qc_change_values": "{{name}} hat die Prüfung von {{from}} auf {{to}} geändert",
+      "download": "{{name}} hat das ZIP heruntergeladen",
+      "bundle": "{{name}} hat diese Aufnahme in einem Bündel heruntergeladen",
+      "other": "{{name}}: {{action}}"
+    }
+  }
+}

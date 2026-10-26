@@ -18,10 +18,9 @@ import OnboardingPage from "./pages/OnboardingPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import NotAvailablePage from "./pages/NotAvailablePage";
 import PlaceholderPage from "./pages/PlaceholderPage";
-import UploadsPage from "./pages/UploadsPage";
-import SessionDetailPage from "./pages/SessionDetailPage";
+import RecordingsPage from "./pages/RecordingsPage";
+import RecordingPage from "./pages/RecordingPage";
 import DevicesPage from "./pages/DevicesPage";
-import DownloadsPage from "./pages/DownloadsPage";
 
 // Old links keep working for one release: the target path may name the old
 // route's params (":projectId"), and ?site= / ?project= become ?clinic= / ?study=.
@@ -92,10 +91,8 @@ export default function App() {
 
       {/* Everything else lives inside the shell */}
       <Route element={<ShellRoute />}>
-        <Route path="/recordings" element={<UploadsPage />} />
-        {/* Temporary home of the old Downloads page until the bulk download lands. Literal before :sessionId. */}
-        <Route path="/recordings/downloads" element={<DownloadsPage />} />
-        <Route path="/recordings/:sessionId" element={<SessionDetailPage />} />
+        <Route path="/recordings" element={<RecordingsPage />} />
+        <Route path="/recordings/:sessionId" element={<RecordingPage />} />
 
         <Route path="/studies" element={<StudiesIndex />} />
         <Route path="/studies/:projectId" element={<ProjectDashboardPage />} />

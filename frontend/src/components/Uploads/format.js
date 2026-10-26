@@ -15,6 +15,12 @@ export const ISSUE_CLS = {
   late: "warn", duplicate: "", nonstdMic: "bad", nonstdCam: "bad", device: "warn",
 };
 export const ISSUE_KEYS = Object.keys(ISSUE_CLS);
+
+// UI-kit tones (StatusDot / Badge) of the same enums.
+export const STATUS_TONE = { valid: "ok", validating: "accent", invalid: "bad" };
+export const QC_TONE = { unreviewed: "accent", ok: "ok", review: "warn", excluded: "idle" };
+const CLS_TONE = { bad: "bad", warn: "warn", info: "accent", "": "neutral" };
+export const ISSUE_TONE = Object.fromEntries(ISSUE_KEYS.map((k) => [k, CLS_TONE[ISSUE_CLS[k]]]));
 export const PAGE_SIZES = [10, 25, 50, 100];
 
 const pad = (n) => String(n).padStart(2, "0");

@@ -1,0 +1,232 @@
+{
+  "session": {
+    "title": "Relace",
+    "appVersion": "Verze aplikace",
+    "notFinished": "nedokončeno",
+    "notFinishedHint": "Nebyl zaznamenán čas ukončení: relace neskončila řádně. Zobrazený čas je okamžik, kdy ji aplikace znovu sestavila.",
+    "length": "Délka",
+    "received": "Přijato",
+    "afterEnd": "{{lag}} po skončení relace",
+    "tasks": "Úlohy",
+    "tasksDone": "{{done}} z {{total}} nahráno",
+    "timelineUsed": "Použitá časová osa",
+    "timelineEdited": "Upravená ve vlnovém editoru",
+    "timelineOriginal": "Původní",
+    "mic": "Mikrofon",
+    "audio": "Zvuk",
+    "camera": "Kamera",
+    "video": "Video",
+    "settings": "Nastavení",
+    "nonStandard": "nestandardní",
+    "inputGain": "zesílení vstupu {{gain}}",
+    "noAudio": "Tento protokol neobsahuje zvuk",
+    "sessionId": "ID relace",
+    "configVersion": "Verze konfigurace",
+    "old": "stará",
+    "zipSha": "SHA-256 souboru ZIP",
+    "computer": "Počítač",
+    "recorded": "Nahráno",
+    "mono": "mono",
+    "channels": "{{count}} kanálů",
+    "unnamed": "nepojmenovaný",
+    "lag": {
+      "min": "{{count}} min",
+      "h": "{{count}} h",
+      "days_one": "{{count}} den",
+      "days_few": "{{count}} dny",
+      "days_many": "{{count}} dne",
+      "days_other": "{{count}} dní"
+    }
+  },
+  "tasks": {
+    "title": "Úlohy",
+    "sub": "Klipy se přehrávají z kopie na serveru",
+    "task": "Úloha",
+    "rep": "Opak.",
+    "takes": "Pokusy",
+    "result": "Výsledek",
+    "clip": "Klip",
+    "file": "Soubor",
+    "videoTask": "Video úloha",
+    "questionnaire": "Dotazník",
+    "infoScreen": "Informační obrazovka",
+    "lastKept": "ponechán poslední",
+    "lastKeptHint": "Exportuje se jen poslední pokus",
+    "micLost": "výpadek mikrofonu",
+    "micLostHint": "Mikrofon se během této úlohy odpojil (pokus zamítnut: DEVICE_LOST)",
+    "results": {
+      "Done": "Hotovo",
+      "Skipped": "Přeskočeno",
+      "Missing": "Chybí"
+    },
+    "playAudio": "Přehrát zvukový klip",
+    "playVideo": "Přehrát video klip",
+    "videoNoSound": "Přehrát video (MP4 nemá zvukovou stopu)",
+    "showAnswers": "Zobrazit odpovědi ({{count}})",
+    "closeVideo": "Zavřít video",
+    "viewOnlyNote": "Přehrávání klipů vyžaduje právo úprav této relace.",
+    "answersTitle": "Odpovědi",
+    "repetition": "Opakování {{n}}"
+  },
+  "timeline": {
+    "title": "Časová osa záznamu",
+    "sub": "Hlavní záznam, {{duration}} · segmenty ze souboru {{file}}",
+    "aria": "Segmenty úloh podél hlavního záznamu",
+    "task": "Úloha {{task}}",
+    "rejectedTake": "Úloha {{task}}: zamítnutý pokus ({{reason}})",
+    "legend": {
+      "audio": "Zvuková úloha",
+      "filmed": "Natáčeno",
+      "questionnaire": "Dotazník / informace",
+      "rejected": "Zamítnutý pokus"
+    }
+  },
+  "checks": {
+    "title": "Kontroly serveru",
+    "keys": {
+      "zip_checksum": "Kontrolní součet ZIP",
+      "archive": "Struktura archivu",
+      "manifest": "Hashe souborů v manifestu",
+      "ids": "Konzistentní ID",
+      "device": "Zařízení registrováno",
+      "config_version": "Verze konfigurace",
+      "complete": "Relace kompletní"
+    },
+    "desc": {
+      "zip_checksum": "SHA-256 souboru odpovídá hodnotě, kterou zařízení deklarovalo",
+      "archive": "Archiv lze přečíst a má očekávanou strukturu",
+      "manifest": "Každý soubor je přítomen a odpovídá manifest.json",
+      "ids": "ID relace a instalace se v souborech shodují",
+      "device": "Zařízení má registrované ID instalace",
+      "config_version": "Verze konfigurace je aktuální",
+      "complete": "Zpracování proběhlo řádně"
+    }
+  },
+  "history": {
+    "title": "Historie nahrávání",
+    "sub": "Každý požadavek, který server pro toto ID relace přijal",
+    "none": "Žádné zaznamenané požadavky.",
+    "deviceReport": "Hlášení zařízení",
+    "outcome": {
+      "accepted": "Přijato",
+      "resent": "Odesláno znovu (odpověď jako úspěch)",
+      "checksum": "Neshoda kontrolního součtu",
+      "conflict": "Konflikt",
+      "quarantined": "Drženo v karanténě",
+      "error": "Chyba serveru"
+    }
+  },
+  "review": {
+    "title": "Posouzení",
+    "noComments": "Zatím žádné komentáře.",
+    "addComment": "Přidat komentář pro tým kliniky",
+    "placeholder": "např. Fonace, pokus 2, je přebuzená, prosím nahrajte znovu při další návštěvě",
+    "post": "Odeslat komentář",
+    "forbidden": "K této relaci máte jen právo čtení.",
+    "failed": "Uložení se nezdařilo ({{code}}).",
+    "viewOnlyNote": "Pouze zobrazení. Stažení, zobrazení polí účastníka, změna posouzení a komentování vyžadují přiřazení k této klinice nebo právo úprav studie."
+  },
+  "participant": {
+    "title": "Účastník",
+    "show": "Zobrazit hodnoty",
+    "hide": "Skrýt hodnoty",
+    "edit": "Upravit",
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "hiddenValue": "Skrytá hodnota",
+    "note": "Tak, jak byly zadány na klinice. Pole kromě kódu pacienta a návštěvy jsou skrytá.",
+    "noteEdit": "Tak, jak byly zadány na klinice. Pole kromě kódu pacienta a návštěvy zůstávají skrytá, dokud je nezobrazíte. Každé zobrazení se zapisuje do auditního logu. Úprava opravuje překlepy: nové hodnoty nahradí staré na všech stránkách i v pozdějších stažených souborech a každá změna se zapíše do auditního logu.",
+    "errors": {
+      "generic": "Uložení se nezdařilo ({{code}}).",
+      "forbidden": "K této relaci máte jen právo čtení.",
+      "required_field": "Kód pacienta a návštěva nesmí být prázdné.",
+      "invalid_value": "Některá hodnota je neplatná (text nejvýše 255 znaků).",
+      "invalid_fields": "Pole se nepodařilo přečíst.",
+      "unknown_field": "Neznámé pole."
+    }
+  },
+  "qc": {
+    "unreviewed": "Nezkontrolováno",
+    "ok": "V pořádku",
+    "review": "Ke kontrole",
+    "excluded": "Vyřazeno"
+  },
+  "page": {
+    "crumbRoot": "Záznamy",
+    "notFoundTitle": "Nenalezeno",
+    "notFoundBody": "Tato nahrávka neexistuje, nebo k ní nemáte přístup.",
+    "errorTitle": "Nahrávku se nepodařilo načíst",
+    "errorBody": "Server neodpověděl očekávaným způsobem. Zkuste to prosím znovu.",
+    "retry": "Zkusit znovu",
+    "loading": "Načítání nahrávky"
+  },
+  "header": {
+    "prev": "Předchozí nahrávka",
+    "next": "Další nahrávka",
+    "download": "Stáhnout ZIP",
+    "downloadHint": "{{size}} · uloženo jako {{id}}.zip",
+    "downloadFailed": "Stahování se nepodařilo zahájit.",
+    "more": "Další akce",
+    "viewOnly": "Pouze zobrazení",
+    "viewOnlyHint": "K této studii máte přístup jen pro čtení",
+    "visit": "návštěva {{visit}}",
+    "recordedOn": "nahráno {{date}}"
+  },
+  "quarantine": {
+    "badge": "V karanténě",
+    "title": "V karanténě: tento počítač není přiřazen k žádné klinice",
+    "body": "Jeho nahrávky jsou drženy v karanténě. Přiřaďte počítač ke klinice a jeho nahrávky se přesunou tam.",
+    "assign": "Přiřadit počítač…",
+    "modalTitle": "Přiřadit počítač ke klinice",
+    "modalDesc": "Všechny nahrávky z tohoto počítače se přesunou na vybranou kliniku.",
+    "clinic": "Klinika",
+    "choose": "Vyberte kliniku",
+    "confirm": "Přiřadit",
+    "cancel": "Zrušit",
+    "done": "Počítač byl přiřazen. K ověření bylo uvolněno nahrávek: {{count}}.",
+    "failed": "Počítač se nepodařilo přiřadit ({{code}}).",
+    "notFound": "Tento počítač nebyl v seznamu počítačů nalezen."
+  },
+  "device": {
+    "details": "Podrobnosti",
+    "camera": {
+      "interrupted": "Kamera během nahrávání přestala posílat obraz.",
+      "capture_failed": "Kamera nedokázala zachytit video.",
+      "other": "Kamera během nahrávání ohlásila problém."
+    },
+    "microphone": {
+      "interrupted": "Mikrofon byl během nahrávání přerušen.",
+      "capture_failed": "Mikrofon nedokázal nahrávat.",
+      "other": "Mikrofon během nahrávání ohlásil problém."
+    }
+  },
+  "clip": {
+    "cantPlay": "Tento klip nelze přehrát v prohlížeči. Pro přehrání jej stáhněte.",
+    "download": "Stáhnout klip"
+  },
+  "answers": {
+    "sub": "Odpovědi zadané na klinice",
+    "close": "Zavřít"
+  },
+  "activity": {
+    "title": "Aktivita",
+    "count_one": "{{count}} událost",
+    "count_few": "{{count}} události",
+    "count_many": "{{count}} události",
+    "count_other": "{{count}} událostí",
+    "loading": "Načítání…",
+    "none": "Zatím žádná zaznamenaná aktivita.",
+    "failed": "Aktivitu se nepodařilo načíst.",
+    "someone": "Někdo",
+    "actions": {
+      "reveal": "{{name}} zobrazil(a) pole účastníka",
+      "participant_edit": "{{name}} upravil(a) pole účastníka",
+      "participant_edit_fields": "{{name}} upravil(a) pole účastníka: {{fields}}",
+      "qc_change": "{{name}} změnil(a) posouzení",
+      "qc_change_values": "{{name}} změnil(a) posouzení z {{from}} na {{to}}",
+      "download": "{{name}} stáhl(a) ZIP",
+      "bundle": "{{name}} stáhl(a) tuto nahrávku v balíčku",
+      "other": "{{name}}: {{action}}"
+    }
+  }
+}

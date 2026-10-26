@@ -1,0 +1,11 @@
+/* Recordings page: tokens only. */
+.recpage { display: flex; flex-direction: column; gap: var(--s-4); }
+.recpage > header { margin-bottom: 0; }
+.recpage-banner {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: var(--warn-soft); color: var(--warn-text);
+  border: 1px solid var(--warn); border-radius: var(--r-md);
+}
+.recpage-banner > span { flex: 1; min-width: 0; }
+.recpage-banner .ui-btn { color: var(--text); }

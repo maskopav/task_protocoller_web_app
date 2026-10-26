@@ -1,28 +1,29 @@
 import React from "react";
-import useUploadLabels from "./useUploadLabels";
-import "./Uploads.css";
+import { useTranslation } from "react-i18next";
+import { StatusDot } from "../ui";
+import "../Recording/Recording.css";
 
-const ICON = { ok: "✓", bad: "✕", warn: "!", skip: "…" };
+const TONE = { ok: "ok", bad: "bad", warn: "warn", skip: "idle" };
 
-/** The seven server checks (zip checksum, manifest, ids, ...) with the server's detail text. */
+/** The server checks (zip checksum, manifest, ids, ...) with the server's detail text where a check did not pass. */
 export default function ServerChecks({ checks = [] }) {
-  const { t } = useUploadLabels();
+  const { t } = useTranslation("recording");
   return (
-    <details className="um-panel um-fold">
-      <summary>
-        <h2 className="um-section-title">{t("checks.title")}</h2>
-      </summary>
-      <ul className="um-checklist">
-        {checks.map((c) => (
-          <li key={c.key}>
-            <span className={`ic ${c.result}`} aria-hidden="true">{ICON[c.result] || "…"}</span>
-            <span>
-              {t(`checks.keys.${c.key}`, { defaultValue: c.key })}
-              <span className="why">{c.detail || t(`checks.desc.${c.key}`, { defaultValue: "" })}</span>
-            </span>
-          </li>
-        ))}
+    <section className="recd-card" aria-label={t("checks.title")}>
+      <div className="recd-card-head"><h2>{t("checks.title")}</h2></div>
+      <ul className="recd-checks">
+        {checks.map((c) => {
+          const why = c.detail || t(`checks.desc.${c.key}`, { defaultValue: "" });
+          return (
+            <li key={c.key}>
+              <StatusDot tone={TONE[c.result] || "idle"} title={why || undefined}>
+                {t(`checks.keys.${c.key}`, { defaultValue: c.key })}
+              </StatusDot>
+              {c.result !== "ok" && c.detail && <span className="why">{c.detail}</span>}
+            </li>
+          );
+        })}
       </ul>
-    </details>
+    </section>
   );
 }

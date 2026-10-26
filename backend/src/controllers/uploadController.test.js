@@ -331,6 +331,7 @@ describe('getUpload', () => {
       tasks: [{ taskIndex: 0 }], hardware: { x: 1 }, checks: [{ key: 'archive', result: 'ok' }],
       prevId: 'p'.repeat(32), nextId: null,
     });
+    expect(b.questionTexts).toEqual({});
     expect(b.participant.fields).toEqual({ patient_code: 'PD1', visit_number: 'V1', surname: null, sex: null });
     expect(b.participant.maskedKeys).toEqual(['surname', 'sex']);
     expect(JSON.stringify(b)).not.toContain('Novak');

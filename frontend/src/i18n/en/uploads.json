@@ -312,5 +312,86 @@
       "lastUpload": "Last upload",
       "attention": "Attention"
     }
+  },
+  "recordings": {
+    "title": "Recordings",
+    "sub": "Everything uploaded by the computers at your clinics.",
+    "download": "Download",
+    "downloadSelected_one": "Download {{count}} selected",
+    "downloadSelected_other": "Download {{count}} selected",
+    "downloadAll": "Download all {{count}}",
+    "more": "More actions",
+    "selectAll": "Select all recordings on this page",
+    "selectRow": "Select recording {{code}}",
+    "blocked": {
+      "readOnly": "You can review this recording but not download it",
+      "validating": "Still being checked"
+    },
+    "noClinic": "No clinic",
+    "comments_one": "{{count}} comment",
+    "comments_other": "{{count}} comments",
+    "loading": "Loading recordings…",
+    "loadError": "Could not load the recordings.",
+    "emptyTitle": "No recordings yet",
+    "emptyBody": "They appear here when a clinic computer uploads its first session.",
+    "emptyFiltered": "No recordings match these filters.",
+    "banner_one": "{{count}} computer is not assigned to a clinic, and its recordings are in quarantine.",
+    "banner_other": "{{count}} computers are not assigned to a clinic, and their recordings are in quarantine.",
+    "bannerAction": "Review computers",
+    "kpi": {
+      "unreviewed": "Unreviewed",
+      "attention": "Needs attention",
+      "invalid": "Invalid",
+      "week": "Received in last 7 days"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Patient code, session ID or computer",
+      "clinic": "Clinic",
+      "allClinics": "All clinics",
+      "study": "Study",
+      "allStudies": "All studies",
+      "protocol": "Protocol",
+      "allProtocols": "All protocols",
+      "review": "Review",
+      "anyReview": "Any review",
+      "serverCheck": "Server check",
+      "anyCheck": "Any server check",
+      "date": "Date",
+      "anyDate": "Any date",
+      "today": "Today",
+      "last7": "Last 7 days",
+      "last30": "Last 30 days",
+      "custom": "Custom…",
+      "from": "From",
+      "to": "To",
+      "more": "More filters",
+      "flags": "Flags",
+      "hasVideo": "Has video"
+    },
+    "columns": {
+      "received": "Received",
+      "patient": "Patient · visit",
+      "studyProtocol": "Study / protocol",
+      "clinic": "Clinic",
+      "length": "Length",
+      "tasks": "Tasks",
+      "serverCheck": "Server check",
+      "review": "Review",
+      "flags": "Flags"
+    },
+    "foot": {
+      "showing": "Showing {{from}}–{{to}} of {{total}} recordings",
+      "rows": "Rows",
+      "prev": "Previous page",
+      "next": "Next page"
+    },
+    "bulk": {
+      "tooMany": "That is {{count}} recordings, and one download holds at most {{max}}. Narrow the filter or tick fewer.",
+      "tooLarge": "That is {{size}}, and one download holds at most {{maxSize}}. Tick fewer recordings.",
+      "nothing": "Nothing here can be downloaded: recordings that are invalid, still being checked or view-only are left out.",
+      "started": "Preparing a ZIP of {{count}} recordings…",
+      "failed": "Could not start the download."
+    }
   }
 }

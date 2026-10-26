@@ -8,6 +8,8 @@ import { scopeWhereClause, getVisibleSiteIds, getVisibleProjectIds } from "../ut
 import { findScopedSession, writeAudit } from "../upload/sessionAccess.js";
 import { needsAttention } from "../upload/sessionExtractor.js";
 import { logToFile } from "../utils/logger.js";
+import { readQuestionTexts } from "../upload/questionTexts.js";
+import { LocalFileStore } from "../storage/fileStore.js";
 
 // --- Vocabulary (mirrors ui_design/assets/ui.js) --------------------------------
 
@@ -526,6 +528,19 @@ async function neighbours(admin, sessionId, query) {
   return { prevId: rows[0]?.prev_id ?? null, nextId: rows[0]?.next_id ?? null };
 }
 
+// Question/answer texts for the questionnaire answers, from the stored ZIP's
+// config snapshot. Best effort: {} when there are no answers, no DATA_PATH or no readable ZIP.
+async function loadQuestionTexts(row, exam) {
+  const answerMaps = (exam.tasks ?? []).map((t) => t?.questionnaireAnswers).filter((a) => a && typeof a === "object");
+  if (answerMaps.length === 0 || !row.storage_path || !process.env.DATA_PATH) return {};
+  try {
+    const file = new LocalFileStore(process.env.DATA_PATH).resolve(row.storage_path);
+    return await readQuestionTexts(file, { protocolName: row.protocol_name, protocolProject: row.protocol_project, answerMaps });
+  } catch {
+    return {};
+  }
+}
+
 export const getUpload = async (req, res) => {
   try {
     const row = await findScopedSession(req.admin, req.params.sessionId);
@@ -542,6 +557,7 @@ export const getUpload = async (req, res) => {
 
     const exam = parseJson(row.exam_summary, {}) ?? {};
     const issues = parseJson(row.flags, []);
+    const questionTexts = await loadQuestionTexts(row, exam);
     const { fields, maskedKeys } = maskParticipant(parseJson(row.participant_fields, {}));
     res.json({
       id: row.session_id,
@@ -583,6 +599,7 @@ export const getUpload = async (req, res) => {
       sampleRate: exam.sampleRate ?? null,
       hardware: exam.hardware ?? null,
       videoTakes: exam.videoTakes ?? [],
+      questionTexts,
       participant: {
         patient_code: row.patient_code ?? null,
         visit_number: row.visit_number ?? null,

@@ -1,0 +1,228 @@
+{
+  "session": {
+    "title": "Session",
+    "appVersion": "App version",
+    "notFinished": "not finished",
+    "notFinishedHint": "No end time was recorded: the session never finished cleanly. The time shown is when the app rebuilt it.",
+    "length": "Length",
+    "received": "Received",
+    "afterEnd": "{{lag}} after the session ended",
+    "tasks": "Tasks",
+    "tasksDone": "{{done}} of {{total}} recorded",
+    "timelineUsed": "Timeline used",
+    "timelineEdited": "Edited in waveform editor",
+    "timelineOriginal": "Original",
+    "mic": "Microphone",
+    "audio": "Audio",
+    "camera": "Camera",
+    "video": "Video",
+    "settings": "Settings",
+    "nonStandard": "non-standard",
+    "inputGain": "input gain {{gain}}",
+    "noAudio": "No audio in this protocol",
+    "sessionId": "Session ID",
+    "configVersion": "Config version",
+    "old": "old",
+    "zipSha": "ZIP SHA-256",
+    "computer": "Computer",
+    "recorded": "Recorded",
+    "mono": "mono",
+    "channels": "{{count}} ch",
+    "unnamed": "unnamed",
+    "lag": {
+      "min": "{{count}} min",
+      "h": "{{count}} h",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "sub": "Clips play from the server copy",
+    "task": "Task",
+    "rep": "Rep.",
+    "takes": "Takes",
+    "result": "Result",
+    "clip": "Clip",
+    "file": "File",
+    "videoTask": "Video task",
+    "questionnaire": "Questionnaire",
+    "infoScreen": "Information screen",
+    "lastKept": "last kept",
+    "lastKeptHint": "Only the last take is exported",
+    "micLost": "mic lost",
+    "micLostHint": "Microphone lost during this task (take rejected: DEVICE_LOST)",
+    "results": {
+      "Done": "Done",
+      "Skipped": "Skipped",
+      "Missing": "Missing"
+    },
+    "playAudio": "Play audio clip",
+    "playVideo": "Play video clip",
+    "videoNoSound": "Play video (the MP4 has no sound track)",
+    "showAnswers": "Show answers ({{count}})",
+    "closeVideo": "Close video",
+    "viewOnlyNote": "Playing clips needs edit rights for this recording.",
+    "answersTitle": "Answers",
+    "repetition": "Repetition {{n}}"
+  },
+  "timeline": {
+    "title": "Recording timeline",
+    "sub": "Master recording, {{duration}} · segments from {{file}}",
+    "aria": "Task segments along the master recording",
+    "task": "Task {{task}}",
+    "rejectedTake": "Task {{task}}: rejected take ({{reason}})",
+    "legend": {
+      "audio": "Audio task",
+      "filmed": "Filmed",
+      "questionnaire": "Questionnaire / info",
+      "rejected": "Rejected take"
+    }
+  },
+  "checks": {
+    "title": "Server checks",
+    "keys": {
+      "zip_checksum": "ZIP checksum",
+      "archive": "Archive structure",
+      "manifest": "Manifest file hashes",
+      "ids": "IDs consistent",
+      "device": "Device registered",
+      "config_version": "Config version",
+      "complete": "Session complete"
+    },
+    "desc": {
+      "zip_checksum": "SHA-256 of the file matches the value declared by the device",
+      "archive": "The archive is readable and has the expected structure",
+      "manifest": "Every file is present and matches manifest.json",
+      "ids": "Session and installation IDs agree across the files",
+      "device": "The device has a registered installation ID",
+      "config_version": "The config version is the current one",
+      "complete": "Processing finished normally"
+    }
+  },
+  "history": {
+    "title": "Upload history",
+    "sub": "Every request the server received for this session ID",
+    "none": "No requests recorded.",
+    "deviceReport": "Device report",
+    "outcome": {
+      "accepted": "Accepted",
+      "resent": "Re-sent (answered as success)",
+      "checksum": "Checksum mismatch",
+      "conflict": "Conflict",
+      "quarantined": "Held in quarantine",
+      "error": "Server error"
+    }
+  },
+  "review": {
+    "title": "Review",
+    "noComments": "No comments yet.",
+    "addComment": "Add a comment for the clinic team",
+    "placeholder": "e.g. Phonation take 2 clipped, please re-record at next visit",
+    "post": "Post comment",
+    "forbidden": "You only have read access to this session.",
+    "failed": "Could not save ({{code}}).",
+    "viewOnlyNote": "View only. Downloading, revealing participant fields, changing the review status and commenting need an assignment to this clinic or edit rights on the study."
+  },
+  "participant": {
+    "title": "Participant",
+    "show": "Show values",
+    "hide": "Hide values",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "hiddenValue": "Hidden value",
+    "note": "As typed at the clinic. Fields other than the patient code and visit are hidden.",
+    "noteEdit": "As typed at the clinic. Fields other than the patient code and visit stay hidden until you choose to show them. Each reveal is recorded in the audit log. Editing corrects typos: new values replace the old ones on every page and in later downloads, and every change is written to the audit log.",
+    "errors": {
+      "generic": "Could not save ({{code}}).",
+      "forbidden": "You only have read access to this session.",
+      "required_field": "Patient code and visit cannot be empty.",
+      "invalid_value": "A value is invalid (text of at most 255 characters).",
+      "invalid_fields": "The fields could not be read.",
+      "unknown_field": "Unknown field."
+    }
+  },
+  "qc": {
+    "unreviewed": "Unreviewed",
+    "ok": "OK",
+    "review": "Needs review",
+    "excluded": "Excluded"
+  },
+  "page": {
+    "crumbRoot": "Recordings",
+    "notFoundTitle": "Not found",
+    "notFoundBody": "This recording does not exist or is outside your access.",
+    "errorTitle": "Could not load the recording",
+    "errorBody": "The server did not answer as expected. Please try again.",
+    "retry": "Try again",
+    "loading": "Loading recording"
+  },
+  "header": {
+    "prev": "Previous recording",
+    "next": "Next recording",
+    "download": "Download ZIP",
+    "downloadHint": "{{size}} · saved as {{id}}.zip",
+    "downloadFailed": "Could not start the download.",
+    "more": "More actions",
+    "viewOnly": "View only",
+    "viewOnlyHint": "Your access to this study is read-only",
+    "visit": "visit {{visit}}",
+    "recordedOn": "recorded on {{date}}"
+  },
+  "quarantine": {
+    "badge": "Quarantined",
+    "title": "Quarantined: this computer isn't assigned to a clinic",
+    "body": "Its recordings are kept in quarantine. Assign the computer to a clinic, and its recordings move there.",
+    "assign": "Assign computer…",
+    "modalTitle": "Assign computer to a clinic",
+    "modalDesc": "All recordings from this computer move to the clinic you choose.",
+    "clinic": "Clinic",
+    "choose": "Choose a clinic",
+    "confirm": "Assign",
+    "cancel": "Cancel",
+    "done": "Computer assigned. {{count}} recording(s) released for checking.",
+    "failed": "Could not assign the computer ({{code}}).",
+    "notFound": "This computer was not found in the computer list."
+  },
+  "device": {
+    "details": "Details",
+    "camera": {
+      "interrupted": "The camera stopped sending images during the recording.",
+      "capture_failed": "The camera could not capture video.",
+      "other": "The camera reported a problem during the recording."
+    },
+    "microphone": {
+      "interrupted": "The microphone was interrupted during the recording.",
+      "capture_failed": "The microphone could not record.",
+      "other": "The microphone reported a problem during the recording."
+    }
+  },
+  "clip": {
+    "cantPlay": "This clip can't play in the browser. Download to play.",
+    "download": "Download clip"
+  },
+  "answers": {
+    "sub": "Answers as entered at the clinic",
+    "close": "Close"
+  },
+  "activity": {
+    "title": "Activity",
+    "count_one": "{{count}} event",
+    "count_other": "{{count}} events",
+    "loading": "Loading…",
+    "none": "No activity recorded yet.",
+    "failed": "Could not load the activity.",
+    "someone": "Someone",
+    "actions": {
+      "reveal": "{{name}} revealed participant fields",
+      "participant_edit": "{{name}} edited participant fields",
+      "participant_edit_fields": "{{name}} edited participant fields: {{fields}}",
+      "qc_change": "{{name}} changed the review",
+      "qc_change_values": "{{name}} changed the review from {{from}} to {{to}}",
+      "download": "{{name}} downloaded the ZIP",
+      "bundle": "{{name}} downloaded this recording in a bundle",
+      "other": "{{name}}: {{action}}"
+    }
+  }
+}

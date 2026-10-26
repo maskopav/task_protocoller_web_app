@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "../ui";
 import { revealParticipant, updateParticipant } from "../../api/uploads";
-import useUploadLabels from "./useUploadLabels";
-import "./Uploads.css";
+import "../Recording/Recording.css";
 
 const PUBLIC_FIELDS = ["patient_code", "visit_number"];
 const MASK = "••••••";
@@ -11,9 +12,10 @@ const fieldLabel = (k) => k.replace(/_/g, " ");
  * Participant fields of a session. The API sends every value except patient code and
  * visit as null (maskedKeys), and we never invent them: values appear only after the
  * explicit "Show values" (POST reveal, audited) or "Edit" (which reveals first).
+ * `onReveal` fires after each audited reveal so the page can refresh its Activity.
  */
-export default function ParticipantPanel({ sessionId, participant, canEdit, onUpdated }) {
-  const { t } = useUploadLabels();
+export default function ParticipantPanel({ sessionId, participant, canEdit, onUpdated, onReveal }) {
+  const { t } = useTranslation("recording");
   const [revealed, setRevealed] = useState(null); // full fields once revealed
   const [draft, setDraft] = useState(null); // non-null while editing
   const [busy, setBusy] = useState(false);
@@ -35,6 +37,7 @@ export default function ParticipantPanel({ sessionId, participant, canEdit, onUp
     setError("");
     try {
       const res = await revealParticipant(sessionId);
+      onReveal?.();
       return res.fields;
     } catch (e) {
       setError(errorText(e));
@@ -97,63 +100,54 @@ export default function ParticipantPanel({ sessionId, participant, canEdit, onUp
   };
 
   return (
-    <section className="um-panel" aria-label={t("participant.title")}>
-      <div className="um-section-head">
-        <h2 className="um-section-title">{t("participant.title")}</h2>
+    <section className="recd-card" aria-label={t("participant.title")}>
+      <div className="recd-card-head">
+        <h2>{t("participant.title")}</h2>
         {canEdit && (
-          <span style={{ display: "flex", gap: "0.4rem" }}>
+          <div className="recd-card-actions">
             {editing ? (
               <>
-                <button className="um-btn um-btn-primary um-btn-sm" type="button" onClick={save} disabled={busy}>
-                  {t("participant.save")}
-                </button>
-                <button className="um-btn um-btn-ghost um-btn-sm" type="button" onClick={cancel} disabled={busy}>
-                  {t("participant.cancel")}
-                </button>
+                <Button size="sm" onClick={save} disabled={busy}>{t("participant.save")}</Button>
+                <Button size="sm" variant="quiet" onClick={cancel} disabled={busy}>{t("participant.cancel")}</Button>
               </>
             ) : (
               <>
-                <button className="um-btn um-btn-ghost um-btn-sm" type="button" onClick={toggleReveal} disabled={busy || !masked.size}>
-                  {revealed ? `🙈 ${t("participant.hide")}` : `👁 ${t("participant.show")}`}
-                </button>
-                <button className="um-btn um-btn-ghost um-btn-sm" type="button" onClick={startEdit} disabled={busy}>
-                  ✎ {t("participant.edit")}
-                </button>
+                <Button size="sm" variant="quiet" icon="eye" onClick={toggleReveal} disabled={busy || !masked.size}>
+                  {revealed ? t("participant.hide") : t("participant.show")}
+                </Button>
+                <Button size="sm" variant="quiet" onClick={startEdit} disabled={busy}>{t("participant.edit")}</Button>
               </>
             )}
-          </span>
+          </div>
         )}
       </div>
 
-      <div className="um-meta-grid two">
+      <dl className="recd-fields">
         {keys.map((k) => {
           const value = shown(k);
           return (
-            <div className="um-meta-item" key={k}>
-              <span className="m-label">{fieldLabel(k)}</span>
-              <span className="m-value">
+            <div key={k}>
+              <dt>{fieldLabel(k)}</dt>
+              <dd>
                 {editing ? (
                   <input
-                    className="um-input"
                     aria-label={fieldLabel(k)}
                     value={draft[k] ?? ""}
                     maxLength={255}
                     onChange={(e) => setDraft({ ...draft, [k]: e.target.value })}
                   />
                 ) : value == null ? (
-                  <span className="um-masked" data-testid={`masked-${k}`} aria-label={t("participant.hiddenValue")}>
-                    {MASK}
-                  </span>
+                  <span className="recd-masked" data-testid={`masked-${k}`} aria-label={t("participant.hiddenValue")}>{MASK}</span>
                 ) : (
-                  <span>{String(value) || "—"}</span>
+                  String(value)
                 )}
-              </span>
+              </dd>
             </div>
           );
         })}
-      </div>
-      {error && <div className="um-error" role="alert">{error}</div>}
-      <p className="um-pii-note">{canEdit ? t("participant.noteEdit") : t("participant.note")}</p>
+      </dl>
+      {error && <div className="recd-error" role="alert">{error}</div>}
+      <p className="recd-note">{canEdit ? t("participant.noteEdit") : t("participant.note")}</p>
     </section>
   );
 }

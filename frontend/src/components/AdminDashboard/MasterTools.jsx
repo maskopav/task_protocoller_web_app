@@ -44,7 +44,7 @@ export default function MasterTools() {
         </button>
 
         {/* Downloads Card (phase B upload management) */}
-        <button className="action-card btn-protocols" onClick={() => navigate("/recordings/downloads")}>
+        <button className="action-card btn-protocols" onClick={() => navigate("/recordings")}>
           <div className="icon">⬇</div>
           <div className="text">
             <h3>{tu("cards.downloads.title")}</h3>

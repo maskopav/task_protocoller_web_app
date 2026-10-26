@@ -10,6 +10,7 @@ import enIntro from "./en/intro.json";
 import enUploads from "./en/uploads.json";
 import enUploadTools from "./en/uploadTools.json";
 import enNav from "./en/nav.json";
+import enRecording from "./en/recording.json";
 
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
@@ -17,6 +18,7 @@ import csAdmin from "./cs/admin.json";
 import csUploads from "./cs/uploads.json";
 import csUploadTools from "./cs/uploadTools.json";
 import csNav from "./cs/nav.json";
+import csRecording from "./cs/recording.json";
 
 import deCommon from "./de/common.json";
 import deTasks from "./de/tasks.json";
@@ -24,6 +26,7 @@ import deAdmin from "./de/admin.json";
 import deUploads from "./de/uploads.json";
 import deUploadTools from "./de/uploadTools.json";
 import deNav from "./de/nav.json";
+import deRecording from "./de/recording.json";
 
 
 export const LANGUAGES = [
@@ -37,7 +40,7 @@ i18n
   .init({
     fallbackLng: "en",
     lng: "cs",
-    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav"],
+    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording"],
     defaultNS: "common",
     resources: {
       en: {
@@ -47,7 +50,8 @@ i18n
         intro: enIntro,
         uploads: enUploads,
         uploadTools: enUploadTools,
-        nav: enNav
+        nav: enNav,
+        recording: enRecording
       },
       cs: {
         common: csCommon,
@@ -55,7 +59,8 @@ i18n
         admin: csAdmin,
         uploads: csUploads,
         uploadTools: csUploadTools,
-        nav: csNav
+        nav: csNav,
+        recording: csRecording
       },
       de: {
         common: deCommon,
@@ -63,7 +68,8 @@ i18n
         admin: deAdmin,
         uploads: deUploads,
         uploadTools: deUploadTools,
-        nav: deNav
+        nav: deNav,
+        recording: deRecording
       }
     },
     interpolation: {

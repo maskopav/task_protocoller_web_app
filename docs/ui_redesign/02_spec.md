@@ -252,7 +252,7 @@ The functionality stays as it is. The layout changes to a workspace:
 
 **Intent:** "Where my studies run."
 
-- **One clinic:** the route redirects to the clinic itself, and the sidebar label is "My clinic".
+- **One clinic:** the route redirects to the clinic itself, and the sidebar label is "My clinic". This applies to non-masters only. A master always sees the Clinics list (user decision, 2026-10-25).
 - **Header:** the title "Clinics". The primary action **New clinic** appears for master or with `can_create_sites`.
 - **Table columns:** Name, Country, Studies running, Computers (count, with a warning dot if any is silent or failing), Last upload, Unreviewed.
 - **Master only:** an "Unassigned computers (n)" section above the table. It lists quarantined installations with "Assign to clinic…". This replaces the top-level Devices page.
