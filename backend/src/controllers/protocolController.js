@@ -565,6 +565,11 @@ export const archiveProtocol = async (req, res) => {
     if (!(await canWriteProtocol(req, protocol))) {
       return res.status(403).json({ error: protocol.project_id == null ? 'not_author' : 'not_editor' });
     }
+    // An archived study is read-only, as in saveProtocol.
+    if (protocol.project_id != null) {
+      const [project] = await executeQuery('SELECT is_active FROM projects WHERE id = ?', [protocol.project_id]);
+      if (project?.is_active === 0) return res.status(403).json({ error: 'project_inactive' });
+    }
 
     await executeTransaction(async (conn) => {
       await conn.query(

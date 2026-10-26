@@ -94,6 +94,8 @@
     "introPlaceholder": "Begrüßungstext für die Teilnehmer...",
     "confirmDeleteInfoTitle": "Infoseite löschen?",
     "confirmDeleteInfoMsg": "Möchten Sie den Einleitungstext wirklich entfernen?",
+    "confirmDeleteInstructionsTitle": "Anweisungen löschen?",
+    "confirmDeleteInstructionsMsg": "Möchten Sie die Anweisungsseite wirklich entfernen?",
     "currentlyEditingLang": "Aktuell bearbeitete Variante:",
     "smartSyncNote": "Smart Sync ist aktiv.",
     "smartSyncWarning": "Strukturelle Änderungen (Aufgaben hinzufügen, neu anordnen oder löschen) werden automatisch in alle anderen Sprachvarianten dieses Protokolls übernommen. Textänderungen gelten nur für diese Sprache.",

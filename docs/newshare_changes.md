@@ -142,6 +142,8 @@ Notes:
 
 ### New: `/sites` (admin, JWT required)
 
+> **Superseded by the UI redesign (2026-10).** `/sites`, `/projects`, `/users`, runs-at (`PUT/DELETE /projects/:id/sites/:siteId`), study editors and the library are RESTful now, and `/user-sites`, `/user-projects` and `user_project_sites` are gone. The current API is in `docs/ui_redesign/02_spec.md` §8.3 and the access model in §4. The two tables below are kept as history.
+
 | Method | Path | Role | Purpose |
 |---|---|---|---|
 | GET | `/sites` | any admin | List sites (+`project_count`); `?project_id=` filters to one project's sites; `?userId=&role=` scopes to one admin's assigned sites via `user_sites` (master sees all) — the scoped rows never include `access_token`/`config_json` |
@@ -434,9 +436,9 @@ Errors are `{error: "<code>"}`. Response shapes are in the specification's appen
 
 | Rule | Behaviour |
 |---|---|
-| Visibility | Master sees all. Others: site in `user_sites`, or project in `user_projects` and the site allowed by `user_project_sites` (else all the project's clinics). A session with no matched project is visible through a site grant only |
+| Visibility | Master sees all. Others see a session only when its clinic is in their `user_sites`. Editing a study (`project_editors`) never widens this (UI redesign, 2026-10) |
 | See | List, KPIs, facets, detail (masked), attempts, comments, device list |
-| Edit | Master, a site grant, or `can_edit` on the project grant that makes the session visible. Covers ZIP, clips, bundle, reveal, participant edit, qc, comments |
+| Edit | The same rule as visibility: whoever sees a session may work on it. Covers ZIP, clips, bundle, reveal, participant edit, qc, comments |
 | Out of scope | **404**, exactly like a nonexistent session. Lists, KPIs and facets are computed after scoping |
 | Visible but read-only | **403** `forbidden` on write endpoints |
 | Master only | Quarantined sessions, device rename, device site assignment |

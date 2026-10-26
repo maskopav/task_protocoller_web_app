@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SafeButton } from '../Shared/SafeButton';
+import { Icon } from '../ui/icons.jsx';
 import './IncompatibleBrowser.css';
 
 import chromeIcon from '../../assets/browsers/chrome.png';
@@ -34,7 +35,7 @@ export const IncompatibleBrowser = ({ browserName }) => {
     return (
         <div className="ib-overlay">
             <div className="ib-card">
-                <div className="ib-icon">⚠️</div>
+                <div className="ib-icon"><Icon name="alert" size={48} /></div>
                 <h2 className="ib-title">{t('incompatibleBrowser.title')}</h2>
                 <p className="ib-description">
                     <strong>{browserName}</strong> {t('incompatibleBrowser.description')}

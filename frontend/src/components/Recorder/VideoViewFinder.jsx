@@ -5,6 +5,7 @@ import InfoTooltip from '../InfoToolTip/InfoToolTip';
 import { arrowUpIcon, arrowDownIcon, arrowLeftIcon, arrowRightIcon } from '../../assets/arrowIcons/arrowAssets';
 import MediaPermissionContent from '../Recorder/MediaPermissionContent';
 import { SafeButton } from '../Shared/SafeButton';
+import { Icon } from '../ui/icons.jsx';
 import AudioGuidePlayer from '../AudioGuidePlayer/AudioGuidePlayer';
 import { getCameraSetupAudioPath } from '../../utils/getAudioGuidePath';
 import './VideoViewFinder.css';
@@ -337,7 +338,7 @@ export const VideoViewFinder = ({
                 {phase === 'RECORDING' && showWarningBorder && (
                     <div className="recording-alert-overlay">
                         <div className="alert-box">
-                            ⚠️ {!isSteady 
+                            <Icon name="alert" size={18} /> {!isSteady 
                                 ? t('videoCalibration.warningHoldSteady', "Hold Phone Steady!") 
                                 : (faceMessage || t('videoCalibration.warningAdjustFace', "Adjust your face!"))}
                         </div>

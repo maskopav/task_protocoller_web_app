@@ -1,0 +1,82 @@
+[
+ {
+  "persona": "clinic",
+  "file": "01-login.png",
+  "route": "#/login"
+ },
+ {
+  "persona": "clinic",
+  "file": "02-recordings-home.png",
+  "route": "#/recordings"
+ },
+ {
+  "persona": "clinic",
+  "file": "03-recording-detail.png",
+  "route": "#/recordings/e2e00300000000000000000000000000"
+ },
+ {
+  "persona": "clinic",
+  "file": "04-users.png",
+  "route": "#/users"
+ },
+ {
+  "persona": "clinic",
+  "file": "05-studies.png",
+  "route": "#/studies"
+ },
+ {
+  "persona": "clinic",
+  "file": "06-study-protocols.png",
+  "route": "#/studies/3/protocols"
+ },
+ {
+  "persona": "clinic",
+  "file": "07-study-clinics.png",
+  "route": "#/studies/3/protocols"
+ },
+ {
+  "persona": "clinic",
+  "file": "08-study-editors.png",
+  "route": "#/studies/3/protocols"
+ },
+ {
+  "persona": "clinic",
+  "file": "09-protocol-editor.png",
+  "route": "#/studies/3/protocols/2"
+ },
+ {
+  "persona": "clinic",
+  "file": "10-clinics.png",
+  "route": "#/clinics/4/studies"
+ },
+ {
+  "persona": "clinic",
+  "file": "11-clinic-studies.png",
+  "route": "#/clinics/4/studies"
+ },
+ {
+  "persona": "clinic",
+  "file": "12-clinic-computers.png",
+  "route": "#/clinics/4/computers"
+ },
+ {
+  "persona": "clinic",
+  "file": "13-clinic-recordings.png",
+  "route": "#/clinics/4/recordings"
+ },
+ {
+  "persona": "clinic",
+  "file": "14-clinic-settings.png",
+  "route": "#/clinics/4/settings"
+ },
+ {
+  "persona": "clinic",
+  "file": "15-library.png",
+  "route": "#/library"
+ },
+ {
+  "persona": "clinic",
+  "file": "16-404.png",
+  "route": "#/does-not-exist"
+ }
+]

@@ -15,7 +15,7 @@
     "stopStory": "Geschichte stoppen",
     "disabledWhileRecording": "Während der Aufnahme deaktiviert",
     "permission": "🎤 Get Microphone Permission",
-    "cancel": "Cancel",
+    "cancel": "Abbrechen",
     "save": "Save",
     "done": "Done",
     "skip": "Überspringen",
@@ -337,6 +337,10 @@
     "more": "Weitere Aktionen",
     "close": "Schließen",
     "confirm": "Bestätigen",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "loading": "Wird geladen…",
+    "error": "Fehler"
   }
 }

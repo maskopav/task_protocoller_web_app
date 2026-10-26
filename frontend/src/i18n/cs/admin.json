@@ -94,6 +94,8 @@
     "introPlaceholder": "Uvítací text pro účastníky...",
     "confirmDeleteInfoTitle": "Smazat informační stránku?",
     "confirmDeleteInfoMsg": "Opravdu chcete odstranit úvodní text?",
+    "confirmDeleteInstructionsTitle": "Smazat instrukce?",
+    "confirmDeleteInstructionsMsg": "Opravdu chcete odstranit stránku s instrukcemi?",
     "currentlyEditingLang": "Aktuálně upravovaná varianta:",
     "smartSyncNote": "Chytrá synchronizace je zapnutá.",
     "smartSyncWarning": "Strukturální změny (přidání, změna pořadí nebo smazání úkolů) se automaticky přenesou do všech ostatních jazykových variant tohoto protokolu. Změny textu se projeví jen v tomto jazyce.",

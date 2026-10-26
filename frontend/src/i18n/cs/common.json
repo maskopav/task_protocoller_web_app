@@ -337,6 +337,10 @@
     "more": "Další akce",
     "close": "Zavřít",
     "confirm": "Potvrdit",
-    "cancel": "Zrušit"
+    "cancel": "Zrušit",
+    "delete": "Smazat",
+    "add": "Přidat",
+    "loading": "Načítání…",
+    "error": "Chyba"
   }
 }

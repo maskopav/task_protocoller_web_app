@@ -88,6 +88,9 @@ test.describe('as master', () => {
       for (const id of ['nav-recordings', 'nav-studies', 'nav-clinics', 'nav-library', 'nav-users']) {
         await expect(page.getByTestId(id)).toBeVisible();
       }
+      // Spec §10.3: at most one primary action per page.
+      await page.waitForLoadState('networkidle');
+      expect(await page.locator('.ui-btn-primary:visible').count()).toBeLessThanOrEqual(1);
     });
   }
 

@@ -94,6 +94,8 @@
     "introPlaceholder": "Welcome text for participants...",
     "confirmDeleteInfoTitle": "Delete Info Page?",
     "confirmDeleteInfoMsg": "Are you sure you want to remove the introduction text?",
+    "confirmDeleteInstructionsTitle": "Delete instructions?",
+    "confirmDeleteInstructionsMsg": "Are you sure you want to remove the instructions page?",
     "currentlyEditingLang": "Currently Editing Variant:",
     "smartSyncNote": "Smart Sync is active.",
     "smartSyncWarning": "Structural changes (adding, reordering, deleting tasks) will automatically sync to all other language variants of this protocol. Text changes will only apply to this language.",

@@ -216,6 +216,22 @@ test.describe.serial('runs at, from the study side', () => {
       await request.put(`${BACKEND_URL}/projects/${SEEDED_STUDY}/sites/${CLINIC_B}`, { headers: bearer(token) });
     }
   });
+
+  test('the change reaches the clinic computers through /site-config', async ({ request }) => {
+    const token = await apiToken(request, USERS.researcher);
+    const projects = async () =>
+      (await (await request.get(`${BACKEND_URL}/site-config/e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5`)).json())
+        .protocols.map((p: { project: string }) => p.project);
+    expect(await projects()).toContain('Speech Study');
+    try {
+      expect((await request.delete(`${BACKEND_URL}/projects/${SEEDED_STUDY}/sites/${CLINIC_B}`, { headers: bearer(token) })).ok()).toBeTruthy();
+      expect(await projects()).not.toContain('Speech Study');
+      expect((await request.put(`${BACKEND_URL}/projects/${SEEDED_STUDY}/sites/${CLINIC_B}`, { headers: bearer(token) })).ok()).toBeTruthy();
+      expect(await projects()).toContain('Speech Study');
+    } finally {
+      await request.put(`${BACKEND_URL}/projects/${SEEDED_STUDY}/sites/${CLINIC_B}`, { headers: bearer(token) });
+    }
+  });
 });
 
 test.describe.serial('editors', () => {

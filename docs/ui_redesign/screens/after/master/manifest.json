@@ -1,0 +1,112 @@
+[
+ {
+  "persona": "master",
+  "file": "01-login.png",
+  "route": "#/login"
+ },
+ {
+  "persona": "master",
+  "file": "02-recordings-home.png",
+  "route": "#/recordings"
+ },
+ {
+  "persona": "master",
+  "file": "03-recording-detail.png",
+  "route": "#/recordings/e2e0a200000000000000000000000000"
+ },
+ {
+  "persona": "master",
+  "file": "04-users.png",
+  "route": "#/users"
+ },
+ {
+  "persona": "master",
+  "file": "05-users-modal-invite.png",
+  "route": "#/users"
+ },
+ {
+  "persona": "master",
+  "file": "06-user-detail.png",
+  "route": "#/users/3"
+ },
+ {
+  "persona": "master",
+  "file": "07-studies.png",
+  "route": "#/studies"
+ },
+ {
+  "persona": "master",
+  "file": "08-studies-modal-new.png",
+  "route": "#/studies"
+ },
+ {
+  "persona": "master",
+  "file": "09-study-protocols.png",
+  "route": "#/studies/1/protocols"
+ },
+ {
+  "persona": "master",
+  "file": "10-study-modal-new-protocol.png",
+  "route": "#/studies/1/protocols"
+ },
+ {
+  "persona": "master",
+  "file": "11-study-clinics.png",
+  "route": "#/studies/1/clinics"
+ },
+ {
+  "persona": "master",
+  "file": "12-study-editors.png",
+  "route": "#/studies/1/editors"
+ },
+ {
+  "persona": "master",
+  "file": "13-protocol-editor.png",
+  "route": "#/studies/1/protocols/1"
+ },
+ {
+  "persona": "master",
+  "file": "14-participant-preview.png",
+  "route": "#/studies/1/protocols/1/preview"
+ },
+ {
+  "persona": "master",
+  "file": "15-clinics.png",
+  "route": "#/clinics"
+ },
+ {
+  "persona": "master",
+  "file": "16-clinics-modal-new.png",
+  "route": "#/clinics"
+ },
+ {
+  "persona": "master",
+  "file": "17-clinic-studies.png",
+  "route": "#/clinics/4/studies"
+ },
+ {
+  "persona": "master",
+  "file": "18-clinic-computers.png",
+  "route": "#/clinics/4/computers"
+ },
+ {
+  "persona": "master",
+  "file": "19-clinic-recordings.png",
+  "route": "#/clinics/4/recordings"
+ },
+ {
+  "persona": "master",
+  "file": "20-clinic-settings.png",
+  "route": "#/clinics/4/settings"
+ },
+ {
+  "persona": "master",
+  "file": "21-library.png",
+  "route": "#/library"
+ },
+ {
+  "persona": "master",
+  "file": "22-404.png",
+  "route": "#/does-not-exist"
+ }
+]

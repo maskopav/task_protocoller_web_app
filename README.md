@@ -151,6 +151,20 @@ The application will now be live at: `http://localhost:5173`. Ignore the warning
   FRONTEND_BASE_URL=https://localhost:5183
   ```
 
+### Seed users
+
+`npm run db:test:reset` (in `backend/`) seeds these users, all with password `1234`. Access follows the clinic/study model in [`docs/ui_redesign/02_spec.md`](docs/ui_redesign/02_spec.md) §4: you see a clinic's recordings only when the clinic is assigned to you, and editing a study never widens that.
+
+| Email | Role | What they have |
+|---|---|---|
+| `master@test.com` | master | everything, including users and quarantined recordings |
+| `admin@test.com` | admin | clinic Paris; edits no study |
+| `clinic@test.com` | admin | clinic E2E Clinic A; receives Speech Study read-only |
+| `editor@test.com` | admin | edits Speech Study; clinic E2E Clinic B only |
+| `researcher@test.com` | admin | edits Speech Study; clinics A and B; may create studies |
+| `reviewer@test.com` | admin | clinics A and B; edits nothing |
+| `nogrant@test.com` | admin | nothing |
+
 ---
 
 ## Database verification

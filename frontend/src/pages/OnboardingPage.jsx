@@ -50,7 +50,7 @@ export default function OnboardingPage() {
         <TextField label={t("setupProfile.labelPassword")} type="password" required autoComplete="new-password" value={formData.password} onChange={set("password")} />
         <TextField label={t("setupProfile.labelConfirm")} type="password" required autoComplete="new-password" value={formData.confirmPassword} onChange={set("confirmPassword")} />
         <Button variant="primary" type="submit" disabled={loading}>
-          {loading ? t("common:loading") : t("setupProfile.btnSubmit")}
+          {loading ? t("common:ui.loading") : t("setupProfile.btnSubmit")}
         </Button>
       </form>
     </AuthCard>

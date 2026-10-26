@@ -4,10 +4,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { USERS, PASSWORD, BACKEND_URL, bearer, ensureSeeded } from '../helpers/uploads';
 
-// UI/UX audit "before" screenshots. Not part of the normal e2e run. Run with:
-//   npx playwright test -c playwright.capture.config.ts
+// UI/UX "after" screenshots, the counterpart of screens/before (same personas, 1440 px,
+// full page, English, seeded E2E data). The "before" set was taken by the previous
+// version of this file (git 6a08360) on the old /admin routes. Modals are opened but
+// never submitted, so the run creates no data. Not part of the normal e2e run:
+//   npx playwright test -c playwright.capture.config.ts capture.spec
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.resolve(__dirname, '../../../docs/ui_redesign/screens/before');
+const OUT = path.resolve(__dirname, '../../../docs/ui_redesign/screens/after');
 const PERSONAS = ['master', 'clinic', 'editor', 'reviewer'] as const;
 
 type Entry = { persona: string; file: string; route: string };
@@ -28,7 +31,7 @@ for (const persona of PERSONAS) {
 
     const shot = async (name: string) => {
       await page.waitForLoadState('networkidle').catch(() => {});
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(600);
       n += 1;
       const file = `${String(n).padStart(2, '0')}-${name}.png`;
       await page.screenshot({ path: path.join(dir, file), fullPage: true });
@@ -49,15 +52,19 @@ for (const persona of PERSONAS) {
     const closeModal = async () => {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
-      const x = page.getByRole('button', { name: /^(×|✖|✕|x|close|cancel)$/i }).first();
-      if (await x.isVisible().catch(() => false)) await x.click({ timeout: 2000 }).catch(() => {});
-      await page.waitForTimeout(300);
-      // last resort: click the dimmed backdrop
-      await page.mouse.click(4, 450).catch(() => {});
-      await page.waitForTimeout(300);
     };
-    const visible = (sel: string) => page.locator(sel).first().isVisible().catch(() => false);
-    const enabled = (sel: string) => page.locator(sel).first().isEnabled({ timeout: 1500 }).catch(() => false);
+    // Opens a modal from a button (if this persona has it), shoots it and closes it again.
+    const modal = async (testId: string, name: string) => {
+      const btn = page.getByTestId(testId).first();
+      if (!(await btn.isVisible().catch(() => false))) {
+        console.log(`[${persona}] no ${testId}`);
+        return;
+      }
+      await btn.click();
+      await page.getByRole('dialog').first().waitFor({ timeout: 4000 });
+      await shot(name);
+      await closeModal();
+    };
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.addInitScript(() => localStorage.setItem('appLanguage', 'en'));
@@ -67,145 +74,89 @@ for (const persona of PERSONAS) {
     await page.locator('input[name="email"]').fill(USERS[persona]);
     await page.locator('input[name="password"]').fill(PASSWORD);
     await page.locator('button[type="submit"]').click();
-    await page.waitForURL(/\/admin$/);
+    await page.waitForURL(/\/recordings$/);
     const token = (await page.evaluate(() => localStorage.getItem('adminToken'))) as string;
     const api = async (p: string) => {
       const r = await request.get(`${BACKEND_URL}${p}`, { headers: bearer(token) });
       return r.ok() ? await r.json() : null;
     };
-    await shot('dashboard-home');
+    await shot('recordings-home');
+
+    await step('recording detail', async () => {
+      const row = page.locator('tbody tr.clickable').first();
+      if (await row.isVisible().catch(() => false)) {
+        await row.click();
+        await page.waitForURL(/recordings\/[0-9a-f]{32}/);
+        await shot('recording-detail');
+      } else console.log(`[${persona}] no recording rows`);
+    });
 
     await step('users', async () => {
-      await go('/admin/admin-management');
-      await shot('user-management');
-      if (page.url().includes('admin-management')) {
-        await page.locator('.btn-add').first().click();
-        await shot('user-management-modal-create');
-        await closeModal();
-        await page.locator('.btn-mgmt-icon.btn-edit').first().click();
-        await shot('user-management-modal-edit');
-        await closeModal();
-        await page.locator('.btn-mgmt-icon[title]').nth(1).click();
-        await shot('user-management-modal-assign-project');
-        await closeModal();
-        await page.locator('.btn-mgmt-icon[title]').nth(2).click();
-        await shot('user-management-modal-assign-site');
-        await closeModal();
-      }
-    });
-    await step('project-mgmt', async () => {
-      await go('/admin/project-management');
-      await shot('project-management');
-      if (page.url().includes('project-management')) {
-        await page.locator('.btn-add').first().click();
-        await shot('project-management-modal-create');
-        await closeModal();
-        await page.locator('.btn-mgmt-icon.btn-edit').first().click();
-        await shot('project-management-modal-edit');
-        await closeModal();
-      }
-    });
-    await step('site-mgmt', async () => {
-      await go('/admin/site-management');
-      await shot('site-management');
-      if (page.url().includes('site-management')) {
-        await page.locator('.btn-add').first().click();
-        await shot('site-management-modal-create');
-        await closeModal();
-        await page.locator('.btn-mgmt-icon.btn-edit').first().click();
-        await shot('site-management-modal-edit');
-        await closeModal();
+      await go('/users');
+      await shot('users');
+      if (await page.getByTestId('users-table').isVisible().catch(() => false)) {
+        await modal('new-user', 'users-modal-invite');
+        await page.getByTestId('users-table').locator('tbody tr').first().click();
+        await page.waitForURL(/users\/\d+/);
+        await shot('user-detail');
       }
     });
 
     const sites: any[] = (await api('/sites')) ?? [];
     const projects: any[] = (await api('/projects')) ?? [];
-    const siteId = (sites.find((s) => s.name === 'E2E Clinic A') ?? sites[0])?.id;
-    const proj = projects.find((p) => p.name === 'Speech Study') ?? projects[0];
-    const projectId = proj?.project_id ?? proj?.id;
-    console.log(`[${persona}] sites=${sites.map((s) => s.id)} projects=${projects.map((p) => p.project_id)}`);
+    const siteId = (sites.find((s) => s.name === (persona === 'editor' ? 'E2E Clinic B' : 'E2E Clinic A')) ?? sites[0])?.id;
+    // master edits the seeded protocol with tasks (study 1), the others see Speech Study, as in "before"
+    const proj = persona === 'master' ? projects.find((p) => p.project_id === 1) : projects.find((p) => p.name === 'Speech Study');
+    const projectId = (proj ?? projects[0])?.project_id;
+    console.log(`[${persona}] sites=${sites.map((s) => s.id)} projects=${projects.map((p) => p.project_id)} -> site ${siteId}, study ${projectId}`);
 
-    await step('site detail', async () => {
-      await go(`/admin/sites/${siteId}`);
-      await shot('site-detail');
-      if (await enabled('.btn-edit-project, .btn-mgmt-icon.btn-edit')) {
-        await page.locator('.btn-edit-project, .btn-mgmt-icon.btn-edit').first().click();
-        await shot('site-detail-modal-edit');
-        await closeModal();
-      } else console.log(`[${persona}] site edit button missing/disabled`);
-      const manage = page.getByRole('button', { name: /manage|projects/i }).first();
-      if (await manage.isVisible().catch(() => false)) {
-        await manage.click();
-        await shot('site-detail-modal-manage-projects');
-        await closeModal();
-      } else console.log(`[${persona}] manage-projects button missing`);
+    await step('studies', async () => {
+      await go('/studies');
+      await shot('studies');
+      await modal('studies-new', 'studies-modal-new');
     });
 
-    await step('project detail', async () => {
-      await go(`/admin/projects/${projectId}`);
-      await shot('project-detail');
-      if (await enabled('.btn-edit-project')) {
-        await page.locator('.btn-edit-project').first().click();
-        await shot('project-detail-modal-edit');
-        await closeModal();
-      } else console.log(`[${persona}] project edit button missing/disabled`);
+    await step('study', async () => {
+      await go(`/studies/${projectId}/protocols`);
+      await shot('study-protocols');
+      await modal('study-new-protocol', 'study-modal-new-protocol');
+      await go(`/studies/${projectId}/clinics`);
+      await shot('study-clinics');
+      await go(`/studies/${projectId}/editors`);
+      await shot('study-editors');
     });
 
-    const goProtocols = async () => {
-      await go(`/admin/projects/${projectId}/protocols`);
-      await page.locator('.btn-view').first().waitFor({ timeout: 8000 }).catch(() => {});
-    };
-    await step('protocols', async () => {
-      await goProtocols();
-      await shot('protocol-list');
-      const nameInput = '.create-inputs-row input';
-      if (await enabled(nameInput)) {
-        await page.locator(nameInput).first().fill('Capture draft');
-        await shot('protocol-create-form-filled');
-        await page.locator('.btn-create').click();
-        await page.waitForURL(/protocols\/[^/]+$/).catch(() => {});
-        await shot('protocol-create-editor-new');
-        await goProtocols();
-      } else console.log(`[${persona}] create-protocol form disabled`);
-      if (await enabled('.btn-edit')) {
-        await page.locator('.btn-edit').first().click();
-        await page.waitForURL(/protocols\/\d+/);
-        await shot('protocol-editor-existing');
-        const show = page.getByRole('button', { name: /show|preview|test|participant/i }).first();
-        if (await show.isEnabled({ timeout: 1500 }).catch(() => false)) {
-          await show.click();
-          await page.waitForURL(/participant\/test/).catch(() => {});
-          await shot('participant-preview-from-editor');
-        }
-      } else console.log(`[${persona}] edit-protocol disabled/missing`);
-      await goProtocols();
-      if (await visible('.btn-view')) {
-        await page.locator('.btn-view').first().click();
-        await page.waitForURL(/participant\/test/).catch(() => {});
+    await step('protocol editor', async () => {
+      const protocols: any[] = (await api(`/projects/${projectId}/protocols`)) ?? [];
+      const protocolId = protocols[0]?.languages?.[0]?.protocol_id ?? protocols[0]?.id;
+      if (!protocolId) return console.log(`[${persona}] no protocol in study ${projectId}`);
+      await go(`/studies/${projectId}/protocols/${protocolId}`);
+      await page.getByTestId('protocol-editor').waitFor({ timeout: 8000 });
+      await shot('protocol-editor');
+      const preview = page.getByTestId('protocol-preview');
+      if (await preview.isEnabled({ timeout: 1500 }).catch(() => false)) {
+        await preview.click();
+        await page.waitForURL(/\/preview/).catch(() => {});
         await shot('participant-preview');
+      } else console.log(`[${persona}] preview disabled (no tasks)`);
+    });
+
+    await step('clinics', async () => {
+      await go('/clinics');
+      await shot('clinics');
+      await modal('new-clinic', 'clinics-modal-new');
+      for (const tab of ['studies', 'computers', 'recordings', 'settings']) {
+        await go(`/clinics/${siteId}/${tab}`);
+        await shot(`clinic-${tab}`);
       }
     });
 
-    await step('uploads', async () => {
-      await go('/admin/uploads');
-      await shot('uploads-list');
-      const row = page.locator('a.um-icon-btn').first();
-      if (await row.isVisible().catch(() => false)) {
-        await row.click();
-        await page.waitForURL(/uploads\/[0-9a-f]{32}/);
-        await shot('upload-session-detail');
-      } else console.log(`[${persona}] no upload rows`);
-    });
-    await step('devices', async () => {
-      await go('/admin/uploads/devices');
-      await shot('devices');
-    });
-    await step('downloads', async () => {
-      await go('/admin/uploads/downloads');
-      await shot('downloads');
+    await step('library', async () => {
+      await go('/library');
+      await shot('library');
     });
 
-    await go('/admin/does-not-exist');
+    await go('/does-not-exist');
     await shot('404');
 
     fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest, null, 1));

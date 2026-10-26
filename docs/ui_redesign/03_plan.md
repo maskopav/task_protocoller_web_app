@@ -19,7 +19,7 @@ The plan implements [`02_spec.md`](02_spec.md). The rules for implementers are i
 | 6 | Recordings | ✅ list + detail + bulk download; backend 738, vitest 206, e2e 133/133, lint 65, golden 5/5; screenshots in `screens/increment6/`; critic: bulk "Download all" de-duplicated and limited on downloadable rows, other findings logged in [HANDOFF.md](HANDOFF.md) |
 | 7 | Studies and Clinics | ✅ studies list/tabs, protocol editor workspace, runs-at both sides, editors, library add/share; clinics list/tabs, Computers, F-008 hint; backend 742, vitest 242, e2e 156/156, lint 61; screenshots in `screens/increment7/`; critic findings fixed or logged in [HANDOFF.md](HANDOFF.md) |
 | 8 | Users, clean-up, i18n | ✅ 8: users list/detail, auth pages, library list/entry/editor mode; vitest 252, e2e 163 + flaky refetch test stabilised, lint 60; screenshots in `screens/increment8/`. ✅ 8b: i18n parity test, dead code removed, one `:root`, F-011/F-012/F-013, `clearMocks: true`, 2 of 5 lint rules back; vitest 255, backend 741, lint 57, e2e 164 |
-| 9 | Verify and "after" screenshots | – |
+| 9 | Verify and "after" screenshots | ✅ criteria walk ([05_results.md](05_results.md)): 17 of 18 pass, criterion 10 partial (dev DB not yet recreated, `mysqldump` missing); critic: no access hole, no contract change, i18n keys and archived-study archive fixed; backend 742, vitest 255, e2e 165, lint 57; 71 screens in `screens/after/` |
 
 ---
 

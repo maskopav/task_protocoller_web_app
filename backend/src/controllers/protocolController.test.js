@@ -395,6 +395,14 @@ describe('archiveProtocol', () => {
     expect(executeTransaction).not.toHaveBeenCalled();
   });
 
+  it('403s inside an archived study, nothing written', async () => {
+    mockWorld({ editors: [7], archiveRow: studyRow, projectActive: 0 });
+    const res = await archive(admin);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ error: 'project_inactive' });
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
   it('archives the whole group for an editor and keeps the project link', async () => {
     mockWorld({ editors: [7], archiveRow: studyRow });
     const conn = { query: vi.fn(async () => [{}]) };

@@ -25,7 +25,7 @@ import { SafeButton } from '../Shared/SafeButton';
 const DEBUG_MODE = false;
 
 export const Recorder = ({
-    title = "🎙️ Task Recorder",
+    title = "Task Recorder",
     instructions = "Record, pause, resume, and save your audio with real-time visualization",
     completedInstructions = "The task was completed successfully. You can proceed to the next task, try again if you are not satisfied, or listen to your recording below.",
     audioExample,

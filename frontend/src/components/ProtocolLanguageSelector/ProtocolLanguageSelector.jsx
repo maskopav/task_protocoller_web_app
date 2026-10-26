@@ -2,6 +2,7 @@ import React, { useRef, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "../../i18n";
 import { ConfirmDialogContext } from "../ConfirmDialog/ConfirmDialogContext"; 
+import { Icon } from "../ui/icons.jsx";
 import "./ProtocolLanguageSelector.css"; 
 
 export default function ProtocolLanguageSelector({ value, onChange, disabled, editingMode }) {
@@ -24,8 +25,8 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
         const confirmed = await confirm({
             title: t("protocolEditor.addVariantTitle"),
             message: t("protocolEditor.addVariantMessage"),
-            confirmText: t("common:add", "Add Variant"),
-            cancelText: t("common:cancel", "Cancel")
+            confirmText: t("common:ui.add"),
+            cancelText: t("common:ui.cancel")
         });
         if (!confirmed) return;
     }
@@ -67,7 +68,7 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
                   className="protocol-lang-badge removable" 
                   onClick={() => toggleLanguage(code)}
                 >
-                  {langObj?.label || code} ✕
+                  {langObj?.label || code} <Icon name="x" size={14} />
                 </div>
               );
             }
@@ -77,7 +78,7 @@ export default function ProtocolLanguageSelector({ value, onChange, disabled, ed
         {missingLangs.length > 0 && (
           <div className="protocol-lang-add-section">
             <label className="protocol-lang-add-label">
-              ➕ {t("protocolEditor.addNewVariant", "Add New Language Variant")}
+              <Icon name="plus" size={14} /> {t("protocolEditor.addNewVariant", "Add New Language Variant")}
             </label>
             <div className="protocol-lang-pill-container">
               {missingLangs.map((lang) => (

@@ -318,7 +318,11 @@
     "more": "More actions",
     "close": "Close",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "add": "Add",
+    "loading": "Loading…",
+    "error": "Error"
   }
 }
   

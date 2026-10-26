@@ -173,7 +173,7 @@ export function ProtocolEditor({
         title: t("protocolEditor.confirmBack.title"),
         message: t("protocolEditor.confirmBack.message"),
         confirmText: t("protocolEditor.confirmBack.confirmText"),
-        cancelText: t("common:cancel"),
+        cancelText: t("common:ui.cancel"),
         danger: true,
       });
       if (ok) navigate(href.slice(1));
@@ -187,8 +187,8 @@ export function ProtocolEditor({
     };
   }, [dirty, saving, confirm, navigate, t]);
 
-  if (loading) return <p>{t("common:loading")}</p>;
-  if (error) return <p>{t("common:error")}: {error.message}</p>;
+  if (loading) return <p>{t("common:ui.loading")}</p>;
+  if (error) return <p>{t("common:ui.error")}: {error.message}</p>;
 
   // --- Tasks ---
   function handleCreateTask(category) {
@@ -274,7 +274,7 @@ export function ProtocolEditor({
         title: library ? tl("edit.confirmTitle") : t("protocolEditor.confirmUpdateTitle"),
         message: library ? tl("edit.confirmMessage", { count: usedIn }) : t("protocolEditor.confirmUpdateMsg"),
         confirmText: library ? tl("edit.confirmSave") : t("protocolEditor.buttons.updateEveryone"),
-        cancelText: t("common:cancel"),
+        cancelText: t("common:ui.cancel"),
       });
       if (!ok) return;
     }
@@ -315,8 +315,8 @@ export function ProtocolEditor({
     const ok = await confirm({
       title: t("protocolEditor.confirmDeleteInfoTitle"),
       message: t("protocolEditor.confirmDeleteInfoMsg"),
-      confirmText: t("common:delete"),
-      cancelText: t("common:cancel"),
+      confirmText: t("common:ui.delete"),
+      cancelText: t("common:ui.cancel"),
       danger: true,
     });
     if (ok) updateProtocolField("info_text", "");
@@ -326,8 +326,8 @@ export function ProtocolEditor({
     const ok = await confirm({
       title: t("protocolEditor.confirmDeleteInstructionsTitle"),
       message: t("protocolEditor.confirmDeleteInstructionsMsg"),
-      confirmText: t("common:delete"),
-      cancelText: t("common:cancel"),
+      confirmText: t("common:ui.delete"),
+      cancelText: t("common:ui.cancel"),
       danger: true,
     });
     if (ok) updateProtocolField("instructions_text", "");

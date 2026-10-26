@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "./Modal";
+import { Icon } from "../ui/icons.jsx";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import "./QuestionnaireModal.css"; 
 
@@ -148,7 +149,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                   onClick={() => removeQuestion(q.id)}
                   title={t("protocolEditor.questionnaire.removeQuestion")}
                 >
-                  ✕
+                  <Icon name="x" size={14} />
                 </button>
               </div>
 
@@ -218,7 +219,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                             onChange={() => toggleFreeTextOption(q.id, opt)} />
                           Allow write-in
                         </label>
-                        <button className="qm-btn-remove-option" onClick={() => removeOption(q.id, i)} title="Remove option">✕</button>
+                        <button className="qm-btn-remove-option" onClick={() => removeOption(q.id, i)} title="Remove option"><Icon name="x" size={14} /></button>
                       </div>
                     ))}
                     <button className="qm-btn-add-option" onClick={() => addOption(q.id)}>
