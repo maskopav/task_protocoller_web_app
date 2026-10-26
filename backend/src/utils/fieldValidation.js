@@ -46,8 +46,6 @@ export const isValidSiteName = (v) => {
   return name.length >= 1 && name.length <= SITE_NAME_MAX_LENGTH;
 };
 
-export const SITE_NAME_FORMAT_ERROR = "site_name_invalid";
-
 // --- Desktop-app config fields ------------------------------------------------
 // Mirrors frontend/src/components/Identifiers/IdentifierFields.js.
 

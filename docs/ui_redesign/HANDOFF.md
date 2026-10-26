@@ -15,8 +15,8 @@ Branch: `newshare`. Docs: [02_spec.md](02_spec.md) (spec), [03_plan.md](03_plan.
 | 6 Recordings list + detail | ✅ verified 2026-10-26 | see `git log` |
 | 7 Studies + Clinics (+ runs-at, editors, F6/F7) | ✅ verified 2026-10-26 | see `git log` |
 | 8 Users + Library UI (F8, F10) | ✅ verified 2026-10-26 | see `git log` |
-| **8b i18n and clean-up (F9)** | **next** (after the user's `/usage` check) | – |
-| 9 Verify, "after" screenshots, `05_results.md` | – | – |
+| 8b i18n and clean-up (F9) | ✅ verified 2026-10-26 | see `git log` |
+| **9 Verify, "after" screenshots, `05_results.md`** | **next** (after the user's `/usage` check) | – |
 
 ## Increment 6 verification (done 2026-10-26)
 
@@ -67,6 +67,20 @@ Branch: `newshare`. Docs: [02_spec.md](02_spec.md) (spec), [03_plan.md](03_plan.
 - **Tests:** vitest 252, build OK, lint 60, full e2e 163 passed + 1 flaky (`protocol-manager` refetch count picked up the Recordings home's own `/projects` fetch; the test now waits for network idle first). Backend unchanged. Critic: nothing medium or higher. Screenshots: `screens/increment8/`.
 - **Deviations:** Users has no "Studies they edit" section and no Last login (no endpoint); invite takes name and email only; master users show "All clinics" and no switches (the backend refuses changes to a master). Library has no Length / Source study columns, no entry Preview (preview route is study-bound), no Language filter; Edit and Withdraw sit in the ⋯ menu.
 - **For F9:** user page buttons ("Save changes", "Send password reset link") render full width (old global button CSS); `components/DashboardTopBar` unused; `useProtocolManager` still sends `created_by: 1` (ignored by the server); `PlaceholderPage` may now be unused; legacy `/admin/admin-management` references in `e2e/tools/capture.spec.ts`; review cs/de of `users.json` and `library.json`.
+
+## Increment 8b verification (done 2026-10-26)
+
+- **Tests:** vitest 255 (incl. the new `src/i18n/parity.test.js`), backend 741 (one test went with the deleted `SITE_NAME_FORMAT_ERROR`; golden 5/5, fixtures clean, `clearMocks: true`), build OK, lint 57, full e2e 163 + the protected ingest spec after the fix below (3/3).
+- **Done:** cs/de keys filled; en wording without site/project; F-011 typo; F-012 HHIE-S titles; dead code removed (admin dashboard, fieldwork, video test, `VideoRecorder` component, `Uploads/cards`, `DashboardTopBar`, `PlaceholderPage`); `:root` only in `styles/tokens.css` (old vars kept there as legacy aliases); old `Pages.css` rules scoped to `.app-container`; banner links to `/clinics#unassigned-computers`; docs no longer mention `db:permissions`. Lint rules `purity` and `static-components` are back on.
+- **Corrected by the orchestrator:**
+  - The agent padded 41 cs and 81 de questionnaire strings (RBDSQ, HHIE-S) with "[cs] …"/"[de] …" placeholders. Stripped to the English text, which is what participants saw before (fallback).
+  - The agent machine-translated the three standard reading passages (North Wind and the Sun, Grandfather, Rainbow) into cs/de. Removed: they are study stimuli and need published, validated versions. The parity test exempts `reading.params.topic.values.*.text`; the passage labels stay translated.
+  - "Device not registered" must stay as is in en (`unknown_device`): the frozen `uploads-ingest.spec.ts` asserts it. A known exception to the Computer glossary term.
+- **Open (user decision / later):**
+  - **Validated cs/de versions** of the RBDSQ and HHIE-S questionnaires and of the reading passages (or a decision to keep English).
+  - Native-speaker review of all new cs/de UI strings.
+  - Lint rules still off: `set-state-in-effect` (49 hits), `refs` (11), `immutability` (1, `useVoiceRecorder` countdown).
+  - `npm audit fix` (quill, low) not run; emoji ✕/➕ in `QuestionnaireModal` and `ProtocolLanguageSelector`; `e2e/tools/capture.spec.ts` legacy paths.
 
 ## Decisions made with the user (beyond the spec text)
 

@@ -1,25 +1,4 @@
-/* Pages.css */ 
-:root {
-  color-scheme: light;
-} 
-:root {
-  --bg: #f9fafb;
-  --card-bg: #ededed;
-  --grey: #ced0d3;
-  --dark-gray: #6b7280;
-  --text: #000000;
-  --muted: #575151;
-  --border: #d6dfef;
-  --primary: #3764df;
-  --danger: #e74c3c;
-  --warning: #f39c12;
-  --success: #27ae60;
-  --purple: #7e3ff4;
-  --radius: 1rem;
-  --sharp-radius: 4px;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
-  --transition: all 0.2s ease;
-}
+/* Pages.css: participant interface layout. Variables live in styles/tokens.css. */
 
 html, body, #root {
   height: 100%;
@@ -34,12 +13,6 @@ html, body, #root {
   box-sizing: border-box; /* Ensures padding doesn't accidentally increase height */
 }
 
-body {
-  font-family: "Roboto", "Noto Sans", "Inter", system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-}
 
 .dashboard-page, .protocol-editor-page {
   display: flex;
@@ -52,6 +25,8 @@ body {
 }
 
 .app-container {
+  font-family: "Roboto", "Noto Sans", "Inter", system-ui, sans-serif;
+  color: var(--text);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -152,7 +127,7 @@ body {
   margin-bottom: 10dvh;
 }
 
-h1 {
+.app-container h1 {
   /* Matches standard prominent headers */
   font-size: clamp(1.55rem, 5vw, 2.2rem); 
   margin-bottom: clamp(0.1rem, 0.5vh, 0.5rem);
@@ -160,7 +135,7 @@ h1 {
   font-weight: 600;
 }
 
-p {
+.app-container p {
   font-size: clamp(1.3rem, min(4.8vw, 3.8dvh), 1.6rem);
   margin: 0;
   color: var(--muted);
@@ -204,7 +179,7 @@ p {
 }
 
 /* --- Smart Buttons --- */
-button {
+.app-container button {
   width: 100%;
   /* Noticeably taller on phones, comfortable on laptops */
   padding: clamp(12px, 2dvh, 16px) clamp(16px, 3dvw, 20px);
@@ -225,15 +200,15 @@ button {
   gap: 0.5em;
 }
 
-button:hover:not(:disabled) {
+.app-container button:hover:not(:disabled) {
   filter: brightness(0.9);
   transform: translateY(-1px);
 }
-button:active {
+.app-container button:active {
   transform: translateY(1px);
 }
 
-button:disabled {
+.app-container button:disabled {
   color: var(--text);
   background: #dee1e491;
   cursor: not-allowed;
@@ -245,7 +220,7 @@ button:disabled {
   gap: clamp(0.4rem, 1.2vw, 0.8rem);
   margin: 0;
 }
-.button-group button {
+.app-container .button-group button {
   flex: 1;
 }
 
@@ -276,7 +251,7 @@ button:disabled {
 
 /* Keep button width stable so it doesn't jump/reflow when text changes
    from "Next" to a spinner + "Sending" */
-button:disabled {
+.app-container button:disabled {
   cursor: not-allowed;
   opacity: 0.85; /* enough to read as "busy", not "unavailable" */
 }

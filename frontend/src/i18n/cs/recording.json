@@ -1,12 +1,12 @@
 {
   "session": {
-    "title": "Relace",
+    "title": "Záznam",
     "appVersion": "Verze aplikace",
     "notFinished": "nedokončeno",
-    "notFinishedHint": "Nebyl zaznamenán čas ukončení: relace neskončila řádně. Zobrazený čas je okamžik, kdy ji aplikace znovu sestavila.",
+    "notFinishedHint": "Nebyl zaznamenán čas ukončení: záznam neskončil řádně. Zobrazený čas je okamžik, kdy ji aplikace znovu sestavila.",
     "length": "Délka",
     "received": "Přijato",
-    "afterEnd": "{{lag}} po skončení relace",
+    "afterEnd": "{{lag}} po skončení záznamu",
     "tasks": "Úlohy",
     "tasksDone": "{{done}} z {{total}} nahráno",
     "timelineUsed": "Použitá časová osa",
@@ -20,7 +20,7 @@
     "nonStandard": "nestandardní",
     "inputGain": "zesílení vstupu {{gain}}",
     "noAudio": "Tento protokol neobsahuje zvuk",
-    "sessionId": "ID relace",
+    "sessionId": "ID záznamu",
     "configVersion": "Verze konfigurace",
     "old": "stará",
     "zipSha": "SHA-256 souboru ZIP",
@@ -64,7 +64,7 @@
     "videoNoSound": "Přehrát video (MP4 nemá zvukovou stopu)",
     "showAnswers": "Zobrazit odpovědi ({{count}})",
     "closeVideo": "Zavřít video",
-    "viewOnlyNote": "Přehrávání klipů vyžaduje právo úprav této relace.",
+    "viewOnlyNote": "Přehrávání klipů vyžaduje právo úprav tohoto záznamu.",
     "answersTitle": "Odpovědi",
     "repetition": "Opakování {{n}}"
   },
@@ -88,25 +88,25 @@
       "archive": "Struktura archivu",
       "manifest": "Hashe souborů v manifestu",
       "ids": "Konzistentní ID",
-      "device": "Zařízení registrováno",
+      "device": "Počítač registrován",
       "config_version": "Verze konfigurace",
-      "complete": "Relace kompletní"
+      "complete": "Záznam kompletní"
     },
     "desc": {
-      "zip_checksum": "SHA-256 souboru odpovídá hodnotě, kterou zařízení deklarovalo",
+      "zip_checksum": "SHA-256 souboru odpovídá hodnotě, kterou počítač deklaroval",
       "archive": "Archiv lze přečíst a má očekávanou strukturu",
       "manifest": "Každý soubor je přítomen a odpovídá manifest.json",
-      "ids": "ID relace a instalace se v souborech shodují",
-      "device": "Zařízení má registrované ID instalace",
+      "ids": "ID záznamu a instalace se v souborech shodují",
+      "device": "Počítač má registrované ID instalace",
       "config_version": "Verze konfigurace je aktuální",
       "complete": "Zpracování proběhlo řádně"
     }
   },
   "history": {
     "title": "Historie nahrávání",
-    "sub": "Každý požadavek, který server pro toto ID relace přijal",
+    "sub": "Každý požadavek, který server pro toto ID záznamu přijal",
     "none": "Žádné zaznamenané požadavky.",
-    "deviceReport": "Hlášení zařízení",
+    "deviceReport": "Hlášení počítače",
     "outcome": {
       "accepted": "Přijato",
       "resent": "Odesláno znovu (odpověď jako úspěch)",
@@ -122,7 +122,7 @@
     "addComment": "Přidat komentář pro tým kliniky",
     "placeholder": "např. Fonace, pokus 2, je přebuzená, prosím nahrajte znovu při další návštěvě",
     "post": "Odeslat komentář",
-    "forbidden": "K této relaci máte jen právo čtení.",
+    "forbidden": "K tomuto záznamu máte jen právo čtení.",
     "failed": "Uložení se nezdařilo ({{code}}).",
     "viewOnlyNote": "Pouze zobrazení. Stažení, zobrazení polí účastníka, změna posouzení a komentování vyžadují přiřazení k této klinice nebo právo úprav studie."
   },
@@ -138,7 +138,7 @@
     "noteEdit": "Tak, jak byly zadány na klinice. Pole kromě kódu pacienta a návštěvy zůstávají skrytá, dokud je nezobrazíte. Každé zobrazení se zapisuje do auditního logu. Úprava opravuje překlepy: nové hodnoty nahradí staré na všech stránkách i v pozdějších stažených souborech a každá změna se zapíše do auditního logu.",
     "errors": {
       "generic": "Uložení se nezdařilo ({{code}}).",
-      "forbidden": "K této relaci máte jen právo čtení.",
+      "forbidden": "K tomuto záznamu máte jen právo čtení.",
       "required_field": "Kód pacienta a návštěva nesmí být prázdné.",
       "invalid_value": "Některá hodnota je neplatná (text nejvýše 255 znaků).",
       "invalid_fields": "Pole se nepodařilo přečíst.",
@@ -154,15 +154,15 @@
   "page": {
     "crumbRoot": "Záznamy",
     "notFoundTitle": "Nenalezeno",
-    "notFoundBody": "Tato nahrávka neexistuje, nebo k ní nemáte přístup.",
-    "errorTitle": "Nahrávku se nepodařilo načíst",
+    "notFoundBody": "Tento záznam neexistuje, nebo k ní nemáte přístup.",
+    "errorTitle": "Záznam se nepodařilo načíst",
     "errorBody": "Server neodpověděl očekávaným způsobem. Zkuste to prosím znovu.",
     "retry": "Zkusit znovu",
-    "loading": "Načítání nahrávky"
+    "loading": "Načítání záznamu"
   },
   "header": {
-    "prev": "Předchozí nahrávka",
-    "next": "Další nahrávka",
+    "prev": "Předchozí záznam",
+    "next": "Další záznam",
     "download": "Stáhnout ZIP",
     "downloadHint": "{{size}} · uloženo jako {{id}}.zip",
     "downloadFailed": "Stahování se nepodařilo zahájit.",
@@ -175,15 +175,15 @@
   "quarantine": {
     "badge": "V karanténě",
     "title": "V karanténě: tento počítač není přiřazen k žádné klinice",
-    "body": "Jeho nahrávky jsou drženy v karanténě. Přiřaďte počítač ke klinice a jeho nahrávky se přesunou tam.",
+    "body": "Jeho záznamy jsou drženy v karanténě. Přiřaďte počítač ke klinice a jeho záznamy se přesunou tam.",
     "assign": "Přiřadit počítač…",
     "modalTitle": "Přiřadit počítač ke klinice",
-    "modalDesc": "Všechny nahrávky z tohoto počítače se přesunou na vybranou kliniku.",
+    "modalDesc": "Všechny záznamy z tohoto počítače se přesunou na vybranou kliniku.",
     "clinic": "Klinika",
     "choose": "Vyberte kliniku",
     "confirm": "Přiřadit",
     "cancel": "Zrušit",
-    "done": "Počítač byl přiřazen. K ověření bylo uvolněno nahrávek: {{count}}.",
+    "done": "Počítač byl přiřazen. K ověření bylo uvolněno záznamů: {{count}}.",
     "failed": "Počítač se nepodařilo přiřadit ({{code}}).",
     "notFound": "Tento počítač nebyl v seznamu počítačů nalezen."
   },
@@ -225,7 +225,7 @@
       "qc_change": "{{name}} změnil(a) posouzení",
       "qc_change_values": "{{name}} změnil(a) posouzení z {{from}} na {{to}}",
       "download": "{{name}} stáhl(a) ZIP",
-      "bundle": "{{name}} stáhl(a) tuto nahrávku v balíčku",
+      "bundle": "{{name}} stáhl(a) tento záznam v balíčku",
       "other": "{{name}}: {{action}}"
     }
   }

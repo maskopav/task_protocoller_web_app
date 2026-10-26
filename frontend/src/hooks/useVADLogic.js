@@ -57,7 +57,7 @@ export const useVadLogic = ({
 
     const isSpeakingRef = useRef(false);
     const hasSpokenRef = useRef(false);
-    const lastSpeechTimeRef = useRef(Date.now());
+    const lastSpeechTimeRef = useRef(0); // reset when recording starts (effect below)
     const speechSegments = useRef([]);
     const currentSpeechStart = useRef(null);
 

@@ -4,72 +4,298 @@
     "description": "Upravitelný formulář otázek a odpovědí.",
     "title": "Dotazník: {{title}}",
     "instructions": "Prosím zodpovězte na následující otázky.",
+    "pleaseAnswerAll": "Pro pokračování odpovězte prosím na všechny povinné otázky.",
+    "optionalLabel": "(volitelné)",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "title": {
+        "label": "Název"
+      },
+      "description": {
+        "label": "Popis"
+      },
+      "questions": {
+        "label": "Otázky"
+      }
     }
   },
   "rbdsq": {
     "name": "RBD-SQ",
-    "description": "[cs] REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
+    "description": "REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
     "title": "Dotazník: {{title}}",
     "instructions": "Prosím zodpovězte na následující otázky.",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "title": {
+        "label": "Název"
+      },
+      "description": {
+        "label": "Popis"
+      },
+      "questions": {
+        "label": "Otázky"
+      }
     },
     "defaultContent": {
       "title": "RBD-SQ",
       "description": "",
       "questions": [
-        { "id": 1782905076296, "text": "[cs] I sometimes have very vivid dreams.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905161794, "text": "[cs] My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905166057, "text": "[cs] The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905170074, "text": "[cs] I know that my arms or legs move when I sleep.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905174710, "text": "[cs] It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905182339, "text": "[cs] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1782905259308, "text": "[cs] I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076583590, "text": "[cs] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076590512, "text": "[cs] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076636726, "text": "[cs] It happens that my movements awake me.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076672712, "text": "[cs] After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076688838, "text": "[cs] My sleep is frequently disturbed.", "type": "single", "options": ["[cs] Yes", "[cs] No"] },
-        { "id": 1783076704506, "text": "[cs] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["[cs] Yes", "[cs] No"] }
+        {
+          "id": 1782905076296,
+          "text": "I sometimes have very vivid dreams.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905161794,
+          "text": "My dreams frequently have an aggressive or action-packed content.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905166057,
+          "text": "The dream contents mostly match my nocturnal behavior.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905170074,
+          "text": "I know that my arms or legs move when I sleep.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905174710,
+          "text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905182339,
+          "text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905259308,
+          "text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076583590,
+          "text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076590512,
+          "text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076636726,
+          "text": "It happens that my movements awake me.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076672712,
+          "text": "After awakening I mostly remember the content of my dreams well.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076688838,
+          "text": "My sleep is frequently disturbed.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076704506,
+          "text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        }
       ]
     }
   },
   "hhies": {
     "name": "HHIE-S",
-    "description": "[cs] Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
+    "description": "Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
     "title": "Dotazník: {{title}}",
     "instructions": "Prosím zodpovězte na následující otázky.",
     "params": {
-      "canRepeat": { "label": "Povolit opakování" },
-      "canSkip": { "label": "Povolit přeskočení" },
-      "title": { "label": "Název" },
-      "description": { "label": "Popis" },
-      "questions": { "label": "Otázky" }
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "title": {
+        "label": "Název"
+      },
+      "description": {
+        "label": "Popis"
+      },
+      "questions": {
+        "label": "Otázky"
+      }
     },
     "defaultContent": {
-      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "title": "Dotazník sluchového handicapu pro seniory (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259610834, "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259617267, "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259622208, "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259626876, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259632940, "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259643040, "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259656707, "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259672641, "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?", "type": "single", "options": ["Ano", "Občas", "Ne"] },
-        { "id": 1783259681028, "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?", "type": "single", "options": ["Ano", "Občas", "Ne"] }
+        {
+          "id": 1783259602375,
+          "text": "Uvádějí Vás Vaše problémy se sluchem do rozpaků, když se seznamujete s novými lidmi?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259610834,
+          "text": "Způsobují Vám Vaše problémy se sluchem pocity zklamání a marnosti, když mluvíte se členy Vaší rodiny?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259617267,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže slyšet nebo porozumět svým spolupracovníkům, klientům nebo zákazníkům?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259622208,
+          "text": "Cítíte se nějak omezováni Vašimi problémy se sluchem?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259626876,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže při návštěvách přátel, příbuzných nebo sousedů?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259632940,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže v kině nebo v divadle?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259643040,
+          "text": "Způsobují Vám Vaše problémy se sluchem hádky mezi Vámi a Vaší rodinnou?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259656707,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže při poslechu televize nebo rádia?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259672641,
+          "text": "Způsobují Vám Vaše problémy se sluchem obtíže, když jste v restauraci s příbuznými nebo s přáteli?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1783259681028,
+          "text": "Způsobují Vám Vaše problémy se sluchem, že používáte telefon méně často, než byste chtěli?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Občas",
+            "Ne"
+          ]
+        }
       ]
     }
   },
@@ -114,7 +340,6 @@
       }
     }
   },
-
   "syllableRepeating": {
     "name": "Opakování slabik",
     "description": "Účastník opakuje zadané slabiky (např. 'pa-ta-ka', 'ta', 'ka') co nejrychleji a nejzřetelněji, aby se posoudila rychlost a přesnost artikulace. Záznam probíhá v režimu *odpočtu* — po uplynutí stanoveného času se automaticky zastaví. Administrátor by měl nastavit sled slabik ('syllable'), celkovou dobu záznamu ('duration') a počet opakování ('repeat'), pokud se úloha opakuje.",
@@ -158,12 +383,14 @@
       "duration": {
         "label": "Délka trvání"
       },
+      "maxDuration": {
+        "label": "Maximální délka (s)"
+      },
       "repeat": {
         "label": "Opakování"
       }
     }
   },
-
   "retelling": {
     "name": "Vyprávění pohádky",
     "description": "Účastník převypráví známou pohádku zpaměti (např. Sněhurka, Jeníček a Mařenka), aby se zhodnotila plynulost, propojenost řeči a bohatost slovní zásoby. Záznam probíhá v režimu *manuálního zastavení* — administrátor nebo účastník ho zastaví po dokončení. Administrátor by měl zvolit pohádku ('fairytale') a počet opakování ('repeat').",
@@ -197,18 +424,17 @@
       "repeat": {
         "label": "Opakování"
       },
-      "duration": {
-        "label": "Délka trvání (s)"
-      },
       "minDuration": {
         "label": "Minimální délka (s)"
       },
       "maxDuration": {
         "label": "Maximální délka (s)"
+      },
+      "duration": {
+        "label": "Délka trvání (s)"
       }
     }
   },
-
   "reading": {
     "name": "Čtení textu",
     "description": "Účastník čte krátký text zobrazený na obrazovce nahlas, aby se posoudila plynulost, artikulace a prozodie řeči. Záznam probíhá v režimu *manuálního zastavení* — spustí se po stisknutí START a ukončí po stisknutí STOP účastníkem nebo administrátorem. Administrátor by měl zvolit téma textu ('topic') a počet opakování ('repeat').",
@@ -232,17 +458,23 @@
       "topic": {
         "label": "Téma textu",
         "values": {
+          "northWind": {
+            "label": "Severní vítr a Slunce"
+          },
+          "grandfather": {
+            "label": "Dědeček"
+          },
+          "rainbow": {
+            "label": "Duha"
+          },
           "seedling": {
-            "label": "ZAHRADNÍK",
-            "text": "Když člověk po prvé vsadí do země sazeničku, chodí se na ni dívat třikrát denně: tak co, povyrostla už nebo ne? I tají dech, naklání se nad ní, přitlačí trochu půdu u jejích kořínků, načechrává jí lístky a vůbec ji obtěžuje různým konáním, které považuje za užitečnou péči. A když se sazenička přesto ujme a roste jako z vody, tu člověk žasne nad tímto divem přírody, má pocit čehosi jako zázraku a považuje to vůbec za jeden ze svých největších osobních úspěchů"
+            "label": "ZAHRADNÍK"
           },
           "dog": {
-            "label": "Pes",
-            "text": "Mám psa a rád si s ním hraji..."
+            "label": "Pes"
           },
           "raining": {
-            "label": "Déšť",
-            "text": "Je listopad..."
+            "label": "Déšť"
           }
         }
       },
@@ -257,7 +489,6 @@
       }
     }
   },
-
   "monologue": {
     "name": "Monolog na téma",
     "description": "Účastník hovoří volně na zadané téma (např. koníčky, rodina nebo libovolné jiné téma), aby se posoudila plynulost a soudržnost projevu. Záznam probíhá v režimu *opožděného zastavení* — tlačítko STOP se objeví až po uplynutí nastaveného času. Administrátor by měl nastavit téma ('topic'), počet opakování ('repeat') a dobu, po které se objeví tlačítko STOP ('duration').",
@@ -313,7 +544,6 @@
       }
     }
   },
-
   "pictureDescription": {
     "name": "Popis obrázku",
     "description": "Účastník popisuje situace na vytištěném obrázku, který mu examinátor předloží. Administrátor zvolí obrázek ('picture') a cílovou délku popisu ('duration').",
@@ -337,7 +567,8 @@
       "picture": {
         "label": "Obrázek",
         "values": {
-          "A": "A"
+          "A": "A",
+          "B": "B"
         }
       },
       "repeat": {
@@ -348,7 +579,257 @@
       }
     }
   },
-
+  "d15colour": {
+    "name": "Test barevného vidění D-15",
+    "description": "Test barevného vidění, při kterém účastník řadí 15 barevných kloboučků do posloupnosti. Obsahuje verzi se sytými barvami (Farnsworth) a s odbarvenými barvami (Lanthony).",
+    "title": "Úkol řazení barev",
+    "instructions": "<strong>1.</strong> Podívejte se na poslední barvu v <strong>horní řadě</strong>.<br/><strong>2.</strong> Klepněte na barvu z <strong>nabídky dole</strong>, která se jí nejvíce podobá.<br/><strong>3.</strong> Opakujte, dokud není horní řada plná; poté se odemkne tlačítko <strong>Odeslat</strong>.<br/><br/><strong>Přejetím po horní řadě</strong> doleva nebo doprava zobrazíte všechny umístěné barvy.",
+    "addTitle": "<strong>Seřaďte barvy v horní řadě do plynulé, postupné posloupnosti.</strong>",
+    "addText": "• Klepněte na barvu v <strong>dolní řadě barev</strong>.<br/>• Přidá se na <strong>další volné místo</strong> v horní řadě.",
+    "addGifAlt": "Přidání barvy",
+    "goalText": "Úkol na barevné vidění",
+    "modifyTitle": "<strong>Úprava barev</strong>",
+    "modifyText": "• Klepněte na barvu v <strong>horní řadě</strong>.<br/>• Odstraní se a můžete místo ní vybrat jinou barvu.",
+    "modifyGifAlt": "Úprava posloupnosti",
+    "disclaimerText": "",
+    "mainInstructionsText": "Seřaďte barvy v horní řadě do plynulé, postupné posloupnosti. <br/><br/> Pokud máte potíže rozlišit barvy, nevadí – vyberte to, co se vám zdá nejbližší.",
+    "trialCompleteTitle": "Dobře odvedeno!",
+    "trialCompleteText": "Zkouška je hotová. Nyní bude test náročnější.",
+    "timeoutTitle": "Jste připraveni pokračovat?",
+    "timeoutText": "Je v pořádku zde skončit. Chcete odeslat aktuální posloupnost?",
+    "timeoutSubmit": "Odeslat",
+    "timeoutContinue": "Pokračovat",
+    "controls": {
+      "addTabLabel": "Přidat barvu",
+      "modifyTabLabel": "Upravit posloupnost"
+    },
+    "params": {
+      "version": {
+        "label": "Verze testu",
+        "values": {
+          "saturated": "Syté barvy (Farnsworth)",
+          "desaturated": "Odbarvené barvy (Lanthony)",
+          "demo": "Ukázka (pro názornost)"
+        }
+      },
+      "demoTrial": {
+        "label": "Zahrnout zkoušku",
+        "values": {
+          "yes": "Ano",
+          "no": "Ne"
+        }
+      },
+      "randomize": {
+        "label": "Náhodné pořadí kloboučků"
+      },
+      "repeat": {
+        "label": "Opakování"
+      },
+      "showNumbers": {
+        "label": "Zobrazit čísla kloboučků",
+        "values": {
+          "never": "Nikdy (standardní)",
+          "after": "Po dokončení",
+          "always": "Vždy (ladění / ukázka)"
+        }
+      },
+      "maxDuration": {
+        "label": "Maximální délka (s)"
+      }
+    }
+  },
+  "preTestChecklist": {
+    "title": "Příprava na zrakový úkol",
+    "subtitle": "Nyní otestujeme vaše barevné vidění. Zkuste prosím nastavit obrazovku:",
+    "subtitleBelow": "Pokud nevíte, jak na to, pokračujte přesto dál. <br><br> Nápovědu zobrazíte klepnutím na ikonu informace.",
+    "selectFirstHint": "Nejprve prosím vyberte stavová tlačítka výše.",
+    "items": {
+      "landscape": {
+        "label": "Otočte telefon na šířku.",
+        "helpText": "Pokud se obrazovka s telefonem neotáčí, je třeba ji odemknout.<br><br>Otevřete rychlé ovládací menu telefonu (přejeďte prstem shora dolů, nebo zdola nahoru).<br><br>Najděte ikonu otáčení (<imgA/> <imgB/> <imgC/>) a klepněte na ni, aby se mohla obrazovka otáčet."
+      },
+      "brightness": {
+        "label": "Nastavte jas na maximum.",
+        "helpText": "Otevřete rychlé ovládací menu telefonu (přejeďte prstem shora dolů, nebo zdola nahoru).<br><br>Najděte <strong>posuvník jasu</strong> (obvykle ikona slunce <imgA/>) a přetáhněte ho zcela na maximum.<br><br><em>Poznámka</em>: Pokud telefon jas sám snižuje, vyhledejte poblíž tlačítko <strong>Auto</strong> nebo <strong>Adaptivní</strong>, případně v Nastavení <imgB/> > Displej tuto funkci vypněte.<br><br>Příklad: <imgSlider/>"
+      },
+      "colourFilters": {
+        "label": "Vypněte barevné filtry obrazovky (žluté světlo, noční režim apod.).",
+        "helpText": "Filtry mění přirozené barvy obrazovky, často ji činí žlutou nebo teplou. <br><br><strong>Jak je vypnout:</strong><br>1. Otevřete Nastavení <imgA/>.<br>2. Klepněte na Displej nebo ho vyhledejte.<br>3. Vypněte <em>True Tone</em>, <em>Noční režim</em>, <em>Ochranu zraku</em>, <em>Režim čtení</em> nebo jiný režim, který upravuje barvy obrazovky."
+      },
+      "privacyScreen": {
+        "label": "Máte na displeji ochranné sklo proti nahlížení?",
+        "helpText": "Je to speciální ochranné sklo, které lidem vedle vás brání číst obsah vaší obrazovky. <br><br><strong>Jak to zjistit:</strong> Nakloňte telefon na stranu. Pokud obrazovka náhle vypadá zcela tmavě nebo černě, máte na telefonu ochranné sklo."
+      },
+      "environment": {
+        "label": "Sedněte si do místnosti s běžným osvětlením.",
+        "helpText": "Vyhněte se přímému slunci nebo jasným oknům svítícím na obrazovku."
+      }
+    },
+    "rotateBack": {
+      "title": "Zrakový test dokončen",
+      "message": "Nyní můžete telefon otočit zpět a pokračovat.",
+      "button": "Pokračovat"
+    }
+  },
+  "sdmt": {
+    "name": "Test modalit symbol–číslice",
+    "description": "Kognitivní test, při kterém účastník podle klíče přiřazuje symboly k číslům. Test měří rychlost zpracování, pozornost a vizuálně-motorickou koordinaci. Nahrávání používá *základní režim zastavení* – spustí se stisknutím START a zastaví se, když účastník nebo administrátor stiskne STOP. Administrátor by měl nastavit délku testu ('duration') a zda se mají zobrazit klávesy na obrazovce ('showKeypad').",
+    "title": "Symboly",
+    "instructions": "Klepněte na odpovídající číslo na klávesnici <strong>jedním prstem</strong>. <br><br>Pracujte co nejrychleji a bez chyb. Na úkol máte <strong>{{duration}} sekund</strong>.",
+    "instructionsActive": "Přiřaďte symbolu číslo.",
+    "demoTitle": "Úkol přiřazování symbolů",
+    "demoText": "Pomocí klávesnice přiřaďte zobrazenému symbolu odpovídající číslo.",
+    "start": "Start",
+    "stop": "Stop",
+    "params": {
+      "duration": {
+        "label": "Požadovaná délka (s)"
+      },
+      "showKeypad": {
+        "label": "Zobrazit klávesnici na obrazovce",
+        "values": {
+          "always": "Vždy",
+          "duringTest": "Jen během testu",
+          "never": "Nikdy (použít fyzickou klávesnici)"
+        }
+      },
+      "symbolOrdering": {
+        "label": "Pořadí symbolů",
+        "values": {
+          "random": "Zcela náhodné",
+          "fixed_by_run": "Pevně náhodné (mění se při každém spuštění)",
+          "static": "Statické (stejné pro všechna spuštění)"
+        }
+      }
+    }
+  },
+  "feedback": {
+    "name": "Zpětná vazba",
+    "description": "Standardní dotazník zpětné vazby zjišťující náročnost úkolů, problémy se zvukem či videem a celkový dojem z používání. Přidává se předvyplněný; otázky lze před uložením upravit.",
+    "title": "Dotazník: {{title}}",
+    "instructions": "Prosím zodpovězte na následující otázky.",
+    "params": {
+      "canRepeat": {
+        "label": "Povolit opakování"
+      },
+      "canSkip": {
+        "label": "Povolit přeskočení"
+      },
+      "title": {
+        "label": "Název"
+      },
+      "description": {
+        "label": "Popis"
+      },
+      "questions": {
+        "label": "Otázky"
+      }
+    },
+    "defaultContent": {
+      "title": "Zpětná vazba",
+      "description": "",
+      "questions": [
+        {
+          "id": 1782904964479,
+          "text": "Jak snadné celkově bylo úkoly dokončit?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1782904989314,
+          "text": "Jak snadno srozumitelné byly celkově pokyny?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1782905036461,
+          "text": "Jak užitečný byl zvukový průvodce?",
+          "type": "rating",
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019769001,
+          "text": "Měli jste potíže se slyšením zvuku (průvodce, pohádky nebo ukázek)?",
+          "type": "single",
+          "options": [
+            "Ne, všechno jsem slyšel(a) jasně.",
+            "Ano, mírné potíže.",
+            "Ano, výrazné potíže.",
+            "Zvuk vůbec nefungoval."
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019769820,
+          "text": "Které úkoly pro vás byly nejobtížnější nebo nejvíce frustrující?",
+          "type": "multiple",
+          "options": [
+            "Žádné – všechny jsem zvládal(a)",
+            "Dlouhé /aaa/",
+            "Opakování /pa-ta-ka/",
+            "Čtení textu",
+            "Převyprávění pohádky",
+            "Monolog",
+            "Přiřazování symbolů",
+            "Zrakový úkol (řazení barev)",
+            "Dotazníky"
+          ],
+          "optional": false,
+          "exclusiveOption": "Žádné – všechny jsem zvládal(a)",
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019771650,
+          "text": "Bránil vám hluk v pozadí nebo jiné rušivé vlivy v plnění úkolů?",
+          "type": "single",
+          "options": [
+            "Ne",
+            "Mírně",
+            "Ano",
+            "Nejsem si jistý/á"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019772865,
+          "text": "Setkali jste se s některým z následujících technických problémů?",
+          "type": "multiple",
+          "options": [
+            "Potíže s povolením přístupu k mikrofonu nebo kameře",
+            "Potíže s rozpoznáním mého obličeje kamerou",
+            "Potíže s udržením polohy kamery při mluvení",
+            "Dlouhé prodlevy nebo čekání mezi úkoly",
+            "Hlasitost zvukového průvodce byla příliš nízká nebo se nečekaně snížila",
+            "Omylem jsem úkol opustil(a)",
+            "Potíže s nastavením obrazovky pro zrakový úkol",
+            "Aplikace se zasekla, spadla nebo přestala reagovat",
+            "Nahrávání se nezdálo správně spustit nebo zastavit",
+            "Během relace se přerušilo připojení k internetu",
+            "Jiné:",
+            "Nic z uvedeného"
+          ],
+          "optional": false,
+          "exclusiveOption": "Nic z uvedeného",
+          "freeTextOptions": [
+            "Jiné:"
+          ]
+        },
+        {
+          "id": 1786019773779,
+          "text": "Chcete nám k vašim zkušenostem ještě něco sdělit?",
+          "type": "open",
+          "options": [],
+          "optional": true,
+          "freeTextOptions": []
+        }
+      ]
+    }
+  },
   "farnsworthD15": {
     "name": "Farnsworth D-15 Color Test",
     "description": "Test barevného vidění, kde účastník řadí 15 barevných terčíků do řady.",
@@ -360,11 +841,11 @@
       "undo": "Klepnutím na barvu v řadě ji vrátíte zpět"
     },
     "params": {
-      "randomize": { 
-        "label": "Randomize caps" 
+      "randomize": {
+        "label": "Randomize caps"
       },
-      "repeat": { 
-        "label": "Repetitions" 
+      "repeat": {
+        "label": "Repetitions"
       },
       "showNumbers": {
         "label": "Show cap numbers",

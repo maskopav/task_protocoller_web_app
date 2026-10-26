@@ -32,7 +32,7 @@ function UnassignedBanner() {
     <div className="recpage-banner" role="status" data-testid="recordings-unassigned-banner">
       <Icon name="alert" />
       <span>{t("recordings.banner", { count })}</span>
-      <Button as={Link} to="/clinics" size="sm">{t("recordings.bannerAction")}</Button>
+      <Button as={Link} to="/clinics#unassigned-computers" size="sm">{t("recordings.bannerAction")}</Button>
     </div>
   );
 }

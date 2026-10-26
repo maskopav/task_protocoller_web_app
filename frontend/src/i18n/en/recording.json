@@ -86,16 +86,16 @@
       "archive": "Archive structure",
       "manifest": "Manifest file hashes",
       "ids": "IDs consistent",
-      "device": "Device registered",
+      "device": "Computer registered",
       "config_version": "Config version",
       "complete": "Session complete"
     },
     "desc": {
-      "zip_checksum": "SHA-256 of the file matches the value declared by the device",
+      "zip_checksum": "SHA-256 of the file matches the value declared by the computer",
       "archive": "The archive is readable and has the expected structure",
       "manifest": "Every file is present and matches manifest.json",
       "ids": "Session and installation IDs agree across the files",
-      "device": "The device has a registered installation ID",
+      "device": "The computer has a registered installation ID",
       "config_version": "The config version is the current one",
       "complete": "Processing finished normally"
     }
@@ -104,7 +104,7 @@
     "title": "Upload history",
     "sub": "Every request the server received for this session ID",
     "none": "No requests recorded.",
-    "deviceReport": "Device report",
+    "deviceReport": "Computer report",
     "outcome": {
       "accepted": "Accepted",
       "resent": "Re-sent (answered as success)",

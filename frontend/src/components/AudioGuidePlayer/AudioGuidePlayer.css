@@ -1,10 +1,5 @@
 /* ─── InstructionAudioPlayer ──────────────────────────────────────────────── */
 
-:root {
-  /* One color token for both speaker + waves */
-  --audio-color: #707070;        
-  --audio-accent: #3764df;      
-}
 
 /* Button reset and layout */
 .audio-instructions-btn {

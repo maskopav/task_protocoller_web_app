@@ -10,22 +10,22 @@
   display: inline-flex;
   align-items: center;
   padding: 6px 12px;
-  background-color: #e0e7ff;
-  color: #3730a3;
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
   border-radius: 16px;
   font-weight: bold;
 }
 
 .protocol-lang-badge.removable {
   cursor: pointer;
-  background-color: #dbeafe;
-  border: 1px solid #3b82f6;
+  background-color: var(--accent-soft);
+  border: 1px solid var(--accent);
   transition: background-color 0.2s;
   gap: 6px;
 }
 
 .protocol-lang-badge.removable:hover {
-  background-color: #bfdbfe;
+  background-color: var(--accent-soft);
 }
 
 .protocol-lang-pill-container {
@@ -38,18 +38,18 @@
 .protocol-lang-pill {
   padding: 6px 14px;
   border-radius: 20px;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--border-strong);
   background-color: white;
-  color: #4b5563;
+  color: var(--text-2);
   cursor: pointer;
   font-weight: normal;
   transition: all 0.2s;
 }
 
 .protocol-lang-pill.selected {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+  color: var(--accent-text);
   font-weight: bold;
 }
 
@@ -65,15 +65,15 @@
 .protocol-lang-add-section {
   margin-top: 12px;
   padding: 12px;
-  border: 1px dashed #9ca3af;
+  border: 1px dashed var(--border-strong);
   border-radius: 8px;
-  background-color: #f9fafb;
+  background-color: var(--surface-2);
 }
 
 .protocol-lang-add-label {
   font-size: 0.85rem;
   font-weight: bold;
-  color: #374151;
+  color: var(--text);
   display: block;
   margin-bottom: 8px;
 }
@@ -90,7 +90,7 @@
   gap: 8px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 12px;
   cursor: pointer;
 }

@@ -1,42 +1,47 @@
 {
   "list": {
-    "title": "Nahrávky",
-    "description": "Relace nahrané desktopovou aplikací na vašich pracovištích. Každá nahrávka se po přijetí zkontroluje; projděte ty, které vyžadují pozornost, a označte je pro analýzu.",
-    "devices": "Zařízení",
+    "title": "Záznamy",
+    "description": "Záznamy nahrané desktopovou aplikací na vašich klinikách. Každý záznam se po přijetí zkontroluje; projděte ty, které vyžadují pozornost, a označte je pro analýzu.",
+    "devices": "Počítače",
     "exportCsv": "Exportovat CSV",
     "csvFailed": "Soubor CSV se nepodařilo exportovat.",
-    "sessions": "Relace",
-    "filteredBy": "Filtrováno: {{filters}}",
     "clearFilters": "Zrušit filtry",
     "retry": "Zkusit znovu",
-    "empty": "Těmto filtrům neodpovídá žádná relace.",
+    "empty": "Těmto filtrům neodpovídá žádný záznam.",
     "emptyHint": "Zkuste širší období, nebo",
-    "toUpload": "+{{lag}} do nahrání",
     "tasksTitle": "{{done}} hotovo, {{skipped}} přeskočeno, {{missing}} chybí z {{total}}",
     "skipped": "přeskočeno {{count}}",
-    "comments": "Komentáře",
-    "openSession": "Otevřít relaci",
-    "showing": "Zobrazeno {{from}}–{{to}} z {{total}} relací",
-    "rows": "Řádků",
-    "prevPage": "Předchozí strana",
-    "nextPage": "Další strana"
+    "rows": "Řádků"
   },
   "kpi": {
-    "week": { "label": "Přijato · 7 dní", "hint": "všechna pracoviště v rozsahu" },
-    "valid": { "label": "Platné", "hint": "kontrolní součty ověřeny" },
-    "invalid": { "label": "Neplatné", "hint": "neprošly kontrolou serveru" },
-    "attention": { "label": "Vyžaduje pozornost", "hint": "neplatné, označené, pád, výpadek mikrofonu nebo nestandardní zařízení" },
-    "unreviewed": { "label": "Nezkontrolováno", "hint": "zatím se nikdo nepodíval" }
+    "week": {
+      "label": "Přijato · 7 dní",
+      "hint": "všechny kliniky v rozsahu"
+    },
+    "valid": {
+      "label": "Platné",
+      "hint": "kontrolní součty ověřeny"
+    },
+    "invalid": {
+      "label": "Neplatné",
+      "hint": "neprošly kontrolou serveru"
+    },
+    "attention": {
+      "label": "Vyžaduje pozornost",
+      "hint": "neplatné, označené, pád, výpadek mikrofonu nebo nestandardní počítač"
+    },
+    "unreviewed": {
+      "label": "Nezkontrolováno",
+      "hint": "zatím se nikdo nepodíval"
+    }
   },
   "filters": {
     "search": "Hledat",
-    "searchPlaceholder": "Kód pacienta, ID relace nebo zařízení",
-    "project": "Projekt",
-    "allProjects": "Všechny projekty",
+    "searchPlaceholder": "Kód pacienta, ID záznamu nebo počítač",
+    "project": "Studie",
     "protocol": "Protokol",
     "allProtocols": "Všechny protokoly",
     "date": "Datum",
-    "dateRefersTo": "Datum se vztahuje k",
     "received": "Přijato",
     "recorded": "Nahráno",
     "from": "Od",
@@ -44,35 +49,41 @@
     "serverCheck": "Kontrola serveru",
     "any": "Jakákoli",
     "review": "Posouzení",
-    "sites": "Pracoviště",
+    "sites": "Kliniky",
     "flags": "Příznaky",
     "hasVideo": "S videem"
   },
   "columns": {
     "received": "Přijato",
-    "siteDevice": "Pracoviště · zařízení",
     "patient": "Pacient",
     "protocol": "Protokol",
     "recorded": "Nahráno",
     "length": "Délka",
     "tasks": "Úlohy",
-    "clips": "Klipy",
-    "size": "Velikost",
     "serverCheck": "Kontrola serveru",
     "review": "Posouzení",
     "flags": "Příznaky",
     "actions": "Akce"
   },
   "status": {
-    "valid": { "label": "Platná", "hint": "Kontrolní součet a manifest ověřeny" },
-    "validating": { "label": "Kontroluje se", "hint": "Přijato, kontroly běží" },
-    "invalid": { "label": "Neplatná", "hint": "Neprošla kontrolou serveru" }
+    "valid": {
+      "label": "Platná",
+      "hint": "Kontrolní součet a manifest ověřeny"
+    },
+    "validating": {
+      "label": "Kontroluje se",
+      "hint": "Přijato, kontroly běží"
+    },
+    "invalid": {
+      "label": "Neplatná",
+      "hint": "Neprošla kontrolou serveru"
+    }
   },
   "invalidReason": {
     "checksum": "Neshoda kontrolního součtu ZIP",
     "manifest": "Neshoda hashů v manifestu",
     "malformed": "Poškozený archiv",
-    "unknown_device": "Zařízení není registrováno"
+    "unknown_device": "Počítač není registrován"
   },
   "qc": {
     "unreviewed": "Nezkontrolováno",
@@ -81,17 +92,50 @@
     "excluded": "Vyřazeno"
   },
   "issues": {
-    "recovered": { "label": "Obnoveno", "hint": "Aplikace spadla; relace byla znovu sestavena a může být neúplná" },
-    "interrupted": { "label": "Výpadek mikrofonu", "hint": "Mikrofon se během relace odpojil" },
-    "skipped": { "label": "Přeskočené úlohy", "hint": "Vyšetřující přeskočil jednu nebo více úloh" },
-    "retakes": { "label": "Opakování", "hint": "Úloha byla opakována; exportuje se jen poslední pokus" },
-    "edited": { "label": "Upravená časová osa", "hint": "Hranice segmentů byly upraveny ve vlnovém editoru" },
-    "outdated": { "label": "Stará konfigurace", "hint": "Nahráno se starší verzí konfigurace, než je aktuální" },
-    "late": { "label": "Pozdní nahrání", "hint": "Nahráno více než 3 dny po záznamu" },
-    "duplicate": { "label": "Odesláno znovu", "hint": "Zařízení znovu odeslalo již přijatou relaci" },
-    "nonstdMic": { "label": "Nestandardní mikrofon", "hint": "Celá relace byla nahrána jiným mikrofonem, než je nastaven v Nastavení aplikace" },
-    "nonstdCam": { "label": "Nestandardní kamera", "hint": "Celá relace byla natočena jinou kamerou, než je nastavena v Nastavení aplikace" },
-    "device": { "label": "Událost zařízení", "hint": "Kamera nebo mikrofon selhaly během relace" }
+    "recovered": {
+      "label": "Obnoveno",
+      "hint": "Aplikace spadla; záznam byl znovu sestaven a může být neúplná"
+    },
+    "interrupted": {
+      "label": "Výpadek mikrofonu",
+      "hint": "Mikrofon se během záznamu odpojil"
+    },
+    "skipped": {
+      "label": "Přeskočené úlohy",
+      "hint": "Vyšetřující přeskočil jednu nebo více úloh"
+    },
+    "retakes": {
+      "label": "Opakování",
+      "hint": "Úloha byla opakována; exportuje se jen poslední pokus"
+    },
+    "edited": {
+      "label": "Upravená časová osa",
+      "hint": "Hranice segmentů byly upraveny ve vlnovém editoru"
+    },
+    "outdated": {
+      "label": "Stará konfigurace",
+      "hint": "Nahráno se starší verzí konfigurace, než je aktuální"
+    },
+    "late": {
+      "label": "Pozdní nahrání",
+      "hint": "Nahráno více než 3 dny po záznamu"
+    },
+    "duplicate": {
+      "label": "Odesláno znovu",
+      "hint": "Počítač znovu odeslal již přijatý záznam"
+    },
+    "nonstdMic": {
+      "label": "Nestandardní mikrofon",
+      "hint": "Celý záznam byl nahrán jiným mikrofonem, než je nastaven v Nastavení aplikace"
+    },
+    "nonstdCam": {
+      "label": "Nestandardní kamera",
+      "hint": "Celý záznam byl natočen jinou kamerou, než je nastavena v Nastavení aplikace"
+    },
+    "device": {
+      "label": "Událost počítače",
+      "hint": "Kamera nebo mikrofon selhaly během záznamu"
+    }
   },
   "rel": {
     "min": "před {{count}} min",
@@ -111,30 +155,30 @@
     "days_other": "{{count}} dní"
   },
   "session": {
-    "backToList": "Zpět na nahrávky",
+    "backToList": "Zpět na záznamy",
     "notFoundTitle": "Nenalezeno",
-    "notFoundBody": "Tato relace neexistuje, nebo k ní nemáte přístup. Server odpovídá v obou případech stejně, takže existenci záznamu nikdy nepotvrzuje.",
-    "errorTitle": "Relaci se nepodařilo načíst",
+    "notFoundBody": "Tento záznam neexistuje, nebo k ní nemáte přístup. Server odpovídá v obou případech stejně, takže existenci záznamu nikdy nepotvrzuje.",
+    "errorTitle": "Záznam se nepodařilo načíst",
     "errorBody": "Server neodpověděl očekávaným způsobem. Zkuste to prosím znovu.",
     "prev": "Předchozí",
     "next": "Další",
     "download": "Stáhnout ZIP",
-    "downloadHint": "Uloženo jako {{id}}.zip. Název souboru na zařízení začíná kódem pacienta, proto ho server neukládá do logů ani nepoužívá.",
+    "downloadHint": "Uloženo jako {{id}}.zip. Název souboru na počítači začíná kódem pacienta, proto ho server neukládá do logů ani nepoužívá.",
     "downloadFailed": "Stahování se nepodařilo zahájit.",
     "viewOnly": "Pouze zobrazení",
-    "viewOnlyHint": "Váš přístup k tomuto projektu je jen pro čtení",
-    "recordedAt": "nahráno na pracovišti",
+    "viewOnlyHint": "Váš přístup k této studii je jen pro čtení",
+    "recordedAt": "nahráno na klinice",
     "on": "dne",
-    "title": "Relace",
-    "site": "Pracoviště",
-    "device": "Zařízení",
+    "title": "Záznam",
+    "site": "Klinika",
+    "device": "Počítač",
     "appVersion": "Verze aplikace",
     "startedEnded": "Začátek → konec",
     "notFinished": "nedokončeno",
-    "notFinishedHint": "Nebyl zaznamenán čas ukončení: relace neskončila řádně. Zobrazený čas je okamžik, kdy ji aplikace znovu sestavila.",
+    "notFinishedHint": "Nebyl zaznamenán čas ukončení: záznam neskončil řádně. Zobrazený čas je okamžik, kdy ji aplikace znovu sestavila.",
     "length": "Délka",
     "received": "Přijato",
-    "afterEnd": "{{lag}} po skončení relace",
+    "afterEnd": "{{lag}} po skončení záznamu",
     "tasks": "Úlohy",
     "tasksDone": "{{done}} z {{total}} nahráno",
     "timelineUsed": "Použitá časová osa",
@@ -148,7 +192,7 @@
     "nonStandard": "nestandardní",
     "inputGain": "zesílení vstupu {{gain}}",
     "noAudio": "Tento protokol neobsahuje zvuk",
-    "sessionId": "ID relace",
+    "sessionId": "ID záznamu",
     "configVersion": "Verze konfigurace",
     "old": "stará",
     "zipSha": "SHA-256 souboru ZIP",
@@ -157,7 +201,7 @@
   },
   "tasks": {
     "title": "Úlohy",
-    "sub": "Ze souhrnu relace. Klipy se přehrávají z kopie na serveru; nic se nestahuje.",
+    "sub": "Ze souhrnu záznamu. Klipy se přehrávají z kopie na serveru; nic se nestahuje.",
     "task": "Úloha",
     "rep": "Opak.",
     "takes": "Pokusy",
@@ -171,7 +215,11 @@
     "lastKeptHint": "Exportuje se jen poslední pokus",
     "micLost": "výpadek mikrofonu",
     "micLostHint": "Mikrofon se během této úlohy odpojil (pokus zamítnut: DEVICE_LOST)",
-    "results": { "Done": "Hotovo", "Skipped": "Přeskočeno", "Missing": "Chybí" },
+    "results": {
+      "Done": "Hotovo",
+      "Skipped": "Přeskočeno",
+      "Missing": "Chybí"
+    },
     "playAudio": "Přehrát zvukový klip",
     "playVideo": "Přehrát video klip",
     "videoNoSound": "Přehrát video (MP4 nemá zvukovou stopu)",
@@ -179,7 +227,7 @@
     "showAnswers": "Zobrazit odpovědi ({{count}})",
     "hideAnswers": "Skrýt odpovědi ({{count}})",
     "closeVideo": "Zavřít video",
-    "viewOnlyNote": "Přehrávání klipů vyžaduje právo úprav této relace."
+    "viewOnlyNote": "Přehrávání klipů vyžaduje právo úprav tohoto záznamu."
   },
   "timeline": {
     "title": "Časová osa záznamu",
@@ -187,7 +235,12 @@
     "aria": "Segmenty úloh podél hlavního záznamu",
     "task": "Úloha {{task}}",
     "rejectedTake": "Úloha {{task}}: zamítnutý pokus ({{reason}})",
-    "legend": { "audio": "Zvuková úloha", "filmed": "Natáčeno", "questionnaire": "Dotazník / informace", "rejected": "Zamítnutý pokus" }
+    "legend": {
+      "audio": "Zvuková úloha",
+      "filmed": "Natáčeno",
+      "questionnaire": "Dotazník / informace",
+      "rejected": "Zamítnutý pokus"
+    }
   },
   "checks": {
     "title": "Kontroly serveru",
@@ -196,25 +249,25 @@
       "archive": "Struktura archivu",
       "manifest": "Hashe souborů v manifestu",
       "ids": "Konzistentní ID",
-      "device": "Zařízení registrováno",
+      "device": "Počítač registrován",
       "config_version": "Verze konfigurace",
-      "complete": "Relace kompletní"
+      "complete": "Záznam kompletní"
     },
     "desc": {
-      "zip_checksum": "SHA-256 souboru odpovídá hodnotě, kterou zařízení deklarovalo",
+      "zip_checksum": "SHA-256 souboru odpovídá hodnotě, kterou počítač deklaroval",
       "archive": "Archiv lze přečíst a má očekávanou strukturu",
       "manifest": "Každý soubor je přítomen a odpovídá manifest.json",
-      "ids": "ID relace a instalace se v souborech shodují",
-      "device": "Zařízení má registrované ID instalace",
+      "ids": "ID záznamu a instalace se v souborech shodují",
+      "device": "Počítač má registrované ID instalace",
       "config_version": "Verze konfigurace je aktuální",
       "complete": "Zpracování proběhlo řádně"
     }
   },
   "history": {
     "title": "Historie nahrávání",
-    "sub": "Každý požadavek, který server pro toto ID relace přijal",
+    "sub": "Každý požadavek, který server pro toto ID záznamu přijal",
     "none": "Žádné zaznamenané požadavky.",
-    "deviceReport": "Hlášení zařízení",
+    "deviceReport": "Hlášení počítače",
     "outcome": {
       "accepted": "Přijato",
       "resent": "Odesláno znovu (odpověď jako úspěch)",
@@ -227,12 +280,12 @@
   "review": {
     "title": "Posouzení",
     "noComments": "Zatím žádné komentáře.",
-    "addComment": "Přidat komentář pro tým pracoviště",
+    "addComment": "Přidat komentář pro tým kliniky",
     "placeholder": "např. Fonace, pokus 2, je přebuzená, prosím nahrajte znovu při další návštěvě",
     "post": "Odeslat komentář",
-    "forbidden": "K této relaci máte jen právo čtení.",
+    "forbidden": "K tomuto záznamu máte jen právo čtení.",
     "failed": "Uložení se nezdařilo ({{code}}).",
-    "viewOnlyNote": "Pouze zobrazení. Stažení, zobrazení polí účastníka, změna posouzení a komentování vyžadují přiřazení k tomuto pracovišti nebo právo úprav projektu."
+    "viewOnlyNote": "Pouze zobrazení. Stažení, zobrazení polí účastníka, změna posouzení a komentování vyžadují přiřazení k této klinice nebo právo úprav studie."
   },
   "participant": {
     "title": "Účastník",
@@ -242,81 +295,17 @@
     "save": "Uložit",
     "cancel": "Zrušit",
     "hiddenValue": "Skrytá hodnota",
-    "note": "Tak, jak byly zadány na pracovišti. Pole kromě kódu pacienta a návštěvy jsou skrytá.",
-    "noteEdit": "Tak, jak byly zadány na pracovišti. Pole kromě kódu pacienta a návštěvy zůstávají skrytá, dokud je nezobrazíte. Každé zobrazení se zapisuje do auditního logu. Úprava opravuje překlepy: nové hodnoty nahradí staré na všech stránkách i v pozdějších stažených souborech a každá změna se zapíše do auditního logu.",
+    "note": "Tak, jak byly zadány na klinice. Pole kromě kódu pacienta a návštěvy jsou skrytá.",
+    "noteEdit": "Tak, jak byly zadány na klinice. Pole kromě kódu pacienta a návštěvy zůstávají skrytá, dokud je nezobrazíte. Každé zobrazení se zapisuje do auditního logu. Úprava opravuje překlepy: nové hodnoty nahradí staré na všech stránkách i v pozdějších stažených souborech a každá změna se zapíše do auditního logu.",
     "errors": {
       "generic": "Uložení se nezdařilo ({{code}}).",
-      "forbidden": "K této relaci máte jen právo čtení.",
+      "forbidden": "K tomuto záznamu máte jen právo čtení.",
       "required_field": "Kód pacienta a návštěva nesmí být prázdné.",
       "invalid_value": "Některá hodnota je neplatná (text nejvýše 255 znaků).",
       "invalid_fields": "Pole se nepodařilo přečíst.",
       "unknown_field": "Neznámé pole."
     }
   },
-  "cards": {
-    "unavailable": "Data o nahrávání nejsou momentálně dostupná.",
-    "noUploads": "Zatím žádná nahrávání",
-    "allClear": "Vše v pořádku",
-    "needAttention_one": "{{count}} vyžaduje pozornost",
-    "needAttention_few": "{{count}} vyžadují pozornost",
-    "needAttention_many": "{{count}} vyžaduje pozornost",
-    "needAttention_other": "{{count}} vyžaduje pozornost",
-    "thisWeek": "{{count}} tento týden",
-    "lastUpload": "Poslední nahrání {{when}}",
-    "monitoring": "Monitoring",
-    "byProtocol": "Podle protokolu",
-    "bySite": "Podle pracoviště",
-    "uploads": {
-      "title": "Nahrávání",
-      "desc": "Sezení nahraná z vašich pracovišť ({{count}}): kontroly po příjmu, posouzení a stahování."
-    },
-    "devices": {
-      "title": "Zařízení",
-      "desc": "Klinické počítače s desktopovou aplikací a sezení, která na ně stále čekají.",
-      "waiting": "{{count}} čeká",
-      "silent": "{{count}} bez odezvy",
-      "none": "Zatím žádná zařízení",
-      "all": "Všechna zařízení →",
-      "seen": "viděno {{when}}"
-    },
-    "health": {
-      "ok": "V pořádku",
-      "warn": "Nevyřízeno",
-      "bad": "Bez odezvy",
-      "off": "Bez nahrávání"
-    },
-    "downloads": {
-      "title": "Stahování",
-      "desc": "Stáhněte si data z více sezení."
-    },
-    "stats": {
-      "uploads30": "Nahrávání · 30 dní",
-      "invalid": "Neplatná",
-      "needsReview": "K posouzení"
-    },
-    "latest": {
-      "viewAll": "Zobrazit všech {{count}} →",
-      "viewAllNoCount": "Zobrazit vše →",
-      "goToDownloads": "Přejít na Stahování",
-      "empty": "Zatím žádná nahrávání.",
-      "project": "Projekt",
-      "site": "Pracoviště",
-      "device": "Zařízení"
-    },
-    "perDay": {
-      "title": "Nahrávání za den",
-      "daysShown": "Zobrazené dny",
-      "lastDays": "posledních {{count}} dní",
-      "aria": "Nahrávání za den, posledních {{count}} dní",
-      "bar": "{{date}}: {{count}}×",
-      "today": "dnes"
-    },
-    "sites": {
-      "sessions": "Sezení",
-      "lastUpload": "Poslední nahrání",
-      "attention": "Pozornost"
-    }
-  },
   "recordings": {
     "title": "Záznamy",
     "sub": "Vše, co nahrály počítače na vašich klinikách.",
@@ -339,7 +328,7 @@
     "loading": "Načítání záznamů…",
     "loadError": "Záznamy se nepodařilo načíst.",
     "emptyTitle": "Zatím žádné záznamy",
-    "emptyBody": "Objeví se zde, jakmile počítač na klinice nahraje první relaci.",
+    "emptyBody": "Objeví se zde, jakmile počítač na klinice nahraje první záznam.",
     "emptyFiltered": "Těmto filtrům neodpovídá žádný záznam.",
     "banner_one": "{{count}} počítač není přiřazen ke klinice a jeho záznamy jsou v karanténě.",
     "banner_few": "{{count}} počítače nejsou přiřazeny ke klinice a jejich záznamy jsou v karanténě.",
@@ -353,7 +342,7 @@
     },
     "filters": {
       "search": "Hledat",
-      "searchPlaceholder": "Kód pacienta, ID relace nebo počítač",
+      "searchPlaceholder": "Kód pacienta, ID záznamu nebo počítač",
       "clinic": "Klinika",
       "allClinics": "Všechny kliniky",
       "study": "Studie",

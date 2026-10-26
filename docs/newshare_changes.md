@@ -430,6 +430,8 @@ Errors are `{error: "<code>"}`. Response shapes are in the specification's appen
 
 ### Permissions (phase B)
 
+> The old `db:permissions` / `alter_permissions.sql` step no longer exists: the schema is recreated by `runInit.js` (`create_tables.sql`). Visibility is now by assigned clinics only (see `docs/ui_redesign/`).
+
 | Rule | Behaviour |
 |---|---|
 | Visibility | Master sees all. Others: site in `user_sites`, or project in `user_projects` and the site allowed by `user_project_sites` (else all the project's clinics). A session with no matched project is visible through a site grant only |

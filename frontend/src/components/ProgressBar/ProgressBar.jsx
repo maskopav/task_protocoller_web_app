@@ -10,7 +10,7 @@ export const ProgressBar = ({ audio, duration, currentTime, isRunning, percentag
     // resume from pause) — the animation is always anchored to reality
     // instead of a guessed tick length, so there's nothing to mispredict
     // and nothing that can plateau while waiting for a guess to catch up.
-    const originRef = useRef(performance.now() - (currentTime ?? 0) * 1000);
+    const originRef = useRef(0); // set by the effect below before the first frame
 
     useEffect(() => {
         if (isRunning) {

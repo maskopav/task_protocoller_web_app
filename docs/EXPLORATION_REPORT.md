@@ -42,7 +42,7 @@ There is no root `package.json`. The repo root holds `README.md`, `backend/`, `f
 | `backend/src/controllers/` | `protocolController.js` (`assembleProtocol`), `siteController.js` (`getSiteConfig`), ... |
 | `backend/src/routes/`, `middleware/`, `db/connection.js` | Routing, auth and DB pool |
 | `backend/src/utils/` | `extConfig.js`, `fieldValidation.js`, `emailService.js`, ... |
-| `backend/scripts/schema/` | `create_tables.sql`, `create_views.sql`, `drop_tables.sql`, `alter_permissions.sql`, `compareSchemas.js` |
+| `backend/scripts/schema/` | `create_tables.sql`, `create_views.sql`, `drop_tables.sql`, `compareSchemas.js` (permissions are part of `create_tables.sql`; the schema is recreated by `runInit.js`) |
 | `backend/scripts/seed/` | `seed_all.sql`, `artificial_data.sql`, `e2e_seed.sql` |
 | `backend/scripts/gen-ext-configs.js` | Sample generator |
 
@@ -73,7 +73,7 @@ There is no root `package.json`. The repo root holds `README.md`, `backend/`, `f
 | `npm run db:samples` | `node src/runExtSamplesSeed.js` (uncommitted addition) |
 | `npm run db:test:reset` | `node --env-file=.env.test src/runInit.js && node --env-file=.env.test src/runE2ESeed.js` |
 | `npm run db:views` | `node src/applyViews.js` |
-| `npm run db:permissions` | `node src/applyPermissions.js` |
+| (removed) `db:permissions` | superseded: the schema is recreated by `runInit.js`, no alter scripts |
 | `npm run db:sql` | `node --env-file=.env src/dbConsole.js` |
 | `npm run start:test` | `node --env-file=.env.test server.js` |
 | `npm run db:schema:diff` | `node scripts/schema/compareSchemas.js` |

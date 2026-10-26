@@ -23,7 +23,7 @@ test('master: one primary button, the Clinic filter and column, and the quaranti
   await expect(banner).toBeVisible();
   await expect(banner).toContainText(/not assigned to a clinic/);
   await banner.getByRole('link').click();
-  await expect(page).toHaveURL(/#\/clinics$/);
+  await expect(page).toHaveURL(/#\/clinics(#unassigned-computers)?$/);
 });
 
 test('master: Export CSV sits in the "more actions" menu', async ({ page }) => {

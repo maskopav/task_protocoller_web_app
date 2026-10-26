@@ -459,11 +459,22 @@ describe('POST /upload — malformed requests (400, nothing kept)', () => {
   });
 });
 
-// Runs last: every test above sent the app's real filename
-// (<patientCode>_<id>.zip) on the attachment and the patient code inside the
-// ZIP, and the 500 test fed both into an error message.
+// Self-contained: sends an upload with the app's real filename
+// (<patientCode>_<id>.zip, patient code inside the ZIP) and makes the 500 path
+// feed both into an error message, then checks nothing reached the log.
 describe('logging', () => {
-  it('never logs the client filename, the patient code or the site token', () => {
+  it('never logs the client filename, the patient code or the site token', async () => {
+    logToFile.mockClear();
+    const ok = fixture();
+    expect((await post(ok)).status).toBe(200);
+    const fx = fixture();
+    executeQuery.mockImplementation(async (sql, p) => {
+      if (sql.includes('FROM upload_sessions WHERE session_id')) {
+        throw new Error(`driver blew up near '${PATIENT_CODE}_${fx.sessionId}.zip'`);
+      }
+      return dispatch(sql, p);
+    });
+    expect((await post(fx)).status).toBe(500);
     expect(logToFile).toHaveBeenCalled();
     const logged = JSON.stringify(logToFile.mock.calls);
     expect(logged).not.toContain(PATIENT_CODE);

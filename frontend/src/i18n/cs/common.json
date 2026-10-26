@@ -1,108 +1,336 @@
 {
-    "buttons": {
-      "next": "Další",
-      "repeat": "Zkusit znovu",
-      "start": "Start",
-      "pause": "POZASTAVIT",
-      "resume": "POKRAČOVAT",
-      "stop": "Stop",
-      "permission": "Povolit mikrofon",
-      "cancel": "Zrušit",
-      "save": "Uložit",
-      "done": "Hotovo",
-      "skip": "Přeskočit",
-      "back": "Zpět",
-      "confirm": "Potvrdit",
-      "seeTopic": "Zobrazit téma"
-    },
-    "micCheck": {
-      "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."
-    },
-    "micCheck": {
-      "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se."
-    },
-    "status": {
-      "ready": "⚪ Připraveno",
-      "recording": "🔴 Nahrávání...",
-      "paused": "⏸️ Pozastaveno",
-      "recorded": "✅ Nahráno"
-    },
-    "languageSelector": {
-      "title": "neuroSHARE test",
-      "languageWarning": "Vyberte si prosím jazyk, kterým mluvíte nejplynuleji, ideálně svůj mateřský jazyk. Jakmile úkoly začnou, tuto volbu již nebudete moci změnit."
-    },
-    "completion": {
-      "title": "Všechny úkoly dokončeny!",
-      "message": "🎉 Úspěšně jste dokončili všechny zadání. Děkujeme Vám za účast!",
-      "completedModule": ": modul dokončen!",
-      "praises": [
-        "🌟 Skvělá práce!",
-        "🎯 Výborně!",
-        "👏 Dobrá práce!",
-        "✨ Excelentní!",
-        "🎉 Skvěle zvládnuto!"
-      ]
-    },
-    "taskLabels": {
-      "voice": "Řečová úloha",
-      "motor": "Motorická úloha",
-      "camera": "Kamerová úloha",
-      "questionnaire": "Dotazník"
-    },
-    "questionnaire": {
-      "selectOption": "Vyberte možnost...",
-      "typeAnswer": "Zde napište svou odpověď...",
-      "required": "* povinné"
-    },
-    "identifiers": {
-      "description": "Vyplňte prosím následující údaje.",
-      "fillAllFields": "Pro pokračování vyplňte všechna povinná pole.",
-      "selectOption": "Vyberte možnost...",
-      "autoFilled": "vyplní aplikace automaticky",
-      "catalogue": {
-        "current_date": { "label": "Datum", "help": "Datum vyšetření (vyplní se automaticky)." },
-        "sex": { "label": "Pohlaví", "help": "" },
-        "education": { "label": "Vzdělání", "help": "Nejvyšší dosažené vzdělání." },
-        "patient_code": { "label": "Kód účastníka", "help": "Studijní kód účastníka, např. HC001." },
-        "surname": { "label": "Příjmení", "help": "" },
-        "year_of_birth": { "label": "Rok narození", "help": "" }
+  "buttons": {
+    "next": "Další",
+    "repeat": "Zkusit znovu",
+    "reset": "Obnovit",
+    "start": "Start",
+    "sending": "Ukládání…",
+    "pause": "POZASTAVIT",
+    "resume": "POKRAČOVAT",
+    "stop": "Stop",
+    "preparing": "Příprava…",
+    "playExample": "Přehrát ukázku",
+    "stopExample": "Zastavit ukázku",
+    "playStory": "Přehrát příběh",
+    "stopStory": "Zastavit příběh",
+    "disabledWhileRecording": "Během nahrávání nedostupné",
+    "permission": "Povolit mikrofon",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "done": "Hotovo",
+    "skip": "Přeskočit",
+    "back": "Zpět",
+    "ok": "Ok",
+    "logout": "Odhlásit se",
+    "edit": "Upravit",
+    "confirm": "Potvrdit",
+    "continue": "Pokračovat",
+    "backToEditor": "Zpět do editoru",
+    "startCalibration": "Ke kalibraci kamery",
+    "seeTopic": "Zobrazit téma",
+    "switchTopic": "Změnit téma",
+    "cannot": "Nemohu / Nevím",
+    "yes": "Ano",
+    "no": "Ne",
+    "dontKnow": "Nevím"
+  },
+  "status": {
+    "ready": "⚪ Připraveno",
+    "recording": "🔴 Nahrávání...",
+    "paused": "⏸️ Pozastaveno",
+    "recorded": "✅ Nahráno"
+  },
+  "languageSelector": {
+    "title": "neuroSHARE test",
+    "languageWarning": "Vyberte si prosím jazyk, kterým mluvíte nejplynuleji, ideálně svůj mateřský jazyk. Jakmile úkoly začnou, tuto volbu již nebudete moci změnit."
+  },
+  "vad": {
+    "loading": "Načítání detekce řeči...",
+    "durationExpired": "Pokud už nemáte co dodat, můžete ukončit klepnutím na Stop.",
+    "speakLonger": "Pokud je to možné, zkuste mluvit o něco déle."
+  },
+  "completion": {
+    "taskCompletedInstructions": "Úkol byl úspěšně dokončen! <br> Klepnutím na <strong>Další</strong> pokračujte, nebo na <strong>Zkusit znovu</strong>, pokud chcete nahrát nový pokus.",
+    "doneTitle": "Odpovědi byly úspěšně uloženy!",
+    "noInternetTitle": "Žádné připojení k internetu",
+    "uploadingTitle": "Nahrávání…",
+    "safeToClose": "Děkujeme, že jste se zúčastnili této studie! <br/><br/> Toto okno můžete nyní zavřít.",
+    "uploading": "Odpovědi se odesílají – nechte prosím tuto stránku otevřenou.",
+    "offlineModalInfo": "Připojte se k internetu",
+    "offlineDataSafe": "Vaše odpovědi jsou uloženy v tomto zařízení. <br/>Stránku NEOBNOVUJTE. Nechte ji otevřenou a odpovědi se po obnovení připojení odešlou automaticky.",
+    "offlineReturnHint": "Nechte prosím tuto kartu otevřenou, dokud se nepřipojíte k internetu. <br/><br/>Pokud musíte stránku nyní zavřít, klepněte později znovu na odkaz na dotazník, až budete mít připojení.",
+    "offlineBrief": "Vaše data se po obnovení připojení odešlou automaticky.",
+    "completedModule": ": modul dokončen!",
+    "finished": "dokončeno!",
+    "praises": [
+      "Skvělá práce!",
+      "Perfektní!",
+      "Dobře odvedeno!",
+      "Výborně!",
+      "Pěkně zvládnuto!"
+    ],
+    "title": "Všechny úkoly dokončeny!",
+    "message": "🎉 Úspěšně jste dokončili všechny zadání. Děkujeme Vám za účast!"
+  },
+  "taskLabels": {
+    "info": "Informace",
+    "mic_check": "Test zvuku",
+    "voice": "Řečová úloha",
+    "motor": "Motorická úloha",
+    "camera": "Kamerová úloha",
+    "vision": "Část zaměřená na zrak",
+    "cognitive": "Část zaměřená na myšlení",
+    "hearing": "Část zaměřená na sluch",
+    "questionnaire": "Dotazník",
+    "task": "Úkol",
+    "milestone_25": "Více než 25 % ",
+    "milestone_50": "Už jste v polovině! Více než 50 % ",
+    "milestone_75": "Skoro hotovo! Více než 75 % "
+  },
+  "repetition": {
+    "notice": "Proveďte prosím úkol znovu. <br/><br/>"
+  },
+  "questionnaire": {
+    "selectOption": "Vyberte možnost...",
+    "typeAnswer": "Zde napište svou odpověď...",
+    "pleaseSpecify": "Upřesněte prosím",
+    "required": "* povinné",
+    "rating": {
+      "veryBad": "Velmi špatné",
+      "bad": "Špatné",
+      "okay": "Docela dobré",
+      "good": "Dobré",
+      "veryGood": "Velmi dobré"
+    }
+  },
+  "identifiers": {
+    "description": "Vyplňte prosím následující údaje.",
+    "firstName": "Jméno",
+    "lastName": "Příjmení",
+    "birthYear": "Rok narození",
+    "externalId": "Externí ID",
+    "gender": "Pohlaví",
+    "yearPlaceholder": "např. 1965",
+    "yearTitle": "Zadejte čtyřmístný rok",
+    "fillAllFields": "Pro pokračování vyplňte všechna povinná pole.",
+    "saveError": "Při ukládání vašich údajů došlo k chybě. Zkuste to prosím znovu.",
+    "invalidYear": "Zadejte prosím platný rok mezi {{min}} a {{max}}.",
+    "selectOption": "Vyberte možnost...",
+    "autoFilled": "vyplní aplikace automaticky",
+    "catalogue": {
+      "current_date": {
+        "label": "Datum",
+        "help": "Datum vyšetření (vyplní se automaticky)."
+      },
+      "sex": {
+        "label": "Pohlaví",
+        "help": ""
+      },
+      "education": {
+        "label": "Vzdělání",
+        "help": "Nejvyšší dosažené vzdělání."
+      },
+      "patient_code": {
+        "label": "Kód účastníka",
+        "help": "Studijní kód účastníka, např. HC001."
+      },
+      "surname": {
+        "label": "Příjmení",
+        "help": ""
+      },
+      "year_of_birth": {
+        "label": "Rok narození",
+        "help": ""
       }
-    },
-    "notFound": {
-      "title": "404 – Stránka nenalezena",
-      "message": "Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
-    },
-    "inactive": {
-      "title": "Protokol není aktivní",
-      "message": "Váš protokol nyní není aktivní, jeho platnost vypršela."
-    },
-    "invalidToken": {
-      "title": "Nevalidní token",
-      "message": "Token není validní. Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
-    },
-    "auth": {
-      "signupTitle": "Nový účastník",
-      "loginTitle": "Vítejte zpět",
-      "signupDesc": "Zadejte své údaje pro zahájení protokolu.",
-      "loginDesc": "Zadejte své přihlašovací údaje pro pokračování.",
-      "email": "Email",
-      "password": "Heslo",
-      "fullName": "Celé jméno",
-      "birthDate": "Datum narození",
-      "sex": "Pohlaví",
-      "male": "Muž",
-      "female": "Žena",
-      "phone": "Telefonní číslo (volitelné)",
-      "note": "Přihlašovací údaje vám zašleme na email.",
-      "btnSignup": "Spustit protokol",
-      "btnLogin": "Přihlásit se",
-      "tabSignup": "Registrace",
-      "tabLogin": "Přihlášení",
-      "processing": "Zpracovávám...",
-      "welcomeTitle": "TaskProtocoller",
-      "welcomeSubtitle": "Prosím zaregistrujte se nebo přihlašte pro vyplnění testu. <br/><strong>Registrovaní uživatelé:</strong> použijte Váš unikátní link nebo přihlašovací údaje poslané emailem. <br/><strong>Noví uživatelé:</strong> vaše přístupové údaje Vám budou poslány emailem po registraci.",
-      "forgotPasswordLink": "Zapomenuté heslo?" 
-    },
+    }
+  },
+  "notFound": {
+    "title": "404 – Stránka nenalezena",
+    "message": "Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
+  },
+  "inactive": {
+    "title": "Protokol není aktivní",
+    "message": "Váš protokol nyní není aktivní, jeho platnost vypršela."
+  },
+  "invalidToken": {
+    "title": "Nevalidní token",
+    "message": "Token není validní. Prosím zkontroluje URL adresu nebo kontaktujte administrátora."
+  },
+  "resumedSession": {
+    "title": "Vítejte zpět!",
+    "message": "Váš postup byl uložen. Pro co nejlepší výsledky se prosím ujistěte, že jste ve <strong>stejném tichém prostředí</strong> jako dříve, a zkuste zbývající úkoly dokončit najednou.",
+    "continue": "Pokračovat"
+  },
+  "permissions": {
+    "tabAndroid": "Android",
+    "tabIos": "iPhone",
+    "howToFix": "Řešení"
+  },
+  "micCheck": {
+    "calibrationTitle": "Nastavení mikrofonu",
+    "permissionWarning": "V následujících úkolech budeme nahrávat váš hlas. Prohlížeč se vás zeptá na přístup k mikrofonu.",
+    "permissionInstruction": "Stiskněte níže tlačítko <strong>Povolit přístup k mikrofonu</strong>. <br><br/> V zobrazeném okně zvolte <strong>Povolit</strong>, abychom mohli nahrávat váš hlas.",
+    "btnUnderstand": "Povolit přístup k mikrofonu",
+    "noiseTitle": "Test zvuku",
+    "noiseInstructions": "Nejprve otestujeme váš mikrofon. <br><br/> Začněte stisknutím tlačítka Start.",
+    "noiseInstructionsCounting": "<strong>Počítejte pomalu a nahlas</strong> od 1 do 5.",
+    "noiseInstructionsSilence": "Nyní buďte <strong>zticha</strong>.",
+    "analyzing": "Kontrola zvuku...",
+    "failedTitle": "Nemůžeme vás dobře slyšet",
+    "failedMessage": "Omezte prosím zvuky v okolí.",
+    "failedInstructions": "Pro nejlepší výsledky <strong>zavřete okna, vypněte televizi či rádio nebo přejděte do klidnější místnosti</strong>. Až budete připraveni, zkuste to znovu.",
+    "failedAdditionalInfo": "Nejpravděpodobnější příčinou je hluk v pozadí, někdy však může jít o problém s mikrofonem. <br/><br/> Zkuste to prosím znovu. Pokud se to stále nedaří, můžete přesto pokračovat.",
+    "mutedTitle": "Nebyl zachycen žádný zvuk",
+    "mutedMessage": "Během testu zvuku jsme nic neslyšeli.",
+    "mutedInstructions": "Ujistěte se prosím, že <strong>mikrofon není ztlumený, odpojte sluchátka a zkontrolujte nastavení zařízení</strong>. Až budete připraveni, zkuste to znovu.",
+    "mutedAdditionalInfo": "Pokud problémy přetrvávají, navštivte průvodce řešením potíží nebo kontaktujte podporu. <br/><br/> Dále pokračovat nelze.",
+    "mutedModalMessage": "Je nám líto, ale nepodařilo se nám správně nastavit váš mikrofon. Z tohoto důvodu nebudete moci dokončit většinu úkolů v této studii. Upřímně se omlouváme za způsobené nepříjemnosti a děkujeme vám za váš čas a ochotu zúčastnit se.",
+    "btnTryAgain": "Zkontrolovat mikrofon znovu",
+    "successTitle": "Mikrofon je připraven",
+    "successMessage": "Vše vypadá dobře!",
+    "successInstructions": "Zůstaňte prosím <strong>v této místnosti</strong>, dokud neskončíte.",
+    "btnProceed": "Další",
+    "guide": {
+      "titleDenied": "Přístup k mikrofonu byl odepřen",
+      "titleHardware": "Problém s mikrofonem",
+      "titleGeneric": "Mikrofon je nutný",
+      "descDenied": "Vaše zařízení nebo prohlížeč blokuje mikrofon. Pro pokračování musí přístup povolit obojí.",
+      "descBusy": "Mikrofon právě používá jiná aplikace (například telefonní hovor nebo Zoom). Zavřete ji prosím.",
+      "descMissing": "Nepodařilo se zjistit mikrofon. Zkontrolujte připojení nebo zkuste jiné zařízení.",
+      "descGeneric": "K provedení tohoto úkolu je potřeba přístup k mikrofonu.",
+      "btnRetry": "Zkusit znovu",
+      "steps": {
+        "android": {
+          "systemAndBrowser": "1. Otevřete <strong>Nastavení</strong> systému Android, vyhledejte svůj prohlížeč (např. Chrome) a nastavte Mikrofon na <strong>Povolit</strong>.<br/>2. Vraťte se sem, klepněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klepněte na <strong>Povolit</strong>.",
+          "hardware": "• Ukončete všechny probíhající hovory (Telefon, WhatsApp) a další aplikace pro nahrávání.<br/>• Zkontrolujte nastavení Bluetooth a odpojte bezdrátová sluchátka, která by mohla mikrofon používat.<br/>"
+        },
+        "ios": {
+          "systemAndBrowser": "1. Otevřete <strong>Nastavení</strong> iPhonu, přejděte k svému prohlížeči (např. Safari) a zapněte přepínač Mikrofon (<strong>ZAP</strong>).<br/>2. Vraťte se sem, klepněte na <strong>ikonu aA</strong> v adresním řádku, vyberte <strong>Nastavení webu</strong> a povolte mikrofon.",
+          "hardware": "• Ukončete všechny probíhající hovory (Telefon, FaceTime) a další aplikace pro nahrávání.<br/>• Zkontrolujte nastavení Bluetooth a odpojte bezdrátová sluchátka, která by mohla mikrofon používat.<br/>"
+        }
+      }
+    }
+  },
+  "audioGuideIntro": {
+    "title": "Zvukový průvodce",
+    "instructions": "<strong>Zvukový průvodce</strong> <br/><br/> Během vyšetření vás budou úkoly provázet zvukovým průvodcem, jaký byste měli právě slyšet. <br><br/> Průvodce můžete pozastavit klepnutím na ikonu v pravém horním rohu obrazovky. <br><br/> Chcete-li průvodce přehrát znovu, klepněte na ikonu ještě jednou."
+  },
+  "videoCalibration": {
+    "setupTitle": "Nastavení kamery",
+    "step1": "<strong>Opřete paži o stůl</strong> a držte telefon tak, jak je znázorněno na obrázku. <br/><br/> Cíl – umístěte obličej tak, aby kruh <strong>zezelenal</strong>.",
+    "step2": "Během úkolu držte <strong>telefon v klidu</strong>.",
+    "step3": "Dbejte na <strong>dobré osvětlení</strong> obličeje, aby byl dobře vidět.",
+    "step4": "Buďte v záběru kamery <strong>sami</strong>.",
+    "viewInstructions": "Zobrazit pokyny k nastavení",
+    "btnReady": "Jsem připraven(a)",
+    "btnCancel": "Zrušit",
+    "btnShowInstructions": "Zobrazit pokyny a začít",
+    "btnContinueReady": "Poloha je správná → pokračovat",
+    "btnContinueWait": "Čeká se na správnou polohu...",
+    "warningHoldSteady": "Držte telefon v klidu!",
+    "warningAdjustFace": "Upravte polohu obličeje!",
+    "closer": "Blíže",
+    "loadingAI": "Načítání modelu detekce obličeje...",
+    "further": "Dále",
+    "turnLeft": "Podívejte se doleva",
+    "turnRight": "Podívejte se doprava",
+    "perfect": "Perfektní!",
+    "permissionWarning": "V tomto úkolu budeme při mluvení měřit pohyby vašeho obličeje. <br/><br/> Nenahrává se žádné video, pouze anonymizovaná data o souřadnicích. <br/><br/> K tomu se vás prohlížeč zeptá na přístup ke kameře.",
+    "permissionInstruction": "Klepněte na tlačítko a poté v zobrazeném okně stiskněte <strong>Povolit</strong>.",
+    "waitingForPermission": "Čeká se na povolení kamery...",
+    "btnUnderstand": "Rozumím, pokračovat",
+    "guide": {
+      "titleDenied": "Přístup ke kameře byl odepřen",
+      "descDenied": "Vaše zařízení nebo prohlížeč blokuje kameru. Pro pokračování musí přístup povolit obojí.",
+      "btnRetry": "Zkusit znovu",
+      "btnDecline": "Nechci udělit přístup",
+      "declineTitle": "Zvažte to prosím znovu",
+      "declineMessage": "Nenahrává se žádné video – pouze sada anonymizovaných souřadnic obličeje. Pokud přístup ke kameře neudělíte, budou výsledky méně citlivé.",
+      "declineConfirm": "Pokračovat bez přístupu ke kameře",
+      "declineCancel": "Zpět",
+      "steps": {
+        "android": "1. Otevřete <strong>Nastavení</strong> systému Android, vyhledejte svůj prohlížeč (např. Chrome) a nastavte Fotoaparát na <strong>Povolit</strong>.<br/>2. Vraťte se sem, klepněte na <strong>Zkusit znovu</strong> nebo obnovte stránku a v zobrazeném okně klepněte na <strong>Povolit</strong>.",
+        "ios": "1. Otevřete <strong>Nastavení</strong> iPhonu, přejděte k svému prohlížeči (např. Safari) a zapněte přepínač Fotoaparát (<strong>ZAP</strong>).<br/>2. Vraťte se sem, klepněte na <strong>ikonu aA</strong> v adresním řádku, vyberte <strong>Nastavení webu</strong> a povolte kameru."
+      }
+    }
+  },
+  "incompatibleBrowser": {
+    "title": "Nepodporovaný prohlížeč",
+    "description": "nepodporuje přístup k mikrofonu, který tento úkol vyžaduje.",
+    "instruction": "Zkopírujte níže uvedený odkaz a otevřete ho v jednom z těchto prohlížečů:",
+    "fallbackPrompt": "Zkopírujte tento odkaz a otevřete ho v Chrome, Safari, Opeře nebo Edge:",
+    "copied": "Zkopírováno!",
+    "copyBtn": "Kopírovat odkaz"
+  },
+  "auth": {
+    "signupTitle": "Nový účastník",
+    "loginTitle": "Vítejte zpět",
+    "signupDesc": "Zadejte své údaje pro zahájení protokolu.",
+    "loginDesc": "Zadejte své přihlašovací údaje pro pokračování.",
+    "email": "Email",
+    "password": "Heslo",
+    "fullName": "Celé jméno",
+    "birthDate": "Datum narození",
+    "sex": "Pohlaví",
+    "male": "Muž",
+    "female": "Žena",
+    "phone": "Telefonní číslo (volitelné)",
+    "note": "Přihlašovací údaje vám zašleme na email.",
+    "btnSignup": "Spustit protokol",
+    "btnLogin": "Přihlásit se",
+    "tabSignup": "Registrace",
+    "tabLogin": "Přihlášení",
+    "processing": "Zpracovávám...",
+    "welcomeTitle": "TaskProtocoller",
+    "welcomeSubtitle": "Prosím zaregistrujte se nebo přihlašte pro vyplnění testu. <br/><strong>Registrovaní uživatelé:</strong> použijte Váš unikátní link nebo přihlašovací údaje poslané emailem. <br/><strong>Noví uživatelé:</strong> vaše přístupové údaje Vám budou poslány emailem po registraci.",
+    "forgotPasswordLink": "Zapomenuté heslo?",
+    "resetEmailSent": "Odkaz pro obnovení hesla byl odeslán na váš e-mail.",
+    "forgotPasswordInstruction": "Odkaz pro obnovení hesla vám pošleme e-mailem.",
+    "btnSendResetLink": "Odeslat odkaz pro obnovení",
+    "resetPasswordTitle": "Obnovení hesla",
+    "passwordUpdateSuccess": "Heslo bylo úspěšně změněno!",
+    "redirectingToLogin": "Přesměrování na přihlášení...",
+    "newPassword": "Nové heslo",
+    "confirmPassword": "Potvrzení hesla",
+    "btnSetNewPassword": "Nastavit nové heslo",
+    "passwordMismatch": "Hesla se neshodují",
+    "btnBackToLogin": "Zpět na přihlášení",
+    "required": "Toto pole je povinné",
+    "invalidEmail": "Neplatný formát e-mailu",
+    "nameTooShort": "Zadejte své celé jméno (jméno a příjmení)",
+    "invalidPhone": "Neplatný formát telefonního čísla",
+    "invalidGender": "Vyberte prosím své pohlaví",
+    "underAge": "K účasti musíte být starší 18 let.",
+    "overAge": "Zadejte prosím platné datum narození.",
+    "signupSuccessTitle": "Registrace proběhla úspěšně!",
+    "signupSuccessDetail": "Vaše přihlašovací údaje a jedinečný přístupový odkaz byly odeslány na váš e-mail.",
+    "spamNote": "Pokud zprávu brzy neuvidíte, zkontrolujte složku se spamem.",
+    "smartphoneNote": "Pro nejlepší zážitek naskenujte prosím QR kód chytrým telefonem.",
+    "show": "Zobrazit",
+    "hide": "Skrýt",
+    "futureDateError": "Datum narození nemůže být v budoucnosti",
+    "birthDateRequired": "Datum narození je povinné"
+  },
+  "confirmModal": {
+    "info": "Informace"
+  },
+  "email": {
+    "welcome": "Vítejte, {{name}}!",
+    "assignedProtocol": "Byl vám přiřazen nový výzkumný protokol.",
+    "manualLogin": "Pokud se budete později potřebovat přihlásit ručně",
+    "password": "Heslo",
+    "subjectCredentials": "Váš přístupový odkaz a přihlašovací údaje",
+    "subjectProtocol": "TaskProtocoller: Byl vám přiřazen nový protokol!",
+    "openProtocol": "Otevřít protokol",
+    "subjectReset": "Žádost o obnovení hesla",
+    "resetRequested": "Požádali jste o obnovení hesla. Pokračujte klepnutím na tlačítko níže.",
+    "btnSetNewPassword": "Nastavit nové heslo",
+    "adminWelcomeSubject": "Vítejte v TaskProtocolleru – přístup správce",
+    "adminWelcomeTitle": "Dobrý den, {{name}},",
+    "adminWelcomeBody": "Byli jste zaregistrováni jako správce systému. K přihlášení a nastavení trvalého hesla použijte svůj e-mail a dočasné heslo uvedené níže.",
+    "loginUrlLabel": "Přihlašovací stránka",
+    "tempPasswordLabel": "Dočasné heslo"
+  },
   "ui": {
     "copy": "Kopírovat",
     "copied": "Zkopírováno",
@@ -112,4 +340,3 @@
     "cancel": "Zrušit"
   }
 }
-  

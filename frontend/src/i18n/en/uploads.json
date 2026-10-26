@@ -1,42 +1,47 @@
 {
   "list": {
     "title": "Uploads",
-    "description": "Sessions uploaded by the desktop app at your sites. Each upload is checked on arrival; review the ones that need attention and mark them for analysis.",
-    "devices": "Devices",
+    "description": "Sessions uploaded by the desktop app at your clinics. Each upload is checked on arrival; review the ones that need attention and mark them for analysis.",
+    "devices": "Computers",
     "exportCsv": "Export CSV",
     "csvFailed": "Could not export the CSV file.",
-    "sessions": "Sessions",
-    "filteredBy": "Filtered by {{filters}}",
     "clearFilters": "Clear filters",
     "retry": "Try again",
     "empty": "No sessions match these filters.",
     "emptyHint": "Try a wider date range, or",
-    "toUpload": "+{{lag}} to upload",
     "tasksTitle": "{{done}} done, {{skipped}} skipped, {{missing}} missing of {{total}}",
     "skipped": "{{count}} skipped",
-    "comments": "Comments",
-    "openSession": "Open session",
-    "showing": "Showing {{from}}–{{to}} of {{total}} sessions",
-    "rows": "Rows",
-    "prevPage": "Previous page",
-    "nextPage": "Next page"
+    "rows": "Rows"
   },
   "kpi": {
-    "week": { "label": "Received · 7 days", "hint": "all sites in scope" },
-    "valid": { "label": "Valid", "hint": "checksums verified" },
-    "invalid": { "label": "Invalid", "hint": "failed a server check" },
-    "attention": { "label": "Needs attention", "hint": "invalid, flagged, crash, mic loss or non-standard device" },
-    "unreviewed": { "label": "Unreviewed", "hint": "no one has looked yet" }
+    "week": {
+      "label": "Received · 7 days",
+      "hint": "all clinics in scope"
+    },
+    "valid": {
+      "label": "Valid",
+      "hint": "checksums verified"
+    },
+    "invalid": {
+      "label": "Invalid",
+      "hint": "failed a server check"
+    },
+    "attention": {
+      "label": "Needs attention",
+      "hint": "invalid, flagged, crash, mic loss or non-standard computer"
+    },
+    "unreviewed": {
+      "label": "Unreviewed",
+      "hint": "no one has looked yet"
+    }
   },
   "filters": {
     "search": "Search",
-    "searchPlaceholder": "Patient code, session ID or device",
-    "project": "Project",
-    "allProjects": "All projects",
+    "searchPlaceholder": "Patient code, session ID or computer",
+    "project": "Study",
     "protocol": "Protocol",
     "allProtocols": "All protocols",
     "date": "Date",
-    "dateRefersTo": "Date refers to",
     "received": "Received",
     "recorded": "Recorded",
     "from": "From",
@@ -44,29 +49,35 @@
     "serverCheck": "Server check",
     "any": "Any",
     "review": "Review",
-    "sites": "Sites",
+    "sites": "Clinics",
     "flags": "Flags",
     "hasVideo": "Has video"
   },
   "columns": {
     "received": "Received",
-    "siteDevice": "Site · device",
     "patient": "Patient",
     "protocol": "Protocol",
     "recorded": "Recorded",
     "length": "Length",
     "tasks": "Tasks",
-    "clips": "Clips",
-    "size": "Size",
     "serverCheck": "Server check",
     "review": "Review",
     "flags": "Flags",
     "actions": "Actions"
   },
   "status": {
-    "valid": { "label": "Valid", "hint": "Checksum and manifest verified" },
-    "validating": { "label": "Validating", "hint": "Received, checks running" },
-    "invalid": { "label": "Invalid", "hint": "Failed a server check" }
+    "valid": {
+      "label": "Valid",
+      "hint": "Checksum and manifest verified"
+    },
+    "validating": {
+      "label": "Validating",
+      "hint": "Received, checks running"
+    },
+    "invalid": {
+      "label": "Invalid",
+      "hint": "Failed a server check"
+    }
   },
   "invalidReason": {
     "checksum": "ZIP checksum mismatch",
@@ -81,17 +92,50 @@
     "excluded": "Excluded"
   },
   "issues": {
-    "recovered": { "label": "Recovered", "hint": "App crashed; session rebuilt and may be incomplete" },
-    "interrupted": { "label": "Mic interrupted", "hint": "Microphone lost mid-session" },
-    "skipped": { "label": "Skipped tasks", "hint": "One or more tasks skipped by the examiner" },
-    "retakes": { "label": "Retakes", "hint": "A task was repeated; only the last take is exported" },
-    "edited": { "label": "Edited timeline", "hint": "Segment boundaries adjusted in the waveform editor" },
-    "outdated": { "label": "Old config", "hint": "Recorded with a config version older than the current one" },
-    "late": { "label": "Late upload", "hint": "Uploaded more than 3 days after recording" },
-    "duplicate": { "label": "Re-sent", "hint": "Device re-sent an already received session" },
-    "nonstdMic": { "label": "Non-standard mic", "hint": "The whole session was recorded with a microphone other than the one set in the app's Settings" },
-    "nonstdCam": { "label": "Non-standard camera", "hint": "The whole session was filmed with a camera other than the one set in the app's Settings" },
-    "device": { "label": "Device event", "hint": "A camera or microphone failed during the session" }
+    "recovered": {
+      "label": "Recovered",
+      "hint": "App crashed; session rebuilt and may be incomplete"
+    },
+    "interrupted": {
+      "label": "Mic interrupted",
+      "hint": "Microphone lost mid-session"
+    },
+    "skipped": {
+      "label": "Skipped tasks",
+      "hint": "One or more tasks skipped by the examiner"
+    },
+    "retakes": {
+      "label": "Retakes",
+      "hint": "A task was repeated; only the last take is exported"
+    },
+    "edited": {
+      "label": "Edited timeline",
+      "hint": "Segment boundaries adjusted in the waveform editor"
+    },
+    "outdated": {
+      "label": "Old config",
+      "hint": "Recorded with a config version older than the current one"
+    },
+    "late": {
+      "label": "Late upload",
+      "hint": "Uploaded more than 3 days after recording"
+    },
+    "duplicate": {
+      "label": "Re-sent",
+      "hint": "Computer re-sent an already received session"
+    },
+    "nonstdMic": {
+      "label": "Non-standard mic",
+      "hint": "The whole session was recorded with a microphone other than the one set in the app's Settings"
+    },
+    "nonstdCam": {
+      "label": "Non-standard camera",
+      "hint": "The whole session was filmed with a camera other than the one set in the app's Settings"
+    },
+    "device": {
+      "label": "Computer event",
+      "hint": "A camera or microphone failed during the session"
+    }
   },
   "rel": {
     "min": "{{count}} min ago",
@@ -115,15 +159,15 @@
     "prev": "Previous",
     "next": "Next",
     "download": "Download ZIP",
-    "downloadHint": "Saved as {{id}}.zip. The device's own file name starts with the patient code, so the server neither logs nor reuses it.",
+    "downloadHint": "Saved as {{id}}.zip. The computer's own file name starts with the patient code, so the server neither logs nor reuses it.",
     "downloadFailed": "Could not start the download.",
     "viewOnly": "View only",
-    "viewOnlyHint": "Your access to this project is read-only",
+    "viewOnlyHint": "Your access to this study is read-only",
     "recordedAt": "recorded at",
     "on": "on",
     "title": "Session",
-    "site": "Site",
-    "device": "Device",
+    "site": "Clinic",
+    "device": "Computer",
     "appVersion": "App version",
     "startedEnded": "Started → ended",
     "notFinished": "not finished",
@@ -167,7 +211,11 @@
     "lastKeptHint": "Only the last take is exported",
     "micLost": "mic lost",
     "micLostHint": "Microphone lost during this task (take rejected: DEVICE_LOST)",
-    "results": { "Done": "Done", "Skipped": "Skipped", "Missing": "Missing" },
+    "results": {
+      "Done": "Done",
+      "Skipped": "Skipped",
+      "Missing": "Missing"
+    },
     "playAudio": "Play audio clip",
     "playVideo": "Play video clip",
     "videoNoSound": "Play video (the MP4 has no sound track)",
@@ -183,7 +231,12 @@
     "aria": "Task segments along the master recording",
     "task": "Task {{task}}",
     "rejectedTake": "Task {{task}}: rejected take ({{reason}})",
-    "legend": { "audio": "Audio task", "filmed": "Filmed", "questionnaire": "Questionnaire / info", "rejected": "Rejected take" }
+    "legend": {
+      "audio": "Audio task",
+      "filmed": "Filmed",
+      "questionnaire": "Questionnaire / info",
+      "rejected": "Rejected take"
+    }
   },
   "checks": {
     "title": "Server checks",
@@ -192,16 +245,16 @@
       "archive": "Archive structure",
       "manifest": "Manifest file hashes",
       "ids": "IDs consistent",
-      "device": "Device registered",
+      "device": "Computer registered",
       "config_version": "Config version",
       "complete": "Session complete"
     },
     "desc": {
-      "zip_checksum": "SHA-256 of the file matches the value declared by the device",
+      "zip_checksum": "SHA-256 of the file matches the value declared by the computer",
       "archive": "The archive is readable and has the expected structure",
       "manifest": "Every file is present and matches manifest.json",
       "ids": "Session and installation IDs agree across the files",
-      "device": "The device has a registered installation ID",
+      "device": "The computer has a registered installation ID",
       "config_version": "The config version is the current one",
       "complete": "Processing finished normally"
     }
@@ -210,7 +263,7 @@
     "title": "Upload history",
     "sub": "Every request the server received for this session ID",
     "none": "No requests recorded.",
-    "deviceReport": "Device report",
+    "deviceReport": "Computer report",
     "outcome": {
       "accepted": "Accepted",
       "resent": "Re-sent (answered as success)",
@@ -223,12 +276,12 @@
   "review": {
     "title": "Review",
     "noComments": "No comments yet.",
-    "addComment": "Add a comment for the site team",
+    "addComment": "Add a comment for the clinic team",
     "placeholder": "e.g. Phonation take 2 clipped, please re-record at next visit",
     "post": "Post comment",
     "forbidden": "You only have read access to this session.",
     "failed": "Could not save ({{code}}).",
-    "viewOnlyNote": "View only. Downloading, revealing participant fields, changing the review status and commenting need a site assignment for this clinic or edit rights on the project."
+    "viewOnlyNote": "View only. Downloading, revealing participant fields, changing the review status and commenting need an assignment to this clinic or edit rights on the study."
   },
   "participant": {
     "title": "Participant",
@@ -249,70 +302,6 @@
       "unknown_field": "Unknown field."
     }
   },
-  "cards": {
-    "unavailable": "Upload data is unavailable right now.",
-    "noUploads": "No uploads yet",
-    "allClear": "All clear",
-    "needAttention_one": "{{count}} needs attention",
-    "needAttention_other": "{{count}} need attention",
-    "thisWeek": "{{count}} this week",
-    "lastUpload": "Last upload {{when}}",
-    "monitoring": "Monitoring",
-    "byProtocol": "By protocol",
-    "bySite": "By site",
-    "uploads": {
-      "title": "Uploads",
-      "desc_one": "Sessions uploaded from your {{count}} site: arrival checks, review and downloads.",
-      "desc_other": "Sessions uploaded from your {{count}} sites: arrival checks, review and downloads."
-    },
-    "devices": {
-      "title": "Devices",
-      "desc": "Clinic computers running the desktop app and sessions still waiting on them.",
-      "waiting": "{{count}} waiting",
-      "silent": "{{count}} silent",
-      "none": "No devices yet",
-      "all": "All devices →",
-      "seen": "seen {{when}}"
-    },
-    "health": {
-      "ok": "OK",
-      "warn": "Backlog",
-      "bad": "Silent",
-      "off": "No uploads"
-    },
-    "downloads": {
-      "title": "Downloads",
-      "desc": "Download the data from multiple sessions."
-    },
-    "stats": {
-      "uploads30": "Uploads · 30 days",
-      "invalid": "Invalid",
-      "needsReview": "Needs review"
-    },
-    "latest": {
-      "viewAll": "View all {{count}} →",
-      "viewAllNoCount": "View all →",
-      "goToDownloads": "Go to Downloads",
-      "empty": "No uploads yet.",
-      "project": "Project",
-      "site": "Site",
-      "device": "Device"
-    },
-    "perDay": {
-      "title": "Uploads per day",
-      "daysShown": "Days shown",
-      "lastDays": "last {{count}} days",
-      "aria": "Uploads per day, last {{count}} days",
-      "bar_one": "{{date}}: {{count}} upload",
-      "bar_other": "{{date}}: {{count}} uploads",
-      "today": "today"
-    },
-    "sites": {
-      "sessions": "Sessions",
-      "lastUpload": "Last upload",
-      "attention": "Attention"
-    }
-  },
   "recordings": {
     "title": "Recordings",
     "sub": "Everything uploaded by the computers at your clinics.",

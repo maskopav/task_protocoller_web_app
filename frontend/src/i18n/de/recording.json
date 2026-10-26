@@ -1,12 +1,12 @@
 {
   "session": {
-    "title": "Sitzung",
+    "title": "Aufnahme",
     "appVersion": "App-Version",
     "notFinished": "nicht beendet",
-    "notFinishedHint": "Es wurde keine Endzeit aufgezeichnet: Die Sitzung wurde nicht sauber beendet. Angezeigt wird der Zeitpunkt, an dem die App sie neu aufgebaut hat.",
+    "notFinishedHint": "Es wurde keine Endzeit aufgezeichnet: Die Aufnahme wurde nicht sauber beendet. Angezeigt wird der Zeitpunkt, an dem die App sie neu aufgebaut hat.",
     "length": "Dauer",
     "received": "Eingegangen",
-    "afterEnd": "{{lag}} nach Ende der Sitzung",
+    "afterEnd": "{{lag}} nach Ende der Aufnahme",
     "tasks": "Aufgaben",
     "tasksDone": "{{done}} von {{total}} aufgenommen",
     "timelineUsed": "Verwendete Zeitleiste",
@@ -20,7 +20,7 @@
     "nonStandard": "Nicht-Standard",
     "inputGain": "Eingangspegel {{gain}}",
     "noAudio": "Kein Audio in diesem Protokoll",
-    "sessionId": "Sitzungs-ID",
+    "sessionId": "Aufnahme-ID",
     "configVersion": "Konfigurationsversion",
     "old": "alt",
     "zipSha": "ZIP-SHA-256",
@@ -62,7 +62,7 @@
     "videoNoSound": "Video abspielen (das MP4 hat keine Tonspur)",
     "showAnswers": "Antworten anzeigen ({{count}})",
     "closeVideo": "Video schließen",
-    "viewOnlyNote": "Zum Abspielen von Clips sind Bearbeitungsrechte für diese Sitzung nötig.",
+    "viewOnlyNote": "Zum Abspielen von Clips sind Bearbeitungsrechte für diese Aufnahme nötig.",
     "answersTitle": "Antworten",
     "repetition": "Wiederholung {{n}}"
   },
@@ -86,25 +86,25 @@
       "archive": "Archivstruktur",
       "manifest": "Datei-Hashes im Manifest",
       "ids": "IDs konsistent",
-      "device": "Gerät registriert",
+      "device": "Computer registriert",
       "config_version": "Konfigurationsversion",
-      "complete": "Sitzung vollständig"
+      "complete": "Aufnahme vollständig"
     },
     "desc": {
-      "zip_checksum": "Die SHA-256 der Datei entspricht dem vom Gerät angegebenen Wert",
+      "zip_checksum": "Die SHA-256 der Datei entspricht dem vom Computer angegebenen Wert",
       "archive": "Das Archiv ist lesbar und hat die erwartete Struktur",
       "manifest": "Jede Datei ist vorhanden und stimmt mit manifest.json überein",
-      "ids": "Sitzungs- und Installations-ID stimmen in allen Dateien überein",
-      "device": "Das Gerät hat eine registrierte Installations-ID",
+      "ids": "Aufnahme- und Installations-ID stimmen in allen Dateien überein",
+      "device": "Der Computer hat eine registrierte Installations-ID",
       "config_version": "Die Konfigurationsversion ist die aktuelle",
       "complete": "Die Verarbeitung wurde normal abgeschlossen"
     }
   },
   "history": {
     "title": "Upload-Verlauf",
-    "sub": "Jede Anfrage, die der Server für diese Sitzungs-ID erhalten hat",
+    "sub": "Jede Anfrage, die der Server für diese Aufnahme-ID erhalten hat",
     "none": "Keine Anfragen aufgezeichnet.",
-    "deviceReport": "Gerätemeldung",
+    "deviceReport": "Computermeldung",
     "outcome": {
       "accepted": "Angenommen",
       "resent": "Erneut gesendet (als Erfolg beantwortet)",
@@ -120,7 +120,7 @@
     "addComment": "Kommentar für das Klinikteam hinzufügen",
     "placeholder": "z. B. Phonation, Versuch 2, übersteuert; bitte beim nächsten Besuch neu aufnehmen",
     "post": "Kommentar senden",
-    "forbidden": "Sie haben nur Lesezugriff auf diese Sitzung.",
+    "forbidden": "Sie haben nur Lesezugriff auf diese Aufnahme.",
     "failed": "Speichern fehlgeschlagen ({{code}}).",
     "viewOnlyNote": "Nur Ansicht. Herunterladen, Anzeigen von Teilnehmerfeldern, Ändern des Prüfstatus und Kommentieren erfordern eine Zuordnung zu dieser Klinik oder Bearbeitungsrechte für die Studie."
   },
@@ -136,7 +136,7 @@
     "noteEdit": "So, wie in der Klinik eingegeben. Felder außer Patientencode und Besuch bleiben verborgen, bis Sie sie anzeigen. Jede Anzeige wird im Audit-Log protokolliert. Das Bearbeiten korrigiert Tippfehler: Neue Werte ersetzen die alten auf allen Seiten und in späteren Downloads, und jede Änderung wird im Audit-Log festgehalten.",
     "errors": {
       "generic": "Speichern fehlgeschlagen ({{code}}).",
-      "forbidden": "Sie haben nur Lesezugriff auf diese Sitzung.",
+      "forbidden": "Sie haben nur Lesezugriff auf diese Aufnahme.",
       "required_field": "Patientencode und Besuch dürfen nicht leer sein.",
       "invalid_value": "Ein Wert ist ungültig (Text mit höchstens 255 Zeichen).",
       "invalid_fields": "Die Felder konnten nicht gelesen werden.",

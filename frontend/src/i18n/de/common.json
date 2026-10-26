@@ -1,61 +1,336 @@
 {
-    "buttons": {
-      "next": "➡️ Next",
-      "repeat": "🔄 Repeat",
-      "start": "🔴 START",
-      "pause": "⏸️ PAUSE",
-      "resume": "▶️ RESUME",
-      "stop": "⏹️ STOP",
-      "permission": "🎤 Get Microphone Permission",
-      "cancel": "Cancel",
-      "save": "Save",
-      "done": "Done",
-      "seeTopic": "Thema anzeigen"
-    },
-    "micCheck": {
-      "mutedModalMessage": "Es tut uns leid, aber wir konnten Ihr Mikrofon nicht korrekt einrichten. Aus diesem Grund werden Sie die meisten Aufgaben in dieser Studie nicht abschließen können. Wir entschuldigen uns aufrichtig für die Unannehmlichkeiten und danken Ihnen für Ihre Zeit und Ihre Bereitschaft zur Teilnahme."
-    },
-    "micCheck": {
-      "mutedModalMessage": "Es tut uns leid, aber wir konnten Ihr Mikrofon nicht korrekt einrichten. Aus diesem Grund werden Sie die meisten Aufgaben in dieser Studie nicht abschließen können. Wir entschuldigen uns aufrichtig für die Unannehmlichkeiten und danken Ihnen für Ihre Zeit und Ihre Bereitschaft zur Teilnahme."
-    },
-    "status": {
-      "ready": "⚪ Ready",
-      "recording": "🔴 Recording...",
-      "paused": "⏸️ Paused",
-      "recorded": "✅ Recorded"
-    },
-    "languageSelector": {
-      "title": "neuroSHARE Fernbeurteilung",
-      "languageWarning": "Bitte wählen Sie die Sprache, die Sie am fließendsten sprechen, vorzugsweise Ihre Muttersprache. Sie können diese Auswahl nicht mehr ändern, sobald die Aufgaben beginnen."    },
-    "completion": {
-      "title": "All Tasks Completed!",
-      "message": "You have successfully finished all assignments."
-    },
-    "taskLabels": {
-      "voice": "Vocal Task",
-      "motor": "Motor Task",
-      "camera": "Camera Task",
-      "questionnaire": "Fragebogen"
-    },
-    "questionnaire": {
-      "selectOption": "Wählen Sie eine Option...",
-      "typeAnswer": "Geben Sie hier Ihre Antwort ein...",
-      "required": "* erforderlich"
-    },
-    "identifiers": {
-      "description": "Bitte geben Sie die folgenden Angaben ein.",
-      "fillAllFields": "Bitte füllen Sie alle Pflichtfelder aus, um fortzufahren.",
-      "selectOption": "Option auswählen...",
-      "autoFilled": "wird von der Desktop-App automatisch ausgefüllt",
-      "catalogue": {
-        "current_date": { "label": "Datum", "help": "Datum der Untersuchung (wird automatisch ausgefüllt)." },
-        "sex": { "label": "Geschlecht", "help": "" },
-        "education": { "label": "Bildung", "help": "Höchster Bildungsabschluss." },
-        "patient_code": { "label": "Teilnehmercode", "help": "Studiencode des Teilnehmers, z. B. HC001." },
-        "surname": { "label": "Nachname", "help": "" },
-        "year_of_birth": { "label": "Geburtsjahr", "help": "" }
+  "buttons": {
+    "next": "➡️ Next",
+    "repeat": "🔄 Repeat",
+    "reset": "Zurücksetzen",
+    "start": "🔴 START",
+    "sending": "Speichern…",
+    "pause": "⏸️ PAUSE",
+    "resume": "▶️ RESUME",
+    "stop": "⏹️ STOP",
+    "preparing": "Vorbereitung…",
+    "playExample": "Beispiel abspielen",
+    "stopExample": "Beispiel stoppen",
+    "playStory": "Geschichte abspielen",
+    "stopStory": "Geschichte stoppen",
+    "disabledWhileRecording": "Während der Aufnahme deaktiviert",
+    "permission": "🎤 Get Microphone Permission",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "skip": "Überspringen",
+    "back": "Zurück",
+    "ok": "Ok",
+    "logout": "Abmelden",
+    "edit": "Bearbeiten",
+    "confirm": "Bestätigen",
+    "continue": "Weiter",
+    "backToEditor": "Zurück zum Editor",
+    "startCalibration": "Zur Kamerakalibrierung",
+    "seeTopic": "Thema anzeigen",
+    "switchTopic": "Thema wechseln",
+    "cannot": "Kann ich nicht / Weiß ich nicht",
+    "yes": "Ja",
+    "no": "Nein",
+    "dontKnow": "Weiß nicht"
+  },
+  "status": {
+    "ready": "⚪ Ready",
+    "recording": "🔴 Recording...",
+    "paused": "⏸️ Paused",
+    "recorded": "✅ Recorded"
+  },
+  "languageSelector": {
+    "title": "neuroSHARE Fernbeurteilung",
+    "languageWarning": "Bitte wählen Sie die Sprache, die Sie am fließendsten sprechen, vorzugsweise Ihre Muttersprache. Sie können diese Auswahl nicht mehr ändern, sobald die Aufgaben beginnen."
+  },
+  "vad": {
+    "loading": "Spracherkennung wird geladen...",
+    "durationExpired": "Wenn Sie nichts mehr zu sagen haben, können Sie auf Stopp klicken, um zu beenden.",
+    "speakLonger": "Versuchen Sie nach Möglichkeit, etwas länger zu sprechen."
+  },
+  "completion": {
+    "taskCompletedInstructions": "Aufgabe erfolgreich abgeschlossen! <br> Klicken Sie auf <strong>Weiter</strong>, um fortzufahren, oder auf <strong>Erneut versuchen</strong>, wenn Sie einen neuen Versuch aufnehmen möchten.",
+    "doneTitle": "Antworten erfolgreich gespeichert!",
+    "noInternetTitle": "Keine Internetverbindung",
+    "uploadingTitle": "Wird hochgeladen…",
+    "safeToClose": "Vielen Dank für Ihre Teilnahme an dieser Studie! <br/><br/> Sie können dieses Fenster jetzt schließen.",
+    "uploading": "Ihre Antworten werden hochgeladen – bitte lassen Sie diese Seite geöffnet.",
+    "offlineModalInfo": "Mit dem Internet verbinden",
+    "offlineDataSafe": "Ihre Antworten sind auf diesem Gerät gespeichert. <br/>Laden Sie die Seite NICHT neu. Lassen Sie sie geöffnet, dann werden die Antworten automatisch hochgeladen, sobald die Verbindung wieder besteht.",
+    "offlineReturnHint": "Bitte lassen Sie diesen Tab geöffnet, bis die Internetverbindung wiederhergestellt ist. <br/><br/>Wenn Sie die Seite jetzt schließen müssen, klicken Sie später einfach erneut auf Ihren Umfragelink, sobald Sie wieder online sind.",
+    "offlineBrief": "Ihre Daten werden automatisch hochgeladen, sobald Sie wieder online sind.",
+    "completedModule": ": abgeschlossen!",
+    "finished": "abgeschlossen!",
+    "praises": [
+      "Tolle Arbeit!",
+      "Perfekt!",
+      "Gut gemacht!",
+      "Ausgezeichnet!",
+      "Schön gemacht!"
+    ],
+    "title": "All Tasks Completed!",
+    "message": "You have successfully finished all assignments."
+  },
+  "taskLabels": {
+    "info": "Information",
+    "mic_check": "Audiotest",
+    "voice": "Vocal Task",
+    "motor": "Motor Task",
+    "camera": "Camera Task",
+    "vision": "Bereich Sehen",
+    "cognitive": "Bereich Denkfähigkeit",
+    "hearing": "Bereich Hören",
+    "questionnaire": "Fragebogen",
+    "task": "Aufgabe",
+    "milestone_25": "Über 25 % ",
+    "milestone_50": "Halbzeit! Über 50 % ",
+    "milestone_75": "Fast geschafft! Über 75 % "
+  },
+  "repetition": {
+    "notice": "Bitte führen Sie die Aufgabe noch einmal durch. <br/><br/>"
+  },
+  "questionnaire": {
+    "selectOption": "Wählen Sie eine Option...",
+    "typeAnswer": "Geben Sie hier Ihre Antwort ein...",
+    "pleaseSpecify": "Bitte präzisieren",
+    "required": "* erforderlich",
+    "rating": {
+      "veryBad": "Sehr schlecht",
+      "bad": "Schlecht",
+      "okay": "In Ordnung",
+      "good": "Gut",
+      "veryGood": "Sehr gut"
+    }
+  },
+  "identifiers": {
+    "description": "Bitte geben Sie die folgenden Angaben ein.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "birthYear": "Geburtsjahr",
+    "externalId": "Externe ID",
+    "gender": "Geschlecht",
+    "yearPlaceholder": "z. B. 1965",
+    "yearTitle": "Geben Sie ein vierstelliges Jahr ein",
+    "fillAllFields": "Bitte füllen Sie alle Pflichtfelder aus, um fortzufahren.",
+    "saveError": "Beim Speichern Ihrer Angaben ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    "invalidYear": "Bitte geben Sie ein gültiges Jahr zwischen {{min}} und {{max}} ein.",
+    "selectOption": "Option auswählen...",
+    "autoFilled": "wird von der Desktop-App automatisch ausgefüllt",
+    "catalogue": {
+      "current_date": {
+        "label": "Datum",
+        "help": "Datum der Untersuchung (wird automatisch ausgefüllt)."
+      },
+      "sex": {
+        "label": "Geschlecht",
+        "help": ""
+      },
+      "education": {
+        "label": "Bildung",
+        "help": "Höchster Bildungsabschluss."
+      },
+      "patient_code": {
+        "label": "Teilnehmercode",
+        "help": "Studiencode des Teilnehmers, z. B. HC001."
+      },
+      "surname": {
+        "label": "Nachname",
+        "help": ""
+      },
+      "year_of_birth": {
+        "label": "Geburtsjahr",
+        "help": ""
       }
-    },
+    }
+  },
+  "notFound": {
+    "title": "404 – Seite nicht gefunden",
+    "message": "Bitte prüfen Sie den Link oder wenden Sie sich an Ihren Administrator."
+  },
+  "inactive": {
+    "title": "Protokoll inaktiv",
+    "message": "Diese Zuweisung ist derzeit inaktiv oder abgelaufen."
+  },
+  "invalidToken": {
+    "title": "Ungültiges Token",
+    "message": "Das Token ist ungültig. Bitte prüfen Sie den Link oder wenden Sie sich an Ihren Administrator."
+  },
+  "resumedSession": {
+    "title": "Willkommen zurück!",
+    "message": "Ihr Fortschritt wurde gespeichert. Damit die Ergebnisse möglichst gut werden, achten Sie bitte darauf, dass Sie sich in der <strong>gleichen ruhigen Umgebung</strong> wie zuvor befinden, und versuchen Sie, die restlichen Aufgaben in einem Zug zu erledigen.",
+    "continue": "Weiter"
+  },
+  "permissions": {
+    "tabAndroid": "Android",
+    "tabIos": "iPhone",
+    "howToFix": "Lösung"
+  },
+  "micCheck": {
+    "calibrationTitle": "Mikrofoneinrichtung",
+    "permissionWarning": "In den nächsten Aufgaben nehmen wir Ihre Stimme auf. Ihr Browser fragt nach dem Zugriff auf das Mikrofon.",
+    "permissionInstruction": "Drücken Sie unten auf die Schaltfläche <strong>Mikrofonzugriff erlauben</strong>. <br><br/> Wählen Sie im Popup-Fenster <strong>Erlauben</strong>, damit wir Ihre Stimme aufnehmen können.",
+    "btnUnderstand": "Mikrofonzugriff erlauben",
+    "noiseTitle": "Audiotest",
+    "noiseInstructions": "Zuerst testen wir Ihr Mikrofon. <br><br/> Drücken Sie auf Start, um zu beginnen.",
+    "noiseInstructionsCounting": "<strong>Zählen Sie langsam und laut</strong> von 1 bis 5.",
+    "noiseInstructionsSilence": "Jetzt bleiben Sie <strong>still</strong>.",
+    "analyzing": "Audio wird geprüft...",
+    "failedTitle": "Wir können Sie nicht deutlich hören",
+    "failedMessage": "Bitte verringern Sie die Geräusche in Ihrer Umgebung.",
+    "failedInstructions": "Für beste Ergebnisse <strong>schließen Sie die Fenster, schalten Sie Fernseher oder Radio aus oder gehen Sie in einen ruhigeren Raum</strong>. Versuchen Sie es dann erneut.",
+    "failedAdditionalInfo": "Hintergrundgeräusche sind die wahrscheinlichste Ursache, manchmal liegt es aber auch an einem Mikrofonproblem. <br/><br/> Bitte versuchen Sie es erneut. Wenn es weiterhin nicht klappt, können Sie trotzdem fortfahren.",
+    "mutedTitle": "Kein Ton erkannt",
+    "mutedMessage": "Während des Audiotests war nichts zu hören.",
+    "mutedInstructions": "Bitte <strong>stellen Sie sicher, dass Ihr Mikrofon nicht stummgeschaltet ist, ziehen Sie Kopfhörer ab und prüfen Sie die Geräteeinstellungen</strong>. Versuchen Sie es dann erneut.",
+    "mutedAdditionalInfo": "Bei anhaltenden Problemen besuchen Sie die Fehlerbehebungsanleitung oder wenden Sie sich an den Support. <br/><br/> Sie können nicht weitermachen.",
+    "mutedModalMessage": "Es tut uns leid, aber wir konnten Ihr Mikrofon nicht korrekt einrichten. Aus diesem Grund werden Sie die meisten Aufgaben in dieser Studie nicht abschließen können. Wir entschuldigen uns aufrichtig für die Unannehmlichkeiten und danken Ihnen für Ihre Zeit und Ihre Bereitschaft zur Teilnahme.",
+    "btnTryAgain": "Mikrofon erneut prüfen",
+    "successTitle": "Mikrofon bereit",
+    "successMessage": "Alles sieht gut aus!",
+    "successInstructions": "Bitte <strong>bleiben Sie in diesem Raum</strong>, bis Sie fertig sind.",
+    "btnProceed": "Weiter",
+    "guide": {
+      "titleDenied": "Mikrofonzugriff verweigert",
+      "titleHardware": "Mikrofonproblem",
+      "titleGeneric": "Mikrofon erforderlich",
+      "descDenied": "Ihr Gerät oder Browser blockiert das Mikrofon. Beide müssen den Zugriff erlauben, damit es weitergehen kann.",
+      "descBusy": "Eine andere App (z. B. ein Telefonat oder Zoom) verwendet gerade Ihr Mikrofon. Bitte schließen Sie sie.",
+      "descMissing": "Wir erkennen kein Mikrofon. Bitte prüfen Sie die Verbindung oder versuchen Sie ein anderes Gerät.",
+      "descGeneric": "Für diese Aufgabe ist der Zugriff auf das Mikrofon erforderlich.",
+      "btnRetry": "Erneut versuchen",
+      "steps": {
+        "android": {
+          "systemAndBrowser": "1. Öffnen Sie die Android-<strong>Einstellungen</strong>, suchen Sie Ihren Browser (z. B. Chrome) und setzen Sie Mikrofon auf <strong>Erlauben</strong>.<br/>2. Kehren Sie hierher zurück, tippen Sie auf <strong>Erneut versuchen</strong> oder laden Sie die Seite neu und tippen Sie im Popup auf <strong>Erlauben</strong>.",
+          "hardware": "• Beenden Sie alle laufenden Anrufe (Telefon, WhatsApp) oder andere Aufnahme-Apps.<br/>• Prüfen Sie Ihre Bluetooth-Einstellungen und trennen Sie kabellose Kopfhörer, die das Mikrofon verwenden könnten.<br/>"
+        },
+        "ios": {
+          "systemAndBrowser": "1. Öffnen Sie die iPhone-<strong>Einstellungen</strong>, scrollen Sie zu Ihrem Browser (z. B. Safari) und schalten Sie den Schalter Mikrofon <strong>EIN</strong>.<br/>2. Kehren Sie hierher zurück, tippen Sie in der Adressleiste auf das <strong>aA-Symbol</strong>, wählen Sie <strong>Website-Einstellungen</strong> und erlauben Sie das Mikrofon.",
+          "hardware": "• Beenden Sie alle laufenden Anrufe (Telefon, FaceTime) oder andere Aufnahme-Apps.<br/>• Prüfen Sie Ihre Bluetooth-Einstellungen und trennen Sie kabellose Kopfhörer, die das Mikrofon verwenden könnten.<br/>"
+        }
+      }
+    }
+  },
+  "audioGuideIntro": {
+    "title": "Audioführung",
+    "instructions": "<strong>Audioführung</strong> <br/><br/> Während der Untersuchung werden die Aufgaben von einer Audioführung begleitet, wie Sie sie gerade hören sollten. <br><br/> Sie können die Führung anhalten, indem Sie auf das Symbol oben rechts auf dem Bildschirm tippen. <br><br/> Um die Führung erneut abzuspielen, tippen Sie einfach noch einmal auf das Symbol."
+  },
+  "videoCalibration": {
+    "setupTitle": "Kameraeinrichtung",
+    "step1": "<strong>Stützen Sie den Arm auf dem Tisch ab</strong> und halten Sie Ihr Telefon wie im Bild gezeigt. <br/><br/> Ziel – positionieren Sie Ihr Gesicht so, dass der Kreis <strong>grün wird</strong>.",
+    "step2": "<strong>Halten Sie das Telefon ruhig</strong>, während Sie die Aufgabe bearbeiten.",
+    "step3": "Sorgen Sie dafür, dass Ihr Gesicht <strong>gut beleuchtet</strong> und sichtbar ist.",
+    "step4": "Seien Sie im Kamerabild <strong>allein</strong>.",
+    "viewInstructions": "Einrichtungsanleitung anzeigen",
+    "btnReady": "Ich bin bereit",
+    "btnCancel": "Abbrechen",
+    "btnShowInstructions": "Anleitung anzeigen und starten",
+    "btnContinueReady": "Position korrekt → weiter",
+    "btnContinueWait": "Warten auf korrekte Position...",
+    "warningHoldSteady": "Telefon ruhig halten!",
+    "warningAdjustFace": "Passen Sie Ihr Gesicht an!",
+    "closer": "Näher",
+    "loadingAI": "Gesichtserkennungsmodell wird geladen...",
+    "further": "Weiter weg",
+    "turnLeft": "Nach links schauen",
+    "turnRight": "Nach rechts schauen",
+    "perfect": "Perfekt!",
+    "permissionWarning": "In dieser Aufgabe messen wir Ihre Gesichtsbewegungen beim Sprechen. <br/><br/> Es wird kein Video aufgezeichnet, nur anonymisierte Koordinatendaten. <br/><br/> Dazu fragt der Browser nach dem Zugriff auf die Kamera.",
+    "permissionInstruction": "Bitte klicken Sie auf die Schaltfläche und drücken Sie dann im Popup-Fenster auf <strong>Erlauben</strong>.",
+    "waitingForPermission": "Warten auf Kameraberechtigung...",
+    "btnUnderstand": "Verstanden und weiter",
+    "guide": {
+      "titleDenied": "Kamerazugriff verweigert",
+      "descDenied": "Ihr Gerät oder Browser blockiert die Kamera. Beide müssen den Zugriff erlauben, damit es weitergehen kann.",
+      "btnRetry": "Erneut versuchen",
+      "btnDecline": "Ich möchte keinen Zugriff erlauben",
+      "declineTitle": "Bitte überdenken Sie das",
+      "declineMessage": "Es wird kein Video aufgezeichnet – nur eine Reihe anonymisierter Gesichtskoordinaten. Ohne Kamerazugriff sind die Ergebnisse weniger aussagekräftig.",
+      "declineConfirm": "Ohne Kamerazugriff fortfahren",
+      "declineCancel": "Zurück",
+      "steps": {
+        "android": "1. Öffnen Sie die Android-<strong>Einstellungen</strong>, suchen Sie Ihren Browser (z. B. Chrome) und setzen Sie Kamera auf <strong>Erlauben</strong>.<br/>2. Kehren Sie hierher zurück, tippen Sie auf <strong>Erneut versuchen</strong> oder laden Sie die Seite neu und tippen Sie im Popup auf <strong>Erlauben</strong>.",
+        "ios": "1. Öffnen Sie die iPhone-<strong>Einstellungen</strong>, scrollen Sie zu Ihrem Browser (z. B. Safari) und schalten Sie den Schalter Kamera <strong>EIN</strong>.<br/>2. Kehren Sie hierher zurück, tippen Sie in der Adressleiste auf das <strong>aA-Symbol</strong>, wählen Sie <strong>Website-Einstellungen</strong> und erlauben Sie die Kamera."
+      }
+    }
+  },
+  "incompatibleBrowser": {
+    "title": "Browser nicht unterstützt",
+    "description": "unterstützt den für diese Aufgabe erforderlichen Mikrofonzugriff nicht.",
+    "instruction": "Kopieren Sie den folgenden Link und öffnen Sie ihn in einem dieser Browser:",
+    "fallbackPrompt": "Kopieren Sie diesen Link und öffnen Sie ihn in Chrome, Safari, Opera oder Edge:",
+    "copied": "Kopiert!",
+    "copyBtn": "Link kopieren"
+  },
+  "auth": {
+    "signupTitle": "Neuer Teilnehmer",
+    "loginTitle": "Willkommen zurück",
+    "signupDesc": "Geben Sie Ihre Daten ein, um das Protokoll zu starten.",
+    "loginDesc": "Geben Sie Ihre Zugangsdaten ein, um fortzufahren.",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "fullName": "Vollständiger Name",
+    "birthDate": "Geburtsdatum",
+    "sex": "Geschlecht",
+    "male": "Männlich",
+    "female": "Weiblich",
+    "phone": "Telefonnummer (optional)",
+    "note": "Wir senden Ihnen die Zugangsdaten per E-Mail.",
+    "btnSignup": "Registrieren",
+    "btnLogin": "Anmelden",
+    "tabSignup": "Registrieren",
+    "tabLogin": "Anmelden",
+    "processing": "Wird verarbeitet...",
+    "welcomeTitle": "Willkommen beim TaskProtocoller",
+    "welcomeSubtitle": "Bitte registrieren Sie sich oder melden Sie sich an, um teilzunehmen. <br/><strong>Registrierte Nutzer:</strong> verwenden Sie Ihren zugesandten persönlichen Link oder Ihre Zugangsdaten. <br/><strong>Neue Nutzer:</strong> Ihre Zugangsdaten werden Ihnen nach der Registrierung per E-Mail zugesandt.",
+    "forgotPasswordLink": "Passwort vergessen?",
+    "resetEmailSent": "Der Link zum Zurücksetzen wurde an Ihre E-Mail-Adresse gesendet.",
+    "forgotPasswordInstruction": "Der Link zum Zurücksetzen wird an Ihre E-Mail-Adresse gesendet.",
+    "btnSendResetLink": "Link zum Zurücksetzen senden",
+    "resetPasswordTitle": "Passwort zurücksetzen",
+    "passwordUpdateSuccess": "Passwort erfolgreich geändert!",
+    "redirectingToLogin": "Weiterleitung zur Anmeldung...",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "btnSetNewPassword": "Neues Passwort festlegen",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein",
+    "btnBackToLogin": "Zurück zur Anmeldung",
+    "required": "Dieses Feld ist erforderlich",
+    "invalidEmail": "Ungültiges E-Mail-Format",
+    "nameTooShort": "Bitte geben Sie Ihren vollständigen Namen ein (Vor- und Nachname)",
+    "invalidPhone": "Ungültiges Telefonnummernformat",
+    "invalidGender": "Bitte wählen Sie Ihr Geschlecht",
+    "underAge": "Zur Teilnahme müssen Sie mindestens 18 Jahre alt sein.",
+    "overAge": "Bitte geben Sie ein gültiges Geburtsdatum ein.",
+    "signupSuccessTitle": "Registrierung erfolgreich!",
+    "signupSuccessDetail": "Ihre Zugangsdaten und Ihr persönlicher Zugangslink wurden an Ihre E-Mail-Adresse gesendet.",
+    "spamNote": "Bitte prüfen Sie Ihren Spam-Ordner, falls die Nachricht nicht bald eintrifft.",
+    "smartphoneNote": "Für das beste Erlebnis scannen Sie den QR-Code bitte mit Ihrem Smartphone.",
+    "show": "Anzeigen",
+    "hide": "Verbergen",
+    "futureDateError": "Das Geburtsdatum darf nicht in der Zukunft liegen",
+    "birthDateRequired": "Das Geburtsdatum ist erforderlich"
+  },
+  "confirmModal": {
+    "info": "Information"
+  },
+  "email": {
+    "welcome": "Willkommen, {{name}}!",
+    "assignedProtocol": "Ihnen wurde ein neues Forschungsprotokoll zugewiesen.",
+    "manualLogin": "Falls Sie sich später manuell anmelden müssen",
+    "password": "Passwort",
+    "subjectCredentials": "Ihr Zugangslink und Ihre Zugangsdaten",
+    "subjectProtocol": "TaskProtocoller: Neues Protokoll zugewiesen!",
+    "openProtocol": "Protokoll öffnen",
+    "subjectReset": "Anfrage zum Zurücksetzen des Passworts",
+    "resetRequested": "Sie haben das Zurücksetzen Ihres Passworts angefordert. Klicken Sie unten auf die Schaltfläche, um fortzufahren.",
+    "btnSetNewPassword": "Neues Passwort festlegen",
+    "adminWelcomeSubject": "Willkommen bei TaskProtocoller – Administratorzugang",
+    "adminWelcomeTitle": "Guten Tag {{name}},",
+    "adminWelcomeBody": "Sie wurden als Systemadministrator registriert. Bitte melden Sie sich mit Ihrer E-Mail-Adresse und dem untenstehenden temporären Passwort an und legen Sie Ihr dauerhaftes Passwort fest.",
+    "loginUrlLabel": "Anmeldeseite",
+    "tempPasswordLabel": "Temporäres Passwort"
+  },
   "ui": {
     "copy": "Kopieren",
     "copied": "Kopiert",
@@ -65,4 +340,3 @@
     "cancel": "Abbrechen"
   }
 }
-  

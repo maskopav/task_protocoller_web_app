@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isValidSiteName, SITE_NAME_FORMAT_ERROR } from "./fieldValidation.js";
+import { isValidSiteName } from "./fieldValidation.js";
 
 describe("isValidSiteName (F-008: free text, 1-64 characters)", () => {
   it.each([
@@ -30,7 +30,4 @@ describe("isValidSiteName (F-008: free text, 1-64 characters)", () => {
     expect(isValidSiteName(` ${"x".repeat(64)} `)).toBe(true);
   });
 
-  it("reports a snake_case error code", () => {
-    expect(SITE_NAME_FORMAT_ERROR).toMatch(/^[a-z]+(_[a-z]+)*$/);
-  });
 });

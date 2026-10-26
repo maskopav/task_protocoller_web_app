@@ -26,7 +26,6 @@ export function useProtocolManager() {
       language_id: languageIds,
       description: selectedProtocol.description,
       version: version,
-      created_by: 1,
       tasks: tasks.map((task, index) => ({
         task_id: mappings.tasks.find(t => t.category === task.category)?.id,
         task_order: index + 1,

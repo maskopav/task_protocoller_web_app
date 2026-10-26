@@ -8,12 +8,6 @@ export const fetchProjectsList = () => apiJson("/projects", { fallback: "project
 
 export const fetchProject = (id) => apiJson(`/projects/${id}`, { fallback: "project_fetch_failed" });
 
-// Stats for one project, taken from the scoped list.
-export async function getProjectStats(projectId) {
-  const all = await fetchProjectsList();
-  return all.find((p) => p.project_id === Number(projectId)) || null;
-}
-
 // -> { success, id }
 export const createProject = (payload) =>
   apiJson("/projects", { method: "POST", body: payload, fallback: "project_create_failed" });

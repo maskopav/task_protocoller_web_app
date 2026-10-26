@@ -1,5 +1,5 @@
 {
-    "questionnaire": {
+  "questionnaire": {
     "name": "Questionnaire",
     "description": "A customizable form with questions.",
     "title": "Questionnaire: {{title}}",
@@ -7,605 +7,821 @@
     "pleaseAnswerAll": "Please answer all required questions to continue.",
     "optionalLabel": "(optional)",
     "params": {
-      "canRepeat": { "label": "Allow repeat" },
-      "canSkip": { "label": "Allow skip" },
-      "title": { "label": "Title" },
-      "description": { "label": "Description" },
-      "questions": { "label": "Questions" }
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "title": {
+        "label": "Title"
+      },
+      "description": {
+        "label": "Description"
+      },
+      "questions": {
+        "label": "Questions"
+      }
     }
   },
-    "rbdsq": {
+  "rbdsq": {
     "name": "RBD-SQ",
     "description": "REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
     "title": "Questionnaire: {{title}}",
     "instructions": "Please answer the following questions.",
     "params": {
-      "canRepeat": { "label": "Allow repeat" },
-      "canSkip": { "label": "Allow skip" },
-      "title": { "label": "Title" },
-      "description": { "label": "Description" },
-      "questions": { "label": "Questions" }
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "title": {
+        "label": "Title"
+      },
+      "description": {
+        "label": "Description"
+      },
+      "questions": {
+        "label": "Questions"
+      }
     },
     "defaultContent": {
       "title": "RBD-SQ",
       "description": "",
       "questions": [
-        { "id": 1782905076296, "text": "I sometimes have very vivid dreams.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1782905161794, "text": "My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1782905166057, "text": "The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1782905170074, "text": "I know that my arms or legs move when I sleep.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1782905174710, "text": "It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1782905182339, "text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1782905259308, "text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1783076583590, "text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1783076590512, "text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1783076636726, "text": "It happens that my movements awake me.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1783076672712, "text": "After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1783076688838, "text": "My sleep is frequently disturbed.", "type": "single", "options": ["Yes", "No"] },
-        { "id": 1783076704506, "text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["Yes", "No"] }
+        {
+          "id": 1782905076296,
+          "text": "I sometimes have very vivid dreams.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905161794,
+          "text": "My dreams frequently have an aggressive or action-packed content.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905166057,
+          "text": "The dream contents mostly match my nocturnal behavior.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905170074,
+          "text": "I know that my arms or legs move when I sleep.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905174710,
+          "text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905182339,
+          "text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905259308,
+          "text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076583590,
+          "text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076590512,
+          "text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076636726,
+          "text": "It happens that my movements awake me.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076672712,
+          "text": "After awakening I mostly remember the content of my dreams well.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076688838,
+          "text": "My sleep is frequently disturbed.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076704506,
+          "text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        }
       ]
     }
   },
-    "hhies": {
+  "hhies": {
     "name": "HHIE-S",
     "description": "Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
     "title": "Questionnaire: {{title}}",
     "instructions": "Please answer the following questions.",
     "params": {
-      "canRepeat": { "label": "Allow repeat" },
-      "canSkip": { "label": "Allow skip" },
-      "title": { "label": "Title" },
-      "description": { "label": "Description" },
-      "questions": { "label": "Questions" }
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "title": {
+        "label": "Title"
+      },
+      "description": {
+        "label": "Description"
+      },
+      "questions": {
+        "label": "Questions"
+      }
     },
     "defaultContent": {
       "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259610834, "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259617267, "text": "Do you have difficulty hearing or understanding your colleagues, clients, or customers?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259622208, "text": "Do you feel handicapped by a hearing problem?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259626876, "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259632940, "text": "Does a hearing problem cause you difficulty in a cinema or in a theatre?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259643040, "text": "Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259656707, "text": "Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259672641, "text": "Does a hearing problem cause you to use the telephone less often than you would like?", "type": "single", "options": ["Yes", "Sometimes", "No"] },
-        { "id": 1783259681028, "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["Yes", "Sometimes", "No"] }
+        {
+          "id": 1783259602375,
+          "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259610834,
+          "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259617267,
+          "text": "Do you have difficulty hearing or understanding your colleagues, clients, or customers?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259622208,
+          "text": "Do you feel handicapped by a hearing problem?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259626876,
+          "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259632940,
+          "text": "Does a hearing problem cause you difficulty in a cinema or in a theatre?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259643040,
+          "text": "Does a hearing problem cause you to have arguments with family members?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259656707,
+          "text": "Does a hearing problem cause you difficulty when listening to TV or radio?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259672641,
+          "text": "Does a hearing problem cause you to use the telephone less often than you would like?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259681028,
+          "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        }
       ]
     }
   },
-    "phonation": {
-      "name": "Sustained phonation",
-      "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",
-      "title": "Prolonged phonation - /{{phoneme}}/",
-      "instructions1": "<strong>Take a deep breath and sustain the vowel /{{phoneme}}/ in one breath as long and as steadily as possible. The phonation should least {{minDuration}} seconds.<br/>I will now play you an example.</strong><br/><br/><em>Press PLAY EXAMPLE to play the example.</em>",
-      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.<br/>Do not stop the participant; let them phonate as long as possible.<br/>If the phonation is shorter than {{minDuration}} seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</em>",
-      "params": {
-        "canRepeat": {
-          "label": "Allow repeat"
-        },
-        "canSkip": {
-          "label": "Allow skip"
-        },
-        "showIndicator": {
-          "label": "Show level indicator"
-        },
-        "recordVideo": {
-          "label": "Also record video",
-          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
-        },
-        "phoneme": {
-          "label": "Phoneme",
-          "values": {
-            "a": "aaa",
-            "e": "eee",
-            "i": "iii",
-            "o": "ooo",
-            "u": "uuu"
-          }
-        },
-        "repeat": {
-          "label": "Repetitions"
-        },
-        "minDuration": {
-          "label": "Min Duration (s)"
-        },
-        "maxDuration": {
-          "label": "Max Duration (s)"
-        }
-      }
-    },
-
-    "syllableRepeating": {
-      "name": "Syllable repetition",
-      "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
-      "title": "{{syllable}}",
-      "instructions1": "<strong>Please repeat the following syllables after me: {{syllables}}.</strong><br/><br/><em>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</em><br/><br/><strong>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</strong><br/><br/><em>Press PLAY EXAMPLE to play the example.</em>",
-      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. The required number of repetitions is at least {{target}}. Then press STOP button to end the recording.<br/>The repetition rate should keep the individual syllables intelligible (no mumbling!).</em>",
-      "params": {
-        "canRepeat": {
-          "label": "Allow repeat"
-        },
-        "canSkip": {
-          "label": "Allow skip"
-        },
-        "showIndicator": {
-          "label": "Show level indicator"
-        },
-        "recordVideo": {
-          "label": "Also record video",
-          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
-        },
-        "syllable": {
-          "label": "Syllable",
-          "values": {
-            "pataka": {
-              "label": "PATAKA",
-              "syllables": "/pa/-/ta/-/ka/",
-              "target": "12 triplets of /pa-ta-ka/"
-            },
-            "ta": {
-              "label": "TA",
-              "syllables": "/ta/",
-              "target": "25× /ta/"
-            },
-            "ka": {
-              "label": "KA",
-              "syllables": "/ka/",
-              "target": "25× /ka/"
-            }
-          }
-        },
-        "duration": {
-          "label": "Required Duration (s)"
-        },
-        "maxDuration": {
-          "label": "Max Duration (s)"
-        },
-        "repeat": {
-          "label": "Repetitions"
-        }
-      }
-    },
-
-    "retelling": {
-      "name": "Fairytale retelling",
-      "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
-      "title": "Retelling",
-      "instructions1": "<strong>I will now play you an audio recording of a fairy tale. Your task is to remember it and then retell it in your own words.</strong><br/><br/><strong>The retelling should last {{duration}} seconds. The goal is to speak continuously; it does not matter whether the tale is retold correctly or completely.</strong><br/><br/><em>Press PLAY EXAMPLE to start the story playback.</em>",
-      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until {{duration}} seconds have passed on the stopwatch, then press the STOP button to end the recording.</em>",
-      "params": {
-        "canRepeat": {
-          "label": "Allow repeat"
-        },
-        "canSkip": {
-          "label": "Allow skip"
-        },
-        "showIndicator": {
-          "label": "Show level indicator"
-        },
-        "recordVideo": {
-          "label": "Also record video",
-          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
-        },
-        "fairytale": {
-          "label": "Fairytale",
-          "values": {
-            "pussInBoots": "Puss in boots",
-            "hanselAndGretel": "Hansel and Gretel",
-            "snowWhite": "Snow White",
-            "cinderella": "Cinderella",
-            "redRidingHood": "Little Red Riding Hood"
-          }
-        },
-        "repeat": {
-          "label": "Repetitions"
-        },
-        "minDuration": {
-          "label": "Min Duration (s)"
-        },
-        "maxDuration": {
-          "label": "Max Duration (s)"
-        },
-        "duration": {
-          "label": "Required Duration (s)"
-        }
-      }
-    },
-
-    "reading": {
-      "name": "Reading text",
-      "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
-      "title": "Reading - {{topic}}",
-      "instructions1": "<strong>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</strong><br/><br/><em>Give the participant the READING TEXT - {{topic}}.<br/>Offer the participant a text with a suitable font size.</em>",
-      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</em>",
-      "params": {
-        "canRepeat": {
-          "label": "Allow repeat"
-        },
-        "canSkip": {
-          "label": "Allow skip"
-        },
-        "showIndicator": {
-          "label": "Show level indicator"
-        },
-        "recordVideo": {
-          "label": "Also record video",
-          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
-        },
-        "topic": {
-          "label": "Text topic",
-          "values": {
-            "northWind": {
-              "label": "The North Wind and the Sun",
-              "text": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
-            },
-            "grandfather": {
-              "label": "The Grandfather",
-              "text": "You wished to know all about my grandfather. Well, he is nearly ninety-three years old; he dresses himself in an ancient black frock coat, usually minus several buttons; yet he still thinks as swiftly as ever. A long, flowing beard clings to his chin, giving those who observe him a pronounced feeling of the utmost respect. When he speaks, his voice is just a bit cracked and quivers a trifle. Twice each day he plays skilfully and with zest upon our small organ. Except in the winter when the ooze or snow or ice prevents, he slowly takes a short walk in the open air each day. We have often urged him to walk more and smoke less, but he always answers, “Banana oil!” Grandfather likes to be modern in his language."
-            },
-            "rainbow": {
-              "label": "The Rainbow",
-              "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
-            }
-          }
-        },
-        "repeat": {
-          "label": "Repetitions"
-        },
-        "minDuration": {
-          "label": "Min Duration (s)"
-        },
-        "maxDuration": {
-          "label": "Max Duration (s)"
-        }
-      }
-    },
-
-    "monologue": {
-      "name": "Monologue on topic",
-      "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
-      "title": "Monologue - {{topic}}",
-      "instructions1": "<strong>Now I will ask you to talk to me continuously about something for at least {{duration}} seconds. {{topicDescription}}</strong><br/><br/><em>The required length of the recorded monologue is at least {{duration}} seconds.</em>",
-      "instructions2": "<strong>You can start whenever you are ready.</strong><br/><br/><em>Press the START button to begin recording and the STOP button at the end of the task to end the recording.<br/>Note the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least {{duration}} seconds.</em>",
-      "params": {
-        "canRepeat": {
-          "label": "Allow repeat"
-        },
-        "canSkip": {
-          "label": "Allow skip"
-        },
-        "showIndicator": {
-          "label": "Show level indicator"
-        },
-        "recordVideo": {
-          "label": "Also record video",
-          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
-        },
-        "topic": {
-          "label": "Monologue topic",
-          "values": {
-            "free": {
-              "label": "Free narration",
-              "topicDescription": "The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work."
-            },
-            "hobbies": {
-              "label": "Hobbies",
-              "topicDescription": "Tell me about your hobbies, for example sports, music, reading, gardening or pets."
-            },
-            "yesterday": {
-              "label": "Your yesterday, last week or last month",
-              "topicDescription": "Describe how your yesterday, past week or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced or who you met."
-            },
-            "family": {
-              "label": "Family",
-              "topicDescription": "Tell me about your family."
-            }
-          }
-        },
-        "repeat": {
-          "label": "Repetitions"
-        },
-        "duration": {
-          "label": "Required Duration (s)"
-        },
-        "minDuration": {
-          "label": "Min Duration (s)"
-        },
-        "maxDuration": {
-          "label": "Max Duration (s)"
-        }
-      }
-    },
-
-    "pictureDescription": {
-      "name": "Picture description",
-      "description": "The participant describes the situations in a printed picture handed over by the examiner. The administrator selects the picture ('picture') and the target length of the description ('duration').",
-      "title": "Picture description - {{picture}}",
-      "instructions1": "<strong>Describe to me the situations you see in the picture. How do you think the people in the pictures feel, and how do you judge their behaviour?</strong><br/><br/><em>Give the participant the PICTURE FOR DESCRIPTION - {{picture}}.</em>",
-      "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant has described the picture for at least {{duration}} seconds, then press STOP button to end the recording.</em>",
-      "params": {
-        "canRepeat": {
-          "label": "Allow repeat"
-        },
-        "canSkip": {
-          "label": "Allow skip"
-        },
-        "showIndicator": {
-          "label": "Show level indicator"
-        },
-        "recordVideo": {
-          "label": "Also record video",
-          "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
-        },
-        "picture": {
-          "label": "Picture",
-          "values": {
-            "A": "A",
-            "B": "B"
-          }
-        },
-        "repeat": {
-          "label": "Repetitions"
-        },
-        "duration": {
-          "label": "Required Duration (s)"
-        }
-      }
-    },
-
-    "d15colour": {
-      "name": "D-15 Color Test",
-      "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
-      "title": "Color Arrangement Task",
-      "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colors.",
-      
-      "addTitle": "<strong>Arrange the colors into a smooth, gradual sequence in the top row.</strong>",
-      "addText": "• Tap a color in the <strong>bottom row of colors</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
-      "addGifAlt": "Adding color",
-      "goalText": "Color vision task",
-
-      "modifyTitle": "<strong>Modifying colors</strong>",
-      "modifyText": "• Tap a color in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different color instead.",
-      "modifyGifAlt": "Modifying sequence",
-      "disclaimerText": "",
-
-      "mainInstructionsText": "Arrange the colors into a smooth, gradual sequence in the top row. <br/><br/> If you have trouble telling colours apart, that's OK - just choose what looks closest to you.",
-
-      "mechanicsTitle": "Instructions",
-      "demoText": "<strong>Goal:</strong> Form a smooth, continuous sequence of colors.<br/><br/><strong>• Add a cap:</strong> Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><strong>• Remove a cap:</strong> Tap it in the top row.<br/><strong>• Start over:</strong> Use the Reset button.",
-      "demoInstructions": "How to add color: Tap a color in the bottom pool. It will appear in the first empty space in the top row.<br/><br/>How to modify sequence: Tap ",
-      "trialCompleteTitle": "Well done!",
-      "trialCompleteText": "Trial completed. Now the test will be more challenging.",
-      "timeoutTitle": "Ready to move on?",
-      "timeoutText": "It's okay to stop here. Would you like to submit your current sequence?",
-      "timeoutSubmit": "Submit",
-      "timeoutContinue": "Keep going",
-      "controls": {
-        "addTabLabel": "Add color",
-        "modifyTabLabel": "Modify sequence"
+  "phonation": {
+    "name": "Sustained phonation",
+    "description": "The participant sustains a single vowel sound (e.g., /a/, /e/, /i/, /o/, /u/) to analyze voice stability and control. Recording uses *delayed Stop mode* — the Stop button becomes available only after the set duration expires. The administrator should set the vowel to be produced ('phoneme'), the number of repetitions ('repeat'), and the time interval after which the Stop button appears ('duration').",
+    "title": "Prolonged phonation - /{{phoneme}}/",
+    "instructions1": "<strong>Take a deep breath and sustain the vowel /{{phoneme}}/ in one breath as long and as steadily as possible. The phonation should last at least {{minDuration}} seconds.<br/>I will now play you an example.</strong><br/><br/><em>Press PLAY EXAMPLE to play the example.</em>",
+    "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant is out of breath and then press STOP.<br/>Do not stop the participant; let them phonate as long as possible.<br/>If the phonation is shorter than {{minDuration}} seconds, encourage the participant to prolong it. Changing the pitch or lowering the loudness of the phonation often helps.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
       },
-      "params": {
-        "version": {
-          "label": "Test Version",
-          "values": {
-            "saturated": "Saturated (Farnsworth)",
-            "desaturated": "Desaturated (Lanthony)",
-            "demo": "Demo (For visualization)"
-          }
-        },
-        "demoTrial": {
-          "label": "Include trial",
-          "values": {
-            "yes": "Yes",
-            "no": "No"
-          }
-        },
-        "randomize": { 
-          "label": "Randomize caps" 
-        },
-        "repeat": { 
-          "label": "Repetitions" 
-        },
-        "showNumbers": {
-          "label": "Show cap numbers",
-          "values": {
-            "never": "Never (Standard)",
-            "after": "After completion",
-            "always": "Always (Debug/Demo)"
-          }
-        },
-        "maxDuration": {
-          "label": "Max Duration (s)"
-        }
-      }
-    },
-    "preTestChecklist": {
-      "title": "Vision Task Setup",
-      "subtitle": "Now, we will test your color vision. Please try to setup your screen:",
-      "subtitleBelow": "If you do not know how to do it, please proceed further anyway. <br><br> You can tap info icon for help.",
-      "selectFirstHint": "Please select the status buttons above first.",
-      "items": {
-        "landscape": {
-          "label": "Rotate your phone sideways.",
-          "helpText": "If the screen doesn't rotate with your phone, you need to unlock it.<br><br>Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom).<br><br>Look for the rotation icon (<imgA/> <imgB/> <imgC/>) and tap it so your screen is allowed to rotate."
-        },
-        "brightness": {
-          "label": "Turn brightness to the maximum.",
-          "helpText": "Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom).<br><br>Find the <strong>brightness slider</strong> (usually a sun icon <imgA/>) and drag it to the absolute maximum.<br><br><em>Note</em>: If your phone turns the brightness back down on its own, look for an <strong>Auto</strong> or <strong>Adaptive</strong> button nearby, or look in your phone's Settings <imgB/> > Display and turn it off.<br><br>Example: <imgSlider/>"
-        },
-        "colourFilters": {
-          "label": "Turn off screen color filters (yellow light, night shift, etc.).",
-          "helpText": "Filters alter your screen's natural colors, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colors."
-        },
-        "privacyScreen": {
-          "label": "Do you have a privacy protection glass?",
-          "helpText": "It is a special glass cover that stops people next to you from reading your screen. <br><br><strong>How to check:</strong> Tilt your phone to the side. If the screen suddenly looks completely dark or black, you have a privacy protector on your phone."
-        },
-        "environment": {
-          "label": "Sit indoors in normal room lighting.",
-          "helpText": "Avoid direct sunlight or bright windows shining onto your screen."
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "showIndicator": {
+        "label": "Show level indicator"
+      },
+      "recordVideo": {
+        "label": "Also record video",
+        "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+      },
+      "phoneme": {
+        "label": "Phoneme",
+        "values": {
+          "a": "aaa",
+          "e": "eee",
+          "i": "iii",
+          "o": "ooo",
+          "u": "uuu"
         }
       },
-      "rotateBack": {
-        "title": "Vision Test Complete",
-        "message": "You may now rotate your phone back to continue.",
-        "button": "Continue"
-       }
-
-    },
-    "sdmt": {
-      "name": "Symbol Digit Modalities Test",
-      "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
-      "title": "Symbols",
-      "instructions": "Tap the corresponding keypad number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong> for the task.",
-      "instructionsActive": "Match the symbol to the number.",
-      "demoTitle": "Symbol matching task",
-      "demoText": "Match the appeared symbol to the corresponding number using the keypad.",
-      "taskComplete": "Task Complete!",
-      "resultsSaved": "Your results have been saved securely.",
-      "start": "Start",
-      "stop": "Stop",
-      "timeLeft": "Time Left:",
-      "params": {
-        "duration": {
-          "label": "Required Duration (s)"
-        },
-        "showKeypad": {
-          "label": "Show on-screen keypad",
-          "values": {
-            "always": "Always",
-            "duringTest": "During test only",
-            "never": "Never (use physical keyboard)"
-          }
-        },
-        "symbolOrdering": {
-          "label": "Symbol Sequence",
-          "values": {
-            "random": "Completely Random",
-            "fixed_by_run": "Fixed Random (Changes per run)", 
-            "static": "Static (Same for all runs)"
-          }
-        }
-      }
-    },
-    "feedback": {
-      "name": "Feedback",
-      "description": "A standard feedback questionnaire assessing task difficulty, audio/video issues, and overall user experience. Added pre-filled; the questions can still be adjusted before saving.",
-      "title": "Questionnaire: {{title}}",
-      "instructions": "Please answer the following questions.",
-      "params": {
-        "canRepeat": { "label": "Allow repeat" },
-        "canSkip": { "label": "Allow skip" },
-        "title": { "label": "Title" },
-        "description": { "label": "Description" },
-        "questions": { "label": "Questions" }
+      "repeat": {
+        "label": "Repetitions"
       },
-      "defaultContent": {
-        "title": "Feedback",
-        "description": "",
-        "questions": [
-          {
-            "id": 1782904964479,
-            "text": "Overall, how easy was it to complete the tasks?",
-            "type": "rating",
-            "options": [],
-            "freeTextOptions": []
-          },
-          {
-            "id": 1782904989314,
-            "text": "Overall, how easy were the instructions to understand?",
-            "type": "rating",
-            "options": [],
-            "freeTextOptions": []
-          },
-          {
-            "id": 1782905036461,
-            "text": "How helpful was the audio guide?",
-            "type": "rating",
-            "optional": false,
-            "freeTextOptions": []
-          },
-          {
-            "id": 1786019769001,
-            "text": "Did you have trouble hearing the audio (guide, fairytale or examples)?",
-            "type": "single",
-            "options": [
-              "No, I heard everything clearly.",
-              "Yes, minor difficulty.",
-              "Yes, significant difficulty.",
-              "Audio didn't work at all."
-            ],
-            "optional": false,
-            "freeTextOptions": []
-          },
-          {
-            "id": 1786019769820,
-            "text": "Which task(s) did you find the most difficult or frustrating?",
-            "type": "multiple",
-            "options": [
-              "None — I found them all manageable",
-              "Long /aaa/",
-              "Repetition /pa-ta-ka/",
-              "Reading text",
-              "Fairytale retelling",
-              "Monologue",
-              "Symbol matching",
-              "Vision task (colour matching)",
-              "Questionnaires"
-            ],
-            "optional": false,
-            "exclusiveOption": "None — I found them all manageable",
-            "freeTextOptions": []
-          },
-          {
-            "id": 1786019771650,
-            "text": "Did background noise or other distractions interfere with your ability to complete the tasks?",
-            "type": "single",
-            "options": [
-              "No",
-              "Slightly",
-              "Yes",
-              "Not sure"
-            ],
-            "optional": false,
-            "freeTextOptions": []
-          },
-          {
-            "id": 1786019772865,
-            "text": "Did you experience any of the following technical issues?",
-            "type": "multiple",
-            "options": [
-              "Difficulty allowing microphone or camera access",
-              "Difficulty getting the camera to recognize my face",
-              "Difficulties maintaining camera position while speaking",
-              "Long delays or waiting time between tasks",
-              "Audio guide volume was too low or decreased unexpectedly",
-              "Accidentally exited or navigated away from a task",
-              "Troubles setting your screen for vision task",
-              "The app froze, crashed, or became unresponsive",
-              "A recording didn't seem to start or stop properly",
-              "Lost internet connection during the session",
-              "Other:",
-              "None of the above"
-            ],
-            "optional": false,
-            "exclusiveOption": "None of the above",
-            "freeTextOptions": [
-              "Other:"
-            ]
-          },
-          {
-            "id": 1786019773779,
-            "text": "Is there anything else you'd like to tell us about your experience?",
-            "type": "open",
-            "options": [],
-            "optional": true,
-            "freeTextOptions": []
-          }
-        ]
+      "minDuration": {
+        "label": "Min Duration (s)"
+      },
+      "maxDuration": {
+        "label": "Max Duration (s)"
       }
     }
+  },
+  "syllableRepeating": {
+    "name": "Syllable repetition",
+    "description": "The participant repeatedly produces given syllables (e.g., 'pa-ta-ka', 'ta', 'ka') as fast and clearly as possible to assess articulation speed and precision. Recording uses *countdown mode* — it automatically stops after the specified duration. The administrator should define the syllable sequence ('syllable'), total recording time ('duration'), and the number of repetitions ('repeat') if applicable.",
+    "title": "{{syllable}}",
+    "instructions1": "<strong>Please repeat the following syllables after me: {{syllables}}.</strong><br/><br/><em>Say the syllables slowly, firmly and with clear pauses. Once the participant says the syllables correctly, continue with the next instruction:</em><br/><br/><strong>Take a deep breath before the task, then repeat these syllables as fast and as precisely as possible until I stop you. I will now play an example.</strong><br/><br/><em>Press PLAY EXAMPLE to play the example.</em>",
+    "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. The required number of repetitions is at least {{target}}. Then press STOP button to end the recording.<br/>The repetition rate should keep the individual syllables intelligible (no mumbling!).</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "showIndicator": {
+        "label": "Show level indicator"
+      },
+      "recordVideo": {
+        "label": "Also record video",
+        "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+      },
+      "syllable": {
+        "label": "Syllable",
+        "values": {
+          "pataka": {
+            "label": "PATAKA",
+            "syllables": "/pa/-/ta/-/ka/",
+            "target": "12 triplets of /pa-ta-ka/"
+          },
+          "ta": {
+            "label": "TA",
+            "syllables": "/ta/",
+            "target": "25× /ta/"
+          },
+          "ka": {
+            "label": "KA",
+            "syllables": "/ka/",
+            "target": "25× /ka/"
+          }
+        }
+      },
+      "duration": {
+        "label": "Required Duration (s)"
+      },
+      "maxDuration": {
+        "label": "Max Duration (s)"
+      },
+      "repeat": {
+        "label": "Repetitions"
+      }
+    }
+  },
+  "retelling": {
+    "name": "Fairytale retelling",
+    "description": "The participant retells a known fairytale from memory (e.g., Snow White, Hansel and Gretel) to evaluate spontaneous connected speech, fluency, and lexical richness. Recording uses *manual stop mode* — the administrator or participant manually stops the recording when finished. The administrator should select the fairytale ('fairytale') and the number of repetitions ('repeat').",
+    "title": "Retelling",
+    "instructions1": "<strong>I will now play you an audio recording of a fairy tale. Your task is to remember it and then retell it in your own words.</strong><br/><br/><strong>The retelling should last {{duration}} seconds. The goal is to speak continuously; it does not matter whether the tale is retold correctly or completely.</strong><br/><br/><em>Press PLAY EXAMPLE to start the story playback.</em>",
+    "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until {{duration}} seconds have passed on the stopwatch, then press the STOP button to end the recording.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "showIndicator": {
+        "label": "Show level indicator"
+      },
+      "recordVideo": {
+        "label": "Also record video",
+        "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+      },
+      "fairytale": {
+        "label": "Fairytale",
+        "values": {
+          "pussInBoots": "Puss in boots",
+          "hanselAndGretel": "Hansel and Gretel",
+          "snowWhite": "Snow White",
+          "cinderella": "Cinderella",
+          "redRidingHood": "Little Red Riding Hood"
+        }
+      },
+      "repeat": {
+        "label": "Repetitions"
+      },
+      "minDuration": {
+        "label": "Min Duration (s)"
+      },
+      "maxDuration": {
+        "label": "Max Duration (s)"
+      },
+      "duration": {
+        "label": "Required Duration (s)"
+      }
+    }
+  },
+  "reading": {
+    "name": "Reading text",
+    "description": "The participant reads a short text displayed on the screen aloud to assess reading fluency, articulation, and prosody. Recording uses *manual stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should choose the text topic ('topic') and number of repetitions ('repeat').",
+    "title": "Reading - {{topic}}",
+    "instructions1": "<strong>Now I will ask you to read a short passage of text. If you use glasses, please put them on now.</strong><br/><br/><em>Give the participant the READING TEXT - {{topic}}.<br/>Offer the participant a text with a suitable font size.</em>",
+    "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant finishes the task, then press the STOP button to end the recording.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "showIndicator": {
+        "label": "Show level indicator"
+      },
+      "recordVideo": {
+        "label": "Also record video",
+        "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+      },
+      "topic": {
+        "label": "Text topic",
+        "values": {
+          "northWind": {
+            "label": "The North Wind and the Sun",
+            "text": "The North Wind and the Sun were disputing which was the stronger, when a traveller, came along wrapped in a warm cloak. They agreed that the one who first succeeded in, making the traveller take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveller fold his cloak around him, and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveller took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
+          },
+          "grandfather": {
+            "label": "The Grandfather",
+            "text": "You wished to know all about my grandfather. Well, he is nearly ninety-three years old; he dresses himself in an ancient black frock coat, usually minus several buttons; yet he still thinks as swiftly as ever. A long, flowing beard clings to his chin, giving those who observe him a pronounced feeling of the utmost respect. When he speaks, his voice is just a bit cracked and quivers a trifle. Twice each day he plays skilfully and with zest upon our small organ. Except in the winter when the ooze or snow or ice prevents, he slowly takes a short walk in the open air each day. We have often urged him to walk more and smoke less, but he always answers, “Banana oil!” Grandfather likes to be modern in his language."
+          },
+          "rainbow": {
+            "label": "The Rainbow",
+            "text": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors. These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. There is , according to legend, a boiling pot of gold at one end. People look, but no one ever finds it. When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.Throughout the centuries people have explained the rainbow in various ways. Some have accepted it as a miracle without physical explanation. To the Hebrews it was a token that there would be no more universal floods. The Greeks used to imagine that it was a sign from the gods to foretell war or heavy rain. The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky. Others have tried to explain the phenomenon physically. Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain. Since then physicists have found that it is not reflection, but refraction by the raindrops which causes the rainbows. Many complicated ideas about the rainbow have been formed. The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drops increases. The actual primary rainbow observed is said to be the effect of super-imposition of a number of bows. If the red of the second bow falls upon the green of the first, the result is to give a bow with an abnormally wide yellow band, since red and green light when mixed form yellow. This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue."
+          }
+        }
+      },
+      "repeat": {
+        "label": "Repetitions"
+      },
+      "minDuration": {
+        "label": "Min Duration (s)"
+      },
+      "maxDuration": {
+        "label": "Max Duration (s)"
+      }
+    }
+  },
+  "monologue": {
+    "name": "Monologue on topic",
+    "description": "The participant talks freely about a given topic (e.g., hobbies, family, or any chosen subject) to assess speech fluency and coherence. Recording uses *delayed stop mode* — the STOP button appears only after the set time interval has passed. The administrator should define the topic ('topic'), the number of repetitions ('repeat'), and the duration after which the STOP button becomes available ('duration').",
+    "title": "Monologue - {{topic}}",
+    "instructions1": "<strong>Now I will ask you to talk to me continuously about something for at least {{duration}} seconds. {{topicDescription}}</strong><br/><br/><em>The required length of the recorded monologue is at least {{duration}} seconds.</em>",
+    "instructions2": "<strong>You can start whenever you are ready.</strong><br/><br/><em>Press the START button to begin recording and the STOP button at the end of the task to end the recording.<br/>Note the monologue time. If the monologue is short or poor in content, try to extend the topic with follow-up questions or suggest a new topic. In the worst case, you can switch to a so-called guided discussion. In a guided discussion, try to ask open questions that require a long answer. The total monologue time, without long pauses and examiner questions, should be at least {{duration}} seconds.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "showIndicator": {
+        "label": "Show level indicator"
+      },
+      "recordVideo": {
+        "label": "Also record video",
+        "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+      },
+      "topic": {
+        "label": "Monologue topic",
+        "values": {
+          "free": {
+            "label": "Free narration",
+            "topicDescription": "The choice of topic is entirely up to you. You can talk, for example, about your interests, your family or your work."
+          },
+          "hobbies": {
+            "label": "Hobbies",
+            "topicDescription": "Tell me about your hobbies, for example sports, music, reading, gardening or pets."
+          },
+          "yesterday": {
+            "label": "Your yesterday, last week or last month",
+            "topicDescription": "Describe how your yesterday, past week or past month went. Try to include details, such as what you had for breakfast, what interesting things you experienced or who you met."
+          },
+          "family": {
+            "label": "Family",
+            "topicDescription": "Tell me about your family."
+          }
+        }
+      },
+      "repeat": {
+        "label": "Repetitions"
+      },
+      "duration": {
+        "label": "Required Duration (s)"
+      },
+      "minDuration": {
+        "label": "Min Duration (s)"
+      },
+      "maxDuration": {
+        "label": "Max Duration (s)"
+      }
+    }
+  },
+  "pictureDescription": {
+    "name": "Picture description",
+    "description": "The participant describes the situations in a printed picture handed over by the examiner. The administrator selects the picture ('picture') and the target length of the description ('duration').",
+    "title": "Picture description - {{picture}}",
+    "instructions1": "<strong>Describe to me the situations you see in the picture. How do you think the people in the pictures feel, and how do you judge their behaviour?</strong><br/><br/><em>Give the participant the PICTURE FOR DESCRIPTION - {{picture}}.</em>",
+    "instructions2": "<strong>Start now.</strong><br/><br/><em>Press the START button to begin recording. Wait until the participant has described the picture for at least {{duration}} seconds, then press STOP button to end the recording.</em>",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "showIndicator": {
+        "label": "Show level indicator"
+      },
+      "recordVideo": {
+        "label": "Also record video",
+        "help": "The camera films each take alongside the audio. If no camera is available, the task records audio only."
+      },
+      "picture": {
+        "label": "Picture",
+        "values": {
+          "A": "A",
+          "B": "B"
+        }
+      },
+      "repeat": {
+        "label": "Repetitions"
+      },
+      "duration": {
+        "label": "Required Duration (s)"
+      }
+    }
+  },
+  "d15colour": {
+    "name": "D-15 Color Test",
+    "description": "A color vision test where the participant arranges 15 colored caps in a sequence. Includes Saturated (Farnsworth) and Desaturated (Lanthony) versions.",
+    "title": "Color Arrangement Task",
+    "instructions": "<strong>1.</strong> Look at the last color in the <strong>top row</strong>.<br/><strong>2.</strong> Tap the color from the <strong>pool below</strong> that most closely matches it.<br/><strong>3.</strong> Repeat until the top row is full to unlock the <strong>Submit</strong> button.<br/><br/><strong>Swipe the top row</strong> left or right to see all your placed colors.",
+    "addTitle": "<strong>Arrange the colors into a smooth, gradual sequence in the top row.</strong>",
+    "addText": "• Tap a color in the <strong>bottom row of colors</strong>.<br/>• It's added to the <strong>next empty space</strong> in the top row.",
+    "addGifAlt": "Adding color",
+    "goalText": "Color vision task",
+    "modifyTitle": "<strong>Modifying colors</strong>",
+    "modifyText": "• Tap a color in the <strong>top row</strong>.<br/>• It's removed, so you can pick a different color instead.",
+    "modifyGifAlt": "Modifying sequence",
+    "disclaimerText": "",
+    "mainInstructionsText": "Arrange the colors into a smooth, gradual sequence in the top row. <br/><br/> If you have trouble telling colours apart, that's OK - just choose what looks closest to you.",
+    "trialCompleteTitle": "Well done!",
+    "trialCompleteText": "Trial completed. Now the test will be more challenging.",
+    "timeoutTitle": "Ready to move on?",
+    "timeoutText": "It's okay to stop here. Would you like to submit your current sequence?",
+    "timeoutSubmit": "Submit",
+    "timeoutContinue": "Keep going",
+    "controls": {
+      "addTabLabel": "Add color",
+      "modifyTabLabel": "Modify sequence"
+    },
+    "params": {
+      "version": {
+        "label": "Test Version",
+        "values": {
+          "saturated": "Saturated (Farnsworth)",
+          "desaturated": "Desaturated (Lanthony)",
+          "demo": "Demo (For visualization)"
+        }
+      },
+      "demoTrial": {
+        "label": "Include trial",
+        "values": {
+          "yes": "Yes",
+          "no": "No"
+        }
+      },
+      "randomize": {
+        "label": "Randomize caps"
+      },
+      "repeat": {
+        "label": "Repetitions"
+      },
+      "showNumbers": {
+        "label": "Show cap numbers",
+        "values": {
+          "never": "Never (Standard)",
+          "after": "After completion",
+          "always": "Always (Debug/Demo)"
+        }
+      },
+      "maxDuration": {
+        "label": "Max Duration (s)"
+      }
+    }
+  },
+  "preTestChecklist": {
+    "title": "Vision Task Setup",
+    "subtitle": "Now, we will test your color vision. Please try to setup your screen:",
+    "subtitleBelow": "If you do not know how to do it, please proceed further anyway. <br><br> You can tap info icon for help.",
+    "selectFirstHint": "Please select the status buttons above first.",
+    "items": {
+      "landscape": {
+        "label": "Rotate your phone sideways.",
+        "helpText": "If the screen doesn't rotate with your phone, you need to unlock it.<br><br>Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom).<br><br>Look for the rotation icon (<imgA/> <imgB/> <imgC/>) and tap it so your screen is allowed to rotate."
+      },
+      "brightness": {
+        "label": "Turn brightness to the maximum.",
+        "helpText": "Open your phone's quick control menu (swipe down from the top edge of your screen, or up from the bottom).<br><br>Find the <strong>brightness slider</strong> (usually a sun icon <imgA/>) and drag it to the absolute maximum.<br><br><em>Note</em>: If your phone turns the brightness back down on its own, look for an <strong>Auto</strong> or <strong>Adaptive</strong> button nearby, or look in your phone's Settings <imgB/> > Display and turn it off.<br><br>Example: <imgSlider/>"
+      },
+      "colourFilters": {
+        "label": "Turn off screen color filters (yellow light, night shift, etc.).",
+        "helpText": "Filters alter your screen's natural colors, often making it look yellow or warm. <br><br><strong>How to turn them off:</strong><br>1. Open Settings <imgA/>.<br>2. Tap or search for Display.<br>3. Turn off <em>True Tone</em>, <em>Night Shift</em>, <em>Eye Comfort Shield</em>, or <em>Reading Mode</em>, or any other mode that adjusts screen colors."
+      },
+      "privacyScreen": {
+        "label": "Do you have a privacy protection glass?",
+        "helpText": "It is a special glass cover that stops people next to you from reading your screen. <br><br><strong>How to check:</strong> Tilt your phone to the side. If the screen suddenly looks completely dark or black, you have a privacy protector on your phone."
+      },
+      "environment": {
+        "label": "Sit indoors in normal room lighting.",
+        "helpText": "Avoid direct sunlight or bright windows shining onto your screen."
+      }
+    },
+    "rotateBack": {
+      "title": "Vision Test Complete",
+      "message": "You may now rotate your phone back to continue.",
+      "button": "Continue"
+    }
+  },
+  "sdmt": {
+    "name": "Symbol Digit Modalities Test",
+    "description": "A cognitive test where the participant matches symbols to numbers based on a reference key. The test measures processing speed, attention, and visual-motor coordination. Recording uses *basic stop mode* — it starts when START is pressed and stops when the participant or administrator presses STOP. The administrator should set the test duration ('duration') and whether to show an on-screen keypad for responses ('showKeypad').",
+    "title": "Symbols",
+    "instructions": "Tap the corresponding keypad number with <strong>one finger</strong>. <br><br>Work as fast as you can, without making mistakes. You have <strong>{{duration}} seconds</strong> for the task.",
+    "instructionsActive": "Match the symbol to the number.",
+    "demoTitle": "Symbol matching task",
+    "demoText": "Match the appeared symbol to the corresponding number using the keypad.",
+    "start": "Start",
+    "stop": "Stop",
+    "params": {
+      "duration": {
+        "label": "Required Duration (s)"
+      },
+      "showKeypad": {
+        "label": "Show on-screen keypad",
+        "values": {
+          "always": "Always",
+          "duringTest": "During test only",
+          "never": "Never (use physical keyboard)"
+        }
+      },
+      "symbolOrdering": {
+        "label": "Symbol Sequence",
+        "values": {
+          "random": "Completely Random",
+          "fixed_by_run": "Fixed Random (Changes per run)",
+          "static": "Static (Same for all runs)"
+        }
+      }
+    }
+  },
+  "feedback": {
+    "name": "Feedback",
+    "description": "A standard feedback questionnaire assessing task difficulty, audio/video issues, and overall user experience. Added pre-filled; the questions can still be adjusted before saving.",
+    "title": "Questionnaire: {{title}}",
+    "instructions": "Please answer the following questions.",
+    "params": {
+      "canRepeat": {
+        "label": "Allow repeat"
+      },
+      "canSkip": {
+        "label": "Allow skip"
+      },
+      "title": {
+        "label": "Title"
+      },
+      "description": {
+        "label": "Description"
+      },
+      "questions": {
+        "label": "Questions"
+      }
+    },
+    "defaultContent": {
+      "title": "Feedback",
+      "description": "",
+      "questions": [
+        {
+          "id": 1782904964479,
+          "text": "Overall, how easy was it to complete the tasks?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1782904989314,
+          "text": "Overall, how easy were the instructions to understand?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1782905036461,
+          "text": "How helpful was the audio guide?",
+          "type": "rating",
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019769001,
+          "text": "Did you have trouble hearing the audio (guide, fairytale or examples)?",
+          "type": "single",
+          "options": [
+            "No, I heard everything clearly.",
+            "Yes, minor difficulty.",
+            "Yes, significant difficulty.",
+            "Audio didn't work at all."
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019769820,
+          "text": "Which task(s) did you find the most difficult or frustrating?",
+          "type": "multiple",
+          "options": [
+            "None — I found them all manageable",
+            "Long /aaa/",
+            "Repetition /pa-ta-ka/",
+            "Reading text",
+            "Fairytale retelling",
+            "Monologue",
+            "Symbol matching",
+            "Vision task (colour matching)",
+            "Questionnaires"
+          ],
+          "optional": false,
+          "exclusiveOption": "None — I found them all manageable",
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019771650,
+          "text": "Did background noise or other distractions interfere with your ability to complete the tasks?",
+          "type": "single",
+          "options": [
+            "No",
+            "Slightly",
+            "Yes",
+            "Not sure"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019772865,
+          "text": "Did you experience any of the following technical issues?",
+          "type": "multiple",
+          "options": [
+            "Difficulty allowing microphone or camera access",
+            "Difficulty getting the camera to recognize my face",
+            "Difficulties maintaining camera position while speaking",
+            "Long delays or waiting time between tasks",
+            "Audio guide volume was too low or decreased unexpectedly",
+            "Accidentally exited or navigated away from a task",
+            "Troubles setting your screen for vision task",
+            "The app froze, crashed, or became unresponsive",
+            "A recording didn't seem to start or stop properly",
+            "Lost internet connection during the session",
+            "Other:",
+            "None of the above"
+          ],
+          "optional": false,
+          "exclusiveOption": "None of the above",
+          "freeTextOptions": [
+            "Other:"
+          ]
+        },
+        {
+          "id": 1786019773779,
+          "text": "Is there anything else you'd like to tell us about your experience?",
+          "type": "open",
+          "options": [],
+          "optional": true,
+          "freeTextOptions": []
+        }
+      ]
+    }
   }
-  
+}

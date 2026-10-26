@@ -1,62 +1,301 @@
 {
+  "questionnaire": {
+    "name": "Fragebogen",
+    "description": "Ein anpassbares Formular mit Fragen.",
+    "title": "Fragebogen: {{title}}",
+    "instructions": "Bitte beantworten Sie die folgenden Fragen.",
+    "pleaseAnswerAll": "Bitte beantworten Sie alle Pflichtfragen, um fortzufahren.",
+    "optionalLabel": "(optional)",
+    "params": {
+      "canRepeat": {
+        "label": "Wiederholung erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "title": {
+        "label": "Titel"
+      },
+      "description": {
+        "label": "Beschreibung"
+      },
+      "questions": {
+        "label": "Fragen"
+      }
+    }
+  },
   "rbdsq": {
     "name": "RBD-SQ",
-    "description": "[de] REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
+    "description": "REM Sleep Behavior Disorder Screening Questionnaire — a standard 13-item yes/no screening instrument. Added pre-filled; the questions can still be adjusted before saving.",
     "title": "Fragebogen: {{title}}",
     "instructions": "Bitte beantworten Sie die folgenden Fragen.",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "title": { "label": "Titel" },
-      "description": { "label": "Beschreibung" },
-      "questions": { "label": "Fragen" }
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "title": {
+        "label": "Titel"
+      },
+      "description": {
+        "label": "Beschreibung"
+      },
+      "questions": {
+        "label": "Fragen"
+      }
     },
     "defaultContent": {
       "title": "RBD-SQ",
       "description": "",
       "questions": [
-        { "id": 1782905076296, "text": "[de] I sometimes have very vivid dreams.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1782905161794, "text": "[de] My dreams frequently have an aggressive or action-packed content.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1782905166057, "text": "[de] The dream contents mostly match my nocturnal behavior.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1782905170074, "text": "[de] I know that my arms or legs move when I sleep.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1782905174710, "text": "[de] It thereby happened that I (almost) hurt my bed partner or myself.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1782905182339, "text": "[de] I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1782905259308, "text": "[de] I have or had the following phenomena during my dreams: sudden limb movements, “fights”", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1783076583590, "text": "[de] I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1783076590512, "text": "[de] I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1783076636726, "text": "[de] It happens that my movements awake me.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1783076672712, "text": "[de] After awakening I mostly remember the content of my dreams well.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1783076688838, "text": "[de] My sleep is frequently disturbed.", "type": "single", "options": ["[de] Yes", "[de] No"] },
-        { "id": 1783076704506, "text": "[de] I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).", "type": "single", "options": ["[de] Yes", "[de] No"] }
+        {
+          "id": 1782905076296,
+          "text": "I sometimes have very vivid dreams.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905161794,
+          "text": "My dreams frequently have an aggressive or action-packed content.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905166057,
+          "text": "The dream contents mostly match my nocturnal behavior.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905170074,
+          "text": "I know that my arms or legs move when I sleep.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905174710,
+          "text": "It thereby happened that I (almost) hurt my bed partner or myself.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905182339,
+          "text": "I have or had the following phenomena during my dreams: speaking, shouting, swearing, laughing loudly",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1782905259308,
+          "text": "I have or had the following phenomena during my dreams: sudden limb movements, “fights”",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076583590,
+          "text": "I have or had the following phenomena during my dreams: gestures, complex movements, that are useless during sleep, e.g., to wave, to salute, to frighten mosquitoes, falls off the bed",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076590512,
+          "text": "I have or had the following phenomena during my dreams: things that fell down around the bed, e.g., bedside lamp, book, glasses",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076636726,
+          "text": "It happens that my movements awake me.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076672712,
+          "text": "After awakening I mostly remember the content of my dreams well.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076688838,
+          "text": "My sleep is frequently disturbed.",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783076704506,
+          "text": "I have/had a disease of the nervous system (e.g., stroke, head trauma, Parkinsonism, RLS, narcolepsy, depression, epilepsy, inflammatory disease of the brain).",
+          "type": "single",
+          "options": [
+            "Yes",
+            "No"
+          ]
+        }
       ]
     }
   },
   "hhies": {
     "name": "HHIE-S",
-    "description": "[de] Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
+    "description": "Hearing Handicap Inventory for the Elderly (Screening) — a standard 10-item questionnaire (Yes / Sometimes / No). Added pre-filled; the questions can still be adjusted before saving.",
     "title": "Fragebogen: {{title}}",
     "instructions": "Bitte beantworten Sie die folgenden Fragen.",
     "params": {
-      "canRepeat": { "label": "Wiederholen erlauben" },
-      "canSkip": { "label": "Überspringen erlauben" },
-      "title": { "label": "Titel" },
-      "description": { "label": "Beschreibung" },
-      "questions": { "label": "Fragen" }
+      "canRepeat": {
+        "label": "Wiederholen erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "title": {
+        "label": "Titel"
+      },
+      "description": {
+        "label": "Beschreibung"
+      },
+      "questions": {
+        "label": "Fragen"
+      }
     },
     "defaultContent": {
-      "title": "Hearing Handicap Inventory for the Elderly (HHIE-S)",
+      "title": "Fragebogen zur Hörbeeinträchtigung bei älteren Menschen (HHIE-S)",
       "description": "",
       "questions": [
-        { "id": 1783259602375, "text": "[de] Does a hearing problem cause you to feel embarrassed when you meet new people?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259610834, "text": "[de] Does a hearing problem cause you to feel frustrated when talking to members of your family?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259617267, "text": "[de] Do you have difficulty hearing when someone speaks in a whisper?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259622208, "text": "[de] Do you feel handicapped by a hearing problem?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259626876, "text": "[de] Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259632940, "text": "[de] Does a hearing problem cause you to attend religious services less often than you would like?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259643040, "text": "[de] Does a hearing problem cause you to have arguments with family members?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259656707, "text": "[de] Does a hearing problem cause you difficulty when listening to TV or radio?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259672641, "text": "[de] Do you feel that any difficulty with your hearing limits or hampers your personal or social life?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] },
-        { "id": 1783259681028, "text": "[de] Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?", "type": "single", "options": ["[de] Yes", "[de] Sometimes", "[de] No"] }
+        {
+          "id": 1783259602375,
+          "text": "Does a hearing problem cause you to feel embarrassed when you meet new people?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259610834,
+          "text": "Does a hearing problem cause you to feel frustrated when talking to members of your family?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259617267,
+          "text": "Do you have difficulty hearing when someone speaks in a whisper?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259622208,
+          "text": "Do you feel handicapped by a hearing problem?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259626876,
+          "text": "Does a hearing problem cause you difficulty when visiting friends, relatives, or neighbors?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259632940,
+          "text": "Does a hearing problem cause you to attend religious services less often than you would like?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259643040,
+          "text": "Does a hearing problem cause you to have arguments with family members?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259656707,
+          "text": "Does a hearing problem cause you difficulty when listening to TV or radio?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259672641,
+          "text": "Do you feel that any difficulty with your hearing limits or hampers your personal or social life?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        },
+        {
+          "id": 1783259681028,
+          "text": "Does a hearing problem cause you difficulty when in a restaurant with relatives or friends?",
+          "type": "single",
+          "options": [
+            "Yes",
+            "Sometimes",
+            "No"
+          ]
+        }
       ]
     }
   },
@@ -101,7 +340,6 @@
       }
     }
   },
-
   "syllableRepeating": {
     "name": "Silbenwiederholung",
     "description": "Die Teilnehmerin oder der Teilnehmer wiederholt vorgegebene Silben (z. B. 'pa-ta-ka', 'ta', 'ka') so schnell und deutlich wie möglich, um Artikulationsgeschwindigkeit und Präzision zu bewerten. Die Aufnahme erfolgt im *Countdown-Modus* – sie stoppt automatisch nach Ablauf der angegebenen Dauer. Die Administratorin oder der Administrator sollte die Silbenfolge ('syllable'), die Gesamtdauer ('duration') und die Anzahl der Wiederholungen ('repeat') festlegen.",
@@ -145,12 +383,14 @@
       "duration": {
         "label": "Dauer"
       },
+      "maxDuration": {
+        "label": "Maximale Dauer (s)"
+      },
       "repeat": {
         "label": "Wiederholungen"
       }
     }
   },
-
   "retelling": {
     "name": "Nacherzählung eines Märchens",
     "description": "Die Teilnehmerin oder der Teilnehmer erzählt ein bekanntes Märchen aus dem Gedächtnis (z. B. Schneewittchen, Hänsel und Gretel), um zusammenhängende Spontansprache, Flüssigkeit und Wortschatzreichtum zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie wird manuell beendet, wenn die Erzählung abgeschlossen ist. Die Administratorin oder der Administrator sollte das Märchen ('fairytale') und die Anzahl der Wiederholungen ('repeat') auswählen.",
@@ -184,18 +424,17 @@
       "repeat": {
         "label": "Wiederholungen"
       },
-      "duration": {
-        "label": "Dauer (s)"
-      },
       "minDuration": {
         "label": "Mindestdauer (s)"
       },
       "maxDuration": {
         "label": "Höchstdauer (s)"
+      },
+      "duration": {
+        "label": "Dauer (s)"
       }
     }
   },
-
   "reading": {
     "name": "Textlesen",
     "description": "Die Teilnehmerin oder der Teilnehmer liest einen kurzen Text laut von der Anzeige, um Leseflüssigkeit, Artikulation und Prosodie zu bewerten. Die Aufnahme erfolgt im *manuellen Stoppmodus* – sie startet mit START und endet, wenn die Teilnehmerin oder der Teilnehmer oder die Administratorin bzw. der Administrator STOP drückt. Das Thema des Textes ('topic') und die Anzahl der Wiederholungen ('repeat') sollten festgelegt werden.",
@@ -219,17 +458,23 @@
       "topic": {
         "label": "Thema des Textes",
         "values": {
+          "northWind": {
+            "label": "Nordwind und Sonne"
+          },
+          "grandfather": {
+            "label": "Der Großvater"
+          },
+          "rainbow": {
+            "label": "Der Regenbogen"
+          },
           "seedling": {
-            "label": "Setzling",
-            "text": "Wenn man einen Setzling zum ersten Mal in die Erde pflanzt..."
+            "label": "Setzling"
           },
           "dog": {
-            "label": "Hund",
-            "text": "Ich habe einen Hund und spiele gern mit ihm..."
+            "label": "Hund"
           },
           "raining": {
-            "label": "Regen",
-            "text": "Es ist November..."
+            "label": "Regen"
           }
         }
       },
@@ -244,7 +489,6 @@
       }
     }
   },
-
   "monologue": {
     "name": "Monolog zu einem Thema",
     "description": "Die Teilnehmerin oder der Teilnehmer spricht frei über ein bestimmtes Thema (z. B. Hobbys, Familie oder ein beliebiges anderes Thema), um Sprachflüssigkeit und Kohärenz zu beurteilen. Die Aufnahme erfolgt im *verzögerten Stoppmodus* – die STOP-Taste erscheint erst nach Ablauf der festgelegten Zeit. Die Administratorin oder der Administrator sollte das Thema ('topic'), die Anzahl der Wiederholungen ('repeat') und die Dauer bis zur Anzeige der STOP-Taste ('duration') festlegen.",
@@ -300,7 +544,6 @@
       }
     }
   },
-
   "pictureDescription": {
     "name": "Bildbeschreibung",
     "description": "Die teilnehmende Person beschreibt die Situationen auf einem ausgedruckten Bild, das ihr die untersuchende Person vorlegt. Die Administratorin oder der Administrator wählt das Bild ('picture') und die Zieldauer der Beschreibung ('duration').",
@@ -324,7 +567,8 @@
       "picture": {
         "label": "Bild",
         "values": {
-          "A": "A"
+          "A": "A",
+          "B": "B"
         }
       },
       "repeat": {
@@ -333,6 +577,257 @@
       "duration": {
         "label": "Dauer (s)"
       }
+    }
+  },
+  "d15colour": {
+    "name": "D-15-Farbtest",
+    "description": "Ein Farbsehtest, bei dem der Teilnehmer 15 farbige Plättchen in eine Reihenfolge bringt. Enthält eine gesättigte (Farnsworth) und eine entsättigte (Lanthony) Version.",
+    "title": "Farbanordnungsaufgabe",
+    "instructions": "<strong>1.</strong> Sehen Sie sich die letzte Farbe in der <strong>oberen Reihe</strong> an.<br/><strong>2.</strong> Tippen Sie im <strong>Farbvorrat unten</strong> auf die Farbe, die ihr am ähnlichsten ist.<br/><strong>3.</strong> Wiederholen Sie dies, bis die obere Reihe voll ist; dann wird die Schaltfläche <strong>Absenden</strong> freigeschaltet.<br/><br/><strong>Wischen Sie über die obere Reihe</strong> nach links oder rechts, um alle platzierten Farben zu sehen.",
+    "addTitle": "<strong>Ordnen Sie die Farben in der oberen Reihe zu einer gleichmäßigen, allmählichen Abfolge.</strong>",
+    "addText": "• Tippen Sie auf eine Farbe in der <strong>unteren Farbreihe</strong>.<br/>• Sie wird an der <strong>nächsten freien Stelle</strong> der oberen Reihe eingefügt.",
+    "addGifAlt": "Farbe hinzufügen",
+    "goalText": "Aufgabe zum Farbsehen",
+    "modifyTitle": "<strong>Farben ändern</strong>",
+    "modifyText": "• Tippen Sie auf eine Farbe in der <strong>oberen Reihe</strong>.<br/>• Sie wird entfernt, und Sie können stattdessen eine andere Farbe wählen.",
+    "modifyGifAlt": "Abfolge ändern",
+    "disclaimerText": "",
+    "mainInstructionsText": "Ordnen Sie die Farben in der oberen Reihe zu einer gleichmäßigen, allmählichen Abfolge. <br/><br/> Wenn es Ihnen schwerfällt, Farben zu unterscheiden, ist das in Ordnung – wählen Sie einfach, was Ihnen am nächsten erscheint.",
+    "trialCompleteTitle": "Gut gemacht!",
+    "trialCompleteText": "Probedurchgang abgeschlossen. Jetzt wird der Test anspruchsvoller.",
+    "timeoutTitle": "Bereit, weiterzumachen?",
+    "timeoutText": "Es ist in Ordnung, hier aufzuhören. Möchten Sie Ihre aktuelle Abfolge absenden?",
+    "timeoutSubmit": "Absenden",
+    "timeoutContinue": "Weitermachen",
+    "controls": {
+      "addTabLabel": "Farbe hinzufügen",
+      "modifyTabLabel": "Abfolge ändern"
+    },
+    "params": {
+      "version": {
+        "label": "Testversion",
+        "values": {
+          "saturated": "Gesättigt (Farnsworth)",
+          "desaturated": "Entsättigt (Lanthony)",
+          "demo": "Demo (zur Veranschaulichung)"
+        }
+      },
+      "demoTrial": {
+        "label": "Probedurchgang einbeziehen",
+        "values": {
+          "yes": "Ja",
+          "no": "Nein"
+        }
+      },
+      "randomize": {
+        "label": "Plättchen zufällig anordnen"
+      },
+      "repeat": {
+        "label": "Wiederholungen"
+      },
+      "showNumbers": {
+        "label": "Plättchennummern anzeigen",
+        "values": {
+          "never": "Nie (Standard)",
+          "after": "Nach Abschluss",
+          "always": "Immer (Debug/Demo)"
+        }
+      },
+      "maxDuration": {
+        "label": "Maximale Dauer (s)"
+      }
+    }
+  },
+  "preTestChecklist": {
+    "title": "Einrichtung für die Sehaufgabe",
+    "subtitle": "Jetzt testen wir Ihr Farbsehen. Bitte richten Sie Ihren Bildschirm ein:",
+    "subtitleBelow": "Wenn Sie nicht wissen, wie das geht, machen Sie trotzdem weiter. <br><br> Tippen Sie auf das Info-Symbol, um Hilfe zu erhalten.",
+    "selectFirstHint": "Bitte wählen Sie zuerst oben die Statusschaltflächen aus.",
+    "items": {
+      "landscape": {
+        "label": "Drehen Sie Ihr Telefon ins Querformat.",
+        "helpText": "Wenn sich der Bildschirm nicht mit dem Telefon dreht, müssen Sie die Drehung entsperren.<br><br>Öffnen Sie das Schnellmenü Ihres Telefons (vom oberen Bildschirmrand nach unten oder vom unteren Rand nach oben wischen).<br><br>Suchen Sie das Drehsymbol (<imgA/> <imgB/> <imgC/>) und tippen Sie darauf, damit sich der Bildschirm drehen darf."
+      },
+      "brightness": {
+        "label": "Stellen Sie die Helligkeit auf das Maximum.",
+        "helpText": "Öffnen Sie das Schnellmenü Ihres Telefons (vom oberen Bildschirmrand nach unten oder vom unteren Rand nach oben wischen).<br><br>Suchen Sie den <strong>Helligkeitsregler</strong> (meist ein Sonnensymbol <imgA/>) und ziehen Sie ihn ganz nach oben.<br><br><em>Hinweis</em>: Wenn Ihr Telefon die Helligkeit von selbst wieder verringert, suchen Sie in der Nähe nach einer Schaltfläche <strong>Auto</strong> oder <strong>Adaptiv</strong> oder schalten Sie die Funktion in den Einstellungen <imgB/> > Anzeige aus.<br><br>Beispiel: <imgSlider/>"
+      },
+      "colourFilters": {
+        "label": "Schalten Sie Farbfilter des Bildschirms aus (Gelblicht, Nachtmodus usw.).",
+        "helpText": "Filter verändern die natürlichen Farben Ihres Bildschirms und lassen ihn oft gelblich oder warm wirken. <br><br><strong>So schalten Sie sie aus:</strong><br>1. Öffnen Sie die Einstellungen <imgA/>.<br>2. Tippen Sie auf Anzeige oder suchen Sie danach.<br>3. Schalten Sie <em>True Tone</em>, <em>Night Shift</em>, <em>Augenschonmodus</em>, <em>Lesemodus</em> oder einen anderen Modus aus, der die Bildschirmfarben anpasst."
+      },
+      "privacyScreen": {
+        "label": "Haben Sie eine Blickschutzfolie oder ein Blickschutzglas?",
+        "helpText": "Das ist eine spezielle Schutzscheibe, die verhindert, dass Personen neben Ihnen Ihren Bildschirm lesen können. <br><br><strong>So prüfen Sie es:</strong> Kippen Sie Ihr Telefon zur Seite. Wenn der Bildschirm plötzlich vollständig dunkel oder schwarz aussieht, haben Sie einen Blickschutz auf Ihrem Telefon."
+      },
+      "environment": {
+        "label": "Setzen Sie sich in einen Raum mit normaler Beleuchtung.",
+        "helpText": "Vermeiden Sie direktes Sonnenlicht oder helle Fenster, die auf Ihren Bildschirm scheinen."
+      }
+    },
+    "rotateBack": {
+      "title": "Sehtest abgeschlossen",
+      "message": "Sie können Ihr Telefon jetzt zurückdrehen und fortfahren.",
+      "button": "Weiter"
+    }
+  },
+  "sdmt": {
+    "name": "Symbol-Zahlen-Test",
+    "description": "Ein kognitiver Test, bei dem der Teilnehmer Symbole anhand eines Schlüssels Zahlen zuordnet. Der Test misst Verarbeitungsgeschwindigkeit, Aufmerksamkeit und visuell-motorische Koordination. Die Aufnahme verwendet den *einfachen Stopp-Modus* – sie beginnt mit dem Drücken von START und endet, wenn der Teilnehmer oder der Administrator STOPP drückt. Der Administrator sollte die Testdauer ('duration') und festlegen, ob ein Bildschirm-Tastenfeld für die Antworten angezeigt wird ('showKeypad').",
+    "title": "Symbole",
+    "instructions": "Tippen Sie mit <strong>einem Finger</strong> auf die passende Zahl auf dem Tastenfeld. <br><br>Arbeiten Sie so schnell wie möglich, ohne Fehler zu machen. Sie haben <strong>{{duration}} Sekunden</strong> für die Aufgabe.",
+    "instructionsActive": "Ordnen Sie dem Symbol die Zahl zu.",
+    "demoTitle": "Aufgabe zur Symbolzuordnung",
+    "demoText": "Ordnen Sie dem angezeigten Symbol mit dem Tastenfeld die passende Zahl zu.",
+    "start": "Start",
+    "stop": "Stopp",
+    "params": {
+      "duration": {
+        "label": "Erforderliche Dauer (s)"
+      },
+      "showKeypad": {
+        "label": "Bildschirm-Tastenfeld anzeigen",
+        "values": {
+          "always": "Immer",
+          "duringTest": "Nur während des Tests",
+          "never": "Nie (physische Tastatur verwenden)"
+        }
+      },
+      "symbolOrdering": {
+        "label": "Symbolreihenfolge",
+        "values": {
+          "random": "Vollständig zufällig",
+          "fixed_by_run": "Fest zufällig (ändert sich pro Durchlauf)",
+          "static": "Statisch (für alle Durchläufe gleich)"
+        }
+      }
+    }
+  },
+  "feedback": {
+    "name": "Feedback",
+    "description": "Ein Standard-Feedbackfragebogen zu Schwierigkeit der Aufgaben, Audio- und Videoproblemen und dem Gesamteindruck. Er wird vorausgefüllt hinzugefügt; die Fragen können vor dem Speichern noch angepasst werden.",
+    "title": "Fragebogen: {{title}}",
+    "instructions": "Bitte beantworten Sie die folgenden Fragen.",
+    "params": {
+      "canRepeat": {
+        "label": "Wiederholung erlauben"
+      },
+      "canSkip": {
+        "label": "Überspringen erlauben"
+      },
+      "title": {
+        "label": "Titel"
+      },
+      "description": {
+        "label": "Beschreibung"
+      },
+      "questions": {
+        "label": "Fragen"
+      }
+    },
+    "defaultContent": {
+      "title": "Feedback",
+      "description": "",
+      "questions": [
+        {
+          "id": 1782904964479,
+          "text": "Wie leicht war es insgesamt, die Aufgaben zu bearbeiten?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1782904989314,
+          "text": "Wie leicht verständlich waren die Anweisungen insgesamt?",
+          "type": "rating",
+          "options": [],
+          "freeTextOptions": []
+        },
+        {
+          "id": 1782905036461,
+          "text": "Wie hilfreich war die Audioführung?",
+          "type": "rating",
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019769001,
+          "text": "Hatten Sie Schwierigkeiten, den Ton zu hören (Führung, Märchen oder Beispiele)?",
+          "type": "single",
+          "options": [
+            "Nein, ich habe alles klar gehört.",
+            "Ja, leichte Schwierigkeiten.",
+            "Ja, erhebliche Schwierigkeiten.",
+            "Der Ton hat gar nicht funktioniert."
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019769820,
+          "text": "Welche Aufgabe(n) fanden Sie am schwierigsten oder frustrierendsten?",
+          "type": "multiple",
+          "options": [
+            "Keine – ich fand alle machbar",
+            "Langes /aaa/",
+            "Wiederholung /pa-ta-ka/",
+            "Text lesen",
+            "Märchen nacherzählen",
+            "Monolog",
+            "Symbolzuordnung",
+            "Sehaufgabe (Farben zuordnen)",
+            "Fragebögen"
+          ],
+          "optional": false,
+          "exclusiveOption": "Keine – ich fand alle machbar",
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019771650,
+          "text": "Haben Hintergrundgeräusche oder andere Ablenkungen Sie bei der Bearbeitung der Aufgaben gestört?",
+          "type": "single",
+          "options": [
+            "Nein",
+            "Leicht",
+            "Ja",
+            "Nicht sicher"
+          ],
+          "optional": false,
+          "freeTextOptions": []
+        },
+        {
+          "id": 1786019772865,
+          "text": "Sind bei Ihnen eines der folgenden technischen Probleme aufgetreten?",
+          "type": "multiple",
+          "options": [
+            "Schwierigkeiten beim Erlauben des Mikrofon- oder Kamerazugriffs",
+            "Schwierigkeiten, dass die Kamera mein Gesicht erkennt",
+            "Schwierigkeiten, die Kameraposition beim Sprechen beizubehalten",
+            "Lange Verzögerungen oder Wartezeiten zwischen den Aufgaben",
+            "Die Lautstärke der Audioführung war zu niedrig oder sank unerwartet",
+            "Eine Aufgabe versehentlich verlassen",
+            "Probleme beim Einrichten des Bildschirms für die Sehaufgabe",
+            "Die App ist eingefroren, abgestürzt oder reagierte nicht mehr",
+            "Eine Aufnahme schien nicht richtig zu starten oder zu enden",
+            "Die Internetverbindung ging während der Sitzung verloren",
+            "Sonstiges:",
+            "Keines der genannten"
+          ],
+          "optional": false,
+          "exclusiveOption": "Keines der genannten",
+          "freeTextOptions": [
+            "Sonstiges:"
+          ]
+        },
+        {
+          "id": 1786019773779,
+          "text": "Möchten Sie uns sonst noch etwas zu Ihren Erfahrungen mitteilen?",
+          "type": "open",
+          "options": [],
+          "optional": true,
+          "freeTextOptions": []
+        }
+      ]
     }
   }
 }

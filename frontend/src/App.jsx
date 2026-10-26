@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation, useOutletContext, useParams, gene
 import ProtectedRoute from "./components/RouteProtection/ProtectedRoute";
 import AppShell from "./components/ui/AppShell";
 import { useUser } from "./context/UserContext";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
 import UsersListPage from "./pages/users/UsersListPage";
 import UserPage from "./pages/users/UserPage";
 import ClinicsListPage from "./pages/clinics/ClinicsListPage";
@@ -20,7 +19,6 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import NotAvailablePage from "./pages/NotAvailablePage";
-import PlaceholderPage from "./pages/PlaceholderPage";
 import RecordingsPage from "./pages/RecordingsPage";
 import RecordingPage from "./pages/RecordingPage";
 

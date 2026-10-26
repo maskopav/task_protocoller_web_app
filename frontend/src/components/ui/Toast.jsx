@@ -21,7 +21,7 @@ export function Toast({ tone = "info", children, onClose, closeLabel = "Close" }
   );
 }
 
-/** Mount once near the root (inside the router/i18n providers). Replacement for alert(). */
+/** Mount once near the root (inside the router/i18n providers). Replaces the browser alert dialog. */
 export function ToastProvider({ children, duration = 4000 }) {
   const [items, setItems] = useState([]);
   const nextId = useRef(1);

@@ -64,6 +64,23 @@
   --z-menu: 20;
   --z-modal: 50;
   --z-toast: 60;
+
+  /* legacy aliases, used by the participant interface and the protocol editor internals */
+  --card-bg: #ededed;
+  --grey: #ced0d3;
+  --dark-gray: #6b7280;
+  --muted: #575151;
+  --primary: #3764df;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --success: #27ae60;
+  --purple: #7e3ff4;
+  --radius: 1rem;
+  --sharp-radius: 4px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+  --transition: all 0.2s ease;
+  --audio-color: #707070;
+  --audio-accent: #3764df;
 }
 
 /* ── Base elements ─────────────────────────────────────── */

@@ -1,86 +1,74 @@
 {
   "loading": "Načítání…",
-  "projectDashboard": {
-    "title": "Přehled projektu",
-    "subtitle": "Načtený projekt:"
+  "apiErrors": {
+    "generic": "Něco se pokazilo. Zkuste to prosím znovu.",
+    "name_required": "Název je povinný.",
+    "name_taken": "Tento název je již obsazen.",
+    "invalid_name": "Tento název není platný.",
+    "invalid_contact_email": "Jeden z kontaktních e-mailů není platný.",
+    "invalid_email": "Tato e-mailová adresa není platná.",
+    "email_taken": "Tento e-mail již používá jiný účet.",
+    "invalid_token": "Přístupový token musí mít 16 až 64 znaků (písmena, číslice, - nebo _).",
+    "token_taken": "Tento přístupový token se již používá.",
+    "invalid_config": "Nastavení desktopové aplikace není platné.",
+    "not_allowed": "K této akci nemáte oprávnění.",
+    "forbidden": "K této akci nemáte oprávnění.",
+    "not_editor": "Tuto akci může provést jen editor této studie.",
+    "creator_only": "Tuto akci může provést jen autor této studie.",
+    "not_author": "Tuto akci může provést jen autor tohoto protokolu.",
+    "not_found": "Tento záznam nebyl nalezen.",
+    "project_not_found": "Tato studie nebyla nalezena.",
+    "protocol_not_found": "Tento protokol nebyl nalezen.",
+    "user_not_found": "Žádný aktivní uživatel s tímto e-mailem.",
+    "cannot_remove_creator": "Autora studie nelze odebrat z editorů.",
+    "last_editor": "Studie musí mít alespoň jednoho editora.",
+    "no_changes": "Není co měnit.",
+    "no_tasks": "Protokol musí obsahovat alespoň jeden úkol.",
+    "project_inactive": "Tato studie je archivovaná.",
+    "protocol_archived": "Tento protokol je archivovaný.",
+    "invalid_site_ids": "Seznam klinik není platný.",
+    "unknown_site": "Jedna z klinik neexistuje.",
+    "file_name_template_invalid": "Šablona názvu souboru záznamu není platná.",
+    "instructions_pdf_url_invalid": "Příručka k protokolu musí být adresa http(s).",
+    "protocol_save_failed": "Protokol se nepodařilo uložit. Zkuste to prosím znovu.",
+    "project_required": "Vyberte pro tento protokol studii.",
+    "wrong_project": "Tento protokol patří do jiné studie."
   },
-  "participantDashboard": {
-    "title": "Participants Management & Protocols Activation",
-    "addParticipant": "Add New Participant",
-    "noData": "No participants found in this project.",
-    "table": {
-      "title": "Participants Enrollment & Management",
-      "subtitle": "Create and manage participant profiles. Initial existing protocol must be linked (starts as inactive).",
-      "name": "Full Name",
-      "externalId": "External ID",
-      "birthDate": "Birth Date",
-      "sex": "Sex",
-      "email": "Contact Email",
-      "notes": "Notes",
-      "actions": "Actions"
-    },
-    "modal": {
-      "title": "Add New Participant",
-      "instruction": "Please identify the participant. You must provide either a Full Name (with birth date and sex) OR an External ID (hospital ID).",
-      "labels": {
-        "fullName": "Full Name",
-        "externalId": "External ID",
-        "birthDate": "Birth Date",
-        "sex": "Sex",
-        "email": "Email (optional)",
-        "protocol": "Initial Protocol Assignment",
-        "notes": "Notes"
-      },
-      "placeholders": {
-        "fullName": "e.g. John Doe",
-        "externalId": "e.g. EXT-12345",
-        "selectProtocol": "-- Select Protocol --"
-      },
-      "gender": {
-        "male": "Male",
-        "female": "Female",
-        "other": "Other"
-      },
-      "validationError": "Please assign a protocol and fill either (Name + DOB + Sex) OR External ID."
-    },
-    "buttons": {
-      "edit": "Edit",
-      "save": "Create Participant"
-    }
+  "adminLogin": {
+    "title": "Vítejte v TaskProtocolleru",
+    "errorGeneric": "Neplatný e-mail nebo heslo. Zkuste to prosím znovu.",
+    "errorConnection": "Nepodařilo se připojit k serveru. Zkontrolujte připojení k internetu.",
+    "errorDeactivated": "Váš účet byl deaktivován. Obraťte se prosím na hlavního administrátora (pavlamaskova6@gmail.com).",
+    "resetEmailSent": "Pokud pro tento e-mail existuje účet, byl na něj odeslán odkaz pro obnovení hesla."
   },
-  "protocolDashboard": {
-    "title": "Správa protokolů",
-    "createNew": "Vytvořit nový protokol",
-    "currentProtocols": "Aktuální protokoly",
-    "archivedProtocols": "Historie protokolů",
-    "archivedLabel": "Archivováno",
-    "namePlaceholder": "Název protokolu",
-    "nameExists": "Protokol s tímto názvem již existuje.",
-    "descriptionPlaceholder": "Popis (nepovinné)",
-    "noData": "Nebyly nalezeny žádné protokoly",
-    "buttons": {
-      "create": "Vytvořit protokol",
-      "show": "Zobrazit",
-      "edit": "Upravit",
-      "duplicate": "Duplikovat",
-      "archive": "Archivovat"
-    },
-    "confirmArchiveTitle": "Archivovat protokol?",
-    "confirmArchiveMsg": "Archivací protokolu \"{{name}}\" bude odebrán ze všech projektů, které jej používají. Poté bude viditelný pouze v sekci Archivováno.",
-    "table": {
-      "name": "Název",
-      "language": "Jazyk",
-      "description": "Popis",
-      "version": "Verze",
-      "tasks": "N úkolů",
-      "quests": "N dotazníků",
-      "projectName": "Jméno projektu",
-      "createdAt": "Vytvořeno",
-      "actions": "Akce"
-    }
+  "setupProfile": {
+    "title": "Nastavení účtu",
+    "subtitle": "Upravte prosím své jméno a nastavte si bezpečné trvalé heslo.",
+    "labelName": "Celé jméno",
+    "labelPassword": "Nové heslo",
+    "labelConfirm": "Potvrzení hesla",
+    "btnSubmit": "Dokončit nastavení",
+    "errorMatch": "Hesla se neshodují.",
+    "errorLength": "Heslo musí mít alespoň 8 znaků."
   },
   "protocolEditor": {
     "title": "Editor úloh protokolu",
+    "recordingsFileName": "Šablona názvu souboru záznamu",
+    "instructionsPdfUrl": "Příručka k protokolu (adresa PDF)",
+    "editIdentifiersTitle": "Identifikátory účastníka",
+    "identifiersDesc": "Údaje, které vyšetřující vyplní před spuštěním protokolu v desktopové aplikaci:",
+    "identifiers": {
+      "catalogue": "Standardní pole",
+      "custom": "Vlastní pole",
+      "addCustom": "Přidat vlastní pole",
+      "required": "Povinné",
+      "placeholder": "Zástupný text",
+      "name": "název (a-z, 0-9, _)",
+      "label": "Popisek",
+      "help": "Nápověda",
+      "regex": "[a-zA-Z0-9_-]+",
+      "variable": "Proměnná"
+    },
     "availableTasks": "Dostupné úlohy:",
     "currentProtocol": "Aktuální protokol:",
     "noTasks": "Zatím nebyly přidány žádné úlohy.",
@@ -95,17 +83,24 @@
     "showProtocol": "Zobrazit navržený protokol",
     "saveProtocol": "Uložit protokol",
     "params": "Parametry",
-    "addIntroPage": "Přidat úvodní stránku",
+    "addInfoPage": "Přidat informační stránku",
     "introPageAdded": "Úvodní stránka",
     "versionWarning": "! Úprava protokolu {{name}}: verze se zvýší a protokol bude označen jako aktuální!",
     "confirmUpdateTitle": "Aktualizovat aktivní protokol?",
     "confirmUpdateMsg": "Aktualizujete existující protokol. Všichni účastníci přiřazení k tomuto protokolu budou automaticky přesunuti na tuto novou verzi. Jejich stávající unikátní odkazy budou nadále fungovat, ale načtou tento nový obsah.\n\nOpravdu chcete pokračovat?",
     "saveFailedTitle": "Uložení selhalo",
     "saveFailedMsg": "Nepodařilo se uložit protokol.",
-    "editIntroTitle": "Upravit úvodní stránku",
+    "editInfoTitle": "Upravit informační stránku",
     "introPlaceholder": "Uvítací text pro účastníky...",
-    "confirmDeleteIntroTitle": "Smazat úvodní stránku?",
-    "confirmDeleteIntroMsg": "Opravdu chcete odstranit úvodní text?",
+    "confirmDeleteInfoTitle": "Smazat informační stránku?",
+    "confirmDeleteInfoMsg": "Opravdu chcete odstranit úvodní text?",
+    "currentlyEditingLang": "Aktuálně upravovaná varianta:",
+    "smartSyncNote": "Chytrá synchronizace je zapnutá.",
+    "smartSyncWarning": "Strukturální změny (přidání, změna pořadí nebo smazání úkolů) se automaticky přenesou do všech ostatních jazykových variant tohoto protokolu. Změny textu se projeví jen v tomto jazyce.",
+    "selectLanguagesToCreate": "Jazyk(y):",
+    "createMultipleLangsHelper": "Vyberte všechny jazyky, pro které chcete tento protokol vytvořit. Text v ostatních variantách bude třeba později přeložit.",
+    "addVariantTitle": "Přidat jazykovou variantu?",
+    "addVariantMessage": "Po výběru nového jazyka se při uložení vytvoří jeho varianta se stejnými strukturálními změnami. Texty je nutné upravit ručně. Pokračovat?",
     "questionnaire": {
       "questionnaireTitle": "Název dotazníku",
       "enterTitle": "Zadejte název dotazníku",
@@ -118,12 +113,15 @@
       "Open answer": "Otevřená odpověď",
       "Single choice": "Jedna možnost (přepínač)",
       "Multiple choice": "Více možností (zaškrtávací políčko)",
+      "Emoji rating": "Hodnocení smajlíky",
       "Dropdown": "Rozbalovací seznam",
       "answerOptions": "Možnosti odpovědí",
       "Option": "Možnost",
       "addOption": "Přidat možnost",
       "addQuestion": "Přidat otázku",
-      "removeQuestion": "Odstranit otázku"
+      "removeQuestion": "Odstranit otázku",
+      "ratingPreview": "Náhled hodnocení",
+      "optional": "Volitelné"
     },
     "tooltips": {
       "edit": "Upravit tuto úlohu",
@@ -145,56 +143,40 @@
       "title": "Neuložené změny",
       "message": "Opravdu se chcete vrátit? Veškeré neuložené změny budou ztraceny.",
       "confirmText": "Ano, vrátit se"
-    }
+    },
+    "identifiersButton": "Identifikátory",
+    "fileName": {
+      "button": "Upravit název souboru…",
+      "title": "Šablona názvu souboru záznamu",
+      "desc": "Zaškrtněte části, které se mají objevit v názvu každého klipu, a přetažením řádků změňte jejich pořadí.",
+      "colVariable": "Proměnná",
+      "colDesc": "Popis",
+      "dragHint": "Přetažením změníte pořadí",
+      "templateLabel": "Šablona názvu souboru",
+      "example": "Příklad",
+      "vars": {
+        "installationId": "Identifikátor instalace desktopové aplikace (počítače).",
+        "siteName": "Název kliniky.",
+        "taskIndex": "Pozice úkolu v protokolu (povinné).",
+        "subtype": "Druh úkolu, např. PHONATION.",
+        "repetition": "Číslo pokusu v rámci úkolu."
+      }
+    },
+    "addIntroPage": "Přidat úvodní stránku",
+    "editIntroTitle": "Upravit úvodní stránku",
+    "confirmDeleteIntroTitle": "Smazat úvodní stránku?",
+    "confirmDeleteIntroMsg": "Opravdu chcete odstranit úvodní text?"
   },
-  "participantProtocol": {
-    "noAssignments": "Žádná přiřazení nenalezena",
-    "table": {
-      "title": "Aktivace/deaktivace protokolů",
-      "participant": "Účastník",
-      "externalId": "Externí ID",
-      "protocol": "Protokol",
-      "version": "Verze",
-      "nTasks": "N úkolů",
-      "nQuest": "N dotazníků",
-      "project": "Projekt",
-      "start": "Začátek",
-      "end": "Konec",
-      "status": "Stav",
-      "actions": "Akce"
-    },
-    "status": {
-      "active": "Aktivní",
-      "inactive": "Neaktivní"
-    },
-    "buttons": {
-      "activate": "Aktivace",
-      "end": "Deaktivace",
-      "showModal": "Zobrazit link / QR kód"
-    },
-    "confirm": {
-      "assign": {
-        "message": "Odeslat protokol \"{{protocol}}\" účastníkovi \"{{participant}}\"?",
-        "title": "Potvrzení o přiřazení a odeslání protokolu"
-      },
-      "end": {
-        "message": "Ukončit přiřazení \"{{protocol}}\" pro \"{{participant}}\"?",
-        "title": "Ukončení přiřazení protokolu"
-      },
-      "confirm": "Potvrdit",
-      "cancel": "Zrušit"
+  "validation": {
+    "protocol": {
+      "nameRequired": "Název protokolu je povinný.",
+      "nameExists": "Protokol s tímto názvem již existuje.",
+      "languageRequired": "Vyberte prosím jazyk.",
+      "tasksRequired": "Je třeba přidat alespoň jeden úkol.",
+      "taskIndexRequired": "Šablona názvu souboru musí obsahovat ${taskIndex}.",
+      "unknownField": "Šablona názvu souboru odkazuje na identifikátor, který není v tomto protokolu definován.",
+      "invalidUrl": "Příručka musí být adresa http(s).",
+      "invalidIdentifiers": "Názvy identifikátorů musí být jedinečné, malými písmeny (a-z, 0-9, _) a vlastní pole potřebují popisek."
     }
-  },
-  "assignmentModal": {
-    "title": "Protokol přiřazen",
-    "warning": "⚠️ <strong>Důležité:</strong> Tento odkaz je určen <strong>pouze pro účastníka</strong>. Jeho otevřením se spustí reálný sběr dat.<br/>Chcete-li protokol otestovat bez uložení dat, přejděte na kartu <strong>Protokoly</strong> a klikněte na tlačítko <strong>Zobrazit</strong>.",
-    "description": "Účastník může otevřít protokol přes:",
-    "copyLink": "Zkopírovat odkaz",
-    "qrTitle": "QR kód",
-    "emailMessage": "Emailová zpráva",
-    "copyEmail": "Kopírovat text emailu",
-    "close": "Zavřít",
-    "emailText": "Vážený/á {{name}},\n\nByl vám přiřazen nový protokol.\nOtevřete prosím následující odkaz:\n\n{{link}}\n\nPřípadně můžete naskenovat QR kód v přiloženém obrázku.\n\nDěkujeme.",
-    "participant": "účastníku"
   }
 }
