@@ -213,7 +213,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                           placeholder={`${t("protocolEditor.questionnaire.Option")} ${i + 1}`}
                           onChange={(e) => updateOption(q.id, i, e.target.value)}
                         />
-                        <label style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <label className="qm-inline-label">
                           <input type="checkbox" checked={q.freeTextOptions?.includes(opt) ?? false}
                             onChange={() => toggleFreeTextOption(q.id, opt)} />
                           Allow write-in
@@ -227,7 +227,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
 
                     {/*  Dropdown to select the exclusive option */}
                     {q.type === "multiple" && q.options.length > 0 && (
-                      <div className="qm-input-group" style={{ marginTop: "1rem" }}>
+                      <div className="qm-input-group qm-spaced">
                         <label>Exclusive Option (Clears other selections)</label>
                         <select
                           className="qm-select type-select"

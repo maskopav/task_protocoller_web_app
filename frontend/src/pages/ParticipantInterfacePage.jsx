@@ -875,7 +875,7 @@ export default function ParticipantInterfacePage() {
     }
   
     // default → return to editor
-    navigate(`/studies/${protocolData.projectId}/protocols/${protocolData.id}`, {
+    navigate(`/studies/${protocolData.projectId}/protocols/${protocolData.id ?? "new"}`, {
       state: { 
         protocol: protocolData, 
         originalTasks, 

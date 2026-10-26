@@ -11,6 +11,8 @@ import enUploads from "./en/uploads.json";
 import enUploadTools from "./en/uploadTools.json";
 import enNav from "./en/nav.json";
 import enRecording from "./en/recording.json";
+import enStudies from "./en/studies.json";
+import enClinics from "./en/clinics.json";
 
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
@@ -19,6 +21,8 @@ import csUploads from "./cs/uploads.json";
 import csUploadTools from "./cs/uploadTools.json";
 import csNav from "./cs/nav.json";
 import csRecording from "./cs/recording.json";
+import csStudies from "./cs/studies.json";
+import csClinics from "./cs/clinics.json";
 
 import deCommon from "./de/common.json";
 import deTasks from "./de/tasks.json";
@@ -27,6 +31,8 @@ import deUploads from "./de/uploads.json";
 import deUploadTools from "./de/uploadTools.json";
 import deNav from "./de/nav.json";
 import deRecording from "./de/recording.json";
+import deStudies from "./de/studies.json";
+import deClinics from "./de/clinics.json";
 
 
 export const LANGUAGES = [
@@ -40,7 +46,7 @@ i18n
   .init({
     fallbackLng: "en",
     lng: "cs",
-    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording"],
+    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording", "studies", "clinics"],
     defaultNS: "common",
     resources: {
       en: {
@@ -51,7 +57,9 @@ i18n
         uploads: enUploads,
         uploadTools: enUploadTools,
         nav: enNav,
-        recording: enRecording
+        recording: enRecording,
+        studies: enStudies,
+        clinics: enClinics
       },
       cs: {
         common: csCommon,
@@ -60,7 +68,9 @@ i18n
         uploads: csUploads,
         uploadTools: csUploadTools,
         nav: csNav,
-        recording: csRecording
+        recording: csRecording,
+        studies: csStudies,
+        clinics: csClinics
       },
       de: {
         common: deCommon,
@@ -69,7 +79,9 @@ i18n
         uploads: deUploads,
         uploadTools: deUploadTools,
         nav: deNav,
-        recording: deRecording
+        recording: deRecording,
+        studies: deStudies,
+        clinics: deClinics
       }
     },
     interpolation: {

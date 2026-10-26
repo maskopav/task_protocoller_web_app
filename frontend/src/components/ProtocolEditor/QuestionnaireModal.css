@@ -36,7 +36,7 @@
   .qm-input.question-text {
     font-size: 1.1rem;
     font-weight: 600;
-    border-color: #bbb;
+    border-color: var(--border-strong);
     padding: 0.4rem 0.6rem;
     width: 100%;
   }
@@ -66,11 +66,11 @@
   .qm-textarea,
   .qm-select {
     padding: 0.6rem 0.8rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-strong);
     border-radius: var(--sharp-radius);
     font-size: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
-    background-color: #fff;
+    background-color: var(--surface);
     width: 100%;
     box-sizing: border-box;
   }
@@ -92,7 +92,7 @@
   
   /* -- Individual Question Card -- */
   .qm-question-card {
-    background-color: #c5d3f5;
+    background-color: var(--accent-soft);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1rem;
@@ -113,7 +113,7 @@
     align-items: center;
     margin-bottom: 0.1rem;
     padding-bottom: 0.1rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border);
   }
   
   .qm-question-label {
@@ -123,7 +123,7 @@
   
   /* The Delete Question Button (Small Red X) */
   .qm-btn-remove-question {
-    background: #ebaeae;
+    background: var(--bad-soft);
     color: var(--danger);
     border: 1px solid transparent;
     border-radius: 4px;
@@ -138,7 +138,7 @@
   }
   
   .qm-btn-remove-question:hover {
-    background-color: #fff0f0;
+    background-color: var(--bad-soft);
     border-color: var(--danger);
   }
   
@@ -152,7 +152,7 @@
   
   /* -- Options Section -- */
   .qm-options-section {
-    background-color: #f9fafb;
+    background-color: var(--surface-2);
     padding: 1rem;
     border-radius: var(--sharp-radius);
     margin-top: 0.5rem;
@@ -179,7 +179,7 @@
   .qm-btn-remove-option {
     background: var(--danger);
     border: none;
-    color: #ffffff;
+    color: var(--on-accent);
     font-size: 1.2rem;
     font-weight: 700;
     width: 28px;
@@ -220,7 +220,7 @@
   }
   
   .qm-btn-add-option:hover {
-    background-color: #f0f7ff;
+    background-color: var(--accent-soft);
   }
   
   .qm-btn-add-question {
@@ -271,3 +271,5 @@
         width: 100%;
     }
   }
+.qm-inline-label { display: flex; align-items: center; gap: var(--s-1); }
+.qm-spaced { margin-top: var(--s-4); }

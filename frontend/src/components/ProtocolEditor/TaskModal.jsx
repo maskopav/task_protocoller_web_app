@@ -5,7 +5,6 @@ import Modal from "./Modal";
 import {
   getAllParams,
   translateTaskName,
-  translateTaskDescription,
   translateTaskInstructionCard,
   getResolvedParams,
   getDefaultParams,
@@ -41,7 +40,6 @@ export default function TaskModal({
 
   const params = getAllParams(category);
   const translatedName = translateTaskName(category);
-  const description = translateTaskDescription(category);
 
   // Live preview of the two instruction cards the desktop app shows (voice
   // tasks only), resolved against the params currently in the form.

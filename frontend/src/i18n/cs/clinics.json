@@ -1,0 +1,183 @@
+{
+  "loading": "Načítání…",
+  "cancel": "Zrušit",
+  "save": "Uložit",
+  "name": {
+    "hint": "V názvech souborů bude:",
+    "hintEmpty": "Tento název neobsahuje žádná písmena ani číslice, proto se v názvech souborů neobjeví.",
+    "renameNote": "Nový název se použije u záznamů pořízených po změně.",
+    "required": "Zadejte název.",
+    "tooLong": "Název může mít nejvýše 64 znaků."
+  },
+  "fields": {
+    "name": "Název",
+    "country": "Země",
+    "description": "Popis",
+    "contactPersons": "Kontaktní osoby",
+    "contactEmails": "Kontaktní e-maily"
+  },
+  "placeholders": {
+    "persons": "např. Jana Nováková, Petr Svoboda",
+    "emails": "např. jana@example.org, petr@example.org",
+    "mic": "např. USB audio CODEC",
+    "gain": "např. 63"
+  },
+  "errors": {
+    "invalidEmail": "„{{email}}“ není platná e-mailová adresa.",
+    "invalidMicGain": "Zesílení mikrofonu musí být celé číslo od 0 do 100."
+  },
+  "header": {
+    "contact": "kontakt {{who}}",
+    "active": "Aktivní",
+    "inactive": "Neaktivní"
+  },
+  "tabs": {
+    "studies": "Studie",
+    "computers": "Počítače",
+    "recordings": "Záznamy",
+    "settings": "Nastavení"
+  },
+  "list": {
+    "title": "Kliniky",
+    "sub": "Kde vaše studie běží. Všechny počítače kliniky sdílejí jeden přístupový token a dostávají stejné protokoly.",
+    "new": "Nová klinika",
+    "none": "Zatím žádné",
+    "emptyTitle": "Zatím žádné kliniky",
+    "emptyBody": "Klinika je místo, kde studie běží. Vytvořte ji a získáte přístupový token pro její počítače.",
+    "columns": {
+      "name": "Klinika",
+      "country": "Země",
+      "studies": "Běžící studie",
+      "computers": "Počítače",
+      "lastUpload": "Poslední nahrání",
+      "unreviewed": "Nezkontrolováno"
+    }
+  },
+  "new": {
+    "title": "Nová klinika",
+    "desc": "Dostanete přístupový token, který zadáte v desktopové aplikaci na každém počítači.",
+    "create": "Vytvořit kliniku",
+    "created": "Klinika byla vytvořena."
+  },
+  "unassigned": {
+    "title": "Nepřiřazené počítače ({{count}})",
+    "hint": "Jejich záznamy čekají v karanténě, dokud je nepřiřadíte ke klinice.",
+    "assign": "Přiřadit ke klinice…"
+  },
+  "assign": {
+    "title": "Přiřadit počítač ke klinice",
+    "titleMove": "Přesunout počítač na jinou kliniku",
+    "desc": "Jeho záznamy v karanténě se přesunou na vybranou kliniku a zkontrolují se.",
+    "descMove": "Počítač a jeho další záznamy budou patřit vybrané klinice. Ujistěte se, že používá token této kliniky.",
+    "computer": "Počítač",
+    "clinic": "Klinika",
+    "choose": "Vyberte kliniku…",
+    "confirm": "Přiřadit",
+    "done": "Počítač byl přiřazen. Záznamů propuštěných ke kontrole: {{count}}."
+  },
+  "rename": {
+    "title": "Přejmenovat počítač",
+    "label": "Název počítače",
+    "help": "Když pole necháte prázdné, zobrazí se ID počítače.",
+    "done": "Počítač byl uložen."
+  },
+  "computers": {
+    "title": "Počítače",
+    "hint": "Instalace desktopové aplikace, které používají token této kliniky.",
+    "columns": {
+      "computer": "Počítač",
+      "status": "Stav",
+      "version": "Verze aplikace",
+      "lastSeen": "Naposledy viděn",
+      "pending": "Čeká na nahrání"
+    },
+    "status": {
+      "healthy": "V pořádku",
+      "waiting": "Čeká",
+      "silent": "Mlčí",
+      "failing": "Selhává",
+      "unassigned": "Vyžaduje přiřazení",
+      "noUploads": "Zatím bez nahrání"
+    },
+    "update": "zastaralá",
+    "hiddenHint": "Čekající nahrávání vidí jen uživatelé přiřazení k této klinice.",
+    "actions": "Akce pro {{name}}",
+    "rename": "Přejmenovat…",
+    "move": "Přesunout na jinou kliniku…",
+    "emptyTitle": "Zatím žádné počítače",
+    "emptyBody": "Počítač se zde objeví poté, co desktopová aplikace stáhne konfiguraci s přístupovým tokenem této kliniky."
+  },
+  "connection": {
+    "title": "Připojení počítače",
+    "hint": "Zadejte v desktopové aplikaci v Nastavení.",
+    "server": "Adresa serveru",
+    "token": "Přístupový token",
+    "show": "Zobrazit",
+    "hide": "Skrýt",
+    "rotate": "Vyměnit token…",
+    "askAdmin": "Přístupový token vám sdělí administrátor.",
+    "rotateTitle": "Vyměnit přístupový token?",
+    "rotateWarning": "Každý počítač se starým tokenem přestane dostávat aktualizace a nebude moci nahrávat, dokud na něm nezadáte nový token.",
+    "rotateConfirm": "Vyměnit token",
+    "rotated": "Přístupový token byl vyměněn."
+  },
+  "studies": {
+    "title": "Studie běžící na této klinice",
+    "readOnlyHint": "Záznamy těchto studií můžete kontrolovat.",
+    "empty": "Na této klinice zatím neběží žádná studie.",
+    "yours": "Vaše",
+    "received": "Přijatá",
+    "archived": "Archivovaná",
+    "receivedReason": "Spravují ji její editoři. Můžete kontrolovat její záznamy.",
+    "addStudy": "Přidat studii",
+    "addTitle": "Spustit studii na klinice {{clinic}}",
+    "addDesc": "Její aktuální protokoly se dostanou do zdejších počítačů při jejich příštím obnovení.",
+    "study": "Studie",
+    "choose": "Vyberte jednu ze svých studií…",
+    "add": "Přidat studii",
+    "added": "Studie nyní běží na této klinice.",
+    "nothingToAdd": "Všechny studie, které upravujete, už zde běží.",
+    "stopTitle": "Ukončit běh studie {{study}} na klinice {{clinic}}?",
+    "stopBody": "Zdejší počítače přestanou dostávat protokoly této studie. Existující záznamy zůstanou.",
+    "stop": "Ukončit zde",
+    "stopped": "Studie už na této klinice neběží."
+  },
+  "receives": {
+    "title": "Co počítače dostávají",
+    "hint": "Aktuální protokoly všech studií výše. Počítače se obnovují při spuštění.",
+    "empty": "Zatím nic. Počítače dostávají aktuální protokoly studií, které zde běží.",
+    "summary_one": "{{count}} protokol · jazyky nabízené v aplikaci: {{languages}}",
+    "summary_few": "{{count}} protokoly · jazyky nabízené v aplikaci: {{languages}}",
+    "summary_many": "{{count}} protokolu · jazyky nabízené v aplikaci: {{languages}}",
+    "summary_other": "{{count}} protokolů · jazyky nabízené v aplikaci: {{languages}}"
+  },
+  "settings": {
+    "save": "Uložit změny",
+    "saved": "Klinika byla uložena.",
+    "readOnly": "Toto nastavení může měnit jen administrátor nebo uživatel, který kliniku vytvořil.",
+    "identity": "Klinika",
+    "desktop": "Výchozí hodnoty desktopové aplikace",
+    "desktopHint": "Posílají se do každého počítače kliniky. Místní změna na počítači má přednost před těmito hodnotami.",
+    "appLanguage": "Jazyk aplikace",
+    "languages": "Nabízené jazyky",
+    "languagesAll": "Všechny jazyky, ve kterých protokoly existují",
+    "languagesHint": "Když nezaškrtnete nic, nabídnou se všechny jazyky, ve kterých protokoly existují.",
+    "languageNames": {
+      "en": "Angličtina",
+      "cs": "Čeština",
+      "de": "Němčina"
+    },
+    "mic": "Mikrofon",
+    "micHint": "Když pole necháte prázdné, použije se výchozí mikrofon počítače.",
+    "gain": "Zesílení mikrofonu (%)",
+    "gainHint": "Celé číslo od 0 do 100. Když pole necháte prázdné, ponechá se úroveň počítače.",
+    "indicator": "Ukazatel úrovně",
+    "indicators": {
+      "CIRCLE": "Kruh",
+      "WAVEFORM": "Vlna"
+    },
+    "steps": "Kroky",
+    "useCalibration": "Zobrazit kalibrační obrazovku před řečovými úlohami",
+    "enableEditor": "Nechat vyšetřujícího upravit hranice úloh po protokolu"
+  }
+}

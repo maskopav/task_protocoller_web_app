@@ -1,0 +1,7 @@
+.runs-at-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.runs-at-row { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) 0; border-bottom: 1px solid var(--border); }
+.runs-at-row:last-child { border-bottom: 0; }
+.runs-at-row[aria-busy="true"] { opacity: 0.6; }
+.runs-at-text { display: flex; flex-direction: column; gap: var(--s-1); min-width: 0; }
+.runs-at-title { font-weight: 500; color: var(--text); }
+.runs-at-sub, .runs-at-reason, .runs-at-empty { font-size: var(--fs-xs); color: var(--text-2); }

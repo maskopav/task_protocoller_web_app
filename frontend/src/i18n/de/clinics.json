@@ -1,0 +1,181 @@
+{
+  "loading": "Wird geladen…",
+  "cancel": "Abbrechen",
+  "save": "Speichern",
+  "name": {
+    "hint": "In Dateinamen wird stehen:",
+    "hintEmpty": "Dieser Name enthält keine Buchstaben oder Ziffern und erscheint deshalb nicht in Dateinamen.",
+    "renameNote": "Ein neuer Name gilt für Aufnahmen, die nach der Änderung entstehen.",
+    "required": "Geben Sie einen Namen ein.",
+    "tooLong": "Der Name darf höchstens 64 Zeichen lang sein."
+  },
+  "fields": {
+    "name": "Name",
+    "country": "Land",
+    "description": "Beschreibung",
+    "contactPersons": "Kontaktpersonen",
+    "contactEmails": "Kontakt-E-Mails"
+  },
+  "placeholders": {
+    "persons": "z. B. Jana Muster, Peter Beispiel",
+    "emails": "z. B. jana@example.org, peter@example.org",
+    "mic": "z. B. USB audio CODEC",
+    "gain": "z. B. 63"
+  },
+  "errors": {
+    "invalidEmail": "„{{email}}“ ist keine gültige E-Mail-Adresse.",
+    "invalidMicGain": "Die Mikrofonverstärkung muss eine ganze Zahl von 0 bis 100 sein."
+  },
+  "header": {
+    "contact": "Kontakt {{who}}",
+    "active": "Aktiv",
+    "inactive": "Inaktiv"
+  },
+  "tabs": {
+    "studies": "Studien",
+    "computers": "Computer",
+    "recordings": "Aufnahmen",
+    "settings": "Einstellungen"
+  },
+  "list": {
+    "title": "Kliniken",
+    "sub": "Wo Ihre Studien laufen. Alle Computer einer Klinik teilen einen Zugangstoken und erhalten dieselben Protokolle.",
+    "new": "Neue Klinik",
+    "none": "Noch keine",
+    "emptyTitle": "Noch keine Kliniken",
+    "emptyBody": "Eine Klinik ist der Ort, an dem eine Studie läuft. Legen Sie eine an, um einen Zugangstoken für ihre Computer zu erhalten.",
+    "columns": {
+      "name": "Klinik",
+      "country": "Land",
+      "studies": "Laufende Studien",
+      "computers": "Computer",
+      "lastUpload": "Letzter Upload",
+      "unreviewed": "Ungeprüft"
+    }
+  },
+  "new": {
+    "title": "Neue Klinik",
+    "desc": "Sie erhalten einen Zugangstoken, den Sie in der Desktop-App auf jedem Computer eintragen.",
+    "create": "Klinik anlegen",
+    "created": "Klinik angelegt."
+  },
+  "unassigned": {
+    "title": "Nicht zugeordnete Computer ({{count}})",
+    "hint": "Ihre Aufnahmen warten in Quarantäne, bis Sie die Computer einer Klinik zuordnen.",
+    "assign": "Klinik zuordnen…"
+  },
+  "assign": {
+    "title": "Computer einer Klinik zuordnen",
+    "titleMove": "Computer in eine andere Klinik verschieben",
+    "desc": "Seine Aufnahmen in Quarantäne wechseln in die gewählte Klinik und werden geprüft.",
+    "descMove": "Der Computer und seine späteren Aufnahmen gehören dann zur gewählten Klinik. Stellen Sie sicher, dass er den Token dieser Klinik verwendet.",
+    "computer": "Computer",
+    "clinic": "Klinik",
+    "choose": "Klinik wählen…",
+    "confirm": "Zuordnen",
+    "done": "Computer zugeordnet. Zur Prüfung freigegebene Aufnahmen: {{count}}."
+  },
+  "rename": {
+    "title": "Computer umbenennen",
+    "label": "Name des Computers",
+    "help": "Leer lassen, um die ID des Computers anzuzeigen.",
+    "done": "Computer gespeichert."
+  },
+  "computers": {
+    "title": "Computer",
+    "hint": "Installationen der Desktop-App, die den Token dieser Klinik verwenden.",
+    "columns": {
+      "computer": "Computer",
+      "status": "Status",
+      "version": "App-Version",
+      "lastSeen": "Zuletzt gesehen",
+      "pending": "Wartet auf Upload"
+    },
+    "status": {
+      "healthy": "In Ordnung",
+      "waiting": "Wartet",
+      "silent": "Stumm",
+      "failing": "Fehlerhaft",
+      "unassigned": "Zuordnung nötig",
+      "noUploads": "Noch keine Uploads"
+    },
+    "update": "veraltet",
+    "hiddenHint": "Wartende Uploads sehen nur Benutzer, die dieser Klinik zugeordnet sind.",
+    "actions": "Aktionen für {{name}}",
+    "rename": "Umbenennen…",
+    "move": "In andere Klinik verschieben…",
+    "emptyTitle": "Noch keine Computer",
+    "emptyBody": "Ein Computer erscheint hier, sobald die Desktop-App ihre Konfiguration mit dem Zugangstoken dieser Klinik abgerufen hat."
+  },
+  "connection": {
+    "title": "Computer verbinden",
+    "hint": "Tragen Sie dies in der Desktop-App unter Einstellungen ein.",
+    "server": "Serveradresse",
+    "token": "Zugangstoken",
+    "show": "Anzeigen",
+    "hide": "Verbergen",
+    "rotate": "Token ersetzen…",
+    "askAdmin": "Den Zugangstoken erhalten Sie von Ihrem Administrator.",
+    "rotateTitle": "Zugangstoken ersetzen?",
+    "rotateWarning": "Jeder Computer mit dem alten Token erhält keine Updates mehr und kann nicht hochladen, bis Sie den neuen Token dort eintragen.",
+    "rotateConfirm": "Token ersetzen",
+    "rotated": "Zugangstoken ersetzt."
+  },
+  "studies": {
+    "title": "Studien, die hier laufen",
+    "readOnlyHint": "Sie können die Aufnahmen dieser Studien prüfen.",
+    "empty": "An dieser Klinik läuft noch keine Studie.",
+    "yours": "Ihre",
+    "received": "Erhalten",
+    "archived": "Archiviert",
+    "receivedReason": "Wird von ihren Bearbeitern verwaltet. Sie können ihre Aufnahmen prüfen.",
+    "addStudy": "Studie hinzufügen",
+    "addTitle": "Studie an {{clinic}} starten",
+    "addDesc": "Ihre aktuellen Protokolle gelangen bei der nächsten Aktualisierung auf die Computer hier.",
+    "study": "Studie",
+    "choose": "Eine Ihrer Studien wählen…",
+    "add": "Studie hinzufügen",
+    "added": "Die Studie läuft jetzt hier.",
+    "nothingToAdd": "Alle Studien, die Sie bearbeiten, laufen hier bereits.",
+    "stopTitle": "{{study}} an {{clinic}} beenden?",
+    "stopBody": "Die Computer hier erhalten die Protokolle dieser Studie nicht mehr. Vorhandene Aufnahmen bleiben erhalten.",
+    "stop": "Hier nicht mehr laufen lassen",
+    "stopped": "Die Studie läuft hier nicht mehr."
+  },
+  "receives": {
+    "title": "Was die Computer erhalten",
+    "hint": "Aktuelle Protokolle aller Studien oben. Die Computer aktualisieren sich beim Start.",
+    "empty": "Noch nichts. Die Computer erhalten die aktuellen Protokolle der Studien, die hier laufen.",
+    "summary_one": "{{count}} Protokoll · in der App angebotene Sprachen: {{languages}}",
+    "summary_other": "{{count}} Protokolle · in der App angebotene Sprachen: {{languages}}"
+  },
+  "settings": {
+    "save": "Änderungen speichern",
+    "saved": "Klinik gespeichert.",
+    "readOnly": "Diese Einstellungen kann nur ein Administrator oder die Person ändern, die die Klinik angelegt hat.",
+    "identity": "Klinik",
+    "desktop": "Standardwerte der Desktop-App",
+    "desktopHint": "Werden an jeden Computer dieser Klinik gesendet. Eine lokale Änderung auf dem Computer hat Vorrang.",
+    "appLanguage": "App-Sprache",
+    "languages": "Angebotene Sprachen",
+    "languagesAll": "Alle Sprachen, in denen die Protokolle vorliegen",
+    "languagesHint": "Wenn nichts ausgewählt ist, werden alle Sprachen angeboten, in denen die Protokolle vorliegen.",
+    "languageNames": {
+      "en": "Englisch",
+      "cs": "Tschechisch",
+      "de": "Deutsch"
+    },
+    "mic": "Mikrofon",
+    "micHint": "Leer lassen, um das Standardmikrofon des Computers zu verwenden.",
+    "gain": "Mikrofonverstärkung (%)",
+    "gainHint": "Eine ganze Zahl von 0 bis 100. Leer lassen, um den Pegel des Computers beizubehalten.",
+    "indicator": "Pegelanzeige",
+    "indicators": {
+      "CIRCLE": "Kreis",
+      "WAVEFORM": "Wellenform"
+    },
+    "steps": "Schritte",
+    "useCalibration": "Kalibrierungsbildschirm vor Sprachaufgaben anzeigen",
+    "enableEditor": "Dem Untersucher erlauben, Aufgabengrenzen nach dem Protokoll anzupassen"
+  }
+}

@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import AdminModal from "./Modal";
+import { Icon } from "../ui";
 import {
   FILE_NAME_TOKENS,
   fieldToken,
@@ -89,7 +90,7 @@ export default function FileNameModal({ open, template, identifiers, onClose, on
                 <td><input type="checkbox" checked={r.checked} onChange={() => toggle(i)} /></td>
                 <td><code>{r.token}</code></td>
                 <td>{r.desc}</td>
-                <td className="drag-handle" title={t("protocolEditor.fileName.dragHint")}>⠿</td>
+                <td className="drag-handle" title={t("protocolEditor.fileName.dragHint")}><Icon name="grip" /></td>
               </tr>
             ))}
           </tbody>

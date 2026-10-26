@@ -1,0 +1,181 @@
+{
+  "loading": "Loading…",
+  "cancel": "Cancel",
+  "save": "Save",
+  "name": {
+    "hint": "File names will use:",
+    "hintEmpty": "No letters or digits in this name, so it will not appear in file names.",
+    "renameNote": "A new name applies to recordings made after the change.",
+    "required": "Enter a name.",
+    "tooLong": "The name can have at most 64 characters."
+  },
+  "fields": {
+    "name": "Name",
+    "country": "Country",
+    "description": "Description",
+    "contactPersons": "Contact people",
+    "contactEmails": "Contact emails"
+  },
+  "placeholders": {
+    "persons": "e.g. Jane Doe, John Roe",
+    "emails": "e.g. jane@example.org, john@example.org",
+    "mic": "e.g. USB audio CODEC",
+    "gain": "e.g. 63"
+  },
+  "errors": {
+    "invalidEmail": "\"{{email}}\" is not a valid email address.",
+    "invalidMicGain": "Microphone gain must be a whole number from 0 to 100."
+  },
+  "header": {
+    "contact": "contact {{who}}",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "tabs": {
+    "studies": "Studies",
+    "computers": "Computers",
+    "recordings": "Recordings",
+    "settings": "Settings"
+  },
+  "list": {
+    "title": "Clinics",
+    "sub": "Where your studies run. All computers at a clinic share one access token and receive the same protocols.",
+    "new": "New clinic",
+    "none": "None yet",
+    "emptyTitle": "No clinics yet",
+    "emptyBody": "A clinic is where a study runs. Create one to get an access token for its computers.",
+    "columns": {
+      "name": "Clinic",
+      "country": "Country",
+      "studies": "Studies running",
+      "computers": "Computers",
+      "lastUpload": "Last upload",
+      "unreviewed": "Unreviewed"
+    }
+  },
+  "new": {
+    "title": "New clinic",
+    "desc": "You will get an access token to enter in the desktop app on each computer.",
+    "create": "Create clinic",
+    "created": "Clinic created."
+  },
+  "unassigned": {
+    "title": "Unassigned computers ({{count}})",
+    "hint": "Their recordings wait in quarantine until you assign them to a clinic.",
+    "assign": "Assign to clinic…"
+  },
+  "assign": {
+    "title": "Assign computer to a clinic",
+    "titleMove": "Move computer to another clinic",
+    "desc": "Its recordings in quarantine move to the clinic you choose and are checked.",
+    "descMove": "The computer and its later recordings belong to the clinic you choose. Make sure it uses that clinic's access token.",
+    "computer": "Computer",
+    "clinic": "Clinic",
+    "choose": "Choose a clinic…",
+    "confirm": "Assign",
+    "done": "Computer assigned. Recordings released for checking: {{count}}."
+  },
+  "rename": {
+    "title": "Rename computer",
+    "label": "Computer name",
+    "help": "Leave empty to show the computer's ID.",
+    "done": "Computer saved."
+  },
+  "computers": {
+    "title": "Computers",
+    "hint": "Installations of the desktop app that use this clinic's token.",
+    "columns": {
+      "computer": "Computer",
+      "status": "Status",
+      "version": "App version",
+      "lastSeen": "Last seen",
+      "pending": "Waiting to upload"
+    },
+    "status": {
+      "healthy": "Healthy",
+      "waiting": "Waiting",
+      "silent": "Silent",
+      "failing": "Failing",
+      "unassigned": "Needs assignment",
+      "noUploads": "No uploads yet"
+    },
+    "update": "update",
+    "hiddenHint": "Waiting uploads are shown only to users assigned to this clinic.",
+    "actions": "Actions for {{name}}",
+    "rename": "Rename…",
+    "move": "Move to another clinic…",
+    "emptyTitle": "No computers yet",
+    "emptyBody": "A computer appears here after the desktop app downloads its configuration with this clinic's access token."
+  },
+  "connection": {
+    "title": "Connect a computer",
+    "hint": "Enter these in the desktop app under Settings.",
+    "server": "Server address",
+    "token": "Access token",
+    "show": "Show",
+    "hide": "Hide",
+    "rotate": "Replace token…",
+    "askAdmin": "Ask your administrator for the access token.",
+    "rotateTitle": "Replace the access token?",
+    "rotateWarning": "Every computer using the old token stops receiving updates and cannot upload until you enter the new token on it.",
+    "rotateConfirm": "Replace token",
+    "rotated": "Access token replaced."
+  },
+  "studies": {
+    "title": "Studies running here",
+    "readOnlyHint": "You can review these studies' recordings.",
+    "empty": "No study runs at this clinic yet.",
+    "yours": "Yours",
+    "received": "Received",
+    "archived": "Archived",
+    "receivedReason": "Managed by its editors. You can review its recordings.",
+    "addStudy": "Add study",
+    "addTitle": "Run a study at {{clinic}}",
+    "addDesc": "Its current protocols go to the computers here on their next refresh.",
+    "study": "Study",
+    "choose": "Choose one of your studies…",
+    "add": "Add study",
+    "added": "The study now runs here.",
+    "nothingToAdd": "All the studies you edit already run here.",
+    "stopTitle": "Stop running {{study}} at {{clinic}}?",
+    "stopBody": "The computers here no longer receive this study's protocols. Existing recordings stay.",
+    "stop": "Stop running here",
+    "stopped": "The study no longer runs here."
+  },
+  "receives": {
+    "title": "What the computers receive",
+    "hint": "Current protocols of every study above. Computers refresh at start-up.",
+    "empty": "Nothing yet. Computers receive the current protocols of the studies running here.",
+    "summary_one": "{{count}} protocol · offered in the app's languages: {{languages}}",
+    "summary_other": "{{count}} protocols · offered in the app's languages: {{languages}}"
+  },
+  "settings": {
+    "save": "Save changes",
+    "saved": "Clinic saved.",
+    "readOnly": "Only an administrator or the person who created this clinic can change these settings.",
+    "identity": "Clinic",
+    "desktop": "Desktop app defaults",
+    "desktopHint": "Sent to every computer at this clinic. A local change on a computer wins over these defaults.",
+    "appLanguage": "App language",
+    "languages": "Languages offered",
+    "languagesAll": "All languages the protocols exist in",
+    "languagesHint": "Leave all unchecked to offer every language the protocols exist in.",
+    "languageNames": {
+      "en": "English",
+      "cs": "Czech",
+      "de": "German"
+    },
+    "mic": "Microphone",
+    "micHint": "Leave empty to use the computer's default microphone.",
+    "gain": "Microphone gain (%)",
+    "gainHint": "A whole number from 0 to 100. Leave empty to keep the computer's own level.",
+    "indicator": "Level indicator",
+    "indicators": {
+      "CIRCLE": "Circle",
+      "WAVEFORM": "Waveform"
+    },
+    "steps": "Steps",
+    "useCalibration": "Show the calibration screen before speech tasks",
+    "enableEditor": "Let the examiner adjust task boundaries after the protocol"
+  }
+}

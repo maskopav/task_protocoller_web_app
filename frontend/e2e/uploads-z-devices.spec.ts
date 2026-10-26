@@ -30,23 +30,24 @@ test('a non-master cannot rename or assign a device', async ({ request }) => {
   expect(await deviceByInstallation(request, token, F.q2.installationId)).toBeUndefined();
 });
 
-test('master renames a device in the UI; non-masters get no rename or assign controls', async ({ page, browser }) => {
+test('master renames a computer in the clinic Computers tab; non-masters get no rename or move controls', async ({ page, browser }) => {
   await uiLogin(page, USERS.master);
-  await page.goto('/#/clinics/devices');
+  await page.goto('/#/clinics/5/computers');
   const row = page.locator('tr', { hasText: F.s4.installationId });
-  await row.getByRole('button', { name: 'Rename device' }).click();
-  await page.getByLabel('Device name').fill('Clinic B laptop');
-  await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText('Device saved.')).toBeVisible();
-  await expect(page.locator('tr', { hasText: F.s4.installationId }).getByText('Clinic B laptop')).toBeVisible();
+  await row.getByRole('button', { name: /^Actions for / }).click();
+  await page.getByRole('menuitem', { name: 'Rename…' }).click();
+  await page.getByLabel('Computer name').fill('Clinic B laptop');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  // A named computer shows its id shortened, with the full id as the title.
+  const renamed = page.locator('tr', { has: page.locator(`[title="${F.s4.installationId}"]`) });
+  await expect(renamed.getByText('Clinic B laptop')).toBeVisible();
 
   const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
   const other = await ctx.newPage();
   await uiLogin(other, USERS.clinic);
-  await other.goto('/#/clinics/devices');
+  await other.goto('/#/clinics/4/computers');
   await expect(other.locator('tr', { hasText: F.s1.installationId })).toBeVisible();
-  await expect(other.getByRole('button', { name: 'Rename device' })).toHaveCount(0);
-  await expect(other.getByRole('button', { name: 'Assign to site' })).toHaveCount(0);
+  await expect(other.getByRole('button', { name: /^Actions for / })).toHaveCount(0);
   await ctx.close();
 });
 
@@ -59,14 +60,13 @@ test('assigning the quarantined device to a site moves its session and re-valida
   expect(before.siteId ?? null).toBeNull();
 
   await uiLogin(page, USERS.master);
-  await page.goto('/#/clinics/devices');
-  const row = page.locator('tr', { hasText: F.q2.installationId });
-  await expect(row.getByText('No site (quarantine)')).toBeVisible();
-  await row.getByRole('button', { name: 'Assign to site' }).click();
-  await page.locator('.ut-inline-edit select').selectOption({ label: 'E2E Clinic A' });
-  await page.locator('.ut-inline-edit').getByRole('button', { name: 'Assign to site' }).click();
-  await page.getByRole('button', { name: 'Yes, assign' }).click();
-  await expect(page.getByText('Device assigned. 1 quarantined session(s) released for checking.')).toBeVisible();
+  await page.goto('/#/clinics');
+  const row = page.getByTestId('unassigned-table').locator('tr', { hasText: F.q2.installationId });
+  await expect(row).toBeVisible();
+  await row.getByRole('button', { name: 'Assign to clinic…' }).click();
+  await page.getByTestId('assign-computer-clinic').selectOption({ label: 'E2E Clinic A' });
+  await page.getByTestId('assign-computer-confirm').click();
+  await expect(page.getByTestId('unassigned-table').locator('tr', { hasText: F.q2.installationId })).toHaveCount(0);
 
   // The API reports {moved: 1} for a further identical call's shape; verify the effect instead.
   await expect

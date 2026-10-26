@@ -29,7 +29,7 @@ const UNPROCESSABLE_CHECKS = [
 // Server-side errors about the data itself, as opposed to the connection or
 // a lock, which a later retry can get past.
 const RETRYABLE_DB = new Set(["ER_LOCK_DEADLOCK", "ER_LOCK_WAIT_TIMEOUT", "ER_CON_COUNT_ERROR",
-  "ER_SERVER_SHUTDOWN", "ER_QUERY_INTERRUPTED"]);
+  "ER_SERVER_SHUTDOWN", "ER_QUERY_INTERRUPTED", "ER_CHECKREAD"]);
 const isDataRejection = (err) => typeof err?.code === "string" && err.code.startsWith("ER_")
   && !RETRYABLE_DB.has(err.code);
 

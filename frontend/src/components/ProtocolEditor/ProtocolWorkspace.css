@@ -1,0 +1,107 @@
+/* Protocol workspace: tokens only (docs/ui_redesign/04_agent_guidelines.md). */
+.pe { display: flex; flex-direction: column; gap: var(--s-4); }
+.pe > header { margin-bottom: 0; }
+.pe-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(280px, 340px);
+  gap: var(--s-4);
+  align-items: start;
+}
+.pe-grid-readonly { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); }
+
+.pe-side-label { margin: 0; font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); }
+
+.pe-dirty { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--warn-text); }
+.pe-lang-tabs { display: inline-flex; gap: var(--s-1); }
+.pe-lang {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 var(--s-2);
+  border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  color: var(--text-2); font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; text-decoration: none;
+}
+a.pe-lang:hover { background: var(--surface-2); }
+.pe-lang-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); }
+
+/* Task catalogue */
+.pe-catalogue { display: flex; flex-direction: column; gap: var(--s-3); position: sticky; top: var(--s-4); max-height: calc(100vh - var(--s-6)); overflow: auto; }
+.pe-search { position: relative; }
+.pe-search svg.ui-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+.pe-search input { width: 100%; padding-left: 32px; }
+.pe-groups, .pe-task-options, .pe-task-list { list-style: none; margin: 0; padding: 0; }
+.pe-groups { display: flex; flex-direction: column; gap: var(--s-3); }
+.pe-group-head {
+  all: unset; box-sizing: border-box; cursor: pointer; width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s-1) 0; color: var(--text-2); font-size: var(--fs-sm); font-weight: 600;
+}
+.pe-group-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pe-group-head svg { transition: transform .12s; }
+.pe-chevron-open { transform: rotate(90deg); }
+.pe-task-options { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-1); }
+.pe-option {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
+  padding: var(--s-2) var(--s-3); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.pe-option-body { min-width: 0; }
+.pe-option-title { display: flex; align-items: center; gap: var(--s-1); font-weight: 600; }
+.pe-params { color: var(--text-3); font-size: var(--fs-xs); line-height: 1.5; }
+.pe-params strong { font-weight: 500; }
+.pe-params em { font-style: normal; color: var(--text-2); }
+
+/* Protocol tasks */
+.pe-tasks { display: flex; flex-direction: column; gap: var(--s-3); min-width: 0; }
+.pe-tasks-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.pe-task-list {
+  display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
+}
+.pe-task {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border);
+}
+.pe-task:last-child { border-bottom: 0; }
+.pe-task.dragging { opacity: .5; }
+.pe-task.pe-drop { box-shadow: inset 0 2px 0 var(--accent); }
+.pe-grip { color: var(--text-3); cursor: grab; display: inline-flex; }
+.pe-task-num { width: 20px; color: var(--text-3); font-variant-numeric: tabular-nums; text-align: right; }
+.pe-task-body { flex: 1; min-width: 0; }
+.pe-task-title { font-weight: 600; }
+.pe-task-tools { display: inline-flex; gap: var(--s-1); }
+.pe-empty { display: flex; flex-direction: column; gap: var(--s-1); align-items: center; padding: var(--s-6) var(--s-4); color: var(--text-2); border-bottom: 0; }
+.pe-empty.tasks-error { color: var(--bad); }
+.pe-empty-hint { color: var(--text-3); font-size: var(--fs-sm); }
+
+/* Settings */
+.pe-settings { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); }
+.pe-panel-head {
+  all: unset; box-sizing: border-box; cursor: pointer; width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3);
+}
+.pe-panel-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pe-settings-body { display: flex; flex-direction: column; gap: var(--s-4); }
+.pe-note { margin: 0; color: var(--text-2); font-size: var(--fs-sm); }
+.pe-block { display: flex; flex-direction: column; gap: var(--s-2); align-items: flex-start; }
+.pe-label { font-size: var(--fs-sm); font-weight: 500; color: var(--text-2); }
+.pe-tags { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+.pe-hint { font-size: var(--fs-xs); color: var(--text-3); }
+.pe-code { font-family: var(--mono); font-size: var(--fs-sm); word-break: break-all; padding: var(--s-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); width: 100%; box-sizing: border-box; }
+.pe-code-error { border-color: var(--bad); color: var(--bad); }
+.pe-pages { display: flex; flex-direction: column; gap: var(--s-2); align-items: flex-start; }
+.pe-page { display: inline-flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.pe-mono { font-family: var(--mono); }
+.pe-template-select { margin-bottom: var(--s-3); }
+
+@media (max-width: 1100px) {
+  .pe-grid, .pe-grid-readonly { grid-template-columns: minmax(0, 1fr); }
+  .pe-catalogue { position: static; max-height: none; }
+}
+
+.pe-settings .protocol-field { flex-direction: column; align-items: stretch; gap: var(--s-1); margin: 0; }
+.pe-settings .protocol-label { flex: none; width: 100%; text-align: left; padding-right: 0; }
+.pe-settings .create-inputs-container { display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* pages/Pages.css (legacy) styles bare p and button elements app-wide; keep the workspace on the kit's sizes. */
+.pe { padding: var(--s-5) var(--s-6) var(--s-7); box-sizing: border-box; }
+.pe .ui-btn { width: auto; }
+.pe p { font-size: var(--fs-md); line-height: 1.5; }
+.pe .pe-note { font-size: var(--fs-sm); }

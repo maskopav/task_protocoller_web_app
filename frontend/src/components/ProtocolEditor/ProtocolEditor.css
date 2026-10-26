@@ -1,961 +1,489 @@
-/* =========================================================
-   ProtocolEditor.css
-   Clean, merged and ordered styles for ProtocolEditor
-   - merges original + updated rules
-   - removes duplicates and keeps behavior
-   ========================================================= */
-  
-  /* =========================================================
-     PAGE / GRID LAYOUT
-     ========================================================= */
-  
-  .admin-container {
-    padding: 5px;
-    width: 97vw;
-    margin: 0 auto;
-    height: 95vh auto; 
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;   
-  }
-  
-  .admin-grid {
-    display: flex;
-    flex: 1;
-    gap: 20px;
-    align-items: stretch;
-    min-height: 80vh;
-    overflow: hidden; 
-  }
-  
-  /* task / protocol columns */
-  .task-section, .protocol-section {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 15px;
-    background: var(--card-bg);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* prevent them from stretching and causing full-page scroll */
-    min-height: 0;
-    height: 75vh;
-  }
-  
-  .task-section {
-    flex: 1;
-  }
-  
-  .protocol-section {
-    flex: 2;
-    background: #c0e3ce; /* keep the green tint you used */
-  }
+/* Styles of the editor dialogs (tasks, questionnaires, pages, identifiers, file name). The page layout lives in ProtocolWorkspace.css. Tokens only. */
 
-  .task-type-header, .task-list-title {
-    margin-bottom: 0 !important;
-  }
-  
-  /* =========================================================
-     PROTOCOL HEADER (name / description / controls)
-     ========================================================= */
-  
-  /* container */
-  .protocol-header {
-    display: flex;
-    align-items: baseline;
-    margin-bottom: 5px;
-  }
+.protocol-field {
+  display: flex;
+  align-items: center;
+  margin: 2px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
-  .protocol-current { flex: 1; }
-  .protocol-values { flex: 4; }
-  .protocol-controls { flex: 1; }
+.protocol-label {
+  flex: 0 0 180px;
+  text-align: right;
+  color: var(--text);
+  font-weight: 500;
+  padding-right: 8px;
+}
 
-  .protocol-values { 
-    display: flex;
-    flex-direction:column;
-    width: auto;
-    margin: 5px;
-    box-sizing: border-box;
-  }
+.name-input-error {
+  flex: 0;
+  max-width: 100px;
+}
 
-  /* a single field row: label + input */
-  .protocol-field {
-    display: flex;
-    align-items: center;
-    margin: 2px;
-    flex-wrap: wrap;            /* allows wrapping on narrow screens */
-    gap: 6px; 
-  }
+.error-text {
+  flex: 1;
+}
 
+.btn-add-questionnaire, .reorder-btn, .btn-identifiers, .btn-file-name, .btn-add-page-minimal, .button-show-tasks, .button-save, .btn-save, .btn-cancel, .btn-add-option, .btn-remove-option, .btn-remove-question-icon {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), transform 0.08s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
 
-  /* fixed label column to align name + description inputs */
-  .protocol-label {
-    flex: 0 0 180px; /* all labels same width */
-    text-align: right;
-    color: var(--text);
-    font-weight: 500;
-    padding-right: 8px;
-  }
-  
-  /* inputs used in protocol editor */
-  .protocol-description-input, 
-  .protocol-name-input,
-  .protocol-language-select {
-    flex: 1 1 200px;            /* flexible, but can shrink */
-    min-width: 100px;           /* prevent becoming too tiny */
-    max-width: 300px;           /* smaller max so buttons fit */
-    padding: 4px 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    background: #fff;
-    transition: border-color var(--transition), box-shadow var(--transition);
-    box-sizing: border-box;
-  }
+.btn-save {
+  background: var(--primary);
+  color: white;
+}
 
-  .name-input-error {
-    flex: 0;                /* disable flex grow/shrink behavior */
-    max-width: 100px;     /* shrink to fit the text content */
-  }
+.btn-cancel {
+  background: var(--border-strong);
+  color: var(--text);
+}
 
-  .error-text {
-    flex: 1;
-  }
+.btn-add-option {
+  background: var(--warn);
+  color: white;
+}
 
-  .protocol-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(34, 116, 217, 0.08);
-  }
-
-  .protocol-description-input {
-    resize: vertical; /* allows manual resizing */
-    min-height: 3em; /* roughly 2 rows */
-    max-height: 8em; /* limit expansion */
-    line-height: 1.4;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
-
-  /* vertical stack of buttons */
-  .button-block {
-    display: flex;
-    flex-direction: column;
-    gap: 0px;
-    max-width: 100%;
-    width: auto; 
-  }
-
-  .version-warning {
-    font-weight: 500;
-    color: var(--danger);
-  }
-
-  /* =========================================================
-     BUTTONS: common + variants
-     ========================================================= */
-  
-  .btn-add-questionnaire,
-  .reorder-btn,
-  .btn-identifiers,
-  .btn-file-name,
-  .btn-add-page-minimal,
-  .button-show-tasks,
-  .button-save,
-  .btn-save,
-  .btn-cancel,
-  .btn-add-option,
-  .btn-remove-option,
-  .btn-remove-question-icon {
-    padding: 6px 12px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: background var(--transition), transform 0.08s;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-  }
-  
-  /* primary visual variants */
-  .btn-add-questionnaire {
-    background: var(--purple);
-    color: white;
-  }
-  
-  .reorder-btn {
-    background: var(--primary);
-    color: white;
-  }
-  .reorder-btn.active { background: var(--success); }
-
-  .btn-identifiers {
-    background-color: var(--warning);
-  }
-  
-  .button-show-tasks {
-    background: #5a5a5a;
-    color: white;
-  }
-  
-  .button-save {
-    background: var(--success);
-    color: white;
-  }
-  
-  .btn-save {
-    background: var(--primary);
-    color: white;
-  }
-  
-  .btn-cancel {
-    background: #ccc;
-    color: #333;
-  }
-  
-  /* small option add button */
-  .btn-add-option {
-    background: var(--warning, #f39c12);
-    color: white;
-  }
-  
-  /* remove option style */
-  .btn-remove-option {
-    background: none;
-    border: none;
-    color: var(--danger);
-    cursor: pointer;
-    font-size: 18px;
-    padding: 2px;
-  }
-  
-  /* remove question icon (red) */
-  .btn-remove-question-icon {
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: var(--sharp-radius);
-    padding: 3px 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-  }
-  
-  /* button disabled look */
-  button:disabled,
-  .btn-disabled {
-    background: #ccc !important;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-  
-  /* --- Protocol Editor Button Row --- */
-  .button-row {
-    display: flex;
-    align-items: center;
-    justify-content:center;
-    gap: 15px;
-    width: 100%;
-    margin-top: 20px;
-  }
-
-  /* Ensure buttons in this specific row don't stretch full-width */
-  .button-row button {
-    width: auto;
-    margin: 0;
-    flex: 1
-  }
-
-  /* =========================================================
-     LISTS, TASK ITEMS & PROTOCOL ITEMS
-     ========================================================= */
-  
-  .protocol-list, .task-list, .task-type-list {
-    flex: 1;
-    list-style: none;
-    min-height: 0;
-    padding: 0;
-    overflow-y: auto;      /* enables scrolling */
-    scrollbar-width: thin;
-    margin: 0;
-  }
-   
-  .protocol-item, .task-option {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg);
-    padding: 6px 10px;
-    margin-bottom: 5px;
-    box-sizing: border-box;
-  }
-  
-  .task-option {
-    cursor: pointer;
-    transition: var(--transition);
-    margin: 3px;
-  }
-  
-  .task-option:hover {
-    background: #e8f2ff;
-    border-color: var(--primary);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .task-title {
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-  
-  .protocol-item.dragging {
-    background: #e0f7ff;
-    opacity: 0.6;
-  }
-  
-  .empty-protocol {
-    text-align: center;
-    padding: 2rem;
-    color: #666;
-    font-style: italic;
-    background: #f8f9fa;
-    border: 2px dashed #ccc;
-    border-radius: var(--radius);
-  }
-
-.empty-protocol.tasks-error {
-  border: 1px dashed #ff4d4f;
+.btn-remove-option {
+  background: none;
+  border: none;
   color: var(--danger);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 2px;
+}
+
+.btn-remove-question-icon {
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: var(--sharp-radius);
+  padding: 3px 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+button:disabled, .btn-disabled {
+  background: var(--border-strong) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.modal-content h2, .modal-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.4rem;
   font-weight: 600;
-  background-color: #fff2f0;
-  padding: 1rem;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  gap: 0.6rem;
+}
+
+.form-group.small {
+  gap: 0.4rem;
+}
+
+.form-group label {
+  flex: 0 0 180px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  flex: 1;
+  margin: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--sharp-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: white;
+  box-sizing: border-box;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(55,100,223,0.12);
+  outline: none;
+}
+
+.form-textarea {
+  min-height: 80px;
+}
+
+.multiselect-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  padding: 12px;
+  background-color: var(--surface-2);
+  margin: 5px;
+}
+
+.modal-form .form-group label.multiselect-option {
+  flex: none;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text);
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.modal-form .form-group label.multiselect-option:hover {
+  opacity: 0.8;
+}
+
+.modal-form .form-group .multiselect-option input[type="checkbox"] {
+  flex: 0 0 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  padding: 0 !important;
+  margin: 3px 0 0 0 !important;
+  cursor: pointer;
+  accent-color: var(--success);
+  border-radius: 4px;
+}
+
+.modal-form .form-group:has(.param-help) {
+  flex-wrap: wrap;
+}
+
+.modal-form .param-help {
+  flex-basis: 100%;
+  padding-left: calc(180px + 0.6rem);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.instructions-preview {
+  margin-top: 1rem;
+}
+
+.instructions-preview-card {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--idle-soft);
+  font-size: 0.9rem;
+}
+
+.info-tooltip {
+  position: relative;
+  display: inline-block;
+  margin-left: 6px;
+  cursor: help;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.info-tooltip-text {
+  visibility: hidden;
+  position: fixed;
+  background-color: var(--text);
+  color: var(--on-accent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  z-index: 99999;
+  max-width: 260px;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  text-align: left;
+  opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+}
+
+.info-tooltip:hover .info-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.text-center {
   text-align: center;
 }
-  
-  /* top row inside each protocol item */
-  .protocol-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  /* action buttons inside row */
-  .action-buttons {
-    display: flex;
-    align-items: center;
-  }
-  
-  .action-buttons span {
-    cursor: pointer;
-    margin-left: 8px;
-  }
-  
-  /* icons colors */
-  .edit-icon { color: var(--primary); }
-  .delete-icon { color: var(--danger); }
-  
-  /* parameter preview lines */
-  .param-inline {
-    font-size: 0.85rem;
-    color: #444;
-    margin-top: 4px;
-    font-style: italic;
-    line-height: 1.2;
-    white-space: normal;
-  }
-  
-  .param-inline strong {
-    font-weight: 400;
-    font-style: normal;
-  }
-  
-  .param-default {
-    color: #555;
-    font-style: italic;
-  }
-  
-  /* =========================================================
-     MODAL / DIALOG (generic)
-     ========================================================= */
-  
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .modal-box {
-    background: var(--bg);
-    border-radius: var(--radius);
-    max-width: 85vw;
-    max-height: 87vh;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 1.5rem;
-    position: relative;
-    box-shadow: var(--shadow);
-    overflow-y: auto;
-    font-size: 18px;
-    box-sizing: border-box;
-  }
-  
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: var(--sharp-radius);
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .modal-close:hover { background: #c0392b; }
-  
-  .modal-actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: 5px;
-    margin-top: 0.3rem;
-  }
-  
-  /* modal title styles used by your Modal component */
-  .modal-content h2,
-  .modal-title {
-    font-size: 1.3rem;
-    margin-bottom: 0.4rem;
-    font-weight: 600;
-  }
-  
-  /* form-group - used across modal forms and TaskModal */
-  .form-group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    gap: 0.6rem;
-  }
-  
-  .form-group.small { gap: 0.4rem; }
-  
-  .form-group label {
-    flex: 0 0 180px;          /* fixed label width for alignment */
-    text-align: right;
-    font-weight: 600;
-    color: var(--text);
-  }
-  
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    flex: 1;
-    margin: 0.3rem;
-    padding: 0.3rem 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: var(--sharp-radius);
-    font-size: 1rem;
-    transition: var(--transition);
-    background: white;
-    box-sizing: border-box;
-  }
-  
-  /* focus */
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(55,100,223,0.12);
-    outline: none;
-  }
-  
-  /* textarea sizing helper */
-  .form-textarea {
-    min-height: 80px;
-  }
-  
-  /* --- Multiselect Checkbox Group for Task Modal --- */
-  .multiselect-group {
-    display: flex;
-    flex-direction: column; 
-    gap: 8px;               
-    flex: 1;                
-    border-radius: 4px;
-    border: 1px solid #cad1da;
-    padding: 12px;
-    background-color: #f8f9fa;
-    margin: 5px;
-  }
 
-  /* Override the global .form-group label (which forces 180px width & right align) */
-  .modal-form .form-group label.multiselect-option {
-    flex: none;               
-    text-align: left;         
-    display: flex;
-    align-items: flex-start; 
-    justify-content: flex-start;
-    gap: 10px;
-    font-weight: 500;
-    font-size: 0.95rem;
-    color: #2c3e50;
-    cursor: pointer;
-    margin: 0;
-    padding: 0;
-    transition: opacity 0.2s ease;
-  }
+.text-right {
+  text-align: right;
+}
 
-  .modal-form .form-group label.multiselect-option:hover {
-    opacity: 0.8;
-  }
+.text-muted {
+  color: var(--text-3);
+}
 
-  /* --- Protect checkboxes from global .modal-form input rules --- */
-  .modal-form .form-group .multiselect-option input[type="checkbox"] {
-    flex: 0 0 16px !important; /* Forces it to stay exactly 16px, never squish */
-    width: 16px !important; 
-    height: 16px !important; 
-    padding: 0 !important;   
-    margin: 3px 0 0 0 !important; /* Tiny top margin to visually center with text */
-    cursor: pointer;
-    accent-color: var(--success);
-    border-radius: 4px;
-  }
+.mt-1 {
+  margin-top: 4px;
+}
 
-  /* --- Param help text (TaskModal): own line, aligned under the input --- */
-  .modal-form .form-group:has(.param-help) {
-    flex-wrap: wrap;
-  }
+.mt-2 {
+  margin-top: 8px;
+}
 
-  .modal-form .param-help {
-    flex-basis: 100%;
-    padding-left: calc(180px + 0.6rem);
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
+.mt-3 {
+  margin-top: 12px;
+}
 
-  /* --- Instruction cards preview (TaskModal) --- */
-  .instructions-preview {
-    margin-top: 1rem;
-  }
+.mobile-preview-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--surface-2);
+}
 
-  .instructions-preview-card {
-    margin-top: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    background: #ece6ee;
-    font-size: 0.9rem;
-  }
+.mobile-phone-frame {
+  width: 375px;
+  height: 667px;
+  background: white;
+  border: 12px solid var(--text);
+  border-radius: 36px;
+  padding: 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
 
-  /* =========================================================
-     INFO TOOLTIP
-     ========================================================= */
-  
-  .info-tooltip {
-    position: relative;
-    display: inline-block;
-    margin-left: 6px;
-    cursor: help;
-    color: #3a7ad9;
-    font-weight: bold;
-  }
-  
-  .info-tooltip-text {
-    visibility: hidden;
-    position: fixed; /* fixed so it doesn't get clipped by overflow */
-    background-color: #333;
-    color: #fff;
-    border-radius: 8px;
-    padding: 8px 10px;
-    z-index: 99999;
-    max-width: 260px;
-    font-size: 0.85rem;
-    line-height: 1.2;
-    text-align: left;
-    opacity: 0;
-    transition: opacity 0.18s;
-    pointer-events: none;
-  }
-  
-  .info-tooltip:hover .info-tooltip-text {
-    visibility: visible;
-    opacity: 1;
-  }
-  
-  /* =========================================================
-     DRAG & DROP VARIANTS
-     ========================================================= */
-  
-  .protocol-item.dragging {
-    opacity: 0.5;
-    border: 2px dashed #aaa;
-  }
-  
-  /* =========================================================
-    UTILITY CLASSES & RESPONSIVE
-     ========================================================= */
-  
-  .text-center { text-align: center; }
-  .text-right { text-align: right; }
-  .text-muted { color: #777; }
-  
-  .mt-1 { margin-top: 4px; }
-  .mt-2 { margin-top: 8px; }
-  .mt-3 { margin-top: 12px; }
+.mobile-screen {
+  height: 100%;
+  overflow-y: auto;
+}
 
-  /* =========================================================
-    ONBOARDING - INTRO PLUS CONSENT COMPONENTS 
-     ========================================================= */
-  /* Minimalist Row for Intro/Consent */
-  .protocol-pages-row {
-    display: flex;
-    gap: 15px;
-    margin-top: 8px;
-    padding-top: 8px;
-    align-items: center;
-    flex: 4;
-  }
+.mobile-screen .quill {
+  height: calc(100% - 42px);
+  display: flex;
+  flex-direction: column;
+}
 
-  .page-item-minimal {
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-around;
-    background: #fff;
-    border-radius: var(--radius);
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    font-size: 1rem;
-    flex: 1;
-  }
+.mobile-screen .ql-container {
+  flex: 1;
+  overflow-y: auto;
+}
 
-  .btn-add-page-minimal {
-    flex: 1;
-  }
+.ql-editor, .ql-container {
+  font-family: inherit !important;
+}
 
-  .page-label {
-    font-weight: 500;
-    margin-right: 10px;
-  }
+.ql-editor {
+  font-size: 16px;
+  line-height: 1;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -ms-hyphens: none !important;
+  word-wrap: normal !important;
+  overflow-wrap: anywhere !important;
+}
 
-  .page-actions {
-    display: flex;
-    gap: 10px;
-  }
+.ql-editor p, .ql-editor div {
+  margin-bottom: 0.8em !important;
+}
 
-  .edit-icon-small {
-    color: var(--primary);
-    cursor: pointer;
-  }
+.ql-editor ul, .ql-editor ol {
+  margin-bottom: 0.2em !important;
+}
 
-  .delete-icon-small {
-    color: var(--danger);
-    cursor: pointer;
-    font-weight: bold;
-  }
-  
-  /* Smartphone Preview Styling */
-  .mobile-preview-wrapper {
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-    background-color: #f7fafc;
-  }
-  
-  .mobile-phone-frame {
-    width: 375px; /* Standard smartphone width */
-    height: 667px;
-    background: white;
-    border: 12px solid #2d3748; /* Phone bezel */
-    border-radius: 36px;
-    padding: 20px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .mobile-screen {
-    height: 100%;
-    overflow-y: auto;
-  }
-  
-  /* Fix Quill height inside the phone screen */
-  .mobile-screen .quill {
-    height: calc(100% - 42px); /* Leave room for toolbar */
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .mobile-screen .ql-container {
-    flex: 1;
-    overflow-y: auto;
-  }
-  
-  .ql-editor, .ql-container {
-    font-family: inherit !important
-  }
+.ql-editor li {
+  margin-bottom: 0.2em !important;
+  list-style-type: none;
+}
 
-  .ql-editor {
-    font-size: 16px; 
-    line-height: 1;
-    hyphens: none !important;
-    -webkit-hyphens: none !important;
-    -ms-hyphens: none !important;
-    word-wrap: normal !important;
-    overflow-wrap: anywhere !important;
-  }
+.ql-editor .ql-size-12px {
+  font-size: 12px !important;
+  line-height: 0.1 !important;
+}
 
-  .ql-editor p, 
-  .ql-editor div {
-    margin-bottom: 0.8em !important; 
-  }
-  
-  .ql-editor ul, 
-  .ql-editor ol {
-    margin-bottom: 0.2em !important;
-  }
+.ql-editor .ql-size-20px {
+  font-size: 20px !important;
+  line-height: 1.3 !important;
+}
 
-  .ql-editor li {
-    margin-bottom: 0.2em !important;
-    list-style-type: none; 
-  }
+.ql-editor .ql-size-28px {
+  font-size: 28px !important;
+  line-height: 1.4 !important;
+}
 
-  .ql-editor .ql-size-12px { 
-    font-size: 12px !important; 
-    line-height: 0.1 !important; /* Tighter row spacing for small fonts */
-  }
-  .ql-editor .ql-size-20px { 
-    font-size: 20px !important; 
-    line-height: 1.3 !important; 
-  }
-  .ql-editor .ql-size-28px { 
-    font-size: 28px !important; 
-    line-height: 1.4 !important; 
-  }
+.ql-editor li[data-list]:has(.ql-size-12px)::before, .ql-editor li[data-list].ql-size-12px::before {
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+}
 
-  .ql-editor li[data-list]:has(.ql-size-12px)::before,
-  .ql-editor li[data-list].ql-size-12px::before { 
-    font-size: 12px !important; 
-    line-height: 1.1 !important;
-  }
+.ql-editor li[data-list]:has(.ql-size-20px)::before, .ql-editor li[data-list].ql-size-20px::before {
+  font-size: 20px !important;
+  line-height: 1.3 !important;
+}
 
-  .ql-editor li[data-list]:has(.ql-size-20px)::before,
-  .ql-editor li[data-list].ql-size-20px::before { 
-    font-size: 20px !important; 
-    line-height: 1.3 !important;
-  }
+.ql-editor li[data-list]:has(.ql-size-28px)::before, .ql-editor li[data-list].ql-size-28px::before {
+  font-size: 28px !important;
+  line-height: 1.4 !important;
+}
 
-  .ql-editor li[data-list]:has(.ql-size-28px)::before,
-  .ql-editor li[data-list].ql-size-28px::before { 
-    font-size: 28px !important; 
-    line-height: 1.4 !important;
-  }
+.ql-snow .ql-picker.ql-size .ql-picker-label::before, .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: 'Normal';
+}
 
-  /* --- QUILL TOOLBAR DROPDOWN LABELS --- */
-  .ql-snow .ql-picker.ql-size .ql-picker-label::before,
-  .ql-snow .ql-picker.ql-size .ql-picker-item::before {
-    content: 'Normal';
-  }
-  .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
-  .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before {
-    content: 'Small';
-  }
-  .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
-  .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before {
-    content: 'Large';
-  }
-  .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
-  .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before {
-    content: 'Huge';
-  }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before {
+  content: 'Small';
+}
 
-  /* --- QUILL INDENTATION & ALIGNMENT --- */
-  .ql-editor .ql-align-center { text-align: center; }
-  .ql-editor .ql-align-right { text-align: right; }
-  .ql-editor .ql-align-justify { text-align: justify; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before {
+  content: 'Large';
+}
 
-  .ql-editor .ql-indent-1 { padding-left: 3em; }
-  .ql-editor .ql-indent-2 { padding-left: 6em; }
-  .ql-editor .ql-indent-3 { padding-left: 9em; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before {
+  content: 'Huge';
+}
 
-  /* Shared modal settings column (identifiers editor) */
-  .modal-settings {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
+.ql-editor .ql-align-center {
+  text-align: center;
+}
 
-  .sub-options {
-    margin-left: 2rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-left: 3px solid #007bff;
-    border-radius: 4px;
-  }
+.ql-editor .ql-align-right {
+  text-align: right;
+}
 
-  .sub-options h5 {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.9rem;
-    color: #333;
-  }
+.ql-editor .ql-align-justify {
+  text-align: justify;
+}
 
-  .checkbox-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-  }
+.ql-editor .ql-indent-1 {
+  padding-left: 3em;
+}
 
-  /* Identifier editor (catalogue entry options / custom field rows) */
-  .identifier-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    margin-bottom: 0.75rem;
-  }
+.ql-editor .ql-indent-2 {
+  padding-left: 6em;
+}
 
-  .identifier-options .checkbox-option {
-    margin-bottom: 0;
-  }
+.ql-editor .ql-indent-3 {
+  padding-left: 9em;
+}
 
-  .identifier-custom-row {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) auto auto;
-    gap: 6px;
-    align-items: center;
-    margin-left: 0;
-    margin-bottom: 0.5rem;
-  }
+.modal-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
-  .identifier-custom-row input[type="text"] {
-    min-width: 0;
-    padding: 4px 6px;
-  }
+.sub-options {
+  margin-left: 2rem;
+  padding: 1rem;
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
 
-  .identifier-custom-row .checkbox-option {
-    margin-bottom: 0;
-    white-space: nowrap;
-  }
+.sub-options h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
 
-  /* Identifier summary table shown in the current-protocol column */
-  .identifiers-summary {
-    border-collapse: collapse;
-    font-size: 0.9rem;
-  }
+.checkbox-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
 
-  .identifiers-summary th,
-  .identifiers-summary td {
-    border: 1px solid #e5e7eb;
-    padding: 2px 8px;
-    text-align: left;
-  }
+.identifier-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
 
-  .identifiers-summary th {
-    background: #f8f9fa;
-    font-weight: 600;
-  }
+.identifier-options .checkbox-option {
+  margin-bottom: 0;
+}
 
-  /* Recording file name: button + resulting template + rendered example */
-  .file-name-summary {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
+.identifier-custom-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto auto;
+  gap: 6px;
+  align-items: center;
+  margin-left: 0;
+  margin-bottom: 0.5rem;
+}
 
-  .file-name-editor {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+.identifier-custom-row input[type="text"] {
+  min-width: 0;
+  padding: 4px 6px;
+}
 
-  .file-name-table {
-    border-collapse: collapse;
-    width: 100%;
-  }
+.identifier-custom-row .checkbox-option {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
 
-  .file-name-table th,
-  .file-name-table td {
-    border: 1px solid #e5e7eb;
-    padding: 4px 8px;
-    text-align: left;
-  }
+.file-name-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-  .file-name-table tr {
-    cursor: grab;
-  }
+.file-name-table {
+  border-collapse: collapse;
+  width: 100%;
+}
 
-  .file-name-table tr.dragging {
-    opacity: 0.5;
-  }
+.file-name-table th, .file-name-table td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+}
 
-  .file-name-table .drag-handle {
-    color: var(--muted);
-    text-align: center;
-  }
+.file-name-table tr {
+  cursor: grab;
+}
 
-  .file-name-input {
-    font-family: monospace;
-    width: 100%;
-    padding: 6px;
-  }
+.file-name-table tr.dragging {
+  opacity: 0.5;
+}
 
-  /* =========================================================
-   MOBILE FRIENDLY LAYOUT IMPROVEMENTS
-   ========================================================= */
+.file-name-table .drag-handle {
+  color: var(--muted);
+  text-align: center;
+}
+
+.file-name-input {
+  font-family: monospace;
+  width: 100%;
+  padding: 6px;
+}
 
 @media (max-width: 800px) {
-  .admin-container {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
-  }
-  
-  /* Stack everything vertically */
-  .admin-grid {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-
-  /* Make sections full-width */
-  .task-section,
-  .protocol-section {
-    width: 98%;
-    padding: 6px;
-    min-height: auto;
-  }
-
-  /* Simplify protocol header layout */
-  .protocol-header {
-    flex-direction: column;
-    align-items: stretch;
-    margin: 0;
-  }
-
   .protocol-field {
-    flex-direction: column; /* Stack label on top of input */
+    flex-direction: column;
     align-items: stretch;
     gap: 2px;
     margin-bottom: 2px;
   }
 
   .protocol-label {
-    flex: none;         /* Remove the 180px fixed width */
+    flex: none;
     width: 100%;
     text-align: left;
     padding-right: 0;
@@ -963,66 +491,9 @@
     font-size: 0.95rem;
   }
 
-  .protocol-name-input,
-  .protocol-language-select,
-  .protocol-description-input {
-    flex: none;         /* Stop flex-basis (200px) from forcing width */
-    width: 100% !important; 
-    max-width: 100%;    /* Allow it to fill the screen */
-    box-sizing: border-box;
-  }
-
-  /* Set reasonable heights */
-  .protocol-name-input {
-    height: 45px;
-  }
-
-  .protocol-description-input {
-    min-height: 50px; /* Height for the textarea */
-    resize: vertical;
-  }
-
-  /* Ensure the label is block-level */
   .protocol-label {
     font-weight: bold;
     margin-bottom: 5px;
     display: block;
   }
-
-  .page-item-minimal {
-    width: 100%;
-    justify-content: space-between; /* Put icons on the right */
-    box-sizing: border-box;
-    padding: 10px;
-  }
-
-  /* Buttons */
-  .button-block button,
-  .button-save,
-  .button-show-tasks {
-    width: 100%;
-    font-size: 1rem;
-    padding: 10px 5px;
-    gap: 0 ;
-  }
-
-  /* Reduce font sizes slightly */
-  h2 {
-    font-size: 1.4rem;
-    text-align: center;
-  }
-
-  .protocol-item,
-  .task-option {
-    font-size: 0.95rem;
-  }
-
-  /* Adjust modal box for mobile */
-  .modal-box {
-    width: 95vw;
-    max-height: 93vh;
-    padding: 0.5rem;
-  }
-
-
 }

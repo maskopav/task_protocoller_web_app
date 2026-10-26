@@ -71,7 +71,8 @@ function useShellData(user, pathname) {
   return {
     clinics: clinics || [],
     clinicsLoaded: clinics !== null,
-    singleClinic: !isMaster && clinics?.length === 1 ? clinics[0] : null,
+    // A clinic creator keeps the list, where "New clinic" lives.
+    singleClinic: !isMaster && !user?.can_create_sites && clinics?.length === 1 ? clinics[0] : null,
     canWriteProtocols: isMaster || !!user?.can_create_projects || editsAStudy,
     unreviewed,
   };

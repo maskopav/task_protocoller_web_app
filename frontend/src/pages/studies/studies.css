@@ -1,0 +1,90 @@
+/* Studies screens: tokens only (docs/ui_redesign/04_agent_guidelines.md). */
+.studies-page { display: flex; flex-direction: column; gap: var(--s-4); }
+.studies-page > header { margin-bottom: 0; }
+
+.studies-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4); }
+.studies-search { position: relative; flex: 0 1 320px; min-width: 200px; }
+.studies-search svg.ui-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+.studies-search input { width: 100%; padding-left: 32px; }
+.studies-search-wide { flex: 1 1 auto; max-width: none; }
+.studies-check { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--text-2); font-size: var(--fs-sm); }
+
+.studies-group-label {
+  display: flex; align-items: center; gap: var(--s-2);
+  margin-bottom: var(--s-2); color: var(--text-2); font-size: var(--fs-sm); font-weight: 600;
+}
+.studies-faint { color: var(--text-3); font-weight: 400; }
+.studies-muted { color: var(--text-2); }
+.studies-name { color: var(--text); font-weight: 600; text-decoration: none; }
+.studies-name:hover { color: var(--accent-text); text-decoration: underline; }
+.studies-sub { margin-top: 2px; }
+.studies-inline { display: inline-flex; align-items: center; gap: var(--s-2); }
+.studies-lead { margin: 0 0 var(--s-4); color: var(--text-2); }
+.studies-in-library { height: 18px; font-size: var(--fs-xs); margin-left: var(--s-2); }
+.studies-from-lib { display: inline-flex; align-items: center; gap: var(--s-1); color: var(--accent-text); text-decoration: none; }
+.studies-from-lib:hover { text-decoration: underline; }
+
+.studies-langs { display: inline-flex; flex-wrap: wrap; gap: var(--s-1); vertical-align: middle; }
+.studies-lang {
+  display: inline-flex; align-items: center; height: 20px; padding: 0 var(--s-2);
+  border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  background: var(--surface-2); color: var(--text-2);
+  font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase;
+}
+
+.studies-banner {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: var(--accent-soft); color: var(--accent-text);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.studies-banner-warn { background: var(--warn-soft); color: var(--warn-text); border-color: var(--warn); }
+
+.studies-skeleton {
+  min-height: 160px; border-radius: var(--r-md);
+  background: linear-gradient(90deg, var(--idle-soft), var(--surface-2), var(--idle-soft));
+  background-size: 200% 100%; animation: studies-pulse 1.4s ease-in-out infinite;
+}
+@keyframes studies-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.studies-form { display: flex; flex-direction: column; gap: var(--s-3); }
+.studies-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.studies-form-error { margin: var(--s-3) 0 0; color: var(--bad); }
+.studies-settings { max-width: 640px; }
+
+.studies-seg { display: inline-flex; gap: 2px; padding: 2px; margin-bottom: var(--s-4); background: var(--idle-soft); border-radius: var(--r-md); }
+.studies-seg button {
+  all: unset; box-sizing: border-box; cursor: pointer;
+  display: inline-flex; align-items: center; gap: var(--s-2); height: 30px; padding: 0 var(--s-4);
+  border-radius: var(--r-sm); color: var(--text-2); font-size: var(--fs-md);
+}
+.studies-seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow-1); font-weight: 600; }
+.studies-seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.studies-pick-list { display: flex; flex-direction: column; gap: var(--s-2); max-height: 260px; overflow: auto; }
+.studies-pick {
+  all: unset; box-sizing: border-box; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4); border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface);
+}
+.studies-pick:hover { background: var(--surface-2); }
+.studies-pick[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.studies-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.studies-pick-name { display: block; font-weight: 600; }
+.studies-pick-meta { display: block; color: var(--text-3); font-size: var(--fs-xs); }
+.studies-task-preview { margin: 0; padding-left: var(--s-5); color: var(--text-2); font-size: var(--fs-sm); columns: 2; }
+
+.studies-archived { margin-top: var(--s-4); color: var(--text-2); }
+.studies-archived summary { cursor: pointer; font-size: var(--fs-sm); }
+.studies-archived ul { margin: var(--s-2) 0 0; padding-left: var(--s-5); }
+
+@media (max-width: 700px) {
+  .studies-form-row { grid-template-columns: 1fr; }
+  .studies-task-preview { columns: 1; }
+}
+
+/* pages/Pages.css (legacy) styles bare p and button elements app-wide; keep these screens on the kit's sizes. */
+.studies-page .ui-btn, .studies-form .ui-btn { width: auto; }
+.studies-lead, .studies-muted, .studies-form-error, .studies-page p { font-size: var(--fs-md); line-height: 1.5; }
+.studies-lead, .studies-muted { color: var(--text-2); }
+.studies-form-error { color: var(--bad); }

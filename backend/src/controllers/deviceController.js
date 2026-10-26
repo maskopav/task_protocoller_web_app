@@ -248,7 +248,7 @@ export const makeAssignDeviceSite = (queue) => async (req, res) => {
         );
       }
       return pending.map((r) => r.id);
-    });
+    }, { retries: 2 }); // races the validation worker on a fresh upload's rows
     if (moved === null) return res.status(404).json({ error: "not_found" });
     if (moved === "no_site") return res.status(404).json({ error: "site_not_found" });
     // After commit, so the worker sees the rows it is asked to validate.

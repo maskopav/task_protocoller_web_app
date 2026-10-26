@@ -5,12 +5,11 @@ import AppShell from "./components/ui/AppShell";
 import { useUser } from "./context/UserContext";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminManagementPage from "./pages/AdminManagementPage";
-import ProjectManagementPage from "./pages/ProjectManagementPage";
-import SiteManagementPage from "./pages/SiteManagementPage";
-import ProjectDashboardPage from "./pages/ProjectDashboardPage";
-import SiteDashboardPage from "./pages/SiteDashboardPage";
-import ProtocolDashboardPage from "./pages/ProtocolDashboardPage";
+import ClinicsListPage from "./pages/clinics/ClinicsListPage";
+import ClinicPage from "./pages/clinics/ClinicPage";
 import ProtocolEditorPage from "./pages/ProtocolEditorPage";
+import StudiesPage from "./pages/studies/StudiesPage";
+import StudyPage, { StudyIndexRedirect } from "./pages/studies/StudyPage";
 import ParticipantInterfacePage from "./pages/ParticipantInterfacePage";
 import ResetPasswordModal from "./components/AuthForm/ResetPasswordModal";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -20,7 +19,6 @@ import NotAvailablePage from "./pages/NotAvailablePage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import RecordingsPage from "./pages/RecordingsPage";
 import RecordingPage from "./pages/RecordingPage";
-import DevicesPage from "./pages/DevicesPage";
 
 // Old links keep working for one release: the target path may name the old
 // route's params (":projectId"), and ?site= / ?project= become ?clinic= / ?study=.
@@ -40,21 +38,16 @@ function LegacyRedirect({ to }) {
   return <Navigate to={`${generatePath(to, params)}${mapLegacySearch(search)}`} replace />;
 }
 
-// Clinics list. A non-master with exactly one clinic goes straight to it.
+// Clinics list. A non-master with exactly one clinic goes straight to it,
+// unless they may create clinics (singleClinic is then null, see AppShell).
 function ClinicsIndex() {
   const { user } = useUser();
   const { clinicsLoaded, singleClinic } = useOutletContext();
   if (user.role_id !== 1) {
     if (!clinicsLoaded) return null;
     if (singleClinic) return <Navigate to={`/clinics/${singleClinic.id}`} replace />;
-    return <AdminDashboardPage />;
   }
-  return <SiteManagementPage />;
-}
-
-function StudiesIndex() {
-  const { user } = useUser();
-  return user.role_id === 1 ? <ProjectManagementPage /> : <AdminDashboardPage />;
+  return <ClinicsListPage />;
 }
 
 function MasterOnly({ children }) {
@@ -94,17 +87,16 @@ export default function App() {
         <Route path="/recordings" element={<RecordingsPage />} />
         <Route path="/recordings/:sessionId" element={<RecordingPage />} />
 
-        <Route path="/studies" element={<StudiesIndex />} />
-        <Route path="/studies/:projectId" element={<ProjectDashboardPage />} />
-        <Route path="/studies/:projectId/protocols" element={<ProtocolDashboardPage />} />
+        <Route path="/studies" element={<StudiesPage />} />
+        <Route path="/studies/:projectId" element={<StudyIndexRedirect />} />
         <Route path="/studies/:projectId/protocols/:protocolId" element={<ProtocolEditorPage />} />
-        <Route path="/studies/:projectId/:tab" element={<ProjectDashboardPage />} />
+        <Route path="/studies/:projectId/:tab" element={<StudyPage />} />
 
         <Route path="/clinics" element={<ClinicsIndex />} />
-        {/* Temporary home of the old Devices page until clinic Computers lands. Literal before :siteId. */}
-        <Route path="/clinics/devices" element={<DevicesPage />} />
-        <Route path="/clinics/:siteId" element={<SiteDashboardPage />} />
-        <Route path="/clinics/:siteId/:tab" element={<SiteDashboardPage />} />
+        {/* The old Devices page now lives in the clinics list (unassigned) and each clinic's Computers tab. */}
+        <Route path="/clinics/devices" element={<Navigate to="/clinics" replace />} />
+        <Route path="/clinics/:siteId" element={<ClinicPage />} />
+        <Route path="/clinics/:siteId/:tab" element={<ClinicPage />} />
 
         <Route path="/library" element={<PlaceholderPage titleKey="library" messageKey="placeholder.library" testId="library-placeholder" />} />
         <Route path="/library/:protocolId" element={<PlaceholderPage titleKey="library" messageKey="placeholder.library" testId="library-placeholder" />} />

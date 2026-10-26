@@ -13,8 +13,8 @@ Branch: `newshare`. Docs: [02_spec.md](02_spec.md) (spec), [03_plan.md](03_plan.
 | 4c Frontend on `src/api/*` | ✅ | `cde8d97` |
 | 5 Tokens, UI kit, app shell, routes | ✅ | `c6c6642` |
 | 6 Recordings list + detail | ✅ verified 2026-10-26 | see `git log` |
-| **7 Studies + Clinics (+ runs-at, editors, F6/F7)** | **next** (after the user's `/usage` check) | – |
-| 8 Users + Library UI (F8, F10), then 8b i18n/clean-up (F9) | – | – |
+| 7 Studies + Clinics (+ runs-at, editors, F6/F7) | ✅ verified 2026-10-26 | see `git log` |
+| **8 Users + Library UI (F8, F10)**, then 8b i18n/clean-up (F9) | **next** (after the user's `/usage` check) | – |
 | 9 Verify, "after" screenshots, `05_results.md` | – | – |
 
 ## Increment 6 verification (done 2026-10-26)
@@ -43,6 +43,23 @@ Branch: `newshare`. Docs: [02_spec.md](02_spec.md) (spec), [03_plan.md](03_plan.
 - **Late badge:** `SessionPanel` `LATE_HOURS = 72` only triggers at 4 or more days, because of rounding to days.
 - **Backend English:** server-check detail lines ("no site for this device", "recorded with … current is …") are English only.
 - **Translations:** cs and de strings for the new `uploads.recordings.*` and `recording.*` keys need a native-speaker review, especially Czech plural forms. Czech mixes "nahrávka" and "záznam" for a recording. `uploads.json` cs is missing `cards.uploads.desc_one/_other` and `cards.perDay.bar_one/_other`, and de is missing `cards.uploads.desc_one/_other` (from increment 5).
+
+## Increment 7 verification (done 2026-10-26)
+
+- **Tests:** backend 742 (golden 5/5), vitest 242, build OK, lint 61, full e2e 156/156 (plus a targeted rerun after the last fixes). Screenshots: `screens/increment7/` (4 personas) and `screens/increment7/studies-flow/`.
+- **Fixed by the orchestrator:**
+  - `ToastProvider` was never mounted (since increment 5), so every toast was silently dropped. It is now in `main.jsx`, and `redesign-routes.spec.ts` asserts the toast region.
+  - Assigning a computer could 500 with `ER_CHECKREAD` (MariaDB 11.8 snapshot isolation) while the validation worker touched the same rows. `executeTransaction` takes `{ retries }`, used by the assign. `validationQueue` now treats `ER_CHECKREAD` as retryable instead of closing the recording as invalid.
+  - After a protocol save, a failed mappings refresh no longer reports the save as failed.
+  - A one-clinic user with `can_create_sites` keeps the Clinics list (where "New clinic" lives); `singleClinic` is null for them.
+  - Test fixes: the rename assertion (a named computer shows a short id) and the `/admin/projects/3` redirect target.
+- **Logged, not fixed:**
+  - Duplicate / "Copy to another study" copies only one language variant of a protocol group.
+  - Clinic Settings saves all seven desktop keys with defaults (same as the old modal). Consider sending only set or changed keys.
+  - Protocol-save error codes lack `apiErrors` texts (en partly; cs/de none), and de misses many `protocolEditor.*` keys: F9.
+  - `ClinicPage` load has no cancellation; runs-at on archived studies is not gated (spec silent); browser Back is not guarded in the editor.
+  - Agents' notes for F9: the global `p`/`h1` rules in `pages/Pages.css` leak into new pages; delete `AdminDashboardPage` with `SiteGrid`, `SiteModal`, `ProjectGrid`, `ProjectModal`, `StatusBadge`, `ProjectTable.css`; `Protocols.css` with the dead `Fieldwork/*`; unused `getProjectStats`, `uploadTools:devices.*`, `admin:management.siteManagement.*`; `ProtocolLanguageSelector.css` hex colours; "site (clinic)" in `admin.json`.
+  - Deviations: no Overview tab (Protocols first, per spec); level indicator offers only Circle/Waveform (contract); no "Recordings waiting" or editor "clinics they see" columns (no endpoint); no protocol restore API.
 
 ## Decisions made with the user (beyond the spec text)
 

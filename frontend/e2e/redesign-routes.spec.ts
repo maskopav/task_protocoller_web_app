@@ -29,10 +29,10 @@ const REDIRECTS: Array<[string, string]> = [
   [`/admin/uploads/${SESSION_ID}`, `/recordings/${SESSION_ID}`],
   ['/admin/uploads/devices', '/clinics'],
   ['/admin/uploads/downloads', '/recordings'],
-  [`/admin/projects/${STUDY_ID}`, `/studies/${STUDY_ID}`],
+  [`/admin/projects/${STUDY_ID}`, `/studies/${STUDY_ID}/protocols`],
   [`/admin/projects/${STUDY_ID}/protocols`, `/studies/${STUDY_ID}/protocols`],
   [`/admin/projects/${STUDY_ID}/protocols/${PROTOCOL_ID}`, `/studies/${STUDY_ID}/protocols/${PROTOCOL_ID}`],
-  [`/admin/sites/${CLINIC_ID}`, `/clinics/${CLINIC_ID}`],
+  [`/admin/sites/${CLINIC_ID}`, `/clinics/${CLINIC_ID}/studies`],
   ['/admin/project-management', '/studies'],
   ['/admin/site-management', '/clinics'],
   ['/admin/admin-management', '/users'],
@@ -51,6 +51,11 @@ test.describe('as master', () => {
       await expect(page.getByTestId('app-shell')).toBeVisible();
     });
   }
+
+  // useToast() is a silent no-op without the provider, so guard that it is mounted.
+  test('the toast region is mounted', async ({ page }) => {
+    await expect(page.locator('.ui-toasts')).toHaveCount(1);
+  });
 
   test('old query parameters ?site= and ?project= become ?clinic= and ?study=', async ({ page }) => {
     await page.goto(`/#/admin/uploads?site=${CLINIC_ID}&project=${STUDY_ID}`);
@@ -116,7 +121,7 @@ test.describe('as a one-clinic user', () => {
   test('#/clinics lands on the only clinic and the nav says "My clinic"', async ({ page }) => {
     await page.getByTestId('nav-recordings').waitFor();
     await page.goto('/#/clinics');
-    await expect(page).toHaveURL(hashUrl(`/clinics/${CLINIC_ID}`));
+    await expect(page).toHaveURL(hashUrl(`/clinics/${CLINIC_ID}/studies`));
     await expect(page.getByTestId('nav-clinics')).toContainText('My clinic');
     await expect(page.getByTestId('nav-users')).toHaveCount(0);
   });

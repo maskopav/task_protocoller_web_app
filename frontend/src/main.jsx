@@ -6,6 +6,7 @@ import { HashRouter } from "react-router-dom";
 import "./styles/tokens.css";
 import App from "./App.jsx";
 import { AppProvider } from "./context/AppProvider.jsx";
+import { ToastProvider } from "./components/ui/Toast.jsx";
 import { logger } from "./utils/frontendLogger";
 import { cleanupExpiredAndUploaded } from "./utils/offlineStorage";
 
@@ -26,9 +27,11 @@ window.addEventListener('unhandledrejection', event => {
 createRoot(document.getElementById("root")).render(
   <StrictMode> 
     <HashRouter> 
-      <AppProvider> 
-        <App /> 
-      </AppProvider> 
+      <AppProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </AppProvider>
     </HashRouter> 
   </StrictMode> 
 );

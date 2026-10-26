@@ -17,7 +17,7 @@ The plan implements [`02_spec.md`](02_spec.md). The rules for implementers are i
 | 4 | Backend simplification (golden test → **dependency upgrade** → schema and routes) | ✅ 4a ✅ golden test; 4u ✅ all dependencies latest ([dependency_upgrade.md](dependency_upgrade.md)), e2e and camera check pending; 4b ✅ schema, access and REST routes (735 tests, golden 5/5, critic findings fixed); 4c ✅ frontend on `src/api/*`, e2e 88/88 |
 | 5 | Frontend foundation (tokens, UI kit, shell, routes) | ✅ UI kit + shell + routes/redirects; vitest 176, e2e 123/123, lint 65; screenshots in `screens/increment5/` |
 | 6 | Recordings | ✅ list + detail + bulk download; backend 738, vitest 206, e2e 133/133, lint 65, golden 5/5; screenshots in `screens/increment6/`; critic: bulk "Download all" de-duplicated and limited on downloadable rows, other findings logged in [HANDOFF.md](HANDOFF.md) |
-| 7 | Studies and Clinics | – |
+| 7 | Studies and Clinics | ✅ studies list/tabs, protocol editor workspace, runs-at both sides, editors, library add/share; clinics list/tabs, Computers, F-008 hint; backend 742, vitest 242, e2e 156/156, lint 61; screenshots in `screens/increment7/`; critic findings fixed or logged in [HANDOFF.md](HANDOFF.md) |
 | 8 | Users, clean-up, i18n | – |
 | 9 | Verify and "after" screenshots | – |
 

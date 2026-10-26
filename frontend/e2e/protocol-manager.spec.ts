@@ -4,7 +4,7 @@ import { test, expect, type Page } from '@playwright/test';
 // debugging a console log full of repeated 401s on GET /projects:
 //
 // 1. MappingContext.refreshMappings wasn't memoized, so any effect depending
-//    on it (e.g. ProjectDashboardPage's loadData) re-fired on every mappings
+//    on it (e.g. the study page's loader) re-fired on every mappings
 //    update, in a loop -- flooding the API with repeated requests.
 // 2. ProtocolEditorPage never actually fetched a protocol by id -- it relied
 //    entirely on React Router's `state`, which a hard refresh or a direct/
@@ -27,7 +27,7 @@ async function loginAsMaster(page: Page) {
   await expect(page).toHaveURL(/\/recordings$/);
 }
 
-test('project dashboard does not repeatedly refetch the project list', async ({ page }) => {
+test('the study page does not repeatedly refetch the project list', async ({ page }) => {
   await loginAsMaster(page);
 
   let projectsListRequests = 0;
@@ -35,7 +35,7 @@ test('project dashboard does not repeatedly refetch the project list', async ({ 
     if (new URL(req.url()).pathname === '/projects') projectsListRequests += 1;
   });
 
-  await page.goto(`/#/admin/projects/${PROJECT_ID}`);
+  await page.goto(`/#/studies/${PROJECT_ID}/protocols`);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
   // React StrictMode legitimately double-invokes mount effects in dev, so a
@@ -61,7 +61,7 @@ test('opening the protocol editor as a direct link loads the protocol from the b
   // not have caught this. The real failure mode is a navigation with no
   // history.state at all: a bookmarked link, a shared URL, or typing the
   // address directly, exactly like this goto.
-  await page.goto(`/#/admin/projects/${PROJECT_ID}/protocols/${SEEDED_PROTOCOL_ID}`);
+  await page.goto(`/#/studies/${PROJECT_ID}/protocols/${SEEDED_PROTOCOL_ID}`);
 
   // Without the backend fetch fallback this renders an empty editor (0
   // protocol-item rows, the "empty-protocol" placeholder shown) because there
