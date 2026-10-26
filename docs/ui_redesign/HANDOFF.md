@@ -1,6 +1,6 @@
 # UI redesign: handoff (2026-10-26)
 
-> **Batch 9 is done.** Results, open items and the critic's findings are in [05_results.md](05_results.md). The only unfinished criterion is 10: the dev DB `task_protocoller` still has the pre-redesign schema; recreate it with `cd backend && node src/runInit.js` (wipes dev data, needs the user's OK). The rest of this file is the state before batch 9.
+> **Batch 9 is done.** Results, open items and the critic's findings are in [05_results.md](05_results.md). All 18 criteria pass; the dev DB was recreated with `runInit.js` on 2026-10-26 and matches the test schema. The rest of this file is the state before batch 9.
 
 Branch: `newshare`, working tree clean. Docs: [02_spec.md](02_spec.md) (spec; acceptance criteria in §10), [03_plan.md](03_plan.md) (plan, status, findings table), [04_agent_guidelines.md](04_agent_guidelines.md), [dependency_upgrade.md](dependency_upgrade.md).
 
@@ -18,7 +18,7 @@ Branch: `newshare`, working tree clean. Docs: [02_spec.md](02_spec.md) (spec; ac
 | 7 Studies + Clinics | ✅ | `376904b` |
 | 8 Users, auth pages, Library | ✅ | `f71ebe0` |
 | 8b i18n parity and clean-up | ✅ | `a91cd6d` |
-| 9 Final verify, "after" screenshots, `05_results.md` | ✅ (criterion 10 partial: recreate the dev DB) | see `git log` |
+| 9 Final verify, "after" screenshots, `05_results.md` | ✅ | see `git log` |
 
 Last measured (8b): frontend vitest 255, backend 741 (golden 5/5, fixtures clean), build OK, lint 57, full e2e 163 + the protected ingest spec 3/3 after the last fix. **Batch 9 must start with one clean full e2e run** (the last full run predates the "Device not registered" fix).
 
