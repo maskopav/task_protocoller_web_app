@@ -107,7 +107,7 @@ B=http://192.168.122.183:10001
 curl -s -o /dev/null -w "index %{http_code}\n" $B/
 TOKEN=$(curl -s -X POST $B/api/auth/admin/login -H "Origin: $B" -H 'content-type: application/json' \
   -d '{"email":"master@test.com","password":"1234"}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["token"])')
-curl -s -H "Authorization: Bearer $TOKEN" $B/api/projects/projects-list | python3 -c 'import sys,json;print(len(json.load(sys.stdin)),"projects")'
+curl -s -H "Authorization: Bearer $TOKEN" $B/api/projects | python3 -c 'import sys,json;print(len(json.load(sys.stdin)),"studies")'
 curl -s -o /dev/null -w "site-config %{http_code}\n" $B/api/site-config/paris000paris000paris000paris000
 # Security regressions. Expected: 401, then 400.
 curl -s -o /dev/null -w "setup-profile w/o auth %{http_code}\n" -X POST $B/api/auth/setup-profile \
@@ -418,8 +418,8 @@ curl -s -o /dev/null -w "ticket as session %{http_code}\n" -H "Authorization: Be
 
 Expected: `upload 200`, `1 [('<id>', 'valid')]` (the fixture's project and protocol names don't
 match the seed data, so the row has no project, which is allowed), `download 200`, `PK`, `401`. Also
-check `ls /srv/task-protocoller/data/sessions/*/` on the container, the `device` row in the UI under
-`/admin/uploads/devices`, and that `grep ticket= /var/log/nginx/access.log` finds nothing if you
+check `ls /srv/task-protocoller/data/sessions/*/` on the container, the computer in the UI under
+Clinics (unassigned computers, or the clinic's Computers tab), and that `grep ticket= /var/log/nginx/access.log` finds nothing if you
 applied the log format above. The original upload filename is never stored or logged. Leave the
 fixture session in place or ask before removing it (there is no delete feature; it is the only
 copy of its bytes).
