@@ -217,7 +217,7 @@ Keep the current `SessionDetailPage` structure (the audit's §D), restyled. Chan
 - **New protocol modal.** A segmented control at the top offers **Blank** (the default) and **From library**.
   - **Blank:** Name (required), Language (required, the default being the user's UI language), Description. Defaults follow F-006:
     - a required `patient_code` identifier;
-    - the file-name template `${patientCode}_${taskIndex}_${task.subtype}_Rep${repetition}`.
+    - the file-name template `${field.patient_code}_${siteName}_${taskIndex}_${task.subtype}_Rep${repetition}` (F-075: the shipped default; the clinic name keeps files from different clinics apart).
   - **From library:** a search field and a list of entries (name, languages, tasks, author). Picking one shows its task list. The name defaults to the entry's name and can be changed.
     - The primary button **Add to study** copies the entry, stays on the Protocols tab and shows a toast.
     - The secondary button **Add and edit** copies the entry and opens the editor on the copy.
@@ -287,7 +287,7 @@ The functionality stays as it is. The layout changes to a workspace:
 
 ### 6.8 Users (master)
 
-- **Header:** the title "Users". The primary action is **New user**.
+- **Header:** the title "Users". The primary action is **Invite user**: a new user gets an emailed invitation (F-080).
 - **Table columns:** Name, Email, Clinics (chips, or "All" for master), Can create (Studies / Clinics icons with labels), Status (Active / Disabled), Last login (if available).
 - **User page** `#/users/:id`, with sections:
   - Profile (name, email, active, resend reset);
