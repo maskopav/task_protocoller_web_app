@@ -7,7 +7,9 @@ import TaskModal from "./TaskModal";
 import TaskList from "./TaskList";
 import { defaultLabel, paramText } from "./paramText";
 import { protocolSnapshot } from "./snapshot";
-import { catalogueField } from "../Identifiers/IdentifierFields";
+import { catalogueField, emptyCustomField } from "../Identifiers/IdentifierFields";
+import { validate } from "../../utils/validation";
+import * as snapshotModalModule from "./useSnapshotModal";
 import { ConfirmDialogProvider } from "../ConfirmDialog/ConfirmDialogContext";
 
 beforeAll(async () => { await i18n.changeLanguage("en"); });
@@ -108,5 +110,74 @@ describe("TaskModal duration warning (F-073)", () => {
     expect(q()).toBeNull();
     setValue(max, "60");
     expect(q()).not.toBeNull(); // duration 90 > max 60
+  });
+});
+
+describe("modal snapshot hook (F-137, F-139)", () => {
+  const { useSnapshotModal } = snapshotModalModule;
+  const start = { name: "A", required_identifiers: [catalogueField("patient_code")] };
+  let api;
+  function Harness() {
+    const [p, setP] = React.useState(start);
+    const modal = useSnapshotModal(p, setP, ["required_identifiers"]);
+    api = { p, setP, modal };
+    return null;
+  }
+  const edit = (fn) => act(() => api.setP((prev) => ({ ...prev, required_identifiers: fn(prev.required_identifiers) })));
+
+  it("Cancel after adding a custom field leaves the protocol unchanged", () => {
+    render(<Harness />);
+    const before = protocolSnapshot(api.p, []);
+    act(() => api.modal.openModal());
+    edit((l) => [...l, emptyCustomField()]);
+    expect(api.p.required_identifiers).toHaveLength(2);
+    act(() => api.modal.cancel());
+    expect(api.p.required_identifiers).toHaveLength(1);
+    expect(api.modal.open).toBe(false);
+    expect(protocolSnapshot(api.p, [])).toBe(before);
+    expect(validate.protocol({ ...api.p, tasks: [] }).errors.identifiers).toBeUndefined();
+  });
+
+  it("Cancel after editing an existing field restores the original", () => {
+    render(<Harness />);
+    act(() => api.modal.openModal());
+    edit((l) => l.map((f) => ({ ...f, required: !f.required, placeholder: "x" })));
+    act(() => api.modal.cancel());
+    expect(api.p.required_identifiers).toEqual(start.required_identifiers);
+  });
+
+  it("Save keeps the edits, and a later Cancel restores only to the new baseline", () => {
+    render(<Harness />);
+    act(() => api.modal.openModal());
+    edit((l) => [...l, { ...emptyCustomField(), name: "site", label: "Site" }]);
+    act(() => api.modal.save());
+    expect(api.modal.open).toBe(false);
+    expect(api.p.required_identifiers.map((f) => f.name)).toEqual(["patient_code", "site"]);
+    act(() => api.modal.openModal());
+    edit((l) => l.slice(0, 1));
+    act(() => api.modal.cancel());
+    expect(api.p.required_identifiers.map((f) => f.name)).toEqual(["patient_code", "site"]);
+  });
+
+  it("restores every listed key on Cancel, and takes a fresh snapshot on each open", () => {
+    let h;
+    function Multi() {
+      const [p, setP] = React.useState({ info_text: "a", instructions_text: "i", name: "n" });
+      const modal = useSnapshotModal(p, setP, ["info_text", "instructions_text"]);
+      h = { p, setP, modal };
+      return null;
+    }
+    render(<Multi />);
+    act(() => h.modal.openModal());
+    act(() => h.setP((x) => ({ ...x, info_text: "b", instructions_text: "j", name: "m" })));
+    act(() => h.modal.cancel());
+    expect(h.p).toEqual({ info_text: "a", instructions_text: "i", name: "m" });
+    act(() => h.modal.openModal());
+    act(() => h.setP((x) => ({ ...x, info_text: "c" })));
+    act(() => h.modal.save());
+    act(() => h.modal.openModal());
+    act(() => h.setP((x) => ({ ...x, info_text: "d" })));
+    act(() => h.modal.cancel());
+    expect(h.p.info_text).toBe("c");
   });
 });

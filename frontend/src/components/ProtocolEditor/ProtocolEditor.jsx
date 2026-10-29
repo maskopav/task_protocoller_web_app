@@ -29,6 +29,7 @@ import {
   normalizeIdentifiers,
   FIELD_NAME_RE,
 } from "../Identifiers/IdentifierFields";
+import { useSnapshotModal } from "./useSnapshotModal";
 import CustomFieldLabelInput from "../Identifiers/CustomFieldLabelInput";
 import { protocolSnapshot } from "./snapshot";
 import "./ProtocolEditor.css";
@@ -130,10 +131,11 @@ export function ProtocolEditor({
   const [editingData, setEditingData] = useState(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showQuestionnaireModal, setShowQuestionnaireModal] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
-  const [showIdentifiersModal, setShowIdentifiersModal] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
+
+  const infoModal = useSnapshotModal(protocolData, setProtocolData, ["info_text"]);
+  const instructionsModal = useSnapshotModal(protocolData, setProtocolData, ["instructions_text"]);
+  const identifiersModal = useSnapshotModal(protocolData, setProtocolData, ["required_identifiers"]);
 
   const dirty = !readOnly && (isDraft || protocolSnapshot(protocolData, tasks) !== baseline.current);
 
@@ -441,11 +443,11 @@ export function ProtocolEditor({
           editingMode={editingMode}
           isDraft={isDraft}
           libraryNote={library ? tl("edit.note", { count: usedIn }) : undefined}
-          onEditInfo={() => setShowInfoModal(true)}
+          onEditInfo={() => infoModal.openModal()}
           onDeleteInfo={handleDeleteInfo}
-          onEditInstructions={() => setShowInstructionsModal(true)}
+          onEditInstructions={() => instructionsModal.openModal()}
           onDeleteInstructions={handleDeleteInstructions}
-          onEditIdentifiers={() => setShowIdentifiersModal(true)}
+          onEditIdentifiers={() => identifiersModal.openModal()}
         />
       </div>
 
@@ -453,10 +455,10 @@ export function ProtocolEditor({
         <>
           {/* --- Info page rich text --- */}
           <AdminModal
-            open={showInfoModal}
+            open={infoModal.open}
             title={t("protocolEditor.editInfoTitle", "Edit Info")}
-            onClose={() => setShowInfoModal(false)}
-            onSave={() => setShowInfoModal(false)}
+            onClose={infoModal.cancel}
+            onSave={infoModal.save}
           >
             <div className="mobile-preview-wrapper">
               <TemplateSelector
@@ -481,10 +483,10 @@ export function ProtocolEditor({
 
           {/* --- Instructions rich text --- */}
           <AdminModal
-            open={showInstructionsModal}
+            open={instructionsModal.open}
             title={t("protocolEditor.editInstructionsTitle", "Edit Instructions")}
-            onClose={() => setShowInstructionsModal(false)}
-            onSave={() => setShowInstructionsModal(false)}
+            onClose={instructionsModal.cancel}
+            onSave={instructionsModal.save}
           >
             <div className="mobile-preview-wrapper">
               <TemplateSelector
@@ -509,10 +511,10 @@ export function ProtocolEditor({
 
           {/* --- Identifiers (patientFields): catalogue + custom fields --- */}
           <AdminModal
-            open={showIdentifiersModal}
+            open={identifiersModal.open}
             title={t("protocolEditor.editIdentifiersTitle", "Participant identifiers")}
-            onClose={() => setShowIdentifiersModal(false)}
-            onSave={() => setShowIdentifiersModal(false)}
+            onClose={identifiersModal.cancel}
+            onSave={() => { if (!validation.errors.identifiers) identifiersModal.save(); }}
           >
             <div className="modal-settings">
               <p>{t("protocolEditor.identifiersDesc", "Details the examiner fills in before starting the protocol in the desktop app:")}</p>
@@ -574,7 +576,7 @@ export function ProtocolEditor({
                   <IconButton icon="x" label={t("protocolEditor.tooltips.delete")} onClick={() => removeIdentifierAt(idx)} />
                 </div>
               )))}
-              <Button size="sm" icon="plus" onClick={() => addIdentifier(emptyCustomField())}>
+              <Button size="sm" icon="plus" onClick={() => addIdentifier(emptyCustomField())} data-testid="add-custom-identifier">
                 {t("protocolEditor.identifiers.addCustom", "Add custom field")}
               </Button>
 

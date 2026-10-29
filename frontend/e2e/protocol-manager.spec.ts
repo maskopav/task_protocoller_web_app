@@ -72,3 +72,50 @@ test('opening the protocol editor as a direct link loads the protocol from the b
   await expect(page.locator('.protocol-item')).toHaveCount(SEEDED_PROTOCOL_TASK_COUNT);
   await expect(page.locator('.empty-protocol')).toHaveCount(0);
 });
+
+test('cancelling the participant-fields editor discards a just-added custom field (F-137)', async ({ page }) => {
+  await loginAsMaster(page);
+  await page.goto(`/#/studies/${PROJECT_ID}/protocols/${SEEDED_PROTOCOL_ID}`);
+  await expect(page.locator('.protocol-item')).toHaveCount(SEEDED_PROTOCOL_TASK_COUNT);
+
+  const chips = page.locator('.pe-block', { has: page.getByTestId('edit-identifiers') }).locator('.pe-tags > *');
+  const before = await chips.count();
+
+  await page.getByTestId('edit-identifiers').click();
+  await page.getByTestId('add-custom-identifier').click();
+  await page.getByTestId('modal-cancel').click();
+
+  await expect(page.getByTestId('modal-cancel')).toHaveCount(0);
+  await expect(chips).toHaveCount(before);
+  await expect(page.locator('.ui-field-error, .error-text')).toHaveCount(0);
+
+  // Save is blocked while the draft is invalid; Cancel then discards it.
+  await page.getByTestId('edit-identifiers').click();
+  await page.getByTestId('add-custom-identifier').click();
+  await page.getByTestId('modal-save').click();
+  await expect(page.getByTestId('modal-save')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('modal-save')).toHaveCount(0);
+  await expect(chips).toHaveCount(before);
+});
+
+for (const [name, addTestId] of [['info page', 'add-info-page'], ['instructions', 'add-instructions-page']] as const) {
+  test(`cancelling the ${name} editor discards typed text and leaves the editor clean (F-139)`, async ({ page }) => {
+    await loginAsMaster(page);
+    await page.goto(`/#/studies/${PROJECT_ID}/protocols/${SEEDED_PROTOCOL_ID}`);
+    await expect(page.locator('.protocol-item')).toHaveCount(SEEDED_PROTOCOL_TASK_COUNT);
+    await expect(page.getByTestId('protocol-save')).toBeDisabled();
+
+    await page.getByTestId(addTestId).click();
+    await page.locator('[role="dialog"] .ql-editor').fill('Typed then cancelled');
+    await page.getByTestId('modal-cancel').click();
+
+    await expect(page.getByTestId('modal-cancel')).toHaveCount(0);
+    await expect(page.getByTestId(addTestId)).toBeVisible();
+    await expect(page.getByTestId('protocol-save')).toBeDisabled();
+
+    // Reopening shows the original (empty) text, not the cancelled draft.
+    await page.getByTestId(addTestId).click();
+    await expect(page.locator('[role="dialog"] .ql-editor')).not.toContainText('Typed then cancelled');
+  });
+}
