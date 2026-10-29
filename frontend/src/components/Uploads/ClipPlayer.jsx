@@ -33,8 +33,24 @@ export default function ClipPlayer({ sessionId, file, kind, tickets, autoOpen = 
     setSrc(clipUrl(sessionId, file, ticket));
   };
 
-  const onError = async () => {
+  // MEDIA_ERR_SRC_NOT_SUPPORTED (4) is what browsers report both for a codec they cannot
+  // decode (MJPEG) and for a non-media error response such as the 401 JSON of an expired
+  // ticket. A one-byte range probe tells them apart without spending a new ticket.
+  const ticketRejected = async (url) => {
+    const ctl = new AbortController();
+    try {
+      const res = await fetch(url, { headers: { Range: "bytes=0-0" }, signal: ctl.signal });
+      return res.status === 401 || res.status === 403;
+    } catch {
+      return true; // cannot tell: keep the single retry
+    } finally {
+      ctl.abort();
+    }
+  };
+
+  const onError = async (e) => {
     if (retried.current) return giveUp();
+    if (e?.currentTarget?.error?.code === 4 && !(await ticketRejected(src))) return giveUp();
     retried.current = true;
     const at = el.current?.currentTime || 0;
     const ticket = await tickets.refresh();

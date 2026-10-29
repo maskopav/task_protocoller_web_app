@@ -80,6 +80,31 @@ describe('getProjectList', () => {
     expect(items.map((i) => [i.project_id, i.can_edit, i.is_owner])).toEqual([[7, true, true], [8, false, false]]);
   });
 
+  it('counts visible clinics with the access scope and drops the raw view column', async () => {
+    mockWorld({ editors: [7], rows: [row({ count_sites: '2', site_count: '2', visible_site_count: '1' })] });
+    const res = makeRes();
+    await getProjectList({ query: {}, admin: admin }, res);
+
+    const [sql, params] = mainCalls()[0];
+    expect(sql).toMatch(/FROM site_projects sp\s+WHERE sp\.project_id = p\.id AND \(sp\.site_id IS NOT NULL/);
+    expect(sql).toContain('AS visible_site_count');
+    expect(params.slice(0, 2)).toEqual([2, 2]);
+    const [item] = res.json.mock.calls[0][0];
+    expect(item).toMatchObject({ site_count: 2, visible_site_count: 1 });
+    expect(item).not.toHaveProperty('count_sites');
+  });
+
+  it('gives a master equal total and visible counts', async () => {
+    mockWorld({ rows: [row({ visible_site_count: '2' })] });
+    const res = makeRes();
+    await getProjectList({ query: {}, admin: master }, res);
+
+    const [sql] = mainCalls()[0];
+    expect(sql).toContain('1=1');
+    const [item] = res.json.mock.calls[0][0];
+    expect(item).toMatchObject({ site_count: 2, visible_site_count: 2 });
+  });
+
   it('limits the unreviewed count to clinics the caller sees', async () => {
     mockWorld({ editors: [7], rows: [row()] });
     await getProjectList({ query: {}, admin: admin }, makeRes());

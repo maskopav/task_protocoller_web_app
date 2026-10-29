@@ -18,7 +18,7 @@ export default function DeviceEvents({ events = [], kind }) {
     const sentence = t(`device.${kind}.${known ? code : "other"}`);
     const raw = hasValue(e.detail) ? String(e.detail).slice(0, MAX_RAW) : "";
     return (
-      <span key={i} className="recd-event" data-testid={`device-event-${kind}`}>
+      <div key={i} className="recd-event" data-testid={`device-event-${kind}`}>
         {sentence}
         {raw && (
           <details>
@@ -26,7 +26,7 @@ export default function DeviceEvents({ events = [], kind }) {
             <pre>{raw}</pre>
           </details>
         )}
-      </span>
+      </div>
     );
   });
 }

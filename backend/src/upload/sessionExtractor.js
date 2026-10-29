@@ -267,6 +267,7 @@ export function extractSession(parsed, ctx) {
     ?? (timelineUsed === "edited" ? obj(parsed.timelineEdited).sampleRate : undefined)
     ?? obj(exam.captureFormat).sampleRate ?? null;
 
+  const nonNegInt = (v) => (Number.isInteger(v) && v >= 0 ? v : null);
   const examSummary = {
     tasks: instances.map((i) => ({
       taskIndex: i.taskIndex,
@@ -277,6 +278,10 @@ export function extractSession(parsed, ctx) {
       takes: i.exam?.takes ?? 0,
       clipFile: i.exam?.clipFile ?? null,
       videoFile: i.exam?.videoFile ?? null,
+      // F-110: set with videoFile; videoComplete=false means the video is shorter than the audio.
+      videoComplete: typeof i.exam?.videoComplete === "boolean" ? i.exam.videoComplete : null,
+      videoDurationMs: nonNegInt(i.exam?.videoDurationMs),
+      audioDurationMs: nonNegInt(i.exam?.audioDurationMs),
       questionnaireAnswers: i.exam?.questionnaireAnswers ?? null,
     })),
     captureFormat: exam.captureFormat ?? null,

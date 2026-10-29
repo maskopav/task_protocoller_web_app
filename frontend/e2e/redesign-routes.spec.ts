@@ -108,6 +108,57 @@ test.describe('as master', () => {
     await expect(page).toHaveURL(hashUrl('/recordings'));
   });
 
+  // F-079: the preview used to live only in router state, so a direct link ended on the 404 page.
+  test.describe('protocol preview as a direct link', () => {
+    const PREVIEW = `/studies/1/protocols/${PROTOCOL_ID}/preview`;
+    // The preview opens on the audio-guide intro of the loaded protocol.
+    const intro = (page: Page) => page.getByText('Audio Guide', { exact: true });
+
+    test('a direct link to a saved protocol renders the preview and loads that protocol', async ({ page }) => {
+      const loaded = page.waitForResponse((r) => new RegExp(`/protocols/${PROTOCOL_ID}$`).test(r.url().split('?')[0]) && r.status() === 200);
+      await page.goto(`/#${PREVIEW}`);
+      await loaded;
+      await expect(intro(page)).toBeVisible();
+      await expect(page).toHaveURL(hashUrl(PREVIEW));
+    });
+
+    test('the preview of an unsaved draft ("new") lands on the protocol list', async ({ page }) => {
+      await page.goto('/#/studies/1/protocols/new/preview');
+      await expect(page).toHaveURL(hashUrl('/studies/1/protocols'));
+      await expect(page.getByTestId('app-shell')).toBeVisible();
+    });
+
+    test('a protocol that does not exist lands on the protocol list, not the 404 page', async ({ page }) => {
+      await page.goto('/#/studies/1/protocols/999999/preview');
+      await expect(page).toHaveURL(hashUrl('/studies/1/protocols'));
+      await expect(page.getByTestId('not-found-page')).toHaveCount(0);
+    });
+
+    // The UI starts in Czech (nothing saved) while the protocol is English: the page must switch
+    // without looping ("Maximum update depth exceeded") and give the language back when it is left.
+    test('a UI language that differs from the protocol language renders and is restored on leaving', async ({ page }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (e) => errors.push(e.message));
+      await page.addInitScript(() => localStorage.removeItem('appLanguage'));
+      await page.goto(`/#${PREVIEW}`);
+      await expect(intro(page)).toBeVisible();
+      expect(errors.filter((m) => m.includes('Maximum update depth'))).toEqual([]);
+      await page.getByText('Back', { exact: false }).first().click();
+      await expect(page.getByTestId('app-shell')).toBeVisible();
+      await expect(page.getByTestId('nav-recordings')).toContainText('Záznamy');
+    });
+
+    test('reloading the preview reached through the button keeps it', async ({ page }) => {
+      await page.goto(`/#/studies/1/protocols/${PROTOCOL_ID}`);
+      await page.getByTestId('protocol-preview').click();
+      await expect(page).toHaveURL(hashUrl(PREVIEW));
+      await expect(intro(page)).toBeVisible();
+      await page.reload();
+      await expect(page).toHaveURL(hashUrl(PREVIEW));
+      await expect(intro(page)).toBeVisible();
+    });
+  });
+
   test('the language select in the user menu switches the navigation labels', async ({ page }) => {
     await page.getByTestId('shell-language').selectOption('de');
     await expect(page.getByTestId('nav-recordings')).toContainText('Aufnahmen');

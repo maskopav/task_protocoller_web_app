@@ -1,5 +1,6 @@
 // src/pages/studies/protocolMapping.js — backend protocol -> the shape the editor and the preview use.
 import { normalizeIdentifiers } from "../../components/Identifiers/IdentifierFields";
+import { getProtocolById } from "../../api/protocols";
 
 /**
  * Reverse-maps backend ids (language, task) into a readable protocol object.
@@ -32,4 +33,14 @@ export function mapProtocolWithNames(raw, mappings) {
     instructions_pdf_url: raw.instructions_pdf_url || null,
     tasks: mappedTasks,
   };
+}
+
+/**
+ * Loads a saved protocol by id in the shape the preview and the editor draft use.
+ * Throws when it cannot be loaded (or the mappings are not ready).
+ */
+export async function loadMappedProtocol(id, mappings) {
+  const mapped = mapProtocolWithNames(await getProtocolById(id), mappings);
+  if (!mapped) throw new Error("protocol_load_failed");
+  return mapped;
 }

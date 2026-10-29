@@ -11,7 +11,7 @@ import { Button, DataTable, EmptyState, Icon, PageHeader, StatusDot, useToast } 
 import { apiErrorMessage } from "../../utils/apiError";
 import LangChips from "./LangChips";
 import NewStudyModal from "./NewStudyModal";
-import { groupStudies, isArchived, languageCodes } from "./studyHelpers";
+import { clinicCounts, groupStudies, isArchived, languageCodes } from "./studyHelpers";
 import "./studies.css";
 
 /** Per-study extras the list endpoint does not carry: language chips, recordings in 30 days, clinic name. */
@@ -101,8 +101,10 @@ export default function StudiesPage() {
       key: "clinics",
       header: received ? t("list.columns.runsAtYours") : t("list.columns.runsAt"),
       render: (s) => {
-        if (!s.site_count) return <span className="studies-faint">—</span>;
-        return s.site_count === 1 && extras[s.project_id]?.clinic ? extras[s.project_id].clinic : t("list.clinicsCount", { count: s.site_count });
+        const c = clinicCounts(s);
+        if (!c.total) return <span className="studies-faint">—</span>;
+        if (c.partial) return t("list.clinicsCountVisible", { count: c.total, visible: c.visible });
+        return c.total === 1 && extras[s.project_id]?.clinic ? extras[s.project_id].clinic : t("list.clinicsCount", { count: c.total });
       },
     },
     {

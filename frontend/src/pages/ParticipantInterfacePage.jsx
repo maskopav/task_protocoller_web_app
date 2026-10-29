@@ -1,6 +1,7 @@
 // src/pages/ParticipantInterfacePage.jsx
 import React, { useState, useContext, useMemo, useEffect, useRef, useCallback } from "react";
 import { useTranslation, Trans } from "react-i18next";
+import i18nSingleton from "i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePreventNavigation } from "../hooks/usePreventNavigation";
 import { ProtocolContext } from "../context/ProtocolContext";
@@ -142,22 +143,24 @@ export default function ParticipantInterfacePage() {
   }, [protocolData, selectedProtocol, setSelectedProtocol]);
 
   // Handle language switching
+  // Depends on the protocol only: the `i18n` instance from useTranslation changes identity on every
+  // language change, which re-ran this effect and looped when the UI language differed at mount.
   useEffect(() => {
     if (!protocolData) return;
     const protocolLang = protocolData.language || "en";
-    const prevLang = i18n.language;
+    const prevLang = i18nSingleton.language;
 
     setLangReady(false);
     if (protocolLang !== prevLang) {
-      i18n.changeLanguage(protocolLang).then(() => setLangReady(true));
+      i18nSingleton.changeLanguage(protocolLang).then(() => setLangReady(true));
     } else {
       setLangReady(true);
     }
 
     return () => {
-      i18n.changeLanguage(prevLang);
+      i18nSingleton.changeLanguage(prevLang);
     };
-  }, [protocolData, i18n]);
+  }, [protocolData]);
 
   // Show welcome-back dialog once on mount if this is a resumed session plus log if language was just switched
   useEffect(() => {

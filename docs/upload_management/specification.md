@@ -222,7 +222,12 @@ ignored.
 
 **`exam_summary` JSON** contains everything the detail page needs, so it never has to open the
 ZIP for metadata:
-- `tasks[]` with result, takes, clipFile, videoFile and questionnaireAnswers
+- `tasks[]` with result, takes, clipFile, videoFile and questionnaireAnswers, plus (F-110)
+  `videoComplete` (boolean|null), `videoDurationMs` and `audioDurationMs` (non-negative integer|null),
+  taken from the task instance in `examination.tasks[]`. `videoComplete: false` means the camera
+  stopped early and the video is shorter than the audio; the task row then shows a warning badge
+  "Video partial · m:ss of m:ss" (just "Video partial" without both durations). Badge only: no list flag
+  and no effect on "needs attention". Records uploaded earlier keep their old summary (no backfill)
 - `captureFormat`, `hardware`, `interruptions[]`, `videoTakes[]`
 - timeline segments: per instance, the kept take's `[start, stop]` sample range plus rejected
   takes with their reason, taken from `timeline_original` or `timeline_edited`

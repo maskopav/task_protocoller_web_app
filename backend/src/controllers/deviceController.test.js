@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../db/queryHelper.js', () => ({
   executeQuery: vi.fn(),
@@ -119,6 +119,14 @@ describe('listDevices', () => {
   let deviceRows;
   let userSites;
   let visibleSites;
+  // The fixture dates are fixed; pin "now" so the 7-day silence rule can't age them out.
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   beforeEach(() => {
     executeQuery.mockReset();
     deviceRows = [];

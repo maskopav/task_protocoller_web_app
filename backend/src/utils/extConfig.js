@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_RECORDINGS_FILE_NAME, isValidMicGain } from "./fieldValidation.js";
+import { isLegacyDescription } from "./legacyDescription.js";
 
 export const SCHEMA_VERSION = 1;
 const LANGS = ["en", "cs", "de"];
@@ -181,6 +182,23 @@ function taskTexts(category, params, lang, locales) {
   return { title, paragraphs: cards.length ? cards : htmlToParagraphs(text("instructions")) };
 }
 
+// READING contract (config_alignment_decision_table.md): the passage the
+// participant reads is the LAST instruction paragraph, after the Start-now card.
+// The desktop drops that last key unconditionally, so a READING task ALWAYS
+// carries it (otherwise the Start-now card would be lost). Content per language:
+// that language's topic `text`, else that language's topic `label` (the paper
+// text's name; cs/de tasks.json carry labels only, so they send the label),
+// else "" (missing/unknown topic). No cross-language fallback.
+const readingPassage = (category, params, lang, locales) => {
+  const v = locales[lang]?.tasks?.[category]?.params?.topic?.values?.[params?.topic];
+  return String(v?.text || v?.label || "").trim();
+};
+
+function vocalParagraphs(subtype, category, params, lang, locales, texts) {
+  if (subtype !== "READING") return texts.paragraphs;
+  return [...texts.paragraphs, readingPassage(category, params, lang, locales)];
+}
+
 const QUESTION_TYPE = { open: "OPEN", single: "SINGLE_CHOICE", dropdown: "SINGLE_CHOICE", rating: "SINGLE_CHOICE", multiple: "MULTIPLE_CHOICE" };
 
 // The DB stores UTC_TIMESTAMP(); a bare "YYYY-MM-DD HH:MM:SS" string is UTC.
@@ -302,11 +320,14 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
       // VOCAL: paragraph count comes from the default language so every key
       // exists in every strings.<lang>.
       const primaryTexts = taskTexts(category, params, defaultLanguage, locales);
-      const n = Math.max(1, primaryTexts.paragraphs.length);
+      const primaryParagraphs = vocalParagraphs(subtype, category, params, defaultLanguage, locales, primaryTexts);
+      const n = Math.max(1, primaryParagraphs.length);
       for (const lang of languages) {
-        const texts = lang === defaultLanguage ? primaryTexts : taskTexts(category, paramsFor(lang, task.task_order), lang, locales);
+        const lp = paramsFor(lang, task.task_order);
+        const texts = lang === defaultLanguage ? primaryTexts : taskTexts(category, lp, lang, locales);
+        const paragraphs = lang === defaultLanguage ? primaryParagraphs : vocalParagraphs(subtype, category, lp, lang, locales, texts);
         put(lang, common.titleKey, texts.title);
-        for (let i = 0; i < n; i++) put(lang, `${P}_instr${i + 1}`, texts.paragraphs[i] ?? "");
+        for (let i = 0; i < n; i++) put(lang, `${P}_instr${i + 1}`, paragraphs[i] ?? "");
       }
       const vocal = {
         type: "VOCAL",
@@ -351,9 +372,13 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
 
     // Description is per variant (language); fall back to the primary's text for languages without one.
     const descriptionKey = `p${gid}_description`;
-    const hasDescription = variants.some((v) => v.protocol.description?.trim());
+    const descriptionOf = (a) => {
+      const d = a.protocol.description?.trim();
+      return d && !isLegacyDescription(d) ? d : ""; // F-069 placeholder is never sent
+    };
+    const hasDescription = variants.some((v) => descriptionOf(v));
     if (hasDescription) {
-      for (const lang of languages) put(lang, descriptionKey, (byLang[lang] ?? primary).protocol.description?.trim() || primary.protocol.description?.trim() || "");
+      for (const lang of languages) put(lang, descriptionKey, descriptionOf(byLang[lang] ?? primary) || descriptionOf(primary));
     }
 
     const out = { name, version: num(primary.protocol.version, 1), project: projectName };

@@ -65,7 +65,7 @@ describe('getProtocolsByProjectId', () => {
     mockWorld({
       editors: [7],
       listRows: [
-        { id: 10, protocol_group_id: 1, name: 'Speech', language_id: 1, language_code: 'en', version: 2, updated_at: '2026-10-01 10:00:00' },
+        { id: 10, protocol_group_id: 1, name: 'Speech', language_id: 1, language_code: 'en', version: 2, created_at: null, updated_at: '2026-10-01 10:00:00' },
         { id: 11, protocol_group_id: 1, name: 'Speech', language_id: 2, language_code: 'cs', version: 2, updated_at: '2026-10-02 10:00:00' },
         { id: 12, protocol_group_id: 2, name: 'Other', language_id: 1, language_code: 'en', version: 1, updated_at: '2026-09-01 10:00:00' },
       ],
@@ -80,10 +80,27 @@ describe('getProtocolsByProjectId', () => {
       { language_id: 1, code: 'en', protocol_id: 10 },
       { language_id: 2, code: 'cs', protocol_id: 11 },
     ]);
-    expect(items[0].updated_at).toBe('2026-10-02 10:00:00');
+    // F-067: zoneless DB UTC datetimes go out as ISO-8601 UTC, newest variant wins
+    expect(items[0].updated_at).toBe('2026-10-02T10:00:00Z');
+    expect(items[0].created_at).toBe(null);
     const [sql, params] = mainCalls().at(-1);
     expect(sql).toContain('p.project_id = ?');
     expect(params).toEqual([7, 0]);
+  });
+
+  it('F-069: returns description null for the legacy placeholder, keeps a real one', async () => {
+    mockWorld({
+      editors: [7],
+      listRows: [
+        { id: 10, protocol_group_id: 1, name: 'Old', description: 'Auto-created from AdminTaskEditor', language_id: 1, language_code: 'en', version: 1, updated_at: '2026-10-01 10:00:00' },
+        { id: 12, protocol_group_id: 2, name: 'New', description: 'Voice battery', language_id: 1, language_code: 'en', version: 1, updated_at: '2026-09-01 10:00:00' },
+      ],
+    });
+    const res = makeRes();
+    await getProtocolsByProjectId({ params: { id: '7' }, query: {}, admin: admin }, res);
+    const items = res.json.mock.calls[0][0];
+    expect(items.find((i) => i.protocol_group_id === 1).description).toBeNull();
+    expect(items.find((i) => i.protocol_group_id === 2).description).toBe('Voice battery');
   });
 
   it('asks for archived groups with archived=1', async () => {
@@ -153,6 +170,21 @@ describe('getProtocolById', () => {
     mockWorld({ viaClinics: [7], protocolRow: study });
     const res = await get(admin);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ id: 3, can_edit: false }));
+  });
+
+  it('sends created_at/updated_at as ISO-8601 UTC (F-067)', async () => {
+    mockWorld({ editors: [7], protocolRow: { ...study, created_at: '2026-10-26 17:20:34', updated_at: '2026-10-26 17:22:34' } });
+    const body = (await get(admin)).json.mock.calls[0][0];
+    expect(body.created_at).toBe('2026-10-26T17:20:34Z');
+    expect(body.updated_at).toBe('2026-10-26T17:22:34Z');
+  });
+
+  it('F-069: returns description null for the legacy placeholder', async () => {
+    mockWorld({ editors: [7], protocolRow: { ...study, description: 'Auto-created from AdminTaskEditor' } });
+    expect((await get(admin)).json.mock.calls[0][0].description).toBeNull();
+    executeQuery.mockReset();
+    mockWorld({ editors: [7], protocolRow: { ...study, description: 'Real text' } });
+    expect((await get(admin)).json.mock.calls[0][0].description).toBe('Real text');
   });
 
   it('serves an edited protocol with can_edit', async () => {
@@ -261,6 +293,87 @@ describe('saveProtocol', () => {
   it('rejects an empty task list with a code', async () => {
     const res = await save({ ...body, tasks: [] }, master);
     expect(res.json).toHaveBeenCalledWith({ error: 'no_tasks' });
+  });
+
+  it.each([
+    ['missing', {}],
+    ['null', { task_id: null }],
+    ['zero', { task_id: 0 }],
+    ['negative', { task_id: -3 }],
+    ['fractional', { task_id: 1.5 }],
+    ['a string', { task_id: 'abc' }],
+    ['above INT range (number)', { task_id: 2147483648 }],
+    ['above INT range (string)', { task_id: '2147483648' }],
+  ])('F-086: a task whose task_id is %s is a 400 task_invalid, before any DB work', async (_n, bad) => {
+    mockWorld({ editors: [7] });
+    const res = await save({ ...body, tasks: [{ task_id: 2 }, { params: {}, ...bad }] }, admin);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'task_invalid', index: 1 });
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it('F-086: also applies when editing an existing group (same handler)', async () => {
+    const res = await save({ ...body, protocol_group_id: 5, editingMode: true, tasks: [{ params: {} }] }, master);
+    expect(res.json).toHaveBeenCalledWith({ error: 'task_invalid', index: 0 });
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it('F-086: accepts numeric-string task ids (JSON from older clients)', async () => {
+    mockWorld({ editors: [7] });
+    executeTransaction.mockResolvedValue(1);
+    const res = await save({ ...body, tasks: [{ task_id: '2' }] }, admin);
+    expect(res.json).toHaveBeenCalledWith({ success: true, protocol_id: 1 });
+  });
+
+  const fkError = (column) => ({
+    errno: 1452, code: 'ER_NO_REFERENCED_ROW_2',
+    sqlMessage: column === 'task_id'
+      ? 'Cannot add or update a child row: a foreign key constraint fails (`tp`.`protocol_tasks`, CONSTRAINT `protocol_tasks_ibfk_2` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`))'
+      : 'Cannot add or update a child row: a foreign key constraint fails (`tp`.`protocols`, CONSTRAINT `protocols_ibfk_1` FOREIGN KEY (`language_id`) REFERENCES `languages` (`id`))',
+  });
+
+  it('F-086: maps a foreign-key error on protocol_tasks.task_id to 400 task_invalid, not 500', async () => {
+    mockWorld({ editors: [7] });
+    executeTransaction.mockRejectedValue(fkError('task_id'));
+    const res = await save(body, admin);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'task_invalid' });
+  });
+
+  it('F-086: any other foreign-key error (language_id) stays a 500 protocol_save_failed', async () => {
+    mockWorld({ editors: [7] });
+    executeTransaction.mockRejectedValue(fkError('language_id'));
+    const res = await save(body, admin);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'protocol_save_failed' });
+  });
+
+  it.each([[undefined], [null], [''], ['   ']])('F-069: stores NULL for a blank description (%j)', async (description) => {
+    mockWorld({ editors: [7] });
+    const conn = { query: vi.fn(async (sql) => (sql.includes('MAX(protocol_group_id)') ? [[{ next_group_id: 4 }]] : [{ insertId: 55 }])) };
+    executeTransaction.mockImplementation(async (cb) => cb(conn));
+    await save({ ...body, description }, admin);
+    const insert = conn.query.mock.calls.find(([sql]) => sql.includes('INSERT INTO protocols'));
+    expect(insert[1][5]).toBeNull();
+    expect(JSON.stringify(insert[1])).not.toContain('Auto-created');
+  });
+
+  it('F-069: stores NULL when the incoming description is the legacy placeholder', async () => {
+    mockWorld({ editors: [7] });
+    const conn = { query: vi.fn(async (sql) => (sql.includes('MAX(protocol_group_id)') ? [[{ next_group_id: 4 }]] : [{ insertId: 55 }])) };
+    executeTransaction.mockImplementation(async (cb) => cb(conn));
+    await save({ ...body, description: ' Auto-created from AdminTaskEditor ' }, admin);
+    const insert = conn.query.mock.calls.find(([sql]) => sql.includes('INSERT INTO protocols'));
+    expect(insert[1][5]).toBeNull();
+  });
+
+  it('F-069: keeps a real description (trimmed)', async () => {
+    mockWorld({ editors: [7] });
+    const conn = { query: vi.fn(async (sql) => (sql.includes('MAX(protocol_group_id)') ? [[{ next_group_id: 4 }]] : [{ insertId: 55 }])) };
+    executeTransaction.mockImplementation(async (cb) => cb(conn));
+    await save({ ...body, description: '  Voice battery ' }, admin);
+    const insert = conn.query.mock.calls.find(([sql]) => sql.includes('INSERT INTO protocols'));
+    expect(insert[1][5]).toBe('Voice battery');
   });
 
   it('maps a duplicate-key error from the unique index to name_taken', async () => {

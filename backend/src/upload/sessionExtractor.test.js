@@ -172,6 +172,18 @@ describe("extractSession: task results", () => {
     expect(t[3].questionnaireAnswers).toEqual({ mood: ["good"], symptoms: ["tremor", "fatigue"] });
     expect(t[0].takes).toBe(1);
   });
+
+  it("F-110: carries videoComplete and the video/audio durations, null when absent or invalid", () => {
+    const t = run("valid", (p) => {
+      Object.assign(p.examination.tasks[2], { videoComplete: false, videoDurationMs: 10900, audioDurationMs: 24450 });
+      Object.assign(p.examination.tasks[1], { videoComplete: "no", videoDurationMs: -5, audioDurationMs: "12" });
+      Object.assign(p.examination.tasks[0], { videoComplete: true, videoDurationMs: 1.5, audioDurationMs: NaN });
+    }).exam_summary.tasks;
+    expect(t[2]).toMatchObject({ videoComplete: false, videoDurationMs: 10900, audioDurationMs: 24450 });
+    expect(t[1]).toMatchObject({ videoComplete: null, videoDurationMs: null, audioDurationMs: null });
+    expect(t[0]).toMatchObject({ videoComplete: true, videoDurationMs: null, audioDurationMs: null });
+    expect(t[3]).toMatchObject({ videoComplete: null, videoDurationMs: null, audioDurationMs: null });
+  });
 });
 
 describe("extractSession: flags", () => {

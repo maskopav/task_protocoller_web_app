@@ -23,8 +23,10 @@
 .ui-section-hint { color: var(--text-3); font-size: var(--fs-sm); }
 .ui-section-actions { margin-left: auto; display: flex; gap: var(--s-2); align-items: center; }
 
-/* ── DataTable (no overflow:hidden so menus are never clipped) ── */
+/* ── DataTable: scrolls sideways (.ui-tbl-wrap-wide, set by useWideTable) when wider than its card (F-074). Row menus use position:fixed so this never clips them. ── */
 .ui-tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+/* Only a table that is really wider than its card scrolls sideways; otherwise the wrapper must not be a scroll container, or sticky headers pin inside it instead of the page. */
+.ui-tbl-wrap-wide { overflow-x: auto; }
 .ui-tbl { width: 100%; border-collapse: collapse; }
 .ui-tbl th {
   text-align: left; font-size: var(--fs-xs); font-weight: 550; color: var(--text-3);
@@ -62,8 +64,7 @@
 
 /* ── Menu ──────────────────────────────────────────────── */
 .ui-menu { position: relative; display: inline-block; }
-.ui-menu-pop { position: absolute; right: 0; top: 100%; margin-top: 4px; min-width: 190px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-pop); padding: 4px; z-index: var(--z-menu); text-align: left; }
-.ui-menu-left .ui-menu-pop { right: auto; left: 0; }
+.ui-menu-pop { position: fixed; margin-top: 0; min-width: 190px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-pop); padding: 4px; z-index: var(--z-menu); text-align: left; }
 .ui-menu-item { display: flex; width: 100%; gap: var(--s-2); align-items: center; padding: 7px 10px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
 .ui-menu-item:hover, .ui-menu-item:focus-visible { background: var(--surface-2); text-decoration: none; outline: none; }
 .ui-menu-item[disabled] { opacity: .45; cursor: default; }

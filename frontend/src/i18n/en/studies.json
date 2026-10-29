@@ -36,6 +36,9 @@
     },
     "clinicsCount_one": "{{count}} clinic",
     "clinicsCount_other": "{{count}} clinics",
+    "clinicsCountVisible_one": "{{count}} clinic ({{visible}} visible)",
+    "clinicsCountVisible_other": "{{count}} clinics ({{visible}} visible)",
+    "countVisible": "{{count}} ({{visible}} visible)",
     "empty": "No studies yet.",
     "emptyHint": "Studies appear here when they run at one of your clinics, or when you are added as an editor.",
     "noMatch": "No study matches your search."
@@ -62,6 +65,8 @@
     "received": "Received",
     "sharedWith_one": "Shared with {{count}} clinic",
     "sharedWith_other": "Shared with {{count}} clinics",
+    "sharedWithVisible_one": "Shared with {{count}} clinic, {{visible}} visible to you",
+    "sharedWithVisible_other": "Shared with {{count}} clinics, {{visible}} visible to you",
     "managedBy": "Managed by {{name}}. You can review its recordings, but not change the study or its protocols.",
     "managedByLabel": "Managed by",
     "archivedBanner": "This study is archived. Protocols are read-only until it is restored.",

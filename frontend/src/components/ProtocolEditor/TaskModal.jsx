@@ -9,6 +9,7 @@ import {
   getResolvedParams,
   getDefaultParams,
 } from "../../utils/translations";
+import { taskDurationWarnings } from "../../utils/validation";
 
 export default function TaskModal({
   open,
@@ -46,6 +47,8 @@ export default function TaskModal({
   const resolved = getResolvedParams(category, Object.fromEntries(
     Object.entries(getDefaultParams(category)).map(([k, d]) => [k, editingData?.[k] ?? d])
   ));
+  // Non-blocking: contradictory duration/min/max are flagged but can still be saved.
+  const durationWarnings = taskDurationWarnings(resolved);
   const cards = [1, 2].map((n) => translateTaskInstructionCard(category, n, resolved)).filter(Boolean);
 
   const handleSave = () => {
@@ -149,6 +152,14 @@ export default function TaskModal({
           );
         })}
       </div>
+
+      {durationWarnings.length > 0 && (
+        <div className="duration-warning" role="alert" data-testid="task-duration-warning">
+          {durationWarnings.map((code) => (
+            <div key={code}>{t(`protocolEditor.durationWarning.${code}`)}</div>
+          ))}
+        </div>
+      )}
 
       {cards.length > 0 && (
         <div className="instructions-preview">

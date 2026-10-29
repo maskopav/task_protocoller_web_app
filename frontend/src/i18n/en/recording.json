@@ -52,6 +52,9 @@
     "lastKeptHint": "Only the last take is exported",
     "micLost": "mic lost",
     "micLostHint": "Microphone lost during this task (take rejected: DEVICE_LOST)",
+    "videoPartial": "Video partial",
+    "videoPartialOf": "Video partial · {{video}} of {{audio}}",
+    "videoPartialHint": "The camera stopped early: the video is shorter than the audio",
     "results": {
       "Done": "Done",
       "Skipped": "Skipped",

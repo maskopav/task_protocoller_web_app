@@ -8,7 +8,7 @@ import {
   Badge, Button, EmptyState, Icon, Menu, PageHeader, Tabs, useConfirm, useToast,
 } from "../../components/ui";
 import { apiErrorMessage } from "../../utils/apiError";
-import { isArchived } from "./studyHelpers";
+import { clinicCounts, isArchived } from "./studyHelpers";
 import ProtocolsTab from "./tabs/ProtocolsTab";
 import ClinicsTab from "./tabs/ClinicsTab";
 import RecordingsTab from "./tabs/RecordingsTab";
@@ -109,10 +109,11 @@ export default function StudyPage() {
     );
   }
 
+  const clinics = clinicCounts(study);
   const tabItems = tabs.map((key) => ({
     to: `${base}/${key}`,
     label: key === "settings" && !canEdit ? t("tabs.about") : t(`tabs.${key}`),
-    count: key === "protocols" ? study.protocol_count : key === "clinics" ? study.site_count : undefined,
+    count: key === "protocols" ? study.protocol_count : key === "clinics" ? (clinics.partial ? t("list.countVisible", { count: clinics.total, visible: clinics.visible }) : study.site_count) : undefined,
     testId: `study-tab-${key}`,
   }));
 
@@ -127,7 +128,13 @@ export default function StudyPage() {
           <>
             <Badge tone={archived ? "neutral" : "ok"} data-testid="study-status">{archived ? t("status.archived") : t("status.active")}</Badge>
             {canEdit ? null : <Badge lock data-testid="study-received-badge">{t("study.received")}</Badge>}
-            {study.site_count > 1 && <Badge tone="accent">{t("study.sharedWith", { count: study.site_count })}</Badge>}
+            {clinics.total > 1 && (
+              <Badge tone="accent">
+                {clinics.partial
+                  ? t("study.sharedWithVisible", { count: clinics.total, visible: clinics.visible })
+                  : t("study.sharedWith", { count: clinics.total })}
+              </Badge>
+            )}
           </>
         )}
         sub={sub || undefined}

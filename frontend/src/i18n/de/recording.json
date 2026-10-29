@@ -52,6 +52,9 @@
     "lastKeptHint": "Nur der letzte Versuch wird exportiert",
     "micLost": "Mikrofon verloren",
     "micLostHint": "Mikrofon während dieser Aufgabe verloren (Versuch verworfen: DEVICE_LOST)",
+    "videoPartial": "Video unvollständig",
+    "videoPartialOf": "Video unvollständig · {{video}} von {{audio}}",
+    "videoPartialHint": "Die Kamera hat vorzeitig gestoppt: das Video ist kürzer als das Audio",
     "results": {
       "Done": "Erledigt",
       "Skipped": "Übersprungen",

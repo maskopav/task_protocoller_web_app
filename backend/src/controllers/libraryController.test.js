@@ -84,6 +84,25 @@ describe('listLibrary', () => {
     expect(items[0]).toMatchObject({ languages: ['en', 'cs'], used_in: 2, is_author: true, protocol_ids: { en: 1, cs: 2 } });
   });
 
+  it('sends updated_at as ISO-8601 UTC (F-067)', async () => {
+    executeQuery.mockResolvedValue([row({ updated_at: '2026-10-26 17:22:34' })]);
+    const res = makeRes();
+    await listLibrary(req(user), res);
+    expect(res.json.mock.calls[0][0][0].updated_at).toBe('2026-10-26T17:22:34Z');
+  });
+
+  it('F-069: returns description null for the legacy placeholder, keeps a real one', async () => {
+    executeQuery.mockResolvedValue([
+      row({ description: 'Auto-created from AdminTaskEditor' }),
+      row({ id: 5, protocol_group_id: 10, description: 'Voice battery' }),
+    ]);
+    const res = makeRes();
+    await listLibrary(req(user), res);
+    const items = res.json.mock.calls[0][0];
+    expect(items.find((i) => i.protocol_group_id === 9).description).toBeNull();
+    expect(items.find((i) => i.protocol_group_id === 10).description).toBe('Voice battery');
+  });
+
   it('applies mine, q (escaped) and lang', async () => {
     executeQuery.mockResolvedValue([row({}), row({ protocol_group_id: 10, id: 5, language_code: 'de' })]);
     const res = makeRes();
@@ -109,10 +128,24 @@ describe('getLibraryEntry', () => {
       .mockResolvedValueOnce([{ id: 4, protocol_group_id: 9, name: 'S', created_by: 7 }])
       .mockResolvedValueOnce([{ code: 'en', protocol_id: 4 }, { code: 'cs', protocol_id: 5 }])
       .mockResolvedValueOnce([{ author: 'Ann', used_in: 1 }]);
-    assembleProtocol.mockResolvedValue({ protocol: { id: 4 }, contentMap: {}, globalFields: { info_text: 'i' }, tasks: [] });
+    assembleProtocol.mockResolvedValue({ protocol: { id: 4, created_at: '2026-10-26 17:20:34', updated_at: '2026-10-26 17:22:34' }, contentMap: {}, globalFields: { info_text: 'i' }, tasks: [] });
     const res = makeRes();
     await getLibraryEntry(req(user, { params: { id: '4' } }), res);
+    expect(res.json.mock.calls[0][0]).toMatchObject({ created_at: '2026-10-26T17:20:34Z', updated_at: '2026-10-26T17:22:34Z' });
     expect(res.json.mock.calls[0][0]).toMatchObject({ id: 4, language: ['en', 'cs'], author: 'Ann', used_in: 1, can_edit: true, info_text: 'i' });
+  });
+});
+
+describe('getLibraryEntry description', () => {
+  it('F-069: returns description null for the legacy placeholder', async () => {
+    executeQuery
+      .mockResolvedValueOnce([{ id: 4, protocol_group_id: 9, name: 'S', created_by: 7 }])
+      .mockResolvedValueOnce([{ code: 'en', protocol_id: 4 }])
+      .mockResolvedValueOnce([{ author: 'Ann', used_in: 1 }]);
+    assembleProtocol.mockResolvedValue({ protocol: { id: 4, description: 'Auto-created from AdminTaskEditor' }, contentMap: {}, globalFields: {}, tasks: [] });
+    const res = makeRes();
+    await getLibraryEntry(req(user, { params: { id: '4' } }), res);
+    expect(res.json.mock.calls[0][0].description).toBeNull();
   });
 });
 

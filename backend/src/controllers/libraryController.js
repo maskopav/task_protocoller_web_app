@@ -11,7 +11,9 @@ import {
   getVisibleProjectIds,
 } from "../utils/accessScope.js";
 import { logToFile } from "../utils/logger.js";
+import { toIso } from "../utils/dateIso.js";
 import { assembleProtocol } from "./protocolController.js";
+import { cleanDescription } from "../utils/legacyDescription.js";
 
 const isMaster = (req) => req.admin?.role === "master";
 const userIdOf = (req) => req.admin?.id ?? null;
@@ -134,14 +136,14 @@ export const listLibrary = async (req, res) => {
           id: r.id,
           protocol_group_id: r.protocol_group_id,
           name: r.name,
-          description: r.description ?? null,
+          description: cleanDescription(r.description) ?? null,
           version: r.version,
           languages: [],
           protocol_ids: {},
           n_tasks: Number(r.n_tasks) || 0,
           author: r.author ?? null,
           used_in: Number(r.used_in) || 0,
-          updated_at: r.updated_at,
+          updated_at: toIso(r.updated_at),
           is_author: r.created_by != null && Number(r.created_by) === userIdOf(req),
         };
         groups.set(r.protocol_group_id, g);
@@ -209,6 +211,9 @@ export const getLibraryEntry = async (req, res) => {
 
     res.json({
       ...protocol,
+      description: cleanDescription(protocol.description) ?? null,
+      created_at: toIso(protocol.created_at),
+      updated_at: toIso(protocol.updated_at),
       language: codes,
       ...globalFields,
       global_contents: contentMap.global || [],

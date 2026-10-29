@@ -2,7 +2,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { archiveProtocol, getProtocolById, getProtocolsByProjectId, shareProtocol } from "../../../api/protocols";
+import { archiveProtocol, getProtocolsByProjectId, shareProtocol } from "../../../api/protocols";
 import { fetchProjectsList } from "../../../api/projects";
 import {
   Badge, Button, DataTable, EmptyState, Icon, Menu, Modal, Select, useConfirm, useToast,
@@ -13,7 +13,7 @@ import { apiErrorMessage } from "../../../utils/apiError";
 import { formatRelative } from "../../../utils/formatDate";
 import LangChips from "../LangChips";
 import NewProtocolModal from "../NewProtocolModal";
-import { mapProtocolWithNames } from "../protocolMapping";
+import { loadMappedProtocol } from "../protocolMapping";
 import { duplicateDraft } from "../studyHelpers";
 
 /** "Copy to another study": pick a study the caller edits, then open the editor on an unsaved copy there. */
@@ -99,11 +99,7 @@ export default function ProtocolsTab({ study, canEdit, creating, onOpenCreate, o
   const reload = async () => { await load(); await onChanged?.(); };
 
   // Loads a protocol in the shape the preview and the editor draft use.
-  const loadMapped = async (p) => {
-    const mapped = mapProtocolWithNames(await getProtocolById(p.id), mappings);
-    if (!mapped) throw new Error("protocol_load_failed");
-    return mapped;
-  };
+  const loadMapped = (p) => loadMappedProtocol(p.id, mappings);
 
   const run = (fn) => async (...args) => {
     try {

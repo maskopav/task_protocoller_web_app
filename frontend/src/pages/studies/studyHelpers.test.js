@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   groupStudies, languageCodes, protocolNameTaken, blankProtocolDraft, duplicateDraft,
-  defaultLanguage, clinicRows, canRemoveEditor, yesNo, isArchived,
+  defaultLanguage, clinicRows, canRemoveEditor, yesNo, isArchived, clinicCounts,
 } from "./studyHelpers";
 
 const rows = [
@@ -77,5 +77,14 @@ describe("clinicRows / editors / yesNo", () => {
     expect(yesNo(false, t)).toBe("No");
     expect(yesNo("false", t)).toBe("No");
     expect(yesNo(5, t)).toBe(5);
+  });
+});
+
+describe("clinicCounts", () => {
+  it("flags partial visibility only when visible < total", () => {
+    expect(clinicCounts({ site_count: 3, visible_site_count: 1 })).toEqual({ total: 3, visible: 1, partial: true });
+    expect(clinicCounts({ site_count: 3, visible_site_count: 3 })).toMatchObject({ partial: false });
+    expect(clinicCounts({ site_count: 3 })).toEqual({ total: 3, visible: 3, partial: false });
+    expect(clinicCounts({})).toEqual({ total: 0, visible: 0, partial: false });
   });
 });

@@ -4,6 +4,7 @@
     "generic": "Something went wrong. Please try again.",
     "name_required": "Name is required.",
     "name_taken": "This name is already taken.",
+    "task_invalid": "A task in this protocol is not valid. Remove it and add it again.",
     "invalid_name": "This name is not valid.",
     "invalid_contact_email": "One of the contact emails is not valid.",
     "invalid_email": "This email address is not valid.",
@@ -65,6 +66,7 @@
       "placeholder": "Placeholder",
       "name": "name (a-z, 0-9, _)",
       "label": "Label",
+      "labelHint": "Shown as typed in every language.",
       "help": "Help text",
       "regex": "[a-zA-Z0-9_-]+",
       "variable": "Variable"
@@ -75,6 +77,11 @@
     "editTask": "Edit Task: {{category}}",
     "addTask": "Add Task: {{category}}",
     "instructionsPreview": "Instructions sent to the app",
+    "durationWarning": {
+      "minGreaterThanMax": "Minimum duration is greater than maximum duration.",
+      "durationBelowMin": "Duration is shorter than the minimum duration.",
+      "durationAboveMax": "Duration is longer than the maximum duration."
+    },
     "editorLanguage": "🌍 Editor language:",
     "protocolLanguage": "🌍 Protocol language:",
     "addQuestionnaire": "Add Questionnaire",
@@ -87,7 +94,7 @@
     "introPageAdded": "Info Page",
     "versionWarning": "! Editing {{name}} protocol: version will be incremented, protocol will be marked as current!",
     "confirmUpdateTitle": "Update Active Protocol?",
-    "confirmUpdateMsg": "You are updating an existing protocol. All participants assigned to this protocol will be automatically moved to this new version. Their existing unique links will continue to work but will load this new content.\n\nAre you sure you want to proceed?",
+    "confirmUpdateMsg": "Saving changes this protocol for every clinic that runs it. Computers get the new version the next time they fetch their config.",
     "saveFailedTitle": "Save Failed",
     "saveFailedMsg": "Failed to save protocol.",
     "editInfoTitle": "Edit Info Page",

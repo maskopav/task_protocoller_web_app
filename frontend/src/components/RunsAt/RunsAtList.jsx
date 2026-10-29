@@ -9,7 +9,8 @@ import { apiErrorMessage } from "../../utils/apiError";
 import "./RunsAt.css";
 
 /**
- * @param {{key:string|number,title:string,subtitle?:string,on:boolean,disabled?:boolean,disabledReason?:string,href?:string}[]} rows
+ * @param {{key:string|number,title:string,subtitle?:string,on:boolean,disabled?:boolean,readOnly?:boolean,disabledReason?:string,href?:string}[]} rows
+ * readOnly rows draw no switch at all (the viewer may not change them); disabled rows draw a disabled one.
  * @param {(row, nextOn:boolean) => Promise} onToggle  busy state is shown while it runs; errors become a toast
  */
 export function RunsAtList({ rows = [], onToggle, emptyText, testId = "runs-at-list" }) {
@@ -47,18 +48,22 @@ export function RunsAtList({ rows = [], onToggle, emptyText, testId = "runs-at-l
             data-testid={`${testId}-row-${row.key}`}
             aria-busy={isBusy || undefined}
           >
-            <Switch
-              checked={row.on}
-              label={row.title}
-              hideLabel
-              disabled={!!row.disabled || isBusy}
-              onChange={(next) => toggle(row, next)}
-              data-testid={`${testId}-switch-${row.key}`}
-            />
+            {row.readOnly ? (
+              <span className="runs-at-switch-slot" aria-hidden="true" />
+            ) : (
+              <Switch
+                checked={row.on}
+                label={row.title}
+                hideLabel
+                disabled={!!row.disabled || isBusy}
+                onChange={(next) => toggle(row, next)}
+                data-testid={`${testId}-switch-${row.key}`}
+              />
+            )}
             <div className="runs-at-text">
               {row.href ? <Link to={row.href} className="runs-at-title">{row.title}</Link> : <span className="runs-at-title">{row.title}</span>}
               {row.subtitle && <span className="runs-at-sub">{row.subtitle}</span>}
-              {row.disabled && row.disabledReason && <span className="runs-at-reason">{row.disabledReason}</span>}
+              {(row.disabled || row.readOnly) && row.disabledReason && <span className="runs-at-reason">{row.disabledReason}</span>}
             </div>
           </li>
         );

@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Modal, StatusDot } from "../ui";
+import { useWideTable } from "../ui/useWideTable.js";
 import ClipPlayer from "./ClipPlayer";
-import { answerRows, prettyName } from "../Recording/recordingFormat";
+import { answerRows, fmtClock, prettyName } from "../Recording/recordingFormat";
 import "../Recording/Recording.css";
+
+const isMs = (v) => Number.isFinite(v) && v >= 0;
 
 const RESULT_TONE = { Done: "ok", Skipped: "warn", Missing: "bad" };
 
@@ -45,6 +48,7 @@ export default function TaskTable({ sessionId, tasks, timeline, tickets, canPlay
   const { t } = useTranslation("recording");
   const [videoOpen, setVideoOpen] = useState(() => new Set());
   const [answersOf, setAnswersOf] = useState(null); // the questionnaire task being shown
+  const { wrapRef, tableRef, wrapClass } = useWideTable();
   const lost = micLostSet(timeline);
   const flip = (k) => setVideoOpen((cur) => {
     const next = new Set(cur);
@@ -56,8 +60,8 @@ export default function TaskTable({ sessionId, tasks, timeline, tickets, canPlay
     x.subtype ? prettyName(x.subtype) : x.type === "VIDEO" ? t("tasks.videoTask") : x.type === "QUESTIONNAIRE" ? t("tasks.questionnaire") : t("tasks.infoScreen");
 
   return (
-    <div className="ui-tbl-wrap recd-tasks">
-      <table className="ui-tbl">
+    <div className={`ui-tbl-wrap recd-tasks${wrapClass}`} ref={wrapRef}>
+      <table className="ui-tbl" ref={tableRef}>
         <thead>
           <tr>
             <th>#</th>
@@ -95,6 +99,13 @@ export default function TaskTable({ sessionId, tasks, timeline, tickets, canPlay
                         {x.clipFile && <ClipPlayer sessionId={sessionId} file={x.clipFile} kind="audio" tickets={tickets} />}
                         {x.videoFile && !videoOpen.has(key) && (
                           <Button size="sm" icon="video" aria-label={t("tasks.playVideo")} title={t("tasks.videoNoSound")} onClick={() => flip(key)} />
+                        )}
+                        {x.videoComplete === false && (
+                          <Badge tone="warn" data-testid="video-partial" title={t("tasks.videoPartialHint")}>
+                            {isMs(x.videoDurationMs) && isMs(x.audioDurationMs)
+                              ? t("tasks.videoPartialOf", { video: fmtClock(x.videoDurationMs / 1000), audio: fmtClock(x.audioDurationMs / 1000) })
+                              : t("tasks.videoPartial")}
+                          </Badge>
                         )}
                       </span>
                     ) : answerCount > 0 && done ? (

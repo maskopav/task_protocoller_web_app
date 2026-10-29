@@ -4,6 +4,7 @@
     "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
     "name_required": "Ein Name ist erforderlich.",
     "name_taken": "Dieser Name ist bereits vergeben.",
+    "task_invalid": "Eine Aufgabe in diesem Protokoll ist nicht gültig. Entfernen Sie sie und fügen Sie sie erneut hinzu.",
     "invalid_name": "Dieser Name ist ungültig.",
     "invalid_contact_email": "Eine der Kontakt-E-Mail-Adressen ist ungültig.",
     "invalid_email": "Diese E-Mail-Adresse ist ungültig.",
@@ -65,6 +66,7 @@
       "placeholder": "Platzhalter",
       "name": "Name (a-z, 0-9, _)",
       "label": "Bezeichnung",
+      "labelHint": "Wird in allen Sprachen so angezeigt, wie eingegeben.",
       "help": "Hilfetext",
       "regex": "[a-zA-Z0-9_-]+",
       "variable": "Variable"
@@ -75,6 +77,11 @@
     "editTask": "Aufgabe bearbeiten: {{category}}",
     "addTask": "Aufgabe hinzufügen: {{category}}",
     "instructionsPreview": "An die App gesendete Anweisungen",
+    "durationWarning": {
+      "minGreaterThanMax": "Die Mindestdauer ist größer als die Höchstdauer.",
+      "durationBelowMin": "Die Dauer ist kürzer als die Mindestdauer.",
+      "durationAboveMax": "Die Dauer ist länger als die Höchstdauer."
+    },
     "editorLanguage": "Editorsprache:",
     "protocolLanguage": "Protokollsprache:",
     "addQuestionnaire": "Fragebogen hinzufügen",
@@ -87,7 +94,7 @@
     "introPageAdded": "Infoseite",
     "versionWarning": "! Sie bearbeiten das Protokoll {{name}}: Die Version wird erhöht und das Protokoll als aktuell markiert!",
     "confirmUpdateTitle": "Aktives Protokoll aktualisieren?",
-    "confirmUpdateMsg": "Sie aktualisieren ein bestehendes Protokoll. Alle diesem Protokoll zugewiesenen Teilnehmer werden automatisch auf diese neue Version umgestellt. Ihre bisherigen persönlichen Links funktionieren weiterhin, laden aber den neuen Inhalt.\n\nMöchten Sie wirklich fortfahren?",
+    "confirmUpdateMsg": "Durch das Speichern ändert sich dieses Protokoll für alle Kliniken, die es verwenden. Die Computer erhalten die neue Version beim nächsten Abruf ihrer Konfiguration.",
     "saveFailedTitle": "Speichern fehlgeschlagen",
     "saveFailedMsg": "Das Protokoll konnte nicht gespeichert werden.",
     "editInfoTitle": "Infoseite bearbeiten",

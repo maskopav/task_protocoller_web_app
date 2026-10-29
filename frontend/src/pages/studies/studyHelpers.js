@@ -25,6 +25,17 @@ export function groupStudies(rows, { isMaster, showArchived = false, query = "" 
   };
 }
 
+/**
+ * Clinic counts of a study: `total` is every clinic it runs at, `visible` the ones the caller can see.
+ * An older backend sends no visible_site_count; then everything counts as visible.
+ */
+export function clinicCounts(study) {
+  const total = Number(study?.site_count ?? 0);
+  const raw = study?.visible_site_count;
+  const visible = raw == null ? total : Number(raw);
+  return { total, visible, partial: visible < total };
+}
+
 /** Unique language codes over protocol groups (the chips of a study). */
 export function languageCodes(protocols) {
   const out = [];

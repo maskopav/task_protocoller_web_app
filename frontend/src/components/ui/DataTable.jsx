@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EmptyState } from "./EmptyState.jsx";
+import { useWideTable } from "./useWideTable.js";
 import "./ui.css";
 
 const INTERACTIVE = "a,button,input,select,textarea,label,[role='menu'],[role='menuitem']";
@@ -30,6 +31,7 @@ function compare(a, b) {
 export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href, empty, defaultSort, caption, rowClassName, ...rest }) {
   const navigate = useNavigate();
   const [sort, setSort] = useState(defaultSort || null);
+  const { wrapRef, tableRef, wrapClass } = useWideTable(rows.length > 0);
 
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -52,8 +54,8 @@ export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href,
     setSort((s) => (s && s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
 
   return (
-    <div className="ui-tbl-wrap">
-      <table className="ui-tbl" {...rest}>
+    <div className={`ui-tbl-wrap${wrapClass}`} ref={wrapRef}>
+      <table className="ui-tbl" ref={tableRef} {...rest}>
         {caption && <caption className="ui-sr-only">{caption}</caption>}
         <thead>
           <tr>

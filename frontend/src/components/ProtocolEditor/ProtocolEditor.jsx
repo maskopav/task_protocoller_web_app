@@ -29,6 +29,7 @@ import {
   normalizeIdentifiers,
   FIELD_NAME_RE,
 } from "../Identifiers/IdentifierFields";
+import CustomFieldLabelInput from "../Identifiers/CustomFieldLabelInput";
 import { protocolSnapshot } from "./snapshot";
 import "./ProtocolEditor.css";
 import "./ProtocolWorkspace.css";
@@ -562,7 +563,7 @@ export function ProtocolEditor({
                     value={f.name}
                     onChange={(e) => updateIdentifierAt(idx, { name: e.target.value })}
                   />
-                  <input type="text" aria-label={t("protocolEditor.identifiers.label", "Label")} className={!f.label?.trim() ? "name-input-error" : ""} placeholder={`${t("protocolEditor.identifiers.label", "Label")}*`} value={f.label} onChange={(e) => updateIdentifierAt(idx, { label: e.target.value })} />
+                  <CustomFieldLabelInput value={f.label} invalid={!f.label?.trim()} onChange={(label) => updateIdentifierAt(idx, { label })} />
                   <input type="text" aria-label={t("protocolEditor.identifiers.help", "Help text")} placeholder={t("protocolEditor.identifiers.help", "Help text")} value={f.help} onChange={(e) => updateIdentifierAt(idx, { help: e.target.value })} />
                   <input type="text" aria-label={t("protocolEditor.identifiers.placeholder", "Placeholder")} placeholder={t("protocolEditor.identifiers.placeholder", "Placeholder")} value={f.placeholder} onChange={(e) => updateIdentifierAt(idx, { placeholder: e.target.value })} />
                   <input type="text" aria-label={t("protocolEditor.identifiers.regex", "Regex")} className="pe-mono" placeholder={t("protocolEditor.identifiers.regex", "Regex")} value={f.regex} onChange={(e) => updateIdentifierAt(idx, { regex: e.target.value })} />

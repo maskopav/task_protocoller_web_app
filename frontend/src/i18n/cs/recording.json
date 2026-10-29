@@ -54,6 +54,9 @@
     "lastKeptHint": "Exportuje se jen poslední pokus",
     "micLost": "výpadek mikrofonu",
     "micLostHint": "Mikrofon se během této úlohy odpojil (pokus zamítnut: DEVICE_LOST)",
+    "videoPartial": "Video neúplné",
+    "videoPartialOf": "Video neúplné · {{video}} z {{audio}}",
+    "videoPartialHint": "Kamera se zastavila dříve: video je kratší než zvuk",
     "results": {
       "Done": "Hotovo",
       "Skipped": "Přeskočeno",

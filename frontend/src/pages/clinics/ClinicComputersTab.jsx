@@ -99,6 +99,12 @@ export default function ClinicComputersTab({ site, devices, isMaster, onChanged 
       ),
     },
     {
+      key: "config", header: t("computers.columns.config"),
+      render: (d) => (d.lastConfigVersion != null && d.lastConfigVersion !== ""
+        ? <span title={d.lastConfigAt ? formatDateTime(d.lastConfigAt) : undefined} data-testid={`computer-config-${d.id}`}>{d.lastConfigVersion}</span>
+        : <span className="clinics-muted" data-testid={`computer-config-${d.id}`}>—</span>),
+    },
+    {
       key: "lastSeen", header: t("computers.columns.lastSeen"),
       render: (d) => (d.lastSeenAt
         ? <span title={formatDateTime(d.lastSeenAt)}>{formatRelative(d.lastSeenAt)}</span>

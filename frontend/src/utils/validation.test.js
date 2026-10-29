@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validate } from './validation';
+import { validate, taskDurationWarnings } from './validation';
 
 describe('validate.participant', () => {
   it('is valid with only an external_id', () => {
@@ -162,5 +162,32 @@ describe('validate.auth.login', () => {
     });
     expect(isValid).toBe(true);
     expect(errors).toEqual({});
+  });
+});
+
+describe('taskDurationWarnings (F-073)', () => {
+  it('warns when min is greater than max', () => {
+    expect(taskDurationWarnings({ minDuration: 90, maxDuration: 30 })).toEqual(['minGreaterThanMax']);
+  });
+
+  it('warns when duration is below min', () => {
+    expect(taskDurationWarnings({ duration: 10, minDuration: 30, maxDuration: 120 })).toEqual(['durationBelowMin']);
+  });
+
+  it('warns when duration is above max', () => {
+    expect(taskDurationWarnings({ duration: 200, minDuration: 30, maxDuration: 120 })).toEqual(['durationAboveMax']);
+  });
+
+  it('gives no warning for consistent values, boundaries included', () => {
+    expect(taskDurationWarnings({ duration: 90, minDuration: 30, maxDuration: 120 })).toEqual([]);
+    expect(taskDurationWarnings({ duration: 30, minDuration: 30, maxDuration: 30 })).toEqual([]);
+  });
+
+  it('ignores empty values', () => {
+    expect(taskDurationWarnings({})).toEqual([]);
+    expect(taskDurationWarnings(null)).toEqual([]);
+    expect(taskDurationWarnings({ duration: '', minDuration: null, maxDuration: undefined })).toEqual([]);
+    expect(taskDurationWarnings({ duration: 500, minDuration: '', maxDuration: '' })).toEqual([]);
+    expect(taskDurationWarnings({ minDuration: 50 })).toEqual([]);
   });
 });

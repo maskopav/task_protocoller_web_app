@@ -5,3 +5,5 @@
 .runs-at-text { display: flex; flex-direction: column; gap: var(--s-1); min-width: 0; }
 .runs-at-title { font-weight: 500; color: var(--text); }
 .runs-at-sub, .runs-at-reason, .runs-at-empty { font-size: var(--fs-xs); color: var(--text-2); }
+/* Same footprint as a Switch track, so read-only rows keep their text aligned. */
+.runs-at-switch-slot { flex: none; width: 34px; height: 20px; }

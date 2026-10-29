@@ -36,6 +36,9 @@
     },
     "clinicsCount_one": "{{count}} Klinik",
     "clinicsCount_other": "{{count}} Kliniken",
+    "clinicsCountVisible_one": "{{count}} Klinik ({{visible}} sichtbar)",
+    "clinicsCountVisible_other": "{{count}} Kliniken ({{visible}} sichtbar)",
+    "countVisible": "{{count}} ({{visible}} sichtbar)",
     "empty": "Noch keine Studien.",
     "emptyHint": "Studien erscheinen hier, wenn sie an einer Ihrer Kliniken laufen oder wenn Sie als Bearbeiter hinzugefügt werden.",
     "noMatch": "Keine Studie passt zu Ihrer Suche."
@@ -62,6 +65,8 @@
     "received": "Erhalten",
     "sharedWith_one": "Mit {{count}} Klinik geteilt",
     "sharedWith_other": "Mit {{count}} Kliniken geteilt",
+    "sharedWithVisible_one": "Mit {{count}} Klinik geteilt, {{visible}} für Sie sichtbar",
+    "sharedWithVisible_other": "Mit {{count}} Kliniken geteilt, {{visible}} für Sie sichtbar",
     "managedBy": "Verwaltet von {{name}}. Sie können die Aufnahmen prüfen, aber die Studie und ihre Protokolle nicht ändern.",
     "managedByLabel": "Verwaltet von",
     "archivedBanner": "Diese Studie ist archiviert. Die Protokolle sind schreibgeschützt, bis sie wiederhergestellt wird.",

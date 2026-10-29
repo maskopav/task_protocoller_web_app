@@ -9,7 +9,18 @@ import { testDbAvailable, withRollback, closeTestDb } from "../helpers/testDb.js
 const hold = { q: null };
 vi.mock("../../src/db/queryHelper.js", () => ({
   executeQuery: (sql, params = []) => hold.q(sql, params),
-  executeTransaction: async (cb) => cb({ query: async (sql, params = []) => [await hold.q(sql, params)] }),
+  // like the real helper, a failing callback undoes its own writes (savepoint inside the test's outer transaction)
+  executeTransaction: async (cb) => {
+    await hold.q("SAVEPOINT tx_shim", []);
+    try {
+      const out = await cb({ query: async (sql, params = []) => [await hold.q(sql, params)] });
+      await hold.q("RELEASE SAVEPOINT tx_shim", []);
+      return out;
+    } catch (e) {
+      await hold.q("ROLLBACK TO SAVEPOINT tx_shim", []);
+      throw e;
+    }
+  },
 }));
 
 const dbUp = await testDbAvailable();
@@ -62,6 +73,23 @@ const task = { task_id: 1, params: {} };
 const save = (admin, body) => call(PR.saveProtocol, admin, { body: { language_id: [1], tasks: [task], ...body } });
 
 describe.skipIf(!dbUp)("study access model against MariaDB", () => {
+  it("site_count is the total, visible_site_count only the caller's clinics", async () => {
+    await withRollback(async (q) => {
+      hold.q = q;
+      const w = await world(q);
+      const S2 = (await q(`INSERT INTO sites (name, access_token) VALUES (?, ?)`, [`S2_${w.t}`, crypto.randomBytes(16).toString("hex")])).insertId;
+      await q(`INSERT INTO site_projects (site_id, project_id) VALUES (?, ?)`, [S2, w.P1]);
+
+      const pick = async (admin) => (await call(P.getProject, admin, { params: { id: w.P1 } })).body;
+      const master = await pick({ id: w.researcher, role: "master" });
+      expect(master).toMatchObject({ site_count: 2, visible_site_count: 2 });
+      // clinician is assigned to S1 only; editor to neither
+      expect(await pick(as(w.clinician))).toMatchObject({ site_count: 2, visible_site_count: 1 });
+      expect(await pick(as(w.editor))).toMatchObject({ site_count: 2, visible_site_count: 0 });
+      expect(await pick(as(w.clinician))).not.toHaveProperty("count_sites");
+    });
+  });
+
   it("the creator becomes the first editor; received studies are visible but not editable", async () => {
     await withRollback(async (q) => {
       hold.q = q;
@@ -192,6 +220,31 @@ describe.skipIf(!dbUp)("study access model against MariaDB", () => {
       expect((await save(as(w.editor), group)).code).toBe(403);
       expect((await save(as(w.researcher), group)).code).toBe(200);
       expect((await save(as(w.clinician), group)).code).toBe(404);
+    });
+  });
+
+  it("F-086: a task without task_id is a 400 task_invalid and nothing is written", async () => {
+    await withRollback(async (q) => {
+      hold.q = q;
+      const w = await world(q);
+      const count = async () => Number((await q(`SELECT COUNT(*) AS n FROM protocols`))[0].n);
+      const before = await count();
+      const res = await save(w.R, { name: `NoTask ${w.t}`, project_id: w.P1, tasks: [{ params: {} }] });
+      expect(res.code).toBe(400);
+      expect(res.body).toMatchObject({ error: "task_invalid", index: 0 });
+      expect(await count()).toBe(before);
+    });
+  });
+  it("F-086: a well-formed task whose task_id is no row in tasks hits the real foreign key: 400 task_invalid, nothing written", async () => {
+    await withRollback(async (q) => {
+      hold.q = q;
+      const w = await world(q);
+      const count = async () => Number((await q(`SELECT COUNT(*) AS n FROM protocols`))[0].n);
+      const before = await count();
+      const res = await save(w.R, { name: `GhostTask ${w.t}`, project_id: w.P1, tasks: [{ task_id: 999999999, params: {} }] });
+      expect(res.code).toBe(400);
+      expect(res.body).toEqual({ error: "task_invalid" });
+      expect(await count()).toBe(before);
     });
   });
 });

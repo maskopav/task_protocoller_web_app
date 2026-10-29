@@ -3,9 +3,15 @@
 // Invalid or missing input returns "" so callers never print "Invalid Date" or raw ISO.
 import i18n from "i18next";
 
+// The API sends DB datetimes as UTC. A zoneless "YYYY-MM-DD HH:MM:SS" (or with "T") would
+// otherwise be read as browser-local time and shift by the UTC offset.
+const ZONELESS = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
+
 function toDate(value) {
   if (value === null || value === undefined || value === "") return null;
-  const d = value instanceof Date ? value : new Date(value);
+  let v = value;
+  if (typeof v === "string" && ZONELESS.test(v.trim())) v = `${v.trim().replace(" ", "T")}Z`;
+  const d = v instanceof Date ? v : new Date(v);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 

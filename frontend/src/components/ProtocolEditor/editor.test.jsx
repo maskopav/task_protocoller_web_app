@@ -2,7 +2,8 @@
 import React from "react";
 import { describe, it, expect, afterEach, beforeAll } from "vitest";
 import i18n from "../../i18n";
-import { render, click } from "../ui/renderUtil.jsx";
+import { render, click, act } from "../ui/renderUtil.jsx";
+import TaskModal from "./TaskModal";
 import TaskList from "./TaskList";
 import { defaultLabel, paramText } from "./paramText";
 import { protocolSnapshot } from "./snapshot";
@@ -60,5 +61,52 @@ describe("protocolSnapshot", () => {
   });
   it("treats null and empty text alike, so loading is not 'dirty'", () => {
     expect(protocolSnapshot({ ...base, info_text: null, instructions_pdf_url: null }, [])).toBe(protocolSnapshot(base, []));
+  });
+});
+
+describe("save-confirm text (F-068)", () => {
+  it("describes the config delivery, not the old participant links", () => {
+    for (const lang of ["en", "cs", "de"]) {
+      const msg = i18n.getFixedT(lang, "admin")("protocolEditor.confirmUpdateMsg");
+      expect(msg).not.toMatch(/unique link|unikátní|persönlich|automatically moved/i);
+    }
+    const en = i18n.getFixedT("en", "admin")("protocolEditor.confirmUpdateMsg");
+    expect(en).toMatch(/computers/i);
+    expect(en).toMatch(/config/i);
+  });
+});
+
+describe("TaskModal duration warning (F-073)", () => {
+  function Harness({ initial, onSave }) {
+    const [data, setData] = React.useState(initial);
+    return <TaskModal open creatingNewTask editingTask={null} editingData={data} setEditingData={setData} tasks={[]} onClose={() => {}} onSave={onSave} />;
+  }
+  const setValue = (input, v) => {
+    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    act(() => { set.call(input, v); input.dispatchEvent(new Event("input", { bubbles: true })); });
+  };
+  const numberInputs = () => [...document.body.querySelectorAll('input[type="number"]')];
+
+  it("shows while values contradict, vanishes when fixed, and never blocks Save", () => {
+    const saved = [];
+    render(<Harness initial={{ category: "retelling", minDuration: 30, maxDuration: 120, duration: 90 }} onSave={(d) => saved.push(d)} />);
+    const q = () => document.body.querySelector('[data-testid="task-duration-warning"]');
+    expect(q()).toBeNull();
+
+    // find the min/max inputs by their current values
+    const min = numberInputs().find((i) => i.value === "30");
+    const max = numberInputs().find((i) => i.value === "120");
+    setValue(min, "200");
+    expect(q()).not.toBeNull();
+    expect(q().getAttribute("role")).toBe("alert");
+
+    click(document.body.querySelector('[data-testid="modal-save"]'));
+    expect(saved).toHaveLength(1);
+    expect(saved[0].minDuration).toBe(200);
+
+    setValue(min, "30");
+    expect(q()).toBeNull();
+    setValue(max, "60");
+    expect(q()).not.toBeNull(); // duration 90 > max 60
   });
 });

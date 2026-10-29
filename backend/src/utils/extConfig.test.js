@@ -79,9 +79,11 @@ describe('buildExtConfig — case specifics', () => {
     expect(protocol.tasks[1]).toMatchObject({ length: 7, audioExamplePath: 'https://example.org/test/dist/audio/illustrations/syllableRepeating_pataka.wav' });
     expect(protocol.tasks[2].audioExamplePath).toBeUndefined(); // reading has no example
     expect(protocol.tasks[2].length).toBe(150); // minDuration 0 -> maxDuration
-    // every VOCAL task has exactly the two instruction cards; the reading passage is on paper, not in the config
-    for (const t of protocol.tasks) expect(t.instructionKeys).toEqual([`${t.titleKey.replace(/_title$/, '')}_instr1`, `${t.titleKey.replace(/_title$/, '')}_instr2`]);
-    expect(JSON.stringify(config.strings.en)).not.toMatch(/North Wind and the Sun were/);
+    // every VOCAL task has the two instruction cards; READING gets the passage as a third (last) paragraph
+    for (const t of protocol.tasks) {
+      const base = t.titleKey.replace(/_title$/, '');
+      expect(t.instructionKeys).toEqual(t.subtype === 'READING' ? [`${base}_instr1`, `${base}_instr2`, `${base}_instr3`] : [`${base}_instr1`, `${base}_instr2`]);
+    }
     expect(config.strings.en[protocol.tasks[2].titleKey]).toBe('Reading - The North Wind and the Sun');
     // a card keeps its bold/italic paragraphs inside one string
     expect(config.strings.en[protocol.tasks[0].instructionKeys[1]]).toMatch(/^<bold>Start now\.<\/bold>\n\n<italic>Press the START button/);
@@ -91,6 +93,67 @@ describe('buildExtConfig — case specifics', () => {
       { name: 'patient_code', labelKey: 'p10_f_patient_code_label', helpKey: 'p10_f_patient_code_help', placeholder: 'HC001', regex: '[A-Za-z0-9_-]+', required: true },
     ]);
     expect(config.strings.en.p10_f_patient_code_label).toBe('Participant code');
+  });
+
+  it('READING: the topic passage is the last instruction paragraph, after the Start-now card', () => {
+    const reading = (cfg) => cfg.protocols[0].tasks.find((t) => t.subtype === 'READING');
+    const { config: en } = all.single_en;
+    const t = reading(en);
+    expect(t.instructionKeys).toHaveLength(3);
+    expect(en.strings.en[t.instructionKeys[1]]).toMatch(/^<bold>Start now\./);
+    expect(en.strings.en[t.instructionKeys[2]]).toMatch(/^The North Wind and the Sun were/);
+    expect(en.strings.en[t.instructionKeys[2]]).toBe(resolveText('{{text}}', { topic: 'northWind' }, 'reading', 'en', locales).trim());
+    // every served language carries its own passage
+    const { config: multi } = all.variants_en_cs;
+    const rt = reading(multi);
+    for (const lang of multi.languages) {
+      expect(rt.instructionKeys).toHaveLength(3);
+      expect(multi.strings[lang][rt.instructionKeys[2]]).toBe(lang === 'en' ? resolveText('{{text}}', { topic: 'rainbow' }, 'reading', 'en', locales).trim() : locales[lang].tasks.reading.params.topic.values.rainbow.label); // cs/de ship labels only
+      expect(multi.strings[lang][rt.instructionKeys[2]]).not.toBe('');
+    }
+  });
+
+  it('READING uses a a language own passage when its tasks.json has one', () => {
+    const own = structuredClone(locales);
+    own.cs.tasks.reading.params.topic.values.rainbow.text = 'CS PASSAGE';
+    const { config } = buildExtConfig({ ...CASES.variants_en_cs(own), locales: own });
+    const t = config.protocols[0].tasks[1];
+    expect(config.strings.cs[t.instructionKeys[2]]).toBe('CS PASSAGE');
+    expect(config.strings.en[t.instructionKeys[2]]).toMatch(/^When the sunlight/);
+  });
+
+  it('READING always has 3 keys; passage = own text, else own label, else "" (Start-now stays second-to-last)', () => {
+    const build = (topic, lang) => {
+      const args = CASES.single_en(locales);
+      const tk = args.projects[0].protocols[0].tasks.find((t) => t.task_id === 4);
+      tk.params.topic = topic;
+      args.projects[0].protocols[0].protocol.language_code = lang;
+      args.site.config_json = { defaultLanguage: lang, languages: [lang] };
+      const { config } = buildExtConfig({ ...args, locales });
+      const t = config.protocols[0].tasks.find((x) => x.subtype === 'READING');
+      return { t, strings: config.strings[lang] };
+    };
+    const label = (l, k) => locales[l].tasks.reading.params.topic.values[k].label;
+    let r = build('northWind', 'en');
+    expect(r.t.instructionKeys).toHaveLength(3);
+    expect(r.strings[r.t.instructionKeys[2]]).toBe(locales.en.tasks.reading.params.topic.values.northWind.text.trim());
+    r = build('seedling', 'cs');
+    expect(r.t.instructionKeys).toHaveLength(3);
+    expect(r.strings[r.t.instructionKeys[2]]).toBe(label('cs', 'seedling'));
+    r = build('northWind', 'de');
+    expect(r.strings[r.t.instructionKeys[2]]).toBe(label('de', 'northWind'));
+    expect(r.strings[r.t.instructionKeys[2]]).not.toMatch(/North Wind and the Sun were/);
+    for (const topic of ['noSuchTopic', undefined]) {
+      r = build(topic, 'en');
+      expect(r.t.instructionKeys).toHaveLength(3);
+      expect(r.strings[r.t.instructionKeys[2]]).toBe('');
+      expect(r.strings[r.t.instructionKeys[1]]).toMatch(/^<bold>Start now\./);
+    }
+  });
+
+  it('non-READING tasks keep exactly their two instruction cards', () => {
+    const { config } = all.single_en;
+    for (const t of config.protocols[0].tasks.filter((x) => x.subtype !== 'READING')) expect(t.instructionKeys).toHaveLength(2);
   });
 
   it('multi_project: flat protocols, each naming its parent project', () => {
@@ -197,6 +260,21 @@ describe('buildExtConfig — case specifics', () => {
     expect(protocol.tasks[0].audioExamplePath).toBeUndefined();
     // stored "true" and tinyint 1 both become a real boolean
     expect(protocol.tasks.map((t) => t.recordVideo)).toEqual([true, true]);
+  });
+
+  it('F-069: the legacy "Auto-created from AdminTaskEditor" description is treated as empty', () => {
+    const build = (description) => {
+      const input = CASES.single_en(locales);
+      for (const pr of input.projects) for (const a of pr.protocols) a.protocol.description = description;
+      return buildExtConfig({ ...input, locales }).config;
+    };
+    for (const d of ['Auto-created from AdminTaskEditor', null, '  ']) {
+      const config = build(d);
+      expect(config.protocols[0]).not.toHaveProperty('descriptionKey');
+      expect(JSON.stringify(config.strings)).not.toContain('Auto-created');
+    }
+    // a real description still goes out
+    expect(build('Real text').protocols[0]).toHaveProperty('descriptionKey');
   });
 
   it('serves a site with no protocols as an empty but valid config', () => {

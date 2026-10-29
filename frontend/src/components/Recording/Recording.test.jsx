@@ -109,6 +109,18 @@ describe("F-036: camera events", () => {
     expect(outside).not.toContain("frame=");
   });
 
+  it("F-111: the notice is a block of its own under the device name", () => {
+    const s = baseSession({ hardware: {
+      cameraUses: [{ deviceName: "Logitech C920" }],
+      events: [{ device: "camera", event: "capture_failed" }],
+    } });
+    render(router(<SessionPanel s={s} />));
+    const ev = host.querySelector('[data-testid="device-event-camera"]');
+    expect(ev.tagName).toBe("DIV");
+    expect(ev.className).toContain("recd-event");
+    expect(ev.previousSibling.textContent).toBe("Logitech C920");
+  });
+
   it("shows no Details when the app sent no text", () => {
     render(<DeviceEvents kind="microphone" events={[{ device: "microphone", event: "capture_failed" }]} />);
     expect(host.textContent).toContain("The microphone could not record.");
@@ -130,6 +142,55 @@ describe("F-037: a clip the browser cannot play", () => {
     const msg = host.querySelector('[data-testid="clip-cant-play"]');
     expect(msg.textContent).toContain("This clip can't play in the browser. Download to play.");
     expect(msg.querySelector("a[download]").getAttribute("href")).toContain("/clip/s1/");
+  });
+});
+
+describe("F-037: unplayable clip error codes", () => {
+  const errorWith = (video, code) => {
+    const ev = new Event("error");
+    Object.defineProperty(video, "error", { value: code == null ? null : { code }, configurable: true });
+    return ev;
+  };
+  const setup = async () => {
+    const tickets = { getTicket: vi.fn().mockResolvedValue("tk"), refresh: vi.fn().mockResolvedValue("tk2") };
+    render(<ClipPlayer sessionId="s1" file="clips/a_0.mp4" kind="video" tickets={tickets} />);
+    await act(async () => { host.querySelector("button").click(); });
+    return tickets;
+  };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("code 4 with a readable clip: fallback at once, no retry, no new ticket", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ status: 206 });
+    vi.stubGlobal("fetch", fetchMock);
+    const tickets = await setup();
+    const video = host.querySelector("video");
+    await act(async () => { video.dispatchEvent(errorWith(video, 4)); });
+    expect(host.querySelector("video")).toBeNull();
+    expect(host.querySelector('[data-testid="clip-cant-play"] a[download]')).not.toBeNull();
+    expect(tickets.refresh).not.toHaveBeenCalled();
+    expect(tickets.getTicket).toHaveBeenCalledTimes(2); // open + the download link, no extra ticket request
+  });
+
+  it("code 4 caused by a rejected ticket (401): still retries once", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 401 }));
+    const tickets = await setup();
+    const video = host.querySelector("video");
+    await act(async () => { video.dispatchEvent(errorWith(video, 4)); });
+    expect(tickets.refresh).toHaveBeenCalledTimes(1);
+    expect(host.querySelector("video").getAttribute("src")).toContain("ticket=tk2");
+  });
+
+  it("code 2 (network): one retry, then fallback after the second failure", async () => {
+    const tickets = await setup();
+    const video = host.querySelector("video");
+    await act(async () => { video.dispatchEvent(errorWith(video, 2)); });
+    expect(tickets.refresh).toHaveBeenCalledTimes(1);
+    const again = host.querySelector("video");
+    expect(again).not.toBeNull();
+    await act(async () => { again.dispatchEvent(errorWith(again, 2)); });
+    expect(host.querySelector("video")).toBeNull();
+    expect(host.querySelector('[data-testid="clip-cant-play"]')).not.toBeNull();
+    expect(tickets.refresh).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -157,6 +218,31 @@ describe("F-040: questionnaire answers", () => {
     expect(list.textContent).toContain("Sometimes");
     expect(list.textContent).not.toContain("p1_t5_q1");
     expect(list.textContent).toContain("p1_t5_q3_o1"); // text missing: key shown
+  });
+});
+
+describe("F-110: partial video badge", () => {
+  const task = (extra) => ({ taskIndex: 1, repetition: 1, type: "VIDEO", subtype: "READING", result: "Done", takes: 1,
+    clipFile: "clips/a.wav", videoFile: "clips/a.mp4", ...extra });
+  const badge = () => host.querySelector('[data-testid="video-partial"]');
+  const draw = (extra) => render(<TaskTable sessionId="s1" tasks={[task(extra)]} timeline={[]} tickets={{}} canPlay />);
+
+  it("shows a warning badge with both durations when videoComplete is false", () => {
+    draw({ videoComplete: false, videoDurationMs: 10900, audioDurationMs: 24450 });
+    expect(badge().textContent).toBe("Video partial · 0:11 of 0:24");
+    expect(badge().className).toContain("ui-badge-warn");
+  });
+
+  it("shows just 'Video partial' when a duration is missing", () => {
+    draw({ videoComplete: false, videoDurationMs: null, audioDurationMs: 24450 });
+    expect(badge().textContent).toBe("Video partial");
+  });
+
+  it("shows nothing when the video is complete or the field is missing", () => {
+    draw({ videoComplete: true, videoDurationMs: 24000, audioDurationMs: 24450 });
+    expect(badge()).toBeNull();
+    draw({});
+    expect(badge()).toBeNull();
   });
 });
 

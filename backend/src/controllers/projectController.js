@@ -26,20 +26,26 @@ const parseId = (raw) => {
 };
 
 // One row per study for the list and the detail read. The old summary-view
-// column names stay (project_id, project_name, project_is_active,
-// count_sites ...) next to the new ones, so the pages that still read them keep
-// working while the UI is rebuilt. Unreviewed counts recordings at clinics the
-// caller sees, so it can never leak a clinic's numbers.
+// column names stay (project_id, project_name, project_is_active ...) next to
+// the new ones, so the pages that still read them keep working while the UI is
+// rebuilt; decorate() drops the raw count_sites. site_count is every clinic the
+// study runs at, visible_site_count only those the caller can see (F-097).
+// Unreviewed counts recordings at clinics the caller sees, so it can never leak
+// a clinic's numbers.
 async function queryProjects(req, projectIds) {
   const scope = scopeWhereClause(req.admin, "us");
+  const siteScope = scopeWhereClause(req.admin, "sp");
   const where = projectIds ? "WHERE s.project_id IN (?)" : "";
-  const params = [...scope.params, ...(projectIds ? [projectIds] : [])];
+  // Placeholders appear in SELECT order: visible clinics, then unreviewed, then the id filter.
+  const params = [...siteScope.params, ...scope.params, ...(projectIds ? [projectIds] : [])];
 
   return executeQuery(
     `SELECT s.*,
             p.id, p.name, p.end_date, p.contact_persons, p.contact_emails,
             p.created_by, u.full_name AS creator_name,
             s.count_sites AS site_count,
+            (SELECT COUNT(*) FROM site_projects sp
+              WHERE sp.project_id = p.id AND ${siteScope.sql}) AS visible_site_count,
             (SELECT COUNT(DISTINCT pr.protocol_group_id) FROM protocols pr
               WHERE pr.project_id = p.id AND pr.is_current = 1 AND pr.is_archived = 0) AS protocol_count,
             (SELECT COUNT(*) FROM upload_sessions us
@@ -57,9 +63,10 @@ async function decorate(req, rows) {
   const isMaster = isMasterReq(req);
   const userId = req.admin?.id ?? null;
   const editable = isMaster ? [] : await getEditableProjectIds(userId);
-  return rows.map((r) => ({
+  return rows.map(({ count_sites: _rawSiteCount, ...r }) => ({
     ...r,
     site_count: Number(r.site_count),
+    visible_site_count: Number(r.visible_site_count),
     protocol_count: Number(r.protocol_count),
     unreviewed: Number(r.unreviewed),
     can_edit: isMaster || editable.includes(Number(r.project_id)),

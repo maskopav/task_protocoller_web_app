@@ -23,6 +23,21 @@ describe("RunsAtList", () => {
     expect(sw[1].disabled).toBe(true);
   });
 
+  it("draws no switch at all for a readOnly row, but keeps the disabled one", () => {
+    const mixed = [
+      { key: 1, title: "Mine", on: true },
+      { key: 2, title: "Received", subtitle: "Received", on: true, readOnly: true },
+      { key: 3, title: "Locked", on: false, disabled: true },
+    ];
+    const { container } = render(<ToastProvider><RunsAtList rows={mixed} onToggle={vi.fn()} testId="t" /></ToastProvider>);
+    const ro = container.querySelector('[data-testid="t-row-2"]');
+    expect(ro.querySelector('input, [role="switch"], [role="checkbox"]')).toBeNull();
+    expect(ro.querySelector(".runs-at-switch-slot")).not.toBeNull(); // keeps the grid aligned
+    expect(ro.textContent).toContain("Received");
+    expect(container.querySelector('[data-testid="t-row-3"] input[role="switch"]').disabled).toBe(true);
+    expect(container.querySelector('[data-testid="t-row-1"] input[role="switch"]').disabled).toBe(false);
+  });
+
   it("shows empty text", () => {
     const { container } = render(<RunsAtList rows={[]} emptyText="Nothing" testId="t" />);
     expect(container.querySelector('[data-testid="t-empty"]').textContent).toBe("Nothing");

@@ -8,6 +8,7 @@ import { scopeWhereClause, getVisibleSiteIds, getVisibleProjectIds } from "../ut
 import { findScopedSession, writeAudit } from "../upload/sessionAccess.js";
 import { needsAttention } from "../upload/sessionExtractor.js";
 import { logToFile } from "../utils/logger.js";
+import { toIso } from "../utils/dateIso.js";
 import { readQuestionTexts } from "../upload/questionTexts.js";
 import { LocalFileStore } from "../storage/fileStore.js";
 
@@ -56,15 +57,7 @@ const parseJson = (raw, fallback) => {
   try { return JSON.parse(raw); } catch { return fallback; }
 };
 
-/** DB datetime (UTC, dateStrings) or Date → ISO-8601 UTC string. */
-export const toIso = (v) => {
-  if (v == null) return null;
-  if (v instanceof Date) return v.toISOString();
-  const s = String(v);
-  if (s.includes("T")) return s;
-  const m = s.replace(" ", "T");
-  return /\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(m) ? `${m}Z` : m;
-};
+export { toIso };
 
 const toDay = (v) => (v instanceof Date ? v.toISOString() : String(v)).slice(0, 10);
 const num = (v) => (v == null ? 0 : Number(v));

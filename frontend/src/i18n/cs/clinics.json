@@ -88,6 +88,7 @@
       "computer": "Počítač",
       "status": "Stav",
       "version": "Verze aplikace",
+      "config": "Konfigurace",
       "lastSeen": "Naposledy viděn",
       "pending": "Čeká na nahrání"
     },

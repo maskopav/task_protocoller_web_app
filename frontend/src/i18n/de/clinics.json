@@ -88,6 +88,7 @@
       "computer": "Computer",
       "status": "Status",
       "version": "App-Version",
+      "config": "Konfiguration",
       "lastSeen": "Zuletzt gesehen",
       "pending": "Wartet auf Upload"
     },

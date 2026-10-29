@@ -1,8 +1,10 @@
 // src/controllers/protocolController.js
 import { executeTransaction, executeQuery } from '../db/queryHelper.js';
 import { logToFile } from '../utils/logger.js';
+import { toIso } from '../utils/dateIso.js';
 import { bumpConfigVersionForProject } from '../utils/configVersionBump.js';
 import { getVisibleProjectIds, getEditableProjectIds, canUseLibrary } from '../utils/accessScope.js';
+import { isLegacyDescription, cleanDescription } from '../utils/legacyDescription.js';
 import { validateFileNameTemplate, isValidHttpUrl, DEFAULT_RECORDINGS_FILE_NAME } from '../utils/fieldValidation.js';
 
 // A protocol belongs to exactly one study (protocols.project_id). Library
@@ -14,6 +16,12 @@ import { validateFileNameTemplate, isValidHttpUrl, DEFAULT_RECORDINGS_FILE_NAME 
 // not editable record, 404 for a record out of scope.
 
 const isMasterReq = (req) => req.admin?.role === 'master';
+
+// tasks.id is a signed INT: anything above 2147483647 would be a MySQL out-of-range 500
+const MAX_INT = 2147483647;
+const isTaskId = (v) =>
+  (typeof v === 'number' && Number.isInteger(v) && v > 0 && v <= MAX_INT) ||
+  (typeof v === 'string' && /^[1-9]\d{0,9}$/.test(v) && Number(v) <= MAX_INT);
 
 const normalizeProjectId = (v) => (v == null || v === '' ? null : Number(v));
 
@@ -77,6 +85,11 @@ async function requireStudyWrite(req, res, projectId) {
   return true;
 }
 
+// MySQL 1452 on protocol_tasks.task_id: the message names the `protocol_tasks` table and the
+// FOREIGN KEY (`task_id`) column (the FK is unnamed in create_tables.sql, so only the column is stable).
+const isTaskForeignKey = (err) =>
+  /`protocol_tasks`[\s\S]*FOREIGN KEY \(`task_id`\)/.test(String(err.sqlMessage || err.message || ''));
+
 // POST /protocols (create, and save a new version)
 export const saveProtocol = async (req, res) => {
   const {
@@ -90,6 +103,10 @@ export const saveProtocol = async (req, res) => {
   if (!Array.isArray(tasks) || tasks.length === 0) {
     return res.status(400).json({ error: 'no_tasks' });
   }
+  // protocol_tasks.task_id is NOT NULL with a foreign key; a task without a real
+  // id would fail inside the transaction as a 500 (F-086).
+  const badTask = tasks.findIndex((t) => !isTaskId(t?.task_id));
+  if (badTask !== -1) return res.status(400).json({ error: 'task_invalid', index: badTask });
 
   // Desktop-app fields. Identifier names are accepted in both stored shapes
   // (objects, or legacy string ids) -- the mapping layer normalizes them.
@@ -270,7 +287,7 @@ export const saveProtocol = async (req, res) => {
         const [result] = await conn.query(
           `INSERT INTO protocols (protocol_group_id, project_id, copied_from_id, name, language_id, description, version, created_by, updated_by, randomization, required_identifiers, use_audio_guide, recordings_file_name, instructions_pdf_url, created_at, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-          [groupId, projectId, copiedFromId, name || 'Placeholder Protocol', langId, description || 'Auto-created from AdminTaskEditor', newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? false) ? 1 : 0, recordings_file_name || null, instructions_pdf_url || null]
+          [groupId, projectId, copiedFromId, name || 'Placeholder Protocol', langId, (typeof description === 'string' && !isLegacyDescription(description) && description.trim()) || null, newVersion, authorId, authorId, JSON.stringify(randomization || {}), JSON.stringify(required_identifiers || []), (use_audio_guide ?? false) ? 1 : 0, recordings_file_name || null, instructions_pdf_url || null]
         );
         const newProtocolId = result.insertId;
         
@@ -330,6 +347,11 @@ export const saveProtocol = async (req, res) => {
     });
     if (err.errno === 1062 || err.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ error: 'name_taken' });
+    }
+    // A task id that is no row in `tasks` (foreign key on protocol_tasks.task_id)
+    // (other foreign keys, e.g. language_id, keep the generic 500 below)
+    if ((err.errno === 1452 || err.code === 'ER_NO_REFERENCED_ROW_2') && isTaskForeignKey(err)) {
+      return res.status(400).json({ error: 'task_invalid' });
     }
     res.status(500).json({ error: 'protocol_save_failed' });
  }
@@ -451,6 +473,9 @@ export const getProtocolById = async (req, res) => {
     // Spread globalFields into the result so the frontend sees .info_text
     res.json({
       ...protocol,
+      description: cleanDescription(protocol.description) ?? null,
+      created_at: toIso(protocol.created_at),
+      updated_at: toIso(protocol.updated_at),
       language: finalLanguageArray,
       ...globalFields, // RESTORES info_text and consent_text
       global_contents: contentMap['global'] || [],
@@ -522,12 +547,14 @@ export const getProtocolsByProjectId = async (req, res) => {
     const groups = new Map();
     for (const r of rows) {
       let g = groups.get(r.protocol_group_id);
+      // DB datetimes are zoneless UTC strings; the API sends ISO-8601 UTC (F-067).
+      const updatedAt = toIso(r.updated_at);
       if (!g) {
-        g = { ...r, languages: [] };
+        g = { ...r, description: cleanDescription(r.description) ?? null, created_at: toIso(r.created_at), updated_at: updatedAt, languages: [] };
         groups.set(r.protocol_group_id, g);
       }
       g.languages.push({ language_id: r.language_id, code: r.language_code, protocol_id: r.id });
-      if (new Date(r.updated_at) > new Date(g.updated_at)) g.updated_at = r.updated_at;
+      if (updatedAt && (!g.updated_at || updatedAt > g.updated_at)) g.updated_at = updatedAt;
     }
     res.json([...groups.values()]);
   } catch (err) {

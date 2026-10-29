@@ -4,6 +4,7 @@
     "generic": "Něco se pokazilo. Zkuste to prosím znovu.",
     "name_required": "Název je povinný.",
     "name_taken": "Tento název je již obsazen.",
+    "task_invalid": "Úloha v tomto protokolu není platná. Odeberte ji a přidejte znovu.",
     "invalid_name": "Tento název není platný.",
     "invalid_contact_email": "Jeden z kontaktních e-mailů není platný.",
     "invalid_email": "Tato e-mailová adresa není platná.",
@@ -65,6 +66,7 @@
       "placeholder": "Zástupný text",
       "name": "název (a-z, 0-9, _)",
       "label": "Popisek",
+      "labelHint": "Zobrazí se ve všech jazycích tak, jak je zadáno.",
       "help": "Nápověda",
       "regex": "[a-zA-Z0-9_-]+",
       "variable": "Proměnná"
@@ -75,6 +77,11 @@
     "editTask": "Upravit úlohu: {{category}}",
     "addTask": "Přidat úlohu: {{category}}",
     "instructionsPreview": "Instrukce odesílané do aplikace",
+    "durationWarning": {
+      "minGreaterThanMax": "Minimální délka je větší než maximální délka.",
+      "durationBelowMin": "Délka je kratší než minimální délka.",
+      "durationAboveMax": "Délka je delší než maximální délka."
+    },
     "editorLanguage": "🌍 Jazyk editoru:",
     "protocolLanguage": "🌍 Jazyk protokolu:",
     "addQuestionnaire": "Přidat dotazník",
@@ -87,7 +94,7 @@
     "introPageAdded": "Úvodní stránka",
     "versionWarning": "! Úprava protokolu {{name}}: verze se zvýší a protokol bude označen jako aktuální!",
     "confirmUpdateTitle": "Aktualizovat aktivní protokol?",
-    "confirmUpdateMsg": "Aktualizujete existující protokol. Všichni účastníci přiřazení k tomuto protokolu budou automaticky přesunuti na tuto novou verzi. Jejich stávající unikátní odkazy budou nadále fungovat, ale načtou tento nový obsah.\n\nOpravdu chcete pokračovat?",
+    "confirmUpdateMsg": "Uložením se tento protokol změní pro všechny kliniky, které ho používají. Počítače dostanou novou verzi při příštím stažení konfigurace.",
     "saveFailedTitle": "Uložení selhalo",
     "saveFailedMsg": "Nepodařilo se uložit protokol.",
     "editInfoTitle": "Upravit informační stránku",

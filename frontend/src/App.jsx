@@ -14,6 +14,7 @@ import ProtocolEditorPage from "./pages/ProtocolEditorPage";
 import StudiesPage from "./pages/studies/StudiesPage";
 import StudyPage, { StudyIndexRedirect } from "./pages/studies/StudyPage";
 import ParticipantInterfacePage from "./pages/ParticipantInterfacePage";
+import ProtocolPreviewRoute from "./pages/ProtocolPreviewRoute";
 import ResetPasswordModal from "./components/AuthForm/ResetPasswordModal";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -81,7 +82,7 @@ export default function App() {
 
       {/* Participant preview of a protocol (in-memory, no persistence): no shell */}
       <Route path="/studies/:projectId/protocols/:protocolId/preview" element={
-        <ProtectedRoute><ParticipantInterfacePage /></ProtectedRoute>
+        <ProtectedRoute><ProtocolPreviewRoute /></ProtectedRoute>
       } />
 
       {/* Everything else lives inside the shell */}

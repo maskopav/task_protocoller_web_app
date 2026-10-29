@@ -159,3 +159,20 @@ export const validate = {
     }
   }
 };
+/**
+ * Non-blocking sanity check for a task's duration params (F-073). Only `duration` reaches the
+ * desktop app; min/max are guidance, so contradictions are warned about, never rejected.
+ * Empty values (null, undefined, "", NaN) are ignored.
+ * @returns {string[]} warning codes: minGreaterThanMax, durationBelowMin, durationAboveMax
+ */
+export function taskDurationWarnings(data) {
+  const n = (v) => (v === null || v === undefined || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
+  const duration = n(data?.duration);
+  const min = n(data?.minDuration);
+  const max = n(data?.maxDuration);
+  const warnings = [];
+  if (min !== null && max !== null && min > max) warnings.push("minGreaterThanMax");
+  if (duration !== null && min !== null && duration < min) warnings.push("durationBelowMin");
+  if (duration !== null && max !== null && duration > max) warnings.push("durationAboveMax");
+  return warnings;
+}

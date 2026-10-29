@@ -497,3 +497,25 @@ button:disabled, .btn-disabled {
     display: block;
   }
 }
+
+.identifier-label-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.identifier-label-hint {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.75rem;
+}
+
+.duration-warning {
+  margin-top: 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--warn-soft);
+  color: var(--warn-text);
+  border: 1px solid var(--warn);
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+}

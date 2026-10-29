@@ -42,6 +42,123 @@ describe("Menu", () => {
   });
 });
 
+describe("Menu placement", () => {
+  const items = [{ label: "Edit" }, { label: "Delete" }];
+  const rect = (o) => ({ top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0, ...o });
+  const viewport = () => {   // jsdom reports 0 for clientWidth/clientHeight
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(window.innerWidth);
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(window.innerHeight);
+  };
+  const stub = (triggerRect, popH = 100, popW = 150) => {
+    viewport();
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      return this.getAttribute?.("aria-haspopup") ? rect(triggerRect) : rect({});
+    });
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(popH);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(popW);
+  };
+  afterEach(() => vi.restoreAllMocks());
+
+  it("focuses the first item without scrolling", () => {
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    const { container } = render(<Menu label="m" items={items} />);
+    click(container.querySelector("button"));
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
+  it("opens below the trigger when there is room", () => {
+    stub({ top: 100, bottom: 130, left: 500, right: 530 });
+    const { container } = render(<Menu label="m" items={items} />);
+    click(container.querySelector("button"));
+    expect(container.querySelector('[role="menu"]').style.top).toBe("134px");
+  });
+
+  it("opens upward when there is no room below, and stays on screen", () => {
+    stub({ top: window.innerHeight - 40, bottom: window.innerHeight - 10, left: 500, right: 530 });
+    const { container } = render(<Menu label="m" items={items} />);
+    click(container.querySelector("button"));
+    expect(container.querySelector('[role="menu"]').style.top).toBe(`${window.innerHeight - 40 - 4 - 100}px`);
+  });
+
+  it("re-places on scroll, ignores scrolls inside the popup, closes when the trigger leaves the viewport", () => {
+    const t = { top: 100, bottom: 130, left: 500, right: 530 };
+    stub(t);
+    const { container } = render(<Menu label="m" items={items} />);
+    click(container.querySelector("button"));
+    const menu = () => container.querySelector('[role="menu"]');
+    t.top = 80; t.bottom = 110;
+    act(() => { document.body.dispatchEvent(new Event("scroll")); });
+    expect(menu().style.top).toBe("114px");
+    act(() => { menu().dispatchEvent(new Event("scroll")); });
+    expect(menu()).not.toBeNull();
+    t.top = -80; t.bottom = -50;
+    act(() => { document.body.dispatchEvent(new Event("scroll")); });
+    expect(menu()).toBeNull();
+  });
+
+  it("right-aligns a wide popup to the trigger's right edge, inside clientWidth", () => {
+    const cw = window.innerWidth;
+    stub({ top: 100, bottom: 130, left: cw - 40, right: cw - 10 }, 100, 320);
+    const { container } = render(<Menu label="m" items={items} />);
+    click(container.querySelector("button"));
+    const m = container.querySelector('[role="menu"]');
+    const left = parseFloat(m.style.left);
+    expect(left + 320).toBe(cw - 10);
+    expect(left + 320).toBeLessThanOrEqual(cw);
+  });
+
+  it("measures the hidden first frame at the origin and clamps to clientWidth/clientHeight", () => {
+    const seen = [];
+    stub({ top: 100, bottom: 130, left: 570, right: 595 }, 100, 320);
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(600);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function () {
+      if (this.getAttribute("role") === "menu") seen.push({ left: this.style.left, top: this.style.top, vis: this.style.visibility });
+      return 320;
+    });
+    const { container } = render(<Menu label="m" items={items} align="left" />);
+    click(container.querySelector("button"));
+    expect(seen[0]).toEqual({ left: "0px", top: "0px", vis: "hidden" });
+    expect(parseFloat(container.querySelector('[role="menu"]').style.left)).toBe(276);   // clamped to clientWidth 600 - 320 - 4 gap (innerWidth would allow 570)
+  });
+
+  it("re-places when the popup's own size changes after opening", () => {
+    let cb;
+    const disconnect = vi.fn();
+    vi.stubGlobal("ResizeObserver", class { constructor(f) { cb = f; } observe() {} disconnect() { disconnect(); } });
+    viewport();
+    const size = { w: 150 };
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      return this.getAttribute?.("aria-haspopup") ? rect({ top: 100, bottom: 130, left: 500, right: 530 }) : rect({});
+    });
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(100);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(() => size.w);
+    const { container, unmount } = render(<Menu label="m" items={items} />);
+    click(container.querySelector("button"));
+    const m = () => container.querySelector('[role="menu"]');
+    expect(m().style.left).toBe("380px");
+    size.w = 300;
+    act(() => { cb(); });
+    expect(m().style.left).toBe("230px");
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps keyboard focus on the item the user moved to when a scroll re-places the popup", () => {
+    const t = { top: 100, bottom: 130, left: 500, right: 530 };
+    stub(t);
+    const { container } = render(<Menu label="m" items={[{ label: "Edit" }, { label: "Copy" }, { label: "Delete" }]} />);
+    click(container.querySelector("button"));
+    const els = () => [...container.querySelectorAll('[role="menuitem"]')];
+    expect(document.activeElement).toBe(els()[0]);
+    act(() => { els()[1].focus(); });
+    t.top = 80; t.bottom = 110;
+    act(() => { document.body.dispatchEvent(new Event("scroll")); });
+    expect(container.querySelector('[role="menu"]').style.top).toBe("114px");
+    expect(document.activeElement).toBe(els()[1]);
+  });
+});
+
 describe("Switch", () => {
   it("is a labelled checkbox switch and reports the new value", () => {
     const fn = vi.fn();

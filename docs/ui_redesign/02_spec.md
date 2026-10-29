@@ -272,7 +272,7 @@ The functionality stays as it is. The layout changes to a workspace:
     - **Connection** card:
       - Master sees the server URL and the access token, masked with "Show" and "Copy". The rotate action carries a warning: "Every computer using the old token stops receiving updates."
       - Non-master sees the line "Ask your administrator for the access token."
-    - **Computers** table: Name (rename for master), App version, Last seen (relative), Status (Healthy / Waiting / Silent / Failing / **Needs assignment**), Pending uploads.
+    - **Computers** table: Name (rename for master), App version, **Config** (the config version the computer last received, "—" if none; the time it received it is the tooltip; F-087), Last seen (relative), Status (Healthy / Waiting / Silent / Failing / **Needs assignment**), Pending uploads.
     - Rejected uploads are not counted as uploads (F-045).
   - **Recordings:** the Recordings table, pre-filtered to this clinic.
   - **Settings:** identity (name, description, country, contacts) and **Desktop app settings**.

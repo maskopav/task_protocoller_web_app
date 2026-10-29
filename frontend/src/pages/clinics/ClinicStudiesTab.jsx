@@ -64,7 +64,7 @@ export default function ClinicStudiesTab({ site, canAddAny, onChanged, addOpen, 
     subtitle: [p.can_edit ? t("studies.yours") : t("studies.received"), p.is_active ? null : t("studies.archived")].filter(Boolean).join(" · "),
     on: true,
     href: `/studies/${p.id}`,
-    disabled: !p.can_edit,
+    readOnly: !p.can_edit,
     disabledReason: !p.can_edit ? t("studies.receivedReason") : undefined,
   }));
 
