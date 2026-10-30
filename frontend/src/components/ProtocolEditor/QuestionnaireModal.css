@@ -3,7 +3,8 @@
 /* -- General Form Layout -- */
 .questionnaire-modal-form {
     display: flex;
-    width: 60vw;
+    width: 100%;
+    box-sizing: border-box;
     flex-direction: column;
     gap: 1.5rem;
     padding: 0.5rem;
