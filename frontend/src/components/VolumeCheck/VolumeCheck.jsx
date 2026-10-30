@@ -11,7 +11,9 @@ import './VolumeCheck.css';
 const OPTIONS = [17, 32, 59, 84];
 const TARGET_NUMBER = OPTIONS[1]; // 32 is the correct answer
 
-const VolumeCheck = ({ onComplete, audioGuideEnabled = true }) => {
+// The spoken number IS the test, so it always autoplays — even when the
+// protocol's audio guide is off.
+const VolumeCheck = ({ onComplete }) => {
     const { t, i18n } = useTranslation("common");
     const [selected, setSelected] = useState(null);
 
@@ -30,7 +32,7 @@ const VolumeCheck = ({ onComplete, audioGuideEnabled = true }) => {
                 src={buildAudioGuidePath(i18n.language, "volume_check_audio")}
                 playTrigger={`volume-check-${Date.now()}`}
                 isRecordingActive={false}
-                autoPlay={audioGuideEnabled}
+                autoPlay={true}
                 loop={true}
             />
         </div>

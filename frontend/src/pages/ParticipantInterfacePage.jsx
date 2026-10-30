@@ -1031,7 +1031,7 @@ export default function ParticipantInterfacePage() {
     // Render Volume Check
     if (rawTask.type === "volume_check") {
       return (
-        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} audioGuideEnabled={useAudioGuide} />
+        <VolumeCheck onComplete={(data) => handleTaskComplete(data)} />
       );
     }
 

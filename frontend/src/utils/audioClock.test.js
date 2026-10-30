@@ -77,7 +77,7 @@ describe("audioClock", () => {
     const anchor = clock.segmentStart(ctxAt({ currentTime: 165.354667, sampleRate: 24000 }),
       { sampleIndex: 0, contextFrame: 3968128 });
     expect(anchor).toEqual(expect.objectContaining({
-      contextFrame: 3968128, perfMs: 240426, perfMsSource: "contextFrame", startSentMs: 240406,
+      contextFrame: 3968128, perfMs: 240426, perfMsSource: "contextFrame", commandSentMs: 240406,
     }));
     expect(anchor).not.toHaveProperty("contextFrameRaw");
   });
@@ -91,7 +91,7 @@ describe("audioClock", () => {
     const anchor = clock.segmentStart(ctxAt({ currentTime: 1.04, sampleRate: 24000 }),
       { sampleIndex: 0, contextFrame: 0 });
     expect(anchor).toEqual(expect.objectContaining({
-      contextFrame: null, contextFrameRaw: 0, perfMs: 9701, perfMsFromOutput: null, perfMsSource: "startSent",
+      contextFrame: null, contextFrameRaw: 0, perfMs: 9701, perfMsFromOutput: null, perfMsSource: "commandSent",
     }));
   });
 
@@ -101,7 +101,7 @@ describe("audioClock", () => {
     clock.startSent();
     now.mockReturnValue(1020);
     const anchor = clock.segmentStart(ctxAt({ currentTime: 2.0 }), { sampleIndex: 0, contextFrame: 3 * 48000 });
-    expect(anchor).toEqual(expect.objectContaining({ contextFrameRaw: 144000, perfMs: 1000, perfMsSource: "startSent" }));
+    expect(anchor).toEqual(expect.objectContaining({ contextFrameRaw: 144000, perfMs: 1000, perfMsSource: "commandSent" }));
   });
 
   it("keeps an anchor that arrives just after a quick pause and resume sent the next start", () => {
@@ -123,8 +123,54 @@ describe("audioClock", () => {
     clock.startSent();
     now.mockReturnValue(530);
     const anchor = clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: null });
-    expect(anchor).toEqual(expect.objectContaining({ contextFrame: null, perfMs: 500, perfMsSource: "startSent" }));
+    expect(anchor).toEqual(expect.objectContaining({ contextFrame: null, perfMs: 500, perfMsSource: "commandSent" }));
     expect(anchor).not.toHaveProperty("contextFrameRaw");
+  });
+
+  it("records where each segment ended and why it started and ended", () => {
+    const now = vi.spyOn(performance, "now");
+    const clock = createAudioClock();
+    now.mockReturnValue(1000);
+    clock.startSent({ reason: "start" });
+    now.mockReturnValue(1010);
+    clock.segmentStart(ctxAt({ currentTime: 1.0 }), { sampleIndex: 0, contextFrame: 47760 }); // 0.995 s
+
+    // Manual topic switch at ~11 s: the worklet saved up to frame 10.002 s.
+    now.mockReturnValue(11000);
+    clock.stopSent({ reason: "topic_switch_manual", topicIndex: 0 });
+    now.mockReturnValue(11010);
+    const end = clock.segmentEnd(ctxAt({ currentTime: 10.01 }), { sampleIndex: 432096, contextFrame: 480096 });
+    expect(end).toEqual(expect.objectContaining({
+      sampleIndex: 432096, perfMs: 11002, perfMsSource: "contextFrame", reason: "topic_switch_manual", topicIndex: 0,
+    }));
+
+    now.mockReturnValue(14000);
+    clock.startSent({ reason: "next_topic", topicIndex: 1 });
+    now.mockReturnValue(14012);
+    clock.segmentStart(ctxAt({ currentTime: 13.01 }), { sampleIndex: 432096, contextFrame: 624096 }); // 13.002 s
+
+    const { segments } = clock.summary(ctxAt({ currentTime: 14 }), { receivedSamples: 500000 });
+    expect(segments.map((s) => [s.reason, s.topicIndex, s.perfMs, s.end?.perfMs ?? null])).toEqual([
+      ["start", undefined, 1005, 11002],
+      ["next_topic", 1, 14004, null],
+    ]);
+  });
+
+  it("keeps only reason and topicIndex from the cause (ignores a click event)", () => {
+    const clock = createAudioClock();
+    clock.startSent({ type: "click", target: {}, reason: 42 });
+    const seg = clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: 47000 });
+    expect(seg.reason).toBeNull();
+    expect(seg).not.toHaveProperty("type");
+    expect(seg).not.toHaveProperty("topicIndex");
+  });
+
+  it("ignores a segment end without an open segment, and a second end", () => {
+    const clock = createAudioClock();
+    expect(clock.segmentEnd(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: 100 })).toBeNull();
+    clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: 47000 });
+    expect(clock.segmentEnd(ctxAt({ currentTime: 2 }), { sampleIndex: 48000, contextFrame: 95000 })).not.toBeNull();
+    expect(clock.segmentEnd(ctxAt({ currentTime: 2 }), { sampleIndex: 48000, contextFrame: 95000 })).toBeNull();
   });
 
   it("ignores anchors once the context is closed and keeps a null frame as unknown", () => {
