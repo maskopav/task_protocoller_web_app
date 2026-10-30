@@ -33,18 +33,21 @@ import { logger } from './frontendLogger';
  * The Blob's `type` tells the uploader which format it got -- see
  * api/recordings.js.
  *
+ * `comments` ("KEY=value") are written into the FLAC as Vorbis comments --
+ * the segment timing, see audioTiming.js. The WAV fallback carries none.
+ *
  * @returns {Promise<{ blob: Blob, levels: object, frames: object }>}
  *   levels: summary for the log; frames: per-frame rms for the mic check.
  */
-export async function finalizeRecording(nativeSampleRate) {
+export async function finalizeRecording(nativeSampleRate, comments = []) {
     const samples = await getAllSamplesInt16();
     const frames = computeFrames(samples, nativeSampleRate);
-    return { blob: await encode(samples, nativeSampleRate), levels: summarizeLevels(frames), frames };
+    return { blob: await encode(samples, nativeSampleRate, comments), levels: summarizeLevels(frames), frames };
 }
 
-async function encode(samples, sampleRate) {
+async function encode(samples, sampleRate, comments) {
     try {
-        return await encodeFlacBlob(samples, sampleRate);
+        return await encodeFlacBlob(samples, sampleRate, comments);
     } catch (err) {
         logger.error('FLAC encoding failed, falling back to WAV', err);
         return encodeWAV(samples, sampleRate);

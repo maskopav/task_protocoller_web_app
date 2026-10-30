@@ -4,6 +4,7 @@ import { logger } from '../utils/frontendLogger';
 import { createZeroRunTracker } from '../utils/zeroRunTracker';
 import { initSession, appendChunk, clearSession } from '../utils/audioIDB';
 import { finalizeRecording } from '../utils/finalizeRecording';
+import { buildAudioTiming, timingVorbisComments } from '../utils/audioTiming';
 import { createAudioClock, pickCause } from '../utils/audioClock';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -298,6 +299,8 @@ export const useVoiceRecorder = (options = {}) => {
     // true file duration. recordingTime is only a UI timer and stays 0 in
     // countDown mode (that mode ticks remainingTime instead).
     const audioDurationRef  = useRef(null);
+    // Segment timing of the last take (audioTiming.js), uploaded with it.
+    const audioTimingRef    = useRef(null);
 
     // track the stream in a ref so the unmount cleanup can always reach
     // the latest value.  The cleanup useEffect closes over the initial render
@@ -804,6 +807,7 @@ export const useVoiceRecorder = (options = {}) => {
 
             const audioCtx = audioContext.current;
             const audioClock = audioClockRef.current;
+            let audioTiming = null;
             const finalizePipeline = tailFlushed
                 .then((workletSamples) => {
                     // Counted only now, so the tail chunk is included.
@@ -813,10 +817,11 @@ export const useVoiceRecorder = (options = {}) => {
                     recordingInfo.clock = audioClock?.summary(audioCtx, {
                         workletSamples, receivedSamples: sampleCountRef.current,
                     }) ?? null;
+                    audioTiming = buildAudioTiming(recordingInfo);
                     return flushPCMChunkBatch();
                 })
                 .then(() => pendingWritesRef.current)
-                .then(() => finalizeRecording(sampleRate));
+                .then(() => finalizeRecording(sampleRate, timingVorbisComments(audioTiming)));
 
             withTimeout(
                 finalizePipeline,
@@ -841,6 +846,7 @@ export const useVoiceRecorder = (options = {}) => {
                     }
                     levelFramesRef.current = frames;  // set before audioURL, which triggers autoSubmit
                     audioDurationRef.current = recordingInfo.durationSec;
+                    audioTimingRef.current = audioTiming;
                     const url = URL.createObjectURL(audioBlob);
                     audioURLRef.current = url;
                     setAudioURL(url);
@@ -871,6 +877,7 @@ export const useVoiceRecorder = (options = {}) => {
         firstChunkTimeRef.current = null;
         levelFramesRef.current = null;
         audioDurationRef.current = null;
+        audioTimingRef.current = null;
 
         // clear stale node refs so nothing accidentally reaches them between
         // repeatRecording() and the next startRecording() call.
@@ -1018,6 +1025,7 @@ export const useVoiceRecorder = (options = {}) => {
         firstChunkTimeRef,
         levelFramesRef,
         audioDurationRef,
+        audioTimingRef,
 
         // Actions
         getMicrophonePermission,

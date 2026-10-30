@@ -151,9 +151,9 @@ function buildRecordingsIndexCsv(recordings, micChecks) {
 // the session, e.g. "S42_O1_C..." vs "S42_MICCHECK_A1_...", so there's no
 // need to split them into per-session or per-type folders; recordings_index.csv
 // is what ties a filename back to its session/task), plus (for task
-// recordings only) its gaze/pointer coordinate sidecar file if one exists --
-// the sidecar shares the recording's base filename with .json/.json.gz
-// instead of .flac/.wav (see recordingController.js). Missing files are
+// recordings only) its sidecar files if they exist -- face-landmark
+// coordinates (.json/.json.gz) and segment timing (.segments.json), sharing
+// the recording's base filename instead of .flac/.wav (see recordingController.js). Missing files are
 // logged and skipped rather than failing the whole export -- a single lost
 // file on disk shouldn't block every other session in the batch.
 async function addRecordingFile(zip, { recordingUrl, sessionId, includeSidecar }) {
@@ -169,7 +169,7 @@ async function addRecordingFile(zip, { recordingUrl, sessionId, includeSidecar }
 
   if (!includeSidecar) return;
   const base = filename.replace(/\.(flac|wav)$/i, "");
-  for (const ext of [".json", ".json.gz"]) {
+  for (const ext of [".json", ".json.gz", ".segments.json"]) {
     const sidecar = `${base}${ext}`;
     const sidecarPath = path.join(DATA_PATH, sidecar);
     if (fs.existsSync(sidecarPath)) {

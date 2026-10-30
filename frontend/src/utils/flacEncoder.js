@@ -24,6 +24,9 @@
 // is why this didn't show up in unit tests until it was checked in an
 // actual browser). The handful of raw functions used below have no such
 // wrapper and no import of their own, so they don't hit this problem.
+import { setVorbisComments } from './flacTags';
+import { logger } from './frontendLogger';
+
 const READY_TIMEOUT_MS = 15000;
 
 let runtimePromise = null;
@@ -120,9 +123,20 @@ export function encodeFlac(flac, int16Samples, sampleRate) {
     }
 }
 
-/** Convenience wrapper: load the runtime (if needed) and return a ready-to-upload Blob. */
-export async function encodeFlacBlob(int16Samples, sampleRate) {
+/**
+ * Convenience wrapper: load the runtime (if needed) and return a
+ * ready-to-upload Blob, with `comments` ("KEY=value") as its Vorbis comments.
+ * A tagging failure keeps the untagged FLAC -- tags must never cost a recording.
+ */
+export async function encodeFlacBlob(int16Samples, sampleRate, comments = []) {
     const flac = await getFlacRuntime();
-    const bytes = encodeFlac(flac, int16Samples, sampleRate);
+    let bytes = encodeFlac(flac, int16Samples, sampleRate);
+    if (comments.length) {
+        try {
+            bytes = setVorbisComments(bytes, comments);
+        } catch (err) {
+            logger.error('FLAC tagging failed, uploading without tags', err);
+        }
+    }
     return new Blob([bytes], { type: 'audio/flac' });
 }

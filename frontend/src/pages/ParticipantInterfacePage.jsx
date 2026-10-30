@@ -909,6 +909,8 @@ export default function ParticipantInterfacePage() {
         timeStamp: data?.timestamp || Date.now(),
         snrScore: data?.snrScore || null,
         speechSegments: data?.speechSegments || null,
+        // Where the file was cut and its clock anchors (audioTiming.js)
+        audioTiming: data?.audioTiming || null,
         videoData: videoData,
         payload: (!blob && !isSystemTask && !isMicCheck) || (isMicCheck && !blob) ? data : null, 
         attemptNumber: data?.attemptNumber,

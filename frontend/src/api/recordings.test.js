@@ -90,6 +90,18 @@ describe('uploadRecording', () => {
     expect(options.body.get('audio').name).toBe('recording.wav');
   });
 
+  it('sends the segment timing as JSON when the recording has it', async () => {
+    globalThis.fetch.mockResolvedValue(jsonResponse({ id: 'rec1' }));
+    const blob = new Blob(['audio-bytes'], { type: 'audio/flac' });
+    const audioTiming = { format: 'audio-timing-v1', segments: [{ startSample: 0, endSample: 4800 }] };
+
+    await uploadRecording(blob, { ...baseMetadata(), audioTiming });
+    await uploadRecording(blob, baseMetadata());
+
+    expect(JSON.parse(globalThis.fetch.mock.calls[0][1].body.get('audioTiming'))).toEqual(audioTiming);
+    expect(globalThis.fetch.mock.calls[1][1].body.get('audioTiming')).toBeNull();
+  });
+
   it('still succeeds when the response is merely slow, not stalled', async () => {
     vi.useFakeTimers();
     globalThis.fetch.mockImplementationOnce(() => new Promise((resolve) => {

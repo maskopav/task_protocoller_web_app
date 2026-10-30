@@ -14,6 +14,29 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
+// A few segments with their clock anchors are a few KB; anything far larger
+// is not this payload.
+const MAX_AUDIO_TIMING_BYTES = 1024 * 1024;
+
+// Optional and supplementary: a missing or malformed payload is logged and
+// skipped, never failing the upload of the recording itself.
+export async function saveAudioTimingSidecar(raw, baseFilename, sessionId) {
+  if (!raw) return null;
+  try {
+    if (raw.length > MAX_AUDIO_TIMING_BYTES) throw new Error(`payload too large (${raw.length} bytes)`);
+    const timing = JSON.parse(raw);
+    if (!timing || typeof timing !== "object" || !Array.isArray(timing.segments)) {
+      throw new Error("not an audio timing object");
+    }
+    const sidecar = `${baseFilename}.segments.json`;
+    await fs.promises.writeFile(path.join(UPLOAD_DIR, sidecar), JSON.stringify(timing, null, 2));
+    return sidecar;
+  } catch (err) {
+    logToFile("WARN", "Audio timing not saved", { sessionId, baseFilename, error: err.message });
+    return null;
+  }
+}
+
 export const uploadRecording = async (req, res) => {
   // 1. Get files from req.files (Multer's object for multiple fields)
   // We keep a fallback to req.file just in case you use this controller elsewhere with .single()
@@ -51,6 +74,11 @@ export const uploadRecording = async (req, res) => {
       const jsonPath = path.join(UPLOAD_DIR, `${baseFilename}.${extension}`);
       await fs.promises.writeFile(jsonPath, coordsFile.buffer);
     }
+
+    // Segment timing (frontend audioTiming.js): where the file was cut for
+    // pauses and how its samples map to the landmark clock. Stored as a
+    // sidecar like the coordinates; the same data is also in the FLAC's tags.
+    await saveAudioTimingSidecar(req.body.audioTiming, baseFilename, sessionId);
 
     // 3. Insert directly using the IDs we received
     // Notice we do NOT insert the coordinates into the DB. The DB stays clean!

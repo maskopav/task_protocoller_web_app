@@ -60,6 +60,8 @@ export async function uploadRecording(blob, metadata) {
   formData.append("taskParam", metadata.taskParam);
   formData.append("repeatIndex", metadata.repeatIndex);
   formData.append("timeStamp", metadata.timeStamp);
+  // Segment timing (audioTiming.js); the backend stores it next to the file.
+  if (metadata.audioTiming) formData.append("audioTiming", JSON.stringify(metadata.audioTiming));
 
   let totalSize = 0;
   for (const pair of formData.entries()) {

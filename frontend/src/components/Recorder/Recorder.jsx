@@ -508,6 +508,7 @@ export const Recorder = ({
             timestamp:          new Date().toISOString(),
             recordingStartTime: voiceRecorder.firstChunkTimeRef.current,
             levelFrames:        voiceRecorder.levelFramesRef.current,
+            audioTiming:        voiceRecorder.audioTimingRef.current,
             taskTitle:          title,
             taskType:           'voice',
             speechSegments:     speechSegments.current,
