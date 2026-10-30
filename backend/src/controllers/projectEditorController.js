@@ -11,6 +11,7 @@ import {
 } from "../utils/accessScope.js";
 import { logToFile } from "../utils/logger.js";
 import { bumpSiteConfigVersion } from "../utils/configVersionBump.js";
+import { toIso } from "../utils/dateIso.js";
 
 const parseId = (v) => {
   const n = Number(v);
@@ -55,7 +56,7 @@ const editorRow = (r, createdBy) => ({
   name: r.full_name ?? null,
   email: r.email,
   is_creator: createdBy != null && Number(r.user_id) === createdBy,
-  added_at: r.created_at ?? null,
+  added_at: toIso(r.created_at),
 });
 
 const EDITORS_SQL = `SELECT pe.user_id, pe.created_at, u.full_name, u.email
@@ -90,12 +91,22 @@ export const addEditor = async (req, res) => {
     );
     if (users.length === 0) return res.status(404).json({ error: "user_not_found" });
 
-    // Idempotent: adding someone who already edits the study changes nothing.
-    await executeQuery(
+    // Idempotent: adding someone who already edits the study changes nothing and
+    // answers 200 with the existing grant (201 only when a grant was created).
+    const insert = await executeQuery(
       `INSERT IGNORE INTO project_editors (user_id, project_id) VALUES (?, ?)`,
       [users[0].id, project.id]
     );
-    res.status(201).json(editorRow({ user_id: users[0].id, full_name: users[0].full_name, email: users[0].email }, project.createdBy));
+    const created = Number(insert?.affectedRows) > 0;
+    const grant = await executeQuery(
+      `SELECT created_at FROM project_editors WHERE user_id = ? AND project_id = ?`,
+      [users[0].id, project.id]
+    );
+    const row = editorRow(
+      { user_id: users[0].id, full_name: users[0].full_name, email: users[0].email, created_at: grant[0]?.created_at },
+      project.createdBy
+    );
+    res.status(created ? 201 : 200).json(row);
   } catch (err) {
     fail(res, err, "add editor");
   }

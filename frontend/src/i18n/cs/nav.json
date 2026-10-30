@@ -20,7 +20,7 @@
   "clinicsCount_other": "{{count}} klinik",
   "notAvailable": {
     "title": "Nedostupné",
-    "message": "Tato stránka je dostupná jen správcům. Pokud ji potřebujete, požádejte uživatele s rolí Master.",
+    "message": "K této stránce nemáte přístup. Pokud ji potřebujete, požádejte správce.",
     "action": "Přejít na Záznamy"
   },
   "notFound": {

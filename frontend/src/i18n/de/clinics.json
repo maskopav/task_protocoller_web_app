@@ -1,8 +1,15 @@
 {
+  "notFound": {
+    "title": "Klinik nicht gefunden",
+    "hint": "Sie existiert nicht, oder Sie haben keinen Zugriff darauf.",
+    "back": "Zurück zu Kliniken"
+  },
   "loading": "Wird geladen…",
   "cancel": "Abbrechen",
   "save": "Speichern",
   "name": {
+    "counter": "{{count}}/{{max}}",
+    "atMax": "Maximale Länge erreicht",
     "hint": "In Dateinamen wird stehen:",
     "hintEmpty": "Dieser Name enthält keine Buchstaben oder Ziffern und erscheint deshalb nicht in Dateinamen.",
     "renameNote": "Ein neuer Name gilt für Aufnahmen, die nach der Änderung entstehen.",
@@ -44,6 +51,7 @@
     "none": "Noch keine",
     "emptyTitle": "Noch keine Kliniken",
     "emptyBody": "Eine Klinik ist der Ort, an dem eine Studie läuft. Legen Sie eine an, um einen Zugangstoken für ihre Computer zu erhalten.",
+    "emptyBodyNoCreate": "Bitten Sie einen Administrator, Ihnen Zugriff auf eine Klinik zu geben.",
     "columns": {
       "name": "Klinik",
       "country": "Land",

@@ -193,6 +193,7 @@
     "camera": {
       "interrupted": "The camera stopped sending images during the recording.",
       "capture_failed": "The camera could not capture video.",
+      "unavailable_at_start": "No camera was found when the session started.",
       "other": "The camera reported a problem during the recording."
     },
     "microphone": {

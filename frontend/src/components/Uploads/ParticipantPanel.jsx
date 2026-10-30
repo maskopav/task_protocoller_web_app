@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui";
 import { revealParticipant, updateParticipant } from "../../api/uploads";
+import { participantFieldLabel } from "./participantLabel";
 import "../Recording/Recording.css";
 
 const PUBLIC_FIELDS = ["patient_code", "visit_number"];
 const MASK = "••••••";
-const fieldLabel = (k) => k.replace(/_/g, " ");
 
 /**
  * Participant fields of a session. The API sends every value except patient code and
@@ -16,6 +16,7 @@ const fieldLabel = (k) => k.replace(/_/g, " ");
  */
 export default function ParticipantPanel({ sessionId, participant, canEdit, onUpdated, onReveal }) {
   const { t } = useTranslation("recording");
+  const fieldLabel = (k) => participantFieldLabel(k, t, participant.labels);
   const [revealed, setRevealed] = useState(null); // full fields once revealed
   const [draft, setDraft] = useState(null); // non-null while editing
   const [busy, setBusy] = useState(false);

@@ -124,7 +124,7 @@ export default function ClinicsListPage() {
           rows={sites}
           href={(s) => `/clinics/${s.id}`}
           defaultSort={{ key: "name", dir: "asc" }}
-          empty={<EmptyState icon="clinic" title={t("list.emptyTitle")} description={t("list.emptyBody")} data-testid="clinics-empty" />}
+          empty={<EmptyState icon="clinic" title={t("list.emptyTitle")} description={canCreate ? t("list.emptyBody") : t("list.emptyBodyNoCreate")} data-testid="clinics-empty" />}
           rowClassName={(s) => `clinic-row-${s.id}`}
         />
       )}

@@ -7,9 +7,10 @@ import { formatDateTime, formatRelative } from "../../utils/formatDate";
 import { apiErrorMessage } from "../../utils/apiError";
 import { AssignComputerModal, RenameComputerModal } from "./ComputerModals";
 import { compareVersions, computerName, computerStatus, generateAccessToken, newestVersion, sortComputers } from "./clinicLogic";
+import { absoluteApiAddress } from "../../utils/serverAddress";
 import "./clinics.css";
 
-const API_ADDRESS = import.meta.env.VITE_API_BASE || "";
+const API_ADDRESS = absoluteApiAddress(import.meta.env.VITE_API_BASE);
 
 function ConnectionCard({ site, isMaster, onChanged }) {
   const { t } = useTranslation("clinics");

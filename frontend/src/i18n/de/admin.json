@@ -130,7 +130,11 @@
       "addQuestion": "Frage hinzufügen",
       "removeQuestion": "Frage entfernen",
       "ratingPreview": "Vorschau der Bewertung",
-      "optional": "Optional"
+      "optional": "Optional",
+      "allowWriteIn": "Freitext erlauben",
+      "removeOption": "Option entfernen",
+      "exclusiveOption": "Exklusive Option (hebt andere Auswahlen auf)",
+      "noneOption": "-- Keine --"
     },
     "tooltips": {
       "edit": "Diese Aufgabe bearbeiten",

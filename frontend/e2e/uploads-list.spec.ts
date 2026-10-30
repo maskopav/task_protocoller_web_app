@@ -82,3 +82,31 @@ test('a filter with no match shows the empty state with a way back', async ({ pa
   await page.getByTestId('recordings-clear-filters').click();
   await expect(page.locator('tbody tr.clickable').first()).toBeVisible();
 });
+
+test('F-099 one-clinic user at 1440x900: the whole search placeholder fits in the search box', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  // Long study names make the Study select as wide as it can get, which is what squeezed the search box.
+  await page.route(/\/projects(\?.*)?$/, async (route) => {
+    if (route.request().method() !== 'GET' || route.request().resourceType() === 'document') return route.continue();
+    const res = await route.fetch();
+    const rows = await res.json();
+    const long = rows.map((p: { project_name: string }) => ({ ...p, project_name: `${p.project_name} - a rather long study name for the filter` }));
+    return route.fulfill({ response: res, json: long });
+  });
+  await uiLogin(page, USERS.clinic);
+  await page.goto('/#/recordings');
+  await expect(page.getByTestId('recordings-filter-clinic')).toHaveCount(0);
+  const input = page.getByTestId('recordings-search');
+  await expect(input).toBeVisible();
+  const m = await input.evaluate((el) => {
+    const el2 = el as HTMLInputElement;
+    const cs = getComputedStyle(el2);
+    const ctx = document.createElement('canvas').getContext('2d')!;
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const text = ctx.measureText(el2.placeholder).width;
+    const content = el2.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const row = Array.from(el2.closest('.rec-filters')!.children).map((c) => Math.round(c.getBoundingClientRect().width));
+    return { row, text, content, placeholder: el2.placeholder };
+  });
+  expect(m.text, `placeholder "${m.placeholder}" needs ${m.text}px, box has ${m.content}px`).toBeLessThanOrEqual(m.content);
+});

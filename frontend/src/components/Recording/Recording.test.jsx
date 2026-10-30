@@ -11,6 +11,8 @@ import { answerRows } from "./recordingFormat";
 import ClipPlayer from "../Uploads/ClipPlayer";
 import TaskTable from "../Uploads/TaskTable";
 import RecordingPage from "../../pages/RecordingPage";
+import { QuarantineBanner } from "./AssignComputer";
+import { readFileSync } from "node:fs";
 
 vi.mock("../../api/uploads", () => ({
   fetchSession: vi.fn(),
@@ -119,6 +121,18 @@ describe("F-036: camera events", () => {
     expect(ev.tagName).toBe("DIV");
     expect(ev.className).toContain("recd-event");
     expect(ev.previousSibling.textContent).toBe("Logitech C920");
+  });
+
+  it("F-109: unavailable_at_start is one sentence in en and cs, raw detail only under Details", async () => {
+    const events = [{ device: "camera", event: "unavailable_at_start", at: "2026-10-30T08:00:00Z", detail: "enumeration returned 0 devices" }];
+    render(<DeviceEvents kind="camera" events={events} />);
+    const ev = host.querySelector("[data-testid=\"device-event-camera\"]");
+    expect(ev.textContent).toContain("No camera was found when the session started.");
+    expect(ev.textContent).not.toContain("problem");
+    expect(ev.querySelector("pre").textContent).toBe("enumeration returned 0 devices");
+    await act(() => i18n.changeLanguage("cs"));
+    expect(host.textContent).toContain("Při zahájení relace nebyla nalezena žádná kamera.");
+    await act(() => i18n.changeLanguage("en"));
   });
 
   it("shows no Details when the app sent no text", () => {
@@ -318,5 +332,16 @@ describe("recording namespace", () => {
     const keys = async (l) => new Set(flat((await import(`../../i18n/${l}/recording.json`)).default).map(base));
     const en = await keys("en");
     for (const l of ["cs", "de"]) expect(await keys(l)).toEqual(en);
+  });
+});
+
+describe("F-115: quarantine banner title and body do not run together", () => {
+  it("F-115 the title is its own block above the body text", async () => {
+    render(<QuarantineBanner />);
+    const p = host.querySelector('[data-testid="recording-quarantine"] p');
+    const lead = p.querySelector("strong");
+    expect(lead.className).toContain("recd-banner-lead");
+    const css = readFileSync("src/components/Recording/Recording.css", "utf8");
+    expect(css).toMatch(/\.recd-banner-lead\s*\{[^}]*display:\s*block/);
   });
 });

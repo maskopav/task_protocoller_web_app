@@ -3,7 +3,8 @@
 /* -- General Form Layout -- */
 .questionnaire-modal-form {
     display: flex;
-    width: 60vw;
+    width: 100%;
+    box-sizing: border-box;
     flex-direction: column;
     gap: 1.5rem;
     padding: 0.5rem;
@@ -28,8 +29,6 @@
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
   }
 
   /* Style for the Question Text Input to make it prominent */
@@ -224,18 +223,7 @@
   }
   
   .qm-btn-add-question {
-    background-color: var(--purple);
-    color: white;
-    border: none;
-    padding: 0.5rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    width: 101%;
-    margin: 0.1rem;
-  }
-  
-  .qm-btn-add-question:hover {
-    filter: brightness(1.1);
+    align-self: flex-start; /* F-071: a normal UI-kit button, not a full-width pill */
   }
 
   /* Optional Checkbox Group */

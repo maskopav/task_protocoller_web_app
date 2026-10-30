@@ -160,6 +160,7 @@
     "emailRequired": "Geben Sie eine E-Mail-Adresse ein.",
     "noUser": "Kein Benutzer mit dieser E-Mail.",
     "added": "{{name}} als Bearbeiter hinzugefügt",
+    "alreadyEditor": "{{name}} ist bereits Bearbeiter",
     "removed": "{{name}} entfernt",
     "columns": {
       "name": "Name",

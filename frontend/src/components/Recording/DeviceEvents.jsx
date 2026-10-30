@@ -4,6 +4,7 @@ import { hasValue } from "./recordingFormat";
 import "./Recording.css";
 
 const MAX_RAW = 4000;
+const KNOWN = new Set(["interrupted", "capture_failed", "unavailable_at_start"]);
 
 /**
  * Camera or microphone events of a session as one readable sentence each (F-036).
@@ -14,7 +15,7 @@ export default function DeviceEvents({ events = [], kind }) {
   if (!events.length) return null;
   return events.map((e, i) => {
     const code = e.event ?? e.type;
-    const known = code === "interrupted" || code === "capture_failed";
+    const known = KNOWN.has(code) && !(code === "unavailable_at_start" && kind !== "camera");
     const sentence = t(`device.${kind}.${known ? code : "other"}`);
     const raw = hasValue(e.detail) ? String(e.detail).slice(0, MAX_RAW) : "";
     return (

@@ -259,6 +259,12 @@ describe("extractSession: flags", () => {
     expect(flags("valid", ev("gain_changed"))).not.toContain("device");
   });
 
+  it("F-109: an unavailable_at_start camera event reaches exam_summary.hardware.events unfiltered", () => {
+    const event = { at: "2026-10-13T08:00:00Z", device: "camera", event: "unavailable_at_start", detail: "no device" };
+    const c = run("valid", (p) => { p.examination.hardware.events = [event]; });
+    expect(c.exam_summary.hardware.events).toEqual([event]);
+  });
+
   it("keeps existing flags such as duplicate, without duplicates", () => {
     const f = flags("recoveredInterrupted", null, { existingFlags: ["duplicate", "recovered"] });
     expect(f).toContain("duplicate");

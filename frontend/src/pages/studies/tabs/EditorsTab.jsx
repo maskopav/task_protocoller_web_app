@@ -46,7 +46,11 @@ export default function EditorsTab({ study, adding, onCloseAdd }) {
     setFailure("");
     try {
       const added = await addEditor(projectId, value);
-      toast.success(t("editors.added", { name: added?.name || added?.email || value }));
+      const name = added?.name || added?.email || value;
+      // F-100: re-adding someone who already edits answers 200 with their existing grant.
+      const already = (editors || []).some((ed) => ed.user_id === added?.user_id);
+      if (already) toast.info(t("editors.alreadyEditor", { name }));
+      else toast.success(t("editors.added", { name }));
       setEmail("");
       onCloseAdd();
       await load();

@@ -30,6 +30,7 @@
 .recd-banner svg { flex: none; margin-top: 2px; }
 .recd-banner { font-size: var(--fs-md); line-height: 1.45; }
 .recd-banner p { margin: 0; font-size: var(--fs-md); }
+.recd-banner-lead { display: block; }
 
 /* Layout */
 .recd-page { display: flex; flex-direction: column; gap: var(--s-4); }

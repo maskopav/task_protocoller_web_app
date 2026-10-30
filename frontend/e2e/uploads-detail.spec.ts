@@ -40,7 +40,7 @@ test('editing works and blanking the patient code is refused', async ({ page, re
   await page.goto(`/#/recordings/${id}`);
   await page.getByRole('button', { name: 'Edit', exact: false }).first().click();
 
-  const code = page.getByLabel('patient code', { exact: true });
+  const code = page.getByLabel('Participant code', { exact: true });
   await expect(code).toHaveValue('testx');
   await code.fill('');
   await page.getByRole('button', { name: 'Save' }).click();
@@ -53,11 +53,11 @@ test('editing works and blanking the patient code is refused', async ({ page, re
   });
   expect(refused.status()).toBe(400);
 
-  await page.getByLabel('year of birth', { exact: true }).fill('1951');
+  await page.getByLabel('Year of birth', { exact: true }).fill('1951');
   await code.fill('testx');
   await page.getByRole('button', { name: 'Save' }).click();
 
-  await expect(page.getByLabel('year of birth', { exact: true })).toHaveCount(0); // left edit mode
+  await expect(page.getByLabel('Year of birth', { exact: true })).toHaveCount(0); // left edit mode
   await expect(page.locator('.recd-thread').getByText('edited participant fields: year_of_birth')).toBeVisible();
   await page.getByRole('button', { name: 'Show values' }).click();
   await expect(page.getByText('1951', { exact: true })).toBeVisible();

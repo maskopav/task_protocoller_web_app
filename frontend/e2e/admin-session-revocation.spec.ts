@@ -12,7 +12,11 @@ const TARGET_EMAIL = 'admin@test.com';
 const TARGET_PASSWORD = '1234';
 
 async function loginAndGetToken(page: Page, email: string, password: string): Promise<string> {
-  await page.goto('/#/login'); // a logged-in visit to / now opens the app, so address the login route itself
+  // F-078: /login no longer signs out, so a second user starts from a cleared session.
+  await page.goto('/#/login');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  // a logged-in visit to / now opens the app, so address the login route itself
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.locator('button[type="submit"]').click();

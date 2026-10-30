@@ -31,6 +31,8 @@ beforeEach(() => {
     if (sql.includes('FROM projects')) return db.projects;
     if (sql.includes('FROM project_editors pe')) return db.editors.map((e) => ({ ...e, full_name: 'N', email: 'e@x', created_at: 't' }));
     if (sql.includes('SELECT user_id FROM project_editors')) return db.editors;
+    if (sql.includes('SELECT created_at FROM project_editors')) return db.grant ? [db.grant] : [];
+    if (sql.includes('INSERT IGNORE INTO project_editors')) return { affectedRows: db.alreadyEditor ? 0 : 1 };
     if (sql.includes('FROM users')) return db.users;
     if (sql.includes('FROM sites')) return db.sites;
     return {};
@@ -91,6 +93,28 @@ describe('addEditor', () => {
     expect(params).toEqual(['eve@x.cz']);
     expect(calls('INSERT IGNORE INTO project_editors')[0][1]).toEqual([9, 3]);
     expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('F-100: a new editor answers 201 with a real ISO added_at', async () => {
+    db.users = [{ id: 9, full_name: 'Eve', email: 'eve@x.cz' }];
+    db.grant = { created_at: '2026-10-30 08:15:00' };
+    const res = makeRes();
+    await addEditor(req(user, { id: '3' }, { email: 'eve@x.cz' }), res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json.mock.calls[0][0]).toMatchObject({ user_id: 9, added_at: '2026-10-30T08:15:00Z' });
+  });
+
+  it('F-100: re-adding an existing editor answers 200 with the existing grant and its added_at', async () => {
+    db.users = [{ id: 8, full_name: 'Bob', email: 'bob@x.cz' }];
+    db.alreadyEditor = true;
+    db.grant = { created_at: '2026-10-01 10:00:00' };
+    const res = makeRes();
+    await addEditor(req(user, { id: '3' }, { email: 'bob@x.cz' }), res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).not.toHaveBeenCalledWith(201);
+    const body = res.json.mock.calls[0][0];
+    expect(body).toMatchObject({ user_id: 8, email: 'bob@x.cz', added_at: '2026-10-01T10:00:00Z' });
+    expect(body.added_at).not.toBeNull();
   });
 
   it('404 user_not_found for an unknown email', async () => {

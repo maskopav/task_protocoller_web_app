@@ -160,6 +160,7 @@
     "emailRequired": "Enter an email address.",
     "noUser": "No user with this email.",
     "added": "{{name}} added as an editor",
+    "alreadyEditor": "{{name}} is already an editor",
     "removed": "{{name}} removed",
     "columns": {
       "name": "Name",
