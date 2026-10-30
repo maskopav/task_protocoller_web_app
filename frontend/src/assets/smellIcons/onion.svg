@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="skin" cx=".38" cy=".4" r=".7">
+      <stop offset="0" stop-color="#C2477A"/><stop offset=".55" stop-color="#8E2456"/><stop offset="1" stop-color="#5E1238"/>
+    </radialGradient>
+  </defs>
+
+  <!-- whole onion -->
+  <path d="M74 10C75 17 79 22 85 26C95 33 98 50 93 63C88 77 76 84 64 84C50 84 40 74 39 60C38 46 46 35 58 28C66 23 72 18 74 10Z" fill="url(#skin)"/>
+  <path d="M74 12C70 30 62 48 64 82M76 18C80 36 82 56 74 82M73 16C60 30 48 46 46 70M78 22C90 36 94 50 88 70"
+        stroke="#4E0F2F" stroke-opacity=".28" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M54 36C49 42 46 50 46 58" stroke="#fff" stroke-opacity=".3" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M74 10C73.5 7 74.5 4.5 76 3" stroke="#B9946A" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M62 84C61 87 60 89 58 90M65 84.5C65 87.5 66 89.5 68 90.5M63.5 84.5V91" stroke="#C8A97E" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+
+  <!-- halved onion: skin sliver behind the cut face, then the rings -->
+  <path d="M34 30.5C35 40 47 46 51 58C55 74 45 88 31 88C17 88 7 74 11 58C15 46 28 40 34 30.5Z" fill="#7A1C4A"/>
+  <path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" fill="#F3D6E5" stroke="#8A2357" stroke-width="2.6"/>
+  <path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" transform="translate(34 66) scale(0.865) translate(-34 -66)" fill="#FBEFF5" stroke="#A8336E" stroke-opacity="0.82" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" transform="translate(34 66) scale(0.730) translate(-34 -66)" fill="#F6E1EC" stroke="#A8336E" stroke-opacity="0.74" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" transform="translate(34 66) scale(0.595) translate(-34 -66)" fill="#FBEFF5" stroke="#A8336E" stroke-opacity="0.66" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" transform="translate(34 66) scale(0.460) translate(-34 -66)" fill="#F6E1EC" stroke="#A8336E" stroke-opacity="0.58" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" transform="translate(34 66) scale(0.325) translate(-34 -66)" fill="#FBEFF5" stroke="#A8336E" stroke-opacity="0.50" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34 32C38 40 50 46 54 58C58 74 48 88 34 88C20 88 10 74 14 58C18 46 30 40 34 32Z" transform="translate(34 66) scale(0.190) translate(-34 -66)" fill="#F6E1EC" stroke="#A8336E" stroke-opacity="0.42" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+  <path d="M34 60C32 63 32 68 34 71C36 68 36 63 34 60Z" fill="#E7C2D6"/>
+</svg>

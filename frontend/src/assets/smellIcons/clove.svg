@@ -1,11 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs><g id="c">
-    <path d="M47 34L53 34L51.5 86L48.5 86Z" fill="#6D3B1F"/>
-    <path d="M40 30L50 40L60 30L56 22L50 26L44 22Z" fill="#8B4A25"/>
-    <circle cx="50" cy="20" r="8" fill="#A0582E"/>
-    <circle cx="48" cy="18" r="2.5" fill="#C27A4A"/>
+    <path d="M-6.5 -12C-6.5 4-4.5 18-3 27Q0 30 3 27C4.5 18 6.5 4 6.5-12Z" fill="#5A3218"/>
+    <path d="M2.5-10C3 4 2.5 16 1.5 25" stroke="#7A4A2A" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M-3-4l1 3M-2 8l1 3M-1.5 18l.8 2.5" stroke="#3E2010" stroke-width="1.2" stroke-linecap="round"/>
+    <circle cx="0" cy="-21" r="8.5" fill="#8B5A33"/>
+    <circle cx="-2.5" cy="-24" r="3" fill="#B07C4F"/>
+    <path d="M-5-11C-12-13-14-21-11-29C-8-23-5-20-2-17Z" fill="#6B3B1C"/>
+    <path d="M5-11C12-13 14-21 11-29C8-23 5-20 2-17Z" fill="#6B3B1C"/>
+    <path d="M-4-10C-5-15-3-19 0-21C3-19 5-15 4-10Z" fill="#5A3218"/>
   </g></defs>
-  <use href="#c" transform="rotate(-30 50 88)"/>
-  <use href="#c" transform="rotate(30 50 88)"/>
-  <use href="#c" transform="translate(0 4)"/>
+  <use href="#c" transform="translate(30 40) rotate(-30) scale(1.1)"/>
+  <use href="#c" transform="translate(71 36) rotate(25) scale(1.05)"/>
+  <use href="#c" transform="translate(52 78) rotate(-100)"/>
 </svg>
