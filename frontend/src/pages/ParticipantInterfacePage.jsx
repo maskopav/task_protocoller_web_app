@@ -220,7 +220,7 @@ export default function ParticipantInterfacePage() {
     // Based on the protocol (not on whether the selector was actually shown),
     // so the step list stays identical when a session is resumed.
     const hasLanguageSelector = (selectedProtocol.available_languages?.length ?? 0) > 1;
-    if (audioGuideEnabled && !hasLanguageSelector) {
+    if (needsVolumeCheck && !hasLanguageSelector) {
       introSteps.push({
         type: "welcome",
         category: "welcome",

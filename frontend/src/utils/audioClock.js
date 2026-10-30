@@ -17,6 +17,17 @@
 //   perfMsFromOutput - from getOutputTimestamp() minus the reported base and
 //                      output latency; only as good as those latency reports,
 //                      null where the browser reports neither.
+// Safari's getOutputTimestamp() returns currentTime itself, so there
+// perfMsFromOutput comes out early by base + output latency; use perfMs.
+//
+// Safari sometimes reports currentFrame 0 although the context has been
+// running for a while (seen on iOS 18.7: frame 0 at currentTime 1.04 s and
+// 2.28 s), which would put the segment before its start command. The anchor
+// is therefore checked against the time the start/resume command was posted
+// (startSent): the first sample is processed after that, typically 10-20 ms
+// later. An implausible or missing frame is logged as contextFrameRaw and the
+// segment falls back to perfMs = startSent (perfMsSource 'startSent'), which
+// is early by that 10-20 ms.
 // Both are the time the sample was processed by the audio graph. The
 // microphone captured it earlier, by the input latency
 // (recording_finalized micSettings.latency, where the browser reports it).
@@ -24,6 +35,14 @@
 // pipeline latency, which the browser does not report.
 
 const round = (v, digits = 3) => (Number.isFinite(v) ? Math.round(v * 10 ** digits) / 10 ** digits : null);
+
+// How far an anchor may fall before its start command and how far its frame
+// may lie past the context's currentTime. Generous, so a pause and resume
+// a few ms apart (the next start command already sent when the previous
+// anchor arrives) or rounding never rejects a valid frame; the Safari frames
+// it catches were off by ~1 s.
+const START_TOLERANCE_MS = 50;
+const FUTURE_TOLERANCE_SEC = 0.01;
 
 // One simultaneous reading of the AudioContext clock and performance.now().
 export function readContextClock(ctx) {
@@ -61,20 +80,34 @@ const roundReading = (r) => ({
 // Collects the segment anchors of one recording.
 export function createAudioClock() {
     const segments = [];
+    let startSentMs = null;
     return {
+        // Call right after posting the worklet's 'start' command (start and resume).
+        startSent() {
+            startSentMs = performance.now();
+        },
         // Returns the stored anchor, or null when the context is gone.
         segmentStart(ctx, { sampleIndex, contextFrame }) {
             if (!ctx || ctx.state === 'closed') return null;
             const reading = readContextClock(ctx);
-            const est = Number.isFinite(contextFrame)
+            let frameOk = Number.isFinite(contextFrame);
+            let est = frameOk
                 ? frameToPerformanceTime(reading, contextFrame, ctx.sampleRate,
                     { base: ctx.baseLatency, output: ctx.outputLatency })
-                : { fromCurrentTime: null, fromOutput: null };
+                : null;
+            if (frameOk && (contextFrame / ctx.sampleRate > reading.currentTime + FUTURE_TOLERANCE_SEC ||
+                    (startSentMs != null && est.fromCurrentTime < startSentMs - START_TOLERANCE_MS))) {
+                frameOk = false;
+            }
+            if (!frameOk) est = { fromCurrentTime: startSentMs, fromOutput: null };
             const anchor = {
                 sampleIndex,
-                contextFrame: Number.isFinite(contextFrame) ? contextFrame : null,
+                contextFrame: frameOk ? contextFrame : null,
+                ...(!frameOk && Number.isFinite(contextFrame) && { contextFrameRaw: contextFrame }),
                 perfMs: round(est.fromCurrentTime),
                 perfMsFromOutput: round(est.fromOutput),
+                perfMsSource: frameOk ? 'contextFrame' : (startSentMs != null ? 'startSent' : null),
+                startSentMs: round(startSentMs),
                 reading: roundReading(reading),
             };
             segments.push(anchor);

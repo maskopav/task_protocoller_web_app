@@ -666,6 +666,7 @@
   },
   "retelling": {
     "instructionsPreCalibration": "V další úloze si poslechnete namluvenou pohádku a poté ji převyprávíte vlastními slovy. <br/><br/>Během mluvení budeme měřit Vaše pohyby v obličeji. <br/><br/>Nejprve je proto potřeba nastavit Vaši kameru.",
+    "instructions": "Stiskněte Přehrát pohádku a poslechněte si namluvenou pohádku. {{playStory}} Po poslechu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Cíl je souvisle mluvit, čili nezáleží jestli je převyprávěný děj správně nebo je pohádka dovyprávěna celá.",
     "instructionsPostCalibration": "Držte prosím telefon ve zkalibrované poloze. <br/><br/>Stiskněte Přehrát pohádku a poslechněte si namluvenou pohádku. {{playStory}} Po poslechu stiskněte START a <strong>převyprávějte pohádku vlastními slovy</strong> během {{duration}} sekund. <br/><br/>Cíl je souvisle mluvit, čili nezáleží jestli je převyprávěný děj správně nebo je pohádka dovyprávěna celá.",
     "instructionsActive": "Převyprávějte prosím pohádku vlastními slovy během {{duration}} sekund."
   },

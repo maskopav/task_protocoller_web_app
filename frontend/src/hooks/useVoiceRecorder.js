@@ -627,6 +627,7 @@ export const useVoiceRecorder = (options = {}) => {
         inputGainNode.connect(analyser.current);
 
         workletNode.port.postMessage({ command: 'start' });
+        audioClockRef.current?.startSent();
         mark('startSentMs');
 
         setRecordingStatus(RECORDING);
@@ -684,6 +685,7 @@ export const useVoiceRecorder = (options = {}) => {
             // Tell worklet to resume saving PCM data
             if (workletNodeRef.current) {
                 workletNodeRef.current.port.postMessage({ command: 'start' });
+                audioClockRef.current?.startSent();
             }
         }
     };

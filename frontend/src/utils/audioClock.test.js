@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readContextClock, frameToPerformanceTime, createAudioClock } from "./audioClock";
 
-const ctxAt = ({ currentTime, output = null, base = 0.01, outputLatency = 0.03, state = "running" }) => ({
-  sampleRate: 48000,
+const ctxAt = ({ currentTime, output = null, base = 0.01, outputLatency = 0.03, state = "running", sampleRate = 48000 }) => ({
+  sampleRate,
   currentTime,
   baseLatency: base,
   outputLatency,
@@ -66,6 +66,65 @@ describe("audioClock", () => {
     }));
     expect(summary.atStop).toEqual({ performanceNow: 30000, currentTime: 21, output: null });
     expect(summary).toEqual(expect.objectContaining({ workletSamples: 912000, receivedSamples: 912000 }));
+  });
+
+  // The cases below use values logged by iOS 18.7 Safari (session 576).
+  it("keeps a plausible frame and records the start command time", () => {
+    const now = vi.spyOn(performance, "now").mockReturnValue(240406);
+    const clock = createAudioClock();
+    clock.startSent();
+    now.mockReturnValue(240442);
+    const anchor = clock.segmentStart(ctxAt({ currentTime: 165.354667, sampleRate: 24000 }),
+      { sampleIndex: 0, contextFrame: 3968128 });
+    expect(anchor).toEqual(expect.objectContaining({
+      contextFrame: 3968128, perfMs: 240426, perfMsSource: "contextFrame", startSentMs: 240406,
+    }));
+    expect(anchor).not.toHaveProperty("contextFrameRaw");
+  });
+
+  it("replaces Safari's frame 0 (before the start command) with the start command time", () => {
+    const now = vi.spyOn(performance, "now").mockReturnValue(9701);
+    const clock = createAudioClock();
+    clock.startSent();
+    now.mockReturnValue(9717);
+    // Frame 0 at currentTime 1.04 s would put the first sample at 8677 ms, 1 s before Start.
+    const anchor = clock.segmentStart(ctxAt({ currentTime: 1.04, sampleRate: 24000 }),
+      { sampleIndex: 0, contextFrame: 0 });
+    expect(anchor).toEqual(expect.objectContaining({
+      contextFrame: null, contextFrameRaw: 0, perfMs: 9701, perfMsFromOutput: null, perfMsSource: "startSent",
+    }));
+  });
+
+  it("rejects a frame ahead of the context clock", () => {
+    const now = vi.spyOn(performance, "now").mockReturnValue(1000);
+    const clock = createAudioClock();
+    clock.startSent();
+    now.mockReturnValue(1020);
+    const anchor = clock.segmentStart(ctxAt({ currentTime: 2.0 }), { sampleIndex: 0, contextFrame: 3 * 48000 });
+    expect(anchor).toEqual(expect.objectContaining({ contextFrameRaw: 144000, perfMs: 1000, perfMsSource: "startSent" }));
+  });
+
+  it("keeps an anchor that arrives just after a quick pause and resume sent the next start", () => {
+    // Topic switch: resume, pause and resume again within ~5 ms (session 576 monologue).
+    const now = vi.spyOn(performance, "now").mockReturnValue(380440);
+    const clock = createAudioClock();
+    clock.startSent();
+    now.mockReturnValue(380446);
+    clock.startSent();
+    now.mockReturnValue(380449);
+    const anchor = clock.segmentStart(ctxAt({ currentTime: 37.04 }), { sampleIndex: 1593856, contextFrame: 1777664 });
+    expect(anchor.perfMsSource).toBe("contextFrame");
+    expect(anchor.perfMs).toBeCloseTo(380443.667, 3);
+  });
+
+  it("falls back to the start command time when the scope has no currentFrame", () => {
+    const now = vi.spyOn(performance, "now").mockReturnValue(500);
+    const clock = createAudioClock();
+    clock.startSent();
+    now.mockReturnValue(530);
+    const anchor = clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: null });
+    expect(anchor).toEqual(expect.objectContaining({ contextFrame: null, perfMs: 500, perfMsSource: "startSent" }));
+    expect(anchor).not.toHaveProperty("contextFrameRaw");
   });
 
   it("ignores anchors once the context is closed and keeps a null frame as unknown", () => {
