@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { SafeButton } from "../Shared/SafeButton";
+import FormattedText from "../FormattedText/FormattedText";
 import { NO_SCENT_KEY } from "../../config/smellScents";
 import ScentPicker from "./ScentPicker";
 import RatingSheet from "./RatingSheet";
@@ -10,8 +11,8 @@ import ScentCard from "./ScentCard";
 import { SMELL_RATINGS } from "./smellRatings";
 import "./SmellTestTask.css";
 
-// Instructions screen (open the envelope, smell the paper inside), then one
-// screen per scent question. Picking a scent opens a sheet that steps through
+// Two intro screens (get the card ready; how-to with a looping video), then
+// one screen per scent question. Picking a scent opens a sheet that steps through
 // SMELL_RATINGS; the answer is saved only once every rating is picked, so
 // closing the sheet midway changes nothing. Questions are authored in the same
 // question builder as questionnaires (options + optionImages). Each question is
@@ -20,10 +21,15 @@ import "./SmellTestTask.css";
 // Submitted answers: { [questionId]: { scent, label, intensity, pleasantness } }
 // — `scent` is the language-independent key, `label` the text shown;
 // "No scent" carries no ratings.
+
+// Silent demo clip: rub a box, smell it, tap the answer. Shared by all languages.
+const HOWTO_VIDEO = `${import.meta.env.BASE_URL}assets/smell/smell-howto.mp4`;
+
 export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploading }) {
   const { t } = useTranslation(["common", "tasks"]);
   const questions = task.resolvedParams?.questions || [];
-  const [index, setIndex] = useState(-1); // -1 = instructions screen
+  const [index, setIndex] = useState(-2); // -2 = get ready, -1 = how-to
+  const [videoFailed, setVideoFailed] = useState(false);
   const [answers, setAnswers] = useState({});
   const [draft, setDraft] = useState(null); // answer being rated + current sheet step
 
@@ -32,12 +38,26 @@ export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploadi
     return onNextTask({ taskType: "smell", timestamp: new Date().toISOString(), answers });
   };
 
-  if (index === -1) {
+  if (index < 0) {
+    const isHowTo = index === -1;
     return (
       <TaskLayout
-        instructions={task.instructions}
+        mainClassName="smell-main"
+        instructions={<FormattedText text={isHowTo ? t("tasks:smell.howTo") : task.instructions} />}
+        instructionsKey={index}
         controls={<SafeButton className="btn-next" onClick={goNext}>{t("buttons.next")}</SafeButton>}
-      />
+      >
+        {isHowTo
+          ? !videoFailed && (
+            <video
+              className="smell-howto-video"
+              src={HOWTO_VIDEO}
+              autoPlay muted loop playsInline
+              onError={() => setVideoFailed(true)}
+            />
+          )
+          : <ScentCard count={questions.length} preview />}
+      </TaskLayout>
     );
   }
 

@@ -6,6 +6,8 @@
     "optionalLabel": "(nepovinné)"
   },
   "smell": {
+    "instructions": "Připravte si <strong>čichovou kartu</strong> od agentury.<br/><br/>Postupně přičichněte k <strong>očíslovaným okénkům</strong> a odpovídejte zde.",
+    "howTo": "<strong>1. Setřete</strong> okénko nehtem.<br/><strong>2. Hned</strong> přičichněte.<br/><strong>3. Ťukněte</strong> na to, co cítíte.",
     "close": "Zavřít",
     "back": "Zpět",
     "questionText": "Vůně {{n}}: Jakou vůni cítíte?",

@@ -40,6 +40,13 @@ describe("ScentCard", () => {
     expect(cursor()).not.toBe(first);
   });
 
+  it("preview draws the plain card: numbered spots, no progress", () => {
+    render({ count: 5, preview: true });
+    expect(container.querySelector(".scent-card.is-preview")).not.toBeNull();
+    expect(spots().map((s) => s.textContent)).toEqual(["1", "2", "3", "4", "5"]);
+    expect(container.querySelector(".scent-card-cursor, .scent-card-check, .is-current")).toBeNull();
+  });
+
   it("renders nothing for a single scent", () => {
     render({ count: 1, current: 0 });
     expect(container.querySelector("svg")).toBeNull();

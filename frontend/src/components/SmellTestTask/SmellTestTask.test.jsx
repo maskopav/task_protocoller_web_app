@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key) => key, i18n: { language: "en" } }),
+  Trans: ({ defaults }) => defaults,
 }));
 
 const { default: SmellTestTask } = await import("./SmellTestTask");
@@ -38,13 +39,29 @@ describe("SmellTestTask", () => {
       root = createRoot(container);
       root.render(<SmellTestTask task={task} onNextTask={onNextTask} />);
     });
-    await click(next()); // past the instructions screen
+    await click(next()); // get-ready screen
+    await click(next()); // how-to screen
   });
 
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
     vi.restoreAllMocks();
+  });
+
+  it("shows the get-ready text, then the how-to text with the video", async () => {
+    act(() => root.render(<SmellTestTask key="fresh" task={{ instructions: "Smell the strip", resolvedParams: { questions: [QUESTION] } }} onNextTask={onNextTask} />));
+    const text = () => container.querySelector(".instruction-text").textContent;
+    expect(text()).toBe("Smell the strip");
+    expect(container.querySelector(".smell-howto-video")).toBeNull();
+    await click(next());
+    expect(text()).toBe("tasks:smell.howTo");
+    expect(container.querySelector(".smell-howto-video")).not.toBeNull();
+    // A missing clip leaves just the text
+    act(() => container.querySelector(".smell-howto-video").dispatchEvent(new Event("error")));
+    expect(container.querySelector(".smell-howto-video")).toBeNull();
+    await click(next());
+    expect(cards()).toHaveLength(3);
   });
 
   it("renders one picture card per option", () => {

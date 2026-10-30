@@ -159,6 +159,16 @@
   width: 1.6rem;
 }
 
+/* ── How-to video (second intro screen) ──────────────────────────── */
+.smell-howto-video {
+  display: block;
+  width: min(100%, 420px);
+  max-height: 45dvh;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  background: #000;
+}
+
 /* ── Scent Card (progress on the physical card) ──────────────────── */
 /* Kept smaller than the scent circles; shrinks first on short screens */
 .scent-card {
@@ -172,7 +182,7 @@
 }
 
 .scent-card-bg {
-  fill: #eef3ff;
+  fill: #fff;
   stroke: #a9bcf0;
   stroke-width: 3;
 }
@@ -245,6 +255,25 @@
 @media (prefers-reduced-motion: reduce) {
   .scent-card-cursor { transition: none; animation: none; }
 }
+
+/* Preview: the card as it looks in the hand (get-ready screen) */
+.scent-card.is-preview {
+  width: min(100%, 360px);
+  max-height: 32dvh;
+}
+
+/* Same colours as the progress card, so screen 1 → scent 1 only lights up box 1 */
+.scent-card-plate { fill: #eef3ff; }
+
+.scent-card-plate-text {
+  fill: var(--primary);
+  font-size: 26px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.scent-card-step { fill: var(--primary); }
 
 /* ── Rating Sheet ─────────────────────────────────────────────────── */
 .scent-sheet-backdrop {

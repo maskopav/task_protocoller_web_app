@@ -688,7 +688,7 @@
 
     "smell": {
       "name": "Smell Test",
-      "description": "Placeholder task: participant opens the envelope received by post, smells the paper inside, and picks the matching smell from 4 pictures + \"No scent\". Pick the 4 scents per question in the editor (pictures from src/assets/smellIcons/); instructions are a placeholder.",
+      "description": "Participant has the smell card from the agency ready, watches a short how-to video (public/assets/smell/smell-howto.mp4), then for each numbered box rubs, smells and picks the matching smell from 4 pictures + \"No scent\". One question per box on the card (5 or 8); pick the 4 scents per question in the editor (pictures from src/assets/smellIcons/).",
       "title": "{{title}}",
       "noScent": "No scent",
       "scents": {},
@@ -714,7 +714,8 @@
         "pleasant": "Pleasant",
         "veryPleasant": "Very pleasant"
       },
-      "instructions": "PLACEHOLDER: Open the envelope you received by post. Take out the paper strip inside and smell it carefully. When you're ready, tap Next to answer the question.",
+      "instructions": "Get your <strong>smell card</strong> from the agency ready.<br/><br/>Smell the numbered boxes <strong>one by one</strong> and answer here.",
+      "howTo": "<strong>1. Rub</strong> the box lightly.<br/><strong>2. Smell</strong> it right away.<br/><strong>3. Tap</strong> what you smell.",
       "params": {
         "title": { "label": "Title" },
         "description": { "label": "Description" },
