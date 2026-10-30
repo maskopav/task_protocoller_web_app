@@ -68,6 +68,15 @@ describe("audioClock", () => {
     expect(summary).toEqual(expect.objectContaining({ workletSamples: 912000, receivedSamples: 912000 }));
   });
 
+  it("records the mic start-up silence the worklet skipped before a segment", () => {
+    vi.spyOn(performance, "now").mockReturnValue(10100);
+    const clock = createAudioClock();
+    const ctx = ctxAt({ currentTime: 1.1 });
+    expect(clock.segmentStart(ctx, { sampleIndex: 0, contextFrame: 48000, waitedSamples: 1920 }).micWaitMs).toBe(40);
+    // Older worklets report nothing -- no field rather than a made-up 0.
+    expect(clock.segmentStart(ctx, { sampleIndex: 0, contextFrame: 48000 })).not.toHaveProperty("micWaitMs");
+  });
+
   // The cases below use values logged by iOS 18.7 Safari (session 576).
   it("keeps a plausible frame and records the start command time", () => {
     const now = vi.spyOn(performance, "now").mockReturnValue(240406);

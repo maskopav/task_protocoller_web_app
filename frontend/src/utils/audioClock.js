@@ -134,9 +134,15 @@ export function createAudioClock() {
             stop = { ms: performance.now(), cause: pickCause(cause) };
         },
         // Returns the stored segment, or null when the context is gone.
-        segmentStart(ctx, { sampleIndex, contextFrame }) {
+        // waitedSamples: the mic's start-up silence the worklet skipped
+        // before this segment's first sample (not in the file).
+        segmentStart(ctx, { sampleIndex, contextFrame, waitedSamples }) {
             if (!ctx || ctx.state === 'closed') return null;
-            const segment = { ...anchorAt(ctx, sampleIndex, contextFrame, start.ms), ...start.cause, end: null };
+            const segment = {
+                ...anchorAt(ctx, sampleIndex, contextFrame, start.ms), ...start.cause,
+                ...(Number.isFinite(waitedSamples) && { micWaitMs: round(waitedSamples / ctx.sampleRate * 1000, 1) }),
+                end: null,
+            };
             segments.push(segment);
             return segment;
         },

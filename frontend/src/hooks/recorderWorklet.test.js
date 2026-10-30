@@ -35,7 +35,7 @@ describe("recorder worklet — segment anchors", () => {
     quantum(128 * 7);
     quantum(128 * 8);
 
-    expect(posted).toEqual([{ segmentStart: { sampleIndex: 0, contextFrame: 896 } }]);
+    expect(posted).toEqual([{ segmentStart: { sampleIndex: 0, contextFrame: 896, waitedSamples: 0 } }]);
   });
 
   it("starts a new segment at the resumed file position after a pause", () => {
@@ -50,8 +50,8 @@ describe("recorder worklet — segment anchors", () => {
 
     const anchors = posted.filter((m) => m.segmentStart).map((m) => m.segmentStart);
     expect(anchors).toEqual([
-      { sampleIndex: 0, contextFrame: 1000 },
-      { sampleIndex: 5120, contextFrame: 200000 },
+      { sampleIndex: 0, contextFrame: 1000, waitedSamples: 0 },
+      { sampleIndex: 5120, contextFrame: 200000, waitedSamples: 0 },
     ]);
     const buffers = posted.filter((m) => m.buffer);
     const total = buffers.reduce((n, m) => n + m.buffer.byteLength / 2, 0);
@@ -96,13 +96,82 @@ describe("recorder worklet — segment anchors", () => {
     globalThis.currentFrame = 0;
     node.process([[]]);
     quantum(256);
-    expect(posted[0]).toEqual({ segmentStart: { sampleIndex: 0, contextFrame: 256 } });
+    expect(posted[0]).toEqual({ segmentStart: { sampleIndex: 0, contextFrame: 256, waitedSamples: 0 } });
   });
 
   it("reports an unknown frame when the scope has no currentFrame", () => {
     const { node, send, posted } = loadWorklet();
     send({ command: "start" });
-    node.process([[new Float32Array(128)]]);
-    expect(posted[0]).toEqual({ segmentStart: { sampleIndex: 0, contextFrame: null } });
+    node.process([[new Float32Array(128).fill(0.1)]]);
+    expect(posted[0]).toEqual({ segmentStart: { sampleIndex: 0, contextFrame: null, waitedSamples: 0 } });
+  });
+});
+
+describe("recorder worklet — mic start-up silence", () => {
+  beforeEach(() => { delete globalThis.currentFrame; globalThis.sampleRate = 48000; });
+  afterEach(() => { delete globalThis.currentFrame; delete globalThis.sampleRate; });
+
+  const savedSamples = (posted) => posted.filter((m) => m.buffer).reduce((n, m) => n + m.buffer.byteLength / 2, 0);
+
+  it("skips the fresh mic's digital silence and anchors the segment at the first real audio", () => {
+    const { send, quantum, posted } = loadWorklet();
+    send({ command: "start" });
+    for (let k = 0; k < 15; k++) quantum(1000 + 128 * k, 0); // ~40 ms of zeros
+    quantum(1000 + 128 * 15, 0.1);
+    send({ command: "stop", final: true });
+
+    expect(posted[0]).toEqual({ segmentStart: { sampleIndex: 0, contextFrame: 1000 + 128 * 15, waitedSamples: 1920 } });
+    expect(savedSamples(posted)).toBe(128); // only the real quantum is in the file
+  });
+
+  it("skips the silence after a resume too, without leaving a gap in the file", () => {
+    const { send, quantum, posted } = loadWorklet();
+    send({ command: "start" });
+    quantum(1000, 0.1);
+    send({ command: "stop" });
+    send({ command: "start" });
+    quantum(50000, 0);
+    quantum(50128, 0);
+    quantum(50256, 0.1);
+    send({ command: "stop", final: true });
+
+    const anchors = posted.filter((m) => m.segmentStart).map((m) => m.segmentStart);
+    expect(anchors[1]).toEqual({ sampleIndex: 128, contextFrame: 50256, waitedSamples: 256 });
+    expect(savedSamples(posted)).toBe(256);
+  });
+
+  it("treats sub-LSB float noise as silence and anything that rounds to a non-zero sample as audio", () => {
+    const { node, send, posted } = loadWorklet();
+    send({ command: "start" });
+    globalThis.currentFrame = 0;
+    node.process([[new Float32Array(128).fill(0.4 / 0x7fff)]]); // rounds to 0
+    const oneLsb = new Float32Array(128); oneLsb[77] = 1 / 0x7fff;
+    globalThis.currentFrame = 128;
+    node.process([[oneLsb]]);
+
+    expect(posted[0].segmentStart).toEqual({ sampleIndex: 0, contextFrame: 128, waitedSamples: 128 });
+  });
+
+  it("stops waiting after 300 ms so a really muted mic still records", () => {
+    const { send, quantum, posted } = loadWorklet();
+    send({ command: "start" });
+    const cap = 48000 * 0.3; // 14400 samples = 112.5 quanta -> waits 113
+    let frame = 0;
+    for (let k = 0; k < 120; k++) { quantum(frame, 0); frame += 128; }
+    send({ command: "stop", final: true });
+
+    expect(posted[0].segmentStart).toEqual({ sampleIndex: 0, contextFrame: 113 * 128, waitedSamples: 113 * 128 });
+    expect(113 * 128).toBeGreaterThanOrEqual(cap);
+    expect(savedSamples(posted)).toBe(7 * 128); // the rest of the silence is recorded
+  });
+
+  it("does not wait for silence again in the middle of a segment", () => {
+    const { send, quantum, posted } = loadWorklet();
+    send({ command: "start" });
+    quantum(0, 0.1);
+    quantum(128, 0); // a real pause in speech / a dropout -- must be kept
+    quantum(256, 0.1);
+    send({ command: "stop", final: true });
+    expect(savedSamples(posted)).toBe(384);
   });
 });

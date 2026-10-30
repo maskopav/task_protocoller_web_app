@@ -133,6 +133,15 @@ class RecorderWorklet extends AudioWorkletProcessor {
         // context frame just after the last saved sample.
         this.inSegment = false;
         this.endFrame = null;
+        // A freshly opened mic (start, and resume, which reopens it) delivers
+        // digital silence for its first ~13-48 ms on iOS (sessions 578-581).
+        // Those quanta are skipped, so the segment starts with the first real
+        // audio and its anchor is that sample's frame -- the file has no
+        // silence at its start or seams, and the timing stays exact. The UI is
+        // unaffected (it never waits for this). Capped, so a really muted mic
+        // still records (silence the mute detection then sees).
+        this.maxWaitSamples = Math.round((typeof sampleRate === 'number' ? sampleRate : 48000) * 0.3);
+        this.waitedSamples = 0;
 
         this.port.onmessage = (e) => {
             if (e.data.command === 'start') {
@@ -141,6 +150,7 @@ class RecorderWorklet extends AudioWorkletProcessor {
                 if (this.isRecording) return;
                 this.isRecording = true;
                 this.segmentPending = true;
+                this.waitedSamples = 0;
             } else if (e.data.command === 'stop') {
                 this.isRecording = false;
                 this.segmentPending = false;
@@ -173,6 +183,15 @@ class RecorderWorklet extends AudioWorkletProcessor {
         }
     }
 
+    // True when the quantum would be all zeros once converted to Int16.
+    isSilentQuantum(float) {
+        for (let i = 0; i < float.length; i++) {
+            // Same rounding as the conversion in process(): Math.round(-0.5) is -0.
+            if (float[i] >= 0.5 / 0x7FFF || float[i] < -0.5 / 0x8000) return false;
+        }
+        return true;
+    }
+
     process(inputs) {
         if (!this.isRecording) return true;
         const input = inputs[0];
@@ -181,6 +200,11 @@ class RecorderWorklet extends AudioWorkletProcessor {
         const float = input[0];
 
         if (this.segmentPending) {
+            // Still the mic's start-up silence: every sample rounds to 0.
+            if (this.waitedSamples < this.maxWaitSamples && this.isSilentQuantum(float)) {
+                this.waitedSamples += float.length;
+                return true;
+            }
             // currentFrame = context frame of this quantum's first sample,
             // which is the first sample saved for the segment. Posted before
             // the quantum's samples, so it reaches the main thread first.
@@ -189,6 +213,7 @@ class RecorderWorklet extends AudioWorkletProcessor {
             this.port.postMessage({ segmentStart: {
                 sampleIndex: this.savedSamples,
                 contextFrame: typeof currentFrame === 'number' ? currentFrame : null,
+                waitedSamples: this.waitedSamples,
             } });
         }
         this.savedSamples += float.length;
