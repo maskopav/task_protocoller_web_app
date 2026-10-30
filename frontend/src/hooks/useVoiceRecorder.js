@@ -258,6 +258,7 @@ export const useVoiceRecorder = (options = {}) => {
     const zeroRunsRef    = useRef(null);       // digital-silence gaps in this take (logging only)
     const trackSettingsRef = useRef(null);     // mic track settings at start
     const audioClockRef  = useRef(null);       // segment anchors on performance.now() (audioClock.js)
+    const startStepsRef  = useRef(null);       // startRecording step timings (logging only)
     const pendingWritesRef = useRef(Promise.resolve());
     const pcmBatchRef = useRef([]);
     const audioContext      = useRef(null);
@@ -485,9 +486,17 @@ export const useVoiceRecorder = (options = {}) => {
         // worklets writing to audioChunks simultaneously and corrupting the PCM.
         if (statusRef.current === RECORDING) return;
 
+        // Where the time between this call and the first recorded sample goes
+        // (ms since the call, logged in recording_finalized as startSteps).
+        const t0 = performance.now();
+        const steps = { calledAt: Math.round(t0 * 1000) / 1000, micReopened: false, workletLoaded: false };
+        const mark = (name) => { steps[name] = Math.round(performance.now() - t0); };
+        startStepsRef.current = steps;
+
         // Fetch a fresh stream if we released it earlier
         let activeStream = streamRef.current;
         if (!activeStream || activeStream.getAudioTracks()[0].readyState === 'ended') {
+            steps.micReopened = true;
             try {
                 activeStream = await navigator.mediaDevices.getUserMedia({
                     video: false,
@@ -500,6 +509,7 @@ export const useVoiceRecorder = (options = {}) => {
                 return;
             }
         }
+        mark('micReadyMs');
 
         setDurationExpired(false);
         setProcessingFailed(false);
@@ -507,10 +517,12 @@ export const useVoiceRecorder = (options = {}) => {
         sampleCountRef.current = 0;
         zeroRunsRef.current = createZeroRunTracker();
         audioClockRef.current = createAudioClock();
+        firstChunkTimeRef.current = null;
         trackSettingsRef.current = pickTrackSettings(activeStream);
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
         await initSession();
+        mark('storageReadyMs');
 
         if (mode === 'countDown') {
             setRemainingTime(duration || 10);
@@ -531,6 +543,7 @@ export const useVoiceRecorder = (options = {}) => {
         if (audioContext.current.state === 'suspended') {
             await audioContext.current.resume();
         }
+        mark('contextRunningMs');
 
         // The workletLoaded flag lives on the AudioContext instance so it resets
         // automatically whenever repeatRecording() creates a fresh context.
@@ -546,7 +559,9 @@ export const useVoiceRecorder = (options = {}) => {
             await audioContext.current.audioWorklet.addModule(workletUrl);
             URL.revokeObjectURL(workletUrl);
             audioContext.current.workletLoaded = true;
+            steps.workletLoaded = true;
         }
+        mark('workletReadyMs');
 
         const source = audioContext.current.createMediaStreamSource(activeStream);
         sourceNodeRef.current = source;
@@ -569,7 +584,15 @@ export const useVoiceRecorder = (options = {}) => {
 
         workletNode.port.onmessage = (event) => {
             if (event.data.segmentStart) {
-                audioClockRef.current?.segmentStart(audioContext.current, event.data.segmentStart);
+                const anchor = audioClockRef.current?.segmentStart(audioContext.current, event.data.segmentStart);
+                if (anchor?.sampleIndex === 0 && anchor.perfMs != null) {
+                    // Date.now() time of the file's first sample (VAD segments
+                    // and MicCheck's silence prompt use Date.now()). Converted
+                    // through the current gap between the two clocks rather
+                    // than performance.timeOrigin, which drifts from Date.now()
+                    // after the device sleeps.
+                    firstChunkTimeRef.current = Date.now() - (performance.now() - anchor.perfMs);
+                }
                 return;
             }
             if (!event.data.buffer) return; // { done: true } - see waitForWorkletTail
@@ -580,11 +603,11 @@ export const useVoiceRecorder = (options = {}) => {
             if (statusRef.current !== RECORDING && statusRef.current !== PAUSED &&
                 statusRef.current !== RECORDED) return;
 
-            if (chunkCountRef.current === 0) {
+            if (chunkCountRef.current === 0 && firstChunkTimeRef.current == null) {
+                // Fallback when the start anchor has no context frame.
                 // The first chunk arrives once it is full (4096 samples, ~85 ms
-                // at 48 kHz): back-date to when its first sample was recorded,
-                // so sample times line up with Date.now()-based events
-                // (VAD segments, MicCheck's silence prompt).
+                // at 48 kHz): back-date to when its first sample was recorded.
+                // Also includes the message's delivery delay to the main thread.
                 const chunkMs = (event.data.buffer.byteLength / 2 / audioContext.current.sampleRate) * 1000;
                 firstChunkTimeRef.current = Date.now() - chunkMs;
             }
@@ -604,6 +627,7 @@ export const useVoiceRecorder = (options = {}) => {
         inputGainNode.connect(analyser.current);
 
         workletNode.port.postMessage({ command: 'start' });
+        mark('startSentMs');
 
         setRecordingStatus(RECORDING);
     };
@@ -717,6 +741,8 @@ export const useVoiceRecorder = (options = {}) => {
             const recordingInfo = {
                 sampleRate,
                 micSettings: trackSettingsRef.current,
+                // The first sample itself is at clock.segments[0].perfMs.
+                startSteps: startStepsRef.current,
                 // The browser's own audio buffering (s). On the Android phone
                 // whose recordings had 40 ms silence gaps the mic reported
                 // latency 0.04; these show whether output runs in the same steps.

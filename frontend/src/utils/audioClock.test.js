@@ -46,8 +46,9 @@ describe("audioClock", () => {
     const clock = createAudioClock();
 
     now.mockReturnValue(10100);
-    clock.segmentStart(ctxAt({ currentTime: 1.1, output: { contextTime: 1.06, performanceTime: 10100 } }),
+    const first = clock.segmentStart(ctxAt({ currentTime: 1.1, output: { contextTime: 1.06, performanceTime: 10100 } }),
       { sampleIndex: 0, contextFrame: 48000 });
+    expect(first).toEqual(expect.objectContaining({ sampleIndex: 0, perfMs: 10000 }));
     now.mockReturnValue(20050);
     clock.segmentStart(ctxAt({ currentTime: 11.05 }), { sampleIndex: 432000, contextFrame: 528000 });
 
@@ -69,9 +70,10 @@ describe("audioClock", () => {
 
   it("ignores anchors once the context is closed and keeps a null frame as unknown", () => {
     const clock = createAudioClock();
-    clock.segmentStart(ctxAt({ currentTime: 1, state: "closed" }), { sampleIndex: 0, contextFrame: 48000 });
-    clock.segmentStart(null, { sampleIndex: 0, contextFrame: 48000 });
-    clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: null });
+    expect(clock.segmentStart(ctxAt({ currentTime: 1, state: "closed" }), { sampleIndex: 0, contextFrame: 48000 })).toBeNull();
+    expect(clock.segmentStart(null, { sampleIndex: 0, contextFrame: 48000 })).toBeNull();
+    const unknown = clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: null });
+    expect(unknown.perfMs).toBeNull();
 
     const { segments, atStop } = clock.summary(ctxAt({ currentTime: 2, state: "closed" }), { receivedSamples: 0 });
     expect(segments).toHaveLength(1);

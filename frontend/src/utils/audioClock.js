@@ -62,20 +62,23 @@ const roundReading = (r) => ({
 export function createAudioClock() {
     const segments = [];
     return {
+        // Returns the stored anchor, or null when the context is gone.
         segmentStart(ctx, { sampleIndex, contextFrame }) {
-            if (!ctx || ctx.state === 'closed') return;
+            if (!ctx || ctx.state === 'closed') return null;
             const reading = readContextClock(ctx);
             const est = Number.isFinite(contextFrame)
                 ? frameToPerformanceTime(reading, contextFrame, ctx.sampleRate,
                     { base: ctx.baseLatency, output: ctx.outputLatency })
                 : { fromCurrentTime: null, fromOutput: null };
-            segments.push({
+            const anchor = {
                 sampleIndex,
                 contextFrame: Number.isFinite(contextFrame) ? contextFrame : null,
                 perfMs: round(est.fromCurrentTime),
                 perfMsFromOutput: round(est.fromOutput),
                 reading: roundReading(reading),
-            });
+            };
+            segments.push(anchor);
+            return anchor;
         },
         // workletSamples: samples the worklet saved; receivedSamples: samples
         // that reached the file. If they differ, sampleIndex values past the
