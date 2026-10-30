@@ -4,7 +4,7 @@ import { logger } from '../utils/frontendLogger';
 import { createZeroRunTracker } from '../utils/zeroRunTracker';
 import { initSession, appendChunk, clearSession } from '../utils/audioIDB';
 import { finalizeRecording } from '../utils/finalizeRecording';
-import { createAudioClock } from '../utils/audioClock';
+import { createAudioClock, pickCause } from '../utils/audioClock';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Recording state machine constants.
@@ -128,14 +128,28 @@ class RecorderWorklet extends AudioWorkletProcessor {
         // resume), whose anchor goes to the main thread (see audioClock.js).
         this.savedSamples = 0;
         this.segmentPending = false;
+        // inSegment: a segment has started and not ended yet. endFrame: the
+        // context frame just after the last saved sample.
+        this.inSegment = false;
+        this.endFrame = null;
 
         this.port.onmessage = (e) => {
             if (e.data.command === 'start') {
+                // A start while already recording would cut a segment where
+                // nothing was cut, so it is ignored.
+                if (this.isRecording) return;
                 this.isRecording = true;
                 this.segmentPending = true;
             } else if (e.data.command === 'stop') {
                 this.isRecording = false;
+                this.segmentPending = false;
                 this.flush(); // Catch the final tail of the recording
+                if (this.inSegment) {
+                    this.inSegment = false;
+                    this.port.postMessage({ segmentEnd: {
+                        sampleIndex: this.savedSamples, contextFrame: this.endFrame,
+                    } });
+                }
                 // Final stop: confirm the tail (if any) has been posted, so the
                 // main thread knows it can finalize the file.
                 if (e.data.final) this.port.postMessage({ done: true, savedSamples: this.savedSamples });
@@ -170,12 +184,14 @@ class RecorderWorklet extends AudioWorkletProcessor {
             // which is the first sample saved for the segment. Posted before
             // the quantum's samples, so it reaches the main thread first.
             this.segmentPending = false;
+            this.inSegment = true;
             this.port.postMessage({ segmentStart: {
                 sampleIndex: this.savedSamples,
                 contextFrame: typeof currentFrame === 'number' ? currentFrame : null,
             } });
         }
         this.savedSamples += float.length;
+        this.endFrame = typeof currentFrame === 'number' ? currentFrame + float.length : null;
 
         for (let i = 0; i < float.length; i++) {
             // Encode Float32 → Int16 PCM here, on the audio thread. Rounded:
@@ -259,6 +275,7 @@ export const useVoiceRecorder = (options = {}) => {
     const trackSettingsRef = useRef(null);     // mic track settings at start
     const audioClockRef  = useRef(null);       // segment anchors on performance.now() (audioClock.js)
     const startStepsRef  = useRef(null);       // startRecording step timings (logging only)
+    const resumingRef    = useRef(null);       // in-flight resumeRecording ({ cancelled })
     const pendingWritesRef = useRef(Promise.resolve());
     const pcmBatchRef = useRef([]);
     const audioContext      = useRef(null);
@@ -595,6 +612,10 @@ export const useVoiceRecorder = (options = {}) => {
                 }
                 return;
             }
+            if (event.data.segmentEnd) {
+                audioClockRef.current?.segmentEnd(audioContext.current, event.data.segmentEnd);
+                return;
+            }
             if (!event.data.buffer) return; // { done: true } - see waitForWorkletTail
             // PAUSED / RECORDED are accepted too: pause/stopRecording set the
             // status before the worklet's 'stop' flush (the tail of the partial
@@ -627,67 +648,93 @@ export const useVoiceRecorder = (options = {}) => {
         inputGainNode.connect(analyser.current);
 
         workletNode.port.postMessage({ command: 'start' });
-        audioClockRef.current?.startSent();
+        audioClockRef.current?.startSent({ reason: 'start' });
         mark('startSentMs');
 
         setRecordingStatus(RECORDING);
     };
 
-    const pauseRecording = () => {
+    // cause: why, e.g. { reason: 'topic_switch_manual', topicIndex: 1 } --
+    // stored with the segment end/start in recording_finalized (audioClock.js).
+    const pauseRecording = (cause) => {
         if (statusRef.current === RECORDING) {
             setRecordingStatus(PAUSED);
-        
+
             // Tell worklet to pause saving PCM data
             if (workletNodeRef.current) {
                 workletNodeRef.current.port.postMessage({ command: 'stop' });
+                audioClockRef.current?.stopSent(cause);
             }
-            
+            logger.info("recording_paused", { ...pickCause(cause), performanceNow: performance.now() });
+
             // CATCH AND RELEASE: Kill the mic track so iOS restores system volume!
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
+        } else if (resumingRef.current) {
+            // Paused again while a resume is still waiting for the mic: the
+            // resume gives up once the mic arrives (see resumeRecording).
+            resumingRef.current.cancelled = true;
         }
     };
 
-    const resumeRecording = async () => {
-        if (statusRef.current === PAUSED) {
-            
-            // Re-acquire the stream silently
-            let activeStream = streamRef.current;
-            if (!activeStream || activeStream.getAudioTracks()[0].readyState === 'ended') {
-                try {
-                    activeStream = await navigator.mediaDevices.getUserMedia({
-                        video: false,
-                        audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
-                    });
-                    setStream(activeStream);
-                    
-                    // Re-connect the new stream to our existing audio graph
-                    if (audioContext.current && inputGainRef.current && workletNodeRef.current) {
-                        if (sourceNodeRef.current) sourceNodeRef.current.disconnect();
-                        
-                        const source = audioContext.current.createMediaStreamSource(activeStream);
-                        sourceNodeRef.current = source;
-                        
-                        // Reconnect pipeline branches exactly as startRecording does
-                        source.connect(workletNodeRef.current);
-                        source.connect(inputGainRef.current);
-                    }
-                } catch (err) {
-                    logger.error("MIC | failed to re-acquire on resume", err);
-                    onError(err);
-                    return;
-                }
-            }
-
-            setRecordingStatus(RECORDING);
-            
-            // Tell worklet to resume saving PCM data
-            if (workletNodeRef.current) {
-                workletNodeRef.current.port.postMessage({ command: 'start' });
-                audioClockRef.current?.startSent();
+    const resumeRecording = async (cause) => {
+        // One resume at a time: a second call while the first waits for the
+        // mic would open a second mic and leave the first one open.
+        if (statusRef.current === PAUSED && !resumingRef.current) {
+            const attempt = { cancelled: false };
+            resumingRef.current = attempt;
+            try {
+                await resumeWithMic(attempt, cause);
+            } finally {
+                resumingRef.current = null;
             }
         }
+    };
+
+    const resumeWithMic = async (attempt, cause) => {
+        // Re-acquire the stream silently
+        let activeStream = streamRef.current;
+        if (!activeStream || activeStream.getAudioTracks()[0].readyState === 'ended') {
+            try {
+                activeStream = await navigator.mediaDevices.getUserMedia({
+                    video: false,
+                    audio: { autoGainControl: false, echoCancellation: false, noiseSuppression: false, channelCount: 1 }
+                });
+                if (attempt.cancelled || statusRef.current !== PAUSED) {
+                    // Paused again or stopped meanwhile: stay paused, release the mic.
+                    activeStream.getTracks().forEach(track => track.stop());
+                    return;
+                }
+                setStream(activeStream);
+                streamRef.current = activeStream; // the effect syncing it runs only after the next render
+
+                // Re-connect the new stream to our existing audio graph
+                if (audioContext.current && inputGainRef.current && workletNodeRef.current) {
+                    if (sourceNodeRef.current) sourceNodeRef.current.disconnect();
+                    
+                    const source = audioContext.current.createMediaStreamSource(activeStream);
+                    sourceNodeRef.current = source;
+                    
+                    // Reconnect pipeline branches exactly as startRecording does
+                    source.connect(workletNodeRef.current);
+                    source.connect(inputGainRef.current);
+                }
+            } catch (err) {
+                logger.error("MIC | failed to re-acquire on resume", err);
+                onError(err);
+                return;
+            }
+        }
+
+        setRecordingStatus(RECORDING);
+
+        // Tell worklet to resume saving PCM data
+        if (workletNodeRef.current) {
+            workletNodeRef.current.port.postMessage({ command: 'start' });
+            audioClockRef.current?.startSent(cause);
+        }
+        logger.info("recording_resumed", { ...pickCause(cause), performanceNow: performance.now() });
     };
 
     const stopRecording = useCallback(() => {
@@ -717,6 +764,7 @@ export const useVoiceRecorder = (options = {}) => {
                 return workletSamples;
             });
             workletNode.port.postMessage({ command: 'stop', final: true });
+            audioClockRef.current?.stopSent({ reason: 'stop' });
             workletNode.disconnect();
         }
         if (sourceNodeRef.current) {

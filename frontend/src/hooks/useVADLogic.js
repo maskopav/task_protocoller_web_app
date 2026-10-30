@@ -111,7 +111,7 @@ export const useVadLogic = ({
                     // Check for Topic Switch (Triggered at 9.5s, Dynamic Tasks only)
                     if (hasMoreTopics && silenceDuration >= VAD_CONFIG.topicPromptDelayMs && !promptTopicSwitch) {
                         setPromptTopicSwitch(true);
-                        pauseRecording();
+                        pauseRecording({ reason: 'topic_prompt_silence', topicIndex: dynamicIndex });
                         lastSpeechTimeRef.current = Date.now();
                     }
 

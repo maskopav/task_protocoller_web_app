@@ -59,6 +59,37 @@ describe("recorder worklet — segment anchors", () => {
     expect(posted.at(-1)).toEqual({ done: true, savedSamples: 5248 });
   });
 
+  it("reports where each segment ended, once, after its audio", () => {
+    const { send, quantum, posted } = loadWorklet();
+    send({ command: "start" });
+    quantum(1000);
+    quantum(1128);
+    send({ command: "stop" }); // pause
+    send({ command: "stop", final: true }); // stop while paused: no second end
+    const ends = posted.filter((m) => m.segmentEnd).map((m) => m.segmentEnd);
+    expect(ends).toEqual([{ sampleIndex: 256, contextFrame: 1256 }]);
+    // The end follows the segment's last buffer, so it is handled after all its audio.
+    const endAt = posted.findIndex((m) => m.segmentEnd);
+    expect(posted.findIndex((m) => m.buffer)).toBeLessThan(endAt);
+    expect(posted.at(-1)).toEqual({ done: true, savedSamples: 256 });
+  });
+
+  it("does not report a segment that never saved audio", () => {
+    const { send, posted } = loadWorklet();
+    send({ command: "start" });
+    send({ command: "stop" });
+    expect(posted).toEqual([]);
+  });
+
+  it("ignores a start while already recording instead of cutting a segment", () => {
+    const { send, quantum, posted } = loadWorklet();
+    send({ command: "start" });
+    quantum(1000);
+    send({ command: "start" });
+    quantum(1128);
+    expect(posted.filter((m) => m.segmentStart)).toHaveLength(1);
+  });
+
   it("defers the anchor while the input has no channels yet", () => {
     const { node, send, quantum, posted } = loadWorklet();
     send({ command: "start" });

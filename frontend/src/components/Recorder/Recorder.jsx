@@ -208,8 +208,9 @@ export const Recorder = ({
         // Internally pause recording when a new topic is prompted or waiting
         // to prevent iOS from attenuating the audio guide volume.
         if ((awaitingNextTopic || promptTopicSwitch) && recordingStatus === RECORDING_STATES.RECORDING) {
-            pauseRecording();
+            pauseRecording({ reason: 'topic_prompt', topicIndex: dynamicIndex });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- dynamicIndex only labels the pause
     }, [awaitingNextTopic, promptTopicSwitch, recordingStatus, pauseRecording, RECORDING_STATES.RECORDING]);
 
     // ── Stop / warning logic ─────────────────────────────────────────────
@@ -863,12 +864,7 @@ export const Recorder = ({
             )}
 
             {awaitingNextTopic ? (
-                <SafeButton className="btn-start" onClick={() => {
-                    if (recordingStatus === RECORDING_STATES.PAUSED) {
-                        resumeRecording();
-                    }
-                    handleStartNextTopic();
-                }}>
+                <SafeButton className="btn-start" onClick={handleStartNextTopic}>
                     {t("buttons.start", { ns: "common" })}
                 </SafeButton>
             ) : (

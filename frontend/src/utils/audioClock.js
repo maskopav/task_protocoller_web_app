@@ -4,7 +4,8 @@
 // The recorder worklet reports, for every recorded segment (one per start or
 // resume), the file position of the segment's first sample (sampleIndex) and
 // the AudioContext frame at which that sample went through the audio graph
-// (contextFrame, the worklet's `currentFrame`). This module converts that
+// (contextFrame, the worklet's `currentFrame`), and the same for the
+// segment's end (pause or stop). This module converts that
 // frame to performance.now() from a reading of the context clock taken right
 // after, so it does not depend on how late the message reached the main
 // thread. Within a segment, sample n of the file then sits at
@@ -23,11 +24,11 @@
 // Safari sometimes reports currentFrame 0 although the context has been
 // running for a while (seen on iOS 18.7: frame 0 at currentTime 1.04 s and
 // 2.28 s), which would put the segment before its start command. The anchor
-// is therefore checked against the time the start/resume command was posted
-// (startSent): the first sample is processed after that, typically 10-20 ms
-// later. An implausible or missing frame is logged as contextFrameRaw and the
-// segment falls back to perfMs = startSent (perfMsSource 'startSent'), which
-// is early by that 10-20 ms.
+// is therefore checked against the time the start/resume (or pause/stop)
+// command was posted (commandSentMs): the first sample is processed after
+// that, typically 10-20 ms later. An implausible or missing frame is logged
+// as contextFrameRaw and the anchor falls back to perfMs = commandSentMs
+// (perfMsSource 'commandSent'), which is early by that 10-20 ms.
 // Both are the time the sample was processed by the audio graph. The
 // microphone captured it earlier, by the input latency
 // (recording_finalized micSettings.latency, where the browser reports it).
@@ -77,41 +78,76 @@ const roundReading = (r) => ({
     },
 });
 
-// Collects the segment anchors of one recording.
+// Why a segment started or ended, e.g. { reason: 'topic_switch_manual',
+// topicIndex: 1 }. Only these two fields are kept, so a click event passed
+// as the argument (onPause={pauseRecording}) is ignored.
+export const pickCause = (cause) => ({
+    reason: typeof cause?.reason === 'string' ? cause.reason : null,
+    ...(Number.isInteger(cause?.topicIndex) && { topicIndex: cause.topicIndex }),
+});
+
+// One anchor: frame -> performance.now(), checked against the time the
+// command that caused it was posted (sentMs). A segment's first sample is
+// processed after its start command; its last sample before the worklet
+// handles the stop command, which it does at most a few quanta after it was
+// posted, so in both cases the frame may not lie well before sentMs.
+function anchorAt(ctx, sampleIndex, contextFrame, sentMs) {
+    const reading = readContextClock(ctx);
+    let frameOk = Number.isFinite(contextFrame);
+    let est = frameOk
+        ? frameToPerformanceTime(reading, contextFrame, ctx.sampleRate,
+            { base: ctx.baseLatency, output: ctx.outputLatency })
+        : null;
+    if (frameOk && (contextFrame / ctx.sampleRate > reading.currentTime + FUTURE_TOLERANCE_SEC ||
+            (sentMs != null && est.fromCurrentTime < sentMs - START_TOLERANCE_MS))) {
+        frameOk = false;
+    }
+    if (!frameOk) est = { fromCurrentTime: sentMs, fromOutput: null };
+    return {
+        sampleIndex,
+        contextFrame: frameOk ? contextFrame : null,
+        ...(!frameOk && Number.isFinite(contextFrame) && { contextFrameRaw: contextFrame }),
+        perfMs: round(est.fromCurrentTime),
+        perfMsFromOutput: round(est.fromOutput),
+        perfMsSource: frameOk ? 'contextFrame' : (sentMs != null ? 'commandSent' : null),
+        commandSentMs: round(sentMs),
+        reading: roundReading(reading),
+    };
+}
+
+// Collects the segments of one recording. Each segment is one stretch of
+// continuous audio in the file: from a start/resume to the next pause/stop.
+// Its start and end (sampleIndex = file position, perfMs = performance.now())
+// say exactly where the file was cut and how long the gap was; reason and
+// topicIndex say why (topic switch, silence prompt, ...).
 export function createAudioClock() {
     const segments = [];
-    let startSentMs = null;
+    let start = { ms: null, cause: pickCause() };
+    let stop = { ms: null, cause: pickCause() };
     return {
         // Call right after posting the worklet's 'start' command (start and resume).
-        startSent() {
-            startSentMs = performance.now();
+        startSent(cause) {
+            start = { ms: performance.now(), cause: pickCause(cause) };
         },
-        // Returns the stored anchor, or null when the context is gone.
+        // Call right after posting the worklet's 'stop' command (pause and stop).
+        stopSent(cause) {
+            stop = { ms: performance.now(), cause: pickCause(cause) };
+        },
+        // Returns the stored segment, or null when the context is gone.
         segmentStart(ctx, { sampleIndex, contextFrame }) {
             if (!ctx || ctx.state === 'closed') return null;
-            const reading = readContextClock(ctx);
-            let frameOk = Number.isFinite(contextFrame);
-            let est = frameOk
-                ? frameToPerformanceTime(reading, contextFrame, ctx.sampleRate,
-                    { base: ctx.baseLatency, output: ctx.outputLatency })
-                : null;
-            if (frameOk && (contextFrame / ctx.sampleRate > reading.currentTime + FUTURE_TOLERANCE_SEC ||
-                    (startSentMs != null && est.fromCurrentTime < startSentMs - START_TOLERANCE_MS))) {
-                frameOk = false;
-            }
-            if (!frameOk) est = { fromCurrentTime: startSentMs, fromOutput: null };
-            const anchor = {
-                sampleIndex,
-                contextFrame: frameOk ? contextFrame : null,
-                ...(!frameOk && Number.isFinite(contextFrame) && { contextFrameRaw: contextFrame }),
-                perfMs: round(est.fromCurrentTime),
-                perfMsFromOutput: round(est.fromOutput),
-                perfMsSource: frameOk ? 'contextFrame' : (startSentMs != null ? 'startSent' : null),
-                startSentMs: round(startSentMs),
-                reading: roundReading(reading),
-            };
-            segments.push(anchor);
-            return anchor;
+            const segment = { ...anchorAt(ctx, sampleIndex, contextFrame, start.ms), ...start.cause, end: null };
+            segments.push(segment);
+            return segment;
+        },
+        // The worklet's report that it stopped saving: sampleIndex is the file
+        // position after the segment's last sample, contextFrame the context
+        // frame just after it.
+        segmentEnd(ctx, { sampleIndex, contextFrame }) {
+            const segment = segments[segments.length - 1];
+            if (!segment || segment.end || !ctx || ctx.state === 'closed') return null;
+            segment.end = { ...anchorAt(ctx, sampleIndex, contextFrame, stop.ms), ...stop.cause };
+            return segment.end;
         },
         // workletSamples: samples the worklet saved; receivedSamples: samples
         // that reached the file. If they differ, sampleIndex values past the

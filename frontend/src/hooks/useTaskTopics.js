@@ -40,19 +40,19 @@ export const useTaskTopics = ({
         onLogEvent("topic_switch_declined");
         setPromptTopicSwitch(false);
         if (onTopicDeclined) onTopicDeclined();
-        resumeRecording();
+        resumeRecording({ reason: 'topic_switch_declined', topicIndex: dynamicIndex });
     };
 
     const handleStartNextTopic = () => {
         onLogEvent("start_next_topic");
         setAwaitingNextTopic(false);
         if (onStartNextTopic) onStartNextTopic();
-        resumeRecording(); 
+        resumeRecording({ reason: 'next_topic', topicIndex: dynamicIndex });
     };
 
     const handleManualTopicSwitch = () => {
         onLogEvent("topic_switch_manual_triggered");
-        pauseRecording();           // Freeze timer and audio buffer
+        pauseRecording({ reason: 'topic_switch_manual', topicIndex: dynamicIndex }); // Freeze timer and audio buffer
         setPromptTopicSwitch(true); // Trigger the Confirm Dialog
     };
 
