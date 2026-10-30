@@ -18,7 +18,7 @@
   "clinicsCount_other": "{{count}} clinics",
   "notAvailable": {
     "title": "Not available",
-    "message": "This page is only available to administrators. Ask a master user if you need access.",
+    "message": "You don't have access to this page. Ask an administrator if you need it.",
     "action": "Go to Recordings"
   },
   "notFound": {

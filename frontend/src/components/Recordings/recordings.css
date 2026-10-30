@@ -16,7 +16,7 @@
 
 /* Filters */
 .rec-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
-.rec-search { position: relative; flex: 1 1 220px; min-width: 180px; }
+.rec-search { position: relative; flex: 1 1 320px; min-width: 300px; } /* F-099: wide enough for the whole placeholder; wraps to its own line rather than shrinking */
 .rec-search svg.ui-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
 .rec-search input { width: 100%; padding-left: 32px; }
 .rec-field { display: inline-flex; flex-direction: column; }

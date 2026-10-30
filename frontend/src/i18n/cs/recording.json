@@ -195,6 +195,7 @@
     "camera": {
       "interrupted": "Kamera během nahrávání přestala posílat obraz.",
       "capture_failed": "Kamera nedokázala zachytit video.",
+      "unavailable_at_start": "Při zahájení relace nebyla nalezena žádná kamera.",
       "other": "Kamera během nahrávání ohlásila problém."
     },
     "microphone": {

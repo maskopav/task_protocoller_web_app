@@ -130,7 +130,11 @@
       "addQuestion": "Add question",
       "removeQuestion": "Remove question",
       "ratingPreview": "Rating preview",
-      "optional": "Optional"
+      "optional": "Optional",
+      "allowWriteIn": "Allow write-in",
+      "removeOption": "Remove option",
+      "exclusiveOption": "Exclusive option (clears other selections)",
+      "noneOption": "-- None --"
     },
     "tooltips": {
       "edit": "Edit this task",

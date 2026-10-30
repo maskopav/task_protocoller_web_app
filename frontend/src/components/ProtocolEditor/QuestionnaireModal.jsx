@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Modal from "./Modal";
 import { Icon } from "../ui/icons.jsx";
+import { Button } from "../ui/Button.jsx";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
 import "./QuestionnaireModal.css"; 
 
@@ -217,9 +218,9 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                         <label className="qm-inline-label">
                           <input type="checkbox" checked={q.freeTextOptions?.includes(opt) ?? false}
                             onChange={() => toggleFreeTextOption(q.id, opt)} />
-                          Allow write-in
+                          {t("protocolEditor.questionnaire.allowWriteIn")}
                         </label>
-                        <button className="qm-btn-remove-option" onClick={() => removeOption(q.id, i)} title="Remove option"><Icon name="x" size={14} /></button>
+                        <button className="qm-btn-remove-option" onClick={() => removeOption(q.id, i)} title={t("protocolEditor.questionnaire.removeOption")} aria-label={t("protocolEditor.questionnaire.removeOption")}><Icon name="x" size={14} /></button>
                       </div>
                     ))}
                     <button className="qm-btn-add-option" onClick={() => addOption(q.id)}>
@@ -229,13 +230,13 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                     {/*  Dropdown to select the exclusive option */}
                     {q.type === "multiple" && q.options.length > 0 && (
                       <div className="qm-input-group qm-spaced">
-                        <label>Exclusive Option (Clears other selections)</label>
+                        <label>{t("protocolEditor.questionnaire.exclusiveOption")}</label>
                         <select
                           className="qm-select type-select"
                           value={q.exclusiveOption || ""}
                           onChange={(e) => updateQuestion(q.id, "exclusiveOption", e.target.value)}
                         >
-                          <option value="">-- None --</option>
+                          <option value="">{t("protocolEditor.questionnaire.noneOption")}</option>
                           {q.options.map((opt, idx) => (
                             <option key={idx} value={opt}>{opt}</option>
                           ))}
@@ -269,9 +270,9 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
           ))}
         </div>
 
-        <button className="qm-btn-add-question" onClick={addQuestion}>
-          + {t("protocolEditor.questionnaire.addQuestion")}
-        </button>
+        <Button icon="plus" className="qm-btn-add-question" onClick={addQuestion} data-testid="qm-add-question">
+          {t("protocolEditor.questionnaire.addQuestion")}
+        </Button>
       </div>
     </Modal>
   );

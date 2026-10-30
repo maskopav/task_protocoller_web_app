@@ -130,7 +130,11 @@
       "addQuestion": "Přidat otázku",
       "removeQuestion": "Odstranit otázku",
       "ratingPreview": "Náhled hodnocení",
-      "optional": "Volitelné"
+      "optional": "Volitelné",
+      "allowWriteIn": "Povolit vlastní odpověď",
+      "removeOption": "Odebrat možnost",
+      "exclusiveOption": "Výlučná možnost (zruší ostatní výběry)",
+      "noneOption": "-- Žádná --"
     },
     "tooltips": {
       "edit": "Upravit tuto úlohu",

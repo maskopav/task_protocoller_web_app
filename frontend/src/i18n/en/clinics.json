@@ -1,8 +1,15 @@
 {
+  "notFound": {
+    "title": "Clinic not found",
+    "hint": "It does not exist, or you do not have access to it.",
+    "back": "Back to Clinics"
+  },
   "loading": "Loading…",
   "cancel": "Cancel",
   "save": "Save",
   "name": {
+    "counter": "{{count}}/{{max}}",
+    "atMax": "Maximum length reached",
     "hint": "File names will use:",
     "hintEmpty": "No letters or digits in this name, so it will not appear in file names.",
     "renameNote": "A new name applies to recordings made after the change.",
@@ -44,6 +51,7 @@
     "none": "None yet",
     "emptyTitle": "No clinics yet",
     "emptyBody": "A clinic is where a study runs. Create one to get an access token for its computers.",
+    "emptyBodyNoCreate": "Ask an administrator to give you access to a clinic.",
     "columns": {
       "name": "Clinic",
       "country": "Country",

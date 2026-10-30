@@ -19,6 +19,11 @@ export default function ClinicNameField({ value, onChange, error, showRenameNote
           ? t("name.hintEmpty")
           : <>{t("name.hint")} <code data-testid="clinic-filename-form">{form || "—"}</code></>}
       </span>
+      {value.length >= NAME_MAX - 8 && (
+        <span className={`clinics-hint${value.length >= NAME_MAX ? " clinics-hint-warn" : ""}`} data-testid="clinic-name-counter">
+          {" "}{t("name.counter", { count: value.length, max: NAME_MAX })}{value.length >= NAME_MAX ? ` - ${t("name.atMax")}` : ""}
+        </span>
+      )}
       {showRenameNote && <span className="clinics-hint"> {t("name.renameNote")}</span>}
     </>
   );

@@ -18,7 +18,7 @@
   "clinicsCount_other": "{{count}} Kliniken",
   "notAvailable": {
     "title": "Nicht verfügbar",
-    "message": "Diese Seite steht nur Administratoren zur Verfügung. Bitten Sie einen Master-Benutzer um Zugriff.",
+    "message": "Sie haben keinen Zugriff auf diese Seite. Bitten Sie einen Administrator darum, falls Sie ihn benötigen.",
     "action": "Zu den Aufnahmen"
   },
   "notFound": {

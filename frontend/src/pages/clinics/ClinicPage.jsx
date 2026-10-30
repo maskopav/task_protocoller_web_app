@@ -1,7 +1,7 @@
 // src/pages/clinics/ClinicPage.jsx — one clinic with its tabs (docs/ui_redesign/02_spec.md §6.7).
 // Studies · Computers · Recordings · Settings. The page owns the data; each tab renders a part of it.
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, Navigate, useOutletContext, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useUser } from "../../context/UserContext";
 import { Badge, Button, EmptyState, PageHeader, Tabs, useToast } from "../../components/ui";
@@ -11,7 +11,6 @@ import { fetchDevices } from "../../api/devices";
 import { fetchProjectsList } from "../../api/projects";
 import { fetchUploadSummary } from "../../api/uploads";
 import { apiErrorMessage } from "../../utils/apiError";
-import NotFoundPage from "../NotFoundPage";
 import ClinicStudiesTab from "./ClinicStudiesTab";
 import ClinicComputersTab from "./ClinicComputersTab";
 import ClinicSettingsTab, { SETTINGS_FORM_ID } from "./ClinicSettingsTab";
@@ -64,7 +63,17 @@ export default function ClinicPage() {
 
   if (!tab) return <Navigate to="studies" replace />;
   if (!TABS.includes(tab)) return <Navigate to={`/clinics/${siteId}/studies`} replace />;
-  if (status === "missing") return <NotFoundPage />;
+  if (status === "missing") {
+    return (
+      <EmptyState
+        icon="clinic"
+        title={t("notFound.title")}
+        description={t("notFound.hint")}
+        action={<Button as={Link} to="/clinics">{t("notFound.back")}</Button>}
+        data-testid="clinic-not-found"
+      />
+    );
+  }
   if (status === "loading" || !site) return <div className="clinics-page"><EmptyState title={t("loading")} /></div>;
 
   const base = `/clinics/${site.id}`;

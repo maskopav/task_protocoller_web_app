@@ -27,6 +27,7 @@ const dbUp = await testDbAvailable();
 afterAll(closeTestDb);
 const P = await import("../../src/controllers/projectController.js");
 const PR = await import("../../src/controllers/protocolController.js");
+const PE = await import("../../src/controllers/projectEditorController.js");
 const A = await import("../../src/utils/accessScope.js");
 
 const tag = () => crypto.randomBytes(4).toString("hex");
@@ -112,6 +113,35 @@ describe.skipIf(!dbUp)("study access model against MariaDB", () => {
       // archiving is the creator's call, not any editor's
       expect((await call(P.archiveProject, as(w.editor), { params: { id: w.P1 }, body: { archived: true } })).code).toBe(403);
       expect((await call(P.archiveProject, w.R, { params: { id: w.P1 }, body: { archived: true } })).code).toBe(200);
+    });
+  });
+
+  it("F-100: re-adding an editor is 200 with the same grant; a new one is 201; email case is ignored", async () => {
+    await withRollback(async (q) => {
+      hold.q = q;
+      const w = await world(q);
+      const params = { id: w.P1 };
+      const email = async (id) => (await q(`SELECT email FROM users WHERE id = ?`, [id]))[0].email;
+      const [{ created_at }] = await q(`SELECT created_at FROM project_editors WHERE project_id = ? AND user_id = ?`, [w.P1, w.editor]);
+
+      // existing editor, e-mail in upper case
+      const again = await call(PE.addEditor, w.R, { params, body: { email: (await email(w.editor)).toUpperCase() } });
+      expect(again.code).toBe(200);
+      expect(again.body.user_id).toBe(w.editor);
+      expect(again.body.added_at).not.toBeNull();
+      expect(again.body.added_at).toBe(created_at.replace(" ", "T") + "Z");
+      const [{ n }] = await q(`SELECT COUNT(*) AS n FROM project_editors WHERE project_id = ? AND user_id = ?`, [w.P1, w.editor]);
+      expect(Number(n)).toBe(1);
+
+      // a new editor
+      const fresh = await call(PE.addEditor, w.R, { params, body: { email: (await email(w.stranger)).toUpperCase() } });
+      expect(fresh.code).toBe(201);
+      expect(fresh.body.user_id).toBe(w.stranger);
+      expect(fresh.body.added_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/);
+
+      // a partial e-mail still finds nobody
+      const partial = await call(PE.addEditor, w.R, { params, body: { email: "ed" } });
+      expect(partial.code).toBe(404);
     });
   });
 

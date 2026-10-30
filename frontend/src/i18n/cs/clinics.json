@@ -1,8 +1,15 @@
 {
+  "notFound": {
+    "title": "Klinika nenalezena",
+    "hint": "Neexistuje, nebo k ní nemáte přístup.",
+    "back": "Zpět na Kliniky"
+  },
   "loading": "Načítání…",
   "cancel": "Zrušit",
   "save": "Uložit",
   "name": {
+    "counter": "{{count}}/{{max}}",
+    "atMax": "Dosažena maximální délka",
     "hint": "V názvech souborů bude:",
     "hintEmpty": "Tento název neobsahuje žádná písmena ani číslice, proto se v názvech souborů neobjeví.",
     "renameNote": "Nový název se použije u záznamů pořízených po změně.",
@@ -44,6 +51,7 @@
     "none": "Zatím žádné",
     "emptyTitle": "Zatím žádné kliniky",
     "emptyBody": "Klinika je místo, kde studie běží. Vytvořte ji a získáte přístupový token pro její počítače.",
+    "emptyBodyNoCreate": "Požádejte správce, aby vám dal přístup k nějaké klinice.",
     "columns": {
       "name": "Klinika",
       "country": "Země",

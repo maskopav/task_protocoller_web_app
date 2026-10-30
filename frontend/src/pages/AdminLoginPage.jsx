@@ -1,6 +1,6 @@
 // frontend/src/pages/AdminLoginPage.jsx — sign-in (docs/ui_redesign/02_spec.md section 6.9).
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import AuthForm from "../components/AuthForm/AuthForm";
 import { loginAdmin, adminForgotPasswordApi } from "../api/auth";
@@ -10,13 +10,16 @@ export default function AdminLoginPage() {
   const { t } = useTranslation("admin");
   const { t: tu } = useTranslation("users");
   const navigate = useNavigate();
-  const { login, logout } = useUser();
+  const { user, setUser, login } = useUser();
   const [status, setStatus] = useState({ type: "", message: "" });
 
+  // F-078: a signed-in user is sent on, the session is kept. Sign out and the 401 handler clear
+  // localStorage before they land here, so the stored token is what says "signed in"; a stale
+  // in-memory user (401 cleared storage only) is dropped, which also prevents a redirect loop.
+  const signedIn = !!(user && localStorage.getItem("adminToken"));
   useEffect(() => {
-    // Ensure clean state on mount
-    logout();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (user && !signedIn) setUser(null);
+  }, [user, signedIn, setUser]);
 
   const handleAdminLogin = async (formData) => {
     setStatus({ type: "", message: "" });
@@ -44,6 +47,8 @@ export default function AdminLoginPage() {
       setStatus({ type: "error", message: t("adminLogin.errorConnection") });
     }
   };
+
+  if (signedIn) return <Navigate to={user.must_change_password ? "/setup-account" : "/recordings"} replace />;
 
   return (
     <AuthForm
