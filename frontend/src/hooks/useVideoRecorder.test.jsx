@@ -196,6 +196,7 @@ describe("useVideoRecorder — tracking during recording", () => {
     act(() => root.unmount());
     container.remove();
     vi.useRealTimers();
+    vi.restoreAllMocks();
     latest = null;
   });
 
@@ -224,7 +225,33 @@ describe("useVideoRecorder — tracking during recording", () => {
     expect(stats.framesWithFace).toBeGreaterThan(3);
     expect(stats.detectErrors).toBe(0);
     expect(stats.detectMs).toEqual(expect.objectContaining({ median: expect.any(Number) }));
+    expect(stats.intervalMs).toEqual({
+      median: expect.any(Number), sd: expect.any(Number), p5: expect.any(Number),
+      p95: expect.any(Number), max: expect.any(Number),
+    });
     expect(stats.camera).toEqual({ width: 640, height: 480, frameRate: 30 });
+  });
+
+  it("asks the camera for 30 fps", async () => {
+    await record(0);
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith(expect.objectContaining({
+      video: expect.objectContaining({ frameRate: { ideal: 30 } }),
+    }));
+  });
+
+  it("passes the model strictly increasing timestamps even when performance.now() repeats", async () => {
+    const detectForVideo = vi.fn(() => face);
+    createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+    vi.spyOn(performance, "now").mockReturnValue(1000);
+
+    await record(200);
+
+    const ts = detectForVideo.mock.calls.map((c) => c[1]);
+    expect(ts.length).toBeGreaterThan(3);
+    expect(ts.every((t, i) => i === 0 || t > ts[i - 1])).toBe(true);
+    expect(finalizedLog().detectErrors).toBe(0);
+    // Saved landmark timestamps stay the real performance.now() values.
+    expect(latest.videoData.every((f) => f.timestamp === 1000)).toBe(true);
   });
 
   it("switches to the CPU when the GPU model fails mid-recording and keeps tracking", async () => {

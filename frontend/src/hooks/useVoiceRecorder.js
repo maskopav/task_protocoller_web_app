@@ -4,6 +4,7 @@ import { logger } from '../utils/frontendLogger';
 import { createZeroRunTracker } from '../utils/zeroRunTracker';
 import { initSession, appendChunk, clearSession } from '../utils/audioIDB';
 import { finalizeRecording } from '../utils/finalizeRecording';
+import { createAudioClock } from '../utils/audioClock';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Recording state machine constants.
@@ -87,14 +88,15 @@ const WORKLET_TAIL_TIMEOUT_MS = 300;
 
 // Resolves once the worklet confirms (via { done: true }) that the tail of the
 // recording has been posted, or after WORKLET_TAIL_TIMEOUT_MS. Never rejects.
+// Resolves with the worklet's saved-sample count, or null on timeout.
 const waitForWorkletTail = (workletNode) => new Promise((resolve) => {
-    const finish = () => {
+    const finish = (savedSamples = null) => {
         clearTimeout(timer);
         workletNode.port.removeEventListener('message', onMessage);
-        resolve();
+        resolve(savedSamples);
     };
-    const onMessage = (event) => { if (event.data?.done) finish(); };
-    const timer = setTimeout(finish, WORKLET_TAIL_TIMEOUT_MS);
+    const onMessage = (event) => { if (event.data?.done) finish(event.data.savedSamples ?? null); };
+    const timer = setTimeout(() => finish(), WORKLET_TAIL_TIMEOUT_MS);
     workletNode.port.addEventListener('message', onMessage);
 });
 
@@ -107,33 +109,36 @@ function withTimeout(promise, ms, message) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AudioWorklet source — inlined as a string so no extra build step or
-// public-folder asset is required.
+// public-folder asset is required. Exported for tests only.
 // ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// AudioWorklet source — inlined as a string so no extra build step or
-// public-folder asset is required.
-// ─────────────────────────────────────────────────────────────────────────────
-const WORKLET_CODE = `
+export const WORKLET_CODE = `
 class RecorderWorklet extends AudioWorkletProcessor {
     constructor() {
         super();
         this.isRecording = false;
-        
+
         // 4096 samples = exactly 32 audio quanta (128 samples each).
         // At 48kHz, this fires a message to the main thread ~11.7 times per second
         this.batchSize = 4096;
         this.buffer = new Int16Array(this.batchSize);
         this.offset = 0;
 
+        // Samples saved so far in this take = file position of the next one.
+        // segmentPending: the next saved quantum starts a segment (start or
+        // resume), whose anchor goes to the main thread (see audioClock.js).
+        this.savedSamples = 0;
+        this.segmentPending = false;
+
         this.port.onmessage = (e) => {
             if (e.data.command === 'start') {
                 this.isRecording = true;
+                this.segmentPending = true;
             } else if (e.data.command === 'stop') {
                 this.isRecording = false;
                 this.flush(); // Catch the final tail of the recording
                 // Final stop: confirm the tail (if any) has been posted, so the
                 // main thread knows it can finalize the file.
-                if (e.data.final) this.port.postMessage({ done: true });
+                if (e.data.final) this.port.postMessage({ done: true, savedSamples: this.savedSamples });
             }
         };
     }
@@ -159,7 +164,19 @@ class RecorderWorklet extends AudioWorkletProcessor {
         if (!input || !input[0] || !input[0].length) return true;
 
         const float = input[0];
-        
+
+        if (this.segmentPending) {
+            // currentFrame = context frame of this quantum's first sample,
+            // which is the first sample saved for the segment. Posted before
+            // the quantum's samples, so it reaches the main thread first.
+            this.segmentPending = false;
+            this.port.postMessage({ segmentStart: {
+                sampleIndex: this.savedSamples,
+                contextFrame: typeof currentFrame === 'number' ? currentFrame : null,
+            } });
+        }
+        this.savedSamples += float.length;
+
         for (let i = 0; i < float.length; i++) {
             // Encode Float32 → Int16 PCM here, on the audio thread. Rounded:
             // assigning a float to an Int16Array truncates toward zero, which
@@ -240,6 +257,7 @@ export const useVoiceRecorder = (options = {}) => {
     const sampleCountRef = useRef(0);          // PCM samples received this take
     const zeroRunsRef    = useRef(null);       // digital-silence gaps in this take (logging only)
     const trackSettingsRef = useRef(null);     // mic track settings at start
+    const audioClockRef  = useRef(null);       // segment anchors on performance.now() (audioClock.js)
     const pendingWritesRef = useRef(Promise.resolve());
     const pcmBatchRef = useRef([]);
     const audioContext      = useRef(null);
@@ -488,6 +506,7 @@ export const useVoiceRecorder = (options = {}) => {
         chunkCountRef.current = 0;
         sampleCountRef.current = 0;
         zeroRunsRef.current = createZeroRunTracker();
+        audioClockRef.current = createAudioClock();
         trackSettingsRef.current = pickTrackSettings(activeStream);
         pcmBatchRef.current = [];
         pendingWritesRef.current = Promise.resolve();
@@ -549,6 +568,10 @@ export const useVoiceRecorder = (options = {}) => {
         workletNodeRef.current = workletNode;
 
         workletNode.port.onmessage = (event) => {
+            if (event.data.segmentStart) {
+                audioClockRef.current?.segmentStart(audioContext.current, event.data.segmentStart);
+                return;
+            }
             if (!event.data.buffer) return; // { done: true } - see waitForWorkletTail
             // PAUSED / RECORDED are accepted too: pause/stopRecording set the
             // status before the worklet's 'stop' flush (the tail of the partial
@@ -663,8 +686,9 @@ export const useVoiceRecorder = (options = {}) => {
         const workletNode = workletNodeRef.current;
         let tailFlushed = Promise.resolve();
         if (workletNode) {
-            tailFlushed = waitForWorkletTail(workletNode).then(() => {
+            tailFlushed = waitForWorkletTail(workletNode).then((workletSamples) => {
                 workletNode.port.onmessage = null;
+                return workletSamples;
             });
             workletNode.port.postMessage({ command: 'stop', final: true });
             workletNode.disconnect();
@@ -702,12 +726,17 @@ export const useVoiceRecorder = (options = {}) => {
                 },
             };
 
+            const audioCtx = audioContext.current;
+            const audioClock = audioClockRef.current;
             const finalizePipeline = tailFlushed
-                .then(() => {
+                .then((workletSamples) => {
                     // Counted only now, so the tail chunk is included.
                     recordingInfo.samples = sampleCountRef.current;
                     recordingInfo.durationSec = Math.round((sampleCountRef.current / sampleRate) * 100) / 100;
                     recordingInfo.zeroGaps = zeroRunsRef.current?.summary(sampleRate) ?? null;
+                    recordingInfo.clock = audioClock?.summary(audioCtx, {
+                        workletSamples, receivedSamples: sampleCountRef.current,
+                    }) ?? null;
                     return flushPCMChunkBatch();
                 })
                 .then(() => pendingWritesRef.current)

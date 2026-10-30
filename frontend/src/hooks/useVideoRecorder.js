@@ -36,11 +36,16 @@ const FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_lan
 const VISION_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
 
 // Per-recording tracking quality, logged when recording stops so slow
-// devices / delegate fallbacks are visible in the session log and data_qc.
-function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs }) {
+// devices / delegate fallbacks / unsteady frame spacing are visible in the
+// session log and data_qc. intervalMs is the spacing between saved frames;
+// gaps where no face was found count as long intervals.
+function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs }, timestamps) {
     const sorted = [...detectMs].sort((a, b) => a - b);
     const pct = (p) => (sorted.length ? Math.round(sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]) : null);
     const spanSec = framesWithFace > 1 ? (lastTs - firstTs) / 1000 : 0;
+    const dt = timestamps.slice(1).map((t, i) => t - timestamps[i]).sort((a, b) => a - b);
+    const dtPct = (p) => (dt.length ? Math.round(dt[Math.min(dt.length - 1, Math.floor(p * dt.length))] * 10) / 10 : null);
+    const dtMean = dt.length ? dt.reduce((a, b) => a + b, 0) / dt.length : 0;
     return {
         framesWithFace,
         framesWithoutFace,
@@ -48,6 +53,13 @@ function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors
         spanSec: Math.round(spanSec * 100) / 100,
         fps: spanSec > 0 ? Math.round(((framesWithFace - 1) / spanSec) * 10) / 10 : null,
         detectMs: { median: pct(0.5), p95: pct(0.95), max: sorted.length ? Math.round(sorted[sorted.length - 1]) : null },
+        intervalMs: {
+            median: dtPct(0.5),
+            sd: dt.length ? Math.round(Math.sqrt(dt.reduce((a, d) => a + (d - dtMean) ** 2, 0) / dt.length) * 10) / 10 : null,
+            p5: dtPct(0.05),
+            p95: dtPct(0.95),
+            max: dt.length ? Math.round(dt[dt.length - 1] * 10) / 10 : null,
+        },
     };
 }
 // Neither FilesetResolver nor FaceLandmarker support cancellation, so a
@@ -93,6 +105,7 @@ export const useVideoRecorder = ({
     const visionRef = useRef(null);
     const cpuSwitchRef = useRef(null);
     const trackingStatsRef = useRef(null);
+    const lastDetectTsRef = useRef(0);
     const audioRecorder = useRef(null);
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
@@ -171,9 +184,15 @@ export const useVideoRecorder = ({
 
     // detectForVideo that never throws: returns null on failure (switching a
     // failing GPU model to the CPU) so a single bad frame can't kill the loop.
+    // VIDEO mode rejects a timestamp that isn't strictly greater than the
+    // previous one (two calls within the same performance.now() tick), which
+    // would otherwise be mistaken for a GPU failure -- so clamp it here. The
+    // saved landmark timestamps are unaffected.
     const detectFace = (video, now) => {
+        const ts = Math.max(now, lastDetectTsRef.current + 0.001);
+        lastDetectTsRef.current = ts;
         try {
-            return faceDetector.current.detectForVideo(video, now);
+            return faceDetector.current.detectForVideo(video, ts);
         } catch (err) {
             if (trackingStatsRef.current) trackingStatsRef.current.errors++;
             if (delegateRef.current === PREFERRED_DELEGATE) switchToCpu(err);
@@ -229,7 +248,13 @@ export const useVideoRecorder = ({
         try {
             const streamData = await navigator.mediaDevices.getUserMedia({
                 audio: false,
-                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+                // An explicit frame rate stops some phones letting
+                // auto-exposure drop the camera to 15 fps in dim light, which
+                // would cap face tracking below what the device can process.
+                video: {
+                    facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 },
+                    frameRate: { ideal: 30 },
+                }
             });
 
             if (videoRef.current) videoRef.current.srcObject = streamData;
@@ -506,7 +531,7 @@ export const useVideoRecorder = ({
             const cam = streamRef.current?.getVideoTracks?.()[0]?.getSettings?.() || {};
             logger.info("video_recording_finalized", {
                 delegate: delegateRef.current,
-                ...summarizeTracking(trackingStatsRef.current),
+                ...summarizeTracking(trackingStatsRef.current, coordinateTimeline.current.map((f) => f.timestamp)),
                 camera: { width: cam.width, height: cam.height, frameRate: cam.frameRate },
             });
             trackingStatsRef.current = null;
