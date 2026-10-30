@@ -8,6 +8,11 @@
   "smell": {
     "close": "Zavřít",
     "back": "Zpět",
+    "questionText": "Vůně {{n}}: Jakou vůni cítíte?",
+    "card": {
+      "scent": "Vůně",
+      "progress": "Vůně {{current}} z {{total}}"
+    },
     "intensity": {
       "title": "Jak silná je vůně?",
       "soft": "Slabá",

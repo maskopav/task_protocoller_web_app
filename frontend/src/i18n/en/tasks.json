@@ -694,6 +694,11 @@
       "scents": {},
       "close": "Close",
       "back": "Back",
+      "questionText": "Scent {{n}}: Which smell do you detect?",
+      "card": {
+        "scent": "Scent",
+        "progress": "Scent {{current}} of {{total}}"
+      },
       "intensity": {
         "title": "How strong is the smell?",
         "soft": "Soft",
@@ -721,7 +726,7 @@
         "questions": [
           {
             "id": 1786019780001,
-            "text": "Which smell do you detect?",
+            "text": "Scent 1: Which smell do you detect?",
             "type": "single",
             "options": ["No scent"],
             "optionImages": { "No scent": "no_scent" },

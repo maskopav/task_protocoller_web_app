@@ -159,6 +159,93 @@
   width: 1.6rem;
 }
 
+/* ── Scent Card (progress on the physical card) ──────────────────── */
+/* Kept smaller than the scent circles; shrinks first on short screens */
+.scent-card {
+  display: block;
+  flex-shrink: 0;
+  width: min(100%, 320px);
+  max-height: 22dvh;
+  margin: 0 auto;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.scent-card-bg {
+  fill: #eef3ff;
+  stroke: #a9bcf0;
+  stroke-width: 3;
+}
+
+.scent-card-path {
+  fill: none;
+  stroke: #a9bcf0;
+  stroke-width: 4;
+  stroke-dasharray: 2 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scent-card-path.is-done {
+  stroke: var(--success);
+  stroke-dasharray: none;
+}
+
+.scent-card-label {
+  fill: var(--muted);
+  font-size: 20px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+.scent-card-label-count {
+  fill: var(--text);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.scent-card-spot circle {
+  stroke-width: 4;
+  transition: r 0.35s ease, fill 0.35s ease;
+}
+
+.scent-card-spot text {
+  font-size: 30px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.scent-card-spot.is-next circle { fill: #fff; stroke: #a9bcf0; }
+.scent-card-spot.is-next text { fill: var(--primary); }
+
+.scent-card-spot.is-current circle { fill: var(--primary); stroke: #fff; }
+.scent-card-spot.is-current text { fill: #fff; font-size: 40px; }
+
+.scent-card-spot.is-done circle { fill: var(--success); stroke: #fff; }
+
+.scent-card-check {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scent-card-cursor {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 5;
+  transition: transform 0.5s ease-in-out;
+  animation: scent-card-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes scent-card-pulse { 50% { stroke-opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .scent-card-cursor { transition: none; animation: none; }
+}
+
 /* ── Rating Sheet ─────────────────────────────────────────────────── */
 .scent-sheet-backdrop {
   position: fixed;

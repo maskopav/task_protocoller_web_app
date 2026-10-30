@@ -6,6 +6,7 @@ import { SafeButton } from "../Shared/SafeButton";
 import { NO_SCENT_KEY } from "../../config/smellScents";
 import ScentPicker from "./ScentPicker";
 import RatingSheet from "./RatingSheet";
+import ScentCard from "./ScentCard";
 import { SMELL_RATINGS } from "./smellRatings";
 import "./SmellTestTask.css";
 
@@ -13,7 +14,8 @@ import "./SmellTestTask.css";
 // screen per scent question. Picking a scent opens a sheet that steps through
 // SMELL_RATINGS; the answer is saved only once every rating is picked, so
 // closing the sheet midway changes nothing. Questions are authored in the same
-// question builder as questionnaires (options + optionImages).
+// question builder as questionnaires (options + optionImages). Each question is
+// one scent on the physical card; ScentCard below the pictures shows which one.
 //
 // Submitted answers: { [questionId]: { scent, label, intensity, pleasantness } }
 // — `scent` is the language-independent key, `label` the text shown;
@@ -85,6 +87,7 @@ export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploadi
     >
       <h2 className="smell-question">{question.text}</h2>
       <ScentPicker question={question} selected={answer?.label} badge={badge} onPick={handlePick} />
+      <ScentCard count={questions.length} current={index} />
 
       {draft && (
         <RatingSheet

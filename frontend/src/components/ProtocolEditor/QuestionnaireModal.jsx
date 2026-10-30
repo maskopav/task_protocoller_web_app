@@ -41,6 +41,10 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
     return { options: labels, optionImages: Object.fromEntries(labels.map((l, i) => [l, all[i]])) };
   };
 
+  // Every smell question starts with the same text, numbered by its spot on the card
+  const smellQuestionText = (n) =>
+    tScent("smell.questionText", { n, defaultValue: "Scent {{n}}: Which smell do you detect?" });
+
   const pickedScents = (q) => Object.values(q.optionImages || {}).filter((k) => k !== NO_SCENT_KEY);
 
   const toggleScent = (questionId, key) =>
@@ -60,7 +64,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
       ...prev,
       {
         id: Date.now(),
-        text: "",
+        text: isSmell ? smellQuestionText(prev.length + 1) : "",
         type: isSmell ? "single" : "open",
         options: [],
         optional: false,
@@ -124,7 +128,17 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
   };
 
   const removeQuestion = (id) => {
-    setQuestions((prev) => clearDanglingShowIf(prev.filter((q) => q.id !== id), id));
+    setQuestions((prev) => {
+      const oldNumber = new Map(prev.map((q, i) => [q.id, i + 1]));
+      let next = prev.filter((q) => q.id !== id);
+      // Renumber the smell questions whose text is still the untouched prefill
+      if (isSmell) {
+        next = next.map((q, i) =>
+          q.text === smellQuestionText(oldNumber.get(q.id)) ? { ...q, text: smellQuestionText(i + 1) } : q
+        );
+      }
+      return clearDanglingShowIf(next, id);
+    });
   };
 
   // --- Conditional visibility (showIf) handlers ---
