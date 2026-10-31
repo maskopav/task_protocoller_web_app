@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
+import { getVisibleQuestions, pruneHiddenAnswers } from "../../utils/questionConditions";
 import "./Questionnaire.css";
 
 export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploading }) {
@@ -35,7 +36,8 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
         const stillSelected = type === "multiple" ? nextValue.includes(opt) : nextValue === opt;
         if (!stillSelected) delete next[`${questionId}__freeText__${opt}`];
       });
-      return next;
+      // A changed answer can hide conditional questions: drop their answers.
+      return pruneHiddenAnswers(data.questions, next);
     });
     if (onLogAnswer) onLogAnswer(questionId, value);
   };
@@ -72,11 +74,14 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
       />
     );
 
+  // Conditional questions (showIf) are shown only while their rule is met.
+  const visibleQuestions = data?.questions ? getVisibleQuestions(data.questions, answers) : [];
+
   // --- 3. Validation ---
   useEffect(() => {
     if (!data?.questions) return;
-    // A question is satisfied if it is optional OR answered
-    const allSatisfied = data.questions.every((q) => q.optional || isAnswered(q));
+    // A visible question is satisfied if it is optional OR answered; hidden ones never block
+    const allSatisfied = getVisibleQuestions(data.questions, answers).every((q) => q.optional || isAnswered(q));
     setIsValid(allSatisfied);
   }, [answers, data]);
 
@@ -85,16 +90,17 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
     if (!data?.questions || !listRef.current) return;
 
     // Find the first question that hasn't been answered yet
-    const firstUnansweredIndex = data.questions.findIndex((q) => !isAnswered(q));
+    const shown = getVisibleQuestions(data.questions, answers);
+    const firstUnansweredIndex = shown.findIndex((q) => !isAnswered(q));
 
     // If all are answered, scroll to the end so the submit button is visible
     if (firstUnansweredIndex === -1) {
-      if (lastScrolledIndex.current < data.questions.length) {
+      if (lastScrolledIndex.current < shown.length) {
         const lastCard = listRef.current.lastElementChild;
         if (lastCard) {
           // Aligning the last card to the top pulls the layout up, revealing controls below it
           lastCard.scrollIntoView({ behavior: "smooth", block: "start" });
-          lastScrolledIndex.current = data.questions.length;
+          lastScrolledIndex.current = shown.length;
         }
       }
       return;
@@ -155,10 +161,10 @@ export default function Questionnaire({ data, onNextTask, onLogAnswer, isUploadi
         )}
 
         <div className="questions-list" ref={listRef}>
-          {data.questions.map((q) => (
+          {visibleQuestions.map((q) => (
             <div
               key={q.id}
-              className={`question-card${isAnswered(q) ? " is-answered" : ""}`}
+              className={`question-card${isAnswered(q) ? " is-answered" : ""}${q.showIf ? " is-conditional" : ""}`}
             >
               <div className="question-header">
                 <h4 className="question-text">

@@ -14,6 +14,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_RECORDINGS_FILE_NAME, isValidMicGain } from "./fieldValidation.js";
 import { isLegacyDescription } from "./legacyDescription.js";
+import { emittableRule } from "./questionRules.js";
 
 export const SCHEMA_VERSION = 1;
 const LANGS = ["en", "cs", "de"];
@@ -301,6 +302,11 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
           const out = { questionType, questionKey: `${P}_q${qi}`, questionTextKey: `${P}_q${qi}_text` };
           if (questionType === "OPEN") out.questionRegex = q.optional ? ".*" : ".+";
           else out.questionOptions = q.type === "rating" ? RATING_KEYS : (q.options || []).map((_, oi) => `${P}_q${qi}_o${oi + 1}`);
+          const rule = emittableRule(params.questions, i);
+          if (rule) {
+            const src = `${P}_q${rule.sourceIndex + 1}`;
+            out.showIf = { questionKey: src, optionKeys: rule.optionIndexes.map((oi) => `${src}_o${oi + 1}`) };
+          }
           return out;
         });
         for (const lang of languages) {

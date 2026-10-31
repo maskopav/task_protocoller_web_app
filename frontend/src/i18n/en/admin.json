@@ -134,7 +134,11 @@
       "allowWriteIn": "Allow write-in",
       "removeOption": "Remove option",
       "exclusiveOption": "Exclusive option (clears other selections)",
-      "noneOption": "-- None --"
+      "noneOption": "-- None --",
+      "showOnlyIf": "Only show this question if a previous answer matches",
+      "ruleSource": "Question the rule depends on",
+      "ruleAnswers": "Answers that show this question",
+      "ruleNoAnswers": "No answer selected: the rule is ignored until you tick at least one answer."
     },
     "tooltips": {
       "edit": "Edit this task",

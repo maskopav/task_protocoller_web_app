@@ -236,6 +236,18 @@ describe('saveProtocol', () => {
     return saveProtocol({ body: b, admin: admin_ }, res).then(() => res);
   };
 
+  it('400s a questionnaire rule that points at a later question, before touching the db', async () => {
+    mockWorld({ editors: [7] });
+    const questions = [
+      { id: 1, type: 'open', options: [], showIf: { questionId: 2, optionIndexes: [0] } },
+      { id: 2, type: 'single', options: ['a', 'b'] },
+    ];
+    const res = await save({ ...body, tasks: [{ task_id: 2 }, { task_id: 3, params: { questions } }] }, master);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'invalid_question_rule', index: 1, question: 0 });
+    expect(executeTransaction).not.toHaveBeenCalled();
+  });
+
   it('403s a study received through a clinic (the heart of the rule)', async () => {
     mockWorld({ viaClinics: [7] });
     const res = await save(body, admin);

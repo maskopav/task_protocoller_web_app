@@ -210,12 +210,32 @@ describe('buildExtConfig — case specifics', () => {
     expect(protocol.tasks[0].questions).toHaveLength(13);
     const custom = protocol.tasks[2];
     expect(custom).toMatchObject({ canRepeat: false, canSkip: true, length: 300, nrepetition: 1 });
-    expect(custom.questions.map((q) => q.questionType)).toEqual(['OPEN', 'OPEN', 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'SINGLE_CHOICE']);
+    expect(custom.questions.map((q) => q.questionType)).toEqual(['OPEN', 'OPEN', 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'SINGLE_CHOICE', 'OPEN', 'SINGLE_CHOICE']);
     expect(custom.questions[0].questionRegex).toBe('.+');
     expect(custom.questions[1].questionRegex).toBe('.*');
     expect(custom.questions[5].questionOptions).toEqual(['rating_1', 'rating_2', 'rating_3', 'rating_4', 'rating_5']);
     expect(config.strings.en.rating_5).toBe('Very good');
     expect(custom.questions[0].questionOptions).toBeUndefined();
+  });
+
+  it('questionnaires: emits showIf only for conditional questions, as earlier keys', () => {
+    const custom = all.questionnaires.config.protocols[0].tasks[2];
+    expect(custom.questions[6]).toMatchObject({ questionKey: 'p60_t3_q7', showIf: { questionKey: 'p60_t3_q3', optionKeys: ['p60_t3_q3_o2', 'p60_t3_q3_o3'] } });
+    expect(custom.questions[7].showIf).toEqual({ questionKey: 'p60_t3_q4', optionKeys: ['p60_t3_q4_o1'] });
+    for (const q of custom.questions.slice(0, 6)) expect(q).not.toHaveProperty('showIf');
+    // every showIf references an earlier choice question and its own option keys
+    for (const { config } of Object.values(all)) {
+      for (const t of config.protocols.flatMap((p) => p.tasks)) {
+        (t.questions || []).forEach((q, i) => {
+          if (!q.showIf) return;
+          const src = t.questions.findIndex((s) => s.questionKey === q.showIf.questionKey);
+          expect(src).toBeGreaterThanOrEqual(0);
+          expect(src).toBeLessThan(i);
+          expect(['SINGLE_CHOICE', 'MULTIPLE_CHOICE']).toContain(t.questions[src].questionType);
+          expect(q.showIf.optionKeys.every((k) => t.questions[src].questionOptions.includes(k))).toBe(true);
+        });
+      }
+    }
   });
 
   it('identifiers_full: catalogue overrides, custom fields, legacy ids', () => {

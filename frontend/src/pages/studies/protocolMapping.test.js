@@ -20,6 +20,16 @@ describe("loadMappedProtocol", () => {
     expect(p).toMatchObject({ id: 7, name: "P", language: "en", tasks: [{ category: "reading", x: 1, task_order: 1 }] });
   });
 
+  it("marks a questionnaire task whose params lack a type", async () => {
+    getProtocolById.mockResolvedValue({ id: 7, language_id: 2, tasks: [{ task_id: 6, task_order: 1, params: { title: "Q" } }] });
+    const p = await loadMappedProtocol(7, {
+      ...mappings,
+      tasks: [{ id: 6, category: "questionnaire", type_id: 4 }],
+      task_types: [{ id: 4, type: "questionnaire" }],
+    });
+    expect(p.tasks[0]).toMatchObject({ type: "questionnaire", category: "questionnaire", title: "Q" });
+  });
+
   it("throws when the mappings are not loaded", async () => {
     getProtocolById.mockResolvedValue({ id: 7, tasks: [] });
     await expect(loadMappedProtocol(7, {})).rejects.toThrow("protocol_load_failed");

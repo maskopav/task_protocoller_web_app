@@ -61,6 +61,11 @@
   border-left-color: var(--success);
 }
 
+/* Conditional question (showIf): indented under the question it depends on */
+.question-card.is-conditional {
+  margin-left: clamp(1rem, 3vw, 2rem);
+}
+
 .question-header {
   display: flex;
   align-items: flex-start;

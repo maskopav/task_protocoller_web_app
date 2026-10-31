@@ -134,7 +134,11 @@
       "allowWriteIn": "Povolit vlastní odpověď",
       "removeOption": "Odebrat možnost",
       "exclusiveOption": "Výlučná možnost (zruší ostatní výběry)",
-      "noneOption": "-- Žádná --"
+      "noneOption": "-- Žádná --",
+      "showOnlyIf": "Zobrazit tuto otázku pouze při určité odpovědi na předchozí otázku",
+      "ruleSource": "Otázka, na které pravidlo závisí",
+      "ruleAnswers": "Odpovědi, při kterých se otázka zobrazí",
+      "ruleNoAnswers": "Není vybrána žádná odpověď: pravidlo se nepoužije, dokud nezaškrtnete alespoň jednu odpověď."
     },
     "tooltips": {
       "edit": "Upravit tuto úlohu",

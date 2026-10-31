@@ -134,7 +134,11 @@
       "allowWriteIn": "Freitext erlauben",
       "removeOption": "Option entfernen",
       "exclusiveOption": "Exklusive Option (hebt andere Auswahlen auf)",
-      "noneOption": "-- Keine --"
+      "noneOption": "-- Keine --",
+      "showOnlyIf": "Diese Frage nur anzeigen, wenn eine vorherige Antwort zutrifft",
+      "ruleSource": "Frage, von der die Regel abhängt",
+      "ruleAnswers": "Antworten, bei denen diese Frage angezeigt wird",
+      "ruleNoAnswers": "Keine Antwort ausgewählt: Die Regel wird ignoriert, bis Sie mindestens eine Antwort ankreuzen."
     },
     "tooltips": {
       "edit": "Diese Aufgabe bearbeiten",

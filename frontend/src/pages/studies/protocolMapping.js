@@ -12,7 +12,11 @@ export function mapProtocolWithNames(raw, mappings) {
   const language = mappings.languages.find((l) => l.id === raw.language_id);
   const mappedTasks = (raw.tasks || []).map((t) => {
     const taskDef = mappings.tasks.find((task) => task.id === t.task_id);
+    // The editor routes questionnaires by `type`, which only editor-saved params
+    // carry; seeded or imported ones get it from the task's type.
+    const taskType = mappings.task_types?.find((tt) => tt.id === taskDef?.type_id)?.type;
     return {
+      ...(taskType === "questionnaire" ? { type: "questionnaire" } : {}),
       ...t.params,
       category: taskDef?.category || `unknown(${t.task_id})`,
       task_order: t.task_order,

@@ -6,6 +6,7 @@ import { bumpConfigVersionForProject } from '../utils/configVersionBump.js';
 import { getVisibleProjectIds, getEditableProjectIds, canUseLibrary } from '../utils/accessScope.js';
 import { isLegacyDescription, cleanDescription } from '../utils/legacyDescription.js';
 import { validateFileNameTemplate, isValidHttpUrl, DEFAULT_RECORDINGS_FILE_NAME } from '../utils/fieldValidation.js';
+import { findInvalidQuestionRule } from '../utils/questionRules.js';
 
 // A protocol belongs to exactly one study (protocols.project_id). Library
 // entries are the exception: project_id is NULL, they never reach a desktop
@@ -107,6 +108,12 @@ export const saveProtocol = async (req, res) => {
   // id would fail inside the transaction as a 500 (F-086).
   const badTask = tasks.findIndex((t) => !isTaskId(t?.task_id));
   if (badTask !== -1) return res.status(400).json({ error: 'task_invalid', index: badTask });
+  // Questionnaire conditional rules must point at an earlier choice question.
+  const badRuleTask = tasks.findIndex((t) => findInvalidQuestionRule(t?.params?.questions) !== -1);
+  if (badRuleTask !== -1) {
+    const question = findInvalidQuestionRule(tasks[badRuleTask].params.questions);
+    return res.status(400).json({ error: 'invalid_question_rule', index: badRuleTask, question });
+  }
 
   // Desktop-app fields. Identifier names are accepted in both stored shapes
   // (objects, or legacy string ids) -- the mapping layer normalizes them.

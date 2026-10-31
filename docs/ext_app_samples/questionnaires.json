@@ -325,6 +325,34 @@
                 "rating_4",
                 "rating_5"
               ]
+            },
+            {
+              "questionType": "OPEN",
+              "questionKey": "p60_t3_q7",
+              "questionTextKey": "p60_t3_q7_text",
+              "questionRegex": ".+",
+              "showIf": {
+                "questionKey": "p60_t3_q3",
+                "optionKeys": [
+                  "p60_t3_q3_o2",
+                  "p60_t3_q3_o3"
+                ]
+              }
+            },
+            {
+              "questionType": "SINGLE_CHOICE",
+              "questionKey": "p60_t3_q8",
+              "questionTextKey": "p60_t3_q8_text",
+              "questionOptions": [
+                "p60_t3_q8_o1",
+                "p60_t3_q8_o2"
+              ],
+              "showIf": {
+                "questionKey": "p60_t3_q4",
+                "optionKeys": [
+                  "p60_t3_q4_o1"
+                ]
+              }
             }
           ],
           "length": 300
@@ -436,6 +464,10 @@
       "rating_3": "Okay",
       "rating_4": "Good",
       "rating_5": "Very good",
+      "p60_t3_q7_text": "Why B or C?",
+      "p60_t3_q8_text": "How often X?",
+      "p60_t3_q8_o1": "Daily",
+      "p60_t3_q8_o2": "Weekly",
       "p60_f_patient_code_label": "Participant code",
       "p60_f_patient_code_help": "Study code of the participant, e.g. HC001."
     }

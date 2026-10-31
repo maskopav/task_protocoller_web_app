@@ -125,7 +125,7 @@ export const CASES = {
     [{ name: "Mixed Study", protocols: [proto({ id: 50, name: "Mixed modalities", tasks: [task("phonation"), task("d15colour")] })] }],
   ),
 
-  // The standard questionnaires plus a custom one with every question type.
+  // The standard questionnaires plus a custom one with every question type and two conditional questions.
   questionnaires: (locales) => args(
     site({ defaultLanguage: "en" }),
     [{ name: "Questionnaire Study", protocols: [proto({ id: 60, name: "Questionnaire set", tasks: [
@@ -138,6 +138,9 @@ export const CASES = {
         { id: 4, text: "Multiple choice", type: "multiple", options: ["X", "Y", "Z", "None"], exclusiveOption: "None", freeTextOptions: ["Z"], optional: false },
         { id: 5, text: "Dropdown", type: "dropdown", options: ["One", "Two"], optional: false },
         { id: 6, text: "Rating", type: "rating", options: [], optional: false },
+        // Conditional rules (showIf): shown only if Q3 is B or C / Q4 includes X.
+        { id: 7, text: "Why B or C?", type: "open", options: [], optional: false, showIf: { questionId: 3, optionIndexes: [1, 2] } },
+        { id: 8, text: "How often X?", type: "single", options: ["Daily", "Weekly"], optional: false, showIf: { questionId: 4, optionIndexes: [0] } },
       ] }],
     ] })] }],
   ),

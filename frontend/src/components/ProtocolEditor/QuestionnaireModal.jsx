@@ -5,6 +5,12 @@ import Modal from "./Modal";
 import { Icon } from "../ui/icons.jsx";
 import { Button } from "../ui/Button.jsx";
 import { DEFAULT_EMOJI_SCALE, EmojiFace } from "../../config/emojiRatingScale";
+import {
+  clearDanglingShowIf,
+  getConditionSourceQuestions,
+  remapShowIfOnOptionRemove,
+  sanitizeShowIf,
+} from "../../utils/questionConditions";
 import "./QuestionnaireModal.css"; 
 
 export default function QuestionnaireModal({ open, onClose, onSave, initialData }) {
@@ -81,24 +87,55 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
 
   const removeOption = (questionId, index) => {
     setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id !== questionId) return q;
-        const removedOpt = q.options[index];
-        return {
-          ...q,
-          options: q.options.filter((_, i) => i !== index),
-          freeTextOptions: (q.freeTextOptions || []).filter((o) => o !== removedOpt),
-        };
-      })
+      remapShowIfOnOptionRemove(
+        prev.map((q) => {
+          if (q.id !== questionId) return q;
+          const removedOpt = q.options[index];
+          return {
+            ...q,
+            options: q.options.filter((_, i) => i !== index),
+            freeTextOptions: (q.freeTextOptions || []).filter((o) => o !== removedOpt),
+          };
+        }),
+        questionId,
+        index
+      )
     );
   };
 
   const removeQuestion = (id) => {
-    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    setQuestions((prev) => clearDanglingShowIf(prev.filter((q) => q.id !== id), id));
   };
 
+  // --- Conditional rule (showIf) handlers ---
+  const setShowIfEnabled = (questionId, enabled) => {
+    if (!enabled) {
+      updateQuestion(questionId, "showIf", null);
+      return;
+    }
+    const [firstSource] = getConditionSourceQuestions(questions, questionId);
+    if (!firstSource) return;
+    updateQuestion(questionId, "showIf", { questionId: firstSource.id, optionIndexes: [] });
+  };
+
+  const setShowIfSource = (questionId, sourceId) => {
+    updateQuestion(questionId, "showIf", { questionId: sourceId, optionIndexes: [] });
+  };
+
+  const toggleShowIfOption = (questionId, index) =>
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== questionId || !q.showIf) return q;
+        const current = q.showIf.optionIndexes || [];
+        const optionIndexes = current.includes(index)
+          ? current.filter((i) => i !== index)
+          : [...current, index].sort((a, b) => a - b);
+        return { ...q, showIf: { ...q.showIf, optionIndexes } };
+      })
+    );
+
   const handleSave = () => {
-    const cleaned = questions.map((q) => ({
+    const cleaned = sanitizeShowIf(questions).map((q) => ({
       ...q,
       freeTextOptions: (q.freeTextOptions || []).filter((opt) => q.options.includes(opt)),
     }));
@@ -198,6 +235,65 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
                 </div>
 
               </div>
+
+              {/* Conditional rule: shown only if an earlier answer matches */}
+              {(() => {
+                const sources = getConditionSourceQuestions(questions, q.id);
+                if (sources.length === 0) return null;
+                const source = q.showIf ? sources.find((sq) => sq.id === q.showIf.questionId) : null;
+                const picked = q.showIf?.optionIndexes || [];
+                return (
+                  <div className="qm-options-section qm-condition-section" data-testid="qm-condition">
+                    <label className="qm-inline-label">
+                      <input
+                        type="checkbox"
+                        checked={!!q.showIf}
+                        onChange={(e) => setShowIfEnabled(q.id, e.target.checked)}
+                      />
+                      {t("protocolEditor.questionnaire.showOnlyIf")}
+                    </label>
+
+                    {q.showIf && (
+                      <div className="qm-condition-detail">
+                        <select
+                          className="qm-select"
+                          aria-label={t("protocolEditor.questionnaire.ruleSource")}
+                          value={source ? String(source.id) : ""}
+                          onChange={(e) => {
+                            const next = sources.find((sq) => String(sq.id) === e.target.value);
+                            if (next) setShowIfSource(q.id, next.id);
+                          }}
+                        >
+                          {!source && <option value="" disabled>{t("protocolEditor.questionnaire.ruleSource")}</option>}
+                          {sources.map((sq) => (
+                            <option key={sq.id} value={String(sq.id)}>
+                              {`Q${questions.indexOf(sq) + 1}: ${sq.text || t("protocolEditor.questionnaire.enterQuestionText")}`}
+                            </option>
+                          ))}
+                        </select>
+
+                        {source && (
+                          <div className="qm-condition-values" role="group" aria-label={t("protocolEditor.questionnaire.ruleAnswers")}>
+                            {source.options.map((opt, oi) => (
+                              <label key={oi} className="qm-inline-label">
+                                <input
+                                  type="checkbox"
+                                  checked={picked.includes(oi)}
+                                  onChange={() => toggleShowIfOption(q.id, oi)}
+                                />
+                                {opt || `${t("protocolEditor.questionnaire.Option")} ${oi + 1}`}
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                        {picked.length === 0 && (
+                          <span className="qm-condition-hint">{t("protocolEditor.questionnaire.ruleNoAnswers")}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Options Section */}
               {q.type !== "open" && q.type !== "rating" && (

@@ -261,3 +261,10 @@
   }
 .qm-inline-label { display: flex; align-items: center; gap: var(--s-1); }
 .qm-spaced { margin-top: var(--s-4); }
+
+/* Conditional rule (showIf) */
+.qm-condition-detail { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-2); }
+.qm-condition-values { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-4); }
+.qm-condition-hint { color: var(--muted); font-size: 0.85rem; }
+/* Selects have a fixed 34px height (tokens.css): vertical padding clips their text */
+.questionnaire-modal-form .qm-select { padding-top: 0; padding-bottom: 0; }

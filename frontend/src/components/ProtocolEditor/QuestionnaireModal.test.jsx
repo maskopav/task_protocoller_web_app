@@ -54,3 +54,74 @@ describe("QuestionnaireModal restyle (F-071)", () => {
     expect(css).not.toMatch(/var\(--purple\)/);
   });
 });
+
+describe("QuestionnaireModal conditional rules", () => {
+  const ruleData = {
+    title: "Q", description: "",
+    questions: [
+      { id: 1, text: "Smoker?", type: "single", options: ["Yes", "No"], optional: false },
+      { id: 2, text: "Which?", type: "multiple", options: ["Cigarettes", "Pipe", "Cigars"], optional: false },
+      { id: 3, text: "Since when?", type: "open", options: [], optional: false },
+    ],
+  };
+  const click = (el) => act(() => { el.click(); });
+  const cards = () => [...document.querySelectorAll(".qm-question-card")];
+  const ruleBox = (card) => card.querySelector('[data-testid="qm-condition"] input[type="checkbox"]');
+  const answerBoxes = (card) => [...card.querySelectorAll(".qm-condition-values input")];
+
+  async function mountRules(onSave) {
+    await i18n.changeLanguage("en");
+    await act(async () => { root.render(<QuestionnaireModal open onClose={vi.fn()} onSave={onSave} initialData={ruleData} />); });
+  }
+
+  it("offers the rule only where an earlier choice question exists, with earlier sources listed", async () => {
+    await mountRules(vi.fn());
+    const [c1, c2, c3] = cards();
+    expect(c1.querySelector('[data-testid="qm-condition"]')).toBeNull();
+    expect(c2.textContent).toContain("Only show this question if a previous answer matches");
+    click(ruleBox(c3));
+    const opts = [...cards()[2].querySelectorAll(".qm-condition-detail select option")].map((o) => o.textContent);
+    expect(opts).toEqual(["Q1: Smoker?", "Q2: Which?"]);
+    expect(answerBoxes(cards()[2]).map((b) => b.parentElement.textContent)).toEqual(["Yes", "No"]);
+    expect(cards()[2].textContent).toContain("the rule is ignored");
+  });
+
+  it("saves { questionId, optionIndexes }, resets answers on source change and drops empty rules", async () => {
+    const onSave = vi.fn();
+    await mountRules(onSave);
+    click(ruleBox(cards()[1]));
+    click(answerBoxes(cards()[1])[0]);
+    click(ruleBox(cards()[2]));
+    const select = cards()[2].querySelector(".qm-condition-detail select");
+    act(() => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set;
+      setter.call(select, "2");
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(answerBoxes(cards()[2]).every((b) => !b.checked)).toBe(true);
+    click(document.querySelector('[data-testid="modal-save"]'));
+    const saved = onSave.mock.calls[0][0].questions;
+    expect(saved[1].showIf).toEqual({ questionId: 1, optionIndexes: [0] });
+    expect(saved[2].showIf).toBeNull();
+  });
+
+  it("removing an option remaps indexes; removing the source clears the rule; unticking removes it", async () => {
+    await mountRules(vi.fn());
+    click(ruleBox(cards()[2]));
+    const select = cards()[2].querySelector(".qm-condition-detail select");
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set.call(select, "2");
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    click(answerBoxes(cards()[2])[2]); // Cigars
+    click(cards()[1].querySelectorAll(".qm-btn-remove-option")[0]); // remove Cigarettes
+    const boxes = answerBoxes(cards()[2]);
+    expect(boxes.map((b) => b.parentElement.textContent)).toEqual(["Pipe", "Cigars"]);
+    expect(boxes.map((b) => b.checked)).toEqual([false, true]);
+    click(cards()[1].querySelector(".qm-btn-remove-question")); // remove Q2
+    expect(ruleBox(cards()[1]).checked).toBe(false);
+    click(ruleBox(cards()[1]));
+    click(ruleBox(cards()[1]));
+    expect(cards()[1].querySelector(".qm-condition-detail")).toBeNull();
+  });
+});
