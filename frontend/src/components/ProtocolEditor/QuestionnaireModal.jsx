@@ -335,7 +335,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
                     Scents ({pickedScents(q).length} / {SMELL_OPTION_COUNT}) + {scentLabel(NO_SCENT_KEY, tScent)}
                   </label>
                   {SMELL_SCENT_KEYS.length === 0 && (
-                    <p className="qm-scent-empty">No scent pictures yet — add them to src/assets/smellIcons/ (e.g. hot_dog.png).</p>
+                    <p className="qm-scent-empty">No scent pictures yet — add them to src/assets/smellIcons/ (e.g. hot_dog.webp).</p>
                   )}
                   <div className="qm-scent-grid">
                     {SMELL_SCENT_KEYS.map((key) => {

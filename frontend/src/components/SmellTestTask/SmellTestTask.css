@@ -88,6 +88,7 @@
   justify-content: center;
   font-size: clamp(3.2rem, 15vw, 5rem);
   line-height: 1;
+  mix-blend-mode: multiply; /* photos' white background takes the card's tint */
 }
 
 .scent-option-text {

@@ -691,7 +691,7 @@
       "description": "Participant has the smell card from the agency ready, watches a short how-to video (public/assets/smell/smell-howto.mp4), then for each numbered box rubs, smells and picks the matching smell from 4 pictures + \"No scent\". One question per box on the card (5 or 8); pick the 4 scents per question in the editor (pictures from src/assets/smellIcons/).",
       "title": "{{title}}",
       "noScent": "No scent",
-      "scents": {},
+      "scents": { "bbq": "BBQ" },
       "close": "Close",
       "back": "Back",
       "questionText": "Scent {{n}}: Which smell do you detect?",
