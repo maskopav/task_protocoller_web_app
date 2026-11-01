@@ -21,6 +21,13 @@ const FRAME_RATE_MS = 33;
 // to this interval (same elapsed-aware pattern as the recording loop)
 // guarantees real idle time between frames.
 const CALIBRATION_FRAME_RATE_MS = 100;
+// requestVideoFrameCallback recording loop (see startRecording): a 30 fps
+// camera delivers frames ~33 ms apart with a few ms of jitter, so a frame is
+// processed once at least FRAME_RATE_MS minus this tolerance has passed.
+const RVFC_SKIP_TOLERANCE_MS = 8;
+// No frame callback for this long -> fall back to the timer loop. Well above
+// a dim-light camera's ~67 ms frame spacing and short start-up hitches.
+const RVFC_STALL_MS = 500;
 
 // The face model runs on the GPU where it can, CPU otherwise. On weak phones
 // CPU-only inference took ~120 ms/frame (8 fps, session 570) vs ~33-43 ms on
@@ -38,8 +45,21 @@ const VISION_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.
 // Per-recording tracking quality, logged when recording stops so slow
 // devices / delegate fallbacks / unsteady frame spacing are visible in the
 // session log and data_qc. intervalMs is the spacing between saved frames;
-// gaps where no face was found count as long intervals.
-function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs }, timestamps) {
+// gaps where no face was found count as long intervals. cameraFps is how many
+// frames the camera actually delivered (requestVideoFrameCallback's
+// presentedFrames), so a low fps can be told apart: camera-limited (dim
+// light) when cameraFps is low too, processing-limited when it isn't.
+// captureLagMs is processing time minus camera capture time, where reported.
+function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs, loop, skippedFrames, presented, captureLagMs }, timestamps) {
+    const median = (arr) => {
+        if (!arr.length) return null;
+        const s = [...arr].sort((a, b) => a - b);
+        return Math.round(s[Math.floor(s.length / 2)] * 10) / 10;
+    };
+    const [p0, p1] = [presented[0], presented[presented.length - 1]];
+    const cameraFps = p0 && p1 && p1[1] > p0[1]
+        ? Math.round(((p1[0] - p0[0]) / ((p1[1] - p0[1]) / 1000)) * 10) / 10
+        : null;
     const sorted = [...detectMs].sort((a, b) => a - b);
     const pct = (p) => (sorted.length ? Math.round(sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]) : null);
     const spanSec = framesWithFace > 1 ? (lastTs - firstTs) / 1000 : 0;
@@ -47,6 +67,10 @@ function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors
     const dtPct = (p) => (dt.length ? Math.round(dt[Math.min(dt.length - 1, Math.floor(p * dt.length))] * 10) / 10 : null);
     const dtMean = dt.length ? dt.reduce((a, b) => a + b, 0) / dt.length : 0;
     return {
+        loop,
+        ...(skippedFrames !== undefined && { skippedFrames }),
+        cameraFps,
+        captureLagMs: captureLagMs.length ? { median: median(captureLagMs), frames: captureLagMs.length } : null,
         framesWithFace,
         framesWithoutFace,
         detectErrors: errors,
@@ -99,6 +123,9 @@ export const useVideoRecorder = ({
     const audioChunks = useRef([]);
     const coordinateTimeline = useRef([]);
     const recordingLoopRef = useRef(null);
+    const recordingActiveRef = useRef(false);
+    const frameCallbackRef = useRef(null);
+    const watchdogRef = useRef(null);
     // Delegate the current model instance runs on, the WASM fileset (reused
     // when recreating the model on the CPU) and the in-flight switch, if any.
     const delegateRef = useRef(null);
@@ -148,7 +175,13 @@ export const useVideoRecorder = ({
     // Safety net: release the camera if this hook's owner unmounts without
     // ever calling stopRecording() (e.g. task skipped/abandoned mid-flow).
     useEffect(() => {
-        return () => releaseStream();
+        return () => {
+            recordingActiveRef.current = false;
+            cancelFrameCallback();
+            clearTimeout(watchdogRef.current);
+            clearTimeout(recordingLoopRef.current);
+            releaseStream();
+        };
     }, [releaseStream]);
 
     const createLandmarker = async (delegate) => {
@@ -477,45 +510,120 @@ export const useVideoRecorder = ({
         coordinateTimeline.current = [];
         trackingStatsRef.current = {
             detectMs: [], framesWithFace: 0, framesWithoutFace: 0, errors: 0, firstTs: null, lastTs: null,
+            loop: null, presented: [], captureLagMs: [],
         };
         setRecordingStatus("recording");
+        recordingActiveRef.current = true;
 
-        const captureCoordinates = () => {
-            if (videoRef.current && recordingStatus !== "recorded") {
-                const now = performance.now();
-                // null while a failed GPU model is being recreated on the CPU
-                // -- keep looping so tracking resumes as soon as it's ready.
-                const result = faceDetector.current ? detectFace(videoRef.current, now) : null;
-                const stats = trackingStatsRef.current;
+        // `meta` is the requestVideoFrameCallback metadata (null in the timer
+        // loop). captureTime -- when the camera captured the frame, on the
+        // performance.now() clock -- is saved next to the processing time
+        // where the browser reports it, so the analysis can drop the camera
+        // pipeline latency from the A/V offset.
+        const processFrame = (meta) => {
+            const now = performance.now();
+            // null while a failed GPU model is being recreated on the CPU
+            // -- keep looping so tracking resumes as soon as it's ready.
+            const result = faceDetector.current ? detectFace(videoRef.current, now) : null;
+            const stats = trackingStatsRef.current;
+            const captureTs = Number.isFinite(meta?.captureTime) && meta.captureTime > 0 ? meta.captureTime : null;
 
-                if (result?.faceLandmarks?.length > 0) {
-                    coordinateTimeline.current.push({
-                        timestamp: now,
-                        landmarks: result.faceLandmarks[0]
-                    });
-                    stats.framesWithFace++;
-                    if (stats.firstTs === null) stats.firstTs = now;
-                    stats.lastTs = now;
-                } else if (result) {
-                    stats.framesWithoutFace++;
-                }
-                if (result) stats.detectMs.push(performance.now() - now);
-                // detectForVideo is synchronous and can itself take longer
-                // than FRAME_RATE_MS on slower devices. Subtract the time it
-                // just spent so we don't ALSO tack a full 33ms wait on top of
-                // that (which was compounding into ~107ms/frame instead of
-                // ~33ms). If inference already blew the budget, fire again
-                // immediately instead of padding the delay further.
-                const elapsed = performance.now() - now;
-                const nextDelay = Math.max(0, FRAME_RATE_MS - elapsed);
-                recordingLoopRef.current = setTimeout(captureCoordinates, nextDelay);
+            if (result?.faceLandmarks?.length > 0) {
+                coordinateTimeline.current.push({
+                    timestamp: now,
+                    captureTimestamp: captureTs,
+                    landmarks: result.faceLandmarks[0]
+                });
+                stats.framesWithFace++;
+                if (stats.firstTs === null) stats.firstTs = now;
+                stats.lastTs = now;
+            } else if (result) {
+                stats.framesWithoutFace++;
             }
+            if (result) stats.detectMs.push(performance.now() - now);
+            if (meta) stats.presented.push([meta.presentedFrames, now]);
+            if (captureTs !== null) stats.captureLagMs.push(now - captureTs);
+            return now;
         };
-        
-        captureCoordinates();
+
+        // Timer loop: the fallback where requestVideoFrameCallback is missing
+        // or stops firing. detectForVideo is synchronous and can itself take
+        // longer than FRAME_RATE_MS on slower devices. Subtract the time it
+        // just spent so we don't ALSO tack a full 33ms wait on top of that
+        // (which was compounding into ~107ms/frame instead of ~33ms). If
+        // inference already blew the budget, fire again immediately instead
+        // of padding the delay further.
+        const timerLoop = () => {
+            if (!recordingActiveRef.current || !videoRef.current) return;
+            const now = processFrame(null);
+            const nextDelay = Math.max(0, FRAME_RATE_MS - (performance.now() - now));
+            recordingLoopRef.current = setTimeout(timerLoop, nextDelay);
+        };
+
+        // Frame-driven loop: runs once per new camera frame, so the same frame
+        // is never processed twice and a new one is picked up without waiting
+        // for a timer. Frames from a camera faster than 30 fps are thinned to
+        // keep the main-thread load at the timer loop's level. The spacing is
+        // judged on the frames' own times (captureTime, else mediaTime), not
+        // on when the callback ran: callbacks snap to the display refresh
+        // (16.7 ms steps), so a normal 30 fps frame can arrive one refresh
+        // "early" -- judging by callback time dropped ~3% of frames on an
+        // iPhone (sessions 579/580).
+        const video = videoRef.current;
+        if (typeof video?.requestVideoFrameCallback === 'function') {
+            trackingStatsRef.current.loop = 'rvfc';
+            trackingStatsRef.current.skippedFrames = 0;
+            let lastProcessedFrameTime = -Infinity;
+            let lastCallback = performance.now();
+            const onFrame = (callbackNow, meta) => {
+                if (!recordingActiveRef.current) return;
+                lastCallback = performance.now();
+                const frameTime = meta?.captureTime > 0 ? meta.captureTime
+                    : Number.isFinite(meta?.mediaTime) ? meta.mediaTime * 1000
+                    : callbackNow;
+                if (frameTime - lastProcessedFrameTime >= FRAME_RATE_MS - RVFC_SKIP_TOLERANCE_MS) {
+                    lastProcessedFrameTime = frameTime;
+                    processFrame(meta);
+                } else {
+                    trackingStatsRef.current.skippedFrames++;
+                }
+                frameCallbackRef.current = { video, id: video.requestVideoFrameCallback(onFrame) };
+            };
+            frameCallbackRef.current = { video, id: video.requestVideoFrameCallback(onFrame) };
+
+            // Browsers may stop delivering frame callbacks for a video that
+            // is off screen or not composited. Rather than lose landmarks,
+            // switch to the timer loop for the rest of this recording.
+            const watchdog = () => {
+                if (!recordingActiveRef.current) return;
+                if (performance.now() - lastCallback > RVFC_STALL_MS) {
+                    cancelFrameCallback();
+                    trackingStatsRef.current.loop = 'rvfc_then_timer';
+                    logger.warn("face_loop_fallback", { stalledMs: Math.round(performance.now() - lastCallback) });
+                    timerLoop();
+                    return;
+                }
+                watchdogRef.current = setTimeout(watchdog, RVFC_STALL_MS / 2);
+            };
+            watchdogRef.current = setTimeout(watchdog, RVFC_STALL_MS);
+        } else {
+            trackingStatsRef.current.loop = 'timer';
+            timerLoop();
+        }
+    };
+
+    const cancelFrameCallback = () => {
+        const cb = frameCallbackRef.current;
+        if (cb) {
+            try { cb.video.cancelVideoFrameCallback(cb.id); } catch { /* element gone */ }
+            frameCallbackRef.current = null;
+        }
     };
 
     const stopRecording = () => {
+        recordingActiveRef.current = false;
+        cancelFrameCallback();
+        clearTimeout(watchdogRef.current);
         if (recordingLoopRef.current) {
             clearTimeout(recordingLoopRef.current);
         }

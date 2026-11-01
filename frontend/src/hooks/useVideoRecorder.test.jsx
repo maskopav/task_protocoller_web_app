@@ -272,4 +272,130 @@ describe("useVideoRecorder — tracking during recording", () => {
     expect(stats.framesWithFace).toBeGreaterThan(3);
     expect(latest.videoData.length).toBe(stats.framesWithFace);
   });
+
+  describe("frame-driven loop (requestVideoFrameCallback)", () => {
+    // A video whose frames the test delivers by hand.
+    function frameVideo() {
+      let pending = null;
+      let presented = 0;
+      return {
+        requestVideoFrameCallback: vi.fn((cb) => { pending = cb; return presented + 1; }),
+        cancelVideoFrameCallback: vi.fn(() => { pending = null; }),
+        deliver(captureTime) {
+          const cb = pending; pending = null;
+          presented++;
+          cb?.(performance.now(), { presentedFrames: presented, captureTime });
+        },
+        get pending() { return pending; },
+      };
+    }
+
+    async function startWith(video) {
+      await act(async () => { await latest.getMediaPermission(); });
+      act(() => {
+        latest.attachVideoRef(video);
+        latest.startRecording();
+      });
+    }
+
+    it("processes each delivered frame once, saves its capture time and logs camera fps", async () => {
+      const detectForVideo = vi.fn(() => face);
+      createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+      const video = frameVideo();
+      await startWith(video);
+
+      for (let i = 0; i < 10; i++) {
+        await act(async () => { await vi.advanceTimersByTimeAsync(33); });
+        act(() => video.deliver(performance.now() - 20));
+      }
+      act(() => latest.stopRecording());
+
+      expect(detectForVideo).toHaveBeenCalledTimes(10);
+      expect(latest.videoData.every((f) => Math.abs(f.timestamp - f.captureTimestamp - 20) < 0.01)).toBe(true);
+      const stats = finalizedLog();
+      expect(stats.loop).toBe("rvfc");
+      expect(stats.cameraFps).toBeCloseTo(30.3, 0);
+      expect(stats.captureLagMs).toEqual({ median: 20, frames: 10 });
+      expect(stats.skippedFrames).toBe(0);
+      expect(video.cancelVideoFrameCallback).toHaveBeenCalled();
+    });
+
+    it("keeps every 30 fps frame even when callbacks snap to the display refresh", async () => {
+      // iPhone pattern (sessions 579/580): frames captured 33 ms apart, but
+      // the callbacks run on 16.7 ms refresh steps, so two of them can land
+      // only ~17 ms apart.
+      const detectForVideo = vi.fn(() => face);
+      createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+      const video = frameVideo();
+      await startWith(video);
+
+      const t0 = performance.now();
+      const callbackSteps = [33, 50, 17, 33, 50, 17, 33, 33];
+      let capture = t0;
+      for (const step of callbackSteps) {
+        await act(async () => { await vi.advanceTimersByTimeAsync(step); });
+        capture += 33.3;
+        act(() => video.deliver(capture));
+      }
+      act(() => latest.stopRecording());
+
+      expect(detectForVideo).toHaveBeenCalledTimes(callbackSteps.length);
+      expect(finalizedLog().skippedFrames).toBe(0);
+    });
+
+    it("skips frames arriving faster than the 30 fps target", async () => {
+      const detectForVideo = vi.fn(() => face);
+      createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+      const video = frameVideo();
+      await startWith(video);
+
+      // 60 fps camera: every other frame is processed.
+      for (let i = 0; i < 12; i++) {
+        await act(async () => { await vi.advanceTimersByTimeAsync(16); });
+        act(() => video.deliver(undefined));
+      }
+      act(() => latest.stopRecording());
+
+      expect(detectForVideo.mock.calls.length).toBeGreaterThanOrEqual(5);
+      expect(detectForVideo.mock.calls.length).toBeLessThanOrEqual(7);
+      expect(finalizedLog().skippedFrames).toBe(12 - detectForVideo.mock.calls.length);
+      // No captureTime from the browser -> none saved.
+      expect(latest.videoData.every((f) => f.captureTimestamp === null)).toBe(true);
+      expect(finalizedLog().captureLagMs).toBeNull();
+    });
+
+    it("falls back to the timer loop when frame callbacks stop arriving", async () => {
+      const detectForVideo = vi.fn(() => face);
+      createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+      const video = frameVideo();
+      await startWith(video);
+
+      act(() => video.deliver(undefined));
+      // Stall detected after ~500-750 ms, then ~1 s of timer-loop tracking.
+      await act(async () => { await vi.advanceTimersByTimeAsync(1750); });
+      act(() => latest.stopRecording());
+
+      expect(logger.warn).toHaveBeenCalledWith("face_loop_fallback", expect.any(Object));
+      expect(video.cancelVideoFrameCallback).toHaveBeenCalled();
+      expect(finalizedLog().loop).toBe("rvfc_then_timer");
+      // The timer loop kept tracking after the stall (~1 frame per 33 ms).
+      expect(detectForVideo.mock.calls.length).toBeGreaterThan(20);
+    });
+
+    it("stops processing frames after stopRecording", async () => {
+      const detectForVideo = vi.fn(() => face);
+      createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+      const video = frameVideo();
+      await startWith(video);
+      await act(async () => { await vi.advanceTimersByTimeAsync(33); });
+      act(() => video.deliver(undefined));
+      act(() => latest.stopRecording());
+      const calls = detectForVideo.mock.calls.length;
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+      expect(video.pending).toBeNull();
+      expect(detectForVideo.mock.calls.length).toBe(calls);
+      expect(logger.warn).not.toHaveBeenCalledWith("face_loop_fallback", expect.anything());
+    });
+  });
 });

@@ -23,7 +23,7 @@ export function loadTimeline(filePath) {
 // shape the older formats use, so every analysis script below only ever
 // deals with one shape.
 function fromTransposed(data) {
-  const { frameCount, landmarkCount, timestamps, x, y, z } = data;
+  const { frameCount, landmarkCount, timestamps, captureTimestamps, x, y, z } = data;
   const frames = new Array(frameCount);
   for (let f = 0; f < frameCount; f++) {
     const landmarks = new Array(landmarkCount * 3);
@@ -34,6 +34,8 @@ function fromTransposed(data) {
       landmarks[i * 3 + 2] = z[base];
     }
     frames[f] = { timestamp: timestamps[f], landmarks };
+    // Camera capture time, only in recordings where the browser reported it
+    if (captureTimestamps) frames[f].captureTimestamp = captureTimestamps[f];
   }
   return frames;
 }

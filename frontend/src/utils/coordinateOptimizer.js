@@ -22,6 +22,8 @@ export function roundCoordinateTimeline(timeline, precision = 4) {
     });
     return {
       timestamp: Math.round(frame.timestamp), // ms precision is enough
+      // Camera capture time, where the browser reports it (see useVideoRecorder)
+      ...(Number.isFinite(frame.captureTimestamp) && { captureTimestamp: Math.round(frame.captureTimestamp) }),
       landmarks,
     };
   });
@@ -76,7 +78,14 @@ export function transposeCoordinateTimeline(timeline) {
     }
   }
 
-  return { format: "transposed-v1", frameCount, landmarkCount, timestamps, x, y, z };
+  // Camera capture times ride along only when every frame has one, so
+  // timestamps[f] and captureTimestamps[f] always describe the same frame.
+  const hasCapture = timeline.every((frame) => Number.isFinite(frame.captureTimestamp));
+  return {
+    format: "transposed-v1", frameCount, landmarkCount, timestamps,
+    ...(hasCapture && { captureTimestamps: timeline.map((frame) => frame.captureTimestamp) }),
+    x, y, z,
+  };
 }
 
 /**

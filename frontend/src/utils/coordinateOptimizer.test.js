@@ -59,6 +59,24 @@ describe('transposeCoordinateTimeline', () => {
     });
   });
 
+  it('carries camera capture times along when every frame has one', () => {
+    const frames = [
+      { timestamp: 100.4, captureTimestamp: 61.6, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
+      { timestamp: 133.4, captureTimestamp: 94.9, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
+    ];
+    expect(transposeCoordinateTimeline(roundCoordinateTimeline(frames)).captureTimestamps).toEqual([62, 95]);
+  });
+
+  it('leaves capture times out when any frame lacks one', () => {
+    const frames = [
+      { timestamp: 100, captureTimestamp: 62, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
+      { timestamp: 133, captureTimestamp: null, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
+    ];
+    const result = transposeCoordinateTimeline(roundCoordinateTimeline(frames));
+    expect(result).not.toHaveProperty('captureTimestamps');
+    expect(result.timestamps).toEqual([100, 133]);
+  });
+
   it('returns null when frames disagree on landmark count', () => {
     const rounded = roundCoordinateTimeline([
       { timestamp: 0, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }, { x: 0.4, y: 0.5, z: 0.6 }] },
