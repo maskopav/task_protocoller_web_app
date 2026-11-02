@@ -16,7 +16,7 @@ import "./SmellTestTask.css";
 // SMELL_RATINGS; the answer is saved only once every rating is picked, so
 // closing the sheet midway changes nothing. Questions are authored in the same
 // question builder as questionnaires (options + optionImages). Each question is
-// one scent on the physical card; ScentCard below the pictures shows which one.
+// one scent on the physical card; ScentCard above the pictures shows which one.
 //
 // Submitted answers: { [questionId]: { scent, label, intensity, pleasantness } }
 // — `scent` is the language-independent key, `label` the text shown;
@@ -61,10 +61,22 @@ export default function SmellTestTask({
 
   if (index < 0) {
     const isHowTo = index === -1;
+    // A real numbered list, so a wrapped step lines up with its text, not its number
+    const howToSteps = t("tasks:smell.howToSteps", { returnObjects: true });
     return (
       <TaskLayout
         mainClassName="smell-main"
-        instructions={<FormattedText text={isHowTo ? t("tasks:smell.howTo") : task.instructions} />}
+        title={isHowTo ? t("tasks:smell.howToTitle") : null}
+        renderTitle={isHowTo}
+        instructions={isHowTo
+          ? (
+            <ol className="smell-howto-steps">
+              {(Array.isArray(howToSteps) ? howToSteps : []).map((step, i) => (
+                <li key={i}><FormattedText text={step} /></li>
+              ))}
+            </ol>
+          )
+          : <FormattedText text={task.instructions} />}
         instructionsKey={index}
         controls={<SafeButton className="btn-next" onClick={goNext}>{t("buttons.next")}</SafeButton>}
       >
@@ -129,8 +141,8 @@ export default function SmellTestTask({
       }
     >
       <h2 className="smell-question">{question.text}</h2>
-      <ScentPicker question={question} selected={answer?.label} badge={badge} onPick={handlePick} />
       <ScentCard count={questions.length} current={index} />
+      <ScentPicker question={question} selected={answer?.label} badge={badge} onPick={handlePick} />
 
       {draft && (
         <RatingSheet

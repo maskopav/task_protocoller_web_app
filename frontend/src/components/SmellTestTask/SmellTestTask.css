@@ -9,6 +9,15 @@
   padding: clamp(8px, 2dvh, 16px) clamp(6px, 2vw, 12px);
 }
 
+/* Scent screens have no header content — keep the question close to the top */
+.task-header:empty:has(+ .smell-main) {
+  padding-top: 0;
+}
+
+.task-header:empty + .smell-main {
+  padding-top: 4px;
+}
+
 .smell-question {
   margin: 0;
   max-width: 850px;
@@ -109,9 +118,10 @@
   margin: 0 auto;
 }
 
+/* Sizes leave ~2.5% of the stage between the centre circle and each corner one */
 .scent-picker.is-cross .scent-option {
   position: absolute;
-  width: 44%;
+  width: 42%;
   aspect-ratio: 1;
   padding: 0;
   gap: 0.2rem;
@@ -128,17 +138,20 @@
 .scent-picker.is-cross button.scent-option:nth-child(5):active:not(:disabled) {
   top: 50%;
   left: 50%;
-  width: 30%;
+  width: 35%;
   transform: translate(-50%, -50%);
 }
 
 .scent-picker.is-cross .scent-option-image {
-  width: 50%;
-  height: 50%;
+  width: 55%;
+  height: 55%;
+  border-radius: 14%; /* softens full-bleed photos inside the circle */
 }
 
-.scent-picker.is-cross .scent-option:nth-child(5) .scent-option-text {
-  font-size: clamp(0.85rem, 2.6vw, 1.1rem);
+/* Two-line labels ("Lemon eucalyptus") stay clear of the circle's edge */
+.scent-picker.is-cross .scent-option-text {
+  padding: 0 10%;
+  line-height: 1.15;
 }
 
 /* Saved ratings (icons only), pinned to the bottom edge of the selected scent */
@@ -160,7 +173,18 @@
   width: 1.6rem;
 }
 
-/* ── How-to video (second intro screen) ──────────────────────────── */
+/* ── How-to screen: numbered steps + video ───────────────────────── */
+/* Native list markers give the hanging indent; the space sets steps apart */
+.smell-howto-steps {
+  margin: 0;
+  padding-left: 1.4em;
+  text-align: left;
+}
+
+.smell-howto-steps li + li {
+  margin-top: 0.5em;
+}
+
 .smell-howto-video {
   display: block;
   width: min(100%, 420px);

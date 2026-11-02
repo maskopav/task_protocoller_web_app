@@ -5,7 +5,10 @@ import { act } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key) => key, i18n: { language: "en" } }),
+  useTranslation: () => ({
+    t: (key, opts) => (opts?.returnObjects ? [`${key}.1`, `${key}.2`] : key),
+    i18n: { language: "en" },
+  }),
   Trans: ({ defaults }) => defaults,
 }));
 
@@ -53,9 +56,12 @@ describe("SmellTestTask", () => {
     act(() => root.render(<SmellTestTask key="fresh" task={{ instructions: "Smell the strip", resolvedParams: { questions: [QUESTION] } }} onNextTask={onNextTask} />));
     const text = () => container.querySelector(".instruction-text").textContent;
     expect(text()).toBe("Smell the strip");
+    expect(container.querySelector("h1")).toBeNull();
     expect(container.querySelector(".smell-howto-video")).toBeNull();
     await click(next());
-    expect(text()).toBe("tasks:smell.howTo");
+    expect(container.querySelector("h1").textContent).toBe("tasks:smell.howToTitle");
+    expect([...container.querySelectorAll(".smell-howto-steps li")].map((li) => li.textContent))
+      .toEqual(["tasks:smell.howToSteps.1", "tasks:smell.howToSteps.2"]);
     expect(container.querySelector(".smell-howto-video")).not.toBeNull();
     // A missing clip leaves just the text
     act(() => container.querySelector(".smell-howto-video").dispatchEvent(new Event("error")));

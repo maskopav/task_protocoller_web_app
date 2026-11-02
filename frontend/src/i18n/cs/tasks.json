@@ -6,11 +6,70 @@
     "optionalLabel": "(nepovinné)"
   },
   "smell": {
-    "instructions": "Připravte si <strong>čichovou kartu</strong> od agentury.<br/><br/>Postupně přičichněte k <strong>očíslovaným okénkům</strong> a odpovídejte zde.",
-    "howTo": "<strong>1. Setřete</strong> okénko nehtem.<br/><strong>2. Hned</strong> přičichněte.<br/><strong>3. Ťukněte</strong> na to, co cítíte.",
+    "instructions": "Prosím připravte si <strong>čichovou kartu</strong> od agentury.<br/><br/>Postupně budete čichat k <strong>očíslovaným okénkům</strong> a zaznamenávat odpovědi do telefonu.",
+    "howToTitle": "Postup u každé vůně",
+    "howToSteps": [
+      "<strong>Několikrát setřete</strong> okénko prstem.",
+      "<strong>Přivoňte</strong> si.",
+      "<strong>Vyberte</strong> vůni, kterou cítíte."
+    ],
     "close": "Zavřít",
     "back": "Zpět",
-    "questionText": "Vůně {{n}}: Jakou vůni cítíte?",
+    "questionText": "Jakou vůni cítíte?",
+    "noScent": "Nic necítím",
+    "scents": {
+      "apple": "Jablko",
+      "bacon": "Slanina",
+      "banana": "Banán",
+      "bbq": "Grilování",
+      "blue_cheese": "Plísňový sýr",
+      "bread": "Chléb",
+      "bubblegum": "Žvýkačka",
+      "burnt_rubber": "Spálená guma",
+      "campfire": "Táborák",
+      "charcoal": "Dřevěné uhlí",
+      "cheese": "Sýr",
+      "cherry": "Třešeň",
+      "chocolate": "Čokoláda",
+      "cinnamon": "Skořice",
+      "cinnamon_cookie": "Skořicové hvězdičky",
+      "clove": "Hřebíček",
+      "coconut": "Kokos",
+      "coffee": "Káva",
+      "cola": "Kola",
+      "cotton_candy": "Cukrová vata",
+      "firecracker": "Ohňostroj",
+      "fish": "Ryba",
+      "garlic": "Česnek",
+      "gas": "Plyn",
+      "grape": "Hroznové víno",
+      "green_apple": "Zelené jablko",
+      "hot_dog": "Hot dog",
+      "jasmine": "Jasmín",
+      "lavender": "Levandule",
+      "leather": "Kůže",
+      "lemon": "Citron",
+      "lemon_eucalyptus": "Citronový eukalyptus",
+      "lime": "Limetka",
+      "mango": "Mango",
+      "milk_chocolate": "Mléčná čokoláda",
+      "mint": "Máta",
+      "onion": "Cibule",
+      "orange": "Pomeranč",
+      "peach": "Broskev",
+      "pine": "Jehličí",
+      "pineapple": "Ananas",
+      "pizza": "Pizza",
+      "popcorn": "Popcorn",
+      "pumpkin": "Dýně",
+      "raspberry": "Malina",
+      "rose": "Růže",
+      "smoke": "Kouř",
+      "soap": "Mýdlo",
+      "strawberry": "Jahoda",
+      "vanilla": "Vanilka",
+      "watermelon": "Meloun"
+    },
     "card": {
       "scent": "Vůně",
       "progress": "Vůně {{current}} z {{total}}"
@@ -29,6 +88,21 @@
       "neutral": "Neutrální",
       "pleasant": "Příjemná",
       "veryPleasant": "Velmi příjemná"
+    },
+    "defaultContent": {
+      "title": "Čichový test",
+      "description": "",
+      "questions": [
+        {
+          "id": 1786019780001,
+          "text": "Jakou vůni cítíte?",
+          "type": "single",
+          "options": ["Nic necítím"],
+          "optionImages": { "Nic necítím": "no_scent" },
+          "optional": false,
+          "freeTextOptions": []
+        }
+      ]
     }
   },
   "rbdsq": {

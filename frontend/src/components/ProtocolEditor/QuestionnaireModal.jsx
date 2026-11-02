@@ -41,9 +41,10 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
     return { options: labels, optionImages: Object.fromEntries(labels.map((l, i) => [l, all[i]])) };
   };
 
-  // Every smell question starts with the same text, numbered by its spot on the card
-  const smellQuestionText = (n) =>
-    tScent("smell.questionText", { n, defaultValue: "Scent {{n}}: Which smell do you detect?" });
+  // Every smell question starts with the same text; the scent card on screen
+  // already shows which box it is, so the text isn't numbered
+  const smellQuestionText = () =>
+    tScent("smell.questionText", { defaultValue: "Which smell do you detect?" });
 
   const pickedScents = (q) => Object.values(q.optionImages || {}).filter((k) => k !== NO_SCENT_KEY);
 
@@ -64,7 +65,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
       ...prev,
       {
         id: Date.now(),
-        text: isSmell ? smellQuestionText(prev.length + 1) : "",
+        text: isSmell ? smellQuestionText() : "",
         type: isSmell ? "single" : "open",
         options: [],
         optional: false,
@@ -128,17 +129,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
   };
 
   const removeQuestion = (id) => {
-    setQuestions((prev) => {
-      const oldNumber = new Map(prev.map((q, i) => [q.id, i + 1]));
-      let next = prev.filter((q) => q.id !== id);
-      // Renumber the smell questions whose text is still the untouched prefill
-      if (isSmell) {
-        next = next.map((q, i) =>
-          q.text === smellQuestionText(oldNumber.get(q.id)) ? { ...q, text: smellQuestionText(i + 1) } : q
-        );
-      }
-      return clearDanglingShowIf(next, id);
-    });
+    setQuestions((prev) => clearDanglingShowIf(prev.filter((q) => q.id !== id), id));
   };
 
   // --- Conditional visibility (showIf) handlers ---
