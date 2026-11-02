@@ -1,5 +1,5 @@
 // src/components/SmellTestTask/SmellTestTask.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { SafeButton } from "../Shared/SafeButton";
@@ -21,21 +21,42 @@ import "./SmellTestTask.css";
 // Submitted answers: { [questionId]: { scent, label, intensity, pleasantness } }
 // — `scent` is the language-independent key, `label` the text shown;
 // "No scent" carries no ratings.
+//
+// Every saved scent is also passed to onSaveProgress, so a drop-out still
+// leaves a (completed: false) result. savedAnswers are the answers from before
+// a drop-out: the test then resumes at the first unanswered scent, skipping
+// the intro, so no box on the card has to be smelled twice.
 
 // Silent demo clip: rub a box, smell it, tap the answer. Shared by all languages.
 const HOWTO_VIDEO = `${import.meta.env.BASE_URL}assets/smell/smell-howto.mp4`;
 
-export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploading }) {
+// -2 = get ready, -1 = how-to; a resumed test opens at its first open scent
+function startIndex(questions, answers) {
+  if (Object.keys(answers).length === 0) return -2;
+  const open = questions.findIndex((q) => !answers[q.id]);
+  return open === -1 ? questions.length - 1 : open;
+}
+
+export default function SmellTestTask({
+  task, savedAnswers, onNextTask, onLogAnswer, onLogEvent, onSaveProgress, isUploading,
+}) {
   const { t } = useTranslation(["common", "tasks"]);
   const questions = task.resolvedParams?.questions || [];
-  const [index, setIndex] = useState(-2); // -2 = get ready, -1 = how-to
+  const [answers, setAnswers] = useState(() => savedAnswers || {});
+  const [index, setIndex] = useState(() => startIndex(questions, answers));
   const [videoFailed, setVideoFailed] = useState(false);
-  const [answers, setAnswers] = useState({});
   const [draft, setDraft] = useState(null); // answer being rated + current sheet step
+
+  // Shows where a drop-out happened even if the open scent was never answered
+  const questionId = questions[index]?.id;
+  useEffect(() => {
+    if (questionId && onLogEvent) onLogEvent("smell_scent_opened", { questionId, scentNumber: index + 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per scent, not per render
+  }, [questionId]);
 
   const goNext = () => {
     if (index < questions.length - 1) return setIndex(index + 1);
-    return onNextTask({ taskType: "smell", timestamp: new Date().toISOString(), answers });
+    return onNextTask({ taskType: "smell", timestamp: new Date().toISOString(), completed: true, answers });
   };
 
   if (index < 0) {
@@ -65,8 +86,10 @@ export default function SmellTestTask({ task, onNextTask, onLogAnswer, isUploadi
   const answer = answers[question.id];
 
   const save = (value) => {
-    setAnswers((prev) => ({ ...prev, [question.id]: value }));
+    const next = { ...answers, [question.id]: value };
+    setAnswers(next);
     if (onLogAnswer) onLogAnswer(question.id, value);
+    if (onSaveProgress) onSaveProgress(next);
     setDraft(null);
   };
 

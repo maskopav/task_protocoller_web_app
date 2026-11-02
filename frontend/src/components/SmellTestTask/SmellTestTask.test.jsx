@@ -109,6 +109,38 @@ describe("SmellTestTask", () => {
     expect(ratingOptions()[1].getAttribute("aria-checked")).toBe("true");
   });
 
+  it("hands every saved scent to onSaveProgress and marks the final result completed", async () => {
+    const onSaveProgress = vi.fn();
+    const onLogEvent = vi.fn();
+    act(() => root.render(
+      <SmellTestTask key="progress" task={{ resolvedParams: { questions: [QUESTION] } }}
+        onNextTask={onNextTask} onSaveProgress={onSaveProgress} onLogEvent={onLogEvent} />
+    ));
+    await click(next());
+    await click(next());
+    expect(onLogEvent).toHaveBeenCalledWith("smell_scent_opened", { questionId: "s1", scentNumber: 1 });
+
+    await click(cards()[2]); // No scent
+    expect(onSaveProgress).toHaveBeenLastCalledWith({ s1: { scent: "no_scent", label: "No scent" } });
+    await click(next());
+    expect(onNextTask.mock.calls[0][0]).toMatchObject({ completed: true });
+  });
+
+  it("resumes at the first unanswered scent, keeping the earlier answers", async () => {
+    const q2 = { ...QUESTION, id: "s2", text: "Second smell?" };
+    const saved = { s1: { scent: "mint", label: "Mint", intensity: 2, pleasantness: 3 } };
+    act(() => root.render(
+      <SmellTestTask key="resumed" task={{ resolvedParams: { questions: [QUESTION, q2] } }}
+        savedAnswers={saved} onNextTask={onNextTask} />
+    ));
+    // No intro screens — straight to scent 2
+    expect(container.querySelector(".smell-question").textContent).toBe("Second smell?");
+
+    await click(cards()[2]);
+    await click(next());
+    expect(onNextTask.mock.calls[0][0].answers).toEqual({ ...saved, s2: { scent: "no_scent", label: "No scent" } });
+  });
+
   it("saves No scent straight away, replacing an earlier rated scent", async () => {
     await click(cards()[0]);
     await click(ratingOptions()[0]);
