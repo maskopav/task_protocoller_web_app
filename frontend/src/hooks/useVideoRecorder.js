@@ -28,6 +28,13 @@ const RVFC_SKIP_TOLERANCE_MS = 8;
 // No frame callback for this long -> fall back to the timer loop. Well above
 // a dim-light camera's ~67 ms frame spacing and short start-up hitches.
 const RVFC_STALL_MS = 500;
+// A detection slower than this is followed by at least as much idle time
+// before the next one, so the main thread stays free at least half the time
+// for the audio recorder's messages and the UI. Without it, Firefox on a
+// slow Android (session 584, ~425 ms per frame) delayed the audio messages
+// by over a minute, and the audio start by 6.6 s. Normal phones (up to
+// ~55 ms per frame) are not affected.
+const SLOW_DETECT_MS = 100;
 
 // The face model runs on the GPU where it can, CPU otherwise. On weak phones
 // CPU-only inference took ~120 ms/frame (8 fps, session 570) vs ~33-43 ms on
@@ -39,8 +46,28 @@ const RVFC_STALL_MS = 500;
 const PREFERRED_DELEGATE = 'GPU';
 const FALLBACK_DELEGATE = 'CPU';
 
+// Calibration benchmark (see benchmarkStep): if the GPU model needs more than
+// SLOW_GPU_MS per frame (216 ms in Chrome and 425 ms in Firefox on one
+// Android, sessions 584/585, vs 17-55 ms on all other phones), the CPU model
+// is timed too and kept if it needs at most CPU_MAX_TIME_RATIO of the GPU's
+// time. The result is kept in memory only (nothing is written to the browser;
+// a page reload forgets it), so the later tasks of the session use the same
+// model (GPU and CPU landmarks differ very slightly) without benchmarking again.
+const SLOW_GPU_MS = 150;
+const BENCHMARK_FRAMES = 10;
+const CPU_MAX_TIME_RATIO = 0.7;
+let chosenDelegate = null;
+// For tests only: forget the benchmark result.
+export const resetChosenDelegate = () => { chosenDelegate = null; };
+
 const FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 const VISION_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
+
+const median = (arr) => {
+    if (!arr.length) return null;
+    const s = [...arr].sort((a, b) => a - b);
+    return Math.round(s[Math.floor(s.length / 2)] * 10) / 10;
+};
 
 // Per-recording tracking quality, logged when recording stops so slow
 // devices / delegate fallbacks / unsteady frame spacing are visible in the
@@ -50,12 +77,11 @@ const VISION_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.
 // presentedFrames), so a low fps can be told apart: camera-limited (dim
 // light) when cameraFps is low too, processing-limited when it isn't.
 // captureLagMs is processing time minus camera capture time, where reported.
-function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs, loop, skippedFrames, presented, captureLagMs }, timestamps) {
-    const median = (arr) => {
-        if (!arr.length) return null;
-        const s = [...arr].sort((a, b) => a - b);
-        return Math.round(s[Math.floor(s.length / 2)] * 10) / 10;
-    };
+// timerFallbacks / timerFrames: how often frame callbacks stalled and how many
+// frames the timer loop processed meanwhile (loop 'rvfc_then_timer').
+// slowFrames / cooldownSkippedFrames: detections slower than SLOW_DETECT_MS
+// and the camera frames left out to keep the main thread free after them.
+function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors, firstTs, lastTs, loop, skippedFrames, cooldownSkippedFrames, slowFrames, timerFallbacks, timerFrames, presented, captureLagMs }, timestamps) {
     const [p0, p1] = [presented[0], presented[presented.length - 1]];
     const cameraFps = p0 && p1 && p1[1] > p0[1]
         ? Math.round(((p1[0] - p0[0]) / ((p1[1] - p0[1]) / 1000)) * 10) / 10
@@ -69,6 +95,8 @@ function summarizeTracking({ detectMs, framesWithFace, framesWithoutFace, errors
     return {
         loop,
         ...(skippedFrames !== undefined && { skippedFrames }),
+        ...(timerFallbacks > 0 && { timerFallbacks, timerFrames }),
+        ...(slowFrames > 0 && { slowFrames, cooldownSkippedFrames: cooldownSkippedFrames ?? 0 }),
         cameraFps,
         captureLagMs: captureLagMs.length ? { median: median(captureLagMs), frames: captureLagMs.length } : null,
         framesWithFace,
@@ -133,6 +161,8 @@ export const useVideoRecorder = ({
     const cpuSwitchRef = useRef(null);
     const trackingStatsRef = useRef(null);
     const lastDetectTsRef = useRef(0);
+    // Calibration benchmark state, see benchmarkStep.
+    const benchmarkRef = useRef({ phase: 'gpu', gpuMs: [], cpuMs: [], gpu: null });
     const audioRecorder = useRef(null);
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
@@ -233,6 +263,77 @@ export const useVideoRecorder = ({
         }
     };
 
+    // Calibration benchmark, fed with each calibration detection's time (ms;
+    // null when it failed). Phases: 'gpu' (timing the GPU) -> 'loadingCpu'
+    // (only if the GPU is slow; calibration carries on with the GPU) -> 'cpu'
+    // (timing the CPU model) -> 'done'. Runs only during calibration, before
+    // any audio is recorded, and never with a fast GPU or once this page has
+    // chosen a model. Recording always starts with one fixed model:
+    // startRecording ends an unfinished benchmark with the GPU (finishBenchmark(true)).
+    const benchmarkStep = (ms) => {
+        const b = benchmarkRef.current;
+        if (b.phase === 'gpu') {
+            if (ms == null || delegateRef.current !== PREFERRED_DELEGATE || chosenDelegate) {
+                b.phase = 'done';
+                return;
+            }
+            b.gpuMs.push(ms);
+            if (b.gpuMs.length < BENCHMARK_FRAMES) return;
+            if (median(b.gpuMs) <= SLOW_GPU_MS) {
+                b.phase = 'done';
+                // Logged too, so the calibration time can be compared with the recording's detectMs.
+                logger.info("face_model_benchmark", { gpuMs: median(b.gpuMs), cpuMs: null, chosen: PREFERRED_DELEGATE });
+                return;
+            }
+            b.phase = 'loadingCpu';
+            const gpu = faceDetector.current;
+            createLandmarker(FALLBACK_DELEGATE)
+                .then((cpu) => {
+                    // Cancelled meanwhile, or the GPU model was replaced (runtime error).
+                    if (b.phase !== 'loadingCpu' || faceDetector.current !== gpu) {
+                        cpu.close?.();
+                        if (b.phase === 'loadingCpu') b.phase = 'done';
+                        return;
+                    }
+                    b.gpu = gpu;
+                    faceDetector.current = cpu;
+                    delegateRef.current = FALLBACK_DELEGATE;
+                    b.phase = 'cpu';
+                })
+                .catch((err) => {
+                    logger.warn("face_model_benchmark_cpu_failed", { error: err?.message || String(err) });
+                    if (b.phase === 'loadingCpu') finishBenchmark();
+                });
+        } else if (b.phase === 'cpu') {
+            if (ms != null) b.cpuMs.push(ms);
+            if (ms == null || b.cpuMs.length >= BENCHMARK_FRAMES) finishBenchmark();
+        }
+    };
+
+    // Keeps the faster model and closes the other. cancelled: recording
+    // started first -- the GPU is kept and nothing is remembered, so the next
+    // task's calibration benchmarks again.
+    const finishBenchmark = (cancelled = false) => {
+        const b = benchmarkRef.current;
+        const gpuMs = median(b.gpuMs);
+        const cpuMs = median(b.cpuMs);
+        const useCpu = !cancelled && b.cpuMs.length >= BENCHMARK_FRAMES && cpuMs <= gpuMs * CPU_MAX_TIME_RATIO;
+        if (b.phase === 'cpu') {
+            const drop = useCpu ? b.gpu : faceDetector.current;
+            if (!useCpu) {
+                faceDetector.current = b.gpu;
+                delegateRef.current = PREFERRED_DELEGATE;
+            }
+            try { drop?.close?.(); } catch { /* already closed */ }
+        }
+        b.phase = 'done';
+        b.gpu = null;
+        logger.info("face_model_benchmark", {
+            gpuMs, cpuMs, chosen: useCpu ? FALLBACK_DELEGATE : PREFERRED_DELEGATE, ...(cancelled && { cancelled: true }),
+        });
+        if (!cancelled) chosenDelegate = useCpu ? FALLBACK_DELEGATE : PREFERRED_DELEGATE;
+    };
+
     // Loads the face-tracking model, independent of camera permission, so it
     // can be kicked off as early as possible (e.g. on mount, while the
     // participant is still reading the permission intro / instructions) to
@@ -247,6 +348,14 @@ export const useVideoRecorder = ({
         const load = async () => {
             const { FilesetResolver } = await import("@mediapipe/tasks-vision");
             visionRef.current = await FilesetResolver.forVisionTasks(VISION_WASM_URL);
+            if (chosenDelegate === FALLBACK_DELEGATE) {
+                try {
+                    faceDetector.current = await createLandmarker(FALLBACK_DELEGATE);
+                    delegateRef.current = FALLBACK_DELEGATE;
+                    logger.info("face_model_delegate", { delegate: FALLBACK_DELEGATE, reason: "benchmark" });
+                    return;
+                } catch { /* load as usual below */ }
+            }
             try {
                 faceDetector.current = await createLandmarker(PREFERRED_DELEGATE);
                 delegateRef.current = PREFERRED_DELEGATE;
@@ -374,6 +483,7 @@ export const useVideoRecorder = ({
             
             if (video.readyState >= 2) {
                 const result = detectFace(video, now);
+                benchmarkStep(result ? performance.now() - now : null);
 
                 if (result?.faceLandmarks?.length > 0) {
                     const landmarks = result.faceLandmarks[0];
@@ -493,6 +603,8 @@ export const useVideoRecorder = ({
         if (!streamRef.current) return;
         
         isCalibratingRef.current = false; // Stop drawing green dots
+        // Record with one fixed model: an unfinished benchmark keeps the GPU.
+        if (['loadingCpu', 'cpu'].includes(benchmarkRef.current.phase)) finishBenchmark(true);
         setVideoData(null);
 
         // Clear the canvas so the frozen dots disappear
@@ -540,11 +652,19 @@ export const useVideoRecorder = ({
             } else if (result) {
                 stats.framesWithoutFace++;
             }
-            if (result) stats.detectMs.push(performance.now() - now);
+            const end = performance.now();
+            if (result) stats.detectMs.push(end - now);
             if (meta) stats.presented.push([meta.presentedFrames, now]);
             if (captureTs !== null) stats.captureLagMs.push(now - captureTs);
+            // A detection slower than SLOW_DETECT_MS blocks the main thread
+            // for that long; leave it idle at least as long before the next.
+            if (end - now > SLOW_DETECT_MS) {
+                cooldownUntil = end + (end - now);
+                stats.slowFrames = (stats.slowFrames || 0) + 1;
+            }
             return now;
         };
+        let cooldownUntil = -Infinity;
 
         // Timer loop: the fallback where requestVideoFrameCallback is missing
         // or stops firing. detectForVideo is synchronous and can itself take
@@ -553,10 +673,17 @@ export const useVideoRecorder = ({
         // (which was compounding into ~107ms/frame instead of ~33ms). If
         // inference already blew the budget, fire again immediately instead
         // of padding the delay further.
+        // Only one loop processes frames at a time: false while the frame
+        // callbacks drive tracking, so a timer queued just before the switch
+        // back does nothing.
+        let timerActive = false;
+        let lastTimerFrame = -Infinity;
         const timerLoop = () => {
-            if (!recordingActiveRef.current || !videoRef.current) return;
+            if (!recordingActiveRef.current || !videoRef.current || !timerActive) return;
             const now = processFrame(null);
-            const nextDelay = Math.max(0, FRAME_RATE_MS - (performance.now() - now));
+            lastTimerFrame = now;
+            if (trackingStatsRef.current.timerFrames !== undefined) trackingStatsRef.current.timerFrames++;
+            const nextDelay = Math.max(0, FRAME_RATE_MS - (performance.now() - now), cooldownUntil - performance.now());
             recordingLoopRef.current = setTimeout(timerLoop, nextDelay);
         };
 
@@ -573,33 +700,67 @@ export const useVideoRecorder = ({
         if (typeof video?.requestVideoFrameCallback === 'function') {
             trackingStatsRef.current.loop = 'rvfc';
             trackingStatsRef.current.skippedFrames = 0;
+            trackingStatsRef.current.cooldownSkippedFrames = 0;
+            trackingStatsRef.current.timerFallbacks = 0;
+            trackingStatsRef.current.timerFrames = 0;
             let lastProcessedFrameTime = -Infinity;
             let lastCallback = performance.now();
+            let fallbackStartedAt = null;
             const onFrame = (callbackNow, meta) => {
                 if (!recordingActiveRef.current) return;
                 lastCallback = performance.now();
                 const frameTime = meta?.captureTime > 0 ? meta.captureTime
                     : Number.isFinite(meta?.mediaTime) ? meta.mediaTime * 1000
                     : callbackNow;
-                if (frameTime - lastProcessedFrameTime >= FRAME_RATE_MS - RVFC_SKIP_TOLERANCE_MS) {
+                if (timerActive) {
+                    // Callbacks are back after a stall: hand tracking back
+                    // to them. If the timer processed a frame just now this
+                    // one is most likely that same frame -- skip it.
+                    timerActive = false;
+                    clearTimeout(recordingLoopRef.current);
+                    logger.info("face_loop_resumed", {
+                        timerMs: Math.round(lastCallback - fallbackStartedAt),
+                        timerFrames: trackingStatsRef.current.timerFrames,
+                    });
+                    if (lastCallback - lastTimerFrame < FRAME_RATE_MS - RVFC_SKIP_TOLERANCE_MS) {
+                        lastProcessedFrameTime = frameTime;
+                    }
+                    watchdogRef.current = setTimeout(watchdog, RVFC_STALL_MS);
+                }
+                if (performance.now() < cooldownUntil) {
+                    trackingStatsRef.current.cooldownSkippedFrames++;
+                } else if (frameTime - lastProcessedFrameTime >= FRAME_RATE_MS - RVFC_SKIP_TOLERANCE_MS) {
                     lastProcessedFrameTime = frameTime;
                     processFrame(meta);
                 } else {
                     trackingStatsRef.current.skippedFrames++;
                 }
+                // Judged from the end of this callback, so a slow detection
+                // itself is not mistaken for a stall (session 584: 30 false
+                // fallbacks with ~425 ms detections).
+                lastCallback = performance.now();
                 frameCallbackRef.current = { video, id: video.requestVideoFrameCallback(onFrame) };
             };
             frameCallbackRef.current = { video, id: video.requestVideoFrameCallback(onFrame) };
 
             // Browsers may stop delivering frame callbacks for a video that
-            // is off screen or not composited. Rather than lose landmarks,
-            // switch to the timer loop for the rest of this recording.
+            // is off screen or not composited, and an iPhone camera pauses
+            // for ~0.7 s while the mic opens (session 582). Rather than lose
+            // landmarks, the timer loop tracks during the stall -- but only
+            // until callbacks return: the timer is the worse loop (in iOS Low
+            // Power Mode timers are coalesced, giving 60 ms frames, and it
+            // can process one camera frame twice), so it must not keep
+            // running for the rest of the recording. The callback request
+            // stays pending throughout so its return is noticed.
             const watchdog = () => {
                 if (!recordingActiveRef.current) return;
                 if (performance.now() - lastCallback > RVFC_STALL_MS) {
-                    cancelFrameCallback();
-                    trackingStatsRef.current.loop = 'rvfc_then_timer';
-                    logger.warn("face_loop_fallback", { stalledMs: Math.round(performance.now() - lastCallback) });
+                    const stats = trackingStatsRef.current;
+                    stats.loop = 'rvfc_then_timer';
+                    stats.timerFallbacks++;
+                    fallbackStartedAt = performance.now();
+                    logger.warn("face_loop_fallback", { stalledMs: Math.round(fallbackStartedAt - lastCallback) });
+                    timerActive = true;
                     timerLoop();
                     return;
                 }
@@ -608,6 +769,7 @@ export const useVideoRecorder = ({
             watchdogRef.current = setTimeout(watchdog, RVFC_STALL_MS);
         } else {
             trackingStatsRef.current.loop = 'timer';
+            timerActive = true;
             timerLoop();
         }
     };

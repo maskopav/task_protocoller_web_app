@@ -67,14 +67,21 @@ describe('transposeCoordinateTimeline', () => {
     expect(transposeCoordinateTimeline(roundCoordinateTimeline(frames)).captureTimestamps).toEqual([62, 95]);
   });
 
-  it('leaves capture times out when any frame lacks one', () => {
+  it('keeps capture times aligned with null where a frame lacks one', () => {
+    // Session 583: one timer-loop frame without a capture time dropped all 2259 others.
     const frames = [
       { timestamp: 100, captureTimestamp: 62, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
       { timestamp: 133, captureTimestamp: null, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
+      { timestamp: 166, captureTimestamp: 128, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
     ];
     const result = transposeCoordinateTimeline(roundCoordinateTimeline(frames));
-    expect(result).not.toHaveProperty('captureTimestamps');
-    expect(result.timestamps).toEqual([100, 133]);
+    expect(result.captureTimestamps).toEqual([62, null, 128]);
+    expect(result.timestamps).toEqual([100, 133, 166]);
+  });
+
+  it('leaves capture times out when no frame has one', () => {
+    const frames = [{ timestamp: 100, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] }];
+    expect(transposeCoordinateTimeline(roundCoordinateTimeline(frames))).not.toHaveProperty('captureTimestamps');
   });
 
   it('returns null when frames disagree on landmark count', () => {

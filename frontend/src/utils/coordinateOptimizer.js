@@ -78,12 +78,15 @@ export function transposeCoordinateTimeline(timeline) {
     }
   }
 
-  // Camera capture times ride along only when every frame has one, so
-  // timestamps[f] and captureTimestamps[f] always describe the same frame.
-  const hasCapture = timeline.every((frame) => Number.isFinite(frame.captureTimestamp));
+  // Camera capture times ride along when any frame has one, index-aligned
+  // with timestamps; null for frames without one (e.g. the few frames the
+  // timer loop processed during a frame-callback stall, session 583).
+  const hasCapture = timeline.some((frame) => Number.isFinite(frame.captureTimestamp));
   return {
     format: "transposed-v1", frameCount, landmarkCount, timestamps,
-    ...(hasCapture && { captureTimestamps: timeline.map((frame) => frame.captureTimestamp) }),
+    ...(hasCapture && {
+      captureTimestamps: timeline.map((frame) => (Number.isFinite(frame.captureTimestamp) ? frame.captureTimestamp : null)),
+    }),
     x, y, z,
   };
 }
