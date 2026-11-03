@@ -94,7 +94,7 @@
         { "id": 1789301000010, "text": "Please specify the procedure:", "type": "open", "showIf": { "questionId": 1789301000009, "values": ["Yes"] } },
         { "id": 1789301000011, "text": "Have you ever been diagnosed with a condition affecting the movement of your facial muscles (for example: facial paralysis)?", "type": "single", "options": ["Yes", "No"] },
         { "id": 1789301000012, "text": "Please specify the condition:", "type": "open", "showIf": { "questionId": 1789301000011, "values": ["Yes"] } },
-        { "id": 1789301000013, "text": "Do you have a health condition that impairs your sense of smell?", "type": "single", "options": ["Yes", "No"] },
+        { "id": 1789301000013, "text": "Do you have a health condition that impairs your sense of smell (for example: a bad cold or a past COVID-19 infection)?", "type": "single", "options": ["Yes", "No"] },
         { "id": 1789301000014, "text": "Please specify the condition:", "type": "open", "showIf": { "questionId": 1789301000013, "values": ["Yes"] } }
       ]
     }

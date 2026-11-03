@@ -522,7 +522,7 @@
         },
         {
           "id": 1789301000013,
-          "text": "Máte nějaké zdravotní potíže, které zhoršují Váš čich?",
+          "text": "Máte nějaké zdravotní potíže, které zhoršují Váš čich (např. silné nachlazení nebo prodělaný covid)?",
           "type": "single",
           "options": [
             "Ano",
