@@ -6,7 +6,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key, opts) => (opts?.returnObjects ? [`${key}.1`, `${key}.2`] : key),
+    // Like i18next with no translations: defaultValue if given, else the key
+    t: (key, opts) => (opts?.returnObjects ? [1, 2, 3, 4].map((n) => `${key}.${n}`) : opts?.defaultValue ?? key),
     i18n: { language: "en" },
   }),
   Trans: ({ defaults }) => defaults,
@@ -60,12 +61,40 @@ describe("SmellTestTask", () => {
     expect(container.querySelector(".smell-howto-video")).toBeNull();
     await click(next());
     expect(container.querySelector("h1").textContent).toBe("tasks:smell.howToTitle");
-    expect([...container.querySelectorAll(".smell-howto-steps li")].map((li) => li.textContent))
-      .toEqual(["tasks:smell.howToSteps.1", "tasks:smell.howToSteps.2"]);
-    expect(container.querySelector(".smell-howto-video")).not.toBeNull();
-    // A missing clip leaves just the text
-    act(() => container.querySelector(".smell-howto-video").dispatchEvent(new Event("error")));
+    expect(container.querySelector(".instruction-text")).toBeNull();
+    const video = container.querySelector(".smell-howto-video");
+    expect(video).not.toBeNull();
+    const activeStep = () => container.querySelector(".smell-howto-step.is-active").textContent;
+    expect(activeStep()).toBe("tasks:smell.howToSteps.1");
+    expect(container.querySelectorAll(".smell-howto-bar")).toHaveLength(4);
+
+    // The caption follows the clip, ending with the repeat step...
+    const playTo = (time) => {
+      video.currentTime = time;
+      act(() => video.dispatchEvent(new Event("timeupdate")));
+    };
+    playTo(5);
+    expect(activeStep()).toBe("tasks:smell.howToSteps.2");
+    playTo(20);
+    expect(activeStep()).toBe("tasks:smell.howToSteps.4");
+    // At the end the repeat step stays a while before the clip starts over
+    vi.useFakeTimers();
+    act(() => video.dispatchEvent(new Event("ended")));
+    act(() => vi.advanceTimersByTime(2900));
+    expect(video.currentTime).toBe(20);
+    act(() => vi.advanceTimersByTime(100));
+    expect(video.currentTime).toBe(0);
+    vi.useRealTimers();
+    // ...and a progress bar jumps the clip to its step
+    await click(container.querySelectorAll(".smell-howto-bar")[0]);
+    expect(video.currentTime).toBe(0);
+    expect(activeStep()).toBe("tasks:smell.howToSteps.1");
+
+    // A missing clip lists every step at once
+    act(() => video.dispatchEvent(new Event("error")));
     expect(container.querySelector(".smell-howto-video")).toBeNull();
+    expect([...container.querySelectorAll(".smell-howto-steps li")].map((li) => li.textContent))
+      .toEqual([1, 2, 3, 4].map((n) => `tasks:smell.howToSteps.${n}`));
     await click(next());
     expect(cards()).toHaveLength(3);
   });

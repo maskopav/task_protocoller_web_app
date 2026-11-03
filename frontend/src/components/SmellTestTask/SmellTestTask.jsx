@@ -1,17 +1,19 @@
 // src/components/SmellTestTask/SmellTestTask.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import TaskLayout from "../TaskLayout/TaskLayout";
 import { SafeButton } from "../Shared/SafeButton";
 import FormattedText from "../FormattedText/FormattedText";
-import { NO_SCENT_KEY } from "../../config/smellScents";
+import { NO_SCENT_KEY, localizeSmellQuestion } from "../../config/smellScents";
 import ScentPicker from "./ScentPicker";
 import RatingSheet from "./RatingSheet";
 import ScentCard from "./ScentCard";
+import SmellHowTo from "./SmellHowTo";
 import { SMELL_RATINGS } from "./smellRatings";
 import "./SmellTestTask.css";
 
-// Two intro screens (get the card ready; how-to with a looping video), then
+// Two intro screens (get the card ready; how-to with a looping video whose
+// caption follows the clip step by step — see SmellHowTo), then
 // one screen per scent question. Picking a scent opens a sheet that steps through
 // SMELL_RATINGS; the answer is saved only once every rating is picked, so
 // closing the sheet midway changes nothing. Questions are authored in the same
@@ -27,9 +29,6 @@ import "./SmellTestTask.css";
 // a drop-out: the test then resumes at the first unanswered scent, skipping
 // the intro, so no box on the card has to be smelled twice.
 
-// Silent demo clip: rub a box, smell it, tap the answer. Shared by all languages.
-const HOWTO_VIDEO = `${import.meta.env.BASE_URL}assets/smell/smell-howto.mp4`;
-
 // -2 = get ready, -1 = how-to; a resumed test opens at its first open scent
 function startIndex(questions, answers) {
   if (Object.keys(answers).length === 0) return -2;
@@ -40,11 +39,18 @@ function startIndex(questions, answers) {
 export default function SmellTestTask({
   task, savedAnswers, onNextTask, onLogAnswer, onLogEvent, onSaveProgress, isUploading,
 }) {
-  const { t } = useTranslation(["common", "tasks"]);
-  const questions = task.resolvedParams?.questions || [];
+  const { t, i18n } = useTranslation(["common", "tasks"]);
+  // Labels and default question text in the participant's language — see
+  // localizeSmellQuestion
+  const rawQuestions = task.resolvedParams?.questions;
+  const questions = useMemo(() => {
+    const tTasks = (key, opts) => t(`tasks:${key}`, opts);
+    const defaultTexts = new Set(Object.keys(i18n.options?.resources || {})
+      .map((lng) => t("tasks:smell.questionText", { lng })));
+    return (rawQuestions || []).map((q) => localizeSmellQuestion(q, tTasks, defaultTexts));
+  }, [rawQuestions, t, i18n]);
   const [answers, setAnswers] = useState(() => savedAnswers || {});
   const [index, setIndex] = useState(() => startIndex(questions, answers));
-  const [videoFailed, setVideoFailed] = useState(false);
   const [draft, setDraft] = useState(null); // answer being rated + current sheet step
 
   // Shows where a drop-out happened even if the open scent was never answered
@@ -61,33 +67,18 @@ export default function SmellTestTask({
 
   if (index < 0) {
     const isHowTo = index === -1;
-    // A real numbered list, so a wrapped step lines up with its text, not its number
     const howToSteps = t("tasks:smell.howToSteps", { returnObjects: true });
     return (
       <TaskLayout
         mainClassName="smell-main"
         title={isHowTo ? t("tasks:smell.howToTitle") : null}
         renderTitle={isHowTo}
-        instructions={isHowTo
-          ? (
-            <ol className="smell-howto-steps">
-              {(Array.isArray(howToSteps) ? howToSteps : []).map((step, i) => (
-                <li key={i}><FormattedText text={step} /></li>
-              ))}
-            </ol>
-          )
-          : <FormattedText text={task.instructions} />}
-        instructionsKey={index}
+        instructions={isHowTo ? null : <FormattedText text={task.instructions} />}
         controls={<SafeButton className="btn-next" onClick={goNext}>{t("buttons.next")}</SafeButton>}
       >
         {isHowTo
-          ? !videoFailed && (
-            <video
-              className="smell-howto-video"
-              src={HOWTO_VIDEO}
-              autoPlay muted loop playsInline
-              onError={() => setVideoFailed(true)}
-            />
+          ? (
+            <SmellHowTo steps={Array.isArray(howToSteps) ? howToSteps : []} />
           )
           : <ScentCard count={questions.length} preview />}
       </TaskLayout>
@@ -96,6 +87,12 @@ export default function SmellTestTask({
 
   const question = questions[index];
   const answer = answers[question.id];
+  // Matched by scent key, so a saved answer is found whatever language its
+  // label was saved in
+  const isAnswer = (label) => !!answer && (answer.scent
+    ? answer.scent === question.optionImages?.[label]
+    : answer.label === label);
+  const selectedLabel = question.options?.find(isAnswer);
 
   const save = (value) => {
     const next = { ...answers, [question.id]: value };
@@ -109,7 +106,7 @@ export default function SmellTestTask({
     const scent = question.optionImages?.[label] ?? null;
     if (scent === NO_SCENT_KEY) return save({ scent, label });
     // Re-opening the picked scent starts from its saved ratings
-    return setDraft({ ...(answer?.label === label ? answer : { scent, label }), step: 0 });
+    return setDraft({ ...(isAnswer(label) ? { ...answer, label } : { scent, label }), step: 0 });
   };
 
   const handleRate = (value) => {
@@ -142,7 +139,7 @@ export default function SmellTestTask({
     >
       <h2 className="smell-question">{question.text}</h2>
       <ScentCard count={questions.length} current={index} />
-      <ScentPicker question={question} selected={answer?.label} badge={badge} onPick={handlePick} />
+      <ScentPicker question={question} selected={selectedLabel} badge={badge} onPick={handlePick} />
 
       {draft && (
         <RatingSheet
