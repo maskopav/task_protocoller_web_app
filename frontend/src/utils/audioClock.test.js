@@ -165,6 +165,39 @@ describe("audioClock", () => {
     ]);
   });
 
+  it("recomputes a fallback start from the segment's valid end frame", () => {
+    // Session 583 (iOS 18.7 Safari): start frame reported as 0, so the start fell
+    // back to the command time (102693 ms), 286 ms before the first sample.
+    const now = vi.spyOn(performance, "now").mockReturnValue(102693);
+    const clock = createAudioClock();
+    clock.startSent({ reason: "start" });
+    now.mockReturnValue(102982);
+    const seg = clock.segmentStart(ctxAt({ currentTime: 80.472 }), { sampleIndex: 0, contextFrame: 0 });
+    expect(seg.perfMsSource).toBe("commandSent");
+
+    now.mockReturnValue(179125);
+    clock.stopSent({ reason: "stop" });
+    now.mockReturnValue(179288);
+    clock.segmentEnd(ctxAt({ currentTime: 156.778667 }), { sampleIndex: 3655040, contextFrame: 7517568 });
+
+    expect(seg).toEqual(expect.objectContaining({
+      contextFrame: 3862528, contextFrameRaw: 0, perfMsSource: "segmentEnd", perfMsFallback: 102693,
+    }));
+    expect(seg.perfMs).toBeCloseTo(102978.7, 1);
+  });
+
+  it("keeps the fallback start when the end frame is unusable too", () => {
+    const now = vi.spyOn(performance, "now").mockReturnValue(1000);
+    const clock = createAudioClock();
+    clock.startSent();
+    now.mockReturnValue(1010);
+    const seg = clock.segmentStart(ctxAt({ currentTime: 1 }), { sampleIndex: 0, contextFrame: 0 });
+    clock.stopSent();
+    clock.segmentEnd(ctxAt({ currentTime: 2 }), { sampleIndex: 48000, contextFrame: null });
+    expect(seg).toEqual(expect.objectContaining({ perfMs: 1000, perfMsSource: "commandSent" }));
+    expect(seg).not.toHaveProperty("perfMsFallback");
+  });
+
   it("keeps only reason and topicIndex from the cause (ignores a click event)", () => {
     const clock = createAudioClock();
     clock.startSent({ type: "click", target: {}, reason: 42 });

@@ -82,22 +82,37 @@ const pickTrackSettings = (stream) => {
     return picked;
 };
 
-// How long stopRecording waits for the worklet to post the last, partially
-// filled buffer (<= 4096 samples, ~85 ms of audio) before finalizing anyway.
-// The round trip normally takes a few ms; this only bounds a lost message.
-const WORKLET_TAIL_TIMEOUT_MS = 300;
+// stopRecording waits for the worklet's { done: true }, which it posts after
+// all of its audio, so every chunk has been handled once it arrives. The
+// messages normally arrive within a few ms, but a busy main thread can delay
+// them by far more: in session 584 (Firefox Android, face model at ~425 ms
+// per frame) they fell over a minute behind, and the previous fixed 300 ms
+// wait dropped 61 s of audio. So the wait only gives up after
+// WORKLET_TAIL_IDLE_MS with no message at all (a lost message), or after
+// WORKLET_TAIL_MAX_MS in total.
+const WORKLET_TAIL_IDLE_MS = 1000;
+const WORKLET_TAIL_MAX_MS = 15000;
 
-// Resolves once the worklet confirms (via { done: true }) that the tail of the
-// recording has been posted, or after WORKLET_TAIL_TIMEOUT_MS. Never rejects.
-// Resolves with the worklet's saved-sample count, or null on timeout.
-const waitForWorkletTail = (workletNode) => new Promise((resolve) => {
+// Resolves with the worklet's saved-sample count once it confirms the tail
+// has been posted, or null if it gives up. Never rejects.
+export const waitForWorkletTail = (workletNode) => new Promise((resolve) => {
+    let idleTimer;
     const finish = (savedSamples = null) => {
-        clearTimeout(timer);
+        clearTimeout(idleTimer);
+        clearTimeout(maxTimer);
         workletNode.port.removeEventListener('message', onMessage);
         resolve(savedSamples);
     };
-    const onMessage = (event) => { if (event.data?.done) finish(event.data.savedSamples ?? null); };
-    const timer = setTimeout(() => finish(), WORKLET_TAIL_TIMEOUT_MS);
+    const restartIdle = () => {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => finish(), WORKLET_TAIL_IDLE_MS);
+    };
+    const onMessage = (event) => {
+        if (event.data?.done) finish(event.data.savedSamples ?? null);
+        else restartIdle(); // chunks still draining
+    };
+    const maxTimer = setTimeout(() => finish(), WORKLET_TAIL_MAX_MS);
+    restartIdle();
     workletNode.port.addEventListener('message', onMessage);
 });
 
@@ -842,6 +857,15 @@ export const useVoiceRecorder = (options = {}) => {
                     recordingInfo.clock = audioClock?.summary(audioCtx, {
                         workletSamples, receivedSamples: sampleCountRef.current,
                     }) ?? null;
+                    if (workletSamples !== sampleCountRef.current) {
+                        // null: the worklet's confirmation never arrived, so
+                        // the end of the recording may be missing.
+                        logger.error("recording_audio_incomplete", {
+                            workletSamples, receivedSamples: sampleCountRef.current,
+                            missingSec: workletSamples == null ? null
+                                : Math.round(((workletSamples - sampleCountRef.current) / sampleRate) * 100) / 100,
+                        });
+                    }
                     audioTiming = buildAudioTiming(recordingInfo);
                     return flushPCMChunkBatch();
                 })

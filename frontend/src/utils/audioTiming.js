@@ -47,7 +47,8 @@ function compactSegment(segment) {
         ...(Number.isInteger(segment.topicIndex) && { topicIndex: segment.topicIndex }),
         // Mic start-up silence skipped before startSample (not in the file)
         ...(Number.isFinite(segment.micWaitMs) && { micWaitMs: segment.micWaitMs }),
-        // 'contextFrame' (exact) or 'commandSent' (fallback, early by 10-20 ms)
+        // 'contextFrame' (exact), 'segmentEnd' (counted back from the end's
+        // frame, exact) or 'commandSent' (fallback, early by 10-300 ms)
         startClock: segment.perfMsSource ?? null,
         endClock: end?.perfMsSource ?? null,
     };

@@ -28,7 +28,12 @@
 // command was posted (commandSentMs): the first sample is processed after
 // that, typically 10-20 ms later. An implausible or missing frame is logged
 // as contextFrameRaw and the anchor falls back to perfMs = commandSentMs
-// (perfMsSource 'commandSent'), which is early by that 10-20 ms.
+// (perfMsSource 'commandSent'). That fallback can be early by far more than
+// 10-20 ms (286 ms in session 583, where Safari processed no audio for a
+// while after the start), so when the segment's end has a valid frame the
+// start is recomputed from it: the worklet saves every quantum of a segment,
+// so its first sample sat at the end frame minus the segment's sample count
+// (perfMsSource 'segmentEnd', checked to within 2 ms on valid anchors).
 // Both are the time the sample was processed by the audio graph. The
 // microphone captured it earlier, by the input latency
 // (recording_finalized micSettings.latency, where the browser reports it).
@@ -115,6 +120,25 @@ function anchorAt(ctx, sampleIndex, contextFrame, sentMs) {
     };
 }
 
+// Replaces a segment's fallback start with one counted back from its valid
+// end frame. Kept only if it is plausible (not before the start command); the
+// fallback value stays in perfMsFallback.
+function fixStartFromEnd(segment, ctx) {
+    const { end } = segment;
+    const frame = end.contextFrame - (end.sampleIndex - segment.sampleIndex);
+    if (frame < 0) return;
+    const est = frameToPerformanceTime(end.reading, frame, ctx.sampleRate,
+        { base: ctx.baseLatency, output: ctx.outputLatency });
+    if (segment.commandSentMs != null && est.fromCurrentTime < segment.commandSentMs - START_TOLERANCE_MS) return;
+    Object.assign(segment, {
+        contextFrame: frame,
+        perfMs: round(est.fromCurrentTime),
+        perfMsFromOutput: round(est.fromOutput),
+        perfMsSource: 'segmentEnd',
+        perfMsFallback: segment.perfMs,
+    });
+}
+
 // Collects the segments of one recording. Each segment is one stretch of
 // continuous audio in the file: from a start/resume to the next pause/stop.
 // Its start and end (sampleIndex = file position, perfMs = performance.now())
@@ -153,6 +177,9 @@ export function createAudioClock() {
             const segment = segments[segments.length - 1];
             if (!segment || segment.end || !ctx || ctx.state === 'closed') return null;
             segment.end = { ...anchorAt(ctx, sampleIndex, contextFrame, stop.ms), ...stop.cause };
+            if (segment.perfMsSource !== 'contextFrame' && segment.end.perfMsSource === 'contextFrame') {
+                fixStartFromEnd(segment, ctx);
+            }
             return segment.end;
         },
         // workletSamples: samples the worklet saved; receivedSamples: samples
