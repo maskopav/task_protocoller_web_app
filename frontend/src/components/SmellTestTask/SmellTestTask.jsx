@@ -25,19 +25,12 @@ import "./SmellTestTask.css";
 // "No scent" carries no ratings.
 //
 // Every saved scent is also passed to onSaveProgress, so a drop-out still
-// leaves a (completed: false) result. savedAnswers are the answers from before
-// a drop-out: the test then resumes at the first unanswered scent, skipping
-// the intro, so no box on the card has to be smelled twice.
-
-// -2 = get ready, -1 = how-to; a resumed test opens at its first open scent
-function startIndex(questions, answers) {
-  if (Object.keys(answers).length === 0) return -2;
-  const open = questions.findIndex((q) => !answers[q.id]);
-  return open === -1 ? questions.length - 1 : open;
-}
+// leaves a (completed: false) result. A respondent who returns after a
+// drop-out starts the whole test again from the intro; howToSeen (they got
+// past the how-to before) only unlocks its Next straight away.
 
 export default function SmellTestTask({
-  task, savedAnswers, onNextTask, onLogAnswer, onLogEvent, onSaveProgress, isUploading,
+  task, howToSeen, onNextTask, onLogAnswer, onLogEvent, onSaveProgress, isUploading,
 }) {
   const { t, i18n } = useTranslation(["common", "tasks"]);
   // Labels and default question text in the participant's language — see
@@ -49,10 +42,11 @@ export default function SmellTestTask({
       .map((lng) => t("tasks:smell.questionText", { lng })));
     return (rawQuestions || []).map((q) => localizeSmellQuestion(q, tTasks, defaultTexts));
   }, [rawQuestions, t, i18n]);
-  const [answers, setAnswers] = useState(() => savedAnswers || {});
-  const [index, setIndex] = useState(() => startIndex(questions, answers));
+  const [answers, setAnswers] = useState({});
+  const [index, setIndex] = useState(-2); // -2 = get ready, -1 = how-to, then the scents
   const [draft, setDraft] = useState(null); // answer being rated + current sheet step
-  const [howToWatched, setHowToWatched] = useState(false); // Next waits for the clip
+  // Next waits for the clip, unless it was already seen before a drop-out
+  const [howToWatched, setHowToWatched] = useState(!!howToSeen);
 
   // Shows where a drop-out happened even if the open scent was never answered
   const questionId = questions[index]?.id;

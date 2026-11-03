@@ -180,19 +180,22 @@ describe("SmellTestTask", () => {
     expect(onNextTask.mock.calls[0][0]).toMatchObject({ completed: true });
   });
 
-  it("resumes at the first unanswered scent, keeping the earlier answers", async () => {
-    const q2 = { ...QUESTION, id: "s2", text: "Second smell?" };
-    const saved = { s1: { scent: "mint", label: "Mint", intensity: 2, pleasantness: 3 } };
+  it("starts a returning respondent over from the intro, with the how-to already unlocked", async () => {
     act(() => root.render(
-      <SmellTestTask key="resumed" task={{ resolvedParams: { questions: [QUESTION, q2] } }}
-        savedAnswers={saved} onNextTask={onNextTask} />
+      <SmellTestTask key="returning" task={{ instructions: "Smell the strip", resolvedParams: { questions: [QUESTION] } }}
+        howToSeen onNextTask={onNextTask} />
     ));
-    // No intro screens — straight to scent 2
-    expect(container.querySelector(".smell-question").textContent).toBe("Second smell?");
+    expect(container.querySelector(".instruction-text").textContent).toBe("Smell the strip");
+    await click(next());
+    expect(container.querySelector(".smell-howto-video")).not.toBeNull();
+    expect(next().disabled).toBe(false); // no need to watch the clip again
+    await click(next());
 
+    // Scent 1 again, with nothing picked yet
+    expect(cards()[0].getAttribute("aria-checked")).toBe("false");
     await click(cards()[2]);
     await click(next());
-    expect(onNextTask.mock.calls[0][0].answers).toEqual({ ...saved, s2: { scent: "no_scent", label: "No scent" } });
+    expect(onNextTask.mock.calls[0][0].answers).toEqual({ s1: { scent: "no_scent", label: "No scent" } });
   });
 
   it("saves No scent straight away, replacing an earlier rated scent", async () => {

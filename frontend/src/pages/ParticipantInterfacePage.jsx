@@ -19,7 +19,7 @@ import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import BookingStep from "../components/Booking/BookingStep";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import SmellTestTask from "../components/SmellTestTask/SmellTestTask";
-import { savedSmellAnswers } from "../components/SmellTestTask/savedSmellAnswers";
+import { smellHowToSeen } from "../components/SmellTestTask/smellHowToSeen";
 import { trackProgress } from "../api/sessions";
 import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
@@ -59,7 +59,7 @@ export default function ParticipantInterfacePage() {
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
   const startingTaskIndex = parseInt(location.state?.startingTaskIndex || 0, 10);
   const isResumed = location.state?.isResumed || false;
-  const smellAnswerEvents = location.state?.smellAnswerEvents;
+  const smellEvents = location.state?.smellEvents;
 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
@@ -1243,7 +1243,7 @@ export default function ParticipantInterfacePage() {
         <SmellTestTask
           key={taskIndex}
           task={currentTask}
-          savedAnswers={savedSmellAnswers(smellAnswerEvents, taskIndex + 1, currentTask.protocolTaskId)}
+          howToSeen={smellHowToSeen(smellEvents, taskIndex + 1, currentTask.protocolTaskId)}
           onNextTask={handleTaskComplete}
           onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
           onLogEvent={logInteraction}
