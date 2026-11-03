@@ -47,8 +47,10 @@ export async function uploadInBackground(recordingId, blob, meta, sessionId, tas
       await saveTaskResult({
         sessionId: meta.sessionId,
         protocolTaskId: meta.protocolTaskId,
-        repeat_index: meta.repeatIndex || 1,
-        payload: meta.payload
+        repeatIndex: meta.repeatIndex || 1,
+        payload: meta.payload,
+        // Overwrite the row the task already saved as it went (smell test)
+        ...(meta.replaceResult && { replace: true }),
       });
     }
 

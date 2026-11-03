@@ -19,7 +19,9 @@ import AudioGuideIntro from "../components/AudioGuideIntro/AudioGuideIntro";
 import BookingStep from "../components/Booking/BookingStep";
 import SDMTTask from "../components/SDMTTask/SDMTTask";
 import SmellTestTask from "../components/SmellTestTask/SmellTestTask";
+import { savedSmellAnswers } from "../components/SmellTestTask/savedSmellAnswers";
 import { trackProgress } from "../api/sessions";
+import { saveTaskResult } from "../api/taskResults";
 import { getTaskProgressDisplay, checkCompletionOverlay } from "../utils/progressTracker";
 import { ConfirmDialogContext } from "../components/ConfirmDialog/ConfirmDialogContext";
 import { useWakeLock } from "../hooks/useWakeLock";
@@ -57,6 +59,7 @@ export default function ParticipantInterfacePage() {
   const { selectedProtocol, setSelectedProtocol } = useContext(ProtocolContext);
   const startingTaskIndex = parseInt(location.state?.startingTaskIndex || 0, 10);
   const isResumed = location.state?.isResumed || false;
+  const smellAnswerEvents = location.state?.smellAnswerEvents;
 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [taskIndex, setTaskIndex] = useState(startingTaskIndex);
@@ -449,6 +452,25 @@ export default function ParticipantInterfacePage() {
     };
     
     trackProgress(sessionId, eventData);
+  };
+
+  // The smell test saves its result after every rated scent (completed:
+  // false), so a drop-out's answers reach task_results too. Each save
+  // overwrites the last one; chained so they land in order.
+  const smellSaveChain = useRef(Promise.resolve());
+  const saveSmellProgress = (answers) => {
+    if (testingMode || editingMode || !sessionId) return;
+    const currentTask = runtimeTasks[taskIndex];
+    const result = {
+      sessionId,
+      protocolTaskId: currentTask.protocolTaskId,
+      repeatIndex: currentTask._repeatIndex || 1,
+      replace: true,
+      payload: { taskType: "smell", timestamp: new Date().toISOString(), completed: false, answers },
+    };
+    smellSaveChain.current = smellSaveChain.current
+      .then(() => saveTaskResult(result))
+      .catch((err) => logger.warn(`[Smell] Partial result not saved: ${err.message}`));
   };
 
   // Log "Task Open" on index change
@@ -921,7 +943,9 @@ export default function ParticipantInterfacePage() {
         isBlob: !!blob,
         isSystemTask: isSystemTask,
         isMicCheck: isMicCheck,
-        isAttemptOnly: isAttempt
+        isAttemptOnly: isAttempt,
+        // Replaces the partial result saved after each scent (saveSmellProgress)
+        replaceResult: currentTaskObj.type === 'smell',
       };
 
       if (isSystemTask) {
@@ -1219,8 +1243,11 @@ export default function ParticipantInterfacePage() {
         <SmellTestTask
           key={taskIndex}
           task={currentTask}
+          savedAnswers={savedSmellAnswers(smellAnswerEvents, taskIndex + 1, currentTask.protocolTaskId)}
           onNextTask={handleTaskComplete}
           onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
+          onLogEvent={logInteraction}
+          onSaveProgress={saveSmellProgress}
           isUploading={isUploading}
         />
       );

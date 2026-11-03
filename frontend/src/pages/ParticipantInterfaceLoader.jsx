@@ -111,6 +111,7 @@ export default function ParticipantInterfaceLoader() {
       let sessionId         = null;
       let startingTaskIndex = 0;
       let isResumed         = false;
+      let smellAnswerEvents = [];
       localStorage.setItem("neuroSHARE_tokenId", token);
 
       try {
@@ -118,6 +119,11 @@ export default function ParticipantInterfaceLoader() {
         sessionId = sessionData.sessionId;
         setLogContext({ sessionId });
         isResumed = sessionData.resumed || false;
+        // Smell answers from before a drop-out — the smell test resumes at the
+        // first unanswered scent instead of making them smell the card again
+        smellAnswerEvents = (sessionData.progress || []).filter(
+          (e) => e.action === "answer_clicked" && e.taskName === "smell"
+        );
 
         // If resuming, restore the EXACT order from the database
         if (isResumed && sessionData.taskOrder?.length > 0) {
@@ -167,6 +173,7 @@ export default function ParticipantInterfaceLoader() {
           shuffledTasks,
           sessionId,
           startingTaskIndex,
+          smellAnswerEvents,
           isResumed: false,
         });
         return;
@@ -191,6 +198,7 @@ export default function ParticipantInterfaceLoader() {
           token,
           sessionId,
           startingTaskIndex,
+          smellAnswerEvents,
           isResumed: shouldShowResumedAlert,
           loadTimestamp: Date.now(),
         },
@@ -231,7 +239,7 @@ export default function ParticipantInterfaceLoader() {
         currentAssignedId={pendingLangData.originalResponse.project_protocol.id}
         token={token}
         onConfirm={() => {
-          const { originalResponse, mappedProtocol, shuffledTasks, sessionId, startingTaskIndex, isResumed } = pendingLangData;
+          const { originalResponse, mappedProtocol, shuffledTasks, sessionId, startingTaskIndex, smellAnswerEvents, isResumed } = pendingLangData;
           setPendingLangData(null);
 
           mappedProtocol.tasks = shuffledTasks;
@@ -247,6 +255,7 @@ export default function ParticipantInterfaceLoader() {
               token,
               sessionId,
               startingTaskIndex,
+              smellAnswerEvents,
               isResumed,
               loadTimestamp: Date.now(),
             },

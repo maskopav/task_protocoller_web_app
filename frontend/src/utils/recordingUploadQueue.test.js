@@ -88,10 +88,17 @@ describe('uploadInBackground', () => {
     await uploadInBackground('q1', null, meta, 'sess1', 0);
 
     expect(saveTaskResult).toHaveBeenCalledWith(expect.objectContaining({
-      protocolTaskId: 'pt1', repeat_index: 2, payload: { answers: [1, 2, 3] },
+      protocolTaskId: 'pt1', repeatIndex: 2, payload: { answers: [1, 2, 3] },
     }));
+    expect(saveTaskResult.mock.calls[0][0]).not.toHaveProperty('replace');
     expect(uploadRecording).not.toHaveBeenCalled();
     expect(deleteLocalRecording).toHaveBeenCalledWith('q1');
+  });
+
+  it('asks the server to overwrite the row a task saved as it went (smell test)', async () => {
+    await uploadInBackground('sm1', null, blobMeta({ isBlob: false, payload: { completed: true }, replaceResult: true }), 'sess1', 0);
+
+    expect(saveTaskResult).toHaveBeenCalledWith(expect.objectContaining({ replace: true, payload: { completed: true } }));
   });
 
   it('skips the API call for system tasks but still clears IDB and reports progress', async () => {
