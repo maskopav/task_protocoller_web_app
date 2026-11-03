@@ -717,9 +717,10 @@
       "instructions": "Please have your <strong>smell card</strong> from the agency ready.<br/><br/>You will smell the <strong>numbered circles</strong> one by one and tap your answer here.",
       "howToTitle": "How to smell each scent",
       "howToSteps": [
-        "<strong>Rub</strong> the corresponding circle with your finger.",
+        "<strong>Rub</strong> the circle with your finger <strong>several times</strong>.",
         "<strong>Smell</strong> it right away.",
-        "<strong>Tap</strong> what you smell here."
+        "<strong>Tap</strong> what you smell here.",
+        "<strong>Repeat</strong> for every circle. <strong>Switch fingers each time.</strong>"
       ],
       "params": {
         "title": { "label": "Title" },

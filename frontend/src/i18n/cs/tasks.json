@@ -6,12 +6,13 @@
     "optionalLabel": "(nepovinné)"
   },
   "smell": {
-    "instructions": "Prosím připravte si <strong>čichovou kartu</strong> od agentury.<br/><br/>Postupně budete čichat k <strong>očíslovaným okénkům</strong> a zaznamenávat odpovědi do telefonu.",
+    "instructions": "Prosím připravte si <strong>čichovou kartu</strong> od agentury.<br/><br/>Postupně budete čichat k <strong>očíslovaným políčkům</strong> a zaznamenávat odpovědi do telefonu.",
     "howToTitle": "Postup u každé vůně",
     "howToSteps": [
-      "<strong>Několikrát setřete</strong> okénko prstem.",
+      "<strong>Několikrát setřete</strong> políčko prstem.",
       "<strong>Přivoňte</strong> si.",
-      "<strong>Vyberte</strong> vůni, kterou cítíte."
+      "<strong>Vyberte</strong> vůni, kterou cítíte.",
+      "<strong>Opakujte</strong> pro všechna políčka. <strong>Prsty ke stírání střídejte.</strong>"
     ],
     "close": "Zavřít",
     "back": "Zpět",
