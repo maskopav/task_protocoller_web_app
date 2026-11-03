@@ -4,7 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { taskBaseConfig } from "../../config/tasksBase";
-import { getDefaultParams } from "../../utils/translations"; 
+import { getDefaultParams, primaryLanguage } from "../../utils/translations";
 
 import TaskList from "./TaskList";
 import ProtocolForm from "./ProtocolForm";
@@ -93,6 +93,8 @@ export function ProtocolEditor({
   // State: Tasks & Protocol Data 
   const [tasks, setTasks] = useState(initialTasks);
   const [protocolData, setProtocolData] = useState(protocol || selectedProtocol || {});
+  // Single language code for translations (the selector may hold an array)
+  const protocolLanguage = primaryLanguage(protocolData?.language);
 
   // State: Modals & Editing
   // Tracks which task index is currently being edited (null = creating new)
@@ -178,9 +180,8 @@ export function ProtocolEditor({
       // smell test's second screen), the opened modal is different
     if (base.type === "questionnaire" || base.type === "smell") {
       // Content comes from i18n in the PROTOCOL's language (not the admin UI language)
-      const lang = protocolData?.language || "en";
       // getResource does not apply i18next's fallbackLng — fall back to en manually
-      const content = i18n.getResource(lang, "tasks", `${category}.defaultContent`)
+      const content = i18n.getResource(protocolLanguage, "tasks", `${category}.defaultContent`)
         || i18n.getResource("en", "tasks", `${category}.defaultContent`)
         || {};
       setEditingData({
@@ -197,7 +198,7 @@ export function ProtocolEditor({
       type: base.type,
       category,
       recording: base.recording,
-      ...getDefaultParams(category, protocolData?.language || "en"),
+      ...getDefaultParams(category, protocolLanguage),
     };
 
     setEditingData(newTaskDefaults);
@@ -438,7 +439,7 @@ export function ProtocolEditor({
       <h2>{t("protocolEditor.title")}</h2>
 
       <div className="admin-grid">
-        <TaskList onCreate={handleCreateTask} protocolLanguage={protocolData?.language || "en"} />
+        <TaskList onCreate={handleCreateTask} protocolLanguage={protocolLanguage} />
 
         <ProtocolForm
           tasks={tasks}
@@ -481,7 +482,7 @@ export function ProtocolEditor({
         <div className="mobile-preview-wrapper">
           <TemplateSelector 
             templateType="info"
-            currentLanguage={protocolData?.language || "en"}
+            currentLanguage={protocolLanguage}
             onSelect={(template) => updateProtocolField("info_text", template.content)}
             i18n={i18n}
           />
@@ -508,7 +509,7 @@ export function ProtocolEditor({
         <div className="mobile-preview-wrapper">
           <TemplateSelector 
             templateType="instructions"
-            currentLanguage={protocolData?.language || "en"}
+            currentLanguage={protocolLanguage}
             onSelect={(template) => updateProtocolField("instructions_text", template.content)}
             i18n={i18n}
           />
@@ -535,7 +536,7 @@ export function ProtocolEditor({
         <div className="mobile-preview-wrapper">
           <TemplateSelector 
             templateType="consent"
-            currentLanguage={protocolData?.language || "en"}
+            currentLanguage={protocolLanguage}
             onSelect={(template) => updateProtocolField("consent_text", template.content)}
             i18n={i18n}
           />
@@ -597,7 +598,7 @@ export function ProtocolEditor({
         editingData={editingData}
         tasks={tasks}
         setEditingData={setEditingData}
-        protocolLanguage={protocolData?.language || "en"}
+        protocolLanguage={protocolLanguage}
         onClose={closeModals}
         onSave={handleSaveTask}
       />
@@ -605,7 +606,7 @@ export function ProtocolEditor({
       <QuestionnaireModal
         open={showQuestionnaireModal}
         initialData={editingData} // Pass loaded data for editing
-        language={protocolData?.language || "en"}
+        language={protocolLanguage}
         onClose={closeModals}
         onSave={handleSaveQuestionnaire}
       />

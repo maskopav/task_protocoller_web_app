@@ -10,6 +10,13 @@ const i18nOptions = {
   interpolation: { escapeValue: false } 
 };
 
+// While creating, the protocol language selector stores an array of codes
+// (one protocol variant per code); the editor shows content in the first one.
+// i18next's `lng` must be a single string, so normalize before passing it on.
+export function primaryLanguage(language?: string | string[]): string {
+  return (Array.isArray(language) ? language[0] : language) || "en";
+}
+
 export function translateTaskName(category: string): string {
   return i18next.t(`${category}.name`, { ...i18nOptions,defaultValue: category });
 }

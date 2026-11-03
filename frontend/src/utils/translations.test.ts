@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest";
 import i18n from "../i18n";
-import { getAllParams, getDefaultParams, getResolvedParams, translateTaskInstructions, translateTaskTitle } from "./translations";
+import { getAllParams, getDefaultParams, getResolvedParams, primaryLanguage, translateTaskInstructions, translateTaskTitle } from "./translations";
 
 describe("getDefaultParams", () => {
   afterAll(() => i18n.changeLanguage("cs"));
@@ -57,6 +57,17 @@ describe("explicit protocol language (lng)", () => {
     const topic = getAllParams("reading", "cs").topic;
     expect(topic.values.find((v: any) => v.key === "northWind").label).toBe("Slunce a vítr");
     expect(topic.label).toBe(getAllParams("reading").topic.label);
+  });
+
+  // Creating a protocol stores the selected languages as an array (["cs"]);
+  // passing that straight to i18next as `lng` crashed with "toLowerCase is not a function"
+  it("normalizes the selector's language array to a single code", async () => {
+    await i18n.changeLanguage("en");
+    expect(primaryLanguage(["cs", "en"])).toBe("cs");
+    expect(primaryLanguage("cs")).toBe("cs");
+    expect(primaryLanguage([])).toBe("en");
+    expect(primaryLanguage(undefined)).toBe("en");
+    expect(getDefaultParams("reading", primaryLanguage(["cs"])).topic).toBe("northWind");
   });
 
   it("resolves the reading text in the protocol language", async () => {

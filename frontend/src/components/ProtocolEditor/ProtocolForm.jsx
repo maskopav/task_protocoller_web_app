@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProtocolLanguageSelector from "../ProtocolLanguageSelector/ProtocolLanguageSelector";
 import AdminModal from "./Modal";
-import { getAllParams, getResolvedParams, translateTaskName } from "../../utils/translations";
+import { getAllParams, getResolvedParams, translateTaskName, primaryLanguage } from "../../utils/translations";
 import { RESERVATIONS_ENABLED } from "../../config/features";
 
 export default function ProtocolForm({
@@ -40,6 +40,7 @@ export default function ProtocolForm({
   // Collapsed by default once a protocol already has a name (editing an existing
   // one); expanded by default for a brand-new protocol so the name field is visible.
   const [showSettings, setShowSettings] = useState(() => !protocolData?.name);
+  const protocolLanguage = primaryLanguage(protocolData?.language);
 
   const handleLanguageChange = (lang) => {
     setProtocolData((prev) => ({ ...prev, language: lang }));
@@ -399,8 +400,8 @@ export default function ProtocolForm({
           </li>
         ) : (
           tasks.map((task, idx) => {
-            const params = getAllParams(task.category, protocolData?.language || "en");
-            const resolved = getResolvedParams(task.category, task, protocolData?.language || "en");
+            const params = getAllParams(task.category, protocolLanguage);
+            const resolved = getResolvedParams(task.category, task, protocolLanguage);
 
             return (
               <li
