@@ -519,6 +519,26 @@
               "Ano"
             ]
           }
+        },
+        {
+          "id": 1789301000013,
+          "text": "Máte nějaké zdravotní potíže, které zhoršují Váš čich?",
+          "type": "single",
+          "options": [
+            "Ano",
+            "Ne"
+          ]
+        },
+        {
+          "id": 1789301000014,
+          "text": "Upřesněte prosím potíže:",
+          "type": "open",
+          "showIf": {
+            "questionId": 1789301000013,
+            "values": [
+              "Ano"
+            ]
+          }
         }
       ]
     }
