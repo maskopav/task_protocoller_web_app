@@ -52,6 +52,7 @@ export default function SmellTestTask({
   const [answers, setAnswers] = useState(() => savedAnswers || {});
   const [index, setIndex] = useState(() => startIndex(questions, answers));
   const [draft, setDraft] = useState(null); // answer being rated + current sheet step
+  const [howToWatched, setHowToWatched] = useState(false); // Next waits for the clip
 
   // Shows where a drop-out happened even if the open scent was never answered
   const questionId = questions[index]?.id;
@@ -74,11 +75,18 @@ export default function SmellTestTask({
         title={isHowTo ? t("tasks:smell.howToTitle") : null}
         renderTitle={isHowTo}
         instructions={isHowTo ? null : <FormattedText text={task.instructions} />}
-        controls={<SafeButton className="btn-next" onClick={goNext}>{t("buttons.next")}</SafeButton>}
+        controls={
+          <SafeButton className="btn-next" onClick={goNext} disabled={isHowTo && !howToWatched}>
+            {t("buttons.next")}
+          </SafeButton>
+        }
       >
         {isHowTo
           ? (
-            <SmellHowTo steps={Array.isArray(howToSteps) ? howToSteps : []} />
+            <SmellHowTo
+              steps={Array.isArray(howToSteps) ? howToSteps : []}
+              onWatched={() => setHowToWatched(true)}
+            />
           )
           : <ScentCard count={questions.length} preview />}
       </TaskLayout>

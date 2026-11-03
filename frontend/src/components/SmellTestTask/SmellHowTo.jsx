@@ -18,19 +18,30 @@ const HOWTO_STEP_STARTS = [0, 4.54, 9.28, 19.16];
 const HOWTO_PLAYBACK_RATE = 0.8;
 const HOWTO_REPLAY_PAUSE_MS = 3000;
 
+// onWatched fires once the clip has played to its end, so Next can stay locked
+// until then. Also after this long in any case (the clip takes ~29 s at the
+// rate above) — a browser that blocks autoplay (e.g. iOS Low Power Mode)
+// never plays it, and nobody may be stuck on this screen.
+const HOWTO_UNLOCK_FALLBACK_MS = 35000;
+
 const stepAt = (time) => HOWTO_STEP_STARTS.filter((start) => time >= start).length - 1;
 
 // The replaying clip with one step below it at a time, following the video.
 // Steps carry no numbers, which could be
 // mistaken for the numbered circles on the card. Tapping a progress bar jumps
 // the clip to that step. Without the clip (missing file, no network) all steps
-// are listed at once instead.
-export default function SmellHowTo({ steps }) {
+// are listed at once instead (and onWatched fires straight away).
+export default function SmellHowTo({ steps, onWatched }) {
   const videoRef = useRef(null);
   const [step, setStep] = useState(0);
   const [videoFailed, setVideoFailed] = useState(false);
   const replayTimer = useRef(null);
   useEffect(() => () => clearTimeout(replayTimer.current), []);
+  useEffect(() => {
+    const timer = setTimeout(() => onWatched?.(), HOWTO_UNLOCK_FALLBACK_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per screen
+  }, []);
 
   if (videoFailed) {
     return (
@@ -68,10 +79,10 @@ export default function SmellHowTo({ steps }) {
         src={HOWTO_VIDEO}
         autoPlay muted playsInline
         onLoadedMetadata={(e) => { e.currentTarget.playbackRate = HOWTO_PLAYBACK_RATE; }}
-        onEnded={replayAfterPause}
+        onEnded={() => { onWatched?.(); replayAfterPause(); }}
         // Clamped, so a translation with fewer steps never blanks the caption
         onTimeUpdate={(e) => setStep(Math.min(stepAt(e.currentTarget.currentTime), steps.length - 1))}
-        onError={() => setVideoFailed(true)}
+        onError={() => { setVideoFailed(true); onWatched?.(); }}
       />
       <div className="smell-howto-caption">
         <div className="smell-howto-progress">

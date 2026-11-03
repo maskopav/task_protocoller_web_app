@@ -31,6 +31,8 @@ describe("SmellTestTask", () => {
   const next = () => container.querySelector(".btn-next");
   // SafeButton awaits its handler and debounces repeat taps
   const click = (el) => act(async () => el.click());
+  // Next stays locked on the how-to screen until the clip has played through
+  const finishClip = () => act(() => container.querySelector(".smell-howto-video").dispatchEvent(new Event("ended")));
 
   beforeEach(async () => {
     let now = 0;
@@ -44,6 +46,7 @@ describe("SmellTestTask", () => {
       root.render(<SmellTestTask task={task} onNextTask={onNextTask} />);
     });
     await click(next()); // get-ready screen
+    finishClip();
     await click(next()); // how-to screen
   });
 
@@ -77,9 +80,12 @@ describe("SmellTestTask", () => {
     expect(activeStep()).toBe("tasks:smell.howToSteps.2");
     playTo(20);
     expect(activeStep()).toBe("tasks:smell.howToSteps.4");
-    // At the end the repeat step stays a while before the clip starts over
+    expect(next().disabled).toBe(true);
+    // At the end Next unlocks, and the repeat step stays a while before the
+    // clip starts over
     vi.useFakeTimers();
-    act(() => video.dispatchEvent(new Event("ended")));
+    finishClip();
+    expect(next().disabled).toBe(false);
     act(() => vi.advanceTimersByTime(2900));
     expect(video.currentTime).toBe(20);
     act(() => vi.advanceTimersByTime(100));
@@ -97,6 +103,18 @@ describe("SmellTestTask", () => {
       .toEqual([1, 2, 3, 4].map((n) => `tasks:smell.howToSteps.${n}`));
     await click(next());
     expect(cards()).toHaveLength(3);
+  });
+
+  it("unlocks Next on the how-to screen after a while even if the clip never plays", async () => {
+    vi.useFakeTimers();
+    act(() => root.render(<SmellTestTask key="blocked" task={{ resolvedParams: { questions: [QUESTION] } }} onNextTask={onNextTask} />));
+    await click(next());
+    expect(next().disabled).toBe(true);
+    act(() => vi.advanceTimersByTime(34000));
+    expect(next().disabled).toBe(true);
+    act(() => vi.advanceTimersByTime(1000));
+    expect(next().disabled).toBe(false);
+    vi.useRealTimers();
   });
 
   it("renders one picture card per option", () => {
@@ -152,6 +170,7 @@ describe("SmellTestTask", () => {
         onNextTask={onNextTask} onSaveProgress={onSaveProgress} onLogEvent={onLogEvent} />
     ));
     await click(next());
+    finishClip();
     await click(next());
     expect(onLogEvent).toHaveBeenCalledWith("smell_scent_opened", { questionId: "s1", scentNumber: 1 });
 
