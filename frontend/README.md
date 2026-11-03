@@ -366,6 +366,17 @@ Open the Network URL on your phone (connected to the same Wi‑Fi) to test on mo
 - Avoid corporate/VPN networks that isolate devices
 
 
+## Exporting a protocol's screens to Word
+
+`scripts/exportProtocolScreens.mjs` walks a protocol like a participant (headless Chromium), screenshots every screen and builds a `.docx`:
+
+```bash
+npm run export:screens -- "https://<host>/#/participant/<token>" --title "My protocol"
+```
+
+The run is real — answers and recordings are saved — so use a participant marked as a tester. Output goes to `protocol-screens/<timestamp>/` (git-ignored). Options: `--mobile` (phone viewport), `--lang "Čeština"`, `--headed`, `--out <dir>`, `--record <sec>`, `--stuck <sec>`; see the script header.
+
+
 ## Deployment (running on the server)
 - 1. Build the app -> static files are generated inside the folder `dist` using command:
 ```bash

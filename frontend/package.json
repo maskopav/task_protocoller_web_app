@@ -19,7 +19,8 @@
     "test:e2e:ui": "playwright test --ui",
     "verify:resample": "node scripts/verifyResampleSpectrum.mjs",
     "verify:pipeline-browser": "node scripts/verifyRecordingPipelineBrowser.mjs",
-    "benchmark:flac": "node scripts/benchmarkFlacCompression.mjs"
+    "benchmark:flac": "node scripts/benchmarkFlacCompression.mjs",
+    "export:screens": "node scripts/exportProtocolScreens.mjs"
   },
   "dependencies": {
     "@alexanderolsen/libsamplerate-js": "^2.1.2",
@@ -44,6 +45,7 @@
     "@vitejs/plugin-react": "^5.0.3",
     "@vitest/coverage-v8": "^4.1.11",
     "baseline-browser-mapping": "^2.9.0",
+    "docx": "^9.5.1",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
