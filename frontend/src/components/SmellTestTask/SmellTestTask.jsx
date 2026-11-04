@@ -28,9 +28,13 @@ import "./SmellTestTask.css";
 // leaves a (completed: false) result. A respondent who returns after a
 // drop-out starts the whole test again from the intro; howToSeen (they got
 // past the how-to before) only unlocks its Next straight away.
+//
+// onGuideClip reports the audio guide clip for what is on screen (the page's
+// guide player plays it): "smell" on the get-ready screen, "smell_howto_<n>"
+// for the how-to step the video is showing, null on the scent screens.
 
 export default function SmellTestTask({
-  task, howToSeen, onNextTask, onLogAnswer, onLogEvent, onSaveProgress, isUploading,
+  task, howToSeen, onNextTask, onLogAnswer, onLogEvent, onSaveProgress, onGuideClip, isUploading,
 }) {
   const { t, i18n } = useTranslation(["common", "tasks"]);
   // Labels and default question text in the participant's language — see
@@ -47,6 +51,13 @@ export default function SmellTestTask({
   const [draft, setDraft] = useState(null); // answer being rated + current sheet step
   // Next waits for the clip, unless it was already seen before a drop-out
   const [howToWatched, setHowToWatched] = useState(!!howToSeen);
+  const [howToStep, setHowToStep] = useState(0); // step the how-to video is on
+
+  const guideClip = index === -2 ? "smell" : index === -1 ? `smell_howto_${howToStep + 1}` : null;
+  useEffect(() => {
+    onGuideClip?.(guideClip);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per clip change
+  }, [guideClip]);
 
   // Shows where a drop-out happened even if the open scent was never answered
   const questionId = questions[index]?.id;
@@ -80,6 +91,7 @@ export default function SmellTestTask({
             <SmellHowTo
               steps={Array.isArray(howToSteps) ? howToSteps : []}
               onWatched={() => setHowToWatched(true)}
+              onStepChange={setHowToStep}
             />
           )
           : <ScentCard count={questions.length} preview />}

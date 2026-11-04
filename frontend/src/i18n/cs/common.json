@@ -40,6 +40,7 @@
   },
   "completion": {
     "taskCompletedInstructions": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>. <br/><br/>Pouze pokud Vás něco vyrušilo, můžete zvolit Zkusit znovu.",
+    "taskCompletedInstructionsFinal": "Úloha zaznamenána! <br> Pro pokračování klikněte na <strong>Další</strong>.",
     "processingFailedInstructions": "Nahrávku se nepodařilo zpracovat. <br/><br/>Klikněte prosím na <strong>Zkusit znovu</strong> a nahrajte ji znovu.",
     "processingInstructions": "Zpracováváme vaši nahrávku… <br/><br/>Na některých zařízeních to může chvíli trvat. Nechte prosím tuto stránku otevřenou.",
     "doneTitle": "Hurá! Test máte za sebou.",

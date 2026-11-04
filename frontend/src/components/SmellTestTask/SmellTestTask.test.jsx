@@ -117,6 +117,24 @@ describe("SmellTestTask", () => {
     vi.useRealTimers();
   });
 
+  it("reports the guide clip for each screen and how-to step", async () => {
+    const onGuideClip = vi.fn();
+    act(() => root.render(
+      <SmellTestTask key="guide" task={{ resolvedParams: { questions: [QUESTION] } }}
+        onNextTask={onNextTask} onGuideClip={onGuideClip} />
+    ));
+    expect(onGuideClip).toHaveBeenLastCalledWith("smell");
+    await click(next());
+    expect(onGuideClip).toHaveBeenLastCalledWith("smell_howto_1");
+    const video = container.querySelector(".smell-howto-video");
+    video.currentTime = 10;
+    act(() => video.dispatchEvent(new Event("timeupdate")));
+    expect(onGuideClip).toHaveBeenLastCalledWith("smell_howto_3");
+    finishClip();
+    await click(next());
+    expect(onGuideClip).toHaveBeenLastCalledWith(null); // no clip on the scent screens
+  });
+
   it("renders one picture card per option", () => {
     expect(cards()).toHaveLength(3);
     expect(cards()[0].querySelector("img").getAttribute("src")).toBe(SMELL_IMAGES.mint);

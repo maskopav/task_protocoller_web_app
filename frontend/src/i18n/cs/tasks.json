@@ -90,6 +90,11 @@
       "pleasant": "Příjemná",
       "veryPleasant": "Velmi příjemná"
     },
+    "params": {
+      "title": { "label": "Název" },
+      "description": { "label": "Popis" },
+      "questions": { "label": "Otázky" }
+    },
     "defaultContent": {
       "title": "Čichový test",
       "description": "",

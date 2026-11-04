@@ -31,12 +31,17 @@ const stepAt = (time) => HOWTO_STEP_STARTS.filter((start) => time >= start).leng
 // mistaken for the numbered circles on the card. Tapping a progress bar jumps
 // the clip to that step. Without the clip (missing file, no network) all steps
 // are listed at once instead (and onWatched fires straight away).
-export default function SmellHowTo({ steps, onWatched }) {
+// onStepChange reports the step on screen, for its audio guide clip.
+export default function SmellHowTo({ steps, onWatched, onStepChange }) {
   const videoRef = useRef(null);
   const [step, setStep] = useState(0);
   const [videoFailed, setVideoFailed] = useState(false);
   const replayTimer = useRef(null);
   useEffect(() => () => clearTimeout(replayTimer.current), []);
+  useEffect(() => {
+    onStepChange?.(step);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per step
+  }, [step]);
   useEffect(() => {
     const timer = setTimeout(() => onWatched?.(), HOWTO_UNLOCK_FALLBACK_MS);
     return () => clearTimeout(timer);

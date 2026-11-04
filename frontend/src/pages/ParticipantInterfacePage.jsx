@@ -30,7 +30,7 @@ import { logger, setLogContext } from "../utils/frontendLogger";
 import { saveRecordingLocally, getPendingRecordingsForSession } from '../utils/offlineStorage';
 import { uploadInBackground, flushPendingRecordings } from '../utils/recordingUploadQueue';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath } from '../utils/getAudioGuidePath';
+import { getAudioGuidePath, getTaskCompletionAudioPath, getTopicAudioPath, buildAudioGuidePath } from '../utils/getAudioGuidePath';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { TaskAudioProvider } from '../context/TaskAudioContext';
 import AudioGuidePlayer from '../components/AudioGuidePlayer/AudioGuidePlayer';
@@ -88,6 +88,14 @@ export default function ParticipantInterfacePage() {
   // once it's actually running the noise/counting recording. Reported by
   // MicCheck itself via onPhaseChange, since only it knows its sub-phase.
   const [micCheckGuideStage, setMicCheckGuideStage] = useState(null);
+
+  // Which guide clip the smell test's current screen needs (smell = get-ready
+  // screen, smell_howto_<n> = how-to step n as the video reaches it, null on
+  // the scent screens), reported by SmellTestTask. Tagged with its task so a
+  // following smell task never inherits it — and so the same clip name in a
+  // new task still counts as a change.
+  const [smellGuide, setSmellGuide] = useState(null); // { taskIndex, clip }
+  const playedSmellClips = useRef(new Set());
 
   // For dynamic tasks (dynamic_monologue, everyday, etc.): which topic is
   // currently active, reported up by Recorder via onTopicChange.
@@ -588,6 +596,12 @@ export default function ParticipantInterfacePage() {
     // Welcome screen has no guide clip — it exists to collect the first tap.
     if (rawTask.type === 'welcome') return null;
 
+    if (rawTask.type === 'smell') {
+      return smellGuide?.taskIndex === taskIndex && smellGuide.clip
+        ? buildAudioGuidePath(i18n.language, smellGuide.clip)
+        : null;
+    }
+
     // All questionnaire categories (generic + standard ones like rbdsq/hhies)
     // share the same audio guide clip, since their content
     // is dynamic and can't be pre-recorded per task.
@@ -627,7 +641,7 @@ export default function ParticipantInterfacePage() {
       repeatIndex,
       i18n.language
     );
-  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase, cameraDenied, videoDeclined]);
+  }, [rawTask, currentTask, i18n.language, useAudioGuide, micCheckGuideStage, recorderPhase, cameraDenied, videoDeclined, smellGuide, taskIndex]);
 
   // New task opened -> if audio guide on, switch to instructions and force a play
   useEffect(() => {
@@ -702,6 +716,19 @@ export default function ParticipantInterfacePage() {
       }
     }
   }, [micCheckGuideStage]);
+
+  // Each smell-test clip autoplays the first time its screen / how-to step
+  // comes up. The how-to video loops; its later passes stay silent (the guide
+  // button still replays the step on screen).
+  useEffect(() => {
+    if (!smellGuide?.clip) return;
+    const key = `${smellGuide.taskIndex}:${smellGuide.clip}`;
+    if (playedSmellClips.current.has(key)) return;
+    playedSmellClips.current.add(key);
+    setAudioPhase('instructions');
+    setGuideStage('general');
+    setPendingAudio(true);
+  }, [smellGuide]);
 
   // Watch the audio queue and the dialog state
   useEffect(() => {
@@ -1248,6 +1275,7 @@ export default function ParticipantInterfacePage() {
           onLogAnswer={(qId, value) => logInteraction("answer_clicked", { questionId: qId, value })}
           onLogEvent={logInteraction}
           onSaveProgress={saveSmellProgress}
+          onGuideClip={(clip) => setSmellGuide({ taskIndex, clip })}
           isUploading={isUploading}
         />
       );
