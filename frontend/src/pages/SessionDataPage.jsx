@@ -143,7 +143,7 @@ export default function SessionDataPage() {
         <p className="project-description">
           Download recordings, mic checks and task results for study sessions as a zip:
           a flat data/ folder with the audio files, plus sessions_summary.csv,
-          task_results.csv (non-questionnaire task output), questionnaire_answers.csv
+          session_progress.csv (every logged participant event, one row each), task_results.csv (non-questionnaire task output), questionnaire_answers.csv
           (one row per question), recordings_index.csv and a logs/ folder with each
           session's system log entries. Filter by project, protocol,
           and/or date range, then download everything matching or hand-pick sessions below.

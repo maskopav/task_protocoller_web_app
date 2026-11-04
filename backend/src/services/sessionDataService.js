@@ -81,8 +81,10 @@ export async function getSessionExportBundle(sessionIds) {
 
   const placeholders = sessionIds.map(() => "?").join(",");
 
+  // progress (the participant's event log) only here, not in SESSION_SELECT --
+  // the session list endpoint doesn't need it and it can be large.
   const sessionRows = await executeQuery(
-    `SELECT ${SESSION_SELECT}
+    `SELECT ${SESSION_SELECT}, s.progress
      FROM sessions s
      JOIN v_participant_protocols vpp ON vpp.participant_protocol_id = s.participant_protocol_id
      WHERE s.id IN (${placeholders})`,

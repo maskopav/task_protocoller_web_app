@@ -10,7 +10,7 @@ import { ZipStreamWriter } from "../utils/zipStreamWriter.js";
 import { buildCsv, jsonCellValue } from "../utils/csvBuilder.js";
 import { logToFile, SYSTEM_LOG_PATH } from "../utils/logger.js";
 import { collectSessionLogEntries, MAX_LOG_BYTES_PER_SESSION } from "../utils/sessionLogReader.js";
-import { dateInYyyyMmDdHhMmSs, utcDbToLocal } from "../utils/dateFormatter.js";
+import { dateInYyyyMmDdHhMmSs, utcDbToLocal, localDateTimeString } from "../utils/dateFormatter.js";
 
 const DATA_PATH = process.env.DATA_PATH;
 
@@ -133,6 +133,39 @@ export function buildQuestionnaireAnswersCsv(taskResults) {
   return buildCsv(headers, rows);
 }
 
+// Progress event timestamps are ISO strings from the participant's device
+// clock ("...Z") -- shown in local time like the other CSV columns, but
+// keeping milliseconds since several events can fire within one second.
+function isoToLocalWithMs(value) {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return value || "";
+  return `${localDateTimeString(date)}.${String(date.getMilliseconds()).padStart(3, "0")}`;
+}
+
+// sessions.progress (every button press / screen / check event the
+// participant's app logged), one row per event in the order it was stored.
+// Each event is { timestamp, action, ...fields }; the fields vary per action,
+// so they stay a single JSON cell, like task_results.csv's payload.
+export function buildSessionProgressCsv(sessions) {
+  const headers = ["session_id", "event_index", "timestamp", "action", "details"];
+  const rows = [];
+
+  for (const s of sessions) {
+    const events = parseJsonMaybe(s.progress);
+    if (!Array.isArray(events)) continue;
+
+    events.forEach((event, index) => {
+      const { timestamp, action, ...details } = event || {};
+      rows.push([
+        s.session_id, index + 1, isoToLocalWithMs(timestamp), action ?? "",
+        Object.keys(details).length ? jsonCellValue(details) : "",
+      ]);
+    });
+  }
+
+  return buildCsv(headers, rows);
+}
+
 function buildRecordingsIndexCsv(recordings, micChecks) {
   const headers = ["session_id", "type", "task_category", "repeat_index", "filename", "duration_seconds", "created_at"];
   const rows = [
@@ -237,13 +270,14 @@ async function addSessionLogs(zip, sessions) {
   }
 }
 
-// Streams the archive to `res`, writing entries one at a time (four CSVs,
+// Streams the archive to `res`, writing entries one at a time (five CSVs,
 // per-session log files, then every recording/mic-check file) and resolving
 // once the zip's central directory has been written and the response ended.
 export async function streamSessionArchive({ sessions, recordings, micChecks, taskResults }, res) {
   const zip = new ZipStreamWriter(res);
 
   await zip.addBuffer("sessions_summary.csv", buildSessionsCsv(sessions));
+  await zip.addBuffer("session_progress.csv", buildSessionProgressCsv(sessions));
   await zip.addBuffer("task_results.csv", buildTaskResultsCsv(taskResults));
   await zip.addBuffer("questionnaire_answers.csv", buildQuestionnaireAnswersCsv(taskResults));
   await zip.addBuffer("recordings_index.csv", buildRecordingsIndexCsv(recordings, micChecks));

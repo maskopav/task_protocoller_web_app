@@ -4,7 +4,9 @@ vi.mock("../utils/logger.js", () => ({ logToFile: vi.fn(), SYSTEM_LOG_PATH: "/no
 
 import {
   buildQuestionnaireAnswersCsv, buildTaskResultsCsv, buildSessionLogText, earliestSessionStartIso,
+  buildSessionProgressCsv,
 } from "./sessionArchiveBuilder.js";
+import { localDateTimeString } from "../utils/dateFormatter.js";
 
 // CSV text -> array of rows (every cell is quoted by buildCsv; no embedded
 // newlines in these fixtures, so a line split is enough).
@@ -93,6 +95,41 @@ describe("buildTaskResultsCsv", () => {
 
     expect(data).toHaveLength(1);
     expect(data[0][1]).toBe("sdmt");
+  });
+});
+
+describe("buildSessionProgressCsv", () => {
+  const progress = [
+    { timestamp: "2026-10-09T15:00:00.250Z", action: "consent_accepted" },
+    { timestamp: "2026-10-09T15:00:00.900Z", action: "task_saved", taskIndex: 0, protocolTaskId: 56 },
+  ];
+
+  it("writes one row per event, in stored order, with the extra fields as JSON", () => {
+    const sessions = [
+      { session_id: 7, progress: JSON.stringify(progress) }, // raw string from the DB
+      { session_id: 8, progress: [{ timestamp: "2026-10-09T16:00:00.000Z", action: "mic_check_result", passed: true }] },
+    ];
+    const [header, ...data] = parseCsv(buildSessionProgressCsv(sessions));
+
+    expect(header).toEqual(["session_id", "event_index", "timestamp", "action", "details"]);
+    expect(data.map((r) => [r[0], r[1], r[3]])).toEqual([
+      ["7", "1", "consent_accepted"],
+      ["7", "2", "task_saved"],
+      ["8", "1", "mic_check_result"],
+    ]);
+    expect(data[0][4]).toBe(""); // no extra fields
+    expect(JSON.parse(data[1][4])).toEqual({ taskIndex: 0, protocolTaskId: 56 });
+  });
+
+  it("shows the timestamp in local time, keeping milliseconds", () => {
+    const [, first] = parseCsv(buildSessionProgressCsv([{ session_id: 7, progress }]));
+    const expected = `${localDateTimeString(new Date("2026-10-09T15:00:00.250Z"))}.250`;
+    expect(first[2]).toBe(expected);
+  });
+
+  it("skips sessions without any progress", () => {
+    const data = parseCsv(buildSessionProgressCsv([{ session_id: 7, progress: null }])).slice(1);
+    expect(data).toHaveLength(0);
   });
 });
 
