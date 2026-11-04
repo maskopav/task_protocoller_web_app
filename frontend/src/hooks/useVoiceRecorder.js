@@ -789,11 +789,6 @@ export const useVoiceRecorder = (options = {}) => {
 
         setRecordingStatus(RECORDED);
 
-        // KILL THE TRACK: Restores iOS system volume for playback and retries
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-        }
-
         if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
 
         // The worklet holds up to ~85 ms of not-yet-posted audio. Ask it to post
@@ -810,6 +805,16 @@ export const useVoiceRecorder = (options = {}) => {
             audioClockRef.current?.stopSent({ reason: 'stop' });
             workletNode.disconnect();
         }
+
+        // KILL THE TRACK: Restores iOS system volume for playback and retries.
+        // Only once the worklet has confirmed the end (normally 5-20 ms): on an
+        // iPhone (session 609) releasing the mic right away froze the audio
+        // clock and the worklet's messages for ~0.9 s, so the end anchor came
+        // late, and once the last batch missed the tail wait. Repeat is only
+        // enabled after the tail wait, so this never stops a new take's mic.
+        const stream = streamRef.current;
+        tailFlushed.then(() => stream?.getTracks().forEach(track => track.stop()));
+
         if (sourceNodeRef.current) {
             sourceNodeRef.current.disconnect();
         }

@@ -41,15 +41,20 @@ class FakeAudioContext {
 }
 
 let workletPosts;
+let lastWorklet;
 class FakeWorkletNode {
   constructor() {
-    this.port = { postMessage: (msg) => workletPosts.push(msg), onmessage: null, addEventListener: vi.fn() };
+    this.port = {
+      postMessage: (msg) => workletPosts.push(msg), onmessage: null,
+      addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    };
     this.connect = vi.fn();
     this.disconnect = vi.fn();
+    lastWorklet = this;
   }
 }
 
-describe("useVoiceRecorder — pause and resume", () => {
+describe("useVoiceRecorder — pause, resume and stop", () => {
   let container;
   let root;
   let getUserMedia;
@@ -77,6 +82,7 @@ describe("useVoiceRecorder — pause and resume", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     latest = null;
   });
@@ -141,5 +147,34 @@ describe("useVoiceRecorder — pause and resume", () => {
       reason: "topic_switch_manual", topicIndex: 0, performanceNow: expect.any(Number),
     }));
     expect(workletPosts.at(-1)).toEqual({ command: "stop" });
+  });
+
+  async function startThenStop() {
+    const stream = fakeStream();
+    getUserMedia.mockResolvedValueOnce(stream);
+    await act(async () => { await latest.startRecording(); });
+    act(() => latest.stopRecording());
+    expect(workletPosts.at(-1)).toEqual({ command: "stop", final: true });
+    return stream;
+  }
+
+  // Session 609 (iPhone): releasing the mic at Stop froze the audio clock and
+  // the worklet's messages for ~0.9 s, so the mic now waits for the worklet.
+  it("keeps the mic until the worklet confirms the end of the take", async () => {
+    const stream = await startThenStop();
+    expect(stream.track.stop).not.toHaveBeenCalled();
+
+    const onMessage = lastWorklet.port.addEventListener.mock.calls.find(([type]) => type === "message")[1];
+    await act(async () => { onMessage({ data: { done: true, savedSamples: 0 } }); });
+    expect(stream.track.stop).toHaveBeenCalled();
+  });
+
+  it("still releases the mic when the worklet's confirmation never comes", async () => {
+    vi.useFakeTimers();
+    const stream = await startThenStop();
+    await act(async () => { await vi.advanceTimersByTimeAsync(999); });
+    expect(stream.track.stop).not.toHaveBeenCalled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(stream.track.stop).toHaveBeenCalled();
   });
 });
