@@ -19,6 +19,8 @@ export default function Protocols({ onSelectProtocol }) {
   const [protocolDescription, setProtocolDescription] = useState("");
   const [protocolLanguage, setProtocolLanguage] = useState("en");
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  // Protocols from other projects (e.g. to duplicate into this one); null = hidden
+  const [otherProtocols, setOtherProtocols] = useState(null);
 
   const { viewProtocol, editProtocol, duplicateProtocol } = useProtocolActions();
 
@@ -58,6 +60,18 @@ export default function Protocols({ onSelectProtocol }) {
     p.is_current != 1 || p.project_id != projectId
   );
 
+  // Loaded on demand so the default page load stays scoped to this project
+  async function toggleOtherProtocols() {
+    if (otherProtocols) return setOtherProtocols(null);
+    try {
+      const all = await getProtocolsByProjectId(); // backend limits to the admin's projects
+      const ownIds = new Set(protocols.map(p => p.id));
+      setOtherProtocols(all.filter(p => p.is_current == 1 && !ownIds.has(p.id)));
+    } catch (err) {
+      console.error("Failed to load other projects' protocols:", err);
+    }
+  }
+
   if (loadingProtocols) return <p>{t("loading")}</p>;
 
   // Internal helper for table sections
@@ -88,7 +102,7 @@ export default function Protocols({ onSelectProtocol }) {
               </tr>
             ) : (
               list.map((p) => (
-                <tr key={p.id}>
+                <tr key={`${p.project_id}-${p.id}`}>
                   <td className="highlighted">{p.name}</td>
                   <td>{getLangName(p.language_id)}</td>
                   <td>{p.description}</td>
@@ -237,6 +251,21 @@ export default function Protocols({ onSelectProtocol }) {
         allowEdit={false}
         isHistory={true}
       />
+
+      <button className="btn-view btn-other-projects" onClick={toggleOtherProtocols}>
+        {otherProtocols
+          ? t("protocolDashboard.buttons.hideOtherProjects")
+          : t("protocolDashboard.buttons.showOtherProjects")}
+      </button>
+
+      {otherProtocols && (
+        <ProtocolTableSection
+          list={otherProtocols}
+          title={t("protocolDashboard.otherProjectsProtocols")}
+          allowEdit={false}
+          isHistory={true}
+        />
+      )}
     </div>
   );
 }

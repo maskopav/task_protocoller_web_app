@@ -227,6 +227,7 @@
     "createNew": "Create New Protocol",
     "currentProtocols": "Current Protocols",
     "archivedProtocols": "Archived / Other Protocols",
+    "otherProjectsProtocols": "Protocols from Other Projects",
     "namePlaceholder": "Protocol name",
     "descriptionPlaceholder": "Description (optional)",
     "noData": "No protocols found",
@@ -235,7 +236,9 @@
       "show": "Show",
       "edit": "Edit",
       "duplicate": "Duplicate",
-      "share": "General Enrollment"
+      "share": "General Enrollment",
+      "showOtherProjects": "Show protocols from other projects",
+      "hideOtherProjects": "Hide protocols from other projects"
     },
     "table": {
       "name": "Name",

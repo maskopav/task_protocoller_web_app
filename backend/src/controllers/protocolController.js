@@ -327,6 +327,7 @@ export const getProtocolById = async (req, res) => {
 // GET /api/protocols?project_id=X
 export const getProtocolsByProjectId = async (req, res) => {
   const { project_id } = req.query;
+  const { id: userId, role } = req.admin;
 
   try {
     let query = "SELECT * FROM v_project_protocols ORDER BY project_id, protocol_group_id, version DESC";
@@ -336,6 +337,15 @@ export const getProtocolsByProjectId = async (req, res) => {
       query = `
       SELECT * FROM v_project_protocols WHERE project_id = ? ORDER BY project_id, protocol_group_id, version DESC`
       params.push(project_id);
+    } else if (role !== 'master') {
+      // Unscoped list (e.g. "protocols from other projects"): non-master admins
+      // only see projects assigned to them -- same rule as getProjectList.
+      query = `
+      SELECT v.* FROM v_project_protocols v
+      JOIN user_projects up ON v.project_id = up.project_id
+      WHERE up.user_id = ?
+      ORDER BY v.project_id, v.protocol_group_id, v.version DESC`
+      params.push(userId);
     }
 
     const rows = await executeQuery(query, params);

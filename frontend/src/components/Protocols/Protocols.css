@@ -203,6 +203,13 @@
 .btn-edit { background: var(--primary); }
 .btn-duplicate { background: var(--warning); }
 .btn-search { background-color: var(--warning);}
+/* Toggle for the on-demand "protocols from other projects" table */
+.btn-other-projects {
+  width: auto;
+  align-self: flex-start;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.9rem;
+}
 .btn-share { background: var(--success); }
 
 .error-text {

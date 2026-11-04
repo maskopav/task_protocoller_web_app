@@ -67,6 +67,7 @@
     "createNew": "Vytvořit nový protokol",
     "currentProtocols": "Aktuální protokoly",
     "archivedProtocols": "Historie protokolů",
+    "otherProjectsProtocols": "Protokoly z jiných projektů",
     "namePlaceholder": "Název protokolu",
     "nameExists": "Protokol s tímto názvem již existuje.",
     "descriptionPlaceholder": "Popis (nepovinné)",
@@ -75,7 +76,9 @@
       "create": "Vytvořit protokol",
       "show": "Zobrazit",
       "edit": "Upravit",
-      "duplicate": "Duplikovat"
+      "duplicate": "Duplikovat",
+      "showOtherProjects": "Zobrazit protokoly z jiných projektů",
+      "hideOtherProjects": "Skrýt protokoly z jiných projektů"
     },
     "table": {
       "name": "Název",
