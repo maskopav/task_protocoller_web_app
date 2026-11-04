@@ -22,7 +22,9 @@ import "./SmellTestTask.css";
 //
 // Submitted answers: { [questionId]: { scent, label, intensity, pleasantness } }
 // — `scent` is the language-independent key, `label` the text shown;
-// "No scent" carries no ratings.
+// "No scent" carries no ratings. Where the editor set the box's correctScent,
+// the answer also holds it and `correct`, and the final result counts them
+// (correctCount of scoredCount). Participants never see it.
 //
 // Every saved scent is also passed to onSaveProgress, so a drop-out still
 // leaves a (completed: false) result. A respondent who returns after a
@@ -68,7 +70,13 @@ export default function SmellTestTask({
 
   const goNext = () => {
     if (index < questions.length - 1) return setIndex(index + 1);
-    return onNextTask({ taskType: "smell", timestamp: new Date().toISOString(), completed: true, answers });
+    const scoredCount = questions.filter((q) => q.correctScent).length;
+    return onNextTask({
+      taskType: "smell", timestamp: new Date().toISOString(), completed: true, answers,
+      ...(scoredCount > 0 && {
+        correctCount: Object.values(answers).filter((a) => a.correct).length, scoredCount,
+      }),
+    });
   };
 
   if (index < 0) {
@@ -108,7 +116,10 @@ export default function SmellTestTask({
     : answer.label === label);
   const selectedLabel = question.options?.find(isAnswer);
 
-  const save = (value) => {
+  const save = (picked) => {
+    const value = question.correctScent
+      ? { ...picked, correctScent: question.correctScent, correct: picked.scent === question.correctScent }
+      : picked;
     const next = { ...answers, [question.id]: value };
     setAnswers(next);
     if (onLogAnswer) onLogAnswer(question.id, value);

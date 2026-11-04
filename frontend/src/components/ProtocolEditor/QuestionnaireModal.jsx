@@ -56,7 +56,9 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
         const next = current.includes(key)
           ? current.filter((k) => k !== key)
           : current.length < SMELL_OPTION_COUNT ? [...current, key] : current;
-        return { ...q, ...smellOptions(next) };
+        // Removing the scent marked correct clears the mark
+        const keepCorrect = q.correctScent === NO_SCENT_KEY || next.includes(q.correctScent);
+        return { ...q, ...smellOptions(next), correctScent: keepCorrect ? q.correctScent : undefined };
       })
     );
 
@@ -345,6 +347,20 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData,
                         </button>
                       );
                     })}
+                  </div>
+                  {/* The scent actually in this box: saved with the answer, never shown to participants */}
+                  <div className="qm-input-group" style={{ marginTop: "1rem" }}>
+                    <label>Correct scent (only in the results)</label>
+                    <select
+                      className="qm-select type-select"
+                      value={q.correctScent || ""}
+                      onChange={(e) => updateQuestion(q.id, "correctScent", e.target.value || undefined)}
+                    >
+                      <option value="">-- Not set --</option>
+                      {[...pickedScents(q), NO_SCENT_KEY].map((key) => (
+                        <option key={key} value={key}>{scentLabel(key, tScent)}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}

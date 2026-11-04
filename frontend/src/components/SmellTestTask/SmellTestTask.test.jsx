@@ -216,6 +216,38 @@ describe("SmellTestTask", () => {
     expect(onNextTask.mock.calls[0][0].answers).toEqual({ s1: { scent: "no_scent", label: "No scent" } });
   });
 
+  it("scores each answer against the box's correct scent, for the results only", async () => {
+    const onSaveProgress = vi.fn();
+    act(() => root.render(
+      <SmellTestTask key="scored" task={{ resolvedParams: { questions: [{ ...QUESTION, correctScent: "mint" }] } }}
+        onNextTask={onNextTask} onSaveProgress={onSaveProgress} />
+    ));
+    await click(next());
+    finishClip();
+    await click(next());
+
+    await click(cards()[2]); // No scent: wrong
+    expect(onSaveProgress).toHaveBeenLastCalledWith({
+      s1: { scent: "no_scent", label: "No scent", correctScent: "mint", correct: false },
+    });
+    expect(container.textContent).not.toMatch(/correct/i);
+
+    await click(cards()[0]); // Mint: right
+    await click(ratingOptions()[1]);
+    await click(ratingOptions()[1]);
+    await click(next());
+    expect(onNextTask.mock.calls[0][0]).toMatchObject({
+      answers: { s1: { scent: "mint", intensity: 2, pleasantness: 2, correctScent: "mint", correct: true } },
+      correctCount: 1, scoredCount: 1,
+    });
+  });
+
+  it("leaves the score out when no correct scent is set", async () => {
+    await click(cards()[2]);
+    await click(next());
+    expect(onNextTask.mock.calls[0][0]).not.toHaveProperty("scoredCount");
+  });
+
   it("saves No scent straight away, replacing an earlier rated scent", async () => {
     await click(cards()[0]);
     await click(ratingOptions()[0]);
