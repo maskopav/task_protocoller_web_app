@@ -1,9 +1,46 @@
-// frontend/src/components/ParticipantAuth/ResetPasswordModal.jsx
-import React, { useState } from "react";
+// frontend/src/components/AuthForm/ResetPasswordModal.jsx
+//
+// Full-page "set a new password" screen reached from the reset e-mail link
+// (participants: /reset-password/:token, admins: /admin/reset-password/:token).
+// It reuses the login screen's layout and form styles (AuthForm.css) so both
+// look the same. The route is lazy-loaded on its own, so it has to import
+// AuthForm.css itself -- otherwise the shared input/toggle classes are missing.
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { resetPassword, adminResetPasswordApi } from "../../api/auth";
 import { useTranslation } from "react-i18next";
-import "./ResetPasswordModal.css"; // New dedicated styles
+import { resetPassword, adminResetPasswordApi } from "../../api/auth";
+import { LanguageSwitcher } from "../LanguageSwitcher/LanguageSwitcher";
+import DashboardTopBar from "../DashboardTopBar/DashboardTopBar";
+import "./AuthForm.css";
+import "./ResetPasswordModal.css";
+
+const REDIRECT_DELAY_MS = 3000;
+
+function PasswordField({ id, name, label, value, error, visible, onToggle, onChange, onBlur, autoFocus, t }) {
+  return (
+    <div className="form-field">
+      <label className="form-label" htmlFor={id}>{label}</label>
+      <div className="password-wrapper">
+        <input
+          id={id}
+          name={name}
+          type={visible ? "text" : "password"}
+          autoComplete="new-password"
+          autoFocus={autoFocus}
+          className={`participant-input ${error ? "input-error" : ""}`}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          aria-invalid={!!error}
+        />
+        <button type="button" className="password-toggle" onClick={onToggle} aria-pressed={visible}>
+          {visible ? t("auth.hide") : t("auth.show")}
+        </button>
+      </div>
+      {error && <span className="field-error-text">{error}</span>}
+    </div>
+  );
+}
 
 export default function ResetPasswordModal({ isAdmin = false }) {
   const { token } = useParams();
@@ -11,94 +48,150 @@ export default function ResetPasswordModal({ isAdmin = false }) {
   const navigate = useNavigate();
   const { t } = useTranslation(["common"]);
 
-  const returnToken = searchParams.get("returnToken"); // The saved protocol token
+  // Protocol token the participant came from. The reset e-mail always appends
+  // ?returnToken=..., which reads "undefined" when none was known.
+  const rawReturnToken = searchParams.get("returnToken");
+  const returnToken = rawReturnToken && rawReturnToken !== "undefined" && rawReturnToken !== "null"
+    ? rawReturnToken
+    : null;
+  const loginPath = isAdmin ? "/login" : (returnToken ? `/protocol/${returnToken}` : "/");
 
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [confirm, setConfirm] = useState("");
-  const [status, setStatus] = useState({ loading: false, error: "", success: false });
+  const [form, setForm] = useState({ password: "", confirm: "" });
+  const [visible, setVisible] = useState({ password: false, confirm: false });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  // After a successful reset, send the user back to their login screen.
+  useEffect(() => {
+    if (!success) return undefined;
+    const timer = setTimeout(() => navigate(loginPath, { replace: true }), REDIRECT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [success, loginPath, navigate]);
+
+  const validateField = (name, values) => {
+    if (!values[name]) return t("auth.required");
+    if (name === "confirm" && values.password && values.confirm !== values.password) {
+      return t("auth.passwordMismatch");
+    }
+    return "";
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    if (error) setError("");
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    // Don't nag about an empty field the user just tabbed through.
+    if (!value) return;
+    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, form) }));
+  };
+
+  const toggle = (name) => setVisible((prev) => ({ ...prev, [name]: !prev[name] }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirm) {
-      setStatus({ ...status, error: t("auth.passwordMismatch") });
-      return;
-    }
-    setStatus({ loading: true, error: "", success: false });
+    const errors = {
+      password: validateField("password", form),
+      confirm: validateField("confirm", form),
+    };
+    setFieldErrors(errors);
+    if (errors.password || errors.confirm) return;
 
+    setError("");
+    setLoading(true);
     try {
       if (isAdmin) {
-        await adminResetPasswordApi(token, password);
+        await adminResetPasswordApi(token, form.password);
       } else {
-        await resetPassword(token, password);
+        await resetPassword(token, form.password);
       }
-      setStatus({ loading: false, error: "", success: true });
-      // Determine where to redirect
-      const targetPath = isAdmin ? "/login" : (returnToken ? `/protocol/${returnToken}` : "/");
-      setTimeout(() => navigate(targetPath, { replace: true }), 3000);
+      setSuccess(true);
     } catch (err) {
-      setStatus({ loading: false, error: err.message, success: false });
+      const msg = err?.message || "";
+      setError(/token/i.test(msg) ? t("auth.resetLinkInvalid") : t("auth.resetFailed"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="reset-modal-overlay">
-      <div className="reset-modal-content">
-        <h2 className="text-center">{t("auth.resetPasswordTitle")}</h2>
+  const goToLogin = () => navigate(loginPath, { replace: true });
 
-        {status.success ? (
-          <div className="text-center password-update-container">
-            <p className="validation-success-msg">
-              {t("auth.passwordUpdateSuccess")}
-            </p>
-            <p>{t("auth.redirectingToLogin")}</p>
+  return (
+    <div className="dashboard-page">
+      {isAdmin ? (
+        <DashboardTopBar />
+      ) : (
+        <div className="top-bar">
+          <span></span>
+          <LanguageSwitcher />
+        </div>
+      )}
+
+      <div className="app-container">
+        <div className="auth-page-content compact">
+          <div className="auth-subtitle-wrapper">
+            <h1 className="auth-main-title">{t("auth.resetPasswordTitle")}</h1>
+            {!success && <p className="auth-subtitle">{t("auth.resetPasswordSubtitle")}</p>}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="reset-form">
-            <div>
-              <label className="form-label">{t("auth.newPassword")}</label>
-              <div className="password-wrapper">
-                <input
-                  required
-                  type={showPassword ? "text" : "password"}
-                  className="participant-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? t("auth.hide") : t("auth.show")}
+
+          <div className="auth-container-card">
+            {success ? (
+              <div className="reset-success text-center" role="status">
+                <div className="auth-instruction-box">✅ {t("auth.passwordUpdateSuccess")}</div>
+                <p className="auth-instruction reset-redirect-note">{t("auth.redirectingToLogin")}</p>
+                <button type="button" className="btn-green" onClick={goToLogin}>
+                  {t("auth.btnBackToLogin")}
                 </button>
               </div>
-            </div>
-
-            <div>
-              <label className="form-label">{t("auth.confirmPassword")}</label>
-              <div className="password-wrapper">
-                <input
-                  required
-                  type={showPassword ? "text" : "password"}
-                  className="participant-input"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
+            ) : (
+              <form onSubmit={handleSubmit} className="auth-flex-form" noValidate>
+                <PasswordField
+                  id="reset-new-password"
+                  name="password"
+                  label={t("auth.newPassword")}
+                  value={form.password}
+                  error={fieldErrors.password}
+                  visible={visible.password}
+                  onToggle={() => toggle("password")}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  autoFocus
+                  t={t}
                 />
-              </div>
-            </div>
+                <PasswordField
+                  id="reset-confirm-password"
+                  name="confirm"
+                  label={t("auth.confirmPassword")}
+                  value={form.confirm}
+                  error={fieldErrors.confirm}
+                  visible={visible.confirm}
+                  onToggle={() => toggle("confirm")}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  t={t}
+                />
 
-            {status.error && (
-              <div className="validation-error-msg text-center">
-                {status.error}
-              </div>
+                {error && <div className="validation-error-msg text-center" role="alert">{error}</div>}
+
+                <button type="submit" disabled={loading} className="btn-green">
+                  {loading ? t("auth.processing") : t("auth.btnSetNewPassword")}
+                </button>
+
+                <div className="reset-back-row">
+                  <button type="button" className="forgot-password-link reset-back-link" onClick={goToLogin}>
+                    {t("auth.btnBackToLogin")}
+                  </button>
+                </div>
+              </form>
             )}
-
-            <button type="submit" disabled={status.loading} className="btn-save">
-              {status.loading ? t("auth.processing") : t("auth.btnSetNewPassword")}
-            </button>
-          </form>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );
