@@ -51,6 +51,15 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
     setHasError(false);
   }, [src, playTrigger]);
 
+  // No clip for now (e.g. the page guide during a vision task or on a smell
+  // scent screen): silence the element but keep it, see the note at the end.
+  useEffect(() => {
+    if (!src && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [src]);
+
   // Stop playing if recording becomes active
   useEffect(() => {
     if (isRecordingActive && audioRef.current) {
@@ -127,11 +136,8 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
     if (onEnded) onEnded();
   };
 
-  if (!src || hasError) {
-    return null;
-  }
-
-  // NOTE: we deliberately do NOT early-return on isRecordingActive here.
+  // NOTE: we deliberately do NOT early-return on isRecordingActive, a missing
+  // src or a load error here.
   // Unmounting this component while recording would destroy the <audio>
   // DOM node; iOS Safari grants autoplay permission per-element the first
   // time it's played from a real tap, and that permission is lost the
@@ -139,10 +145,12 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
   // (VAD/timer, not a tap), a freshly recreated element can never satisfy
   // Safari's gesture requirement again. Keeping the same <audio> node
   // mounted for the component's whole lifetime — and only hiding the
-  // button — preserves that unlocked state across task transitions.
+  // button — preserves that unlocked state across task transitions. (Removing
+  // it while there was no clip, e.g. during the D-15 tests, is why the
+  // language questionnaire's clip after them didn't autoplay on iPhone.)
   return (
     <>
-      {!isRecordingActive && (
+      {src && !hasError && !isRecordingActive && (
         <SafeButton
           ref={buttonRef}
           type="button"
@@ -174,7 +182,7 @@ const AudioGuidePlayer = forwardRef(function AudioGuidePlayer({
 
       <audio
         ref={audioRef}
-        src={src}
+        src={src || undefined}
         loop={loop}          
         className="audio-instructions-audio"
         onEnded={handleEnded}
