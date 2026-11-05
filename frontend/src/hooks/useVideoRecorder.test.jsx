@@ -200,10 +200,10 @@ describe("useVideoRecorder — tracking during recording", () => {
     latest = null;
   });
 
-  async function record(ms) {
+  async function record(ms, video = { readyState: 4 }) {
     await act(async () => { await latest.getMediaPermission(); });
     act(() => {
-      latest.attachVideoRef({});
+      latest.attachVideoRef(video);
       latest.startRecording();
     });
     await act(async () => { await vi.advanceTimersByTimeAsync(ms); });
@@ -222,6 +222,9 @@ describe("useVideoRecorder — tracking during recording", () => {
     expect(stats.delegate).toBe("GPU");
     expect(stats.framesWithoutFace).toBe(1);
     expect(stats.framesWithFace).toBe(detectForVideo.mock.calls.length - 1);
+    // The frame without a face is kept with its time, without landmarks.
+    expect(latest.videoData[0]).toEqual(expect.objectContaining({ timestamp: expect.any(Number), landmarks: null }));
+    expect(latest.videoData.filter((f) => f.landmarks)).toHaveLength(stats.framesWithFace);
     expect(stats.framesWithFace).toBeGreaterThan(3);
     expect(stats.detectErrors).toBe(0);
     expect(stats.detectMs).toEqual(expect.objectContaining({ median: expect.any(Number) }));
@@ -230,6 +233,27 @@ describe("useVideoRecorder — tracking during recording", () => {
       p95: expect.any(Number), max: expect.any(Number),
     });
     expect(stats.camera).toEqual({ width: 640, height: 480, frameRate: 30 });
+  });
+
+  // A saved no-face frame must mean: the model saw a camera image, no face in it.
+  it("does not run the model or save no-face frames before the video has a picture", async () => {
+    const detectForVideo = vi.fn(() => noFace);
+    createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+    await record(200, { readyState: 0 });
+    expect(detectForVideo).not.toHaveBeenCalled();
+    expect(latest.videoData).toEqual([]);
+  });
+
+  it("does not save frames whose detection failed", async () => {
+    const detectForVideo = vi.fn()
+      .mockImplementationOnce(() => { throw new Error("bad frame"); })
+      .mockReturnValue(face);
+    createFromOptions.mockResolvedValue({ detectForVideo, close: vi.fn() });
+    await record(200);
+    const stats = finalizedLog();
+    expect(stats.detectErrors).toBe(1);
+    expect(stats.framesWithoutFace).toBe(0);
+    expect(latest.videoData.every((f) => f.landmarks)).toBe(true);
   });
 
   it("asks the camera for 30 fps", async () => {
@@ -279,6 +303,7 @@ describe("useVideoRecorder — tracking during recording", () => {
       let pending = null;
       let presented = 0;
       return {
+        readyState: 4,
         requestVideoFrameCallback: vi.fn((cb) => { pending = cb; return presented + 1; }),
         cancelVideoFrameCallback: vi.fn(() => { pending = null; }),
         deliver(captureTime) {

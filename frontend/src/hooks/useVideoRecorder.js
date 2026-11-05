@@ -537,8 +537,12 @@ export const useVideoRecorder = ({
         const processFrame = (meta) => {
             const now = performance.now();
             // null while a failed GPU model is being recreated on the CPU
-            // -- keep looping so tracking resumes as soon as it's ready.
-            const result = faceDetector.current ? detectFace(videoRef.current, now) : null;
+            // -- keep looping so tracking resumes as soon as it's ready. Not
+            // run before the video has a picture (an empty image would come
+            // back as "no face"): a saved no-face frame always means the
+            // model saw a camera image and found no face in it.
+            const video = videoRef.current;
+            const result = faceDetector.current && video?.readyState >= 2 ? detectFace(video, now) : null;
             const stats = trackingStatsRef.current;
             const captureTs = Number.isFinite(meta?.captureTime) && meta.captureTime > 0 ? meta.captureTime : null;
 

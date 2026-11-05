@@ -84,6 +84,38 @@ describe('transposeCoordinateTimeline', () => {
     expect(transposeCoordinateTimeline(roundCoordinateTimeline(frames))).not.toHaveProperty('captureTimestamps');
   });
 
+  // Session 614: no face in half of a retelling, which the file only showed as gaps.
+  it('lists the frames without a face separately, leaving x/y/z as they were', () => {
+    const frames = [
+      { timestamp: 100, captureTimestamp: 62, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] },
+      { timestamp: 133, captureTimestamp: 95, landmarks: null },
+      { timestamp: 166, captureTimestamp: 128, landmarks: null },
+      { timestamp: 200, captureTimestamp: 161, landmarks: [{ x: 0.4, y: 0.5, z: 0.6 }] },
+    ];
+    const result = transposeCoordinateTimeline(roundCoordinateTimeline(frames));
+    expect(result.frameCount).toBe(2);
+    expect(result.timestamps).toEqual([100, 200]);
+    expect(result.captureTimestamps).toEqual([62, 161]);
+    expect(result.x).toEqual([0.1, 0.4]);
+    expect(result.noFaceTimestamps).toEqual([133, 166]);
+    expect(result.noFaceCaptureTimestamps).toEqual([95, 128]);
+  });
+
+  it('keeps the no-face times when no frame had a face at all', () => {
+    const result = transposeCoordinateTimeline(roundCoordinateTimeline([{ timestamp: 100, landmarks: null }]));
+    expect(result).toEqual({
+      format: 'transposed-v1', frameCount: 0, landmarkCount: 0, timestamps: [], x: [], y: [], z: [],
+      noFaceTimestamps: [100],
+    });
+  });
+
+  it('adds no no-face fields when the face was always found', () => {
+    const frames = [{ timestamp: 100, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }] }];
+    const result = transposeCoordinateTimeline(roundCoordinateTimeline(frames));
+    expect(result).not.toHaveProperty('noFaceTimestamps');
+    expect(result).not.toHaveProperty('noFaceCaptureTimestamps');
+  });
+
   it('returns null when frames disagree on landmark count', () => {
     const rounded = roundCoordinateTimeline([
       { timestamp: 0, landmarks: [{ x: 0.1, y: 0.2, z: 0.3 }, { x: 0.4, y: 0.5, z: 0.6 }] },

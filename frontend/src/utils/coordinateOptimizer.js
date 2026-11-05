@@ -8,18 +8,22 @@
  * Point i's coordinates live at indices `3*i, 3*i+1, 3*i+2`. Dropping the
  * repeated x/y/z keys roughly halves the raw JSON size before gzip even
  * runs, and avoids allocating 478 objects per frame on both write and read.
+ * Frames where no face was found have `landmarks: null` and keep it.
  */
 export function roundCoordinateTimeline(timeline, precision = 4) {
   const factor = 10 ** precision;
   const round = (n) => Math.round(n * factor) / factor;
 
   return timeline.map((frame) => {
-    const landmarks = new Array(frame.landmarks.length * 3);
-    frame.landmarks.forEach((point, i) => {
-      landmarks[i * 3] = round(point.x);
-      landmarks[i * 3 + 1] = round(point.y);
-      landmarks[i * 3 + 2] = round(point.z);
-    });
+    let landmarks = null;
+    if (frame.landmarks) {
+      landmarks = new Array(frame.landmarks.length * 3);
+      frame.landmarks.forEach((point, i) => {
+        landmarks[i * 3] = round(point.x);
+        landmarks[i * 3 + 1] = round(point.y);
+        landmarks[i * 3 + 2] = round(point.z);
+      });
+    }
     return {
       timestamp: Math.round(frame.timestamp), // ms precision is enough
       // Camera capture time, where the browser reports it (see useVideoRecorder)
@@ -47,11 +51,25 @@ export function roundCoordinateTimeline(timeline, precision = 4) {
  * (the model is expected to always emit a fixed topology per detected face,
  * but if that ever isn't true, transposing would silently produce wrong
  * data — callers should fall back to the untransposed shape instead).
+ *
+ * Frames where the model found no face (`landmarks: null`) are not part of
+ * the x/y/z arrays; their times go to `noFaceTimestamps` (and
+ * `noFaceCaptureTimestamps`, like captureTimestamps). Every processed frame
+ * is thus in one of the two lists; a gap in both means no frame was
+ * processed then (camera stall, or idle time on a slow phone).
  */
-export function transposeCoordinateTimeline(timeline) {
+export function transposeCoordinateTimeline(allFrames) {
+  const noFace = allFrames.filter((frame) => !frame.landmarks);
+  const noFaceFields = noFace.length > 0 && {
+    noFaceTimestamps: noFace.map((frame) => frame.timestamp),
+    ...(noFace.some((frame) => Number.isFinite(frame.captureTimestamp)) && {
+      noFaceCaptureTimestamps: noFace.map((frame) => (Number.isFinite(frame.captureTimestamp) ? frame.captureTimestamp : null)),
+    }),
+  };
+  const timeline = allFrames.filter((frame) => frame.landmarks);
   const frameCount = timeline.length;
   if (frameCount === 0) {
-    return { format: "transposed-v1", frameCount: 0, landmarkCount: 0, timestamps: [], x: [], y: [], z: [] };
+    return { format: "transposed-v1", frameCount: 0, landmarkCount: 0, timestamps: [], x: [], y: [], z: [], ...noFaceFields };
   }
 
   const counts = new Map();
@@ -87,6 +105,7 @@ export function transposeCoordinateTimeline(timeline) {
     ...(hasCapture && {
       captureTimestamps: timeline.map((frame) => (Number.isFinite(frame.captureTimestamp) ? frame.captureTimestamp : null)),
     }),
+    ...noFaceFields,
     x, y, z,
   };
 }
