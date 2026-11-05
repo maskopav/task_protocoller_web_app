@@ -15,7 +15,7 @@ vi.mock("../utils/frontendLogger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-import { useVideoRecorder, resetChosenDelegate } from "./useVideoRecorder";
+import { useVideoRecorder } from "./useVideoRecorder";
 import { logger } from "../utils/frontendLogger";
 
 let latest = null;
@@ -503,112 +503,30 @@ describe("useVideoRecorder — tracking during recording", () => {
     });
   });
 
-  describe("calibration benchmark (slow GPU -> try the CPU model)", () => {
-    beforeEach(() => resetChosenDelegate());
-    afterEach(() => resetChosenDelegate());
+  // The calibration GPU/CPU benchmark was removed: on the slow Android
+  // (session 613, GPU 530 ms) the CPU model never finished loading during
+  // calibration, only loading the phone further, and a CPU model would reach
+  // 2-3 fps at best. A slow GPU is simply used.
+  it("calibrates on a slow GPU with that one model, without loading a second", async () => {
+    let extra = 0;
+    const realNow = performance.now.bind(performance);
+    vi.spyOn(performance, "now").mockImplementation(() => realNow() + extra);
+    const gpu = { detectForVideo: vi.fn(() => { extra += 530; return noFace; }), close: vi.fn() };
+    createFromOptions.mockImplementation(async () => gpu);
 
-    // The next task on the same page: a fresh recorder that loads its own model.
-    function nextTask() {
-      act(() => root.unmount());
-      act(() => {
-        root = createRoot(container);
-        root.render(<Harness />);
-      });
-      logger.info.mockClear();
-      createFromOptions.mockClear();
-    }
-    const loadedDelegates = () => createFromOptions.mock.calls.map((c) => c[1].baseOptions.delegate);
-
-    // GPU and CPU models whose detections take the given time:
-    // performance.now() moves on by that much while one runs.
-    function models(gpuMs, cpuMs) {
-      let extra = 0;
-      const realNow = performance.now.bind(performance);
-      vi.spyOn(performance, "now").mockImplementation(() => realNow() + extra);
-      const model = (ms) => ({ detectForVideo: vi.fn(() => { extra += ms; return noFace; }), close: vi.fn() });
-      const gpu = model(gpuMs);
-      const cpu = model(cpuMs);
-      createFromOptions.mockImplementation(async (_vision, opts) => (opts.baseOptions.delegate === "GPU" ? gpu : cpu));
-      return { gpu, cpu };
-    }
-    const benchmarkLog = () => logger.info.mock.calls.find(([msg]) => msg === "face_model_benchmark")?.[1];
-
-    // Runs `steps` calibration detections (slow ones schedule the next at 0 ms).
-    async function calibrate(steps) {
-      await act(async () => { await latest.getMediaPermission(); });
-      act(() => {
-        latest.attachVideoRef({ readyState: 4, videoWidth: 640, videoHeight: 480 });
-        latest.canvasRef.current = { width: 640, height: 480, getContext: () => ({ clearRect: vi.fn() }) };
-        latest.startFaceDetection();
-      });
-      for (let i = 0; i < steps; i++) {
-        await act(async () => { await vi.advanceTimersToNextTimerAsync(); });
-      }
+    await act(async () => { await latest.getMediaPermission(); });
+    act(() => {
+      latest.attachVideoRef({ readyState: 4, videoWidth: 640, videoHeight: 480 });
+      latest.canvasRef.current = { width: 640, height: 480, getContext: () => ({ clearRect: vi.fn() }) };
+      latest.startFaceDetection();
+    });
+    for (let i = 0; i < 30; i++) {
+      await act(async () => { await vi.advanceTimersToNextTimerAsync(); });
     }
 
-    function recordBriefly() {
-      act(() => latest.startRecording());
-      act(() => latest.stopRecording());
-    }
-
-    it("switches to the CPU model when the GPU is slow and the CPU clearly faster", async () => {
-      const { gpu, cpu } = models(216, 100); // GPU time: session 585 (Chrome, Android)
-      await calibrate(40);
-
-      expect(benchmarkLog()).toEqual({ gpuMs: 216, cpuMs: 100, chosen: "CPU" });
-      expect(gpu.close).toHaveBeenCalled();
-      const before = cpu.detectForVideo.mock.calls.length;
-      recordBriefly();
-      expect(cpu.detectForVideo.mock.calls.length).toBeGreaterThan(before);
-      expect(finalizedLog().delegate).toBe("CPU");
-
-      // The next task of the session loads the CPU model directly.
-      nextTask();
-      await calibrate(15);
-      expect(loadedDelegates()).toEqual(["CPU"]);
-      expect(logger.info).toHaveBeenCalledWith("face_model_delegate", { delegate: "CPU", reason: "benchmark" });
-      expect(benchmarkLog()).toBeUndefined();
-    });
-
-    it("keeps the GPU when the CPU is not clearly faster", async () => {
-      const { gpu, cpu } = models(216, 180); // 83% of the GPU time
-      await calibrate(40);
-
-      expect(benchmarkLog()).toEqual({ gpuMs: 216, cpuMs: 180, chosen: "GPU" });
-      expect(cpu.close).toHaveBeenCalled();
-      expect(gpu.close).not.toHaveBeenCalled();
-      recordBriefly();
-      expect(finalizedLog().delegate).toBe("GPU");
-
-      // The next task of the session keeps the GPU without benchmarking again.
-      nextTask();
-      await calibrate(15);
-      expect(loadedDelegates()).toEqual(["GPU"]);
-      expect(benchmarkLog()).toBeUndefined();
-    });
-
-    it("does not try the CPU on a phone with a fast GPU, only logs the GPU time", async () => {
-      models(25, 100);
-      await calibrate(40);
-
-      expect(benchmarkLog()).toEqual({ gpuMs: 25, cpuMs: null, chosen: "GPU" });
-      expect(createFromOptions).toHaveBeenCalledTimes(1);
-    });
-
-    it("records with the GPU and remembers nothing when recording starts before the benchmark finished", async () => {
-      const { cpu } = models(216, 100);
-      await calibrate(12); // GPU timed; the CPU model is loading or being timed
-      recordBriefly();
-      await act(async () => {}); // a CPU model still loading is closed when it arrives
-
-      expect(benchmarkLog()).toEqual(expect.objectContaining({ chosen: "GPU", cancelled: true }));
-      expect(finalizedLog().delegate).toBe("GPU");
-      expect(cpu.close).toHaveBeenCalled();
-
-      // The next task benchmarks again.
-      nextTask();
-      await calibrate(40);
-      expect(benchmarkLog()).toEqual({ gpuMs: 216, cpuMs: 100, chosen: "CPU" });
-    });
+    expect(gpu.detectForVideo.mock.calls.length).toBeGreaterThanOrEqual(20);
+    expect(createFromOptions).toHaveBeenCalledTimes(1);
+    expect(createFromOptions.mock.calls[0][1].baseOptions.delegate).toBe("GPU");
+    expect(gpu.close).not.toHaveBeenCalled();
   });
 });

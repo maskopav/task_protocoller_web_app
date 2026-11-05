@@ -46,20 +46,6 @@ const SLOW_DETECT_MS = 100;
 const PREFERRED_DELEGATE = 'GPU';
 const FALLBACK_DELEGATE = 'CPU';
 
-// Calibration benchmark (see benchmarkStep): if the GPU model needs more than
-// SLOW_GPU_MS per frame (216 ms in Chrome and 425 ms in Firefox on one
-// Android, sessions 584/585, vs 17-55 ms on all other phones), the CPU model
-// is timed too and kept if it needs at most CPU_MAX_TIME_RATIO of the GPU's
-// time. The result is kept in memory only (nothing is written to the browser;
-// a page reload forgets it), so the later tasks of the session use the same
-// model (GPU and CPU landmarks differ very slightly) without benchmarking again.
-const SLOW_GPU_MS = 150;
-const BENCHMARK_FRAMES = 10;
-const CPU_MAX_TIME_RATIO = 0.7;
-let chosenDelegate = null;
-// For tests only: forget the benchmark result.
-export const resetChosenDelegate = () => { chosenDelegate = null; };
-
 const FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 const VISION_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
 
@@ -161,8 +147,6 @@ export const useVideoRecorder = ({
     const cpuSwitchRef = useRef(null);
     const trackingStatsRef = useRef(null);
     const lastDetectTsRef = useRef(0);
-    // Calibration benchmark state, see benchmarkStep.
-    const benchmarkRef = useRef({ phase: 'gpu', gpuMs: [], cpuMs: [], gpu: null });
     const audioRecorder = useRef(null);
 
     const [isLoadingModel, setIsLoadingModel] = useState(false);
@@ -263,77 +247,6 @@ export const useVideoRecorder = ({
         }
     };
 
-    // Calibration benchmark, fed with each calibration detection's time (ms;
-    // null when it failed). Phases: 'gpu' (timing the GPU) -> 'loadingCpu'
-    // (only if the GPU is slow; calibration carries on with the GPU) -> 'cpu'
-    // (timing the CPU model) -> 'done'. Runs only during calibration, before
-    // any audio is recorded, and never with a fast GPU or once this page has
-    // chosen a model. Recording always starts with one fixed model:
-    // startRecording ends an unfinished benchmark with the GPU (finishBenchmark(true)).
-    const benchmarkStep = (ms) => {
-        const b = benchmarkRef.current;
-        if (b.phase === 'gpu') {
-            if (ms == null || delegateRef.current !== PREFERRED_DELEGATE || chosenDelegate) {
-                b.phase = 'done';
-                return;
-            }
-            b.gpuMs.push(ms);
-            if (b.gpuMs.length < BENCHMARK_FRAMES) return;
-            if (median(b.gpuMs) <= SLOW_GPU_MS) {
-                b.phase = 'done';
-                // Logged too, so the calibration time can be compared with the recording's detectMs.
-                logger.info("face_model_benchmark", { gpuMs: median(b.gpuMs), cpuMs: null, chosen: PREFERRED_DELEGATE });
-                return;
-            }
-            b.phase = 'loadingCpu';
-            const gpu = faceDetector.current;
-            createLandmarker(FALLBACK_DELEGATE)
-                .then((cpu) => {
-                    // Cancelled meanwhile, or the GPU model was replaced (runtime error).
-                    if (b.phase !== 'loadingCpu' || faceDetector.current !== gpu) {
-                        cpu.close?.();
-                        if (b.phase === 'loadingCpu') b.phase = 'done';
-                        return;
-                    }
-                    b.gpu = gpu;
-                    faceDetector.current = cpu;
-                    delegateRef.current = FALLBACK_DELEGATE;
-                    b.phase = 'cpu';
-                })
-                .catch((err) => {
-                    logger.warn("face_model_benchmark_cpu_failed", { error: err?.message || String(err) });
-                    if (b.phase === 'loadingCpu') finishBenchmark();
-                });
-        } else if (b.phase === 'cpu') {
-            if (ms != null) b.cpuMs.push(ms);
-            if (ms == null || b.cpuMs.length >= BENCHMARK_FRAMES) finishBenchmark();
-        }
-    };
-
-    // Keeps the faster model and closes the other. cancelled: recording
-    // started first -- the GPU is kept and nothing is remembered, so the next
-    // task's calibration benchmarks again.
-    const finishBenchmark = (cancelled = false) => {
-        const b = benchmarkRef.current;
-        const gpuMs = median(b.gpuMs);
-        const cpuMs = median(b.cpuMs);
-        const useCpu = !cancelled && b.cpuMs.length >= BENCHMARK_FRAMES && cpuMs <= gpuMs * CPU_MAX_TIME_RATIO;
-        if (b.phase === 'cpu') {
-            const drop = useCpu ? b.gpu : faceDetector.current;
-            if (!useCpu) {
-                faceDetector.current = b.gpu;
-                delegateRef.current = PREFERRED_DELEGATE;
-            }
-            try { drop?.close?.(); } catch { /* already closed */ }
-        }
-        b.phase = 'done';
-        b.gpu = null;
-        logger.info("face_model_benchmark", {
-            gpuMs, cpuMs, chosen: useCpu ? FALLBACK_DELEGATE : PREFERRED_DELEGATE, ...(cancelled && { cancelled: true }),
-        });
-        if (!cancelled) chosenDelegate = useCpu ? FALLBACK_DELEGATE : PREFERRED_DELEGATE;
-    };
-
     // Loads the face-tracking model, independent of camera permission, so it
     // can be kicked off as early as possible (e.g. on mount, while the
     // participant is still reading the permission intro / instructions) to
@@ -348,14 +261,6 @@ export const useVideoRecorder = ({
         const load = async () => {
             const { FilesetResolver } = await import("@mediapipe/tasks-vision");
             visionRef.current = await FilesetResolver.forVisionTasks(VISION_WASM_URL);
-            if (chosenDelegate === FALLBACK_DELEGATE) {
-                try {
-                    faceDetector.current = await createLandmarker(FALLBACK_DELEGATE);
-                    delegateRef.current = FALLBACK_DELEGATE;
-                    logger.info("face_model_delegate", { delegate: FALLBACK_DELEGATE, reason: "benchmark" });
-                    return;
-                } catch { /* load as usual below */ }
-            }
             try {
                 faceDetector.current = await createLandmarker(PREFERRED_DELEGATE);
                 delegateRef.current = PREFERRED_DELEGATE;
@@ -483,11 +388,10 @@ export const useVideoRecorder = ({
             
             if (video.readyState >= 2) {
                 const result = detectFace(video, now);
-                benchmarkStep(result ? performance.now() - now : null);
 
                 if (result?.faceLandmarks?.length > 0) {
                     const landmarks = result.faceLandmarks[0];
-                    
+
                     // Draw DEBUG coordinates
                     if (debugMode) {
                         ctx.fillStyle = 'white';
@@ -603,8 +507,6 @@ export const useVideoRecorder = ({
         if (!streamRef.current) return;
         
         isCalibratingRef.current = false; // Stop drawing green dots
-        // Record with one fixed model: an unfinished benchmark keeps the GPU.
-        if (['loadingCpu', 'cpu'].includes(benchmarkRef.current.phase)) finishBenchmark(true);
         setVideoData(null);
 
         // Clear the canvas so the frozen dots disappear
@@ -650,6 +552,10 @@ export const useVideoRecorder = ({
                 if (stats.firstTs === null) stats.firstTs = now;
                 stats.lastTs = now;
             } else if (result) {
+                // Kept too, without landmarks, so the file shows when the face
+                // was out of view (half of a retelling in session 614), not
+                // only how often (coordinateOptimizer lists these separately).
+                coordinateTimeline.current.push({ timestamp: now, captureTimestamp: captureTs, landmarks: null });
                 stats.framesWithoutFace++;
             }
             const end = performance.now();
@@ -801,7 +707,8 @@ export const useVideoRecorder = ({
             const cam = streamRef.current?.getVideoTracks?.()[0]?.getSettings?.() || {};
             logger.info("video_recording_finalized", {
                 delegate: delegateRef.current,
-                ...summarizeTracking(trackingStatsRef.current, coordinateTimeline.current.map((f) => f.timestamp)),
+                ...summarizeTracking(trackingStatsRef.current,
+                    coordinateTimeline.current.filter((f) => f.landmarks).map((f) => f.timestamp)),
                 camera: { width: cam.width, height: cam.height, frameRate: cam.frameRate },
             });
             trackingStatsRef.current = null;
