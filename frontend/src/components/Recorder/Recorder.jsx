@@ -159,7 +159,13 @@ export const Recorder = ({
             vadHelpersRef.current?.clearSilenceState();
             vadHelpersRef.current?.resetSilenceClock();
         },
-        onStartNextTopic: () => vadHelpersRef.current?.resetSpeechTrackers()
+        onStartNextTopic: () => {
+            // Like Start: stop the topic guide before the mic reopens. It kept
+            // playing through the ~1 s reopen, louder once the iPhone switched
+            // to recording mode, and only stopped once recording ran (session 612).
+            onBeforeRecordingStart();
+            vadHelpersRef.current?.resetSpeechTrackers();
+        }
     });
 
     const {
@@ -550,24 +556,23 @@ export const Recorder = ({
         return hasPermission;
     };
 
-    // Starts calibration proper (mic permission + face detection). Assumes
-    // camera permission has already been granted via
-    // handleRequestCameraPermission — called after the user confirms the
-    // task instructions dialog ("Ready").
+    // Starts calibration proper (face detection). Assumes camera permission
+    // has already been granted via handleRequestCameraPermission — called
+    // after the user confirms the task instructions dialog ("Ready"). The mic
+    // is not opened here: its permission was checked on mount, and even
+    // opening it for a moment switched the iPhone into recording mode, so the
+    // instructions playing through calibration got louder (session 610).
     const startCalibrationInFlightRef = useRef(false);
 
     const handleStartCalibration = async () => {
         if (startCalibrationInFlightRef.current) return;
         startCalibrationInFlightRef.current = true;
         setPhase('CALIBRATE');
-        
-        // Keep state perfectly in sync before the async mic request
+
         if (onRecordingStateChange) {
             onRecordingStateChange(true, false);
         }
-        
-        // Pass `true` to instantly release the track after caching permission
-        await getMicrophonePermission(true); 
+
         videoRecorder.startFaceDetection();
         startCalibrationInFlightRef.current = false;
     };
