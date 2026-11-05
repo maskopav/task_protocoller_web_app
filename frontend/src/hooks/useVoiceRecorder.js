@@ -657,6 +657,11 @@ export const useVoiceRecorder = (options = {}) => {
             }
             if (event.data.segmentEnd) {
                 audioClockRef.current?.segmentEnd(audioContext.current, event.data.segmentEnd);
+                // A pause is anchored: drop the stream (its track was stopped at
+                // the pause), so the VAD releases its copy of the mic too and the
+                // iPhone leaves recording mode for the topic clip (session 610).
+                // After the anchor, so the switch can't delay it. Resume opens a new one.
+                if (statusRef.current === PAUSED) setStream(null);
                 return;
             }
             if (!event.data.buffer) return; // { done: true } - see waitForWorkletTail

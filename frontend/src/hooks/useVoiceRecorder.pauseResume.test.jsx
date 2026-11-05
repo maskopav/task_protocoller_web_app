@@ -141,6 +141,31 @@ describe("useVoiceRecorder — pause, resume and stop", () => {
     expect(latest.recordingStatus).toBe("recording");
   });
 
+  // Session 610 (iPhone): the VAD's copy of the mic (a clone of `stream`) kept
+  // the phone in recording mode through a topic pause, so the topic clip was
+  // too loud. Dropping `stream` once the pause is anchored lets the VAD release it.
+  it("drops the stream once the worklet has confirmed the pause", async () => {
+    await startThenPause();
+    expect(latest.stream).not.toBeNull();
+
+    act(() => lastWorklet.port.onmessage({ data: { segmentEnd: { sampleIndex: 0, contextFrame: 0 } } }));
+    expect(latest.stream).toBeNull();
+
+    await act(async () => { await latest.resumeRecording({ reason: "next_topic", topicIndex: 1 }); });
+    expect(getUserMedia).toHaveBeenCalledTimes(1);
+    expect(latest.stream).not.toBeNull();
+    expect(latest.recordingStatus).toBe("recording");
+  });
+
+  it("keeps the stream when the pause's confirmation arrives after the resume", async () => {
+    await startThenPause();
+    await act(async () => { await latest.resumeRecording({ reason: "next_topic", topicIndex: 1 }); });
+    const resumed = latest.stream;
+
+    act(() => lastWorklet.port.onmessage({ data: { segmentEnd: { sampleIndex: 0, contextFrame: 0 } } }));
+    expect(latest.stream).toBe(resumed);
+  });
+
   it("logs the pause with its reason and topic", async () => {
     await startThenPause();
     expect(logger.info).toHaveBeenCalledWith("recording_paused", expect.objectContaining({

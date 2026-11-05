@@ -325,8 +325,9 @@ export const useVadLogic = ({
             // At Stop, release the VAD's copy of the mic too; the recorder
             // releases its own once the take is saved. Left live until the
             // task unmounted, it kept the iPhone in recording mode after Stop,
-            // so playback there ran at a different volume (session 610). Kept
-            // through a pause: the next resume brings a new stream anyway.
+            // so playback there ran at a different volume (session 610). A
+            // pause releases it through the cleanup above: the recorder drops
+            // `stream` once the pause is anchored (useVoiceRecorder).
             if (recordingStatus === RECORDING_STATES.RECORDED) {
                 vadInstance.current.stream?.getTracks().forEach((track) => track.stop());
             }
