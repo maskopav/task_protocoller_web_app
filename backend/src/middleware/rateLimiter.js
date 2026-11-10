@@ -91,6 +91,19 @@ export function createCheckinLimiter(overrides = {}) {
   });
 }
 
+// POST /device-logs — public, authenticated by the site token. A device sends a
+// handful of rotated files after a config refresh or an upload batch.
+export function createDeviceLogLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+    ...overrides,
+  });
+}
+
 export const loginLimiter = createLoginLimiter();
 export const authLimiter = createAuthLimiter();
 export const logLimiter = createLogLimiter();

@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS `session_comments` (
 CREATE TABLE IF NOT EXISTS `audit_log` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `user_id` integer DEFAULT NULL,
-  `action` enum('reveal','download','bundle','participant_edit','qc_change') NOT NULL,
+  `action` enum('reveal','download','bundle','participant_edit','qc_change','device_log_view','device_log_download') NOT NULL,
   `upload_session_id` integer DEFAULT NULL,
   `details` JSON DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -116,6 +116,29 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
   FOREIGN KEY (`upload_session_id`) REFERENCES `upload_sessions` (`id`) ON DELETE SET NULL,
   INDEX `audit_log_session` (`upload_session_id`)
 );
+
+-- Device logs (docs/device_logs/01_spec.md section 3): rotated app logs sent by
+-- the desktop app. The gzip file lives at DATA_PATH/device-logs/<device_id>/<sha256>.log.gz.
+CREATE TABLE IF NOT EXISTS `device_logs` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `device_id` integer NOT NULL,
+  `site_id` integer DEFAULT NULL COMMENT 'Clinic at receipt time',
+  `file_name` varchar(64) NOT NULL,
+  `sha256` char(64) NOT NULL,
+  `bytes` bigint NOT NULL,
+  `utc_offset` char(6) NOT NULL,
+  `app_version` varchar(32) NOT NULL,
+  `received_at` datetime NOT NULL,
+  UNIQUE KEY `device_logs_device_sha` (`device_id`, `sha256`),
+  INDEX `device_logs_site_received` (`site_id`, `received_at`),
+  INDEX `device_logs_received` (`received_at`),
+  FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`site_id`) REFERENCES `sites` (`id`) ON DELETE SET NULL
+);
+
+-- An existing database keeps its old audit_log enum under CREATE TABLE IF NOT
+-- EXISTS; this widens it. Re-running it with the same list changes nothing.
+ALTER TABLE `audit_log` MODIFY `action` enum('reveal','download','bundle','participant_edit','qc_change','device_log_view','device_log_download') NOT NULL;
 
 CREATE TABLE IF NOT EXISTS `backup_runs` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,

@@ -21,7 +21,7 @@ const isCount = (v) => Number.isInteger(v) && v >= 0 && v <= MAX_COUNT;
 // device that belongs to another clinic (that would pull the foreign device,
 // its backlog and its later tokenless uploads into the token holder's scope).
 // Moving a device between sites is the master's PUT /devices/:id/site.
-async function belongsToOtherSite(installationId, siteId) {
+export async function belongsToOtherSite(installationId, siteId) {
   const rows = await executeQuery(`SELECT site_id FROM devices WHERE installation_id = ?`, [installationId]);
   return rows.length > 0 && rows[0].site_id != null && Number(rows[0].site_id) !== Number(siteId);
 }

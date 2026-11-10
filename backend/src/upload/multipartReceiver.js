@@ -33,12 +33,22 @@ const FORMATS = {
   appVersion: /^[^\x00-\x1f\x7f]{1,32}$/,
 };
 const REQUIRED = ["installationId", "sessionId", "zipSha256"];
-const TEXT_PARTS = new Set(Object.keys(FORMATS));
+
+// POST /device-logs (docs/device_logs/01_spec.md §2.1): the same receiver with
+// its own parts. Every part is required and the file part is named `file`.
+const DEVICE_LOG_FORMATS = {
+  siteToken: FORMATS.siteToken,
+  installationId: FORMATS.installationId,
+  appVersion: FORMATS.appVersion,
+  utcOffset: /^[+-]\d{2}:\d{2}$/,
+  fileName: /^app\.\d{4}-\d{2}-\d{2}\.\d{1,3}\.log\.gz$/,
+  sha256: /^[0-9a-f]{64}$/,
+};
 
 // The well-formed identifiers of a rejected request, so the caller can still
 // write the upload_attempts row (spec §3.3: every request that got as far as a
 // valid sessionId is recorded). Only values that passed their format check.
-function attemptContext(fields) {
+function uploadAttemptContext(fields) {
   const ok = (name) => (FORMATS[name].test(fields[name] ?? "") ? fields[name] : null);
   return { sessionId: ok("sessionId"), installationId: ok("installationId"), zipSha256: ok("zipSha256") };
 }
@@ -55,7 +65,31 @@ function attemptContext(fields) {
  *   file: {tempPath: string, bytes: number, sha256: string}
  * }>}  rejects with UploadRequestError (400) for a malformed request
  */
-export async function receiveUpload(req, { store, maxBytes }) {
+export function receiveUpload(req, { store, maxBytes }) {
+  return receiveMultipart(req, {
+    store, maxBytes, formats: FORMATS, required: REQUIRED, filePart: "zip",
+    tooLarge: { httpCode: 400, error: "too_large" }, attemptContext: uploadAttemptContext,
+  });
+}
+
+/**
+ * Same streaming receiver for POST /device-logs: every text part first, the
+ * `file` part last, an over-limit file is 413 `too_large`.
+ *
+ * @returns {Promise<{fields: Record<string, string>, file: {tempPath: string, bytes: number, sha256: string}}>}
+ */
+export function receiveDeviceLog(req, { store, maxBytes }) {
+  return receiveMultipart(req, {
+    store, maxBytes, formats: DEVICE_LOG_FORMATS, required: Object.keys(DEVICE_LOG_FORMATS), filePart: "file",
+    tooLarge: { httpCode: 413, error: "too_large" },
+    // A mistyped token in the app's Settings must read as "retry later" (404), not as an
+    // unsendable file (400): a malformed token is answered like an unknown one.
+    softFormat: { siteToken: { httpCode: 404, error: "invalid_token" } },
+  });
+}
+
+async function receiveMultipart(req, { store, maxBytes, formats, required, filePart, tooLarge, attemptContext, softFormat = {} }) {
+  const TEXT_PARTS = new Set(Object.keys(formats));
   let bb;
   try {
     bb = busboy({
@@ -74,7 +108,7 @@ export async function receiveUpload(req, { store, maxBytes }) {
 
   return new Promise((resolve, reject) => {
     const fields = {};
-    let zipSeen = false;
+    let fileSeen = false;
     let tempPath = null;
     let out = null;
     let fileDone = null;
@@ -96,7 +130,7 @@ export async function receiveUpload(req, { store, maxBytes }) {
       } catch {
         // The rejection below matters more than a leftover temp file.
       }
-      if (err instanceof UploadRequestError) Object.assign(err, { attempt: attemptContext(fields) });
+      if (attemptContext && err instanceof UploadRequestError) Object.assign(err, { attempt: attemptContext(fields) });
       // Answering while the client is still sending makes Node close the
       // socket with unread data, and the client sees a connection reset
       // instead of the 400. nginx caps the body, so draining is bounded.
@@ -112,7 +146,7 @@ export async function receiveUpload(req, { store, maxBytes }) {
 
     bb.on("field", (name, value, info) => {
       if (settled) return;
-      if (zipSeen || !TEXT_PARTS.has(name) || name in fields || info.nameTruncated || info.valueTruncated) {
+      if (fileSeen || !TEXT_PARTS.has(name) || name in fields || info.nameTruncated || info.valueTruncated) {
         return bad();
       }
       fields[name] = value;
@@ -121,16 +155,21 @@ export async function receiveUpload(req, { store, maxBytes }) {
     bb.on("file", (name, stream, _info) => {
       // _info carries the client filename (<patientCode>_<sessionId>.zip):
       // personal data, deliberately never read.
-      if (settled || name !== "zip" || zipSeen) {
+      if (settled || name !== filePart || fileSeen) {
         stream.resume();
         return bad();
       }
-      zipSeen = true;
-      const malformed = REQUIRED.some((k) => !(k in fields))
-        || Object.entries(fields).some(([k, v]) => !FORMATS[k].test(v));
+      fileSeen = true;
+      const malformed = required.some((k) => !(k in fields))
+        || Object.entries(fields).some(([k, v]) => !(k in softFormat) && !formats[k].test(v));
       if (malformed) {
         stream.resume();
         return bad();
+      }
+      const soft = Object.entries(softFormat).find(([k]) => k in fields && !formats[k].test(fields[k]));
+      if (soft) {
+        stream.resume();
+        return fail(new UploadRequestError(soft[1].httpCode, soft[1].error));
       }
 
       tempPath = store.tempPath();
@@ -144,24 +183,36 @@ export async function receiveUpload(req, { store, maxBytes }) {
         },
       });
       let writeError = null;
+      // A failure to make the temp folder or file is ours (500), never the client's (400).
+      let setupError = null;
       fileDone = (async () => {
-        await fsp.mkdir(path.dirname(tempPath), { recursive: true });
+        try {
+          await fsp.mkdir(path.dirname(tempPath), { recursive: true });
+        } catch (e) {
+          setupError = e;
+          throw e;
+        }
         // Rejected while the folder was being made: never create the file.
         if (settled) {
           stream.resume();
           return null;
         }
-        out =fs.createWriteStream(tempPath, { flags: "wx" });
+        try {
+          out = fs.createWriteStream(tempPath, { flags: "wx" });
+        } catch (e) {
+          setupError = e;
+          throw e;
+        }
         out.on("error", (e) => { writeError = e; });
         await pipeline(stream, hasher, out);
         // busboy stops at limits.fileSize and ends the stream normally; only
         // this flag tells a complete file from a cut-off one.
-        if (stream.truncated) throw new UploadRequestError(400, "too_large");
+        if (stream.truncated) throw new UploadRequestError(tooLarge.httpCode, tooLarge.error);
         return { tempPath, bytes, sha256: hash.digest("hex") };
       })().catch((err) => {
-        // A disk failure is ours (500); anything else on the way in is the
+        // A disk failure (setup or write) is ours (500); anything else on the way in is the
         // client's malformed or aborted transfer (400).
-        fail(err instanceof UploadRequestError ? err : writeError ?? new UploadRequestError(400, "bad_request"));
+        fail(err instanceof UploadRequestError ? err : writeError ?? setupError ?? new UploadRequestError(400, "bad_request"));
         return null;
       });
     });
@@ -173,7 +224,7 @@ export async function receiveUpload(req, { store, maxBytes }) {
 
     bb.on("close", async () => {
       if (settled) return;
-      if (!zipSeen) return bad();
+      if (!fileSeen) return bad();
       const file = await fileDone;
       if (settled || !file) return;
       settled = true;

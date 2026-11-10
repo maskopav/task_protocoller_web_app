@@ -29,6 +29,13 @@ export function loadUploadConfig(env = process.env) {
       // so a flood can never fill the disk the DB and backups share.
       minFreeBytes: Number(env.MIN_FREE_BYTES) || 5 * GiB,
     },
+    // Device logs (docs/device_logs/01_spec.md §3). The per-file limit stays
+    // under nginx's 6 MB /api/ body limit.
+    deviceLogs: {
+      maxBytes: Number(env.DEVICE_LOG_MAX_BYTES) || 5 * 1024 ** 2,
+      retentionDays: Number(env.DEVICE_LOG_RETENTION_DAYS) || 90,
+      totalMaxBytes: Number(env.DEVICE_LOGS_MAX_BYTES) || 2 * GiB,
+    },
     backup: {
       target: env.BACKUP_TARGET || null,
       dbKeep: Number(env.BACKUP_DB_KEEP) || 14,

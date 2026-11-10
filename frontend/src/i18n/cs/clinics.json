@@ -42,6 +42,7 @@
     "studies": "Studie",
     "computers": "Počítače",
     "recordings": "Záznamy",
+    "logs": "Logy",
     "settings": "Nastavení"
   },
   "list": {
@@ -115,6 +116,21 @@
     "move": "Přesunout na jinou kliniku…",
     "emptyTitle": "Zatím žádné počítače",
     "emptyBody": "Počítač se zde objeví poté, co desktopová aplikace stáhne konfiguraci s přístupovým tokenem této kliniky."
+  },
+  "logs": {
+    "title": "Logy",
+    "hint": "Soubory logů odeslané počítači této kliniky. Uchovávají se 90 dní.",
+    "columns": {
+      "file": "Soubor",
+      "size": "Velikost",
+      "received": "Přijato",
+      "offset": "Posun UTC",
+      "version": "Verze aplikace"
+    },
+    "view": "Zobrazit",
+    "download": "Stáhnout",
+    "emptyTitle": "Zatím žádné logy",
+    "emptyBody": "Počítač odesílá své soubory logů automaticky po obnovení konfigurace nebo po nahrání sezení."
   },
   "connection": {
     "title": "Připojení počítače",

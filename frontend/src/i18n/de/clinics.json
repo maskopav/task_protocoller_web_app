@@ -42,6 +42,7 @@
     "studies": "Studien",
     "computers": "Computer",
     "recordings": "Aufnahmen",
+    "logs": "Protokolle",
     "settings": "Einstellungen"
   },
   "list": {
@@ -115,6 +116,21 @@
     "move": "In andere Klinik verschieben…",
     "emptyTitle": "Noch keine Computer",
     "emptyBody": "Ein Computer erscheint hier, sobald die Desktop-App ihre Konfiguration mit dem Zugangstoken dieser Klinik abgerufen hat."
+  },
+  "logs": {
+    "title": "Protokolle",
+    "hint": "Protokolldateien, die die Computer dieser Klinik gesendet haben. Sie werden 90 Tage aufbewahrt.",
+    "columns": {
+      "file": "Datei",
+      "size": "Größe",
+      "received": "Empfangen",
+      "offset": "UTC-Versatz",
+      "version": "App-Version"
+    },
+    "view": "Ansehen",
+    "download": "Herunterladen",
+    "emptyTitle": "Noch keine Protokolle",
+    "emptyBody": "Ein Computer sendet seine Protokolldateien automatisch, nachdem er seine Konfiguration aktualisiert oder Sitzungen hochgeladen hat."
   },
   "connection": {
     "title": "Computer verbinden",

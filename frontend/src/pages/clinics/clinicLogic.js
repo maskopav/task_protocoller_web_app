@@ -14,6 +14,33 @@ export function computerStatus(d) {
 
 export const computerName = (d) => d.label || d.installationId;
 
+/** "812 B", "14.2 KB", "1.3 MB". */
+export function formatBytes(n) {
+  const v = Number(n) || 0;
+  if (v < 1024) return `${v} B`;
+  if (v < 1024 ** 2) return `${(v / 1024).toFixed(1)} KB`;
+  return `${(v / 1024 ** 2).toFixed(1)} MB`;
+}
+
+/**
+ * Device logs (newest first, as the API sends them) -> one group per computer,
+ * named by its label with the installation id as fallback. Groups keep the
+ * order of their newest file; files stay newest first.
+ */
+export function groupLogsByComputer(logs) {
+  const groups = new Map();
+  for (const l of logs) {
+    if (!groups.has(l.deviceId)) {
+      groups.set(l.deviceId, {
+        deviceId: l.deviceId, label: l.deviceLabel || null, installationId: l.installationId,
+        name: l.deviceLabel || l.installationId, logs: [],
+      });
+    }
+    groups.get(l.deviceId).logs.push(l);
+  }
+  return [...groups.values()];
+}
+
 /** Worst first, then by name. */
 export function sortComputers(devices) {
   return [...devices].sort(

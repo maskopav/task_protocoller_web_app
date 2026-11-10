@@ -42,6 +42,7 @@
     "studies": "Studies",
     "computers": "Computers",
     "recordings": "Recordings",
+    "logs": "Logs",
     "settings": "Settings"
   },
   "list": {
@@ -115,6 +116,21 @@
     "move": "Move to another clinic…",
     "emptyTitle": "No computers yet",
     "emptyBody": "A computer appears here after the desktop app downloads its configuration with this clinic's access token."
+  },
+  "logs": {
+    "title": "Logs",
+    "hint": "Log files sent by this clinic's computers. They are kept for 90 days.",
+    "columns": {
+      "file": "File",
+      "size": "Size",
+      "received": "Received",
+      "offset": "UTC offset",
+      "version": "App version"
+    },
+    "view": "View",
+    "download": "Download",
+    "emptyTitle": "No logs yet",
+    "emptyBody": "A computer sends its log files automatically after it refreshes its configuration or uploads sessions."
   },
   "connection": {
     "title": "Connect a computer",

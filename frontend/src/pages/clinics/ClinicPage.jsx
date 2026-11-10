@@ -13,10 +13,12 @@ import { fetchUploadSummary } from "../../api/uploads";
 import { apiErrorMessage } from "../../utils/apiError";
 import ClinicStudiesTab from "./ClinicStudiesTab";
 import ClinicComputersTab from "./ClinicComputersTab";
+import ClinicLogsTab from "./ClinicLogsTab";
 import ClinicSettingsTab, { SETTINGS_FORM_ID } from "./ClinicSettingsTab";
 import "./clinics.css";
 
-const TABS = ["studies", "computers", "recordings", "settings"];
+// "logs" is the master's diagnostics tab (docs/device_logs/01_spec.md §6): not routable for anyone else.
+const TABS = ["studies", "computers", "recordings", "logs", "settings"];
 
 export default function ClinicPage() {
   const { siteId, tab } = useParams();
@@ -62,7 +64,7 @@ export default function ClinicPage() {
   const canEditAny = studies.some((s) => s.can_edit);
 
   if (!tab) return <Navigate to="studies" replace />;
-  if (!TABS.includes(tab)) return <Navigate to={`/clinics/${siteId}/studies`} replace />;
+  if (!TABS.includes(tab) || (tab === "logs" && !isMaster)) return <Navigate to={`/clinics/${siteId}/studies`} replace />;
   if (status === "missing") {
     return (
       <EmptyState
@@ -103,6 +105,7 @@ export default function ClinicPage() {
           { to: `${base}/studies`, label: t("tabs.studies"), count: site.projects?.length ?? 0, testId: "clinic-tab-studies" },
           { to: `${base}/computers`, label: t("tabs.computers"), count: devices.length, testId: "clinic-tab-computers" },
           { to: `${base}/recordings`, label: t("tabs.recordings"), count: summary?.total, testId: "clinic-tab-recordings" },
+          ...(isMaster ? [{ to: `${base}/logs`, label: t("tabs.logs"), testId: "clinic-tab-logs" }] : []),
           { to: `${base}/settings`, label: t("tabs.settings"), testId: "clinic-tab-settings" },
         ]}
       />
@@ -114,6 +117,7 @@ export default function ClinicPage() {
       )}
       {tab === "computers" && <ClinicComputersTab site={site} devices={devices} isMaster={isMaster} onChanged={load} />}
       {tab === "recordings" && <RecordingsTable fixed={{ clinic: site.id }} />}
+      {tab === "logs" && <ClinicLogsTab site={site} />}
       {tab === "settings" && <ClinicSettingsTab site={site} onSaved={load} />}
     </div>
   );

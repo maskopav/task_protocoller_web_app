@@ -15,6 +15,9 @@ import { createDevicesRouter } from "./src/routes/devices.js";
 import uploadsRouter from "./src/routes/uploads.js";
 import { createUploadDownloadsRouter } from "./src/routes/uploadDownloads.js";
 import { createUploadRouter } from "./src/routes/upload.js";
+import { createDeviceLogRouter } from "./src/routes/deviceLogs.js";
+import { createDeviceLogAdminRouter } from "./src/routes/deviceLogsAdmin.js";
+import { startDeviceLogPurge } from "./src/deviceLogs/purge.js";
 import { loadUploadConfig, ensureDataPath, sweepTempFiles } from "./src/config/uploads.js";
 import { LocalFileStore } from "./src/storage/fileStore.js";
 import { createValidationQueue } from "./src/upload/validationQueue.js";
@@ -116,6 +119,10 @@ app.post("/logs/frontend", logLimiter, express.json({ limit: '16kb' }), (req, re
 // before the body parsers below, which must never see this multi-GB stream.
 app.use("/upload", createUploadRouter({ store: fileStore, queue: validationQueue, maxBytes: uploadConfig.maxBytes, limits: uploadConfig.limits }));
 
+// Public, gated by the site token: the desktop app's rotated logs (spec §2).
+// Also before the body parsers: its body is a multipart stream.
+app.use("/device-logs", createDeviceLogRouter({ store: fileStore, maxBytes: uploadConfig.deviceLogs.maxBytes, limits: uploadConfig.limits }));
+
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
@@ -144,6 +151,9 @@ app.use("/users", requireAuth, usersRouter)
 app.use("/projects", requireAuth, projectsRouter)
 app.use("/library", requireAuth, libraryRouter)
 app.use("/sites", requireAuth, sitesRouter)
+// Master-only device logs (spec §5). Before /devices: view and download also
+// accept a download ticket, which /devices does not.
+app.use("/devices/logs", createDeviceLogAdminRouter({ store: fileStore }))
 app.use("/devices", requireAuth, createDevicesRouter({ queue: validationQueue }))
 // Download tickets (5 min, download routes only) for <audio>/<video> and
 // native browser downloads, which cannot send the Authorization header. Only a
@@ -156,6 +166,8 @@ const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);
   // Sessions still 'validating' were interrupted by a crash or restart.
+  // Retention (spec §4): once now, then every 24 h. The timer is unref'd.
+  startDeviceLogPurge({ store: fileStore, ...uploadConfig.deviceLogs });
   validationQueue.recover()
     .then((n) => { if (n > 0) logToFile("INFO", "Re-enqueued sessions for validation", { count: n }); })
     .catch((err) => logToFile("ERROR", "Validation recovery failed", { code: err?.code ?? err?.name ?? "Error" }));
