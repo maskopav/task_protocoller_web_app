@@ -20,12 +20,13 @@
     "name": "Jméno",
     "email": "E-mail",
     "clinics": "Kliniky",
-    "canCreate": "Může vytvářet",
+    "canCreate": "Oprávnění",
     "status": "Stav"
   },
   "canCreate": {
-    "studies": "Studie",
-    "clinics": "Kliniky"
+    "studies": "Vytváří studie",
+    "clinics": "Vytváří kliniky",
+    "technical": "Technické údaje"
   },
   "fields": {
     "name": "Jméno",
@@ -67,7 +68,9 @@
     "title": "Oprávnění",
     "hint": "Použije se ihned",
     "studies": "Může vytvářet studie",
-    "clinics": "Může vytvářet kliniky"
+    "clinics": "Může vytvářet kliniky",
+    "technical": "Může vidět technické údaje",
+    "technicalHint": "Kontroly serveru, ID a historie nahrávání u záznamů"
   },
   "auth": {
     "brand": "TaskProtocoller",

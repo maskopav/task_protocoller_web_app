@@ -20,12 +20,13 @@
     "name": "Name",
     "email": "E-Mail",
     "clinics": "Kliniken",
-    "canCreate": "Darf erstellen",
+    "canCreate": "Berechtigungen",
     "status": "Status"
   },
   "canCreate": {
-    "studies": "Studien",
-    "clinics": "Kliniken"
+    "studies": "Erstellt Studien",
+    "clinics": "Erstellt Kliniken",
+    "technical": "Technische Details"
   },
   "fields": {
     "name": "Name",
@@ -65,7 +66,9 @@
     "title": "Berechtigungen",
     "hint": "Wird sofort angewendet",
     "studies": "Darf Studien erstellen",
-    "clinics": "Darf Kliniken erstellen"
+    "clinics": "Darf Kliniken erstellen",
+    "technical": "Darf technische Details sehen",
+    "technicalHint": "Serverprüfungen, IDs und Upload-Verlauf bei Aufnahmen"
   },
   "auth": {
     "brand": "TaskProtocoller",

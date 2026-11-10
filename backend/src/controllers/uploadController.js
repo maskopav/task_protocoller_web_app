@@ -4,7 +4,7 @@
 // session through findScopedSession, so "out of scope" and "does not exist" are
 // the same 404. Participant values never reach a log line or a list response.
 import { executeQuery, executeTransaction } from "../db/queryHelper.js";
-import { scopeWhereClause, getVisibleSiteIds, getVisibleProjectIds } from "../utils/accessScope.js";
+import { scopeWhereClause, getVisibleSiteIds, getVisibleProjectIds, canSeeTechnical } from "../utils/accessScope.js";
 import { findScopedSession, writeAudit } from "../upload/sessionAccess.js";
 import { needsAttention } from "../upload/sessionExtractor.js";
 import { logToFile } from "../utils/logger.js";
@@ -539,13 +539,15 @@ export const getUpload = async (req, res) => {
     const row = await findScopedSession(req.admin, req.params.sessionId);
     if (!row) return res.status(404).json({ error: "not_found" });
 
-    const [comments, nav, projectRows] = await Promise.all([
+    const [comments, nav, projectRows, showTechnical] = await Promise.all([
       loadComments(row.id),
       neighbours(req.admin, row.session_id, req.query).catch((err) => {
         if (err instanceof QueryError) return { prevId: null, nextId: null };
         throw err;
       }),
       row.project_id == null ? [] : executeQuery(`SELECT name FROM projects WHERE id = ?`, [row.project_id]),
+      // Read fresh on every request, so a master's switch applies without the user logging in again.
+      req.admin.role === "master" ? true : canSeeTechnical(req.admin.id),
     ]);
 
     const exam = parseJson(row.exam_summary, {}) ?? {};
@@ -602,6 +604,7 @@ export const getUpload = async (req, res) => {
       },
       comments,
       canEdit: row.can_edit,
+      showTechnical,
       prevId: nav.prevId,
       nextId: nav.nextId,
     });

@@ -50,11 +50,18 @@ describe('PATCH /users/:id (updateUser)', () => {
     expect(res.json).toHaveBeenCalledWith({ success: true });
   });
 
+  it('switches the technical-details flag', async () => {
+    executeQuery.mockResolvedValueOnce([{ role: 'admin' }]).mockResolvedValueOnce({});
+    await call({ can_see_technical: true });
+    expect(executeQuery.mock.calls[1]).toEqual(['UPDATE users SET can_see_technical = ? WHERE id = ?', [1, 1]]);
+  });
+
   it('400 for bad input and for an empty patch', async () => {
     for (const [body, error] of [
       [{ email: 'nope' }, 'invalid_email'],
       [{ name: '' }, 'invalid_name'],
       [{ is_active: 'yes' }, 'invalid_is_active'],
+      [{ can_see_technical: 1 }, 'invalid_can_see_technical'],
       [{}, 'no_changes'],
     ]) {
       executeQuery.mockReset();
@@ -78,14 +85,14 @@ describe('GET /users and /users/:id', () => {
     executeQuery
       .mockResolvedValueOnce([
         { id: 1, email: 'm@x', full_name: 'Master', role: 'master', is_active: 1, can_create_projects: 0, can_create_sites: 0 },
-        { id: 2, email: 'a@x', full_name: 'Ann', role: 'admin', is_active: 1, can_create_projects: 1, can_create_sites: 0 },
+        { id: 2, email: 'a@x', full_name: 'Ann', role: 'admin', is_active: 1, can_create_projects: 1, can_create_sites: 0, can_see_technical: 1 },
       ])
       .mockResolvedValueOnce([{ user_id: 2, id: 5, name: 'Paris' }]);
     const res = makeRes();
     await getAllUsers({ admin }, res);
     const users = res.json.mock.calls[0][0];
     expect(users[0]).toMatchObject({ id: 1, role: 'master', sites: [] });
-    expect(users[1]).toMatchObject({ id: 2, name: 'Ann', can_create_projects: true, can_create_sites: false, sites: [{ id: 5, name: 'Paris' }] });
+    expect(users[1]).toMatchObject({ id: 2, name: 'Ann', can_create_projects: true, can_create_sites: false, can_see_technical: true, sites: [{ id: 5, name: 'Paris' }] });
     expect(JSON.stringify(users)).not.toMatch(/password|token/i);
   });
 

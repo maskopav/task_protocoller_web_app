@@ -11,9 +11,10 @@ const LATE_HOURS = 72;
 
 /**
  * The Session card: technical facts about the recording. Anything the app did not report is
- * left out instead of printed as "undefined" or a dash (F-035).
+ * left out instead of printed as "undefined" or a dash (F-035). The IDs row (session id, config version,
+ * ZIP checksum) is a technical detail, shown only when `showIds`.
  */
-export default function SessionPanel({ s }) {
+export default function SessionPanel({ s, showIds = true }) {
   const { t } = useTranslation("recording");
   const hw = s.hardware || {};
   const micUses = hw.micUses || [];
@@ -112,8 +113,12 @@ export default function SessionPanel({ s }) {
     <section className="recd-card" aria-label={t("session.title")}>
       <div className="recd-card-head"><h2>{t("session.title")}</h2></div>
       <KeyValue items={items} cols={4} />
-      <hr className="recd-divider" />
-      <KeyValue items={ids} cols={2} />
+      {showIds && (
+        <>
+          <hr className="recd-divider" />
+          <KeyValue items={ids} cols={2} />
+        </>
+      )}
     </section>
   );
 }

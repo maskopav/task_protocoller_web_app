@@ -18,6 +18,7 @@ CREATE TABLE `users` (
   `reset_password_expires` TIMESTAMP DEFAULT NULL,
   `can_create_projects` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own projects',
   `can_create_sites` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own sites',
+  `can_see_technical` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: sees server checks, IDs and upload history on recordings',
   `token_version` integer NOT NULL DEFAULT 0 COMMENT 'Bumped on every password change, JWTs carrying an older value are rejected'
 ); 
 

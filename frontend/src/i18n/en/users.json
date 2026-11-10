@@ -20,12 +20,13 @@
     "name": "Name",
     "email": "Email",
     "clinics": "Clinics",
-    "canCreate": "Can create",
+    "canCreate": "Permissions",
     "status": "Status"
   },
   "canCreate": {
-    "studies": "Studies",
-    "clinics": "Clinics"
+    "studies": "Create studies",
+    "clinics": "Create clinics",
+    "technical": "Technical details"
   },
   "fields": {
     "name": "Name",
@@ -65,7 +66,9 @@
     "title": "Permissions",
     "hint": "Applied immediately",
     "studies": "May create studies",
-    "clinics": "May create clinics"
+    "clinics": "May create clinics",
+    "technical": "May see technical details",
+    "technicalHint": "Server checks, IDs and upload history on recordings"
   },
   "auth": {
     "brand": "TaskProtocoller",

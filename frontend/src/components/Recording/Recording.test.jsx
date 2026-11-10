@@ -300,6 +300,41 @@ describe("F-043: quarantined header", () => {
   });
 });
 
+describe("technical details (server checks, IDs, upload history)", () => {
+  const renderPage = () => render(
+    <MemoryRouter initialEntries={["/recordings/" + "a".repeat(32)]}>
+      <Routes><Route path="/recordings/:sessionId" element={<RecordingPage />} /></Routes>
+    </MemoryRouter>,
+  );
+  const checks = [{ key: "archive", result: "ok" }];
+
+  it("hidden when the server says showTechnical is false, and attempts are not fetched", async () => {
+    mockUser = { role_id: 2 };
+    fetchSession.mockResolvedValue(baseSession({ checks, showTechnical: false }));
+    renderPage();
+    await flush();
+    const text = host.textContent;
+    expect(text).not.toContain("Server checks");
+    expect(text).not.toContain("Session ID");
+    expect(text).not.toContain("ZIP SHA-256");
+    expect(text).not.toContain("Config version");
+    expect(text).not.toContain("Upload history");
+    expect(host.querySelector(".recd-divider")).toBeNull();
+    expect(text).toContain("Exam room 2"); // the rest of the Session card stays
+    expect(fetchAttempts).not.toHaveBeenCalled();
+  });
+
+  it("shown when showTechnical is true", async () => {
+    mockUser = { role_id: 2 };
+    fetchSession.mockResolvedValue(baseSession({ checks, showTechnical: true }));
+    renderPage();
+    await flush();
+    const text = host.textContent;
+    for (const s of ["Server checks", "Session ID", "ZIP SHA-256", "Config version", "Upload history"]) expect(text).toContain(s);
+    expect(fetchAttempts).toHaveBeenCalledOnce();
+  });
+});
+
 describe("F-044: Activity section", () => {
   it("is collapsed, counts the entries and words each action", async () => {
     fetchActivity.mockResolvedValue([

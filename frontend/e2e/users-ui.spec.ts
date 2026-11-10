@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { BACKEND_URL, USERS, apiToken, bearer, ensureSeeded, uiLogin } from './helpers/uploads';
+import { BACKEND_URL, F, USERS, apiToken, bearer, ensureSeeded, uiLogin } from './helpers/uploads';
 
 // Users screens (docs/ui_redesign/02_spec.md section 6.8): master-only list and user page.
 // The test invites its own user, so no seeded account changes (the invitation email fails silently here).
@@ -46,7 +46,7 @@ test('the master invites a user, then edits their clinics and permissions', asyn
 
   await page.goto('/#/users');
   await expect(page.locator(`.user-row-${id}`)).toContainText('Renamed Person');
-  await expect(page.locator(`.user-row-${id}`)).toContainText('Studies, Clinics');
+  await expect(page.locator(`.user-row-${id}`)).toContainText('Create studies, Create clinics');
 });
 
 test('a user who is not a master gets the not-available page at users', async ({ page }) => {
@@ -54,4 +54,41 @@ test('a user who is not a master gets the not-available page at users', async ({
   await page.goto('/#/users');
   await expect(page.getByTestId('not-available-page')).toBeVisible();
   await expect(page.getByTestId('users-table')).toHaveCount(0);
+});
+
+// docs/technical_details/spec.md: server checks, the IDs row and upload history show only to users the master picks.
+// The flag is read per request, so the clinician sees the change on reload, without logging in again.
+test('the technical-details switch shows and hides diagnostics on a clinician recording', async ({ page, browser, request }) => {
+  const master = await apiToken(request, USERS.master);
+  const users = await (await request.get(`${BACKEND_URL}/users`, { headers: bearer(master) })).json();
+  const clinician = users.find((u: { email: string }) => u.email === USERS.clinic);
+  const setFlag = (v: boolean) => request.patch(`${BACKEND_URL}/users/${clinician.id}`, { headers: bearer(master), data: { can_see_technical: v } });
+  await setFlag(false);
+
+  try {
+    await uiLogin(page, USERS.clinic);
+    await page.goto(`/#/recordings/${F.s1.sessionId}`);
+    await expect(page.getByRole('heading', { name: 'Session' })).toBeVisible();
+    for (const text of ['Server checks', 'Session ID', 'Upload history']) await expect(page.getByText(text, { exact: true })).toHaveCount(0);
+
+    // The master flips the switch on the user page.
+    const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
+    const admin = await ctx.newPage();
+    await uiLogin(admin, USERS.master);
+    await admin.goto(`/#/users/${clinician.id}`);
+    const sw = admin.getByTestId('user-flag-technical');
+    await expect(sw).not.toBeChecked();
+    await sw.click();
+    await expect(sw).toBeChecked();
+    await admin.goto('/#/users');
+    await expect(admin.locator(`.user-row-${clinician.id}`)).toContainText('Technical details');
+    await ctx.close();
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Server checks' })).toBeVisible();
+    await expect(page.getByText('Session ID', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Upload history' })).toBeVisible();
+  } finally {
+    await setFlag(false);
+  }
 });

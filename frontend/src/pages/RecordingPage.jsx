@@ -47,7 +47,8 @@ export default function RecordingPage() {
       const data = await fetchSession(sessionId, ctx);
       setS(data);
       setState("ready");
-      fetchAttempts(sessionId).then(setAttempts).catch(() => setAttempts([]));
+      // Upload history is a technical detail: only fetched for users who see it.
+      if (data.showTechnical) fetchAttempts(sessionId).then(setAttempts).catch(() => setAttempts([]));
     } catch (e) {
       setState(e.status === 404 || e.status === 403 ? "notFound" : "error");
     }
@@ -84,6 +85,8 @@ export default function RecordingPage() {
   const edit = s.canEdit;
   const quarantined = s.siteId == null;
   const issues = s.issues || [];
+  // Server checks, the IDs row and Upload history: master always, others when the master switched it on (server decides).
+  const tech = Boolean(s.showTechnical);
 
   const onDownload = async () => {
     try {
@@ -186,12 +189,12 @@ export default function RecordingPage() {
             {!edit && <p className="recd-note recd-pad">{t("tasks.viewOnlyNote")}</p>}
           </section>
 
-          <SessionPanel s={s} />
+          <SessionPanel s={s} showIds={tech} />
 
           {s.hasAudio && <SessionTimeline timeline={s.timeline || []} tasks={s.tasks || []} sampleRate={s.sampleRate} durationS={s.durationS} timelineUsed={s.timelineUsed} />}
 
           <ActivitySection sessionId={s.id} refreshKey={activityKey} />
-          <UploadHistory attempts={attempts} deviceLabel={s.deviceLabel} />
+          {tech && <UploadHistory attempts={attempts} deviceLabel={s.deviceLabel} />}
         </div>
 
         <aside className="recd-stack">
@@ -210,7 +213,7 @@ export default function RecordingPage() {
             onReveal={bumpActivity}
             onUpdated={(res) => patch({ participant: res.participant, comments: res.comments ?? s.comments })}
           />
-          <ServerChecks checks={s.checks} />
+          {tech && <ServerChecks checks={s.checks} />}
         </aside>
       </div>
 

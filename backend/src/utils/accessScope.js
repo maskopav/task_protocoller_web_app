@@ -82,6 +82,8 @@ async function hasUserFlag(userId, column) {
 
 export const canCreateSites = (userId) => hasUserFlag(userId, "can_create_sites");
 export const canCreateProjects = (userId) => hasUserFlag(userId, "can_create_projects");
+// Not a creation right: whether the Recording page shows server checks, IDs and upload history.
+export const canSeeTechnical = (userId) => hasUserFlag(userId, "can_see_technical");
 
 // True when the user created this record. Ownership is what lets a non-master
 // archive a project or maintain a clinic without touching anything that was

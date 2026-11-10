@@ -26,11 +26,12 @@ const userRow = (u, sites = []) => ({
   is_active: Number(u.is_active) === 1,
   can_create_projects: Number(u.can_create_projects) === 1,
   can_create_sites: Number(u.can_create_sites) === 1,
+  can_see_technical: Number(u.can_see_technical) === 1,
   sites,
 });
 
 const USER_SQL = `SELECT u.id, u.email, u.full_name, r.name AS role, u.is_active,
-                         u.can_create_projects, u.can_create_sites
+                         u.can_create_projects, u.can_create_sites, u.can_see_technical
                   FROM users u JOIN roles r ON r.id = u.role_id`;
 
 // GET /users — everyone, with their clinics (a master sees all clinics, shown as "All" by the UI)
@@ -103,7 +104,7 @@ export const createAdmin = async (req, res) => {
   const body = req.body ?? {};
   const email = typeof body.email === "string" ? body.email.trim() : body.email;
   const fullName = body.name ?? body.full_name;
-  const { site_ids, can_create_projects, can_create_sites, lang = "en" } = body;
+  const { site_ids, can_create_projects, can_create_sites, can_see_technical, lang = "en" } = body;
 
   if (!isEmail(email)) return res.status(400).json({ error: "invalid_email" });
   if (typeof fullName !== "string" || fullName.trim() === "" || fullName.length > 255) {
@@ -125,9 +126,9 @@ export const createAdmin = async (req, res) => {
     const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     const userResult = await executeQuery(
-      `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password, can_create_projects, can_create_sites)
-       VALUES (?, ?, ?, ?, true, ?, ?)`,
-      [email, passwordHash, fullName.trim(), roles[0].id, can_create_projects ? 1 : 0, can_create_sites ? 1 : 0]
+      `INSERT INTO users (email, password_hash, full_name, role_id, must_change_password, can_create_projects, can_create_sites, can_see_technical)
+       VALUES (?, ?, ?, ?, true, ?, ?, ?)`,
+      [email, passwordHash, fullName.trim(), roles[0].id, can_create_projects ? 1 : 0, can_create_sites ? 1 : 0, can_see_technical ? 1 : 0]
     );
     const newUserId = Number(userResult.insertId);
 
@@ -156,7 +157,7 @@ export const createAdmin = async (req, res) => {
   }
 };
 
-// PATCH /users/:id  { name, email, is_active, can_create_projects, can_create_sites }
+// PATCH /users/:id  { name, email, is_active, can_create_projects, can_create_sites, can_see_technical }
 // Absent fields stay as they are.
 export const updateUser = async (req, res) => {
   const id = parseId(req.params.id);
@@ -177,7 +178,7 @@ export const updateUser = async (req, res) => {
       }
       sets.push("full_name = ?"); params.push(body.name.trim());
     }
-    for (const key of ["is_active", "can_create_projects", "can_create_sites"]) {
+    for (const key of ["is_active", "can_create_projects", "can_create_sites", "can_see_technical"]) {
       if (body[key] === undefined) continue;
       if (typeof body[key] !== "boolean") return res.status(400).json({ error: `invalid_${key}` });
       sets.push(`${key} = ?`); params.push(body[key] ? 1 : 0);

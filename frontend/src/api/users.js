@@ -1,7 +1,7 @@
 // src/api/users.js — user management (master only).
 import { apiJson } from "./apiClient";
 
-// -> [{ id, name, email, role, is_active, can_create_projects, can_create_sites, sites:[{id,name}] }]
+// -> [{ id, name, email, role, is_active, can_create_projects, can_create_sites, can_see_technical, sites:[{id,name}] }]
 export const fetchAllAdmins = () => apiJson("/users", { fallback: "users_fetch_failed" });
 export const fetchUser = (id) => apiJson(`/users/${id}`, { fallback: "user_fetch_failed" });
 
@@ -9,7 +9,7 @@ export const fetchUser = (id) => apiJson(`/users/${id}`, { fallback: "user_fetch
 export const createAdminApi = (payload) =>
   apiJson("/users", { method: "POST", body: payload, fallback: "user_create_failed" });
 
-// Partial: name, email, is_active, can_create_projects, can_create_sites.
+// Partial: name, email, is_active, can_create_projects, can_create_sites, can_see_technical.
 export const updateUser = (id, payload) =>
   apiJson(`/users/${id}`, { method: "PATCH", body: payload, fallback: "user_update_failed" });
 

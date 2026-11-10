@@ -159,6 +159,14 @@ export default function UserPage() {
               label={t("permissions.clinics")} checked={user.can_create_sites} disabled={busy}
               onChange={(v) => run(() => updateUser(user.id, { can_create_sites: v }))} data-testid="user-flag-clinics"
             />
+            <div className="users-switch">
+              <Switch
+                label={t("permissions.technical")} checked={user.can_see_technical} disabled={busy}
+                onChange={(v) => run(() => updateUser(user.id, { can_see_technical: v }))} data-testid="user-flag-technical"
+                aria-describedby="user-flag-technical-hint"
+              />
+              <span id="user-flag-technical-hint" className="users-switch-hint">{t("permissions.technicalHint")}</span>
+            </div>
           </div>
         </Section>
       )}

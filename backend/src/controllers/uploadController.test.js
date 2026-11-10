@@ -341,6 +341,17 @@ describe('getUpload', () => {
     ]);
   });
 
+  it('showTechnical: always for a master, from the user flag otherwise (read fresh)', async () => {
+    for (const [req, flag, want] of [[asMaster, 0, true], [asAdmin, 0, false], [asAdmin, 1, true]]) {
+      executeQuery.mockReset();
+      const calls = mockDb({ extra: { 'can_see_technical': [{ flag }] } });
+      const res = makeRes();
+      await C.getUpload(req({ params: { sessionId: SID } }), res);
+      expect(res.json.mock.calls[0][0].showTechnical).toBe(want);
+      expect(calls.some((c) => c.sql.includes('can_see_technical'))).toBe(req === asAdmin);
+    }
+  });
+
   it('passes the list filters through to prev/next, ctx included', async () => {
     const calls = mockDb();
     await C.getUpload(asAdmin({ params: { sessionId: SID }, query: { ctx: 'status=invalid&sort=bytes&dir=asc' } }), makeRes());

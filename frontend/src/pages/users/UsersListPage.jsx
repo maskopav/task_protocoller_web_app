@@ -113,7 +113,11 @@ export default function UsersListPage() {
     {
       key: "canCreate", header: t("columns.canCreate"),
       render: (u) => {
-        const parts = [u.can_create_projects && t("canCreate.studies"), u.can_create_sites && t("canCreate.clinics")].filter(Boolean);
+        const parts = [
+          u.can_create_projects && t("canCreate.studies"),
+          u.can_create_sites && t("canCreate.clinics"),
+          u.can_see_technical && t("canCreate.technical"),
+        ].filter(Boolean);
         return parts.length ? parts.join(", ") : <span className="users-muted">—</span>;
       },
     },

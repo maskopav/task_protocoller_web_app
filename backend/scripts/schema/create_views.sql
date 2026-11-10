@@ -87,7 +87,8 @@ SELECT
     r.name as role, 
     u.is_active,
     u.can_create_projects,
-    u.can_create_sites
+    u.can_create_sites,
+    u.can_see_technical
 FROM users u
 JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'
