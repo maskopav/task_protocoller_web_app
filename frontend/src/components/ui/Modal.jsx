@@ -12,7 +12,7 @@ const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([typ
  * @param {React.ReactNode} title
  * @param {React.ReactNode} [description]
  * @param {React.ReactNode} [footer]  usually Buttons; the caller owns the single primary one
- * @param {'md'|'wide'} [size='md']
+ * @param {'md'|'wide'|'xl'} [size='md']  md 480px, wide 640px (fixed); xl grows with the viewport up to 1040px
  * @param {boolean} [dismissible=true] false disables Esc/backdrop close (e.g. while saving)
  */
 export function Modal({ open, onClose, title, description, footer, size = "md", dismissible = true, children, ...rest }) {
@@ -55,7 +55,7 @@ export function Modal({ open, onClose, title, description, footer, size = "md", 
       onMouseDown={(e) => { if (dismissible && e.target === e.currentTarget) onClose?.(); }}
     >
       <div
-        className={`ui-modal${size === "wide" ? " ui-modal-wide" : ""}`}
+        className={`ui-modal${size === "wide" ? " ui-modal-wide" : ""}${size === "xl" ? " ui-modal-xl" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}

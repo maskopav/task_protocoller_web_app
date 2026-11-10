@@ -98,6 +98,7 @@
 .ui-modal-back { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 12vh var(--s-4) var(--s-4); z-index: var(--z-modal); overflow-y: auto; }
 .ui-modal { width: 480px; max-width: 100%; background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-pop); }
 .ui-modal-wide { width: 640px; }
+.ui-modal-xl { width: min(1040px, 100%); }
 .ui-modal-head { padding: var(--s-5) var(--s-5) 0; }
 .ui-modal-head p { color: var(--text-2); margin-top: 4px; }
 .ui-modal-body { padding: var(--s-5); display: flex; flex-direction: column; gap: var(--s-4); }

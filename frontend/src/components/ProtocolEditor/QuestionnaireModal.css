@@ -5,6 +5,7 @@
     display: flex;
     width: 100%;
     box-sizing: border-box;
+    container-type: inline-size;
     flex-direction: column;
     gap: 1.5rem;
     padding: 0.5rem;
@@ -47,20 +48,6 @@
     width: 100%;
   }
 
-  /* Let the flex properties control the widths */
-  .qm-card-body .qm-input-group {
-    width: auto; 
-  }
-
-  .qm-card-body .qm-input-group:nth-child(1) {
-      flex: 3;
-  }
-
-  .qm-card-body .qm-input-group:nth-child(2) {
-      flex: 1;
-      min-width: 140px; /* Ensures the dropdown text always has enough room */
-  }
-  
   .qm-input,
   .qm-textarea,
   .qm-select {
@@ -143,10 +130,17 @@
   
   /* -- Question Fields (Row layout for desktop) -- */
   .qm-card-body {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 1rem;
-    align-items: center; /* Changed from flex-start to nicely center the checkbox with the inputs */
+    align-items: center;
+  }
+
+  /* The type select sizes to its longest label in the current language (cs/de are much
+     longer than en), so it never clips; it only shrinks when the dialog itself is too narrow */
+  .qm-card-body .qm-select.type-select {
+    width: auto;
+    max-width: 100%;
   }
   
   /* -- Options Section -- */
@@ -173,6 +167,13 @@
     margin-bottom: 0.1rem;
     padding: 0;
   }
+
+  .qm-option-row .qm-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .qm-option-row .qm-inline-label { white-space: nowrap; }
   
   /* The Delete Option Button */
   .qm-btn-remove-option {
@@ -249,22 +250,31 @@
     cursor: pointer;
   }
 
-/* Mobile adjustment: Stack them back to column */
-  @media (max-width: 700px) {
+/* Narrow dialog (container width, not viewport): question text on its own row, type + Optional beneath */
+  @container (max-width: 720px) {
     .qm-card-body {
-      flex-direction: column;
-      align-items: flex-start; /* Reset alignment for mobile */
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
     }
-    .qm-card-body .qm-input-group {
-        width: 100%;
+    .qm-card-body > .qm-input-group:first-child {
+      flex: 1 1 100%;
+    }
+    /* Type select keeps its natural width; Optional wraps under it when there is no room */
+    .qm-card-body > .qm-input-group:nth-child(2) {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 100%;
     }
   }
+
 .qm-inline-label { display: flex; align-items: center; gap: var(--s-1); }
 .qm-spaced { margin-top: var(--s-4); }
 
 /* Conditional rule (showIf) */
 .qm-condition-detail { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-2); }
 .qm-condition-values { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-4); }
+.qm-condition-values .qm-inline-label { min-width: 0; overflow-wrap: anywhere; }
 .qm-condition-hint { color: var(--muted); font-size: 0.85rem; }
 /* Selects have a fixed 34px height (tokens.css): vertical padding clips their text */
 .questionnaire-modal-form .qm-select { padding-top: 0; padding-bottom: 0; }

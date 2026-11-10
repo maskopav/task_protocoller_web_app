@@ -145,7 +145,7 @@ export default function QuestionnaireModal({ open, onClose, onSave, initialData 
   if (!open) return null;
 
   return (
-    <Modal open={open} onClose={onClose} onSave={handleSave}>
+    <Modal open={open} onClose={onClose} onSave={handleSave} size="xl">
       <div className="modal-title">{t("protocolEditor.addQuestionnaire")}</div>
 
       <div className="questionnaire-modal-form">

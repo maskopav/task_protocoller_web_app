@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import i18n from "../../i18n";
 import QuestionnaireModal from "./QuestionnaireModal";
+import AdminModal from "./Modal";
 import { readFileSync } from "node:fs";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -123,5 +124,25 @@ describe("QuestionnaireModal conditional rules", () => {
     click(ruleBox(cards()[1]));
     click(ruleBox(cards()[1]));
     expect(cards()[1].querySelector(".qm-condition-detail")).toBeNull();
+  });
+});
+
+describe("QuestionnaireModal adaptive width", () => {
+  it("the questionnaire dialog uses the xl size", async () => {
+    await mount("en");
+    const dlg = document.querySelector('[role="dialog"]');
+    expect(dlg.className).toContain("ui-modal-xl");
+    expect(dlg.className).not.toContain("ui-modal-wide");
+  });
+  it("AdminModal without a size stays wide (640px), not xl", async () => {
+    await act(async () => { root.render(<AdminModal open onClose={vi.fn()} onSave={vi.fn()} title="T">x</AdminModal>); });
+    const dlg = document.querySelector('[role="dialog"]');
+    expect(dlg.className).toContain("ui-modal-wide");
+    expect(dlg.className).not.toContain("ui-modal-xl");
+  });
+  it("the stylesheet reflows by container width, not the viewport", () => {
+    const css = readFileSync("src/components/ProtocolEditor/QuestionnaireModal.css", "utf8");
+    expect(css).toContain("@container");
+    expect(css).not.toContain("@media (max-width: 700px)");
   });
 });

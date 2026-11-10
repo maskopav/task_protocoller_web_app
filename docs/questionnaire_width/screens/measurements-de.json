@@ -1,0 +1,79 @@
+{
+  "800": {
+    "vw": 800,
+    "dialogWidth": 768,
+    "leftGap": 16,
+    "rightGap": 16,
+    "pageHScroll": false,
+    "dialogHScroll": false,
+    "typeSelectWidth": 296,
+    "stacked": true,
+    "optionalSameRowAsType": true,
+    "writeInLabelHeights": [
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "clippedSelects": []
+  },
+  "1024": {
+    "vw": 1024,
+    "dialogWidth": 992,
+    "leftGap": 16,
+    "rightGap": 16,
+    "pageHScroll": false,
+    "dialogHScroll": false,
+    "typeSelectWidth": 296,
+    "stacked": false,
+    "optionalSameRowAsType": true,
+    "writeInLabelHeights": [
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "clippedSelects": []
+  },
+  "1280": {
+    "vw": 1280,
+    "dialogWidth": 1040,
+    "leftGap": 120,
+    "rightGap": 120,
+    "pageHScroll": false,
+    "dialogHScroll": false,
+    "typeSelectWidth": 296,
+    "stacked": false,
+    "optionalSameRowAsType": true,
+    "writeInLabelHeights": [
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "clippedSelects": []
+  },
+  "1920": {
+    "vw": 1920,
+    "dialogWidth": 1040,
+    "leftGap": 440,
+    "rightGap": 440,
+    "pageHScroll": false,
+    "dialogHScroll": false,
+    "typeSelectWidth": 296,
+    "stacked": false,
+    "optionalSameRowAsType": true,
+    "writeInLabelHeights": [
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "clippedSelects": []
+  },
+  "taskSettingsDialogWidth": 640
+}

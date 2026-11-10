@@ -14,6 +14,7 @@ import "./ProtocolEditor.css";
  * @param {function} onSave - called when the user clicks Save
  * @param {string} [title] - optional title displayed at the top
  * @param {string|JSX.Element} [description] - optional text or JSX under the title
+ * @param {'md'|'wide'|'xl'} [size='wide'] - dialog width, forwarded to the UI kit Modal
  * @param {boolean} [showSaveButton=true] - whether to render the Save button
  * @param {boolean} [showCancelButton=false] - kept for old callers: the Cancel/Close button is always rendered
  * @param {React.ReactNode} children - the modal content (forms, etc.)
@@ -25,6 +26,7 @@ export default function AdminModal({
   title,
   description,
   showSaveButton = true,
+  size = "wide",
   children,
 }) {
   const { t } = useTranslation("admin");
@@ -34,7 +36,7 @@ export default function AdminModal({
       onClose={onClose}
       title={title}
       description={description}
-      size="wide"
+      size={size}
       footer={(
         <>
           <Button onClick={onClose} data-testid="modal-cancel">{t("protocolEditor.buttons.cancel")}</Button>
