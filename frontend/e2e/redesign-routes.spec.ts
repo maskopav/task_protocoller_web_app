@@ -52,6 +52,16 @@ test.describe('as master', () => {
     });
   }
 
+  // The brand mark in the sidebar goes back to the front page, also from the
+  // collapsed sidebar of the protocol editor.
+  for (const from of [`/clinics/${CLINIC_ID}/studies`, `/studies/${STUDY_ID}/protocols/${PROTOCOL_ID}`]) {
+    test(`the brand link on ${from} leads to the front page`, async ({ page }) => {
+      await page.goto(`/#${from}`);
+      await page.getByTestId('shell-home').click();
+      await expect(page).toHaveURL(hashUrl('/recordings'));
+    });
+  }
+
   // useToast() is a silent no-op without the provider, so guard that it is mounted.
   test('the toast region is mounted', async ({ page }) => {
     await expect(page.locator('.ui-toasts')).toHaveCount(1);

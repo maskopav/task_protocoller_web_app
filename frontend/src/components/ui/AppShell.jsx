@@ -2,7 +2,7 @@
 // The one app chrome: sidebar (nav, user menu) plus a content area. It is a
 // layout route, so it stays mounted while the page inside it changes.
 import React, { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, matchPath } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, matchPath } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useUser } from "../../context/UserContext";
 import { LANGUAGES } from "../../i18n/index";
@@ -115,10 +115,10 @@ function Sidebar({ data }) {
 
   return (
     <aside className="shell-sidebar" data-testid="app-sidebar">
-      <div className="shell-brand">
+      <Link to="/" className="shell-brand" title={t("home")} aria-label={`${t("brand")} – ${t("home")}`} data-testid="shell-home">
         <span className="shell-brand-mark"><Icon name="wave" /></span>
         <span className="shell-brand-name">{t("brand")}</span>
-      </div>
+      </Link>
 
       <nav className="shell-nav" aria-label={t("main")}>
         <NavItem to="/recordings" icon="inbox" testId="nav-recordings" label={t("recordings")} count={data.unreviewed} />

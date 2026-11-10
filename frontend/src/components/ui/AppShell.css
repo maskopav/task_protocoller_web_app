@@ -30,7 +30,11 @@
   padding: var(--s-2) var(--s-2) var(--s-5);
   font-weight: 650;
   color: var(--text);
+  text-decoration: none;
+  border-radius: var(--r-sm);
 }
+.shell-brand:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+.shell-brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .shell-brand-mark {
   width: 26px;
   height: 26px;
