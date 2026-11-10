@@ -151,3 +151,47 @@ DELETE FROM user_projects WHERE user_id = @target_user_id;
 DELETE FROM users WHERE id = @target_user_id;
 
 COMMIT;
+
+-- 4. IN ORDER TO REMOVE a single participant_protocol (one assignment) and all its data:
+--  task_results, session_mic_checks, session_environments, recordings -> sessions
+--  -> participant_protocol_contacts -> participant_protocols (-> participants, optional)
+-- NOTE: only DB rows are removed — recording/mic-check files at recording_url stay in storage.
+-- NOTE: booking-service rows (external_ref = participant_protocol_id) are not touched.
+START TRANSACTION;
+SET @target_pp_id = 999; ---- CHANGE!
+--OR SET @target_pp_id = (SELECT participant_protocol_id FROM sessions where id = XXX);
+
+-- Preview what will be removed (optional):
+-- SELECT
+--   (SELECT COUNT(*) FROM sessions WHERE participant_protocol_id = @target_pp_id) AS sessions,
+--   (SELECT COUNT(*) FROM recordings WHERE session_id IN (SELECT id FROM sessions WHERE participant_protocol_id = @target_pp_id)) AS recordings,
+--   (SELECT COUNT(*) FROM task_results WHERE session_id IN (SELECT id FROM sessions WHERE participant_protocol_id = @target_pp_id)) AS task_results;
+
+SET @target_participant_id = (SELECT participant_id FROM participant_protocols WHERE id = @target_pp_id);
+
+DELETE FROM task_results
+WHERE session_id IN (SELECT id FROM sessions WHERE participant_protocol_id = @target_pp_id);
+
+-- session_mic_checks and session_environments are ON DELETE CASCADE from sessions,
+-- but deleted explicitly here for clarity/portability.
+DELETE FROM session_mic_checks
+WHERE session_id IN (SELECT id FROM sessions WHERE participant_protocol_id = @target_pp_id);
+
+DELETE FROM session_environments
+WHERE session_id IN (SELECT id FROM sessions WHERE participant_protocol_id = @target_pp_id);
+
+DELETE FROM recordings
+WHERE session_id IN (SELECT id FROM sessions WHERE participant_protocol_id = @target_pp_id);
+
+DELETE FROM sessions WHERE participant_protocol_id = @target_pp_id;
+
+DELETE FROM participant_protocol_contacts WHERE participant_protocol_id = @target_pp_id;
+
+DELETE FROM participant_protocols WHERE id = @target_pp_id;
+
+-- Optional: also remove the participant, but only if they have no other assignments left.
+-- DELETE FROM participants
+-- WHERE id = @target_participant_id
+--   AND NOT EXISTS (SELECT 1 FROM participant_protocols WHERE participant_id = @target_participant_id);
+
+COMMIT; -- to just test it ROLLBACK
