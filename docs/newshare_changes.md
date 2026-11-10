@@ -521,3 +521,33 @@ Details are in `container_deployment.md`, "Backups".
 3. Call `POST /device-checkin` after each config fetch and after each upload batch.
 4. Treat `409 session_exists` as terminal (already on the server with different contents), not as
    something to retry. Today it reads as a retryable `ServerError`.
+
+## Device logs (2026-11-10)
+
+The desktop app sends its rotated log files (`app.<date>.<n>.log.gz`) to the server, and a master
+reads them per computer on the clinic page. Spec: [`device_logs/01_spec.md`](./device_logs/01_spec.md);
+what was built and any deviation: [`device_logs/05_results.md`](./device_logs/05_results.md).
+
+- **`POST /device-logs`** (public, site token, mounted before the JSON parsers, own limiter of
+  120 per 15 min per IP). Multipart: text parts first, `file` last. Same streaming receiver as
+  `/upload` (`receiveDeviceLog` in `upload/multipartReceiver.js`). Needs a device that already belongs
+  to the token's clinic: it never creates or adopts one. Answers 200 (+ `duplicate` on a resend),
+  a malformed `siteToken` is 404 `invalid_token` (retry later), 400 `bad_request`/`not_gzip`/`checksum_mismatch`, 413 `too_large`, 404 `invalid_token`/`device_not_registered`,
+  409 `device_belongs_to_another_site`, 507, 429, 500. Code: `routes/deviceLogs.js`, `deviceLogs/ingest.js`.
+- **Receiver fix (also `/upload`)**: a server-side failure to create the tmp folder or file is now 500
+  `internal`, not 400 `bad_request` (which the app reads as never-retry).
+- **Table `device_logs`** (`create_upload_tables.sql`; run `npm run db:uploads` on an existing
+  database). The same script widens the `audit_log.action` enum with `device_log_view` and
+  `device_log_download`. Files live at `DATA_PATH/device-logs/<device_id>/<sha256>.log.gz`
+  (`LocalFileStore.deviceLogKey`). They are not part of the backups.
+- **Retention** (`deviceLogs/purge.js`): at boot and every 24 h, rows older than
+  `DEVICE_LOG_RETENTION_DAYS` (90), then the oldest while the total exceeds `DEVICE_LOGS_MAX_BYTES` (2 GiB).
+  Counts only go to `system_log.txt`. `DEVICE_LOG_MAX_BYTES` (5 MiB) is the per-file limit.
+- **Admin API** (`routes/deviceLogsAdmin.js`, master only, 404 for anyone else):
+  `GET /devices/logs?siteId=`, `GET /devices/logs/:id/view` (gunzipped `text/plain`) and
+  `GET /devices/logs/:id/download` (the `.gz`). View and download accept `?ticket=` and write an
+  `audit_log` row (`details.logId`).
+- **Frontend**: a `Logs` tab on the clinic page (`ClinicLogsTab.jsx`), shown and routable for a master
+  only. Files are grouped by computer, with View (new tab) and Download.
+- **Tests**: `test/integration/deviceLogs*.test.js` (against MariaDB), `deviceLogs/purge.test.js`,
+  `storage/deviceLogKey.test.js`, and `ClinicLogsTab.test.jsx` in the frontend.
