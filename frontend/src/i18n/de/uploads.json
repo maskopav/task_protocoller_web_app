@@ -310,6 +310,7 @@
     "downloadSelected_other": "{{count}} ausgewählte herunterladen",
     "downloadAll": "Alle {{count}} herunterladen",
     "more": "Weitere Aktionen",
+    "resetSort": "Sortierung zurücksetzen",
     "selectAll": "Alle Aufnahmen dieser Seite auswählen",
     "selectRow": "Aufnahme {{code}} auswählen",
     "blocked": {

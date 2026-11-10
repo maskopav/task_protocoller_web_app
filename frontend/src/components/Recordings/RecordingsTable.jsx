@@ -69,6 +69,7 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
 
   const open = (r) => navigate(`/recordings/${r.id}${list.context ? `?ctx=${encodeURIComponent(list.context)}` : ""}`);
 
+  // Sortable columns are keyed by their GET /uploads sort key; the server sorts across all pages.
   const columns = [
     {
       key: "select",
@@ -99,6 +100,7 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
     },
     {
       key: "receivedAt",
+      sortable: true,
       header: t("recordings.columns.received"),
       render: (r) => (
         <div title={formatDateTime(r.receivedAt)}>
@@ -109,6 +111,7 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
     },
     {
       key: "patient",
+      sortable: true,
       header: t("recordings.columns.patient"),
       render: (r) => (
         <div>
@@ -131,11 +134,12 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
       ),
     },
     ...(list.clinicVisible ? [{
-      key: "clinic",
+      key: "site",
+      sortable: true,
       header: t("recordings.columns.clinic"),
       render: (r) => r.site || <span className="rec-faint">{t("recordings.noClinic")}</span>,
     }] : []),
-    { key: "length", header: t("recordings.columns.length"), render: (r) => fmtDurShort(r.durationS) },
+    { key: "durationS", sortable: true, header: t("recordings.columns.length"), render: (r) => fmtDurShort(r.durationS) },
     {
       key: "tasks",
       header: t("recordings.columns.tasks"),
@@ -148,6 +152,7 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
     },
     {
       key: "status",
+      sortable: true,
       header: t("recordings.columns.serverCheck"),
       render: (r) => (
         <div>
@@ -158,6 +163,7 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
     },
     {
       key: "qc",
+      sortable: true,
       header: t("recordings.columns.review"),
       render: (r) => (
         <div>
@@ -200,6 +206,8 @@ export default function RecordingsTable({ fixed, list: given, showKpis = false, 
           columns={columns}
           rows={rows}
           onRowClick={open}
+          sort={list.sort}
+          onSortChange={list.sortBy}
           rowClassName={() => "clickable"}
           empty={empty}
           caption={t("recordings.title")}

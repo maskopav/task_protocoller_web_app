@@ -4,12 +4,16 @@ import { PAGE_SIZES, isoDay } from "../Uploads/format";
 
 export const STATUSES = ["valid", "validating", "invalid"];
 
+/** Sort keys GET /uploads accepts (SORTS in uploadController.js); anything else falls back to the default. */
+export const SORT_KEYS = ["receivedAt", "site", "patient", "protocol", "endedAt", "durationS", "bytes", "status", "qc"];
+
 /**
  * Filters from a URLSearchParams. ?clinic= / ?study= are the new names of ?site= / ?project=.
  * `fixed` ({clinic, study}) pins a filter (a study or clinic tab) and wins over the URL.
  */
 export function readFilters(sp, fixed = {}) {
   const size = Number(sp.get("pageSize"));
+  const customSort = SORT_KEYS.includes(sp.get("sort"));
   const site = fixed.clinic != null && fixed.clinic !== ""
     ? [String(fixed.clinic)]
     : [...new Set([...sp.getAll("site"), ...sp.getAll("clinic")])];
@@ -27,8 +31,9 @@ export function readFilters(sp, fixed = {}) {
     flag: sp.getAll("flag"),
     hasVideo: sp.get("hasVideo") === "1",
     attention: sp.get("attention") === "1",
-    sort: sp.get("sort") || "receivedAt",
-    dir: sp.get("dir") === "asc" ? "asc" : "desc",
+    sort: customSort ? sp.get("sort") : "receivedAt",
+    dir: customSort && sp.get("dir") === "asc" ? "asc" : "desc",
+    customSort,
     page: Math.max(1, Number(sp.get("page")) || 1),
     pageSize: PAGE_SIZES.includes(size) ? size : 25,
   };
@@ -62,8 +67,8 @@ export function listContext(f) {
   return q.toString();
 }
 
-/** A key that changes whenever the result set (not just the page) changes: selection resets with it. */
-export const filterKey = (f) => JSON.stringify({ ...toApiParams(f), page: "", pageSize: "" });
+/** A key that changes whenever the result set (not its page or order) changes: selection resets with it. */
+export const filterKey = (f) => JSON.stringify({ ...toApiParams(f), page: "", pageSize: "", sort: "", dir: "" });
 
 /** Does any filter narrow the list (beyond the fixed ones)? */
 export function hasActiveFilters(f, fixed = {}) {
@@ -71,9 +76,25 @@ export function hasActiveFilters(f, fixed = {}) {
     || f.from || f.to || f.status || f.qc || f.flag.length || f.hasVideo || f.attention);
 }
 
-/** Default order: unreviewed first, then newest. Applies to the default sort only; the server order is kept within each group. */
+/**
+ * URL patch for a click on a sortable header: a new column starts ascending, the same column
+ * goes asc -> desc -> back to the default order (no sort in the URL).
+ */
+export function nextSort(f, key) {
+  if (!f.customSort || f.sort !== key) return { sort: key, dir: "asc" };
+  if (f.dir === "asc") return { sort: key, dir: "desc" };
+  return { sort: "", dir: "" };
+}
+
+/** The URL patch of the Reset sort button. */
+export const RESET_SORT = Object.freeze({ sort: "", dir: "" });
+
+/**
+ * Default order: unreviewed first, then newest. Applies only while no sort is chosen (an explicit
+ * Received descending turns it off); the server order is kept within each group.
+ */
 export function orderRows(rows, f) {
-  if (!isDefaultSort(f)) return rows;
+  if (f.customSort) return rows;
   const open = rows.filter((r) => r.qc === "unreviewed");
   return open.length === 0 || open.length === rows.length ? rows : [...open, ...rows.filter((r) => r.qc !== "unreviewed")];
 }

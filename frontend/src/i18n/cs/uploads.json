@@ -315,6 +315,7 @@
     "downloadSelected_other": "Stáhnout {{count}} vybraných",
     "downloadAll": "Stáhnout všech {{count}}",
     "more": "Další akce",
+    "resetSort": "Zrušit řazení",
     "selectAll": "Vybrat všechny záznamy na této stránce",
     "selectRow": "Vybrat záznam {{code}}",
     "blocked": {

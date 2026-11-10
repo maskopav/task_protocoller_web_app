@@ -110,3 +110,57 @@ test('F-099 one-clinic user at 1440x900: the whole search placeholder fits in th
   });
   expect(m.text, `placeholder "${m.placeholder}" needs ${m.text}px, box has ${m.content}px`).toBeLessThanOrEqual(m.content);
 });
+
+test('column headers sort on the server (asc -> desc -> default), Reset sort keeps the filters', async ({ page }) => {
+  await uiLogin(page, USERS.master);
+  await page.goto('/#/recordings?clinic=4');
+  await expect(page.locator('tbody tr.clickable')).toHaveCount(SITE_A_SESSIONS.length);
+  const reset = page.getByTestId('recordings-reset-sort');
+  const review = page.getByRole('columnheader', { name: 'Review' });
+  await expect(reset).toHaveCount(0);
+  await expect(page.getByRole('columnheader', { name: 'Flags' }).getByRole('button')).toHaveCount(0);
+
+  // The table shows the server's order as is: no client regrouping of unreviewed rows.
+  const ids = () => page.locator('tbody tr.clickable .rec-id').allTextContents();
+  const asc = page.waitForResponse((r) => /\/uploads\?.*sort=qc&dir=asc/.test(r.url()));
+  await review.getByRole('button').click();
+  const ascRows = (await (await asc).json()).rows as { id: string; qc: string }[];
+  await expect(page).toHaveURL(/sort=qc&dir=asc/);
+  await expect(review).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(ids).toEqual(ascRows.map((r) => r.id.slice(0, 8)));
+  const ORDER = ['review', 'unreviewed', 'ok', 'excluded'];
+  const ranks = ascRows.map((r) => ORDER.indexOf(r.qc));
+  expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+  await expect(reset).toBeVisible();
+
+  await review.getByRole('button').click();
+  await expect(page).toHaveURL(/sort=qc&dir=desc/);
+  await expect(review).toHaveAttribute('aria-sort', 'descending');
+
+  // Opening a row carries the sort into ctx, so Previous/Next follow this order.
+  await page.locator('tbody tr.clickable').first().click();
+  await expect(page).toHaveURL(/ctx=[^#]*sort%3Dqc%26dir%3Ddesc/);
+  await page.goBack();
+
+  await review.getByRole('button').click();
+  await expect(page).not.toHaveURL(/sort=/);
+  await expect(review).not.toHaveAttribute('aria-sort', /.+/);
+  await expect(reset).toHaveCount(0);
+
+  // The seed has mixed server checks (all reviews are "unreviewed"), so this is where the order shows.
+  const checkAsc = page.waitForResponse((r) => /\/uploads\?.*sort=status&dir=asc/.test(r.url()));
+  await page.getByRole('columnheader', { name: 'Server check' }).getByRole('button').click();
+  const statusRows = (await (await checkAsc).json()).rows as { id: string; status: string }[];
+  const STATUS_ORDER = ['invalid', 'validating', 'valid'];
+  const sRanks = statusRows.map((r) => STATUS_ORDER.indexOf(r.status));
+  expect(new Set(sRanks).size).toBeGreaterThan(1);
+  expect(sRanks).toEqual([...sRanks].sort((a, b) => a - b));
+  await expect.poll(ids).toEqual(statusRows.map((r) => r.id.slice(0, 8)));
+
+  await page.getByRole('columnheader', { name: 'Patient' }).getByRole('button').click();
+  await expect(page).toHaveURL(/sort=patient&dir=asc/);
+  await reset.click();
+  await expect(page).not.toHaveURL(/sort=/);
+  await expect(page).toHaveURL(/clinic=4/);
+  await expect(reset).toHaveCount(0);
+});

@@ -11,7 +11,9 @@ import { fmtBytes } from "../Uploads/format";
 import {
   MAX_BUNDLE_BYTES, MAX_BUNDLE_SESSIONS, checkBundleLimits, downloadTarget, downloadableFromFilter, isBulkSelectable,
 } from "./bulk";
-import { filterKey, hasActiveFilters, listContext, orderRows, readFilters, showClinic, toApiParams } from "./recordingsQuery";
+import {
+  RESET_SORT, filterKey, hasActiveFilters, listContext, nextSort, orderRows, readFilters, showClinic, toApiParams,
+} from "./recordingsQuery";
 
 const PAGE = 100;
 
@@ -63,6 +65,8 @@ export default function useRecordingsList({ fixed = {}, syncUrl = true } = {}) {
     setSp(next, { replace });
   }, [sp, setSp]);
   const clearAll = useCallback(() => setSp(new URLSearchParams(), {}), [setSp]);
+  const sortBy = useCallback((key) => update(nextSort(f, key)), [update, f]);
+  const resetSort = useCallback(() => update(RESET_SORT), [update]);
 
   // Load the page for the current filters; ignore responses that arrive out of order.
   useEffect(() => {
@@ -166,7 +170,8 @@ export default function useRecordingsList({ fixed = {}, syncUrl = true } = {}) {
   };
 
   return {
-    f, update, clearAll, apiParams, context: listContext(f), fixed: { clinic: fixedClinic, study: fixedStudy },
+    f, update, clearAll, sortBy, resetSort, customSort: f.customSort,
+    sort: f.customSort ? { key: f.sort, dir: f.dir } : null, apiParams, context: listContext(f), fixed: { clinic: fixedClinic, study: fixedStudy },
     data, rows, total, loading, error, retry: () => setReload((n) => n + 1),
     studies, protocols, clinicVisible, filtered, clinics: data?.facets.sites ?? [],
     selected, selectedCount: selected.size, toggleRow, togglePage, allPageSelected, selectablePage, clearSelection,

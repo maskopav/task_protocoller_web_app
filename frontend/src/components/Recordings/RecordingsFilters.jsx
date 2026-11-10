@@ -134,6 +134,12 @@ export default function RecordingsFilters({ list }) {
         <Button variant="quiet" size="sm" aria-expanded={showMore} onClick={() => setMoreOpen(!showMore)} data-testid="recordings-more-filters">
           {t("recordings.filters.more")}
         </Button>
+
+        {list.customSort && (
+          <Button variant="quiet" size="sm" onClick={list.resetSort} data-testid="recordings-reset-sort">
+            {t("recordings.resetSort")}
+          </Button>
+        )}
       </div>
 
       {showMore && (

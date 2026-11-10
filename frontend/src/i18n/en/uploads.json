@@ -310,6 +310,7 @@
     "downloadSelected_other": "Download {{count}} selected",
     "downloadAll": "Download all {{count}}",
     "more": "More actions",
+    "resetSort": "Reset sort",
     "selectAll": "Select all recordings on this page",
     "selectRow": "Select recording {{code}}",
     "blocked": {

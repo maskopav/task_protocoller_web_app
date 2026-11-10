@@ -157,6 +157,21 @@ describe("DataTable", () => {
     expect(names(container)).toEqual(["Beta", "Alpha"]);
     expect(container.querySelectorAll("th")[1].getAttribute("aria-sort")).toBe("ascending");
   });
+  it("controlled sort marks the header, reports the click and keeps the given row order", () => {
+    const fn = vi.fn();
+    const { container } = render(<DataTable columns={columns} rows={rows} sort={{ key: "name", dir: "desc" }} onSortChange={fn} />);
+    expect(names(container)).toEqual(["Beta", "Alpha"]);
+    expect(container.querySelectorAll("th")[0].getAttribute("aria-sort")).toBe("descending");
+    expect(container.querySelectorAll("th")[1].hasAttribute("aria-sort")).toBe(false);
+    click(container.querySelectorAll("th button")[1]);
+    expect(fn).toHaveBeenCalledWith("n");
+    expect(names(container)).toEqual(["Beta", "Alpha"]);
+    expect(container.querySelectorAll("th")[0].getAttribute("aria-sort")).toBe("descending");
+  });
+  it("controlled sort without a sort marks nothing", () => {
+    const { container } = render(<DataTable columns={columns} rows={rows} sort={null} onSortChange={() => {}} />);
+    expect([...container.querySelectorAll("th")].some((th) => th.hasAttribute("aria-sort"))).toBe(false);
+  });
   it("row click and keyboard activate, inner controls do not", () => {
     const fn = vi.fn();
     const { container } = render(<DataTable columns={columns} rows={rows} onRowClick={fn} />);

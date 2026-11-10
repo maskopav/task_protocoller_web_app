@@ -25,22 +25,29 @@ function compare(a, b) {
  * @param {(row) => string} [href]      router path (e.g. "/studies/3"); makes rows clickable
  * @param {React.ReactNode} [empty]     shown instead of the table when rows is empty (default EmptyState)
  * @param {{key: string, dir: 'asc'|'desc'}} [defaultSort]
+ * @param {{key: string, dir: 'asc'|'desc'}|null} [sort] controlled sort (with onSortChange): only marks the header
+ * @param {(key: string) => void} [onSortChange] controlled mode: a sortable header click calls this with the column
+ *   key and the rows are rendered in the given order (the caller sorts, e.g. on the server)
  * @param {(row) => string} [rowClassName] extra class names for a row (e.g. a hook for tests or stripes)
  * Rows with controls (buttons, links, Menu) keep working: clicks on them do not trigger the row.
  */
-export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href, empty, defaultSort, caption, rowClassName, ...rest }) {
+export function DataTable({
+  columns, rows = [], rowKey = "id", onRowClick, href, empty, defaultSort, sort: givenSort, onSortChange, caption, rowClassName, ...rest
+}) {
   const navigate = useNavigate();
-  const [sort, setSort] = useState(defaultSort || null);
+  const [ownSort, setSort] = useState(defaultSort || null);
+  const controlled = typeof onSortChange === "function";
+  const sort = controlled ? givenSort || null : ownSort;
   const { wrapRef, tableRef, wrapClass } = useWideTable(rows.length > 0);
 
   const sorted = useMemo(() => {
-    if (!sort) return rows;
+    if (controlled || !sort) return rows;
     const col = columns.find((c) => c.key === sort.key);
     if (!col) return rows;
     const val = col.sortValue || ((r) => r[col.key]);
     const dir = sort.dir === "desc" ? -1 : 1;
     return [...rows].sort((x, y) => dir * compare(val(x), val(y)));
-  }, [rows, sort, columns]);
+  }, [rows, sort, columns, controlled]);
 
   if (rows.length === 0) return empty ?? <EmptyState title="—" />;
 
@@ -50,8 +57,10 @@ export function DataTable({ columns, rows = [], rowKey = "id", onRowClick, href,
     if (onRowClick) onRowClick(row);
     else if (href) navigate(href(row));
   };
-  const toggleSort = (key) =>
+  const toggleSort = (key) => {
+    if (controlled) { onSortChange(key); return; }
     setSort((s) => (s && s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
+  };
 
   return (
     <div className={`ui-tbl-wrap${wrapClass}`} ref={wrapRef}>

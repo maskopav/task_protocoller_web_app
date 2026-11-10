@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
-  datePreset, datePresetPatch, filterKey, hasActiveFilters, kpiCards, listContext, orderRows, pageWindow,
-  readFilters, showClinic, toApiParams,
+  RESET_SORT, datePreset, datePresetPatch, filterKey, hasActiveFilters, kpiCards, listContext, nextSort, orderRows,
+  pageWindow, readFilters, showClinic, toApiParams,
 } from "./recordingsQuery";
 
 const sp = (s) => new URLSearchParams(s);
@@ -45,6 +45,42 @@ describe("filter -> API query", () => {
   });
 });
 
+describe("sorting by a column header", () => {
+  const click = (query, key) => nextSort(readFilters(sp(query)), key);
+
+  it("marks a known sort key in the URL as a custom sort and ignores unknown ones", () => {
+    expect(readFilters(sp("")).customSort).toBe(false);
+    expect(readFilters(sp("sort=qc")).customSort).toBe(true);
+    expect(readFilters(sp("sort=receivedAt&dir=desc")).customSort).toBe(true);
+    expect(readFilters(sp("sort=bogus&dir=asc"))).toMatchObject({ customSort: false, sort: "receivedAt", dir: "desc" });
+  });
+
+  it("cycles asc -> desc -> default on the same column", () => {
+    expect(click("", "qc")).toEqual({ sort: "qc", dir: "asc" });
+    expect(click("sort=qc&dir=asc", "qc")).toEqual({ sort: "qc", dir: "desc" });
+    expect(click("sort=qc&dir=desc", "qc")).toEqual({ sort: "", dir: "" });
+  });
+
+  it("starts a different column ascending", () => {
+    expect(click("sort=qc&dir=desc", "patient")).toEqual({ sort: "patient", dir: "asc" });
+  });
+
+  it("starts Received ascending from the default and cycles it like any column", () => {
+    expect(click("", "receivedAt")).toEqual({ sort: "receivedAt", dir: "asc" });
+    expect(click("sort=receivedAt&dir=asc", "receivedAt")).toEqual({ sort: "receivedAt", dir: "desc" });
+    expect(click("sort=receivedAt&dir=desc", "receivedAt")).toEqual({ sort: "", dir: "" });
+  });
+
+  it("reset clears both keys", () => {
+    expect(RESET_SORT).toEqual({ sort: "", dir: "" });
+  });
+
+  it("sends the chosen sort to the API, the server default as nothing", () => {
+    expect(toApiParams(readFilters(sp("sort=qc&dir=desc")))).toMatchObject({ sort: "qc", dir: "desc" });
+    expect(toApiParams(readFilters(sp("sort=receivedAt&dir=desc")))).toMatchObject({ sort: "", dir: "" });
+  });
+});
+
 describe("list context for the detail page's previous/next", () => {
   it("uses the API's filter names, includes fixed filters, and leaves paging out", () => {
     const f = readFilters(sp("clinic=4&qc=unreviewed&page=2&pageSize=50"), { study: 3 });
@@ -66,6 +102,10 @@ describe("list context for the detail page's previous/next", () => {
     expect(filterKey(readFilters(sp("qc=ok")))).not.toBe(filterKey(readFilters(sp("qc=review"))));
   });
 
+  it("filterKey ignores the sort: re-ordering the same recordings keeps the ticks", () => {
+    expect(filterKey(readFilters(sp("qc=ok&sort=patient&dir=desc")))).toBe(filterKey(readFilters(sp("qc=ok"))));
+  });
+
   it("hasActiveFilters ignores the pinned ones", () => {
     expect(hasActiveFilters(readFilters(sp(""), { clinic: 4, study: 3 }), { clinic: 4, study: 3 })).toBe(false);
     expect(hasActiveFilters(readFilters(sp("qc=ok")), {})).toBe(true);
@@ -82,6 +122,9 @@ describe("default order: unreviewed first, then newest", () => {
   });
   it("leaves an explicit sort alone", () => {
     expect(orderRows(rows, readFilters(sp("sort=bytes&dir=asc"))).map((r) => r.id)).toEqual(["a", "b", "c", "d"]);
+  });
+  it("leaves an explicit Received descending alone", () => {
+    expect(orderRows(rows, readFilters(sp("sort=receivedAt&dir=desc"))).map((r) => r.id)).toEqual(["a", "b", "c", "d"]);
   });
   it("keeps the order when all or none are unreviewed", () => {
     const same = [{ id: "x", qc: "ok" }, { id: "y", qc: "ok" }];
