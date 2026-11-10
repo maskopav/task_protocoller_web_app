@@ -41,3 +41,5 @@ coverage
 
 # Phase B local upload storage (DATA_PATH)
 backend/.data/
+
+*.stackdump

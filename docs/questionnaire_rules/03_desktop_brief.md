@@ -2,7 +2,12 @@
 
 **Audience:** NewShare (desktop app) developers.
 
-**Status:** the contract is fixed as of 2026-10-31, and the web side emits it. The app is not implemented yet.
+**Status:** the contract is fixed as of 2026-10-31, and the web side emits it. The app implements it on NewShare branch `old_ui` (commits `635c2af` and `aba6153`, 2026-11-06), checked live from the web editor through to upload in NewShare's E2E run 17. Those commits are not on `master` yet.
+
+**App decisions beyond this brief:**
+- A conditional question is displayed directly below its source, whatever its position in the config. Visibility and `questionnaireAnswers` still use config order. The web preview keeps config order, so the two can differ.
+- A `showIf` of the wrong JSON shape, or a rule where the question's own key or its source's key is duplicated in the task, counts as an invalid rule under §3.
+- Bad rules are reported as warnings on `ConfigValidationResult`, not through its `errors`, because any error rejects the config (§4 lists `ConfigValidator` as the place for these checks).
 
 **Normative text:** [`../ext_app_Task_Configuration_JSON_Spec.md`](../ext_app_Task_Configuration_JSON_Spec.md) §4.2.1. If the two documents disagree, that spec wins over this brief.
 
