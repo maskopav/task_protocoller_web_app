@@ -148,12 +148,18 @@ describe.skipIf(!dbUp)("MCP endpoint", () => {
 
       const list = await rpc(w.tokens.clin, "tools/list");
       const names = list.body.result.tools.map((x) => x.name).sort();
+      const WRITES = ["add_recording_comment", "copy_library_protocol", "save_protocol", "set_recording_qc"];
       expect(names).toEqual([
+        "add_recording_comment", "copy_library_protocol",
         "get_clinic", "get_library_entry", "get_protocol", "get_recording", "get_recording_summary", "get_study",
         "list_clinics", "list_computers", "list_library", "list_protocols", "list_recording_comments", "list_recordings",
-        "list_studies", "list_task_catalog", "whoami",
+        "list_studies", "list_task_catalog", "save_protocol", "set_recording_qc", "whoami",
       ]);
-      expect(list.body.result.tools.every((x) => x.annotations?.readOnlyHint === true)).toBe(true);
+      for (const x of list.body.result.tools) {
+        expect(x.annotations?.readOnlyHint, x.name).toBe(!WRITES.includes(x.name));
+      }
+      const destructive = list.body.result.tools.filter((x) => x.annotations?.destructiveHint).map((x) => x.name).sort();
+      expect(destructive).toEqual(["copy_library_protocol", "save_protocol"]);
     }));
 
   it("refuses GET and DELETE, and calls without a token", async () => {

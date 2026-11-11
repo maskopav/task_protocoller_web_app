@@ -6,7 +6,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { callHandler } from "./callHandler.js";
 import { readTools } from "./tools/read.js";
+import { writeTools } from "./tools/write.js";
 import { logToFile } from "../utils/logger.js";
+
+const ERROR_DETAIL_KEYS = ["index", "question", "detail", "max", "currentVersion"];
 
 export const SERVER_INFO = { name: "task-protocoller", version: "1.0.0" };
 
@@ -18,15 +21,19 @@ const INSTRUCTIONS =
 
 /** All v1 tool definitions. Exported for tests (tools/list parity). */
 export function allTools(deps = { call: callHandler }) {
-  return [...readTools(deps)];
+  return [...readTools(deps), ...writeTools(deps)];
 }
 
 function toolResult(r) {
   if (r.status >= 200 && r.status < 300) {
     return { content: [{ type: "text", text: JSON.stringify(r.body ?? null) }] };
   }
-  const error = r.status >= 500 ? "internal" : (r.body?.error ?? "error");
-  return { isError: true, content: [{ type: "text", text: JSON.stringify({ error, status: r.status }) }] };
+  if (r.status >= 500) return { isError: true, content: [{ type: "text", text: JSON.stringify({ error: "internal", status: r.status }) }] };
+  // The web API's error code, plus the few detail keys that say what to fix
+  // (which task, which question, the template problem, the limit, the version).
+  const extra = {};
+  for (const k of ERROR_DETAIL_KEYS) if (r.body?.[k] !== undefined) extra[k] = r.body[k];
+  return { isError: true, content: [{ type: "text", text: JSON.stringify({ error: r.body?.error ?? "error", status: r.status, ...extra }) }] };
 }
 
 export function buildMcpServer(admin, deps = { call: callHandler }) {

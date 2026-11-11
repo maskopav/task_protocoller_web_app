@@ -161,15 +161,18 @@ A **leakage test** (§8) seeds sentinel strings into every dropped field, then d
 
 ## 6. Protocol writes: preview, then confirm
 
-- `validateProtocolBody(body)` is extracted from `saveProtocol` as an exported pure function. It checks tasks, `task_id`, question rules, the file-name template, the PDF URL and `project_id`. `saveProtocol` calls it, so its behaviour is unchanged.
+- `prepareProtocolSave(req, res)` is split off `saveProtocol` (and `prepareLibraryCopy` off `copyFromLibrary`). It holds **every** check that runs before the write, unchanged: validation, rights, name uniqueness and group integrity. It answers the error itself, or returns `{ ok: true, … }`. The save calls it first, and so does the preview, so a preview can never pass something the save would refuse.
+- MCP input: passing `protocol_group_id` always means "save a new version" (`editingMode`), and leaving it out means "create". The web API's group-without-editing combination is not offered.
 - **Preview (no `confirm`)**, all read-only:
   1. Rights check: `canEditProject` (masters pass), the study exists and is active, and, for edits, the group belongs to the study. The 403/404 codes are the same as the UI's.
-  2. `validateProtocolBody`.
+  2. The rest of `prepareProtocolSave`, plus a check that every `task_id` is a known task kind. The save would otherwise fail on that only inside its transaction.
   3. For edits, a diff against `assembleProtocol(currentId)`: changed top-level fields, tasks added, removed or reordered, and params changed.
-  4. Affected clinics: `site_projects` for the study.
+  4. Affected clinics: `{ total, visible }`. `total` counts every clinic running the study. `visible` names only the clinics you can see, so the preview never names a clinic outside your access. A library entry has none.
 
   It returns `{ preview: true, valid, errors?, diff, affectedClinics, baseVersion }`, and the tool text says that saving goes live to these clinics' computers.
-- **Confirm (`confirm: true`)**: for edits, `base_version` must equal the group's current version, else `{error:"stale_version"}`. Then `saveProtocol` runs through the adapter.
+- **Confirm (`confirm: true`)**: for edits, `base_version` is required (else 400 `base_version_required`). It must equal the group's current version, else 409 `stale_version` with `currentVersion`. Then `saveProtocol` runs through the adapter.
+- Both protocol tools carry `destructiveHint: true`, so clients that honour it ask the user before running them.
+- A tool error carries the web API's code and status, plus only these detail keys: `index`, `question`, `detail`, `max`, `currentVersion`.
 - `copy_library_protocol` works the same way: the preview shows the entry, the target study and the affected clinics, and confirm calls `copyFromLibrary`.
 
 ## 7. Logging and audit
