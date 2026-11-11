@@ -1,0 +1,86 @@
+{
+  "title": "Účet",
+  "loading": "Načítání…",
+  "profile": {
+    "title": "Profil",
+    "name": "Jméno",
+    "email": "E-mail"
+  },
+  "mcp": {
+    "title": "AI asistenti (MCP)",
+    "intro": "Připojte AI asistenta, například Claude Code, VS Code Copilot nebo lokální model. Pracuje jako vy: vidí přesně ty studie, kliniky a nahrávky, které vidíte tady, a smí přidávat komentáře, nastavovat stav kontroly a ukládat protokoly ve studiích, které upravujete.",
+    "privacyBadge": "Soukromí",
+    "privacy": "Co asistent čte, se odesílá poskytovateli AI, kterého používá. Účastníci se zobrazují jen jako kód pacienta a číslo návštěvy. Do komentářů nikdy nepište jména ani jiné identifikační údaje.",
+    "newToken": "Nový token",
+    "activeCount": "Aktivní tokeny: {{count}} / {{max}}",
+    "notAllowed": {
+      "title": "Pro váš účet není povoleno",
+      "description": "Požádejte správce (master), aby vám AI asistenty povolil."
+    }
+  },
+  "tokens": {
+    "name": "Název",
+    "prefix": "Token",
+    "created": "Vytvořen",
+    "lastUsed": "Naposledy použit",
+    "expires": "Platí do",
+    "status": "Stav",
+    "actions": "Akce",
+    "never": "Nikdy",
+    "revoke": "Zneplatnit",
+    "empty": "Zatím žádné tokeny",
+    "state": {
+      "active": "Aktivní",
+      "expired": "Vypršel",
+      "revoked": "Zneplatněn"
+    }
+  },
+  "create": {
+    "title": "Nový token",
+    "description": "Token umožní jednomu AI asistentovi jednat vaším jménem. Vytvořte jeden pro každé zařízení nebo nástroj, abyste je mohli zneplatnit zvlášť.",
+    "name": "Název",
+    "nameHelp": "Například: pracovní notebook, Claude Code",
+    "nameRequired": "Zadejte název",
+    "expiry": "Platnost",
+    "days_one": "{{count}} den",
+    "days_few": "{{count}} dny",
+    "days_many": "{{count}} dne",
+    "days_other": "{{count}} dní",
+    "submit": "Vytvořit token"
+  },
+  "created": {
+    "title": "Token vytvořen",
+    "once": "Zkopírujte si ho hned. Zobrazí se jen jednou; když ho ztratíte, zneplatněte ho a vytvořte nový.",
+    "token": "Token",
+    "done": "Hotovo"
+  },
+  "revoke": {
+    "title": "Zneplatnit „{{name}}“?",
+    "message": "Asistenti s tímto tokenem okamžitě ztratí přístup. Nelze vrátit zpět.",
+    "confirm": "Zneplatnit",
+    "done": "Token zneplatněn"
+  },
+  "connect": {
+    "title": "Připojení asistenta",
+    "intro": "Použijte tuto adresu a token. Místo tpm_… vložte svůj token.",
+    "endpoint": "Adresa serveru",
+    "claudeCode": {
+      "title": "Claude Code",
+      "hint": "Spusťte v terminálu."
+    },
+    "vscode": {
+      "title": "VS Code (GitHub Copilot)",
+      "hint": "Uložte jako .vscode/mcp.json. VS Code si o token řekne při spuštění serveru."
+    },
+    "bridge": {
+      "title": "Ostatní klienti (Claude Desktop, Cursor, lokální modely)",
+      "hint": "Pro klienty, kteří spouštějí jen lokální servery: přidejte do jejich konfigurace MCP. Vyžaduje Node.js."
+    }
+  },
+  "errors": {
+    "mcp_not_allowed": "AI asistenti nejsou pro váš účet povoleni.",
+    "token_limit": "Už máte {{max}} aktivních tokenů. Nejdřív jeden zneplatněte.",
+    "invalid_name": "Zadejte název o nejvýše 64 znacích.",
+    "invalid_expiry": "Zvolte platnost."
+  }
+}

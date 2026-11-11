@@ -68,11 +68,20 @@
     "studies": "Darf Studien erstellen",
     "clinics": "Darf Kliniken erstellen",
     "technical": "Darf technische Details sehen",
-    "technicalHint": "Serverprüfungen, IDs und Upload-Verlauf bei Aufnahmen"
+    "technicalHint": "Serverprüfungen, IDs und Upload-Verlauf bei Aufnahmen",
+    "mcp": "Darf KI-Assistenten verbinden (MCP)",
+    "mcpHint": "Persönliche Zugriffstokens für Claude Code, Copilot und ähnliche Werkzeuge; gleiche Rechte wie im Web"
   },
   "auth": {
     "brand": "TaskProtocoller",
     "loginTitle": "Anmelden",
     "purpose": "Studien einrichten und Aufnahmen von Klinik-Computern prüfen."
+  },
+  "mcpTokens": {
+    "title": "Tokens für KI-Assistenten",
+    "hint": "Widerruf gilt sofort",
+    "revoked": "Token widerrufen",
+    "revokeTitle": "„{{name}}“ widerrufen?",
+    "revokeMessage": "Assistenten mit diesem Token verlieren sofort den Zugriff."
   }
 }

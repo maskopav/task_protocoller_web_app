@@ -70,11 +70,20 @@
     "studies": "Může vytvářet studie",
     "clinics": "Může vytvářet kliniky",
     "technical": "Může vidět technické údaje",
-    "technicalHint": "Kontroly serveru, ID a historie nahrávání u záznamů"
+    "technicalHint": "Kontroly serveru, ID a historie nahrávání u záznamů",
+    "mcp": "Smí připojit AI asistenty (MCP)",
+    "mcpHint": "Osobní přístupové tokeny pro Claude Code, Copilot a podobné nástroje; stejná práva jako na webu"
   },
   "auth": {
     "brand": "TaskProtocoller",
     "loginTitle": "Přihlášení",
     "purpose": "Nastavujte studie a prohlížejte záznamy z počítačů na klinikách."
+  },
+  "mcpTokens": {
+    "title": "Tokeny AI asistentů",
+    "hint": "Zneplatnění platí okamžitě",
+    "revoked": "Token zneplatněn",
+    "revokeTitle": "Zneplatnit „{{name}}“?",
+    "revokeMessage": "Asistenti s tímto tokenem okamžitě ztratí přístup."
   }
 }

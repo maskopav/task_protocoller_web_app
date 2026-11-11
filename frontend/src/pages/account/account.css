@@ -1,0 +1,31 @@
+/* Account page: tokens only (see components/ui/ui.css). */
+.account-page { display: flex; flex-direction: column; gap: var(--s-4); }
+.account-page > header { margin-bottom: 0; }
+.account-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3);
+}
+.account-card p { margin: 0; color: var(--text-2); }
+.account-privacy { display: flex; align-items: baseline; gap: var(--s-2); flex-wrap: wrap; }
+.account-h3 { margin: 0; font-size: var(--fs-lg); }
+.account-stack { display: flex; flex-direction: column; gap: var(--s-3); }
+.account-mono { font-family: var(--mono); font-size: var(--fs-xs); }
+.account-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.account-snippets { display: flex; flex-direction: column; gap: var(--s-3); }
+.account-snippet h4 { margin: 0 0 2px; font-size: var(--fs-sm); }
+.account-snippet p { margin: 0 0 var(--s-2); font-size: var(--fs-xs); color: var(--text-3); }
+.account-code {
+  position: relative; display: flex; align-items: flex-start; gap: var(--s-2);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);
+}
+.account-code pre {
+  flex: 1; min-width: 0; margin: 0; overflow-x: auto;
+  font-family: var(--mono); font-size: var(--fs-xs); line-height: 1.5;
+  /* Wrap long commands, so the token at the end is never hidden off-screen. */
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}

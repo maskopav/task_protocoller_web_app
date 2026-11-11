@@ -1,0 +1,84 @@
+{
+  "title": "Account",
+  "loading": "Loading…",
+  "profile": {
+    "title": "Profile",
+    "name": "Name",
+    "email": "Email"
+  },
+  "mcp": {
+    "title": "AI assistants (MCP)",
+    "intro": "Connect an AI assistant such as Claude Code, VS Code Copilot or a local model. It works as you: it sees exactly the studies, clinics and recordings you see here, and may add comments, set review status and save protocols in studies you edit.",
+    "privacyBadge": "Privacy",
+    "privacy": "What the assistant reads is sent to the AI provider it uses. Participants appear only as patient code and visit number. Never write names or other identifying details in comments.",
+    "newToken": "New token",
+    "activeCount": "Active tokens: {{count}} / {{max}}",
+    "notAllowed": {
+      "title": "Not enabled for your account",
+      "description": "Ask the master to allow AI assistants for you."
+    }
+  },
+  "tokens": {
+    "name": "Name",
+    "prefix": "Token",
+    "created": "Created",
+    "lastUsed": "Last used",
+    "expires": "Expires",
+    "status": "Status",
+    "actions": "Actions",
+    "never": "Never",
+    "revoke": "Revoke",
+    "empty": "No tokens yet",
+    "state": {
+      "active": "Active",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    }
+  },
+  "create": {
+    "title": "New token",
+    "description": "A token lets one AI assistant act as you. Create one per device or tool, so you can revoke it on its own.",
+    "name": "Name",
+    "nameHelp": "For example: work laptop, Claude Code",
+    "nameRequired": "Enter a name",
+    "expiry": "Expires after",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "submit": "Create token"
+  },
+  "created": {
+    "title": "Token created",
+    "once": "Copy it now. It is shown only once; if you lose it, revoke it and create a new one.",
+    "token": "Token",
+    "done": "Done"
+  },
+  "revoke": {
+    "title": "Revoke “{{name}}”?",
+    "message": "Assistants using this token lose access immediately. This cannot be undone.",
+    "confirm": "Revoke",
+    "done": "Token revoked"
+  },
+  "connect": {
+    "title": "Connect an assistant",
+    "intro": "Use this address and a token. Replace tpm_… with your token.",
+    "endpoint": "Server address",
+    "claudeCode": {
+      "title": "Claude Code",
+      "hint": "Run in a terminal."
+    },
+    "vscode": {
+      "title": "VS Code (GitHub Copilot)",
+      "hint": "Save as .vscode/mcp.json. VS Code asks for the token when it starts the server."
+    },
+    "bridge": {
+      "title": "Other clients (Claude Desktop, Cursor, local models)",
+      "hint": "For clients that only start local servers: add to their MCP configuration. Needs Node.js."
+    }
+  },
+  "errors": {
+    "mcp_not_allowed": "AI assistants are not enabled for your account.",
+    "token_limit": "You already have {{max}} active tokens. Revoke one first.",
+    "invalid_name": "Enter a name of at most 64 characters.",
+    "invalid_expiry": "Choose an expiry."
+  }
+}

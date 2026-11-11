@@ -1,0 +1,84 @@
+{
+  "title": "Konto",
+  "loading": "Wird geladen…",
+  "profile": {
+    "title": "Profil",
+    "name": "Name",
+    "email": "E-Mail"
+  },
+  "mcp": {
+    "title": "KI-Assistenten (MCP)",
+    "intro": "Verbinden Sie einen KI-Assistenten wie Claude Code, VS Code Copilot oder ein lokales Modell. Er arbeitet als Sie: Er sieht genau die Studien, Kliniken und Aufnahmen, die Sie hier sehen, und darf Kommentare hinzufügen, den Prüfstatus setzen und Protokolle in Studien speichern, die Sie bearbeiten.",
+    "privacyBadge": "Datenschutz",
+    "privacy": "Was der Assistent liest, wird an seinen KI-Anbieter gesendet. Teilnehmende erscheinen nur als Patientencode und Besuchsnummer. Schreiben Sie nie Namen oder andere identifizierende Angaben in Kommentare.",
+    "newToken": "Neues Token",
+    "activeCount": "Aktive Tokens: {{count}} / {{max}}",
+    "notAllowed": {
+      "title": "Für Ihr Konto nicht freigeschaltet",
+      "description": "Bitten Sie den Master, KI-Assistenten für Sie freizuschalten."
+    }
+  },
+  "tokens": {
+    "name": "Name",
+    "prefix": "Token",
+    "created": "Erstellt",
+    "lastUsed": "Zuletzt verwendet",
+    "expires": "Läuft ab",
+    "status": "Status",
+    "actions": "Aktionen",
+    "never": "Nie",
+    "revoke": "Widerrufen",
+    "empty": "Noch keine Tokens",
+    "state": {
+      "active": "Aktiv",
+      "expired": "Abgelaufen",
+      "revoked": "Widerrufen"
+    }
+  },
+  "create": {
+    "title": "Neues Token",
+    "description": "Mit einem Token kann ein KI-Assistent in Ihrem Namen handeln. Erstellen Sie eines pro Gerät oder Werkzeug, damit Sie es einzeln widerrufen können.",
+    "name": "Name",
+    "nameHelp": "Zum Beispiel: Arbeitslaptop, Claude Code",
+    "nameRequired": "Geben Sie einen Namen ein",
+    "expiry": "Läuft ab nach",
+    "days_one": "{{count}} Tag",
+    "days_other": "{{count}} Tagen",
+    "submit": "Token erstellen"
+  },
+  "created": {
+    "title": "Token erstellt",
+    "once": "Kopieren Sie es jetzt. Es wird nur einmal angezeigt; wenn Sie es verlieren, widerrufen Sie es und erstellen ein neues.",
+    "token": "Token",
+    "done": "Fertig"
+  },
+  "revoke": {
+    "title": "„{{name}}“ widerrufen?",
+    "message": "Assistenten mit diesem Token verlieren sofort den Zugriff. Das kann nicht rückgängig gemacht werden.",
+    "confirm": "Widerrufen",
+    "done": "Token widerrufen"
+  },
+  "connect": {
+    "title": "Assistent verbinden",
+    "intro": "Verwenden Sie diese Adresse und ein Token. Ersetzen Sie tpm_… durch Ihr Token.",
+    "endpoint": "Serveradresse",
+    "claudeCode": {
+      "title": "Claude Code",
+      "hint": "Im Terminal ausführen."
+    },
+    "vscode": {
+      "title": "VS Code (GitHub Copilot)",
+      "hint": "Als .vscode/mcp.json speichern. VS Code fragt beim Start des Servers nach dem Token."
+    },
+    "bridge": {
+      "title": "Andere Clients (Claude Desktop, Cursor, lokale Modelle)",
+      "hint": "Für Clients, die nur lokale Server starten: in deren MCP-Konfiguration eintragen. Benötigt Node.js."
+    }
+  },
+  "errors": {
+    "mcp_not_allowed": "KI-Assistenten sind für Ihr Konto nicht freigeschaltet.",
+    "token_limit": "Sie haben bereits {{max}} aktive Tokens. Widerrufen Sie zuerst eines.",
+    "invalid_name": "Geben Sie einen Namen mit höchstens 64 Zeichen ein.",
+    "invalid_expiry": "Wählen Sie eine Laufzeit."
+  }
+}
