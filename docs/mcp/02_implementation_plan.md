@@ -35,7 +35,7 @@ The new dependencies are `@modelcontextprotocol/sdk` (1.x, pinned in the lockfil
 
 - [x] 1 Docs
 - [x] 2 Tokens (2026-11-11: 16 new tests; 867/867 backend tests passing)
-- [ ] 3 Read tools
+- [x] 3 Read tools (2026-11-11: 15 read tools; 874/874 backend tests passing, including scope parity and leakage tests with a raw-controller control; curl smoke test against a real server)
 - [ ] 4 Write tools
 - [ ] 5 Frontend
 - [ ] 6 Rollout and results

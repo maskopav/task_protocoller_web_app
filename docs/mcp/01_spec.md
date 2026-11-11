@@ -140,20 +140,20 @@ Tool names are snake_case. Every input schema is zod. IDs are the web API's own 
 Each tool has a shaper in `backend/src/mcp/shape.js`. **Only the keys listed here leave.** A key not listed is dropped.
 
 - **Recording list row:** the keys of `listRow` (`uploadController.js`), named explicitly:
-  - `id, siteId, site, deviceId, deviceLabel, protocol, projectId, project`
+  - `id, siteId, site, deviceLabel, protocol, projectId, project`. The computer's installation id (`deviceId`) is not included.
   - `startedAt, endedAt, processedAt, receivedAt, durationS, bytes`
   - `status, invalidReason, qc, issues, needsAttention`
   - `tasksTotal, tasksDone, tasksSkipped, hasAudio, audioClips, videoClips`
   - `participant {patient_code, visit_number}, canEdit, commentCount`
 - **Recording detail:** the list-row keys, plus:
-  - `checks[]` as `{key, result}` only. `detail` is dropped, because it quotes zip entry names.
-  - `tasks[]` as `{order, taskId, name, type, status, durationS, skipped, retakes}`. Dropped: `clipFile`, `videoFile`, `questionnaireAnswers`, any file name or path.
-  - `appVersion, configVersion, canEdit`
+  - `recovered, interruptions, timelineUsed, captureFormat, sampleRate`
+  - `tasks[]` as `{taskIndex, type, subtype, repetition, result, takes, videoComplete, videoDurationMs, audioDurationMs, hasClip, hasVideo, hasAnswers}`. Dropped: `clipFile`, `videoFile`, `questionnaireAnswers`, any file name or path.
   - `comments` as in `list_recording_comments`
+  - **Technical details, only when `showTechnical` is true:** `deviceId, appVersion, configVersion` and `checks[]`. `showTechnical` is true for a master, or a user the master picked (`can_see_technical`), the same rule as the recording page. `checks[]` is `{key, result}` only. `detail` is dropped, because it quotes zip entry names.
 - **Dropped from the recording detail:**
   - `participant.fields`, `participant.maskedKeys`, `participant.editedAt`
   - `questionTexts`, `videoTakes`, `hardware`, `timeline`, `interruptionEvents`, `zipSha256`
-- **Comment:** `{id, text, createdAt, author}`, where `author` is the staff display name. `is_system` rows are dropped when they come from a participant edit. QC system comments are kept as `{kind:"qc", text}`.
+- **Comment:** `{id, author, at, text, kind}`, where `author` is the staff display name and `kind` is `comment` or `qc`. A system note is kept only if it is a QC change (`set review to …`). Every other system note is dropped, because a participant-edit note names the edited fields.
 - **Clinic:** no `access_token`, ever. Contact fields are staff data and allowed.
 - **Protocol / library entry:** protocol design only. `required_identifiers` are field **names**, and `recordings_file_name` is the template. Both are allowed.
 

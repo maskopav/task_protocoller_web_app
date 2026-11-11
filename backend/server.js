@@ -10,6 +10,7 @@ import projectsRouter from "./src/routes/projects.js";
 import libraryRouter from "./src/routes/library.js";
 import sitesRouter from "./src/routes/sites.js";
 import mcpTokensRouter from "./src/routes/mcpTokens.js";
+import { createMcpRouter } from "./src/mcp/router.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
 import { deviceCheckin } from "./src/controllers/deviceController.js";
 import { createDevicesRouter } from "./src/routes/devices.js";
@@ -123,6 +124,12 @@ app.use("/upload", createUploadRouter({ store: fileStore, queue: validationQueue
 // Public, gated by the site token: the desktop app's rotated logs (spec §2).
 // Also before the body parsers: its body is a multipart stream.
 app.use("/device-logs", createDeviceLogRouter({ store: fileStore, maxBytes: uploadConfig.deviceLogs.maxBytes, limits: uploadConfig.limits }));
+
+// MCP (docs/mcp/01_spec.md): opt-in per deployment. Before the app-wide body
+// parsers, so its own 1 MB JSON limit applies. Auth is a personal access token.
+if (process.env.MCP_ENABLED === "true") {
+  app.use("/mcp", createMcpRouter());
+}
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
