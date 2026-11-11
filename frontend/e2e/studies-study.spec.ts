@@ -46,7 +46,7 @@ test.describe.serial('master creates a study and protocols', () => {
     expect(await primaryButtons(page)).toBe(1); // "New protocol" only
   });
 
-  test('a blank protocol is saved and the editor moves to its real id (F-058)', async ({ page }) => {
+  test('a blank protocol is saved and the user lands on the Protocols tab', async ({ page }) => {
     await uiLogin(page, USERS.master);
     await page.goto(`/#/studies/${studyId}/protocols`);
     await page.getByTestId('study-new-protocol').click();
@@ -68,12 +68,10 @@ test.describe.serial('master creates a study and protocols', () => {
     await expect(page.getByTestId('protocol-save')).toBeEnabled();
     await page.getByTestId('protocol-save').click();
 
-    await expect(page).toHaveURL(new RegExp(`#/studies/${studyId}/protocols/\\d+$`));
+    // Creating exits the editor to the Protocols tab, with the new protocol listed.
+    await expect(page).toHaveURL(hash(`/studies/${studyId}/protocols`));
     expect(page.url()).not.toContain('undefined');
-    await expect(page.getByTestId('protocol-version')).toHaveText('v1');
-    await expect(page.getByTestId('protocol-save')).toBeDisabled(); // clean again
-
-    await page.goto(`/#/studies/${studyId}/protocols`);
+    await expect(page.getByTestId('protocol-editor')).toHaveCount(0);
     await expect(page.getByTestId('study-protocols-table')).toContainText('Blank e2e protocol');
   });
 

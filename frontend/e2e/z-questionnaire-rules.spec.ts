@@ -44,13 +44,17 @@ test('a conditional question is saved, reloaded and emitted as showIf', async ({
 
   await page.getByTestId('protocol-save').click();
   // The "update everyone" confirmation: its primary button.
+  // A save stores a new version under a new protocol id; capture it to reopen that version.
+  const saved = page.waitForResponse((r) => r.request().method() === 'POST' && /\/protocols$/.test(r.url().split('?')[0]));
   await page.locator('[role="dialog"] .ui-btn-primary').click();
-  // Save is also disabled while the request is in flight; the new version is the real signal.
-  await expect(page.getByTestId('protocol-version')).toHaveText('v2');
-  await expect(page.getByTestId('protocol-save')).toBeDisabled();
+  const { protocol_id: newId } = await (await saved).json();
+  // Saving an existing protocol exits the editor to the study's Protocols tab.
+  await expect(page).toHaveURL(/#\/studies\/1\/protocols$/);
+  await expect(page.getByTestId('protocol-editor')).toHaveCount(0);
 
-  // Reload from the backend: the rule is still ticked with the same answer.
-  await page.reload();
+  // Reopen from the backend: the new version, and the rule is still ticked with the same answer.
+  await page.goto(`/#/studies/1/protocols/${newId}`);
+  await expect(page.getByTestId('protocol-version')).toHaveText('v2');
   await expect(page.locator('.protocol-item')).toHaveCount(3);
   await page.getByTestId(`task-edit-${QUESTIONNAIRE_TASK}`).click();
   const reloaded = page.getByRole('dialog').locator('.qm-question-card').last().getByTestId('qm-condition');
