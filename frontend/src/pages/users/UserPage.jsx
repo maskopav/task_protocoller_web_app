@@ -4,6 +4,8 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, EmptyState, PageHeader, Section, Switch, TextField, useConfirm, useToast } from "../../components/ui";
 import { fetchUser, setUserSites, updateUser } from "../../api/users";
+import { fetchUserTokens, revokeUserToken } from "../../api/mcpTokens";
+import McpTokenTable from "../account/McpTokenTable";
 import { fetchSites } from "../../api/sites";
 import { adminForgotPasswordApi } from "../../api/auth";
 import { apiErrorMessage } from "../../utils/apiError";
@@ -25,6 +27,7 @@ export default function UserPage() {
   const [formError, setFormError] = useState({});
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
+  const [tokens, setTokens] = useState([]);
 
   const load = useCallback(async () => {
     try {
@@ -39,6 +42,11 @@ export default function UserPage() {
   }, [id, toast, tc]);
 
   useEffect(() => { setStatus("loading"); setUser(null); load(); }, [load]);
+  const loadTokens = useCallback(
+    () => fetchUserTokens(id).then((r) => setTokens(r?.tokens ?? [])).catch((err) => toast.error(apiErrorMessage(err, tc))),
+    [id, toast, tc]
+  );
+  useEffect(() => { loadTokens(); }, [loadTokens]);
   useEffect(() => {
     fetchSites().then((l) => setClinics(Array.isArray(l) ? l : [])).catch((err) => toast.error(apiErrorMessage(err, tc)));
   }, [toast, tc]);
@@ -83,6 +91,16 @@ export default function UserPage() {
       if (!ok) return;
     }
     run(() => updateUser(user.id, { is_active: next }), next ? t("activated") : t("deactivated"));
+  };
+
+  const revokeToken = async (row) => {
+    const ok = await confirm({
+      title: t("mcpTokens.revokeTitle", { name: row.name }), message: t("mcpTokens.revokeMessage"),
+      confirmText: t("revoke.confirm", { ns: "account" }), cancelText: t("cancel"), danger: true,
+    });
+    if (!ok) return;
+    await run(() => revokeUserToken(user.id, row.id), t("mcpTokens.revoked"));
+    await loadTokens();
   };
 
   const resend = () => run(() => adminForgotPasswordApi(user.email), t("resendSent", { email: user.email }));
@@ -167,7 +185,21 @@ export default function UserPage() {
               />
               <span id="user-flag-technical-hint" className="users-switch-hint">{t("permissions.technicalHint")}</span>
             </div>
+            <div className="users-switch">
+              <Switch
+                label={t("permissions.mcp")} checked={user.can_use_mcp} disabled={busy}
+                onChange={(v) => run(() => updateUser(user.id, { can_use_mcp: v }))} data-testid="user-flag-mcp"
+                aria-describedby="user-flag-mcp-hint"
+              />
+              <span id="user-flag-mcp-hint" className="users-switch-hint">{t("permissions.mcpHint")}</span>
+            </div>
           </div>
+        </Section>
+      )}
+
+      {(master || user.can_use_mcp || tokens.length > 0) && (
+        <Section title={t("mcpTokens.title")} hint={t("mcpTokens.hint")}>
+          <McpTokenTable tokens={tokens} onRevoke={revokeToken} busy={busy} testId="user-mcp-tokens" />
         </Section>
       )}
     </div>

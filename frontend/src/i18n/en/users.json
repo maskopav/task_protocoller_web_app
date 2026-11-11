@@ -68,11 +68,20 @@
     "studies": "May create studies",
     "clinics": "May create clinics",
     "technical": "May see technical details",
-    "technicalHint": "Server checks, IDs and upload history on recordings"
+    "technicalHint": "Server checks, IDs and upload history on recordings",
+    "mcp": "May connect AI assistants (MCP)",
+    "mcpHint": "Personal access tokens for Claude Code, Copilot and similar tools; same rights as in the web"
   },
   "auth": {
     "brand": "TaskProtocoller",
     "loginTitle": "Sign in",
     "purpose": "Set up studies and review recordings from clinic computers."
+  },
+  "mcpTokens": {
+    "title": "AI assistant tokens",
+    "hint": "Revoking takes effect immediately",
+    "revoked": "Token revoked",
+    "revokeTitle": "Revoke “{{name}}”?",
+    "revokeMessage": "Assistants using this token lose access immediately."
   }
 }

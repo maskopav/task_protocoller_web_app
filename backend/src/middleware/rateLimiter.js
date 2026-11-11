@@ -104,6 +104,34 @@ export function createDeviceLogLimiter(overrides = {}) {
   });
 }
 
+// POST /mcp, before token auth: only failed requests count, so a client
+// guessing tokens is stopped quickly while valid calls are never throttled here.
+export function createMcpAuthLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    skipSuccessfulRequests: true,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+    ...overrides,
+  });
+}
+
+// POST /mcp, after token auth: per token, not per IP (an agent may loop on
+// tools, and many users can share one NAT or proxy address).
+export function createMcpCallLimiter(overrides = {}) {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 300,
+    keyGenerator: (req) => `mcp-token:${req.admin?.tokenId ?? "none"}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+    ...overrides,
+  });
+}
+
 export const loginLimiter = createLoginLimiter();
 export const authLimiter = createAuthLimiter();
 export const logLimiter = createLogLimiter();

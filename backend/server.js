@@ -9,6 +9,8 @@ import usersRouter from "./src/routes/users.js";
 import projectsRouter from "./src/routes/projects.js";
 import libraryRouter from "./src/routes/library.js";
 import sitesRouter from "./src/routes/sites.js";
+import mcpTokensRouter from "./src/routes/mcpTokens.js";
+import { createMcpRouter } from "./src/mcp/router.js";
 import { getSiteConfig } from "./src/controllers/siteController.js";
 import { deviceCheckin } from "./src/controllers/deviceController.js";
 import { createDevicesRouter } from "./src/routes/devices.js";
@@ -123,6 +125,12 @@ app.use("/upload", createUploadRouter({ store: fileStore, queue: validationQueue
 // Also before the body parsers: its body is a multipart stream.
 app.use("/device-logs", createDeviceLogRouter({ store: fileStore, maxBytes: uploadConfig.deviceLogs.maxBytes, limits: uploadConfig.limits }));
 
+// MCP (docs/mcp/01_spec.md): opt-in per deployment. Before the app-wide body
+// parsers, so its own 1 MB JSON limit applies. Auth is a personal access token.
+if (process.env.MCP_ENABLED === "true") {
+  app.use("/mcp", createMcpRouter());
+}
+
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
@@ -151,6 +159,9 @@ app.use("/users", requireAuth, usersRouter)
 app.use("/projects", requireAuth, projectsRouter)
 app.use("/library", requireAuth, libraryRouter)
 app.use("/sites", requireAuth, sitesRouter)
+// MCP personal access tokens (docs/mcp/01_spec.md 3.3). A JWT session only:
+// requireAuth refuses a token, so a leaked token cannot mint more.
+app.use("/account/mcp-tokens", requireAuth, mcpTokensRouter)
 // Master-only device logs (spec §5). Before /devices: view and download also
 // accept a download ticket, which /devices does not.
 app.use("/devices/logs", createDeviceLogAdminRouter({ store: fileStore }))

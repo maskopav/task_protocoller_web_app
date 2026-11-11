@@ -310,36 +310,45 @@ export const shareProtocol = async (req, res) => {
 };
 
 // POST /library/:id/copy  { project_id, name } -> { protocol_id }
+// Every check of POST /library/:id/copy before anything is written. Answers
+// the error itself and returns null, or { ok: true, ... }. Shared with the MCP
+// preview (docs/mcp/01_spec.md section 6).
+export async function prepareLibraryCopy(req, res) {
+  if (!(await requireLibraryAccess(req, res))) return null;
+  const entry = await loadEntry(req, res);
+  if (!entry) return null;
+
+  const projectId = parseId(req.body?.project_id);
+  if (!projectId) return res.status(400).json({ error: "invalid_project" });
+  const name = cleanName(req.body?.name ?? entry.name);
+  if (name === "" || name.length > NAME_MAX) return res.status(400).json({ error: "invalid_name" });
+
+  const proj = await executeQuery(`SELECT id, is_active FROM projects WHERE id = ?`, [projectId]);
+  if (proj.length === 0) return res.status(404).json({ error: "not_found" });
+  if (!(await requireEditableStudy(req, res, projectId))) return null;
+  if (Number(proj[0].is_active) === 0) return res.status(403).json({ error: "project_inactive" });
+
+  const taken = await executeQuery(
+    `SELECT id FROM protocols WHERE project_id = ? AND LOWER(name) = LOWER(?) LIMIT 1`,
+    [projectId, name]
+  );
+  if (taken.length > 0) return res.status(400).json({ error: "name_taken" });
+
+  const variants = await executeQuery(
+    `SELECT id FROM protocols
+     WHERE protocol_group_id = ? AND project_id IS NULL AND is_current = 1 AND is_archived = 0
+     ORDER BY id`,
+    [entry.protocol_group_id]
+  );
+  if (variants.length === 0) return res.status(404).json({ error: "not_found" });
+  return { ok: true, entry, projectId, name, variants };
+}
+
 export const copyFromLibrary = async (req, res) => {
   try {
-    if (!(await requireLibraryAccess(req, res))) return;
-    const entry = await loadEntry(req, res);
-    if (!entry) return;
-
-    const projectId = parseId(req.body?.project_id);
-    if (!projectId) return res.status(400).json({ error: "invalid_project" });
-    const name = cleanName(req.body?.name ?? entry.name);
-    if (name === "" || name.length > NAME_MAX) return res.status(400).json({ error: "invalid_name" });
-
-    const proj = await executeQuery(`SELECT id, is_active FROM projects WHERE id = ?`, [projectId]);
-    if (proj.length === 0) return res.status(404).json({ error: "not_found" });
-    if (!(await requireEditableStudy(req, res, projectId))) return;
-    if (Number(proj[0].is_active) === 0) return res.status(403).json({ error: "project_inactive" });
-
-    const taken = await executeQuery(
-      `SELECT id FROM protocols WHERE project_id = ? AND LOWER(name) = LOWER(?) LIMIT 1`,
-      [projectId, name]
-    );
-    if (taken.length > 0) return res.status(400).json({ error: "name_taken" });
-
-    const variants = await executeQuery(
-      `SELECT id FROM protocols
-       WHERE protocol_group_id = ? AND project_id IS NULL AND is_current = 1 AND is_archived = 0
-       ORDER BY id`,
-      [entry.protocol_group_id]
-    );
-    if (variants.length === 0) return res.status(404).json({ error: "not_found" });
-
+    const ctx = await prepareLibraryCopy(req, res);
+    if (!ctx?.ok) return;
+    const { entry, projectId, name, variants } = ctx;
     const userId = userIdOf(req);
     const protocolId = await executeTransaction(async (conn) => {
       const [g] = await conn.query(`SELECT COALESCE(MAX(protocol_group_id), 0) + 1 AS next_id FROM protocols`);

@@ -20,6 +20,7 @@ DROP TABLE IF EXISTS `protocol_tasks`;
 DROP TABLE IF EXISTS `protocols`;
 DROP TABLE IF EXISTS `user_projects`;
 DROP TABLE IF EXISTS `projects`;
+DROP TABLE IF EXISTS `personal_access_tokens`;
 DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `tasks`;
 DROP TABLE IF EXISTS `task_types`;

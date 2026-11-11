@@ -91,8 +91,12 @@ async function requireStudyWrite(req, res, projectId) {
 const isTaskForeignKey = (err) =>
   /`protocol_tasks`[\s\S]*FOREIGN KEY \(`task_id`\)/.test(String(err.sqlMessage || err.message || ''));
 
-// POST /protocols (create, and save a new version)
-export const saveProtocol = async (req, res) => {
+// Every check of POST /protocols before anything is written: validation,
+// rights, name uniqueness, group integrity. It answers the error itself and
+// returns null, or returns { ok: true, ... } with what the write needs.
+// Shared by saveProtocol and the MCP preview (docs/mcp/01_spec.md section 6),
+// so a preview can never pass something the save would refuse.
+export async function prepareProtocolSave(req, res) {
   const {
     protocol_group_id, name, language_id, description, version,
     created_by, updated_by, tasks, project_id, editingMode,
@@ -211,6 +215,21 @@ export const saveProtocol = async (req, res) => {
       return res.status(400).json({ error: 'protocol_archived' });
     }
   }
+
+  return { ok: true, projectId, authorId, sourceLanguageId, requestLangs };
+}
+
+// POST /protocols (create, and save a new version)
+export const saveProtocol = async (req, res) => {
+  const ctx = await prepareProtocolSave(req, res);
+  if (!ctx?.ok) return;
+  const { projectId, authorId, sourceLanguageId, requestLangs } = ctx;
+  const {
+    protocol_group_id, name, description, version, tasks, editingMode,
+    randomization, required_identifiers, info_text,
+    instructions_text, use_audio_guide,
+    recordings_file_name, instructions_pdf_url
+  } = req.body;
 
   try {
     const primary_protocol_id = await executeTransaction(async (conn) => {

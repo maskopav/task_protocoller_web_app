@@ -88,7 +88,8 @@ SELECT
     u.is_active,
     u.can_create_projects,
     u.can_create_sites,
-    u.can_see_technical
+    u.can_see_technical,
+    u.can_use_mcp
 FROM users u
 JOIN roles r ON u.role_id = r.id
 WHERE r.name != 'master'

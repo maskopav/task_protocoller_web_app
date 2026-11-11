@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS `session_comments` (
 CREATE TABLE IF NOT EXISTS `audit_log` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `user_id` integer DEFAULT NULL,
-  `action` enum('reveal','download','bundle','participant_edit','qc_change','device_log_view','device_log_download') NOT NULL,
+  `action` enum('reveal','download','bundle','participant_edit','qc_change','device_log_view','device_log_download','mcp_token_create','mcp_token_revoke') NOT NULL,
   `upload_session_id` integer DEFAULT NULL,
   `details` JSON DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS `device_logs` (
 
 -- An existing database keeps its old audit_log enum under CREATE TABLE IF NOT
 -- EXISTS; this widens it. Re-running it with the same list changes nothing.
-ALTER TABLE `audit_log` MODIFY `action` enum('reveal','download','bundle','participant_edit','qc_change','device_log_view','device_log_download') NOT NULL;
+ALTER TABLE `audit_log` MODIFY `action` enum('reveal','download','bundle','participant_edit','qc_change','device_log_view','device_log_download','mcp_token_create','mcp_token_revoke') NOT NULL;
 
 CREATE TABLE IF NOT EXISTS `backup_runs` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,

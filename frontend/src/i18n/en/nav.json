@@ -29,5 +29,6 @@
   },
   "placeholder": {
     "library": "The protocol library is being built. It will appear here soon."
-  }
+  },
+  "account": "Account"
 }

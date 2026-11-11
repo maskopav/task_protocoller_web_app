@@ -160,6 +160,7 @@ function Sidebar({ data }) {
               <option key={lang.code} value={lang.code}>{lang.label}</option>
             ))}
           </select>
+          <IconButton as={Link} to="/account" icon="settings" label={t("account")} data-testid="shell-account" />
           <IconButton icon="logout" label={t("logout")} onClick={logout} data-testid="shell-logout" />
         </div>
       </div>

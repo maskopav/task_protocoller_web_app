@@ -22,6 +22,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import NotAvailablePage from "./pages/NotAvailablePage";
 import RecordingsPage from "./pages/RecordingsPage";
 import RecordingPage from "./pages/RecordingPage";
+import AccountPage from "./pages/account/AccountPage";
 
 // Old links keep working for one release: the target path may name the old
 // route's params (":projectId"), and ?site= / ?project= become ?clinic= / ?study=.
@@ -104,6 +105,8 @@ export default function App() {
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/library/:protocolId" element={<LibraryEntryPage />} />
         <Route path="/library/:protocolId/edit" element={<LibraryEditorPage />} />
+
+        <Route path="/account" element={<AccountPage />} />
 
         <Route path="/users" element={<MasterOnly><UsersListPage /></MasterOnly>} />
         <Route path="/users/:id" element={<MasterOnly><UserPage /></MasterOnly>} />
