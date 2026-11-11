@@ -19,7 +19,26 @@ CREATE TABLE `users` (
   `can_create_projects` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own projects',
   `can_create_sites` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create (and archive) own sites',
   `can_see_technical` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: sees server checks, IDs and upload history on recordings',
-  `token_version` integer NOT NULL DEFAULT 0 COMMENT 'Bumped on every password change, JWTs carrying an older value are rejected'
+  `token_version` integer NOT NULL DEFAULT 0 COMMENT 'Bumped on every password change, JWTs carrying an older value are rejected',
+  `can_use_mcp` BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Master-granted: may create MCP personal access tokens (docs/mcp/01_spec.md section 3)'
+);
+
+-- MCP personal access tokens (docs/mcp/01_spec.md section 3). Only the sha256 of
+-- a token is stored. A token carries the user's token_version at creation, so a
+-- password change retires it like it retires a JWT.
+CREATE TABLE `personal_access_tokens` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `user_id` integer NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `token_prefix` char(12) NOT NULL COMMENT 'tpm_ + first 8 chars, shown in lists',
+  `token_hash` char(64) NOT NULL UNIQUE COMMENT 'sha256 hex of the full token, never the token itself',
+  `token_version` integer NOT NULL COMMENT 'users.token_version at creation',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_used_at` datetime DEFAULT NULL,
+  `expires_at` datetime NOT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  INDEX `pat_user` (`user_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ); 
 
 -- Who may change a study and its protocols. Seeing a study is a different claim

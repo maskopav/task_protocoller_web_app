@@ -100,10 +100,10 @@ The `audit_log.action` enum gains `mcp_token_create` and `mcp_token_revoke`, in 
 
 | Route | Who | Behaviour |
 |---|---|---|
-| `GET /account/mcp-tokens` | any logged-in user | Own tokens: `id, name, prefix, createdAt, lastUsedAt, expiresAt, revokedAt`. There is no hash or token. |
+| `GET /account/mcp-tokens` | any logged-in user | `{ allowed, tokens }`. `allowed` says whether you may create tokens. Each token row is `id, name, prefix, createdAt, lastUsedAt, expiresAt, revokedAt, active`, with no hash and no token. |
 | `POST /account/mcp-tokens` `{name, expiresInDays}` | master, or `can_use_mcp` | `expiresInDays` is 30, 90 or 365 (default 90). Name 1–64 chars. At most 10 active tokens, else 409 `token_limit`. Returns 201 `{…row, token}` once. Audit: `mcp_token_create`. Without the right: 403 `mcp_not_allowed`. |
-| `DELETE /account/mcp-tokens/:id` | the owner | Sets `revoked_at`. 404 if not found or not yours. Audit: `mcp_token_revoke`. |
-| `GET /users/:id/mcp-tokens` | master | That user's tokens (same row shape). |
+| `DELETE /account/mcp-tokens/:id` | the owner | Sets `revoked_at` and returns 204. Revoking an already revoked token also returns 204. 404 if the token is not found or not yours. Audit: `mcp_token_revoke`, written once. |
+| `GET /users/:id/mcp-tokens` | master | `{ tokens }`, with the same row shape. |
 | `DELETE /users/:id/mcp-tokens/:tokenId` | master | Revoke. Audit: `mcp_token_revoke`. |
 | `PATCH /users/:id` `{can_use_mcp}` | master | The existing route, with one more flag beside `can_create_*`. |
 

@@ -34,7 +34,7 @@ The new dependencies are `@modelcontextprotocol/sdk` (1.x, pinned in the lockfil
 ## 4. Progress checklist
 
 - [x] 1 Docs
-- [ ] 2 Tokens
+- [x] 2 Tokens (2026-11-11: 16 new tests; 867/867 backend tests passing)
 - [ ] 3 Read tools
 - [ ] 4 Write tools
 - [ ] 5 Frontend
