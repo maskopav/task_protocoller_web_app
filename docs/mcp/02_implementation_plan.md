@@ -38,4 +38,4 @@ The new dependencies are `@modelcontextprotocol/sdk` (1.x, pinned in the lockfil
 - [x] 3 Read tools (2026-11-11: 15 read tools; 874/874 backend tests passing, including scope parity and leakage tests with a raw-controller control; curl smoke test against a real server)
 - [x] 4 Write tools (2026-11-11: 19 tools in total; 879/879 backend tests passing; site-config golden test unchanged)
 - [x] 5 Frontend (2026-11-11: Account page, user-page switch and token list, en/cs/de; 381/381 frontend tests passing, build passes; screenshots in `screenshots/`)
-- [ ] 6 Rollout and results
+- [~] 6 Rollout and results (2026-11-11: deployed to share_web, `container_deployment.md` and `05_results.md` written; open: HTTPS through malenia and the real-client runs, see `05_results.md`)

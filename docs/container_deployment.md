@@ -116,6 +116,8 @@ curl -s -o /dev/null -w "reset object token %{http_code}\n" -X POST $B/api/auth/
   -H "Origin: $B" -H 'content-type: application/json' -d '{"token":{"reset_password_token":1},"password":"x1234567"}'
 ```
 
+For the MCP endpoint, see [MCP server (AI assistants)](#mcp-server-ai-assistants), step 5.
+
 Browser requests always send an `Origin` header on POST. If it isn't listed in
 `CORS_ORIGIN`, the API answers 403 "Not allowed by CORS", so include it in
 curl tests as well.
@@ -183,6 +185,7 @@ JWT_SECRET=$JWT
 JWT_EXPIRES_IN=8h
 DATA_PATH=/srv/task-protocoller/data
 UPLOAD_MAX_BYTES=4294967296
+MCP_ENABLED=true
 EOF
 mkdir -p logs /srv/task-protocoller/data; chown -R taskprot:taskprot /opt/task-protocoller /srv/task-protocoller/data
 sudo -u taskprot node src/runInit.js 2>&1 | tail -3'
@@ -278,6 +281,23 @@ server {
         proxy_buffering off;
         proxy_read_timeout 600s;
         client_max_body_size 6m;
+    }
+
+    # MCP for AI assistants (docs/mcp/01_spec.md section 9). JSON only, no SSE.
+    # Passes on the outer TLS proxy's X-Forwarded-Proto instead of $scheme
+    # (always http in here), so the backend can refuse tokens sent over plain
+    # HTTP. See "MCP server (AI assistants)".
+    location = /api/mcp {
+        proxy_pass http://127.0.0.1:3000/mcp;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        client_max_body_size 1m;
     }
 
     location / {
@@ -430,6 +450,105 @@ copy of its bytes).
 Then run `node src/runBackup.js all` as `taskprot` (or start the timer) once `BACKUP_TARGET` is
 mounted and check `backup_runs`.
 
+## MCP server (AI assistants)
+
+Added on 2026-11-11 (spec: [`mcp/01_spec.md`](mcp/01_spec.md)). Users connect their own AI client
+(Claude Code, VS Code Copilot, local models) to `POST /api/mcp` with a personal access token from
+the Account page. Users need the master's "May connect AI assistants (MCP)" switch; masters are
+always allowed. Public address: `https://malenia.feld.cvut.cz/koubic/api/mcp`.
+
+### 1. `.env` keys
+
+```bash
+MCP_ENABLED=true        # required: without it /mcp is not mounted and /api/mcp answers 404
+# MCP_ALLOW_HTTP=true   # optional, see below; leave unset
+```
+
+A token is a long-lived credential, so the backend refuses it over plain HTTP with
+`403 {"error":"https_required"}`. It counts a request as HTTPS when the `X-Forwarded-Proto` that
+nginx passes on says `https`. A direct loopback call with no proxy headers is also accepted, for
+local development. That is why **`http://192.168.122.183:10001/api/mcp` refuses tokens by
+design**. Only the HTTPS address works.
+
+`MCP_ALLOW_HTTP=true` turns the check off. Set it only if the outer proxy cannot send
+`X-Forwarded-Proto`, or for a short test on the internal address. Tokens then travel unencrypted
+on port 10001.
+
+### 2. nginx
+
+Use the `location = /api/mcp` block from the site file above, then `nginx -t && systemctl reload nginx`.
+Back up the site file first.
+
+| Setting | Why |
+|---|---|
+| `location = /api/mcp` | Separate from `/api/`, which sets `X-Forwarded-Proto $scheme`. That is always `http` here, because TLS ends at the outer proxy |
+| `X-Forwarded-Proto $http_x_forwarded_proto` | Passes on what the outer proxy says. A request without the header (the direct port 10001) is treated as HTTP |
+| `proxy_buffering off`, `proxy_http_version 1.1`, `Connection ""` | The MCP transport. Responses are plain JSON today, so this is a safety margin, not a requirement |
+| `proxy_read_timeout 120s` | A tool call (a large recording list, a protocol save) stays well under it |
+| `client_max_body_size 1m` | Matches the backend's own 1 MB limit for `/mcp` |
+
+A client on the internal network could send `X-Forwarded-Proto: https` itself over port 10001.
+That only lets someone who already holds a token send it unencrypted. The check is a guard against
+misconfigured clients, not a security boundary.
+
+### 3. The outer proxy (`malenia`)
+
+The proxy for `malenia.feld.cvut.cz` is not in this repo. For MCP it must:
+
+- forward the `Authorization` header unchanged
+- send `X-Forwarded-Proto: https`. If it doesn't, every MCP call through malenia gets `https_required`
+- allow responses of at least 60 s and bodies of 1 MB
+- for OAuth later (spec D3, v2): route `/.well-known/oauth-protected-resource/koubic/api/mcp` at the host root
+
+**Open as of 2026-11-11:** whether malenia does all of this is unverified. The host was not
+reachable from the deploy machine. Check it with the commands below against the HTTPS address.
+
+Behind malenia there are two proxies, while the backend trusts one hop (`trust proxy 1`).
+`req.ip` is then likely malenia's address for everyone, so the IP-keyed MCP limiter for failed
+logins (20 per 15 min) is shared by all users coming through malenia. The per-token call limiter
+(300 per 15 min) is not affected. This is the same situation as the login limiter. See the
+`trust proxy` note in "First-time setup", step 5.
+
+### 4. Database
+
+`personal_access_tokens`, `users.can_use_mcp` and the audit actions `mcp_token_create` and
+`mcp_token_revoke` are in the init SQL. A database from before 2026-11-11 needs
+`runInit.js` (see [Reset the database](#reset-the-database-destroys-all-data)). There is no
+migration.
+
+### 5. Verify
+
+`B` and `TOKEN` as in [Verify](#verify), with `M` set to the HTTPS address. Each step lists its
+expected result.
+
+```bash
+M=https://malenia.feld.cvut.cz/koubic
+J='content-type: application/json'
+# 1. Create a token as master (the token API needs a web session, never a token)
+CREATED=$(curl -s -X POST $B/api/account/mcp-tokens -H "Origin: $B" -H "$J" -H "Authorization: Bearer $TOKEN" \
+  -d '{"name":"deploy check","expiresInDays":30}')
+PAT=$(echo "$CREATED" | python3 -c 'import sys,json;print(json.load(sys.stdin)["token"])')
+TID=$(echo "$CREATED" | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')
+H=(-H "Authorization: Bearer $PAT" -H "$J" -H "Accept: application/json, text/event-stream")
+WHO='{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"whoami","arguments":{}}}'
+
+# 2. Plain HTTP on the internal address: 403 https_required
+curl -s -w " %{http_code}\n" "${H[@]}" $B/api/mcp -d "$WHO"
+# 3. Through malenia (HTTPS): 200 and "role":"master". https_required here means malenia
+#    does not send X-Forwarded-Proto; 401 means it drops Authorization
+curl -s -w " %{http_code}\n" "${H[@]}" $M/api/mcp -d "$WHO" | cut -c1-200
+# 4. tools/list: 19 tools
+curl -s "${H[@]}" $M/api/mcp -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  | python3 -c 'import sys,json;print(len(json.load(sys.stdin)["result"]["tools"]),"tools")'
+# 5. GET: 405. Revoke: 204. The revoked token: 401
+curl -s -o /dev/null -w "GET %{http_code}\n" $M/api/mcp
+curl -s -o /dev/null -w "revoke %{http_code}\n" -X DELETE $B/api/account/mcp-tokens/$TID -H "Origin: $B" -H "Authorization: Bearer $TOKEN"
+curl -s -o /dev/null -w "revoked %{http_code}\n" "${H[@]}" $M/api/mcp -d "$WHO"
+```
+
+If malenia is unreachable from your machine, you can check steps 3 to 5 on the internal address
+with `-H "X-Forwarded-Proto: https"` added. That proves the container side only, not malenia.
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |
@@ -449,6 +568,10 @@ mounted and check `backup_runs`.
 | Sessions stay `validating` | Validation runs in-process after the response. Look in `journalctl -u task-protocoller` for errors. A restart re-enqueues every `validating` row at boot. A session that never leaves the state usually means the validator crashed on that ZIP, or `DATA_PATH` was replaced and the file is missing |
 | Bundle download in the browser gives 403 "Not allowed by CORS" | The bundle is a native form POST with `Origin: null` and no `Authorization` header. Only `POST /uploads/download` is exempt. Check that the backend is current and that the proxy forwards the path unchanged (`/api/uploads/download` to `/uploads/download`). A `fetch` with a header gets the normal CORS check |
 | Download or clip play returns 401 | The ticket expired (5 min) or the account's `token_version` changed. Reload the page to get a new one |
+| `/api/mcp` answers 404 | `MCP_ENABLED=true` is missing from `.env` (restart after adding it), or the `location = /api/mcp` block is missing, so the request falls to the SPA |
+| `/api/mcp` answers 403 `https_required` | Expected on `http://…:10001`. Through malenia it means the outer proxy does not send `X-Forwarded-Proto: https`, or the nginx block uses `$scheme` instead of `$http_x_forwarded_proto`. See "MCP server (AI assistants)" |
+| MCP client gets 401 with a token that was just created | The token was revoked or has expired; the user's "May connect AI assistants" switch is off; the user was deactivated; or the user changed their password (that retires every token, like every session). Also check that a proxy is not dropping `Authorization` |
+| Account page says "Not enabled for your account" | The master has not turned on "May connect AI assistants (MCP)" on the user's page |
 | Disk fills up under `DATA_PATH/tmp` | Interrupted uploads are normally deleted. Leftover `*.part` files from a crash are safe to remove while no upload is running |
 
 ## Rules for agents
