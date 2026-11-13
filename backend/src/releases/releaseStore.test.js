@@ -112,6 +112,18 @@ describe('allowedArtifacts / resolveArtifactPath', () => {
     expect(store.resolveArtifactPath('9.9.9', 'app.zip')).toBeNull();
   });
 
+  it('ignores manifest artifacts that are not plain file names', () => {
+    publish('1.0.0', { components: [
+      { id: 'app', target: 'app', artifact: 'app.zip' },
+      { id: 'evil', target: 'x', artifact: '../outside.zip' },
+    ], skipFiles: ['../outside.zip'] });
+    fs.writeFileSync(path.join(root, 'outside.zip'), 'x');
+    const store = createReleaseStore(root);
+    expect(store.allowedArtifacts('1.0.0').has('../outside.zip')).toBe(false);
+    expect(store.resolveArtifactPath('1.0.0', '../outside.zip')).toBeNull();
+    expect(store.componentsFor('1.0.0', 'windows-x86_64').map((c) => c.id)).toEqual(['app']);
+  });
+
   it('does not resolve a declared artifact that is not on disk', () => {
     publish('1.0.0', { skipFiles: ['app.zip'] });
     expect(createReleaseStore(root).resolveArtifactPath('1.0.0', 'app.zip')).toBeNull();

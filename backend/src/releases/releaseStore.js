@@ -15,6 +15,9 @@ export const PLATFORM_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
 const MANIFEST_RE = /^manifest-.+\.json$/;
 const INSTALL_RE = /^install-.+\.(zip|tar\.gz)$/;
 
+const isPlainName = (n) =>
+  typeof n === "string" && n !== "" && n !== "." && n !== ".." && !/[\\/\0]/.test(n);
+
 const semverKey = (v) => {
   const m = SEMVER_RE.exec(v);
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
@@ -60,7 +63,9 @@ export function createReleaseStore(root) {
       if (MANIFEST_RE.test(e.name)) {
         names.add(e.name);
         for (const c of declaredComponents(path.join(dir, e.name))) {
-          if (typeof c.artifact === "string" && c.artifact) names.add(c.artifact);
+          // Only plain file names: a manifest must not be able to widen the guard
+          // to "../x" or "sub/dir/x".
+          if (isPlainName(c.artifact)) names.add(c.artifact);
         }
       } else if (INSTALL_RE.test(e.name)) {
         names.add(e.name);
