@@ -8,6 +8,7 @@
   "myClinic": "Meine Klinik",
   "library": "Bibliothek",
   "users": "Benutzer",
+  "appRelease": "App-Version",
   "admin": "Verwaltung",
   "unreviewed": "{{count}} ungeprüft",
   "userMenu": "Benutzermenü",

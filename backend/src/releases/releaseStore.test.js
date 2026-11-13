@@ -129,3 +129,47 @@ describe('allowedArtifacts / resolveArtifactPath', () => {
     expect(createReleaseStore(root).resolveArtifactPath('1.0.0', 'app.zip')).toBeNull();
   });
 });
+
+describe('latestInstallBundles / latestInstallBundle', () => {
+  it('null when nothing is published', () => {
+    const store = createReleaseStore(root);
+    expect(store.latestInstallBundles()).toBeNull();
+    expect(store.latestInstallBundle('windows')).toBeNull();
+    expect(createReleaseStore(path.join(root, 'nope')).latestInstallBundles()).toBeNull();
+  });
+
+  it('lists the install bundles of the latest release with size, sha256 and the folder mtime', () => {
+    publish('1.0.9');
+    fs.writeFileSync(path.join(root, '1.0.9', 'install-windows-x64.zip'), 'old');
+    const dir = publish('1.0.10');
+    const win = Buffer.from('windows-bundle');
+    const lin = Buffer.from('linux');
+    fs.writeFileSync(path.join(dir, 'install-windows-x64.zip'), win);
+    fs.writeFileSync(path.join(dir, 'install-windows-x64.zip.sha256'), `${sha(win).toUpperCase()}  install-windows-x64.zip\n`);
+    fs.writeFileSync(path.join(dir, 'install-linux-x64.tar.gz'), lin); // no sidecar: hashed
+    fs.writeFileSync(path.join(dir, 'install-notes.txt'), 'not a bundle');
+    fs.mkdirSync(path.join(dir, 'install-dir.zip'));
+    const when = new Date('2026-11-13T10:00:00Z');
+    fs.utimesSync(dir, when, when);
+
+    const store = createReleaseStore(root);
+    expect(store.latestInstallBundles()).toEqual({
+      version: '1.0.10',
+      publishedAt: '2026-11-13T10:00:00.000Z',
+      bundles: [
+        { name: 'install-linux-x64.tar.gz', size: 5, sha256: sha(lin) },
+        { name: 'install-windows-x64.zip', size: win.length, sha256: sha(win) },
+      ],
+    });
+    expect(store.latestInstallBundle('windows')).toEqual({ version: '1.0.10', name: 'install-windows-x64.zip' });
+    expect(store.latestInstallBundle('linux')).toEqual({ version: '1.0.10', name: 'install-linux-x64.tar.gz' });
+    expect(store.latestInstallBundle('macos')).toBeNull();
+    expect(store.latestInstallBundle('')).toBeNull();
+  });
+
+  it('a release without install bundles has an empty list', () => {
+    publish('1.0.0');
+    expect(createReleaseStore(root).latestInstallBundles()).toMatchObject({ version: '1.0.0', bundles: [] });
+    expect(createReleaseStore(root).latestInstallBundle('windows')).toBeNull();
+  });
+});

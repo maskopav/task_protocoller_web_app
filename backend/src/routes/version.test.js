@@ -149,3 +149,56 @@ describe('GET /version/download/:version/:name', () => {
     }
   });
 });
+
+describe('GET /version/download/latest/:name', () => {
+  it('404 when nothing is published', async () => {
+    const res = await request(appFor()).get('/version/download/latest/install-windows-x64.zip');
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'no such release artifact' });
+  });
+
+  it('302 with a relative Location to the latest release', async () => {
+    publish('1.0.9'); publish('1.0.10');
+    fs.writeFileSync(path.join(root, '1.0.10', 'install-windows-x64.zip'), 'zipdata');
+    const res = await request(appFor()).get('/version/download/latest/install-windows-x64.zip').redirects(0);
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('../1.0.10/install-windows-x64.zip');
+    expect(res.headers['cache-control']).toBe('no-store');
+  });
+
+  it('the Location resolves to a downloadable versioned URL, also under a path prefix', async () => {
+    publish('1.0.0');
+    const a = appFor();
+    const res = await request(a).get('/version/download/latest/install-linux-x64.tar.gz').redirects(0);
+    expect(new URL(res.headers.location, 'https://malenia.example/koubic/api/version/download/latest/install-linux-x64.tar.gz').href)
+      .toBe('https://malenia.example/koubic/api/version/download/1.0.0/install-linux-x64.tar.gz');
+    const target = new URL(res.headers.location, 'http://h/version/download/latest/install-linux-x64.tar.gz').pathname;
+    const dl = await request(a).get(target);
+    expect(dl.status).toBe(200);
+    expect(dl.headers['content-length']).toBe('6');
+  });
+
+  it('HEAD works', async () => {
+    publish('1.0.0');
+    const res = await request(appFor()).head('/version/download/latest/install-linux-x64.tar.gz').redirects(0);
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('../1.0.0/install-linux-x64.tar.gz');
+  });
+
+  it('404 for names that are not install bundles of the latest release', async () => {
+    publish('1.0.0'); publish('1.1.0');
+    fs.writeFileSync(path.join(root, '1.0.0', 'install-windows-x64.zip'), 'old');
+    const a = appFor();
+    for (const name of ['install-windows-x64.zip', 'app.zip', 'manifest-windows-x86_64.json', 'private.txt',
+      'install-linux-x64.tar.gz.sha256', '..%2F1.0.0%2Finstall-windows-x64.zip', 'install-nothere.zip']) {
+      const res = await request(a).get(`/version/download/latest/${name}`).redirects(0);
+      expect(res.status, name).toBe(404);
+    }
+  });
+
+  it('404 for the stable link with a trailing slash (relative Location would land one level too deep)', async () => {
+    publish('1.1.0');
+    const res = await request(appFor()).get('/version/download/latest/install-linux-x64.tar.gz/').redirects(0);
+    expect(res.status).toBe(404);
+  });
+});

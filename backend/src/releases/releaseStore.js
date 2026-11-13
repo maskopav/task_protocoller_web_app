@@ -9,20 +9,20 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { logToFile } from "../utils/logger.js";
+import { SEMVER_RE, semverKey, compareKeys } from "../utils/semver.js";
 
-export const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)$/;
+export { SEMVER_RE, semverKey, compareKeys };
+
 export const PLATFORM_RE = /^[a-z0-9][a-z0-9_-]{0,31}$/;
 const MANIFEST_RE = /^manifest-.+\.json$/;
-const INSTALL_RE = /^install-.+\.(zip|tar\.gz)$/;
+export const INSTALL_RE = /^install-.+\.(zip|tar\.gz)$/;
+
+// Where the releases live unless RELEASES_PATH says otherwise. Shared by the
+// public version API, the admin App release page and the welcome email.
+export const releasesPath = () => process.env.RELEASES_PATH || "/srv/task-protocoller/releases";
 
 const isPlainName = (n) =>
   typeof n === "string" && n !== "" && n !== "." && n !== ".." && !/[\\/\0]/.test(n);
-
-const semverKey = (v) => {
-  const m = SEMVER_RE.exec(v);
-  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
-};
-const compareKeys = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
 
 const readDir = (dir) => {
   try { return fs.readdirSync(dir, { withFileTypes: true }); } catch { return []; }
@@ -131,5 +131,43 @@ export function createReleaseStore(root) {
     return out;
   }
 
-  return { latestRelease, componentsFor, allowedArtifacts, resolveArtifactPath };
+  // Install bundles (install-*.zip / .tar.gz) that exist as regular files in `version`, by name.
+  function installNames(version) {
+    return readDir(versionDir(version))
+      .filter((e) => e.isFile() && INSTALL_RE.test(e.name))
+      .map((e) => e.name)
+      .sort();
+  }
+
+  // The latest release with its first-install bundles, for the admin App
+  // release page: { version, publishedAt, bundles: [{ name, size, sha256 }] },
+  // or null when nothing is published. publishedAt is the release folder's
+  // mtime: roughly when the last file was uploaded, minutes before release.sh's
+  // final mv makes it live (a rename keeps the folder's own mtime). sha256 comes
+  // from the .sha256 sidecar when present, else the file is hashed.
+  function latestInstallBundles() {
+    const version = latestRelease();
+    if (!version) return null;
+    let publishedAt = null;
+    try { publishedAt = fs.statSync(versionDir(version)).mtime.toISOString(); } catch { /* raced away */ }
+    const bundles = [];
+    for (const name of installNames(version)) {
+      let size;
+      try { size = fs.statSync(path.join(versionDir(version), name)).size; } catch { continue; }
+      bundles.push({ name, size, sha256: checksumOf(version, name) });
+    }
+    return { version, publishedAt, bundles };
+  }
+
+  // The latest release's install bundle for one platform family, matched by
+  // name prefix: latestInstallBundle("windows") finds install-windows*.
+  // { version, name } (no hashing), or null.
+  function latestInstallBundle(platformPrefix) {
+    const version = latestRelease();
+    if (!version || typeof platformPrefix !== "string" || !platformPrefix) return null;
+    const name = installNames(version).find((n) => n.startsWith(`install-${platformPrefix}`));
+    return name ? { version, name } : null;
+  }
+
+  return { latestRelease, componentsFor, allowedArtifacts, resolveArtifactPath, latestInstallBundles, latestInstallBundle };
 }

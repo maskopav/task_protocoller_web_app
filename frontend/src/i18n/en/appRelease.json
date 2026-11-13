@@ -1,0 +1,22 @@
+{
+  "title": "App release",
+  "sub": "The desktop app version this server serves, and the links to install it at a clinic.",
+  "loading": "Loading…",
+  "loadFailed": "The release information could not be loaded.",
+  "empty": {
+    "title": "No release published",
+    "description": "Once a desktop app release is published to this server, its version and install links appear here."
+  },
+  "served": "Served version",
+  "version": "Version",
+  "publishedAt": "Published",
+  "bundles": "Install bundles",
+  "bundlesHint": "For a first-time install. Installed apps update themselves.",
+  "noBundles": "This release has no install bundle.",
+  "size": "Size",
+  "sha256": "SHA-256",
+  "stableLink": "Link for clinics (always the latest version)",
+  "versionedLink": "Link to this version",
+  "copied": "Copied",
+  "noPublicBase": "PUBLIC_BASE_URL is not set on the server, so these links use this browser's address ({{base}}). Clinics outside the internal network may not be able to open them."
+}

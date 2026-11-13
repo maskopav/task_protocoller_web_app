@@ -100,6 +100,8 @@ function Sidebar({ data }) {
   const { t, i18n } = useTranslation("nav");
   const { user, logout } = useUser();
   const isMaster = user?.role_id === 1;
+  // The Admin heading shows for anyone with at least one admin item.
+  const canSeeAppRelease = isMaster || !!user?.can_see_technical;
 
   const changeLanguage = (event) => {
     const lang = event.target.value;
@@ -131,11 +133,12 @@ function Sidebar({ data }) {
         {data.canWriteProtocols && (
           <NavItem to="/library" icon="library" testId="nav-library" label={t("library")} />
         )}
-        {isMaster && (
+        {canSeeAppRelease && (
           <>
             <div className="shell-nav-sep" role="separator" />
             <div className="shell-nav-heading">{t("admin")}</div>
-            <NavItem to="/users" icon="users" testId="nav-users" label={t("users")} />
+            {isMaster && <NavItem to="/users" icon="users" testId="nav-users" label={t("users")} />}
+            <NavItem to="/app-release" icon="download" testId="nav-app-release" label={t("appRelease")} />
           </>
         )}
       </nav>

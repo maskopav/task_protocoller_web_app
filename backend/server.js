@@ -19,6 +19,8 @@ import { createUploadDownloadsRouter } from "./src/routes/uploadDownloads.js";
 import { createUploadRouter } from "./src/routes/upload.js";
 import { createDeviceLogRouter } from "./src/routes/deviceLogs.js";
 import { createVersionRouter } from "./src/routes/version.js";
+import { createAppReleaseRouter } from "./src/routes/appRelease.js";
+import { releasesPath } from "./src/releases/releaseStore.js";
 import { createDeviceLogAdminRouter } from "./src/routes/deviceLogsAdmin.js";
 import { startDeviceLogPurge } from "./src/deviceLogs/purge.js";
 import { loadUploadConfig, ensureDataPath, sweepTempFiles } from "./src/config/uploads.js";
@@ -148,7 +150,7 @@ app.get("/site-config/:token", siteConfigLimiter, getSiteConfig);
 
 // Public: desktop-app auto-update (latest release + artifact download). Read-only
 // view of RELEASES_PATH; a missing directory just means "no release".
-app.use("/version", createVersionRouter({ releasesPath: process.env.RELEASES_PATH || "/srv/task-protocoller/releases" }));
+app.use("/version", createVersionRouter({ releasesPath: releasesPath() }));
 
 // Public, gated by the site token: the desktop app reports its local backlog.
 app.post("/device-checkin", createCheckinLimiter(), deviceCheckin);
@@ -167,6 +169,9 @@ app.use("/sites", requireAuth, sitesRouter)
 // MCP personal access tokens (docs/mcp/01_spec.md 3.3). A JWT session only:
 // requireAuth refuses a token, so a leaked token cannot mint more.
 app.use("/account/mcp-tokens", requireAuth, mcpTokensRouter)
+// The served desktop release and its install links (master or can_see_technical,
+// checked in the route).
+app.use("/app-release", requireAuth, createAppReleaseRouter({ releasesPath: releasesPath() }))
 // Master-only device logs (spec §5). Before /devices: view and download also
 // accept a download ticket, which /devices does not.
 app.use("/devices/logs", createDeviceLogAdminRouter({ store: fileStore }))

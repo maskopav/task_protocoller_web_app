@@ -16,6 +16,7 @@ import enClinics from "./en/clinics.json";
 import enUsers from "./en/users.json";
 import enLibrary from "./en/library.json";
 import enAccount from "./en/account.json";
+import enAppRelease from "./en/appRelease.json";
 
 import csCommon from "./cs/common.json";
 import csTasks from "./cs/tasks.json";
@@ -29,6 +30,7 @@ import csClinics from "./cs/clinics.json";
 import csUsers from "./cs/users.json";
 import csLibrary from "./cs/library.json";
 import csAccount from "./cs/account.json";
+import csAppRelease from "./cs/appRelease.json";
 
 import deCommon from "./de/common.json";
 import deTasks from "./de/tasks.json";
@@ -42,6 +44,7 @@ import deClinics from "./de/clinics.json";
 import deUsers from "./de/users.json";
 import deLibrary from "./de/library.json";
 import deAccount from "./de/account.json";
+import deAppRelease from "./de/appRelease.json";
 
 
 export const LANGUAGES = [
@@ -55,7 +58,7 @@ i18n
   .init({
     fallbackLng: "en",
     lng: "cs",
-    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording", "studies", "clinics", "users", "library", "account"],
+    ns: ["common", "tasks", "admin", "intro", "uploads", "uploadTools", "nav", "recording", "studies", "clinics", "users", "library", "account", "appRelease"],
     defaultNS: "common",
     resources: {
       en: {
@@ -71,7 +74,8 @@ i18n
         clinics: enClinics,
         users: enUsers,
         library: enLibrary,
-        account: enAccount
+        account: enAccount,
+        appRelease: enAppRelease
       },
       cs: {
         common: csCommon,
@@ -85,7 +89,8 @@ i18n
         clinics: csClinics,
         users: csUsers,
         library: csLibrary,
-        account: csAccount
+        account: csAccount,
+        appRelease: csAppRelease
       },
       de: {
         common: deCommon,
@@ -99,7 +104,8 @@ i18n
         clinics: deClinics,
         users: deUsers,
         library: deLibrary,
-        account: deAccount
+        account: deAccount,
+        appRelease: deAppRelease
       }
     },
     interpolation: {

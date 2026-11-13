@@ -1,12 +1,23 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../db/queryHelper.js', () => ({ executeQuery: vi.fn(), executeTransaction: vi.fn() }));
 vi.mock('../utils/emailService.js', () => ({ sendAdminWelcomeEmail: vi.fn().mockResolvedValue(undefined) }));
+// The real release store over a temp dir; createReleaseStore is a spy so a
+// test can make the lookup throw.
+vi.mock('../releases/releaseStore.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, createReleaseStore: vi.fn(actual.createReleaseStore) };
+});
+vi.mock('../utils/logger.js', () => ({ logToFile: vi.fn(), logFrontendToFile: vi.fn() }));
 
 const { executeQuery, executeTransaction } = await import('../db/queryHelper.js');
 const { sendAdminWelcomeEmail } = await import('../utils/emailService.js');
 const { getAllUsers, getUserById, createAdmin, updateUser } = await import('./userController.js');
 const { setUserSites } = await import('./userSiteController.js');
+const { createReleaseStore } = await import('../releases/releaseStore.js');
+const fs = await import('fs');
+const os = await import('os');
+const path = await import('path');
 
 const makeRes = () => {
   const res = {};
@@ -132,6 +143,63 @@ describe('POST /users (createAdmin)', () => {
     expect(sendAdminWelcomeEmail).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({ success: true, id: 30 });
+  });
+
+  describe('Windows app download link in the welcome mail', () => {
+    let root;
+    const saved = { base: process.env.PUBLIC_BASE_URL, releases: process.env.RELEASES_PATH };
+    const create = () => {
+      executeQuery
+        .mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: 2 }]).mockResolvedValueOnce({ insertId: 31 }).mockResolvedValue({});
+      return call({ email: 'new@x.cz', name: 'New' });
+    };
+    const sentLink = () => sendAdminWelcomeEmail.mock.calls.at(-1)[1].appDownloadLink;
+    const publishWindows = () => {
+      fs.mkdirSync(path.join(root, '1.0.2'), { recursive: true });
+      fs.writeFileSync(path.join(root, '1.0.2', 'install-windows-x64.zip'), 'zip');
+      fs.writeFileSync(path.join(root, '1.0.2', 'install-linux-x64.tar.gz'), 'gz');
+    };
+    beforeEach(() => {
+      root = fs.mkdtempSync(path.join(os.tmpdir(), 'welcome-rel-'));
+      process.env.RELEASES_PATH = root;
+      process.env.PUBLIC_BASE_URL = 'https://malenia.example/koubic/';
+    });
+    afterEach(() => {
+      fs.rmSync(root, { recursive: true, force: true });
+      for (const [k, v] of [['PUBLIC_BASE_URL', saved.base], ['RELEASES_PATH', saved.releases]]) {
+        if (v === undefined) delete process.env[k]; else process.env[k] = v;
+      }
+    });
+
+    it('PUBLIC_BASE_URL + a published Windows bundle: the stable latest link', async () => {
+      publishWindows();
+      const res = await create();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(sentLink()).toBe('https://malenia.example/koubic/api/version/download/latest/install-windows-x64.zip');
+      expect(sendAdminWelcomeEmail.mock.calls.at(-1)[1].loginLink).toBe('https://example.org/app');
+    });
+
+    it('no link without PUBLIC_BASE_URL, or without a Windows bundle; the mail still goes', async () => {
+      publishWindows();
+      delete process.env.PUBLIC_BASE_URL;
+      expect((await create()).status).toHaveBeenCalledWith(201);
+      expect(sentLink()).toBeUndefined();
+
+      process.env.PUBLIC_BASE_URL = 'https://malenia.example/koubic';
+      fs.rmSync(path.join(root, '1.0.2', 'install-windows-x64.zip'));
+      expect((await create()).status).toHaveBeenCalledWith(201);
+      expect(sentLink()).toBeUndefined();
+      expect(sendAdminWelcomeEmail).toHaveBeenCalledTimes(2);
+    });
+
+    it('a failing release lookup never fails the user creation', async () => {
+      createReleaseStore.mockImplementationOnce(() => { throw new Error('EACCES'); });
+      const res = await create();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({ success: true, id: 31 });
+      expect(sentLink()).toBeUndefined();
+      expect(sendAdminWelcomeEmail).toHaveBeenCalledOnce();
+    });
   });
 
   it('400 for invalid email, missing name, bad site ids; nothing is written', async () => {

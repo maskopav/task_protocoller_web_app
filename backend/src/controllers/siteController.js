@@ -8,7 +8,7 @@ import {
   normalizeToken,
   normalizeSiteSettings,
 } from "../utils/fieldValidation.js";
-import { buildExtConfig, loadLocales } from "../utils/extConfig.js";
+import { buildExtConfig, clientResolvesRelativeAssets, loadLocales } from "../utils/extConfig.js";
 import { logToFile } from "../utils/logger.js";
 import { registerDeviceFromConfig } from "./deviceController.js";
 import { assembleProtocol } from "./protocolController.js";
@@ -412,6 +412,10 @@ export const getSiteConfig = async (req, res) => {
       tasksById,
       locales: loadLocales(),
       assetBaseUrl: process.env.ASSET_BASE_URL || "",
+      // Apps >= 1.0.2 resolve "audio/illustrations/<key>.wav" against the base
+      // URL they were built with, which works behind the outer proxy too
+      // (ASSET_BASE_URL is the internal origin). Older/unknown: absolute.
+      relativeAssets: clientResolvesRelativeAssets(req.query?.appVersion),
       now: new Date(),
     });
     for (const s of skipped) {

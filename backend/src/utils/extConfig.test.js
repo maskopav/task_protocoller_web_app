@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildExtConfig, loadLocales, htmlToParagraphs, resolveText } from './extConfig.js';
+import { buildExtConfig, clientResolvesRelativeAssets, loadLocales, htmlToParagraphs, resolveText } from './extConfig.js';
 import { CASES, SAMPLE_TOKEN, generateAll } from '../../scripts/gen-ext-configs.js';
 
 const locales = loadLocales();
@@ -305,6 +305,46 @@ describe('buildExtConfig — case specifics', () => {
   it('omits audioExamplePath when ASSET_BASE_URL is not configured', () => {
     const { config } = buildExtConfig({ ...CASES.single_en(locales), locales, assetBaseUrl: '' });
     for (const t of config.protocols[0].tasks) expect(t.audioExamplePath).toBeUndefined();
+  });
+});
+
+describe('audioExamplePath: relative for apps >= 1.0.2, absolute otherwise', () => {
+  const ABS = 'https://example.org/test/dist';
+  // What getSiteConfig passes for a given ?appVersion= and ASSET_BASE_URL.
+  const audioPaths = (appVersion, assetBaseUrl) => {
+    const { config } = buildExtConfig({ ...CASES.single_en(locales), locales, assetBaseUrl, relativeAssets: clientResolvesRelativeAssets(appVersion) });
+    return config.protocols[0].tasks.slice(0, 3).map((t) => t.audioExamplePath);
+  };
+
+  it('1.0.2 and 1.1.0 get the relative path, even with ASSET_BASE_URL unset', () => {
+    for (const v of ['1.0.2', '1.1.0', '1.0.10', '2.0.0']) {
+      for (const base of [ABS, '']) {
+        expect(audioPaths(v, base), `${v} ${base}`).toEqual(['audio/illustrations/phonation_a.wav', 'audio/illustrations/syllableRepeating_pataka.wav', undefined]);
+      }
+    }
+  });
+
+  it('1.0.1 (and older) get the absolute ASSET_BASE_URL form', () => {
+    for (const v of ['1.0.1', '1.0.0', '0.9.99']) {
+      expect(audioPaths(v, ABS), v).toEqual([`${ABS}/audio/illustrations/phonation_a.wav`, `${ABS}/audio/illustrations/syllableRepeating_pataka.wav`, undefined]);
+    }
+  });
+
+  it('a missing or garbage appVersion counts as an old client (absolute)', () => {
+    for (const v of [undefined, null, '', 'x', '1.0', '1.0.2-SNAPSHOT', 'v1.0.2', ' 1.0.2', '1.0.2.0', ['1.0.2'], 102]) {
+      expect(audioPaths(v, ABS)[0], String(v)).toBe(`${ABS}/audio/illustrations/phonation_a.wav`);
+    }
+  });
+
+  it('garbage appVersion and ASSET_BASE_URL unset: no audioExamplePath at all', () => {
+    for (const v of [undefined, 'garbage', '1.0.1']) expect(audioPaths(v, ''), String(v)).toEqual([undefined, undefined, undefined]);
+  });
+
+  it('clientResolvesRelativeAssets compares x.y.z as integers', () => {
+    expect(clientResolvesRelativeAssets('1.0.2')).toBe(true);
+    expect(clientResolvesRelativeAssets('1.0.10')).toBe(true);
+    expect(clientResolvesRelativeAssets('1.0.1')).toBe(false);
+    expect(clientResolvesRelativeAssets('0.10.0')).toBe(false);
   });
 });
 

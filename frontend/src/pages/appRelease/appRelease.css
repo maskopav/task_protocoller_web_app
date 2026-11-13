@@ -1,0 +1,21 @@
+/* App release page (see components/ui/ui.css). */
+.apprelease-page { display: flex; flex-direction: column; gap: var(--s-4); }
+.apprelease-page > header { margin-bottom: 0; }
+.apprelease-list { display: flex; flex-direction: column; gap: var(--s-3); }
+.apprelease-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3);
+}
+.apprelease-card .ui-section { margin-bottom: 0; }
+.apprelease-h3 { margin: 0; font-size: var(--fs-lg); font-family: var(--mono); overflow-wrap: anywhere; }
+.apprelease-link { display: flex; flex-direction: column; gap: 6px; }
+.apprelease-link-label { font-size: var(--fs-sm); color: var(--text-2); }
+.apprelease-link a { font-family: var(--mono); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.apprelease-hash { font-family: var(--mono); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+.apprelease-warn {
+  background: var(--warn-soft); border: 1px solid var(--warn); border-radius: var(--r-md);
+  color: var(--warn-text); padding: var(--s-3) var(--s-4); display: flex; gap: var(--s-2); align-items: flex-start;
+}
+.apprelease-warn p { margin: 0; }
+.apprelease-card .ui-kv { grid-template-columns: minmax(120px, 200px) minmax(0, 1fr); }
+.apprelease-link .ui-copyfield { max-width: none; }

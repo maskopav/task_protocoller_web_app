@@ -329,7 +329,8 @@
     "adminWelcomeTitle": "Dobrý den, {{name}},",
     "adminWelcomeBody": "Byli jste zaregistrováni jako správce systému. K přihlášení a nastavení trvalého hesla použijte svůj e-mail a dočasné heslo uvedené níže.",
     "loginUrlLabel": "Přihlašovací stránka",
-    "tempPasswordLabel": "Dočasné heslo"
+    "tempPasswordLabel": "Dočasné heslo",
+    "appDownloadLabel": "Desktopová aplikace (Windows)"
   },
   "ui": {
     "copy": "Kopírovat",

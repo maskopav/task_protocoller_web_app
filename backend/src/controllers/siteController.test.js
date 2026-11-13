@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../db/queryHelper.js', () => ({
   executeQuery: vi.fn(),
@@ -129,6 +129,37 @@ describe('getSiteConfig', () => {
     await getSiteConfig({ params: { token: SITE_TOKEN } }, res);
 
     expect(JSON.stringify(res.json.mock.calls[0][0])).not.toContain(SITE_TOKEN);
+  });
+
+  describe('audioExamplePath gated on ?appVersion=', () => {
+    const SITE = { id: 1, name: 'Paris', config_json: null, is_active: 1 };
+    const audioFor = async (query) => {
+      mockConfigQueries(SITE);
+      const base = executeQuery.getMockImplementation();
+      executeQuery.mockImplementation(async (sql, params) => sql.includes('FROM protocol_tasks')
+        ? [{ id: 100, task_id: 2, task_order: 1, params: '{"duration":3,"syllable":"pataka"}' }]
+        : sql.includes('INTO devices') || sql.includes('FROM devices') ? [] : base(sql, params));
+      const res = makeRes();
+      await getSiteConfig({ params: { token: SITE_TOKEN }, query }, res);
+      return res.json.mock.calls[0][0].protocols[0].tasks[0].audioExamplePath;
+    };
+    const saved = process.env.ASSET_BASE_URL;
+    beforeEach(() => { process.env.ASSET_BASE_URL = 'http://192.168.122.183:10001'; });
+    afterEach(() => { if (saved === undefined) delete process.env.ASSET_BASE_URL; else process.env.ASSET_BASE_URL = saved; });
+
+    it('relative for 1.0.2+, absolute for 1.0.1, missing or garbage', async () => {
+      expect(await audioFor({ appVersion: '1.0.2' })).toBe('audio/illustrations/syllableRepeating_pataka.wav');
+      expect(await audioFor({ installationId: 'dev1', appVersion: '1.1.0' })).toBe('audio/illustrations/syllableRepeating_pataka.wav');
+      for (const q of [{ appVersion: '1.0.1' }, {}, { appVersion: 'x' }, { appVersion: ['1.0.2', '1.0.3'] }]) {
+        expect(await audioFor(q), JSON.stringify(q)).toBe('http://192.168.122.183:10001/audio/illustrations/syllableRepeating_pataka.wav');
+      }
+    });
+
+    it('relative even without ASSET_BASE_URL; nothing for old clients then', async () => {
+      delete process.env.ASSET_BASE_URL;
+      expect(await audioFor({ appVersion: '1.0.2' })).toBe('audio/illustrations/syllableRepeating_pataka.wav');
+      expect(await audioFor({ appVersion: '1.0.1' })).toBeUndefined();
+    });
   });
 
   it('returns 404 for an unknown token', async () => {

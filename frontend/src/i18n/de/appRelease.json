@@ -1,0 +1,22 @@
+{
+  "title": "App-Version",
+  "sub": "Die Version der Desktop-App, die dieser Server ausliefert, und die Links zur Installation in einer Klinik.",
+  "loading": "Wird geladen…",
+  "loadFailed": "Die Versionsinformationen konnten nicht geladen werden.",
+  "empty": {
+    "title": "Keine Version veröffentlicht",
+    "description": "Sobald eine Version der Desktop-App auf diesem Server veröffentlicht ist, erscheinen hier ihre Nummer und die Installationslinks."
+  },
+  "served": "Ausgelieferte Version",
+  "version": "Version",
+  "publishedAt": "Veröffentlicht",
+  "bundles": "Installationspakete",
+  "bundlesHint": "Für die Erstinstallation. Installierte Apps aktualisieren sich selbst.",
+  "noBundles": "Diese Version hat kein Installationspaket.",
+  "size": "Größe",
+  "sha256": "SHA-256",
+  "stableLink": "Link für Kliniken (immer die neueste Version)",
+  "versionedLink": "Link zu dieser Version",
+  "copied": "Kopiert",
+  "noPublicBase": "PUBLIC_BASE_URL ist auf dem Server nicht gesetzt, daher verwenden diese Links die Adresse dieses Browsers ({{base}}). Kliniken außerhalb des internen Netzes können sie möglicherweise nicht öffnen."
+}

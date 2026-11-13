@@ -72,6 +72,18 @@ describe('adminLogin', () => {
     expect(decoded).toMatchObject({ id: dbUser.id, email: dbUser.email, role: 'master', role_id: 1 });
   });
 
+  it('returns the permission flags as booleans, can_see_technical included, but not in the token', async () => {
+    executeQuery.mockResolvedValueOnce([{ ...dbUser, role: 'admin', role_id: 2, can_create_projects: 0, can_create_sites: 1, can_see_technical: 1 }]);
+    bcrypt.compare.mockResolvedValueOnce(true);
+    const res = makeRes();
+    await adminLogin({ body: { email: dbUser.email, password: 'correct-password' } }, res);
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.user).toMatchObject({ can_create_projects: false, can_create_sites: true, can_see_technical: true });
+    expect(executeQuery.mock.calls[0][0]).toContain('u.can_see_technical');
+    expect(verifyAdminToken(payload.token)).not.toHaveProperty('can_see_technical');
+  });
+
   it('returns 401 and no token for a wrong password', async () => {
     executeQuery.mockResolvedValueOnce([dbUser]);
     bcrypt.compare.mockResolvedValueOnce(false);

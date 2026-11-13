@@ -134,8 +134,12 @@ Notes:
 - Every `VOCAL` task carries `recordVideo` (real boolean; the voice task's
   "Also record video" checkbox, default off) so the app also films each take.
   It is never emitted on other task types.
-- `audioExamplePath` is an absolute URL under `ASSET_BASE_URL` (new env var =
-  public origin of the frontend build), only for the example files that exist.
+- `audioExamplePath` is only emitted for the example files that exist. Apps
+  reporting `?appVersion=` 1.0.2 or later get the relative
+  `audio/illustrations/<key>.wav` and resolve it against their own server base
+  (see "App release page and relative example audio" below); older or unknown
+  clients get an absolute URL under `ASSET_BASE_URL` (env var = origin of the
+  frontend build).
 - `protocols[]` is flat; each protocol names its parent project in `project`.
   A protocol linked to several of the site's projects appears once per project.
 - Only `is_active` projects and `is_current` protocol versions are returned.
@@ -551,3 +555,47 @@ what was built and any deviation: [`device_logs/05_results.md`](./device_logs/05
   only. Files are grouped by computer, with View (new tab) and Download.
 - **Tests**: `test/integration/deviceLogs*.test.js` (against MariaDB), `deviceLogs/purge.test.js`,
   `storage/deviceLogKey.test.js`, and `ClinicLogsTab.test.jsx` in the frontend.
+
+## App release page and relative example audio (2026-11-13)
+
+Spec: [`app_release_page/spec.md`](./app_release_page/spec.md). Background: clinics behind
+`https://malenia.feld.cvut.cz/koubic` got the internal `ASSET_BASE_URL` in `audioExamplePath`,
+could not reach it, and so had no example button.
+
+- **Version-gated relative audio** (`utils/extConfig.js`, `controllers/siteController.js`):
+  `buildExtConfig({ relativeAssets })` emits `audio/illustrations/<key>.wav` (no `ASSET_BASE_URL`
+  needed). `getSiteConfig` sets it with `clientResolvesRelativeAssets(req.query.appVersion)`: a strict
+  `x.y.z` at or above `RELATIVE_ASSETS_MIN_APP_VERSION` (`1.0.2`), compared as integers. Anything
+  else keeps the absolute form. The x.y.z helpers (`SEMVER_RE`, `semverKey`, `compareKeys`) moved to
+  `utils/semver.js` and are re-exported by `releases/releaseStore.js`, so the release store and the
+  gate share one rule. `deriveConfigVersion` hashes nothing: it is the newest `updated_at`, so the
+  `configVersion` is the same for both client generations.
+- **`GET|HEAD /version/download/latest/:name`** (public, `routes/version.js`): 302 with the
+  relative `Location: ../<v>/<name>` to an `install-*` bundle of the latest release, `no-store`.
+  404 when nothing is published or the name is not an install bundle of the latest release. The
+  existing nginx `location /api/version/download/` block covers it.
+- **`GET /app-release`** (`routes/appRelease.js`, behind `requireAuth`): masters, and users whose
+  `can_see_technical` is set (read from the DB on every request), else 403. Answers
+  `{ release: null | { version, publishedAt, bundles: [{ name, size, sha256, latestPath, versionedPath }] }, publicBaseUrl }`.
+  `publishedAt` is the release folder's mtime; `publicBaseUrl` is the new env `PUBLIC_BASE_URL`
+  (or `null`). Store helpers: `latestInstallBundles()` and `latestInstallBundle(prefix)`.
+- **Login payload**: `user.can_see_technical` (boolean). It drives the menu only and lags until the
+  next login, like `can_create_*`.
+- **Welcome email**: `sendAdminWelcomeEmail` takes an optional `appDownloadLink` and then shows a
+  "Desktop app (Windows)" row (`common:email.appDownloadLabel`). `createAdmin` builds it as
+  `${PUBLIC_BASE_URL}/api/version/download/latest/<install-windows*>` and leaves it out when
+  `PUBLIC_BASE_URL` is unset, no Windows bundle is published, or the lookup fails. It never fails the
+  user creation. Windows only.
+- **Frontend**: `pages/appRelease/AppReleasePage.jsx` at `/app-release` (route gated by
+  `TechnicalOnly` in `App.jsx`), menu item "App release" under Administration in `AppShell.jsx`. The
+  Administration heading now shows for anyone with at least one admin item; Users stays master-only.
+  The page shows the served version, the publish date and, per install bundle, size, SHA-256, the
+  stable link (copy button) and the versioned link. Without `PUBLIC_BASE_URL` it builds the links
+  from the app's own address and warns. New i18n namespace `appRelease`, `nav:appRelease`.
+- **Tests**: `releaseStore.test.js`, `version.test.js`, `appRelease.test.js`, `extConfig.test.js`,
+  `siteController.test.js`, `authController.test.js`, `userController.test.js`,
+  `emailService.test.js`, `siteConfigGolden.test.js` (adds a 1.0.1 vs 1.0.2 comparison against the
+  unchanged golden files); frontend `AppShell.test.jsx`, `AppReleasePage.test.jsx`,
+  `appReleaseLogic.test.js`.
+- **Deploy**: backend and frontend together (the page needs `/app-release`). Set `PUBLIC_BASE_URL`
+  in the server's `.env` (see `container_deployment.md`).

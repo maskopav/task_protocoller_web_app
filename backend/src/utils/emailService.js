@@ -98,8 +98,10 @@ export async function sendPasswordResetEmail(email, resetLink, protocolToken, la
 
 /**
  * HELPER: New Admin Welcome (with temp password)
+ * appDownloadLink (optional): the stable "latest" link of the Windows desktop
+ * app install bundle; the row is left out when it is not given.
  */
-export async function sendAdminWelcomeEmail(email, { fullName, tempPassword, loginLink }, lang = "en") {
+export async function sendAdminWelcomeEmail(email, { fullName, tempPassword, loginLink, appDownloadLink }, lang = "en") {
   const t = i18next.getFixedT(lang, "common");
 
   const html = `
@@ -109,7 +111,8 @@ export async function sendAdminWelcomeEmail(email, { fullName, tempPassword, log
       
       <div style="background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px dashed #3764df;">
         <p style="margin: 0 0 10px 0;"><strong>${t("email.loginUrlLabel")}:</strong> <a href="${loginLink}">${loginLink}</a></p>
-        <p style="margin: 0;"><strong>${t("email.tempPasswordLabel")}:</strong> <code style="background: #fff; padding: 2px 6px; border: 1px solid #ddd;">${tempPassword}</code></p>
+        <p style="margin: 0;"><strong>${t("email.tempPasswordLabel")}:</strong> <code style="background: #fff; padding: 2px 6px; border: 1px solid #ddd;">${tempPassword}</code></p>${appDownloadLink ? `
+        <p style="margin: 10px 0 0 0;"><strong>${t("email.appDownloadLabel")}:</strong> <a href="${appDownloadLink}">${appDownloadLink}</a></p>` : ""}
       </div>
 
     </div>

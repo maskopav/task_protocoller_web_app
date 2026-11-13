@@ -8,6 +8,7 @@
   "myClinic": "Moje klinika",
   "library": "Knihovna",
   "users": "Uživatelé",
+  "appRelease": "Verze aplikace",
   "admin": "Správa",
   "unreviewed": "Nezkontrolováno: {{count}}",
   "userMenu": "Uživatelské menu",

@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { DEFAULT_RECORDINGS_FILE_NAME, isValidMicGain } from "./fieldValidation.js";
 import { isLegacyDescription } from "./legacyDescription.js";
 import { emittableRule } from "./questionRules.js";
+import { semverKey, compareKeys } from "./semver.js";
 
 export const SCHEMA_VERSION = 1;
 const LANGS = ["en", "cs", "de"];
@@ -224,6 +225,22 @@ export function deriveConfigVersion(siteUpdatedAt, protocolUpdatedAts, now = new
   return formatVersion(stamps.length ? new Date(Math.max(...stamps)) : now);
 }
 
+// The first desktop release that resolves a relative audioExamplePath against
+// its own server base (KtorExampleAudioCache.resolveExampleUrl). Older clients
+// accept only absolute http(s) URLs.
+export const RELATIVE_ASSETS_MIN_APP_VERSION = "1.0.2";
+
+/**
+ * Whether the client reporting `appVersion` (the site-config ?appVersion=)
+ * gets relative asset paths: a strict x.y.z at or above
+ * RELATIVE_ASSETS_MIN_APP_VERSION, compared as integers. Missing or
+ * unparseable means an old client: absolute URLs.
+ */
+export function clientResolvesRelativeAssets(appVersion) {
+  const key = semverKey(appVersion);
+  return key !== null && compareKeys(key, semverKey(RELATIVE_ASSETS_MIN_APP_VERSION)) >= 0;
+}
+
 // ---------------------------------------------------------------------------
 // The transform
 // ---------------------------------------------------------------------------
@@ -234,11 +251,15 @@ export function deriveConfigVersion(siteUpdatedAt, protocolUpdatedAts, now = new
  *                    assembleProtocol() result with protocol.language_code set
  * @param tasksById   { [tasks.id]: { category, type } }
  * @param locales     loadLocales() result
- * @param assetBaseUrl public origin of the frontend build ("" disables audio examples)
+ * @param assetBaseUrl public origin of the frontend build ("" disables absolute audio examples)
+ * @param relativeAssets true for clients that resolve paths against their own
+ *                    server base (desktop app >= 1.0.2): audioExamplePath is then
+ *                    the relative "audio/illustrations/<key>.wav" and needs no
+ *                    assetBaseUrl. Otherwise the absolute `${assetBaseUrl}/...` form.
  * @param now         Date used when no row carries an updated_at
  * @returns { config, skipped: [{ protocol, order, category }] }
  */
-export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUrl = "", now = new Date() }) {
+export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUrl = "", relativeAssets = false, now = new Date() }) {
   const settings = settingsOf(site?.config_json);
   const skipped = [];
   const strings = {};
@@ -257,8 +278,10 @@ export function buildExtConfig({ site, projects, tasksById, locales, assetBaseUr
 
   const audioUrl = (category, params) => {
     const key = AUDIO_PARAM[category] && `${category}_${params?.[AUDIO_PARAM[category]]}`;
-    return assetBaseUrl && key && AUDIO_EXAMPLES.has(key)
-      ? `${assetBaseUrl.replace(/\/+$/, "")}/audio/illustrations/${key}.wav` : undefined;
+    if (!key || !AUDIO_EXAMPLES.has(key)) return undefined;
+    const rel = `audio/illustrations/${key}.wav`;
+    if (relativeAssets) return rel;
+    return assetBaseUrl ? `${assetBaseUrl.replace(/\/+$/, "")}/${rel}` : undefined;
   };
 
   const mapProtocolGroup = (variants, projectName) => {

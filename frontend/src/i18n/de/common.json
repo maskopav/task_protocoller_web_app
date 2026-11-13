@@ -329,7 +329,8 @@
     "adminWelcomeTitle": "Guten Tag {{name}},",
     "adminWelcomeBody": "Sie wurden als Systemadministrator registriert. Bitte melden Sie sich mit Ihrer E-Mail-Adresse und dem untenstehenden temporären Passwort an und legen Sie Ihr dauerhaftes Passwort fest.",
     "loginUrlLabel": "Anmeldeseite",
-    "tempPasswordLabel": "Temporäres Passwort"
+    "tempPasswordLabel": "Temporäres Passwort",
+    "appDownloadLabel": "Desktop-App (Windows)"
   },
   "ui": {
     "copy": "Kopieren",

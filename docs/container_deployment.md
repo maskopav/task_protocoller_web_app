@@ -75,6 +75,9 @@ ssh share_web 'cd /opt/task-protocoller/backend && npm ci --omit=dev >/tmp/npm_c
   systemctl is-active task-protocoller && journalctl -u task-protocoller -n 5 --no-pager -o cat'
 ```
 
+Always deploy the backend and the frontend from the same commit: a frontend page whose backend
+route is missing (e.g. the App release page without `/app-release`) only shows an error.
+
 The schema is not migrated: when it changes, the database is recreated from `create_tables.sql`,
 `create_views.sql` and the seeds with `runInit.js` (existing data is discarded). There is no
 `db:permissions` step any more.
@@ -180,6 +183,7 @@ PORT=3000
 I18N_PATH=/opt/task-protocoller/locales
 ASSET_BASE_URL=http://192.168.122.183:10001
 FRONTEND_BASE_URL=http://192.168.122.183:10001
+PUBLIC_BASE_URL=https://malenia.feld.cvut.cz/koubic
 CORS_ORIGIN=http://192.168.122.183:10001
 JWT_SECRET=$JWT
 JWT_EXPIRES_IN=8h
@@ -192,7 +196,15 @@ sudo -u taskprot node src/runInit.js 2>&1 | tail -3'
 ```
 
 The server refuses to start without `JWT_SECRET` or `FRONTEND_BASE_URL`, which
-is used for the links in password-reset and welcome emails. SMTP isn't
+is used for the links in password-reset and welcome emails.
+
+`PUBLIC_BASE_URL` is optional: the clinic-facing base URL (no trailing slash, no `/api`), i.e. the
+outer proxy's address. The App release page builds the install links clinics get from it, and the
+welcome email adds a "Desktop app (Windows)" row with
+`${PUBLIC_BASE_URL}/api/version/download/latest/<install-windows*.zip>`. Unset, the page falls back
+to the browser's address with a warning and the email has no such row. It is deliberately separate
+from `FRONTEND_BASE_URL` and `ASSET_BASE_URL`, which stay internal. On an existing server add it to
+`/opt/task-protocoller/backend/.env` and restart. SMTP isn't
 configured, so those emails fail and the failure is logged. To enable email,
 add `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` and `SMTP_PASS`. TLS certificate
 checking is enforced: STARTTLS on any port except 465, which uses direct TLS.
@@ -284,8 +296,9 @@ server {
     }
 
     # Desktop app releases: large artifact downloads stream unbuffered. Slash
-    # form so /api/version/latest still goes through /api/. See "Desktop app
-    # releases".
+    # form so /api/version/latest still goes through /api/. Also covers the
+    # /api/version/download/latest/<install> alias (a 302 with a relative
+    # Location, which proxy_redirect leaves alone). See "Desktop app releases".
     location /api/version/download/ {
         proxy_pass http://127.0.0.1:3000/version/download/;
         proxy_buffering off;
@@ -501,6 +514,19 @@ Check:
 ```bash
 curl http://192.168.122.183:10001/api/version/latest?platform=windows-x86_64
 ```
+
+Stable install link: `GET /api/version/download/latest/<install-file>` (HEAD too) answers 302 with
+the relative `Location: ../<v>/<install-file>` for an `install-*` bundle of the latest release, so
+the same link always fetches the newest bundle, directly and through the outer proxy. 404 when
+nothing is published or the name is not an install bundle of the latest release.
+
+```bash
+curl -sI http://192.168.122.183:10001/api/version/download/latest/install-windows-x64.zip   # 302, Location: ../<v>/install-windows-x64.zip
+```
+
+The admin **App release** page (`/#/app-release`, masters and users with the technical-details
+flag) shows the served version, its publish date (the release folder's mtime) and, per install
+bundle, the size, SHA-256 and the stable and versioned links on `PUBLIC_BASE_URL`.
 
 Yank a bad release by deleting its directory (`rm -r /srv/task-protocoller/releases/<v>`); the
 previous version becomes latest immediately.

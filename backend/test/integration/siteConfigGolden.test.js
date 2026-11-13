@@ -14,6 +14,11 @@
 //  - any other string matching the timestamp format of configVersion, or an
 //    ISO-8601 timestamp, is replaced too (defensive; see `normalise`).
 //
+// The golden files are what an old (< 1.0.2) or unidentified client gets. A
+// client reporting ?appVersion=1.0.2 or later must get the same body except
+// that every audioExamplePath is the relative "audio/illustrations/<key>.wav"
+// (extConfig.js clientResolvesRelativeAssets); 1.0.1 gets the golden body as is.
+//
 // Needs the disposable DB of backend/.env.test (npm run db:test:reset); the
 // suite is skipped when it is unreachable, like the other integration tests.
 // Regenerate fixtures with UPDATE_GOLDEN=1 (needs the user's explicit approval,
@@ -85,6 +90,13 @@ const sortKeys = (v) =>
     : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])]))
     : v;
 
+// The golden body as a >= 1.0.2 client must see it: absolute audio URLs made relative.
+const toRelativeAudio = (v) =>
+  Array.isArray(v) ? v.map(toRelativeAudio)
+    : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k,
+      k === "audioExamplePath" && typeof x === "string" ? x.replace(/^.*\/(audio\/illustrations\/[^/]+)$/, "$1") : toRelativeAudio(x)]))
+    : v;
+
 describe.skipIf(!dbUp)("GET /site-config/:token golden files (desktop contract)", () => {
   for (const site of SITES) {
     it(`site ${site.id} (${site.slug})`, async () => {
@@ -105,6 +117,17 @@ describe.skipIf(!dbUp)("GET /site-config/:token golden files (desktop contract)"
       expect(golden.status).toBe(res.status);
       expect(golden.contentType).toBe(res.headers["content-type"]);
       expect(actual).toEqual(golden.body);
+    });
+
+    it(`site ${site.id} (${site.slug}) by app version: 1.0.1 golden, 1.0.2 relative audio`, async () => {
+      const golden = JSON.parse(fs.readFileSync(path.join(goldenDir, `${site.id}-${site.slug}.json`), "utf8"));
+      const old = await request(app).get(`/site-config/${site.token}?appVersion=1.0.1`);
+      expect(old.status).toBe(200);
+      expect(normalise(old.body)).toEqual(golden.body);
+      const current = await request(app).get(`/site-config/${site.token}?appVersion=1.0.2`);
+      expect(current.status).toBe(200);
+      expect(normalise(current.body)).toEqual(toRelativeAudio(golden.body));
+      expect(JSON.stringify(current.body)).not.toMatch(/"audioExamplePath":"https?:/);
     });
   }
 });

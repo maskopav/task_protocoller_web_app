@@ -23,6 +23,7 @@ import NotAvailablePage from "./pages/NotAvailablePage";
 import RecordingsPage from "./pages/RecordingsPage";
 import RecordingPage from "./pages/RecordingPage";
 import AccountPage from "./pages/account/AccountPage";
+import AppReleasePage from "./pages/appRelease/AppReleasePage";
 
 // Old links keep working for one release: the target path may name the old
 // route's params (":projectId"), and ?site= / ?project= become ?clinic= / ?study=.
@@ -57,6 +58,13 @@ function ClinicsIndex() {
 function MasterOnly({ children }) {
   const { user } = useUser();
   return user.role_id === 1 ? children : <NotAvailablePage />;
+}
+
+// Master, or a user with the technical-details flag (the App release page).
+// The flag on the client is from login; GET /app-release re-checks it.
+function TechnicalOnly({ children }) {
+  const { user } = useUser();
+  return user.role_id === 1 || user.can_see_technical ? children : <NotAvailablePage />;
 }
 
 function ShellRoute() {
@@ -110,6 +118,7 @@ export default function App() {
 
         <Route path="/users" element={<MasterOnly><UsersListPage /></MasterOnly>} />
         <Route path="/users/:id" element={<MasterOnly><UserPage /></MasterOnly>} />
+        <Route path="/app-release" element={<TechnicalOnly><AppReleasePage /></TechnicalOnly>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

@@ -9,6 +9,7 @@ import crypto from "crypto";
 import { logToFile } from "../utils/logger.js";
 import { sendAdminWelcomeEmail } from "../utils/emailService.js";
 import { frontendBaseUrl } from "../utils/frontendUrl.js";
+import { createReleaseStore, releasesPath } from "../releases/releaseStore.js";
 
 const parseId = (v) => {
   const n = Number(v);
@@ -100,6 +101,22 @@ export async function refuseUnlessAdminTarget(userId) {
   return null;
 }
 
+// The stable link to the latest Windows install bundle for the welcome email,
+// on the clinic-facing origin (PUBLIC_BASE_URL; FRONTEND_BASE_URL is internal).
+// Windows only for now. undefined when PUBLIC_BASE_URL is unset, nothing is
+// published, or the lookup fails: the email then simply has no such row.
+export function appDownloadLink() {
+  const base = (process.env.PUBLIC_BASE_URL || "").trim().replace(/\/+$/, "");
+  if (!base) return undefined;
+  try {
+    const bundle = createReleaseStore(releasesPath()).latestInstallBundle("windows");
+    return bundle ? `${base}/api/version/download/latest/${encodeURIComponent(bundle.name)}` : undefined;
+  } catch (err) {
+    logToFile("WARN", "Welcome email: release lookup failed, no app link", { error: err.message });
+    return undefined;
+  }
+}
+
 // POST /users
 export const createAdmin = async (req, res) => {
   const body = req.body ?? {};
@@ -143,6 +160,7 @@ export const createAdmin = async (req, res) => {
       fullName,
       tempPassword,
       loginLink: frontendBaseUrl(),
+      appDownloadLink: appDownloadLink(),
     }, lang).catch((err) => logToFile("ERROR", "Failed to send admin welcome email", {
       email,
       error: err.message,

@@ -1,0 +1,22 @@
+{
+  "title": "Verze aplikace",
+  "sub": "Verze desktopové aplikace, kterou tento server poskytuje, a odkazy pro instalaci na klinice.",
+  "loading": "Načítání…",
+  "loadFailed": "Informace o verzi se nepodařilo načíst.",
+  "empty": {
+    "title": "Žádná verze není zveřejněna",
+    "description": "Jakmile bude na tento server zveřejněna verze desktopové aplikace, zobrazí se zde její číslo a odkazy pro instalaci."
+  },
+  "served": "Poskytovaná verze",
+  "version": "Verze",
+  "publishedAt": "Zveřejněno",
+  "bundles": "Instalační balíčky",
+  "bundlesHint": "Pro první instalaci. Nainstalované aplikace se aktualizují samy.",
+  "noBundles": "Tato verze nemá instalační balíček.",
+  "size": "Velikost",
+  "sha256": "SHA-256",
+  "stableLink": "Odkaz pro kliniky (vždy nejnovější verze)",
+  "versionedLink": "Odkaz na tuto verzi",
+  "copied": "Zkopírováno",
+  "noPublicBase": "Na serveru není nastaveno PUBLIC_BASE_URL, proto odkazy používají adresu tohoto prohlížeče ({{base}}). Kliniky mimo interní síť je nemusí otevřít."
+}

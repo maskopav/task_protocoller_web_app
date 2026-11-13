@@ -34,7 +34,7 @@ export const adminLogin = async (req, res) => {
   try {
     // 1. Find user - Include is_active in the SELECT statement
     const rows = await executeQuery(
-      `SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, r.name as role, u.is_active, u.must_change_password, u.can_create_projects, u.can_create_sites, u.token_version
+      `SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, r.name as role, u.is_active, u.must_change_password, u.can_create_projects, u.can_create_sites, u.can_see_technical, u.token_version
       FROM users u
       JOIN roles r ON u.role_id = r.id
       WHERE u.email = ?`,
@@ -74,7 +74,9 @@ export const adminLogin = async (req, res) => {
       user: {
         ...publicUser(userPayload),
         can_create_projects: Number(user.can_create_projects) === 1,
-        can_create_sites: Number(user.can_create_sites) === 1
+        can_create_sites: Number(user.can_create_sites) === 1,
+        // Shows the App release menu item; GET /app-release re-checks it.
+        can_see_technical: Number(user.can_see_technical) === 1
       },
       token: signAdminToken(userPayload)
     });

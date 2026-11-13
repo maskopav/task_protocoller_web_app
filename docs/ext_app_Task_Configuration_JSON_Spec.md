@@ -172,10 +172,21 @@ two exported clips.
   the first repetition only. **`READING`:** the *last* paragraph is the passage to read aloud,
   shown in its own scrollable panel on every repetition (with a single paragraph, that
   paragraph is the passage).
-- `audioExamplePath` — optional example audio, played on demand, never recorded. An absolute
-  `http(s)` URL: the app downloads it when a new config is applied and caches it locally, so it
-  also plays offline afterwards. No key, a non-http value, or a download that failed means no
-  example button. A changed file needs a new URL (the cache is keyed by URL).
+- `audioExamplePath` — optional example audio, played on demand, never recorded. Either an
+  absolute `http(s)` URL, or (apps **1.0.2** and later) a path relative to the app's server base
+  URL, e.g. `audio/illustrations/phonation_a.wav`. The app resolves a relative path (a leading `/`
+  too) against the base it was built with, so `https://malenia.feld.cvut.cz/koubic` gives
+  `https://malenia.feld.cvut.cz/koubic/audio/illustrations/phonation_a.wav`; a `..` that escapes
+  the base, or anything that does not end up `http(s)`, is rejected. The app downloads the file
+  when a new config is applied and caches it locally, so it also plays offline afterwards. No key,
+  a rejected value, or a download that failed means no example button. A changed file needs a new
+  URL (the cache is keyed by the resolved URL).
+  - **What the server sends.** `GET /site-config/:token?appVersion=x.y.z` with a plain `x.y.z` at or
+    above `1.0.2` (integer comparison) gets the relative form, which works on every origin the
+    server is reached by (direct, or behind a proxy that strips a path prefix). A missing,
+    unparseable or older `appVersion` gets the absolute `ASSET_BASE_URL/audio/illustrations/<key>.wav`
+    form that 1.0.0 and 1.0.1 understand, or no `audioExamplePath` when `ASSET_BASE_URL` is unset.
+    `configVersion` does not depend on this (it is derived from row timestamps only).
 - `recordVideo` — optional, default `false`. Also films every take with the camera, alongside
   the audio. The live camera preview replaces the `indicatorType` widget on this task's screen
   (even with `showIndicator: false`). There are no PTZ controls; use a `VIDEO` task (§4.5) for

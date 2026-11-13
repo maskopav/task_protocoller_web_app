@@ -8,6 +8,7 @@
   "myClinic": "My clinic",
   "library": "Library",
   "users": "Users",
+  "appRelease": "App release",
   "admin": "Administration",
   "unreviewed": "{{count}} unreviewed",
   "userMenu": "User menu",
