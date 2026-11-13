@@ -283,6 +283,19 @@ server {
         client_max_body_size 6m;
     }
 
+    # Desktop app releases: large artifact downloads stream unbuffered. Slash
+    # form so /api/version/latest still goes through /api/. See "Desktop app
+    # releases".
+    location /api/version/download/ {
+        proxy_pass http://127.0.0.1:3000/version/download/;
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # MCP for AI assistants (docs/mcp/01_spec.md section 9). JSON only, no SSE.
     # Passes on the outer TLS proxy's X-Forwarded-Proto instead of $scheme
     # (always http in here), so the backend can refuse tokens sent over plain
@@ -330,6 +343,7 @@ never print it):
 
 ```
 DATA_PATH=/srv/task-protocoller/data      # required; one filesystem (atomic rename tmp -> sessions)
+RELEASES_PATH=/srv/task-protocoller/releases   # optional, default shown: desktop app releases (read-only; see "Desktop app releases")
 UPLOAD_MAX_BYTES=4294967296               # optional, default 4 GiB
 QUARANTINE_MAX_BYTES=21474836480          # optional, default 20 GiB: total stored for unregistered devices
 QUARANTINE_MAX_PER_DEVICE=50              # optional: quarantined sessions per unregistered device
@@ -449,6 +463,47 @@ copy of its bytes).
 
 Then run `node src/runBackup.js all` as `taskprot` (or start the timer) once `BACKUP_TARGET` is
 mounted and check `backup_runs`.
+
+## Desktop app releases
+
+The desktop app's auto-updater calls two public routes (no auth): `GET /api/version/latest?platform=<p>`
+and `GET /api/version/download/<version>/<file>` (HEAD and Range supported). The backend only reads
+`RELEASES_PATH` (default `/srv/task-protocoller/releases`); a missing directory means "no release"
+(404). The component URLs in `/latest` are relative, so they resolve correctly whether the server is
+reached directly on `:10001/api` or behind the outer proxy's prefix.
+
+First-time setup (the directory must be readable by `taskprot`; the nginx block is in the site file above):
+
+```bash
+ssh share_web 'install -d -m 755 /srv/task-protocoller/releases'
+```
+
+Layout, one directory per release; only plain `x.y.z` names count (latest = highest by number, so
+1.0.10 beats 1.0.9):
+
+```
+releases/1.0.0/
+  manifest-windows-x86_64.json      {"version":1,"release":"1.0.0","platform":"windows-x86_64","components":[{"id","target","artifact"}, ...]}
+  app.zip  runtime-windows-x86_64.zip  ffmpeg-windows-x86_64.zip  ...   (artifacts the manifests declare)
+  install-*.zip  install-*.tar.gz   (full install bundles, downloadable but not part of an update)
+  <file>.sha256                     (sha256sum format "<hex>  <name>"; hashed on the fly if missing)
+```
+
+Only manifests, the artifacts they declare, install bundles and their `.sha256` files can be
+downloaded. Nothing needs a restart: the directory is read on every request.
+
+Publish with the desktop repo's `tools/release/release.sh`: it copies to `releases/.incoming-<v>`
+and then `mv`s it to `releases/<v>`, so a half-uploaded release is never visible (the dot-prefixed
+name does not match `x.y.z`).
+
+Check:
+
+```bash
+curl http://192.168.122.183:10001/api/version/latest?platform=windows-x86_64
+```
+
+Yank a bad release by deleting its directory (`rm -r /srv/task-protocoller/releases/<v>`); the
+previous version becomes latest immediately.
 
 ## MCP server (AI assistants)
 

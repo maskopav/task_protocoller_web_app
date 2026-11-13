@@ -18,6 +18,7 @@ import uploadsRouter from "./src/routes/uploads.js";
 import { createUploadDownloadsRouter } from "./src/routes/uploadDownloads.js";
 import { createUploadRouter } from "./src/routes/upload.js";
 import { createDeviceLogRouter } from "./src/routes/deviceLogs.js";
+import { createVersionRouter } from "./src/routes/version.js";
 import { createDeviceLogAdminRouter } from "./src/routes/deviceLogsAdmin.js";
 import { startDeviceLogPurge } from "./src/deviceLogs/purge.js";
 import { loadUploadConfig, ensureDataPath, sweepTempFiles } from "./src/config/uploads.js";
@@ -144,6 +145,10 @@ app.use("/auth", authRouter);
 // Public: gated by the site's unguessable access token — this is the endpoint
 // the external desktop app calls (server-to-server, no Origin header).
 app.get("/site-config/:token", siteConfigLimiter, getSiteConfig);
+
+// Public: desktop-app auto-update (latest release + artifact download). Read-only
+// view of RELEASES_PATH; a missing directory just means "no release".
+app.use("/version", createVersionRouter({ releasesPath: process.env.RELEASES_PATH || "/srv/task-protocoller/releases" }));
 
 // Public, gated by the site token: the desktop app reports its local backlog.
 app.post("/device-checkin", createCheckinLimiter(), deviceCheckin);
